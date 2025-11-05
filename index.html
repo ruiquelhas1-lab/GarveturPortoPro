@@ -1,402 +1,192 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Garvetur Porto Pro — Mapa (v2)</title>
-
-<!-- Preconnects -->
-<link rel="preconnect" href="https://unpkg.com" crossorigin>
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link rel="preconnect" href="https://a.tile.openstreetmap.org" crossorigin>
-<link rel="preconnect" href="https://b.tile.openstreetmap.org" crossorigin>
-<link rel="preconnect" href="https://c.tile.openstreetmap.org" crossorigin>
-
-<!-- Leaflet CSS -->
-<link id="leaflet-css" rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
-<!-- MarkerCluster CSS (theme + default) -->
-<link id="mc-css" rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="anonymous">
-<link id="mc-def" rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin="anonymous">
-
-<style>
-:root { --gold:#A38B63; --bg:#0E0E0E; --panel:#131313; --text:#FFFFFF; --muted:#9AA0A6; --blue:#3A6E7A; --green:#3A7A57; }
-html,body { height:100%; margin:0; background:var(--bg); color:var(--text); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
-.app { display:grid; grid-template-columns:360px 1fr; grid-template-rows:64px 1fr; height:100%; }
-header { grid-column:1 / span 2; display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid rgba(163,139,99,.6); background:#0E0E0E; position:sticky; top:0; z-index:10; }
-header .brand { display:flex; align-items:center; gap:12px; }
-header .brand h1 { font-size:18px; margin:0; color:var(--gold); }
-header .actions { display:flex; align-items:center; gap:8px; }
-header .btn { background:transparent; border:1px solid rgba(163,139,99,.5); color:var(--text); padding:8px 10px; border-radius:10px; cursor:pointer; }
-header .btn:hover { border-color:var(--gold); }
-
-.sidebar { background:var(--panel); border-right:1px solid rgba(163,139,99,.2); overflow:auto; }
-.sidebar .section { padding:12px; border-bottom:1px solid rgba(163,139,99,.1); }
-.field { display:flex; gap:8px; margin-top:8px; }
-.field input { flex:1; background:#0E0E0E; color:var(--text); border:1px solid rgba(163,139,99,.4); border-radius:10px; padding:8px 10px; outline:none; }
-.chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
-.chip { font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid rgba(163,139,99,.4); background:#0E0E0E; color:#ddd; cursor:pointer; }
-.chip.active { background:var(--gold); color:#0E0E0E; border-color:var(--gold); }
-
-.summary { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
-.kpi { background:#0E0E0E; border:1px solid rgba(163,139,99,.3); border-radius:10px; padding:8px 10px; font-size:12px; color:#ddd; }
-.kpi .v { font-weight:700; margin-left:6px; }
-.kpi.state-lic { border-color: var(--gold); }
-.kpi.state-con { border-color: var(--green); }
-.kpi.state-emu { border-color: var(--blue); }
-
-.list { padding:8px 12px; }
-.card { border:1px solid rgba(163,139,99,.3); border-radius:14px; padding:10px; margin-bottom:10px; background:#0E0E0E; }
-.card .row { display:flex; justify-content:space-between; gap:8px; }
-.card .name { font-weight:600; }
-.card .meta { font-size:11px; color:#bbb; text-transform:uppercase; letter-spacing:.05em; }
-.card .state { font-size:12px; color:#bbb; margin-top:4px; display:flex; align-items:center; gap:6px; }
-.badge { display:inline-block; height:10px; width:10px; border-radius:999px; }
-.badge.lic { background: var(--gold); }
-.badge.emc { background: var(--blue); }
-.badge.ccl { background: var(--green); }
-.card .actions { margin-top:8px; display:flex; gap:8px; flex-wrap: wrap; }
-.btn-sm { font-size:12px; background:transparent; border:1px solid rgba(163,139,99,.4); color:#ddd; padding:6px 8px; border-radius:8px; cursor:pointer; }
-.btn-sm.primary { background: var(--gold); color:#0E0E0E; border-color: var(--gold); }
-
-#map { width: 100%; height: 100%; }
-.leaflet-popup-content { font-size: 13px; }
-.empty { padding: 12px; color:#bbb; font-size: 13px; }
-.note { padding: 10px 12px; color:#c9c9c9; font-size: 12px; border-top:1px dashed rgba(163,139,99,.3); }
-.hidden { display:none !important; }
-
-@media (max-width: 960px) {
-  .app { grid-template-columns: 1fr; grid-template-rows: 64px 240px 1fr; }
-  .sidebar { grid-row: 2; }
-  #map { grid-row: 3; }
-}
-
-/* MarkerCluster dark tweak */
-.marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
-  background: rgba(163,139,99, .2);
-  border: 2px solid var(--gold);
-  color:#111;
-}
-.marker-cluster div { background: var(--gold); color:#111; }
-</style>
+  <meta charset="UTF-8" />
+  <title>Mapa Empreendimentos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- MarkerCluster CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" />
+  <style>
+    html, body { height: 100%; margin: 0; }
+    body { display: flex; flex-direction: column; }
+    #topbar { background: #fff; padding: 8px 12px; font-family: sans-serif; line-height: 1.5; }
+    #map { flex: 1; }
+    .legend { background: white; padding: 6px 8px; font: 14px/16px Arial, sans-serif; box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 5px; }
+    .legend .legend-circle { display: inline-block; width: 10px; height: 10px; margin-right: 5px; border-radius: 50%; }
+    #filters label { margin-right: 10px; }
+  </style>
 </head>
 <body>
-  <div class="app">
-    <header>
-      <div class="brand">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--gold)"><circle cx="12" cy="12" r="10" stroke-width="1.5"/><path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/></svg>
-        <h1>Garvetur Porto Pro — Mapa (v2)</h1>
-      </div>
-      <div class="actions">
-        <button id="reloadBtn" class="btn">Recarregar</button>
-        <a id="openGeoJson" class="btn" href="#" target="_blank" rel="noreferrer">Abrir GeoJSON</a>
-      </div>
-    </header>
-
-    <aside class="sidebar">
-      <div class="section">
-        <div style="font-size:12px; color:#999; text-transform:uppercase; letter-spacing:.06em">Fonte de dados</div>
-        <div class="field"><input id="urlInput" placeholder="URL do GeoJSON" /></div>
-        <div id="status" class="note">A carregar automaticamente a fonte oficial…</div>
-
-        <div class="summary" id="summaryKpis" aria-live="polite"></div>
-      </div>
-
-      <div class="section">
-        <div style="font-size:12px; color:#999; text-transform:uppercase; letter-spacing:.06em">Filtros</div>
-        <div class="chips">
-          <div class="chip active" data-estado="todos">Todos</div>
-          <div class="chip" data-estado="em_construcao">Em construção</div>
-          <div class="chip" data-estado="licenciado">Licenciado</div>
-          <div class="chip" data-estado="concluido">Concluído</div>
-        </div>
-        <div class="field"><input id="searchInput" placeholder="Pesquisar: nome / concelho / promotor" /></div>
-      </div>
-
-      <div class="section">
-        <div style="font-size:12px; color:#999; text-transform:uppercase; letter-spacing:.06em">Empreendimentos</div>
-      </div>
-      <div id="list" class="list"></div>
-    </aside>
-
-    <div id="map"></div>
+  <div id="topbar">
+    <div id="stats"></div>
+    <div id="filters">
+      <label><input type="checkbox" class="state-filter" value="em_construcao" checked> Em construção</label>
+      <label><input type="checkbox" class="state-filter" value="licenciado" checked> Licenciado</label>
+      <label><input type="checkbox" class="state-filter" value="em_licenciamento" checked> Em licenciamento</label>
+      <label><input type="checkbox" class="state-filter" value="concluido" checked> Concluído</label>
+      <button id="exportBtn">Exportar CSV</button>
+    </div>
   </div>
-
-<!-- Leaflet JS (com fallback) -->
-<script>
-function loadLeafletJS() {
-  return new Promise((resolve, reject) => {
-    if (window.L) return resolve(true);
-    const s1 = document.createElement('script');
-    s1.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    s1.crossOrigin = 'anonymous';
-    s1.defer = true;
-    s1.onload = () => resolve(true);
-    s1.onerror = () => {
-      const s2 = document.createElement('script');
-      s2.src = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';
-      s2.crossOrigin = 'anonymous';
-      s2.defer = true;
-      s2.onload = () => resolve(true);
-      s2.onerror = () => reject(new Error('Leaflet indisponível nos CDNs.'));
-      document.head.appendChild(s2);
+  <div id="map"></div>
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- MarkerCluster JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
+  <!-- PapaParse JS for CSV parsing -->
+  <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+  <script>
+    // Define colors for each estado (categoria)
+    var stateColors = {
+      "em_construcao": "#FF9800",    // laranja
+      "licenciado": "#2196F3",      // azul
+      "em_licenciamento": "#FFC107",// amarelo
+      "concluido": "#4CAF50"        // verde
     };
-    document.head.appendChild(s1);
-  });
-}
-function loadMarkerCluster() {
-  return new Promise((resolve, reject) => {
-    if (window.L && L.MarkerClusterGroup) return resolve(true);
-    const s1 = document.createElement('script');
-    s1.src = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js';
-    s1.crossOrigin = 'anonymous';
-    s1.defer = true;
-    s1.onload = () => resolve(true);
-    s1.onerror = () => {
-      const s2 = document.createElement('script');
-      s2.src = 'https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js';
-      s2.crossOrigin = 'anonymous';
-      s2.defer = true;
-      s2.onload = () => resolve(true);
-      s2.onerror = () => reject(new Error('MarkerCluster indisponível nos CDNs.'));
-      document.head.appendChild(s2);
+    // Mapping estado keys to display labels
+    var stateDisplay = {
+      "em_construcao": "Em construção",
+      "licenciado": "Licenciado",
+      "em_licenciamento": "Em licenciamento",
+      "concluido": "Concluído"
     };
-    document.head.appendChild(s1);
-  });
-}
-</script>
-
-<script>
-// --- CONFIG ---
-const DEFAULT_URL = "https://ruiquelhas1-lab.github.io/Mapa-Porto/data/empreendimentos.geojson";
-const RAW_URL_MAIN = "https://raw.githubusercontent.com/ruiquelhas1-lab/Mapa-Porto/main/data/empreendimentos.geojson";
-const RAW_URL_GHPAGES = "https://raw.githubusercontent.com/ruiquelhas1-lab/Mapa-Porto/gh-pages/data/empreendimentos.geojson";
-
-// --- ESTADO ---
-let rawData = [];
-let layerGroup = null;
-let clusterGroup = null;
-let map = null;
-let activeEstado = 'todos';
-let MAP_READY = false;
-
-// --- ELEMENTOS ---
-const urlInput = document.getElementById('urlInput');
-const reloadBtn = document.getElementById('reloadBtn');
-const openGeoJson = document.getElementById('openGeoJson');
-const searchInput = document.getElementById('searchInput');
-const listEl = document.getElementById('list');
-const chipEls = Array.from(document.querySelectorAll('.chip'));
-const statusEl = document.getElementById('status');
-const summaryKpis = document.getElementById('summaryKpis');
-const mapEl = document.getElementById('map');
-
-// --- HELPERS ---
-function setStatus(msg){ if (statusEl) statusEl.innerHTML = msg; }
-function normalizeEstado(v){
-  if (!v) return '';
-  const s = String(v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ /g,'_');
-  if (s.includes('licen')) return 'licenciado';
-  if (s.includes('conclu') || s.includes('entreg')) return 'concluido';
-  if (s.includes('constr')) return 'em_construcao';
-  return s;
-}
-function colorByEstado(e){
-  switch(e){
-    case 'licenciado': return '#A38B63';   // dourado
-    case 'concluido':  return '#3A7A57';   // verde
-    case 'em_construcao': return '#3A6E7A';// azul petróleo
-    default: return '#888';
-  }
-}
-function badgeClass(e){
-  switch(e){
-    case 'licenciado': return 'lic';
-    case 'concluido': return 'ccl';
-    case 'em_construcao': return 'emc';
-    default: return '';
-  }
-}
-function buildKpis(data){
-  const total = data.length;
-  const by = { licenciado:0, concluido:0, em_construcao:0, outros:0 };
-  data.forEach(p=>{
-    const e = normalizeEstado(p.estado);
-    if (by.hasOwnProperty(e)) by[e]++; else by.outros++;
-  });
-  summaryKpis.innerHTML = `
-    <div class="kpi"><span>Total</span><span class="v">${total}</span></div>
-    <div class="kpi state-lic"><span>Licenciado</span><span class="v">${by.licenciado}</span></div>
-    <div class="kpi state-emu"><span>Em construção</span><span class="v">${by.em_construcao}</span></div>
-    <div class="kpi state-con"><span>Concluído</span><span class="v">${by.concluido}</span></div>
-  `;
-}
-
-// --- LISTA ---
-function renderList(data){
-  buildKpis(data);
-  listEl.innerHTML = '';
-  if (!data.length){ listEl.innerHTML = '<div class="empty">Sem resultados com os filtros atuais.</div>'; return; }
-  data.forEach(p=>{
-    const e = normalizeEstado(p.estado);
-    const div = document.createElement('div');
-    div.className = 'card';
-    div.innerHTML = `
-      <div class="row">
-        <div class="name">${p.nome || '—'}</div>
-        <div class="meta">${p.concelho || '—'}</div>
-      </div>
-      <div class="state"><span class="badge ${badgeClass(e)}"></span> ${e || '—'}</div>
-      <div class="actions">
-        ${MAP_READY && Number.isFinite(p._lat) && Number.isFinite(p._lng) ? '<button class="btn-sm" data-action="zoom">Abrir no mapa</button>' : ''}
-        ${p.link ? '<a class="btn-sm" target="_blank" rel="noreferrer" href="'+p.link+'">Abrir link</a>' : ''}
-      </div>`;
-    const btn = div.querySelector('[data-action="zoom"]');
-    if (btn) btn.addEventListener('click', ()=> map.setView([p._lat, p._lng], 16, { animate:true }));
-    listEl.appendChild(div);
-  });
-}
-
-// --- FILTROS + MAPA ---
-function applyFilters(){
-  const q = searchInput.value.trim().toLowerCase();
-  const filtered = rawData.filter(p=>{
-    const e = normalizeEstado(p.estado);
-    const eok = activeEstado === 'todos' || e === activeEstado;
-    const sok = !q || [p.nome, p.concelho, p.promotor].some(v => String(v||'').toLowerCase().includes(q));
-    return eok && sok;
-  });
-  renderList(filtered);
-
-  if (!MAP_READY) return;
-
-  clusterGroup.clearLayers();
-  filtered.forEach(p=>{
-    if (!Number.isFinite(p._lat) || !Number.isFinite(p._lng)) return;
-    const color = colorByEstado(normalizeEstado(p.estado));
-    const marker = L.circleMarker([p._lat, p._lng], { radius:7, color, weight:2, fillColor:color, fillOpacity:0.25 });
-    marker.bindTooltip(`${p.nome || '—'}<br><small>${p.concelho || '—'} · ${normalizeEstado(p.estado) || '—'}</small>`, {direction:'top', offset:[0,-6]});
-    marker.bindPopup(`
-      <div style="font-weight:600; color:#111;">${p.nome || '—'}</div>
-      <div style="font-size:12px; color:#555;">${p.concelho || '—'} · ${normalizeEstado(p.estado) || '—'}</div>
-      ${p.link ? '<div style="margin-top:6px;"><a href="'+p.link+'" target="_blank" rel="noreferrer">Abrir link</a></div>' : ''}
-    `);
-    clusterGroup.addLayer(marker);
-  });
-  if (clusterGroup.getLayers().length){
-    map.fitBounds(clusterGroup.getBounds().pad(0.2));
-  }
-}
-
-// ---------- FETCH ROBUSTO ----------
-function sanitizeToJSON(txt){
-  return txt
-    .replace(/^\uFEFF/, '')         // BOM
-    .replace(/\bNaN\b/g, 'null')    // NaN -> null
-    .replace(/\bInfinity\b/g, 'null')
-    .replace(/\b-Infinity\b/g, 'null')
-    .replace(/,\s*([}\]])/g, '$1'); // vírgulas finais
-}
-function parseJSONSafe(txt){
-  const safe = sanitizeToJSON(txt);
-  return JSON.parse(safe);
-}
-async function fetchAsTextNoCache(url){
-  const bust = url.includes('?') ? `&t=${Date.now()}` : `?t=${Date.now()}`;
-  const r = await fetch(url + bust, { cache:'no-store' });
-  if (!r.ok) throw new Error(`HTTP ${r.status} @ ${url}`);
-  return await r.text();
-}
-
-// --- CARREGAR DADOS (multi-fonte) ---
-async function loadData(){
-  const entered = (urlInput.value || '').trim();
-  const candidates = [entered || DEFAULT_URL, DEFAULT_URL, RAW_URL_MAIN, RAW_URL_GHPAGES]
-    .filter((v,i,arr)=>v && arr.indexOf(v)===i);
-  const errors = [];
-
-  listEl.innerHTML = '<div class="empty">A carregar dados…</div>';
-  setStatus('A ler dados das fontes: <code>' + candidates.join('</code> → <code>') + '</code>');
-
-  for (const url of candidates){
-    try{
-      const txt = await fetchAsTextNoCache(url);
-      const gj = parseJSONSafe(txt);
-      const feats = Array.isArray(gj.features) ? gj.features : [];
-      rawData = feats.map(f=>{
-        const p = f?.properties || {};
-        const mapName = (obj, keys) => { for (const k of keys) if (obj[k] != null && obj[k] !== '') return obj[k]; return ''; };
-        const nome = mapName(p, ['nome','name','titulo','título','projecto','projeto']);
-        const concelho = mapName(p, ['concelho','municipio','município','city','local']);
-        const estado = mapName(p, ['estado','status']);
-        const promotor = mapName(p, ['promotor','developer','owner']);
-        const tipologias = mapName(p, ['tipologias','tipologia','typologies','types']);
-        const conclusao = mapName(p, ['conclusao','conclusão','conclusao_prevista','completion','entrega']);
-        const preco_m2 = mapName(p, ['preco_m2','preco_med_m2','preco_medio_m2','price_m2','price_per_sqm','preço_m2']);
-        const notas = mapName(p, ['notas','observacoes','observações','notes']);
-        const link = mapName(p, ['link','url','website']);
-
-        let lat = null, lng = null;
-        if (f?.geometry?.type === 'Point' && Array.isArray(f.geometry.coordinates)){
-          const [x,y] = f.geometry.coordinates;
-          const nx = Number(x), ny = Number(y);
-          lng = Number.isFinite(nx) ? nx : null;
-          lat = Number.isFinite(ny) ? ny : null;
-        }
-        return { nome, concelho, estado, promotor, tipologias, conclusao, preco_m2, notas, link, _lat:lat, _lng:lng };
-      });
-
-      urlInput.value = url;
-      openGeoJson.href = url;
-      localStorage.setItem('gpp_geojson_url', url);
-      setStatus('✅ Dados carregados (' + rawData.length + ' registos) de <code>' + url + '</code>.');
-      applyFilters();
-      return;
-    }catch(e){
-      console.warn('Falha em', url, e);
-      errors.push(`${url} → ${e.message}`);
-      continue;
+    // Normalize estado text to key
+    function normalizeEstado(text) {
+      if (!text) return "";
+      text = text.toLowerCase();
+      text = text.replace(/ç/g, "c").replace(/ã/g, "a").replace(/í/g, "i").replace(/ú/g, "u").replace(/é/g, "e").replace(/ /g, "_");
+      text = text.replace(/[^\w]/g, ""); // remove other non-word chars
+      return text;
     }
-  }
-
-  setStatus('❌ Falha ao carregar o GeoJSON nas fontes testadas:<br><small>' + errors.join('<br>') + '</small>');
-  listEl.innerHTML = '<div class="empty">Falha ao carregar o GeoJSON.</div>';
-  if (MAP_READY) clusterGroup?.clearLayers();
-}
-
-// --- INIT ---
-(async function init(){
-  // Fonte preenchida no arranque
-  const saved = localStorage.getItem('gpp_geojson_url');
-  urlInput.value = saved || DEFAULT_URL;
-  openGeoJson.href = urlInput.value;
-
-  // Leaflet e MarkerCluster
-  try{
-    await loadLeafletJS();
-    await loadMarkerCluster();
-    map = L.map('map', { zoomControl:true, scrollWheelZoom:true }).setView([41.15, -8.61], 11);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(map);
-    clusterGroup = L.markerClusterGroup({ showCoverageOnHover:false, disableClusteringAtZoom:17 });
-    map.addLayer(clusterGroup);
-    MAP_READY = true;
-  }catch(e){
-    MAP_READY = false;
-    mapEl?.classList.add('hidden');
-    setStatus('ℹ️ Modo sem mapa: Leaflet/MarkerCluster indisponíveis. Lista e filtros continuam a funcionar.');
-    console.warn(e);
-  }
-
-  chipEls.forEach(chip => chip.addEventListener('click', () => {
-    chipEls.forEach(c => c.classList.remove('active'));
-    chip.classList.add('active');
-    activeEstado = chip.dataset.estado || 'todos';
-    applyFilters();
-  }));
-  searchInput.addEventListener('input', applyFilters);
-  reloadBtn.addEventListener('click', loadData);
-
-  await loadData();
-})();
-</script>
+    // Initialize map
+    var map = L.map('map');
+    // Add OpenStreetMap base tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    // Marker cluster group
+    var markersCluster = L.markerClusterGroup();
+    // Hold markers by estado for filtering
+    var markersByState = {};
+    // Will store CSV fields for export
+    var csvFields;
+    // Fetch and load CSV data
+    Papa.parse('data/empreendimentos_utf8.csv', {
+      download: true,
+      header: true,
+      delimiter: ";",
+      skipEmptyLines: true,
+      complete: function(results) {
+        csvFields = results.meta.fields;
+        var data = results.data;
+        // Calculate counts
+        var total = 0;
+        var counts = { "em_construcao": 0, "licenciado": 0, "em_licenciamento": 0, "concluido": 0 };
+        data.forEach(function(item) {
+          var estadoKey = normalizeEstado(item.estado || item['estado']);
+          if (!estadoKey || !stateDisplay[estadoKey]) return;
+          var latStr = item.latitude && item.latitude.trim();
+          var lonStr = item.longitude && item.longitude.trim();
+          if (!latStr || !lonStr) return;
+          latStr = latStr.replace(',', '.');
+          lonStr = lonStr.replace(',', '.');
+          var lat = parseFloat(latStr);
+          var lon = parseFloat(lonStr);
+          if (isNaN(lat) || isNaN(lon)) return;
+          total++;
+          counts[estadoKey] = (counts[estadoKey] || 0) + 1;
+          // Create marker with colored icon
+          var color = stateColors[estadoKey] || "#000";
+          var icon = L.divIcon({ html: '<div style="background:' + color + '; width:12px; height:12px; border-radius:50%;"></div>', iconSize: [12, 12], iconAnchor: [6, 6] });
+          var marker = L.marker([lat, lon], { icon: icon });
+          marker.original = item;
+          // Popup content for marker
+          var popupHtml = '<strong>' + (item.nome || 'Empreendimento') + '</strong>';
+          if (item.notas) popupHtml += '<br>' + item.notas;
+          popupHtml += '<br><em>' + stateDisplay[estadoKey] + '</em>';
+          if (item.conclusao) popupHtml += '<br>Conclusão: ' + item.conclusao;
+          if (item.Link) {
+            var linkUrl = item.Link;
+            if (linkUrl && !/^https?:\/\//.test(linkUrl)) {
+              linkUrl = 'http://' + linkUrl;
+            }
+            popupHtml += '<br><a href="' + linkUrl + '" target="_blank">Mais informações</a>';
+          }
+          marker.bindPopup(popupHtml);
+          if (!markersByState[estadoKey]) {
+            markersByState[estadoKey] = [];
+          }
+          markersByState[estadoKey].push(marker);
+          markersCluster.addLayer(marker);
+        });
+        // Add cluster group to map and fit bounds
+        map.addLayer(markersCluster);
+        if (total > 0) {
+          map.fitBounds(markersCluster.getBounds());
+        } else {
+          map.setView([41.15, -8.6], 12);
+        }
+        // Update stats display (KPIs por estado)
+        var statsText = 'Total: ' + total;
+        var categories = ['em_construcao','licenciado','em_licenciamento','concluido'];
+        categories.forEach(function(cat) {
+          statsText += ' | ' + stateDisplay[cat] + ': ' + (counts[cat] || 0);
+        });
+        document.getElementById('stats').textContent = statsText;
+      }
+    });
+    // Legend (visualização das cores por estado)
+    var legend = L.control({ position: 'bottomright' });
+    legend.onAdd = function(map) {
+      var div = L.DomUtil.create('div', 'legend');
+      var categories = ['em_licenciamento', 'licenciado', 'em_construcao', 'concluido'];
+      categories.forEach(function(cat) {
+        var label = stateDisplay[cat] || cat;
+        var color = stateColors[cat] || '#000';
+        div.innerHTML += '<span class="legend-circle" style="background:' + color + '"></span> ' + label + '<br>';
+      });
+      return div;
+    };
+    legend.addTo(map);
+    // Filtro por estado (checkboxes)
+    document.querySelectorAll('.state-filter').forEach(function(cb) {
+      cb.addEventListener('change', function() {
+        var stateKey = cb.value;
+        if (cb.checked) {
+          if (markersByState[stateKey]) {
+            markersByState[stateKey].forEach(function(m) {
+              markersCluster.addLayer(m);
+            });
+          }
+        } else {
+          if (markersByState[stateKey]) {
+            markersByState[stateKey].forEach(function(m) {
+              markersCluster.removeLayer(m);
+            });
+          }
+        }
+      });
+    });
+    // Exportar CSV dos resultados filtrados
+    document.getElementById('exportBtn').addEventListener('click', function() {
+      var allMarkers = markersCluster.getAllChildMarkers();
+      if (!allMarkers || allMarkers.length === 0) {
+        alert('Não há empreendimentos filtrados para exportar.');
+        return;
+      }
+      var exportData = allMarkers.map(function(m) { return m.original; });
+      var csv = Papa.unparse({ fields: csvFields, data: exportData }, { delimiter: ";" });
+      var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'empreendimentos_filtrados.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    });
+  </script>
 </body>
 </html>
