@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Garvetur Porto Pro — Mapa (pins + pesquisa por ano + foco AMP)</title>
+  <title>Garvetur Porto Pro — Mapa (concelho + limpar filtros)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Preconnects -->
   <link rel="preconnect" href="https://unpkg.com" crossorigin>
@@ -35,33 +35,34 @@
       display:flex; gap:12px; flex-wrap:wrap; align-items:center;
     }
     #stats { font-size: 14px; color:#E6E6E6; margin-right:auto; }
-    #filters { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
-    #filters label { font-size: 13px; color:#D9D9D9; }
-    #filters input { transform: translateY(1px); }
 
-    .searchWrap {
+    .searchWrap, .selectWrap {
       display:flex; align-items:center; gap:8px;
       background:#121212; border:1px solid rgba(255,255,255,.12);
       border-radius:10px; padding:6px 10px;
     }
-    .searchWrap input {
-      background:transparent; border:none; color:#fff; outline:none; width:220px;
+    .searchWrap input { background:transparent; border:none; color:#fff; outline:none; width:220px; }
+    .selectWrap select {
+      background:#121212; color:#fff; border:none; outline:none; min-width:180px;
     }
 
-    #focusBtn, #exportBtn {
+    #filters { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    #filters label { font-size: 13px; color:#D9D9D9; }
+    #filters input { transform: translateY(1px); }
+
+    .actionBtn {
       background: transparent; border:1px solid rgba(255,209,102,.5); color:#fff;
       padding:6px 10px; border-radius:8px; cursor:pointer;
     }
-    #focusBtn:hover, #exportBtn:hover { border-color: var(--gold); }
+    .actionBtn:hover { border-color: var(--gold); }
 
-    #map { height: calc(100% - 62px); }
+    #map { height: calc(100% - 66px); }
 
     /* Legenda (subida ligeiramente) */
     .legend { background: #0F0F0F; color:#fff; padding: 8px 10px; font: 12px/14px Arial, sans-serif;
       box-shadow: 0 0 15px rgba(0,0,0,0.3); border-radius: 8px; border:1px solid rgba(255,255,255,.06); }
     .legend .row { display:flex; align-items:center; gap:8px; margin:4px 0; }
     .legend .color { width:12px; height:12px; border-radius:50%; border:1px solid rgba(0,0,0,.2); }
-    /* sobe a legenda ~20px na âncora bottom-left */
     .leaflet-bottom.leaflet-left .legend { margin-bottom: 20px; }
 
     /* Clusters com dourado */
@@ -94,6 +95,13 @@
       <input id="yearSearch" placeholder="Ano/Conclusão (ex.: 2027 ou Q2 2026)" />
     </div>
 
+    <div class="selectWrap" title="Filtrar por Concelho">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      <select id="concelhoSelect">
+        <option value="">Todos os Concelhos</option>
+      </select>
+    </div>
+
     <div id="filters">
       <label><input type="checkbox" class="state-filter" value="em_construcao" checked> Em construção</label>
       <label><input type="checkbox" class="state-filter" value="licenciado" checked> Licenciado</label>
@@ -101,8 +109,9 @@
       <label><input type="checkbox" class="state-filter" value="concluido" checked> Concluído</label>
     </div>
 
-    <button id="focusBtn" title="Recentrar no Grande Porto (AMP)">Focar AMP/Porto</button>
-    <button id="exportBtn" title="Exporta os empreendimentos visíveis/filtrados">Exportar CSV</button>
+    <button id="focusBtn" class="actionBtn" title="Recentrar no Grande Porto (AMP)">Focar AMP/Porto</button>
+    <button id="clearBtn" class="actionBtn" title="Repõe todos os filtros e pesquisas">Limpar filtros</button>
+    <button id="exportBtn" class="actionBtn" title="Exporta os empreendimentos visíveis/filtrados">Exportar CSV</button>
   </div>
   <div id="map"></div>
 
@@ -215,11 +224,13 @@
     }
 
     (async function init(){
-      const statsEl   = document.getElementById('stats');
-      const searchEl  = document.getElementById('search');
-      const yearEl    = document.getElementById('yearSearch');
-      const exportBtn = document.getElementById('exportBtn');
-      const focusBtn  = document.getElementById('focusBtn');
+      const statsEl    = document.getElementById('stats');
+      const searchEl   = document.getElementById('search');
+      const yearEl     = document.getElementById('yearSearch');
+      const concSel    = document.getElementById('concelhoSelect');
+      const exportBtn  = document.getElementById('exportBtn');
+      const focusBtn   = document.getElementById('focusBtn');
+      const clearBtn   = document.getElementById('clearBtn');
 
       // 1) Leaflet + Cluster
       try { await loadLeafletStack(); }
@@ -242,7 +253,7 @@
 
       // Dados
       const markersByState = {};           // estado -> [markers]
-      const allMarkers = [];               // [{marker, estadoKey, nome, concelho, notas, conclusaoLower, conclusaoYear, link, lat, lng}]
+      const allMarkers = [];               // [{marker, estadoKey, nome, concelhoLower, notas, conclusaoLower, conclusaoYear, concelhoRaw, link, lat, lng}]
       let allRowsForExport = [];           // para CSV
       let usedUrl = '';
 
@@ -263,9 +274,10 @@
         return;
       }
 
-      // 4) Construir marcadores
+      // 4) Construir marcadores + recolher concelhos
       let total = 0;
       const counts = { licenciado:0, em_construcao:0, concluido:0, em_licenciamento:0 };
+      const concelhosSet = new Set();
 
       gj.features.forEach(f=>{
         const p = f?.properties || {};
@@ -276,7 +288,10 @@
         if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
 
         const nome = p.nome || p.name || 'Empreendimento';
-        const concelho = p.concelho || p.municipio || '';
+        const concelhoRaw = p.concelho || p.municipio || '';
+        const concelhoLower = String(concelhoRaw||'').toLowerCase();
+        if (concelhoRaw) concelhosSet.add(concelhoRaw);
+
         const estadoKey = normalizeEstado(p.estado || p.status);
         const estadoLabel = stateDisplay[estadoKey] || (p.estado || p.status || '');
         const conclusao = p.conclusao || p['conclusao_prevista'] || p['completion'] || '';
@@ -293,7 +308,7 @@
         const tooltipHtml = `
           <div style="min-width:220px">
             <div style="font-weight:700; font-size:13px; margin-bottom:4px;">${nome}</div>
-            <div style="font-size:12px; color:#ccc;">${concelho ? concelho + ' · ' : ''}${estadoLabel}</div>
+            <div style="font-size:12px; color:#ccc;">${concelhoRaw ? concelhoRaw + ' · ' : ''}${estadoLabel}</div>
             ${conclusao ? `<div style="font-size:12px; margin-top:4px;"><strong>Conclusão:</strong> ${conclusao}</div>` : ''}
             ${notas ? `<div style="font-size:12px; margin-top:4px; color:#ddd;">${String(notas).length>160 ? (String(notas).substring(0,157)+'…') : notas}</div>` : ''}
           </div>
@@ -303,7 +318,7 @@
         let link = p.link || p.url || p.website || '';
         let popup = `<div style="min-width:240px">
           <div style="font-weight:700; font-size:14px; margin-bottom:6px; color:#111;">${nome}</div>
-          <div style="font-size:12px; color:#444;">${concelho ? concelho + ' · ' : ''}${estadoLabel}</div>
+          <div style="font-size:12px; color:#444;">${concelhoRaw ? concelhoRaw + ' · ' : ''}${estadoLabel}</div>
           ${conclusao ? `<div style="font-size:12px; margin-top:6px;"><strong>Conclusão:</strong> ${conclusao}</div>` : ''}
           ${notas ? `<div style="font-size:12px; margin-top:6px;">${notas}</div>` : ''}
         `;
@@ -314,18 +329,19 @@
         popup += `</div>`;
         marker.bindPopup(popup);
 
-        // Campos para pesquisa
-        const conclusaoLower = String(conclusao || '').toLowerCase();
-        const yearMatch = /(\b20\d{2}\b)/.exec(conclusaoLower); // extrai ano tipo 2026, 2027...
-        const conclusaoYear = yearMatch ? yearMatch[1] : '';
-
         if (!markersByState[estadoKey]) markersByState[estadoKey] = [];
         markersByState[estadoKey].push(marker);
+
+        // campos para filtros/pesquisa
+        const conclusaoLower = String(conclusao || '').toLowerCase();
+        const yearMatch = /(\b20\d{2}\b)/.exec(conclusaoLower);
+        const conclusaoYear = yearMatch ? yearMatch[1] : '';
 
         allMarkers.push({
           marker, estadoKey,
           nome: (nome||'').toLowerCase(),
-          concelho: (concelho||'').toLowerCase(),
+          concelhoLower,
+          concelhoRaw,
           notas: (notas||'').toLowerCase(),
           conclusaoLower,
           conclusaoYear,
@@ -333,10 +349,18 @@
         });
 
         allRowsForExport.push({
-          nome, concelho, estado: estadoLabel, conclusao, notas, link, latitude: lat, longitude: lng
+          nome, concelho: concelhoRaw, estado: estadoLabel, conclusao, notas, link, latitude: lat, longitude: lng
         });
 
         cluster.addLayer(marker);
+      });
+
+      // Popular dropdown de concelho (ordenado)
+      Array.from(concelhosSet).sort((a,b)=>a.localeCompare(b,'pt')).forEach(c=>{
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        concSel.appendChild(opt);
       });
 
       // Enquadrar
@@ -359,20 +383,20 @@
       }
       updateKPIs(allMarkers);
 
-      // 5) Filtros + Pesquisa (inclui Ano/Conclusão)
+      // 5) Filtros + Pesquisa + Concelho + Ano/Conclusão
       function matchesYear(o, yq){
         if (!yq) return true;
         const s = yq.toLowerCase().trim();
-        // Se o utilizador introduz um ano de 4 dígitos, priorizamos match direto por ano
         const yr = /^\d{4}$/.test(s) ? s : null;
         if (yr) return (o.conclusaoYear === yr);
-        // Caso contrário, faz match textual no campo conclusão (ex.: "Q2 2026", "2º trimestre 2027")
         return o.conclusaoLower.includes(s);
       }
 
       function applyFilters(){
-        const q  = (searchEl.value || '').trim().toLowerCase();     // nome, concelho, notas
-        const yq = (yearEl.value || '').trim();                      // ano/Conclusão
+        const q   = (searchEl.value || '').trim().toLowerCase();
+        const yq  = (yearEl.value || '').trim();
+        const sel = (concSel.value || '').toLowerCase();
+
         const allowed = new Set(
           Array.from(document.querySelectorAll('.state-filter'))
             .filter(cb => cb.checked)
@@ -383,11 +407,9 @@
 
         const filtered = allMarkers.filter(o => {
           if (!allowed.has(o.estadoKey)) return false;
+          if (sel && o.concelhoLower !== sel.toLowerCase()) return false;
 
-          // Pesquisa geral
-          const textOk = !q || o.nome.includes(q) || o.concelho.includes(q) || o.notas.includes(q);
-
-          // Pesquisa por ano/Conclusão
+          const textOk = !q || o.nome.includes(q) || o.concelhoLower.includes(q) || o.notas.includes(q);
           const conclOk = matchesYear(o, yq);
 
           return textOk && conclOk;
@@ -406,8 +428,18 @@
       let to1=null, to2=null;
       searchEl.addEventListener('input', ()=>{ clearTimeout(to1); to1=setTimeout(applyFilters, 150); });
       yearEl.addEventListener('input',   ()=>{ clearTimeout(to2); to2=setTimeout(applyFilters, 150); });
+      concSel.addEventListener('change', applyFilters);
 
-      // 6) Export CSV (visível)
+      // 6) Botão Limpar filtros
+      clearBtn.addEventListener('click', ()=>{
+        searchEl.value = '';
+        yearEl.value   = '';
+        concSel.value  = '';
+        document.querySelectorAll('.state-filter').forEach(cb => cb.checked = true);
+        applyFilters();
+      });
+
+      // 7) Export CSV (visível)
       exportBtn.addEventListener('click', () => {
         const visible = cluster.getAllChildMarkers();
         if (!visible || !visible.length) {
@@ -432,7 +464,7 @@
         document.body.removeChild(a);
       });
 
-      // 7) Legenda
+      // 8) Legenda
       const legend = L.control({ position: 'bottomleft' });
       legend.onAdd = function() {
         const div = L.DomUtil.create('div', 'legend');
