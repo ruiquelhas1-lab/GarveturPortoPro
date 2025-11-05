@@ -2,9 +2,9 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Garvetur Porto Pro — Mapa (pins + tooltips)</title>
+  <title>Garvetur Porto Pro — Mapa (pins + pesquisa + foco AMP)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Preconnects (performance) -->
+  <!-- Preconnects -->
   <link rel="preconnect" href="https://unpkg.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://a.tile.openstreetmap.org" crossorigin>
@@ -26,19 +26,36 @@
       --yellow:#FFC107;   /* em licenciamento (se existir) */
     }
     html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
-    #topbar { background: #0F0F0F; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,.08); display:flex; gap:16px; flex-wrap:wrap; align-items:center; }
-    #stats { font-size: 14px; color:#E6E6E6; }
+
+    /* Topbar */
+    #topbar {
+      background: #0F0F0F;
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      display:flex; gap:12px; flex-wrap:wrap; align-items:center;
+    }
+    #stats { font-size: 14px; color:#E6E6E6; margin-right:auto; }
     #filters { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
     #filters label { font-size: 13px; color:#D9D9D9; }
     #filters input { transform: translateY(1px); }
-    #exportBtn { background: transparent; border:1px solid rgba(255,209,102,.5); color:#fff; padding:6px 10px; border-radius:8px; cursor:pointer; }
-    #exportBtn:hover { border-color: var(--gold); }
-    #map { height: calc(100% - 58px); }
 
-    .legend { background: #0F0F0F; color:#fff; padding: 8px 10px; font: 12px/14px Arial, sans-serif; box-shadow: 0 0 15px rgba(0,0,0,0.3); border-radius: 8px; border:1px solid rgba(255,255,255,.06); }
+    #searchWrap { display:flex; align-items:center; gap:8px; background:#121212; border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:6px 10px; }
+    #search { background:transparent; border:none; color:#fff; outline:none; width:220px; }
+    #focusBtn, #exportBtn {
+      background: transparent; border:1px solid rgba(255,209,102,.5); color:#fff;
+      padding:6px 10px; border-radius:8px; cursor:pointer;
+    }
+    #focusBtn:hover, #exportBtn:hover { border-color: var(--gold); }
+
+    #map { height: calc(100% - 62px); }
+
+    /* Legenda */
+    .legend { background: #0F0F0F; color:#fff; padding: 8px 10px; font: 12px/14px Arial, sans-serif;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3); border-radius: 8px; border:1px solid rgba(255,255,255,.06); }
     .legend .row { display:flex; align-items:center; gap:8px; margin:4px 0; }
     .legend .color { width:12px; height:12px; border-radius:50%; border:1px solid rgba(0,0,0,.2); }
 
+    /* Clusters com dourado */
     .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
       background: rgba(255,209,102, .15);
       border: 2px solid var(--gold);
@@ -46,38 +63,46 @@
     }
     .marker-cluster div { background: var(--gold); color:#111; }
 
+    /* Tooltip dark-friendly */
     .leaflet-tooltip { background:#111; color:#fff; border:1px solid rgba(255,255,255,.1); border-radius:8px; box-shadow: 0 2px 10px rgba(0,0,0,.4); }
-    .leaflet-tooltip-top:before, .leaflet-tooltip-bottom:before, .leaflet-tooltip-left:before, .leaflet-tooltip-right:before { border-top-color:#111 !important; border-bottom-color:#111 !important; border-left-color:#111 !important; border-right-color:#111 !important; }
+    .leaflet-tooltip-top:before, .leaflet-tooltip-bottom:before, .leaflet-tooltip-left:before, .leaflet-tooltip-right:before {
+      border-top-color:#111 !important; border-bottom-color:#111 !important;
+      border-left-color:#111 !important; border-right-color:#111 !important;
+    }
   </style>
 </head>
 <body>
   <div id="topbar">
     <div id="stats">A carregar…</div>
+
+    <div id="searchWrap" title="Pesquisar por nome, concelho ou notas">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input id="search" placeholder="Pesquisar empreendimentos…" />
+    </div>
+
     <div id="filters">
       <label><input type="checkbox" class="state-filter" value="em_construcao" checked> Em construção</label>
       <label><input type="checkbox" class="state-filter" value="licenciado" checked> Licenciado</label>
       <label><input type="checkbox" class="state-filter" value="em_licenciamento" checked> Em licenciamento</label>
       <label><input type="checkbox" class="state-filter" value="concluido" checked> Concluído</label>
-      <button id="exportBtn" title="Exporta os empreendimentos visíveis/filtrados">Exportar CSV</button>
     </div>
+
+    <button id="focusBtn" title="Recentrar no Grande Porto (AMP)">Focar AMP/Porto</button>
+    <button id="exportBtn" title="Exporta os empreendimentos visíveis/filtrados">Exportar CSV</button>
   </div>
   <div id="map"></div>
 
-  <!-- Leaflet + MarkerCluster (com fallback JS) -->
+  <!-- Loader de scripts com fallback -->
   <script>
     function loadScript(srcPrimary, srcBackup){
       return new Promise((resolve, reject)=>{
         const s1 = document.createElement('script');
-        s1.src = srcPrimary;
-        s1.crossOrigin = 'anonymous';
-        s1.defer = true;
+        s1.src = srcPrimary; s1.crossOrigin = 'anonymous'; s1.defer = true;
         s1.onload = ()=> resolve(true);
         s1.onerror = ()=>{
           if (!srcBackup) return reject(new Error('Falha no CDN primário: ' + srcPrimary));
           const s2 = document.createElement('script');
-          s2.src = srcBackup;
-          s2.crossOrigin = 'anonymous';
-          s2.defer = true;
+          s2.src = srcBackup; s2.crossOrigin = 'anonymous'; s2.defer = true;
           s2.onload = ()=> resolve(true);
           s2.onerror = ()=> reject(new Error('Falha nos CDNs: ' + srcPrimary + ' e ' + srcBackup));
           document.head.appendChild(s2);
@@ -86,6 +111,8 @@
       });
     }
   </script>
+
+  <!-- Leaflet + MarkerCluster -->
   <script>
     const DEFAULT_GEOJSON = "https://ruiquelhas1-lab.github.io/Mapa-Porto/data/empreendimentos.geojson";
     const RAW_MAIN       = "https://raw.githubusercontent.com/ruiquelhas1-lab/Mapa-Porto/main/data/empreendimentos.geojson";
@@ -163,7 +190,6 @@
     }
 
     async function loadLeafletStack(){
-      // CSS já está linkado; carregar JS com fallback
       await loadScript(
         'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
         'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js'
@@ -176,48 +202,53 @@
 
     (async function init(){
       const statsEl = document.getElementById('stats');
+      const searchEl = document.getElementById('search');
+      const exportBtn = document.getElementById('exportBtn');
+      const focusBtn  = document.getElementById('focusBtn');
 
-      // 1) Carregar Leaflet + Cluster (com fallback)
-      try {
-        await loadLeafletStack();
-      } catch(e) {
+      // 1) Leaflet + Cluster
+      try { await loadLeafletStack(); }
+      catch(e){
         document.body.style.background = '#fff';
         document.body.innerHTML = '<div style="padding:16px;font-family:Arial">❌ Falha a carregar bibliotecas do mapa (CDNs bloqueados). Tente noutro browser/rede.</div>';
         return;
       }
 
-      // 2) Inicializar mapa
+      // 2) Mapa
       const map = L.map('map');
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(map);
       const cluster = L.markerClusterGroup({ showCoverageOnHover:false, disableClusteringAtZoom:17 });
       map.addLayer(cluster);
 
-      const markersByState = {};
-      let allRowsForExport = []; // para export CSV do filtrado
+      // Limites da AMP/Porto (aprox.)
+      const AMP_BOUNDS = L.latLngBounds([[41.05, -8.75], [41.25, -8.45]]);
+      function focusAMP(){ map.fitBounds(AMP_BOUNDS.pad(0.1)); }
+      focusBtn.addEventListener('click', focusAMP);
 
-      // 3) Buscar GeoJSON (multi-fonte)
+      // Estruturas de dados
+      const markersByState = {};    // estado -> [markers]
+      const allMarkers = [];        // [{marker, estadoKey, nome, concelho, notas, conclusao, link}]
+      let allRowsForExport = [];    // para CSV
+      let usedUrl = '';
+
+      // 3) GeoJSON (multi-fonte)
       const candidates = [DEFAULT_GEOJSON, RAW_MAIN, RAW_GHPAGES];
       const errors = [];
-      let gj = null, usedUrl = '';
-
+      let gj = null;
       for (const url of candidates) {
         try {
           const txt = await fetchTextNoCache(url);
           gj = parseJSONSafe(txt);
           usedUrl = url;
           break;
-        } catch (e) {
-          errors.push(url + ' → ' + e.message);
-          continue;
-        }
+        } catch (e) { errors.push(url + ' → ' + e.message); }
       }
-
       if (!gj || !Array.isArray(gj.features)) {
         statsEl.innerHTML = '❌ Falha a carregar dados. <small>' + errors.join(' · ') + '</small>';
         return;
       }
 
-      // 4) Processar features → marcadores
+      // 4) Construir marcadores
       let total = 0;
       const counts = { licenciado:0, em_construcao:0, concluido:0, em_licenciamento:0 };
 
@@ -242,7 +273,7 @@
         counts[estadoKey] = (counts[estadoKey] || 0) + 1;
 
         const icon = makePinIcon(stateColors[estadoKey] || '#BBBBBB');
-        const marker = L.marker([lat, lng], { icon });
+        const marker = L.marker([lat, lng], { icon, title: nome });
 
         const tooltipHtml = `
           <div style="min-width:220px">
@@ -268,11 +299,12 @@
         popup += `</div>`;
         marker.bindPopup(popup);
 
-        // guardar por estado
+        // Guardar
         if (!markersByState[estadoKey]) markersByState[estadoKey] = [];
         markersByState[estadoKey].push(marker);
 
-        // para exportação
+        allMarkers.push({ marker, estadoKey, nome: (nome||'').toLowerCase(), concelho: (concelho||'').toLowerCase(), notas: (notas||'').toLowerCase(), conclusao, link, lat, lng });
+
         allRowsForExport.push({
           nome, concelho, estado: estadoLabel, conclusao, notas, link, latitude: lat, longitude: lng
         });
@@ -280,59 +312,72 @@
         cluster.addLayer(marker);
       });
 
-      if (cluster.getLayers().length) {
-        map.fitBounds(cluster.getBounds().pad(0.2));
-      } else {
-        map.setView([41.15, -8.6], 12);
+      // Enquadrar
+      if (cluster.getLayers().length) map.fitBounds(cluster.getBounds().pad(0.2));
+      else map.setView([41.15, -8.6], 12);
+
+      // KPIs + fonte
+      function updateKPIs(filteredSet = null){
+        const arr = filteredSet || allMarkers;
+        const by = { licenciado:0, em_construcao:0, concluido:0, em_licenciamento:0 };
+        arr.forEach(o => { if (by.hasOwnProperty(o.estadoKey)) by[o.estadoKey]++; });
+        const parts = [
+          `Fonte: <small>${usedUrl.replace('https://','')}</small>`,
+          `Total visíveis: <strong>${arr.length}</strong>`,
+          `Licenciado: <strong>${by.licenciado}</strong>`,
+          `Em construção: <strong>${by.em_construcao}</strong>`,
+          `Concluído: <strong>${by.concluido}</strong>`
+        ];
+        if (by.em_licenciamento) parts.splice(2, 0, `Em licenciamento: <strong>${by.em_licenciamento}</strong>`);
+        statsEl.innerHTML = parts.join(' · ');
+      }
+      updateKPIs(allMarkers);
+
+      // 5) Filtros + Pesquisa (reconstrução do cluster)
+      function applyFilters(){
+        const q = (searchEl.value || '').trim().toLowerCase();
+        const allowed = new Set(
+          Array.from(document.querySelectorAll('.state-filter'))
+            .filter(cb => cb.checked)
+            .map(cb => cb.value)
+        );
+
+        cluster.clearLayers();
+
+        const filtered = allMarkers.filter(o => {
+          if (!allowed.has(o.estadoKey)) return false;
+          if (!q) return true;
+          // pesquisa em nome, concelho e notas
+          return o.nome.includes(q) || o.concelho.includes(q) || o.notas.includes(q);
+        });
+
+        filtered.forEach(o => cluster.addLayer(o.marker));
+
+        // Atualizar KPIs com base no conjunto visível
+        updateKPIs(filtered);
+
+        // Ajustar vista se não houver marcadores
+        if (!filtered.length) {
+          focusAMP();
+        }
       }
 
-      // 5) KPIs + origem dos dados
-      const parts = [
-        `Fonte: <small>${usedUrl.replace('https://','')}</small>`,
-        `Total: <strong>${total}</strong>`,
-        `Licenciado: <strong>${counts.licenciado || 0}</strong>`,
-        `Em construção: <strong>${counts.em_construcao || 0}</strong>`,
-        `Concluído: <strong>${counts.concluido || 0}</strong>`
-      ];
-      if (counts.em_licenciamento) parts.splice(2, 0, `Em licenciamento: <strong>${counts.em_licenciamento}</strong>`);
-      statsEl.innerHTML = parts.join(' · ');
-
-      // 6) Filtros por estado
-      document.querySelectorAll('.state-filter').forEach(cb => {
-        cb.addEventListener('change', () => {
-          const stateKey = cb.value;
-          const arr = markersByState[stateKey] || [];
-          if (cb.checked) {
-            arr.forEach(m => cluster.addLayer(m));
-          } else {
-            arr.forEach(m => cluster.removeLayer(m));
-          }
-        });
+      // Eventos de filtros
+      document.querySelectorAll('.state-filter').forEach(cb => cb.addEventListener('change', applyFilters));
+      // Evento de pesquisa (com pequeno debounce)
+      let to = null;
+      searchEl.addEventListener('input', () => {
+        clearTimeout(to);
+        to = setTimeout(applyFilters, 150);
       });
 
-      // 7) Export CSV (sem dependências externas)
-      document.getElementById('exportBtn').addEventListener('click', () => {
+      // 6) Botão Exportar (exporta o conjunto visível)
+      exportBtn.addEventListener('click', () => {
         const visible = cluster.getAllChildMarkers();
         if (!visible || !visible.length) {
           alert('Não há empreendimentos visíveis para exportar.');
           return;
         }
-        const set = new Set(visible); // evitar duplicados
-        const rows = [];
-        visible.forEach(m => {
-          // reconstruir a linha a partir do popup/tooltip guardado
-          const latlng = m.getLatLng();
-          // procurar no array original por proximidade lat/lng
-          // (como simplificação, exportamos todos os rows do allRowsForExport que coincidam)
-          // Para robustez: basta exportar a partir dos markers visíveis:
-          rows.push({
-            nome: (m.options && m.options.title) || '',
-            latitude: latlng.lat,
-            longitude: latlng.lng
-          });
-        });
-        // Melhor: exportar o "allRowsForExport" filtrado pelos markers visíveis.
-        // Mapeamos por lat|lng string:
         const key = v => `${v.latitude}|${v.longitude}`;
         const visibleKeys = new Set(visible.map(m => key({latitude: m.getLatLng().lat, longitude: m.getLatLng().lng})));
         const exportData = allRowsForExport.filter(r => visibleKeys.has(key(r)));
@@ -351,7 +396,7 @@
         document.body.removeChild(a);
       });
 
-      // 8) Legenda
+      // 7) Legenda
       const legend = L.control({ position: 'bottomleft' });
       legend.onAdd = function() {
         const div = L.DomUtil.create('div', 'legend');
