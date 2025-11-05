@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Garvetur Porto Pro — Mapa (pins + pesquisa + foco AMP)</title>
+  <title>Garvetur Porto Pro — Mapa (pins + pesquisa por ano + foco AMP)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Preconnects -->
   <link rel="preconnect" href="https://unpkg.com" crossorigin>
@@ -39,8 +39,15 @@
     #filters label { font-size: 13px; color:#D9D9D9; }
     #filters input { transform: translateY(1px); }
 
-    #searchWrap { display:flex; align-items:center; gap:8px; background:#121212; border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:6px 10px; }
-    #search { background:transparent; border:none; color:#fff; outline:none; width:220px; }
+    .searchWrap {
+      display:flex; align-items:center; gap:8px;
+      background:#121212; border:1px solid rgba(255,255,255,.12);
+      border-radius:10px; padding:6px 10px;
+    }
+    .searchWrap input {
+      background:transparent; border:none; color:#fff; outline:none; width:220px;
+    }
+
     #focusBtn, #exportBtn {
       background: transparent; border:1px solid rgba(255,209,102,.5); color:#fff;
       padding:6px 10px; border-radius:8px; cursor:pointer;
@@ -49,11 +56,13 @@
 
     #map { height: calc(100% - 62px); }
 
-    /* Legenda */
+    /* Legenda (subida ligeiramente) */
     .legend { background: #0F0F0F; color:#fff; padding: 8px 10px; font: 12px/14px Arial, sans-serif;
       box-shadow: 0 0 15px rgba(0,0,0,0.3); border-radius: 8px; border:1px solid rgba(255,255,255,.06); }
     .legend .row { display:flex; align-items:center; gap:8px; margin:4px 0; }
     .legend .color { width:12px; height:12px; border-radius:50%; border:1px solid rgba(0,0,0,.2); }
+    /* sobe a legenda ~20px na âncora bottom-left */
+    .leaflet-bottom.leaflet-left .legend { margin-bottom: 20px; }
 
     /* Clusters com dourado */
     .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
@@ -75,9 +84,14 @@
   <div id="topbar">
     <div id="stats">A carregar…</div>
 
-    <div id="searchWrap" title="Pesquisar por nome, concelho ou notas">
+    <div class="searchWrap" title="Pesquisar por nome, concelho ou notas">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
       <input id="search" placeholder="Pesquisar empreendimentos…" />
+    </div>
+
+    <div class="searchWrap" title="Filtrar por ano de conclusão (ex.: 2027) ou texto de conclusão">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input id="yearSearch" placeholder="Ano/Conclusão (ex.: 2027 ou Q2 2026)" />
     </div>
 
     <div id="filters">
@@ -92,7 +106,7 @@
   </div>
   <div id="map"></div>
 
-  <!-- Loader de scripts com fallback -->
+  <!-- Loader utilitário -->
   <script>
     function loadScript(srcPrimary, srcBackup){
       return new Promise((resolve, reject)=>{
@@ -112,7 +126,7 @@
     }
   </script>
 
-  <!-- Leaflet + MarkerCluster -->
+  <!-- App -->
   <script>
     const DEFAULT_GEOJSON = "https://ruiquelhas1-lab.github.io/Mapa-Porto/data/empreendimentos.geojson";
     const RAW_MAIN       = "https://raw.githubusercontent.com/ruiquelhas1-lab/Mapa-Porto/main/data/empreendimentos.geojson";
@@ -201,8 +215,9 @@
     }
 
     (async function init(){
-      const statsEl = document.getElementById('stats');
-      const searchEl = document.getElementById('search');
+      const statsEl   = document.getElementById('stats');
+      const searchEl  = document.getElementById('search');
+      const yearEl    = document.getElementById('yearSearch');
       const exportBtn = document.getElementById('exportBtn');
       const focusBtn  = document.getElementById('focusBtn');
 
@@ -220,15 +235,15 @@
       const cluster = L.markerClusterGroup({ showCoverageOnHover:false, disableClusteringAtZoom:17 });
       map.addLayer(cluster);
 
-      // Limites da AMP/Porto (aprox.)
+      // Foco AMP/Porto (aprox.)
       const AMP_BOUNDS = L.latLngBounds([[41.05, -8.75], [41.25, -8.45]]);
       function focusAMP(){ map.fitBounds(AMP_BOUNDS.pad(0.1)); }
       focusBtn.addEventListener('click', focusAMP);
 
-      // Estruturas de dados
-      const markersByState = {};    // estado -> [markers]
-      const allMarkers = [];        // [{marker, estadoKey, nome, concelho, notas, conclusao, link}]
-      let allRowsForExport = [];    // para CSV
+      // Dados
+      const markersByState = {};           // estado -> [markers]
+      const allMarkers = [];               // [{marker, estadoKey, nome, concelho, notas, conclusaoLower, conclusaoYear, link, lat, lng}]
+      let allRowsForExport = [];           // para CSV
       let usedUrl = '';
 
       // 3) GeoJSON (multi-fonte)
@@ -299,11 +314,23 @@
         popup += `</div>`;
         marker.bindPopup(popup);
 
-        // Guardar
+        // Campos para pesquisa
+        const conclusaoLower = String(conclusao || '').toLowerCase();
+        const yearMatch = /(\b20\d{2}\b)/.exec(conclusaoLower); // extrai ano tipo 2026, 2027...
+        const conclusaoYear = yearMatch ? yearMatch[1] : '';
+
         if (!markersByState[estadoKey]) markersByState[estadoKey] = [];
         markersByState[estadoKey].push(marker);
 
-        allMarkers.push({ marker, estadoKey, nome: (nome||'').toLowerCase(), concelho: (concelho||'').toLowerCase(), notas: (notas||'').toLowerCase(), conclusao, link, lat, lng });
+        allMarkers.push({
+          marker, estadoKey,
+          nome: (nome||'').toLowerCase(),
+          concelho: (concelho||'').toLowerCase(),
+          notas: (notas||'').toLowerCase(),
+          conclusaoLower,
+          conclusaoYear,
+          link, lat, lng
+        });
 
         allRowsForExport.push({
           nome, concelho, estado: estadoLabel, conclusao, notas, link, latitude: lat, longitude: lng
@@ -317,8 +344,7 @@
       else map.setView([41.15, -8.6], 12);
 
       // KPIs + fonte
-      function updateKPIs(filteredSet = null){
-        const arr = filteredSet || allMarkers;
+      function updateKPIs(arr){
         const by = { licenciado:0, em_construcao:0, concluido:0, em_licenciamento:0 };
         arr.forEach(o => { if (by.hasOwnProperty(o.estadoKey)) by[o.estadoKey]++; });
         const parts = [
@@ -333,9 +359,20 @@
       }
       updateKPIs(allMarkers);
 
-      // 5) Filtros + Pesquisa (reconstrução do cluster)
+      // 5) Filtros + Pesquisa (inclui Ano/Conclusão)
+      function matchesYear(o, yq){
+        if (!yq) return true;
+        const s = yq.toLowerCase().trim();
+        // Se o utilizador introduz um ano de 4 dígitos, priorizamos match direto por ano
+        const yr = /^\d{4}$/.test(s) ? s : null;
+        if (yr) return (o.conclusaoYear === yr);
+        // Caso contrário, faz match textual no campo conclusão (ex.: "Q2 2026", "2º trimestre 2027")
+        return o.conclusaoLower.includes(s);
+      }
+
       function applyFilters(){
-        const q = (searchEl.value || '').trim().toLowerCase();
+        const q  = (searchEl.value || '').trim().toLowerCase();     // nome, concelho, notas
+        const yq = (yearEl.value || '').trim();                      // ano/Conclusão
         const allowed = new Set(
           Array.from(document.querySelectorAll('.state-filter'))
             .filter(cb => cb.checked)
@@ -346,32 +383,31 @@
 
         const filtered = allMarkers.filter(o => {
           if (!allowed.has(o.estadoKey)) return false;
-          if (!q) return true;
-          // pesquisa em nome, concelho e notas
-          return o.nome.includes(q) || o.concelho.includes(q) || o.notas.includes(q);
+
+          // Pesquisa geral
+          const textOk = !q || o.nome.includes(q) || o.concelho.includes(q) || o.notas.includes(q);
+
+          // Pesquisa por ano/Conclusão
+          const conclOk = matchesYear(o, yq);
+
+          return textOk && conclOk;
         });
 
         filtered.forEach(o => cluster.addLayer(o.marker));
-
-        // Atualizar KPIs com base no conjunto visível
         updateKPIs(filtered);
 
-        // Ajustar vista se não houver marcadores
         if (!filtered.length) {
           focusAMP();
         }
       }
 
-      // Eventos de filtros
+      // Eventos
       document.querySelectorAll('.state-filter').forEach(cb => cb.addEventListener('change', applyFilters));
-      // Evento de pesquisa (com pequeno debounce)
-      let to = null;
-      searchEl.addEventListener('input', () => {
-        clearTimeout(to);
-        to = setTimeout(applyFilters, 150);
-      });
+      let to1=null, to2=null;
+      searchEl.addEventListener('input', ()=>{ clearTimeout(to1); to1=setTimeout(applyFilters, 150); });
+      yearEl.addEventListener('input',   ()=>{ clearTimeout(to2); to2=setTimeout(applyFilters, 150); });
 
-      // 6) Botão Exportar (exporta o conjunto visível)
+      // 6) Export CSV (visível)
       exportBtn.addEventListener('click', () => {
         const visible = cluster.getAllChildMarkers();
         if (!visible || !visible.length) {
