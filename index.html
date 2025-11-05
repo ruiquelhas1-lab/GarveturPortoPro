@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Garvetur Porto Pro — Mapa de Empreendimentos</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  <style>
+    :root { --gold:#A38B63; --bg:#0E0E0E; --panel:#131313; --text:#FFFFFF; --muted:#9AA0A6; }
+    html,body { height:100%; margin:0; background:var(--bg); color:var(--text); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial;}
+    .app { display:grid; grid-template-columns:360px 1fr; grid-template-rows:64px 1fr; height:100%; }
+    header { grid-column:1 / span 2; display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid rgba(163,139,99,.6); background:#0E0E0E; position:sticky; top:0; z-index:10; }
+    header .brand { display:flex; align-items:center; gap:12px; }
+    header .brand h1 { font-size:18px; margin:0; color:var(--gold); }
+    header .actions { display:flex; align-items:center; gap:8px; }
+    header .btn { background:transparent; border:1px solid rgba(163,139,99,.5); color:var(--text); padding:8px 10px; border-radius:10px; cursor:pointer; }
+    header .btn:hover { border-color:var(--gold); }
+    .sidebar { background:var(--panel); border-right:1px solid rgba(163,139,99,.2); overflow:auto; }
+    .sidebar .section { padding:12px; border-bottom:1px solid rgba(163,139,99,.1); }
+    .field { display:flex; gap:8px; margin-top:8px; }
+    .field input { flex:1; background:#0E0E0E; color:var(--text); border:1px solid rgba(163,139,99,.4); border-radius:10px; padding:8px 10px; outline:none; }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+    .chip { font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid rgba(163,139,99,.4); background:#0E0E0E; color:#ddd; cursor:pointer; }
+    .chip.active { background:var(--gold); color:#0E0E0E; border-color:var(--gold); }
+    .list { padding:8px 12px; }
+    .card { border:1px solid rgba(163,139,99,.3); border-radius:14px; padding:10px; margin-bottom:10px; background:#0E0E0E; }
+    .card .row { display:flex; justify-content:space-between; gap:8px; }
+    .card .name { font-weight:600; }
+    .card .meta { font-size:11px; color:#bbb; text-transform:uppercase; letter-spacing:.05em; }
+    .card .state { font-size:12px; color:#bbb; margin-top:4px; }
+    .card .actions { margin-top:8px; display:flex; gap:8px; }
+    .btn-sm { font-size:12px; background:transparent; border:1px solid rgba(163,139,99,.4); color:#ddd; padding:6px 8px; border-radius:8px; cursor:pointer; }
+    .btn-sm.primary { background: var(--gold); color:#0E0E0E; border-color: var(--gold); }
+    #map { width: 100%; height: 100%; }
+    .leaflet-popup-content { font-size: 13px; }
+    .empty { padding: 12px; color:#bbb; font-size: 13px; }
+    @media (max-width: 960px) {
+      .app { grid-template-columns: 1fr; grid-template-rows: 64px 240px 1fr; }
+      .sidebar { grid-row: 2; }
+      #map { grid-row: 3; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--gold)"><circle cx="12" cy="12" r="10" stroke-width="1.5"/><path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/></svg>
+        <h1>Garvetur Porto Pro — Mapa</h1>
+      </div>
+      <div class="actions">
+        <button id="reloadBtn" class="btn">Recarregar</button>
+        <a id="openGeoJson" class="btn" href="#" target="_blank" rel="noreferrer">Abrir GeoJSON</a>
+      </div>
+    </header>
+
+    <aside class="sidebar">
+      <div class="section">
+        <div style="font-size:12px; color:#999; text-transform:uppercase; letter-spacing:.06em">Fonte de dados</div>
+        <div class="field"><input id="urlInput" placeholder="URL do GeoJSON" /></div>
+      </div>
+      <div class="section">
+        <div style="font-size:12px; color:#999; text-transform:uppercase; letter-spacing:.06em">Filtros</div>
+        <div class="chips">
+          <div class="chip active" data-estado="todos">Todos</div>
+          <div class="chip" data-estado="em_construcao">Em construção</div>
+          <div class="chip" data-estado="licenciado">Licenciado</div>
+          <div class="chip" data-estado="concluido">Concluído</div>
+        </div>
+        <div class="field"><input id="searchInput" placeholder="Pesquisar: nome / concelho / promotor" /></div>
+      </div>
+      <div class="section">
+        <div style="font-size:12px; color:#999; text-transform:uppercase; letter-spacing:.06em">Empreendimentos</div>
+      </div>
+      <div id="list" class="list"></div>
+    </aside>
+
+    <div id="map"></div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script>
+    // Fonte por defeito
+    const DEFAULT_URL = "https://ruiquelhas1-lab.github.io/Mapa-Porto/data/empreendimentos.geojson";
+
+    const urlInput = document.getElementById('urlInput');
+    const reloadBtn = document.getElementById('reloadBtn');
+    const openGeoJson = document.getElementById('openGeoJson');
+    const searchInput = document.getElementById('searchInput');
+    const listEl = document.getElementById('list');
+    const chipEls = Array.from(document.querySelectorAll('.chip'));
+
+    let rawData = [];
+    let layerGroup;
+    let map;
+    let activeEstado = 'todos';
+
+    // Memorizar URL e filtros (evita perder ao recarregar)
+    const savedUrl = localStorage.getItem('gpp_geojson_url');
+    urlInput.value = savedUrl || DEFAULT_URL;
+    openGeoJson.href = urlInput.value;
+
+    // Map init
+    map = L.map('map', { zoomControl: true, scrollWheelZoom: true }).setView([41.15, -8.61], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+    layerGroup = L.layerGroup().addTo(map);
+
+    function normalizeEstado(v) {
+      if (!v) return '';
+      const s = String(v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ /g, '_');
+      if (s.includes('licen')) return 'licenciado';
+      if (s.includes('conclu') || s.includes('entreg')) return 'concluido';
+      if (s.includes('constr')) return 'em_construcao';
+      return s;
+    }
+
+    function renderList(data) {
+      listEl.innerHTML = '';
+      if (!data.length) {
+        listEl.innerHTML = '<div class="empty">Sem resultados com os filtros atuais.</div>';
+        return;
+      }
+      data.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = \`
+          <div class="row">
+            <div class="name">\${p.nome || '—'}</div>
+            <div class="meta">\${p.concelho || '—'}</div>
+          </div>
+          <div class="state">Estado: \${normalizeEstado(p.estado) || '—'}</div>
+          <div class="actions">
+            <button class="btn-sm" data-action="zoom">Abrir no mapa</button>
+            \${p.link ? '<a class="btn-sm" target="_blank" rel="noreferrer" href="'+p.link+'">Abrir link</a>' : ''}
+          </div>
+        \`;
+        div.querySelector('[data-action="zoom"]').addEventListener('click', () => {
+          if (p._lat && p._lng) {
+            map.setView([p._lat, p._lng], 16, { animate: true });
+          }
+        });
+        listEl.appendChild(div);
+      });
+    }
+
+    function applyFilters() {
+      const q = searchInput.value.trim().toLowerCase();
+      const filtered = rawData.filter(p => {
+        const e = normalizeEstado(p.estado);
+        const eok = activeEstado === 'todos' || e === activeEstado;
+        const sok = !q || [p.nome, p.concelho, p.promotor].some(v => String(v||'').toLowerCase().includes(q));
+        return eok && sok;
+      });
+      renderList(filtered);
+
+      // Rebuild markers
+      layerGroup.clearLayers();
+      filtered.forEach(p => {
+        if (p._lat == null || p._lng == null) return;
+        const marker = L.circleMarker([p._lat, p._lng], {
+          radius: 7, color: '#A38B63', weight: 2, fillColor: '#A38B63', fillOpacity: 0.25
+        });
+        const html = \`
+          <div style="font-weight:600; color:#111;">\${p.nome || '—'}</div>
+          <div style="font-size:12px; color:#555;">\${p.concelho || '—'} · \${normalizeEstado(p.estado) || '—'}</div>
+          <div style="font-size:12px; margin-top:6px;">Promotor: \${p.promotor || '—'}</div>
+          <div style="font-size:12px;">Tipologias: \${p.tipologias || '—'}</div>
+          <div style="font-size:12px;">Conclusão: \${p.conclusao || '—'} · Preço/m²: \${p.preco_m2 || '—'}</div>
+          \${p.link ? '<div style="margin-top:6px;"><a href="'+p.link+'" target="_blank" rel="noreferrer">Abrir link</a></div>' : ''}
+        \`;
+        marker.bindPopup(html);
+        marker.addTo(layerGroup);
+      });
+
+      if (filtered.length) {
+        const bounds = L.latLngBounds(filtered.map(p => [p._lat, p._lng].filter(Number.isFinite)));
+        if (bounds.isValid()) map.fitBounds(bounds.pad(0.2));
+      }
+    }
+
+    async function loadData() {
+      const url = urlInput.value.trim();
+      localStorage.setItem('gpp_geojson_url', url);
+      openGeoJson.href = url;
+      listEl.innerHTML = '<div class="empty">A carregar dados…</div>';
+      try {
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const gj = await res.json();
+        const feats = gj.features || [];
+        rawData = feats.map(f => {
+          const p = f.properties || {};
+          // mapeamento de variantes para nomes esperados
+          const mapName = (obj, keys) => {
+            for (const k of keys) if (obj[k] != null && obj[k] !== '') return obj[k];
+            return '';
+          };
+          const nome = mapName(p, ['nome','name','titulo','título','projecto','projeto']);
+          const concelho = mapName(p, ['concelho','municipio','município','city','local']);
+          const estado = mapName(p, ['estado','status']);
+          const promotor = mapName(p, ['promotor','developer','owner']);
+          const tipologias = mapName(p, ['tipologias','typologies','types']);
+          const conclusao = mapName(p, ['conclusao','conclusão','conclusao_prevista','completion','entrega']);
+          const preco_m2 = mapName(p, ['preco_m2','preco_med_m2','preco_medio_m2','price_m2','price_per_sqm','preço_m2']);
+          const notas = mapName(p, ['notas','observacoes','observações','notes']);
+          const link = mapName(p, ['link','url','website']);
+
+          const coords = f.geometry && f.geometry.type === 'Point' ? f.geometry.coordinates : null;
+          const lng = Array.isArray(coords) ? Number(coords[0]) : NaN;
+          const lat = Array.isArray(coords) ? Number(coords[1]) : NaN;
+
+          return {
+            nome, concelho, estado, promotor, tipologias, conclusao, preco_m2, notas, link,
+            _lat: isFinite(lat) ? lat : null,
+            _lng: isFinite(lng) ? lng : null
+          };
+        });
+        applyFilters();
+      } catch (err) {
+        console.error(err);
+        listEl.innerHTML = '<div class="empty">Falha ao carregar o GeoJSON. Verifique o URL e tente novamente.</div>';
+        layerGroup.clearLayers();
+      }
+    }
+
+    // Events
+    reloadBtn.addEventListener('click', loadData);
+    searchInput.addEventListener('input', applyFilters);
+    chipEls.forEach(chip => {
+      chip.addEventListener('click', () => {
+        chipEls.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        activeEstado = chip.dataset.estado || 'todos';
+        applyFilters();
+      });
+    });
+
+    // First load
+    loadData();
+  </script>
+</body>
+</html>
