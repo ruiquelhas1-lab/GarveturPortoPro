@@ -89,6 +89,8 @@ header .btn:hover { border-color:var(--gold); }
 <script>
 // --- CONFIG ---
 const DEFAULT_URL = "https://ruiquelhas1-lab.github.io/Mapa-Porto/data/empreendimentos.geojson";
+const RAW_URL_MAIN = "https://raw.githubusercontent.com/ruiquelhas1-lab/Mapa-Porto/main/data/empreendimentos.geojson";
+const RAW_URL_GHPAGES = "https://raw.githubusercontent.com/ruiquelhas1-lab/Mapa-Porto/gh-pages/data/empreendimentos.geojson";
 
 // --- ESTADO GLOBAL ---
 let rawData = [];
@@ -111,7 +113,7 @@ const mapEl = document.getElementById('map');
 function setStatus(msg) { if (statusEl) statusEl.innerHTML = msg; }
 function normalizeEstado(v) {
   if (!v) return '';
-  const s = String(v).toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').replace(/ /g, '_');
+  const s = String(v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ /g, '_');
   if (s.includes('licen')) return 'licenciado';
   if (s.includes('conclu') || s.includes('entreg')) return 'concluido';
   if (s.includes('constr')) return 'em_construcao';
@@ -136,8 +138,10 @@ function renderList(data) {
         ${p.link ? '<a class="btn-sm" target="_blank" rel="noreferrer" href="'+p.link+'">Abrir link</a>' : ''}
       </div>`;
     if (MAP_READY) {
-      div.querySelector('[data-action="zoom"]').addEventListener('click', () => {
-        if (p._lat && p._lng) map.setView([p._lat, p._lng], 16, { animate: true });
+      div.querySelector('[data-action="zoom"]')?.addEventListener('click', () => {
+        if (Number.isFinite(p._lat) && Number.isFinite(p._lng)) {
+          map.setView([p._lat, p._lng], 16, { animate: true });
+        }
       });
     }
     listEl.appendChild(div);
@@ -159,7 +163,7 @@ function applyFilters() {
 
   layerGroup.clearLayers();
   filtered.forEach(p => {
-    if (p._lat == null || p._lng == null) return;
+    if (!Number.isFinite(p._lat) || !Number.isFinite(p._lng)) return;
     const marker = L.circleMarker([p._lat, p._lng], { radius: 7, color: '#A38B63', weight: 2, fillColor: '#A38B63', fillOpacity: 0.25 });
     marker.bindPopup(`
       <div style="font-weight:600; color:#111;">${p.nome || '—'}</div>
@@ -167,51 +171,92 @@ function applyFilters() {
     `);
     marker.addTo(layerGroup);
   });
-  if (filtered.length) {
-    const bounds = L.latLngBounds(filtered.map(p => [p._lat, p._lng].filter(Number.isFinite)));
+  const pts = filtered.filter(p => Number.isFinite(p._lat) && Number.isFinite(p._lng)).map(p => [p._lat, p._lng]);
+  if (pts.length) {
+    const bounds = L.latLngBounds(pts);
     if (bounds.isValid()) map.fitBounds(bounds.pad(0.2));
   }
 }
 
-// --- CARREGAR DADOS ---
+// ---------- SANITIZAÇÃO & FETCH ROBUSTO ----------
+function sanitizeToJSON(txt) {
+  return txt
+    .replace(/^\uFEFF/, '')                 // remove BOM
+    .replace(/\bNaN\b/g, 'null')            // NaN -> null
+    .replace(/\bInfinity\b/g, 'null')       // Infinity -> null
+    .replace(/\b-Infinity\b/g, 'null')      // -Infinity -> null
+    .replace(/,\s*([}\]])/g, '$1');         // trailing commas
+}
+
+function parseJSONSafe(txt) {
+  const safe = sanitizeToJSON(txt);
+  return JSON.parse(safe);
+}
+
+async function fetchAsTextNoCache(url) {
+  const bust = url.includes('?') ? `&t=${Date.now()}` : `?t=${Date.now()}`;
+  const r = await fetch(url + bust, { cache: 'no-store' });
+  if (!r.ok) throw new Error(`HTTP ${r.status} @ ${url}`);
+  return await r.text();
+}
+
+// --- CARREGAR DADOS (com fallback de múltiplas fontes) ---
 async function loadData() {
-  const url = urlInput.value.trim();
-  if (!url) { setStatus('⚠️ URL vazio.'); return; }
-  localStorage.setItem('gpp_geojson_url', url);
-  openGeoJson.href = url;
+  // fontes a testar por ordem de prioridade
+  const entered = (urlInput.value || '').trim();
+  const candidates = [entered || DEFAULT_URL, DEFAULT_URL, RAW_URL_MAIN, RAW_URL_GHPAGES]
+    .filter((v, i, arr) => v && arr.indexOf(v) === i); // dedup
+  const errors = [];
+
   listEl.innerHTML = '<div class="empty">A carregar dados…</div>';
-  setStatus('A ler dados de <code>' + url + '</code>…');
-  try {
-    const res = await fetch(url, { cache: 'no-store' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const gj = await res.json();
-    const feats = gj.features || [];
-    rawData = feats.map(f => {
-      const p = f.properties || {};
-      const mapName = (obj, keys) => { for (const k of keys) if (obj[k] != null && obj[k] !== '') return obj[k]; return ''; };
-      const nome = mapName(p, ['nome','name','titulo','título','projecto','projeto']);
-      const concelho = mapName(p, ['concelho','municipio','município','city','local']);
-      const estado = mapName(p, ['estado','status']);
-      const promotor = mapName(p, ['promotor','developer','owner']);
-      const tipologias = mapName(p, ['tipologias','typologies','types']);
-      const conclusao = mapName(p, ['conclusao','conclusão','conclusao_prevista','completion','entrega']);
-      const preco_m2 = mapName(p, ['preco_m2','preco_med_m2','preco_medio_m2','price_m2','price_per_sqm','preço_m2']);
-      const notas = mapName(p, ['notas','observacoes','observações','notes']);
-      const link = mapName(p, ['link','url','website']);
-      const coords = f.geometry && f.geometry.type === 'Point' ? f.geometry.coordinates : null;
-      const lng = Array.isArray(coords) ? Number(coords[0]) : NaN;
-      const lat = Array.isArray(coords) ? Number(coords[1]) : NaN;
-      return { nome, concelho, estado, promotor, tipologias, conclusao, preco_m2, notas, link,
-               _lat: isFinite(lat) ? lat : null, _lng: isFinite(lng) ? lng : null };
-    });
-    setStatus('✅ Dados carregados (' + rawData.length + ' registos).');
-    applyFilters();
-  } catch (err) {
-    console.error(err);
-    setStatus('❌ Falha ao carregar o GeoJSON. Verifique o URL e tente novamente.');
-    listEl.innerHTML = '<div class="empty">Falha ao carregar o GeoJSON.</div>';
-    if (MAP_READY) layerGroup.clearLayers();
+  setStatus('A ler dados das fontes: <code>' + candidates.join('</code> → <code>') + '</code>');
+
+  for (const url of candidates) {
+    try {
+      const txt = await fetchAsTextNoCache(url);
+      const gj = parseJSONSafe(txt);
+      const feats = Array.isArray(gj.features) ? gj.features : [];
+      rawData = feats.map(f => {
+        const p = f?.properties || {};
+        const mapName = (obj, keys) => { for (const k of keys) if (obj[k] != null && obj[k] !== '') return obj[k]; return ''; };
+        const nome = mapName(p, ['nome','name','titulo','título','projecto','projeto']);
+        const concelho = mapName(p, ['concelho','municipio','município','city','local']);
+        const estado = mapName(p, ['estado','status']);
+        const promotor = mapName(p, ['promotor','developer','owner']);
+        const tipologias = mapName(p, ['tipologias','tipologia','typologies','types']);
+        const conclusao = mapName(p, ['conclusao','conclusão','conclusao_prevista','completion','entrega']);
+        const preco_m2 = mapName(p, ['preco_m2','preco_med_m2','preco_medio_m2','price_m2','price_per_sqm','preço_m2']);
+        const notas = mapName(p, ['notas','observacoes','observações','notes']);
+        const link = mapName(p, ['link','url','website']);
+
+        let lat = null, lng = null;
+        if (f?.geometry?.type === 'Point' && Array.isArray(f.geometry.coordinates)) {
+          const [x, y] = f.geometry.coordinates;
+          const nx = Number(x), ny = Number(y);
+          lng = Number.isFinite(nx) ? nx : null;
+          lat = Number.isFinite(ny) ? ny : null;
+        }
+        return { nome, concelho, estado, promotor, tipologias, conclusao, preco_m2, notas, link, _lat: lat, _lng: lng };
+      });
+
+      // sucesso: fixar a fonte usada e sair
+      urlInput.value = url;
+      openGeoJson.href = url;
+      localStorage.setItem('gpp_geojson_url', url);
+      setStatus('✅ Dados carregados (' + rawData.length + ' registos) de <code>' + url + '</code>.');
+      applyFilters();
+      return;
+    } catch (e) {
+      console.warn('Falha em', url, e);
+      errors.push(`${url} → ${e.message}`);
+      continue;
+    }
   }
+
+  // se chegou aqui, todas falharam
+  setStatus('❌ Falha ao carregar o GeoJSON nas fontes testadas:<br><small>' + errors.join('<br>') + '</small>');
+  listEl.innerHTML = '<div class="empty">Falha ao carregar o GeoJSON.</div>';
+  if (MAP_READY) layerGroup?.clearLayers();
 }
 
 // --- CARREGAR LEAFLET (se possível) ---
@@ -238,26 +283,26 @@ function loadLeafletJS() {
 
 // --- INIT ---
 (async function init() {
-  // 1) Preencher SEMPRE a fonte oficial de imediato (sem depender do Leaflet)
-  urlInput.value = DEFAULT_URL;
-  openGeoJson.href = DEFAULT_URL;
+  // Fonte padrão (preenchida já no arranque)
+  const saved = localStorage.getItem('gpp_geojson_url');
+  urlInput.value = saved || DEFAULT_URL;
+  openGeoJson.href = urlInput.value;
 
-  // 2) Tentar carregar Leaflet; se falhar, escondemos o mapa e seguimos só com a lista
+  // Tentar Leaflet; se falhar, funciona em modo "apenas lista"
   try {
     await loadLeafletJS();
-    // Inicializar mapa
     map = L.map('map', { zoomControl: true, scrollWheelZoom: true }).setView([41.15, -8.61], 11);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
     layerGroup = L.layerGroup().addTo(map);
     MAP_READY = true;
   } catch (e) {
     MAP_READY = false;
-    if (mapEl) mapEl.classList.add('hidden');
+    mapEl?.classList.add('hidden');
     setStatus('ℹ️ Modo sem mapa: Leaflet indisponível. Lista e filtros continuam a funcionar.');
     console.warn(e);
   }
 
-  // 3) Filtros e eventos
+  // Filtros e eventos
   chipEls.forEach(chip => chip.addEventListener('click', () => {
     chipEls.forEach(c => c.classList.remove('active'));
     chip.classList.add('active');
@@ -267,9 +312,7 @@ function loadLeafletJS() {
   searchInput.addEventListener('input', applyFilters);
   reloadBtn.addEventListener('click', loadData);
 
-  // 4) Carregar dados automaticamente
+  // Carregar dados automaticamente
   await loadData();
 })();
 </script>
-</body>
-</html>
