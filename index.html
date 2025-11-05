@@ -2,191 +2,286 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Mapa Empreendimentos</title>
+  <title>Garvetur Porto Pro — Mapa (pins + tooltips)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Leaflet CSS -->
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <!-- MarkerCluster CSS -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+  <!-- PapaParse (CSV) -->
+  <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
-    html, body { height: 100%; margin: 0; }
-    body { display: flex; flex-direction: column; }
-    #topbar { background: #fff; padding: 8px 12px; font-family: sans-serif; line-height: 1.5; }
-    #map { flex: 1; }
-    .legend { background: white; padding: 6px 8px; font: 14px/16px Arial, sans-serif; box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 5px; }
-    .legend .legend-circle { display: inline-block; width: 10px; height: 10px; margin-right: 5px; border-radius: 50%; }
-    #filters label { margin-right: 10px; }
+    :root{
+      --bg:#0E0E0E; --panel:#131313; --text:#FFFFFF; --muted:#9AA0A6;
+      --gold:#FFD166;   /* licenciado */
+      --blue:#118AB2;   /* em construção */
+      --green:#06D6A0;  /* concluído */
+      --yellow:#FFC107; /* em licenciamento (caso exista) */
+    }
+    html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    #topbar { background: #0F0F0F; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,.08); display:flex; gap:16px; flex-wrap:wrap; align-items:center; }
+    #stats { font-size: 14px; color:#E6E6E6; }
+    #filters { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    #filters label { font-size: 13px; color:#D9D9D9; }
+    #filters input { transform: translateY(1px); }
+    #exportBtn { background: transparent; border:1px solid rgba(255,209,102,.5); color:#fff; padding:6px 10px; border-radius:8px; cursor:pointer; }
+    #exportBtn:hover { border-color: var(--gold); }
+    #map { height: calc(100% - 58px); }
+
+    /* Legenda */
+    .legend { background: #0F0F0F; color:#fff; padding: 8px 10px; font: 12px/14px Arial, sans-serif; box-shadow: 0 0 15px rgba(0,0,0,0.3); border-radius: 8px; border:1px solid rgba(255,255,255,.06); }
+    .legend .row { display:flex; align-items:center; gap:8px; margin:4px 0; }
+    .legend .color { width:12px; height:12px; border-radius:50%; border:1px solid rgba(0,0,0,.2); }
+
+    /* Clusters com dourado */
+    .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
+      background: rgba(255,209,102, .15);
+      border: 2px solid var(--gold);
+      color:#111;
+    }
+    .marker-cluster div { background: var(--gold); color:#111; }
+
+    /* Tooltip dark-friendly */
+    .leaflet-tooltip { background:#111; color:#fff; border:1px solid rgba(255,255,255,.1); border-radius:8px; box-shadow: 0 2px 10px rgba(0,0,0,.4); }
+    .leaflet-tooltip-top:before, .leaflet-tooltip-bottom:before, .leaflet-tooltip-left:before, .leaflet-tooltip-right:before { border-top-color:#111 !important; border-bottom-color:#111 !important; border-left-color:#111 !important; border-right-color:#111 !important; }
   </style>
 </head>
 <body>
   <div id="topbar">
-    <div id="stats"></div>
+    <div id="stats">A carregar…</div>
     <div id="filters">
       <label><input type="checkbox" class="state-filter" value="em_construcao" checked> Em construção</label>
       <label><input type="checkbox" class="state-filter" value="licenciado" checked> Licenciado</label>
       <label><input type="checkbox" class="state-filter" value="em_licenciamento" checked> Em licenciamento</label>
       <label><input type="checkbox" class="state-filter" value="concluido" checked> Concluído</label>
-      <button id="exportBtn">Exportar CSV</button>
+      <button id="exportBtn" title="Exporta os empreendimentos visíveis/filtrados">Exportar CSV</button>
     </div>
   </div>
   <div id="map"></div>
+
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <!-- MarkerCluster JS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
-  <!-- PapaParse JS for CSV parsing -->
-  <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
   <script>
-    // Define colors for each estado (categoria)
-    var stateColors = {
-      "em_construcao": "#FF9800",    // laranja
-      "licenciado": "#2196F3",      // azul
-      "em_licenciamento": "#FFC107",// amarelo
-      "concluido": "#4CAF50"        // verde
+    // Cores por estado (consistentes com a sua identidade)
+    const stateColors = {
+      "licenciado": "#FFD166",
+      "em_construcao": "#118AB2",
+      "concluido": "#06D6A0",
+      "em_licenciamento": "#FFC107"
     };
-    // Mapping estado keys to display labels
-    var stateDisplay = {
-      "em_construcao": "Em construção",
+    const stateDisplay = {
       "licenciado": "Licenciado",
-      "em_licenciamento": "Em licenciamento",
-      "concluido": "Concluído"
+      "em_construcao": "Em construção",
+      "concluido": "Concluído",
+      "em_licenciamento": "Em licenciamento"
     };
-    // Normalize estado text to key
+
+    // Normalização do estado (texto -> chave)
     function normalizeEstado(text) {
       if (!text) return "";
-      text = text.toLowerCase();
-      text = text.replace(/ç/g, "c").replace(/ã/g, "a").replace(/í/g, "i").replace(/ú/g, "u").replace(/é/g, "e").replace(/ /g, "_");
-      text = text.replace(/[^\w]/g, ""); // remove other non-word chars
-      return text;
+      let s = String(text).toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // tirar acentos
+        .replace(/ç/g,'c').replace(/ã/g,'a').replace(/í/g,'i').replace(/ú/g,'u').replace(/é/g,'e')
+        .replace(/\s+/g,'_').replace(/[^\w]/g,'');
+      // heurísticas
+      if (s.includes('licenc')) return 'licenciado';
+      if (s.includes('constr')) return 'em_construcao';
+      if (s.includes('conclu') || s.includes('entreg')) return 'concluido';
+      return s;
     }
-    // Initialize map
-    var map = L.map('map');
-    // Add OpenStreetMap base tile layer
+
+    // Geração de pin/flag SVG (visível e elegante)
+    function makePinIcon(color = '#FFD166') {
+      const svg = encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="36" viewBox="0 0 26 36">
+          <defs>
+            <filter id="s" x="-50%" y="-50%" width="200%" height="200%">
+              <feOffset dy="1" in="SourceAlpha" result="shadow"/>
+              <feGaussianBlur stdDeviation="1.2" in="shadow" result="blur"/>
+              <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .35 0" in="blur" result="shadow"/>
+              <feMerge><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <g filter="url(#s)">
+            <path d="M13 35c-3.5-6.1-10.5-11-10.5-18.3C2.5 8.6 7.8 3 13 3s10.5 5.6 10.5 13.7C23.5 24 16.5 28.9 13 35z" fill="${color}"/>
+            <circle cx="13" cy="16" r="4.2" fill="#1A1A1A" opacity="0.85"/>
+            <circle cx="13" cy="16" r="2.2" fill="#fff"/>
+            <path d="M13 0v5" stroke="${color}" stroke-width="2" stroke-linecap="round" opacity="0.75"/>
+          </g>
+        </svg>
+      `);
+      return L.icon({
+        iconUrl: `data:image/svg+xml;charset=UTF-8,${svg}`,
+        iconSize: [26, 36],
+        iconAnchor: [13, 34],   // ponta do pin
+        popupAnchor: [0, -30],
+        tooltipAnchor: [0, -30]
+      });
+    }
+
+    // Mapa base
+    const map = L.map('map');
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
-      attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+      attribution: '&copy; OpenStreetMap'
     }).addTo(map);
-    // Marker cluster group
-    var markersCluster = L.markerClusterGroup();
-    // Hold markers by estado for filtering
-    var markersByState = {};
-    // Will store CSV fields for export
-    var csvFields;
-    // Fetch and load CSV data
+
+    // Cluster
+    const markersCluster = L.markerClusterGroup({ showCoverageOnHover:false, disableClusteringAtZoom:17 });
+    map.addLayer(markersCluster);
+
+    // Armazenamento por estado (para filtros)
+    const markersByState = {};
+    let csvFields = [];
+    const statsEl = document.getElementById('stats');
+
+    // Carregar CSV (mesmo ficheiro já usado por si; adapta se mudar o nome)
     Papa.parse('data/empreendimentos_utf8.csv', {
       download: true,
       header: true,
       delimiter: ";",
       skipEmptyLines: true,
-      complete: function(results) {
-        csvFields = results.meta.fields;
-        var data = results.data;
-        // Calculate counts
-        var total = 0;
-        var counts = { "em_construcao": 0, "licenciado": 0, "em_licenciamento": 0, "concluido": 0 };
-        data.forEach(function(item) {
-          var estadoKey = normalizeEstado(item.estado || item['estado']);
+      complete: (results) => {
+        csvFields = results.meta.fields || [];
+        const data = results.data || [];
+
+        let total = 0;
+        const counts = { licenciado:0, em_construcao:0, concluido:0, em_licenciamento:0 };
+
+        data.forEach(item => {
+          const estadoKey = normalizeEstado(item.estado || item['estado']);
+          // Considerar apenas estados conhecidos
           if (!estadoKey || !stateDisplay[estadoKey]) return;
-          var latStr = item.latitude && item.latitude.trim();
-          var lonStr = item.longitude && item.longitude.trim();
+
+          // Coordenadas
+          let latStr = (item.latitude || '').toString().trim();
+          let lonStr = (item.longitude || '').toString().trim();
           if (!latStr || !lonStr) return;
           latStr = latStr.replace(',', '.');
           lonStr = lonStr.replace(',', '.');
-          var lat = parseFloat(latStr);
-          var lon = parseFloat(lonStr);
-          if (isNaN(lat) || isNaN(lon)) return;
+          const lat = parseFloat(latStr);
+          const lon = parseFloat(lonStr);
+          if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+
           total++;
           counts[estadoKey] = (counts[estadoKey] || 0) + 1;
-          // Create marker with colored icon
-          var color = stateColors[estadoKey] || "#000";
-          var icon = L.divIcon({ html: '<div style="background:' + color + '; width:12px; height:12px; border-radius:50%;"></div>', iconSize: [12, 12], iconAnchor: [6, 6] });
-          var marker = L.marker([lat, lon], { icon: icon });
+
+          // Ícone pin/flag por estado
+          const icon = makePinIcon(stateColors[estadoKey] || '#BBBBBB');
+          const marker = L.marker([lat, lon], { icon });
+
+          // Guardar o registo original no marker (para exportação)
           marker.original = item;
-          // Popup content for marker
-          var popupHtml = '<strong>' + (item.nome || 'Empreendimento') + '</strong>';
-          if (item.notas) popupHtml += '<br>' + item.notas;
-          popupHtml += '<br><em>' + stateDisplay[estadoKey] + '</em>';
-          if (item.conclusao) popupHtml += '<br>Conclusão: ' + item.conclusao;
-          if (item.Link) {
-            var linkUrl = item.Link;
-            if (linkUrl && !/^https?:\/\//.test(linkUrl)) {
-              linkUrl = 'http://' + linkUrl;
-            }
-            popupHtml += '<br><a href="' + linkUrl + '" target="_blank">Mais informações</a>';
+
+          // Tooltip rico (hover)
+          const nome = item.nome || 'Empreendimento';
+          const concelho = item.concelho || '';
+          const conclusao = item.conclusao || item['conclusao_prevista'] || '';
+          const notas = item.notas || '';
+          const estadoLabel = stateDisplay[estadoKey];
+
+          const tooltipHtml = `
+            <div style="min-width:220px">
+              <div style="font-weight:700; font-size:13px; margin-bottom:4px;">${nome}</div>
+              <div style="font-size:12px; color:#ccc;">${concelho ? concelho + ' · ' : ''}${estadoLabel}</div>
+              ${conclusao ? `<div style="font-size:12px; margin-top:4px;"><strong>Conclusão:</strong> ${conclusao}</div>` : ''}
+              ${notas ? `<div style="font-size:12px; margin-top:4px; color:#ddd;">${notas.length>160 ? (notas.substring(0,157)+'…') : notas}</div>` : ''}
+            </div>
+          `;
+          marker.bindTooltip(tooltipHtml, { direction:'top', offset:[0, -28], sticky:true, opacity:0.95 });
+
+          // Popup com mais detalhe + link
+          let popup = `<div style="min-width:240px">
+            <div style="font-weight:700; font-size:14px; margin-bottom:6px; color:#111;">${nome}</div>
+            <div style="font-size:12px; color:#444;">${concelho ? concelho + ' · ' : ''}${estadoLabel}</div>
+            ${conclusao ? `<div style="font-size:12px; margin-top:6px;"><strong>Conclusão:</strong> ${conclusao}</div>` : ''}
+            ${notas ? `<div style="font-size:12px; margin-top:6px;">${notas}</div>` : ''}
+          `;
+          let link = item.link || item.Link || item.url || item.website || '';
+          if (link) {
+            if (!/^https?:\/\//i.test(link)) link = 'http://' + link;
+            popup += `<div style="margin-top:8px;"><a href="${link}" target="_blank" rel="noreferrer">Abrir ligação</a></div>`;
           }
-          marker.bindPopup(popupHtml);
-          if (!markersByState[estadoKey]) {
-            markersByState[estadoKey] = [];
-          }
+          popup += `</div>`;
+          marker.bindPopup(popup);
+
+          // Guardar por estado
+          if (!markersByState[estadoKey]) markersByState[estadoKey] = [];
           markersByState[estadoKey].push(marker);
+
+          // Adicionar ao cluster
           markersCluster.addLayer(marker);
         });
-        // Add cluster group to map and fit bounds
-        map.addLayer(markersCluster);
-        if (total > 0) {
-          map.fitBounds(markersCluster.getBounds());
+
+        // Fit bounds ou fallback Porto
+        if (markersCluster.getLayers().length) {
+          map.fitBounds(markersCluster.getBounds().pad(0.2));
         } else {
           map.setView([41.15, -8.6], 12);
         }
-        // Update stats display (KPIs por estado)
-        var statsText = 'Total: ' + total;
-        var categories = ['em_construcao','licenciado','em_licenciamento','concluido'];
-        categories.forEach(function(cat) {
-          statsText += ' | ' + stateDisplay[cat] + ': ' + (counts[cat] || 0);
-        });
-        document.getElementById('stats').textContent = statsText;
+
+        // KPIs
+        const parts = [
+          `Total: <strong>${total}</strong>`,
+          `Licenciado: <strong>${counts.licenciado || 0}</strong>`,
+          `Em construção: <strong>${counts.em_construcao || 0}</strong>`,
+          `Concluído: <strong>${counts.concluido || 0}</strong>`
+        ];
+        // Mostrar “em licenciamento” apenas se existir
+        if (counts.em_licenciamento) parts.splice(2, 0, `Em licenciamento: <strong>${counts.em_licenciamento}</strong>`);
+        statsEl.innerHTML = parts.join(' · ');
       }
     });
-    // Legend (visualização das cores por estado)
-    var legend = L.control({ position: 'bottomright' });
-    legend.onAdd = function(map) {
-      var div = L.DomUtil.create('div', 'legend');
-      var categories = ['em_licenciamento', 'licenciado', 'em_construcao', 'concluido'];
-      categories.forEach(function(cat) {
-        var label = stateDisplay[cat] || cat;
-        var color = stateColors[cat] || '#000';
-        div.innerHTML += '<span class="legend-circle" style="background:' + color + '"></span> ' + label + '<br>';
-      });
-      return div;
-    };
-    legend.addTo(map);
-    // Filtro por estado (checkboxes)
-    document.querySelectorAll('.state-filter').forEach(function(cb) {
-      cb.addEventListener('change', function() {
-        var stateKey = cb.value;
+
+    // Filtros (mostrar/ocultar por estado)
+    document.querySelectorAll('.state-filter').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const stateKey = cb.value;
+        const arr = markersByState[stateKey] || [];
         if (cb.checked) {
-          if (markersByState[stateKey]) {
-            markersByState[stateKey].forEach(function(m) {
-              markersCluster.addLayer(m);
-            });
-          }
+          arr.forEach(m => markersCluster.addLayer(m));
         } else {
-          if (markersByState[stateKey]) {
-            markersByState[stateKey].forEach(function(m) {
-              markersCluster.removeLayer(m);
-            });
-          }
+          arr.forEach(m => markersCluster.removeLayer(m));
         }
       });
     });
-    // Exportar CSV dos resultados filtrados
-    document.getElementById('exportBtn').addEventListener('click', function() {
-      var allMarkers = markersCluster.getAllChildMarkers();
-      if (!allMarkers || allMarkers.length === 0) {
-        alert('Não há empreendimentos filtrados para exportar.');
+
+    // Exportação CSV do que está visível (após filtros)
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      const all = markersCluster.getVisibleParent ? markersCluster.getVisibleParent() : null; // compat
+      const children = markersCluster.getAllChildMarkers();
+      if (!children || !children.length) {
+        alert('Não há empreendimentos visíveis para exportar.');
         return;
       }
-      var exportData = allMarkers.map(function(m) { return m.original; });
-      var csv = Papa.unparse({ fields: csvFields, data: exportData }, { delimiter: ";" });
-      var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      var a = document.createElement('a');
+      const exportData = children.map(m => m.original);
+      const csv = Papa.unparse({ fields: csvFields, data: exportData }, { delimiter: ";" });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = 'empreendimentos_filtrados.csv';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
     });
+
+    // Legenda fixa no mapa
+    const legend = L.control({ position: 'bottomleft' });
+    legend.onAdd = function() {
+      const div = L.DomUtil.create('div', 'legend');
+      div.innerHTML = `
+        <div class="row"><span class="color" style="background:${stateColors.licenciado}"></span> Licenciado</div>
+        <div class="row"><span class="color" style="background:${stateColors.em_construcao}"></span> Em construção</div>
+        <div class="row"><span class="color" style="background:${stateColors.concluido}"></span> Concluído</div>
+      `;
+      return div;
+    };
+    legend.addTo(map);
   </script>
 </body>
 </html>
