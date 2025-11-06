@@ -1,46 +1,37 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Garvetur Porto Pro — Leads (Kanban)</title>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
 <style>
   :root{--gold:#A38B63;--bg:#0E0E0E;--panel:#131313;--text:#fff;--muted:#bdbdbd;}
   html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;}
   header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.1);background:#0F0F0F;}
   nav a{margin-right:6px;text-decoration:none;color:#ddd;border:1px solid rgba(255,255,255,.12);padding:6px 10px;border-radius:8px;}
   nav a.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:600;}
-  .actions{display:flex;gap:8px;}
+  .actions{display:flex;gap:8px;align-items:center}
   .btn{background:transparent;border:1px solid rgba(163,139,99,.5);color:#fff;padding:6px 9px;border-radius:8px;cursor:pointer;font-size:12px;}
-  .wrap{display:grid;grid-template-columns:1fr;gap:12px;padding:12px;}
+  .wrap{display:grid;grid-template-columns:360px 1fr;gap:12px;padding:12px;}
   .panel{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px;}
   .panel h3{margin:0 0 8px 0;font-size:13px;color:#eaeaea;border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:6px;}
-  label{font-size:12px;color:#ddd;display:block;margin:4px 0 2px;}
+  label{font-size:12px;color:#ddd;display:block;margin:7px 0 2px;}
   input,select,textarea{width:100%;background:#0E0E0E;color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:8px 10px;}
-  .form-grid{
-    display:grid;
-    grid-template-columns:repeat(6,1fr);
-    gap:8px;align-items:end
-  }
-  .span2{grid-column:span 2}
-  .span3{grid-column:span 3}
-  .span6{grid-column:span 6}
-  .board{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;height:calc(100vh - 280px);}
-  .col{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:12px;display:flex;flex-direction:column;overflow:auto;}
-  .col h3{margin:0;padding:10px;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px;color:#eaeaea;}
-  .lane{padding:10px;display:flex;flex-direction:column;gap:8px;}
-  .card{background:#0E0E0E;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px;}
-  .card .t{font-weight:600;margin-bottom:4px;}
-  .card .m{font-size:12px;color:#cfcfcf;}
-  .help{padding:8px 12px;color:#ddd;font-size:12px;border-top:1px dashed rgba(255,255,255,.15);}
-  .hint{font-size:11px;color:#bdbdbd}
-  @media(max-width:1400px){.board{grid-template-columns:repeat(4,1fr)}}
-  @media(max-width:1100px){.board{grid-template-columns:repeat(3,1fr)}}
-  @media(max-width:900px){
-    .form-grid{grid-template-columns:1fr}
-    .span2,.span3,.span6{grid-column:span 1}
-    .board{grid-template-columns:1fr;height:auto;min-height:60vh;}
-  }
+  .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;min-height:60vh;}
+  .col{background:#0E0E0E;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:8px;display:flex;flex-direction:column;}
+  .col .h{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .col .h .t{font-size:12px;color:#cfcfcf;text-transform:uppercase;letter-spacing:.05em}
+  .col .h .n{font-size:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:2px 8px;color:#ddd}
+  .drop{flex:1;min-height:80px;border:1px dashed rgba(255,255,255,.12);border-radius:10px;padding:6px;overflow:auto}
+  .card{background:#101010;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:8px;margin-bottom:8px;cursor:grab}
+  .card .title{font-weight:600}
+  .card .meta{font-size:12px;color:#cfcfcf;margin-top:2px}
+  .tag{display:inline-block;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:2px 6px;font-size:11px;margin-right:4px;color:#ddd}
+  .tools{display:flex;gap:6px;margin-top:8px}
+  .tools .btn{padding:4px 7px;font-size:11px}
+  .filters{display:grid;grid-template-columns:1fr 120px;gap:8px;align-items:end;margin-top:8px}
+  @media(max-width:1200px){.grid{grid-template-columns:repeat(3,1fr)} .wrap{grid-template-columns:1fr}}
+  @media(max-width:700px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -55,411 +46,326 @@
     </nav>
   </div>
   <div class="actions">
-    <button id="seed" class="btn">Carregar dados de exemplo (10)</button>
-    <button id="clear" class="btn">Limpar tudo</button>
+    <button id="seed" class="btn">Seed (exemplo)</button>
+    <button id="clear" class="btn">Limpar</button>
+    <button id="export" class="btn">Exportar CSV</button>
   </div>
 </header>
 
 <div class="wrap">
   <div class="panel">
-    <h3>Nova lead</h3>
-    <div class="form-grid">
-      <div class="span2">
-        <label>Título</label>
-        <input id="f_titulo" placeholder="Ex.: T3 Boavista – Investidor NL">
-      </div>
-      <div>
-        <label>Consultor</label>
-        <select id="f_consultor"></select>
-      </div>
-      <div>
-        <label>Valor (€)</label>
-        <input id="f_valor" type="number" inputmode="decimal" placeholder="Ex.: 620000">
-      </div>
+    <h3>Nova Lead</h3>
+    <label>Cliente</label><input id="cli" placeholder="Nome do cliente">
+    <label>Contacto</label><input id="tel" placeholder="Telefone">
+    <label>Email</label><input id="em" placeholder="email@exemplo.pt">
+    <label>Imóvel</label><input id="imv" placeholder="Ex.: T2 Boavista">
+    <label>Zona</label><input id="zona" placeholder="Ex.: Porto | Gaia | Matosinhos">
+    <label>Capitais próprios (€)</label><input id="cp" type="number" step="0.01">
+    <label>Financiamento B.</label>
+    <select id="fin"><option>Sim</option><option>Não</option><option>Em análise</option></select>
+    <label>Comprador ou Vendedor</label>
+    <select id="cv"><option>Comprador</option><option>Vendedor</option></select>
+    <label>Investidor ou Cliente final</label>
+    <select id="tipo"><option>Cliente final</option><option>Investidor</option></select>
+    <label>Tem casa para vender?</label>
+    <select id="tcv"><option>Não</option><option>Sim</option></select>
+    <label>Urgência / Planta</label>
+    <select id="urg"><option>Urgente</option><option>Sem urgência</option><option>Compra em planta</option></select>
+    <label>Valor alvo (€)</label><input id="val" type="number" step="0.01">
+    <label>1ª habitação?</label>
+    <select id="h1"><option>Sim</option><option>Não</option></select>
+    <label>Habitação própria ou secundária</label>
+    <select id="hs"><option>Própria</option><option>Secundária</option></select>
+    <label>Acompanhado por outro agente?</label>
+    <select id="oa"><option>Não</option><option>Sim</option></select>
+    <label>Já fez visitas?</label>
+    <select id="vs"><option>Não</option><option>Sim</option></select>
+    <label>Notas</label><textarea id="nt" rows="3" placeholder="Observações úteis"></textarea>
+    <label>Consultor</label>
+    <select id="cons">
+      <option>Rui Quelhas</option>
+      <option>Manuel Oliveira</option>
+      <option>João Sousa</option>
+      <option>Francisco dos Santos</option>
+      <option>Rosário Vasconcelos</option>
+      <option>Armanda Meireles</option>
+      <option>Audrey Lucas</option>
+    </select>
+    <label>Estado inicial</label>
+    <select id="est"></select>
+    <div style="margin-top:8px;display:flex;gap:8px;">
+      <button id="add" class="btn">Adicionar lead</button>
+    </div>
 
-      <div>
-        <label>Cliente</label>
-        <input id="f_cliente" placeholder="Nome do cliente">
-      </div>
-      <div>
-        <label>Contacto</label>
-        <input id="f_contacto" placeholder="+351 ...">
-      </div>
-      <div>
-        <label>Email</label>
-        <input id="f_email" placeholder="email@dominio.pt">
-      </div>
-
-      <div>
-        <label>Imóvel</label>
-        <input id="f_imovel" placeholder="Tipologia / Ref. / Empreendimento">
-      </div>
-      <div>
-        <label>Zona</label>
-        <input id="f_zona" placeholder="Ex.: Foz, Boavista, Gaia...">
-      </div>
-      <div>
-        <label>Capitais próprios (€)</label>
-        <input id="f_capitais" type="number" inputmode="decimal" placeholder="Ex.: 200000">
-      </div>
-
-      <div>
-        <label>Financiamento B.</label>
-        <select id="f_finb">
-          <option value="">(por definir)</option>
-          <option>Sim</option>
-          <option>Não</option>
-          <option>Em análise</option>
-        </select>
-      </div>
-      <div>
-        <label>Perfil</label>
-        <select id="f_perfil">
-          <option value="">(por definir)</option>
-          <option>Comprador</option>
-          <option>Vendedor</option>
-        </select>
-      </div>
-      <div>
-        <label>Tipo de cliente</label>
-        <select id="f_tipo">
-          <option value="">(por definir)</option>
-          <option>Investidor</option>
-          <option>Cliente final</option>
-        </select>
-      </div>
-
-      <div>
-        <label>Tem casa para vender?</label>
-        <select id="f_temcasa">
-          <option value="">(por definir)</option>
-          <option>Sim</option>
-          <option>Não</option>
-        </select>
-      </div>
-      <div>
-        <label>Urgência / Planta</label>
-        <select id="f_urg">
-          <option value="">(por definir)</option>
-          <option>Urgente</option>
-          <option>Pode comprar em planta</option>
-          <option>Sem urgência</option>
-        </select>
-      </div>
-      <div>
-        <label>Acompanhado por outro agente?</label>
-        <select id="f_outroag">
-          <option value="">(por definir)</option>
-          <option>Sim</option>
-          <option>Não</option>
-        </select>
-      </div>
-
-      <div>
-        <label>Já fez visitas?</label>
-        <select id="f_visitas">
-          <option value="">(por definir)</option>
-          <option>Sim</option>
-          <option>Não</option>
-        </select>
-      </div>
-      <div>
-        <label>1.ª habitação?</label>
-        <select id="f_primeira">
-          <option value="">(por definir)</option>
-          <option>Sim</option>
-          <option>Não</option>
-        </select>
-      </div>
-      <div>
-        <label>Uso</label>
-        <select id="f_uso">
-          <option value="">(por definir)</option>
-          <option>Habitação própria</option>
-          <option>Habitação secundária</option>
-        </select>
-      </div>
-
-      <div class="span6">
-        <label>Notas <span class="hint">(informação adicional, preferências, timing)</span></label>
-        <textarea id="f_notas" rows="3" placeholder="Observações relevantes"></textarea>
-      </div>
-
-      <div style="display:flex;gap:8px;" class="span6">
-        <button id="add" class="btn">+ Adicionar</button>
-        <button id="reset" class="btn">Limpar</button>
+    <div class="panel" style="margin-top:12px">
+      <h3>Filtros</h3>
+      <div class="filters">
+        <input id="q" placeholder="Pesquisar: cliente / imóvel / zona / consultor" />
+        <button id="apply" class="btn">Aplicar</button>
       </div>
     </div>
   </div>
 
-  <div class="board" id="board"></div>
-  <div class="help">Dica: arraste as cards entre colunas. Duplo-clique para editar; tecla <em>Delete</em> remove.</div>
+  <div class="panel">
+    <h3>Kanban</h3>
+    <div id="grid" class="grid"></div>
+  </div>
 </div>
 
 <script>
-const LS_KEY = 'gpp_leads_v3';
-const COLUMNS = ["Novo","Em contacto","Qualificado","Proposta","Fecho"];
-const CONSULTORS = [
-  "Rui Quelhas",
-  "Manuel Oliveira",
-  "João Sousa",
-  "Francisco dos Santos",
-  "Rosário Vasconcelos",
-  "Armanda Meireles",
-  "Audrey Lucas",
-  "Outro…"
+/* =========================
+   Configuração
+========================= */
+const STAGES = [
+  { key:'novo',          title:'Novo' },
+  { key:'em_contacto',   title:'Em Contacto' },
+  { key:'qualificado',   title:'Qualificado' },
+  { key:'visita',        title:'Visita' },              // << NOVO ESTADO
+  { key:'proposta',      title:'Proposta' },
+  { key:'fecho',         title:'Fecho' }
 ];
 
-function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'{}'); }catch(e){ return {}; } }
-function save(data){ localStorage.setItem(LS_KEY, JSON.stringify(data)); }
-function ensureModel(d){ COLUMNS.forEach(c=>{ if(!Array.isArray(d[c])) d[c]=[]; }); return d; }
+const LS_KEY = 'gpp_leads_v3'; // versão nova (com "visita")
+const CONSULTORS = ["Rui Quelhas","Manuel Oliveira","João Sousa","Francisco dos Santos","Rosário Vasconcelos","Armanda Meireles","Audrey Lucas"];
 
-function fillConsultorSelect(){
-  const sel = document.getElementById('f_consultor');
-  sel.innerHTML = CONSULTORS.map(n=>`<option value="${n}">${n}</option>`).join('');
-  sel.value = CONSULTORS[0];
+/* =========================
+   Storage
+========================= */
+function load(){
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    const data = raw ? JSON.parse(raw) : [];
+    return migrate(data);
+  } catch(e){ return []; }
+}
+function save(d){ localStorage.setItem(LS_KEY, JSON.stringify(d)); }
+
+/* Migração para garantir que todos os registos têm um estado válido */
+function migrate(arr){
+  const valid = new Set(STAGES.map(s=>s.key));
+  return (arr||[]).map(x=>{
+    let s = (x.stage||'').toLowerCase();
+    // normalizar nomes antigos
+    if (s === 'emcontacto' || s === 'em-contacto') s = 'em_contacto';
+    if (s === 'qualificado') s = 'qualificado';
+    if (!valid.has(s)) s = 'novo';
+    return { ...x, stage:s };
+  });
 }
 
-function summaryLine(c){
-  const parts = [];
-  if(c.consultor) parts.push(c.consultor);
-  if(c.valor) parts.push(c.valor+'€');
-  if(c.zona) parts.push(c.zona);
-  if(c.perfil) parts.push(c.perfil);
-  if(c.tipo) parts.push(c.tipo);
-  return parts.join(' · ');
-}
+/* =========================
+   Estado UI
+========================= */
+let Q = ''; // pesquisa
+const grid = document.getElementById('grid');
+const est = document.getElementById('est');
+est.innerHTML = STAGES.map(s=>`<option value="${s.key}">${s.title}</option>`).join('');
 
-function tooltip(c){
-  const rows = [
-    ['Cliente', c.cliente || '—'],
-    ['Contacto', c.contacto || '—'],
-    ['Email', c.email || '—'],
-    ['Imóvel', c.imovel || '—'],
-    ['Zona', c.zona || '—'],
-    ['Capitais próprios', c.capitais? c.capitais+'€' : '—'],
-    ['Financiamento B.', c.finb || '—'],
-    ['Perfil', c.perfil || '—'],
-    ['Tipo', c.tipo || '—'],
-    ['Tem casa para vender', c.temcasa || '—'],
-    ['Urgência/Planta', c.urg || '—'],
-    ['Acomp. por outro agente', c.outroag || '—'],
-    ['Já fez visitas', c.visitas || '—'],
-    ['1.ª habitação', c.primeira || '—'],
-    ['Uso', c.uso || '—'],
-    ['Notas', c.notas || '—']
-  ];
-  return rows.map(r=> `${r[0]}: ${r[1]}`).join('\n');
-}
-
-function cardEl(card, col, idx){
-  const d = document.createElement('div');
-  d.className='card'; d.draggable=true; d.tabIndex=0; d.title = tooltip(card);
-  d.innerHTML = `<div class="t">${card.titulo || '(Sem título)'}</div>
-                 <div class="m">${summaryLine(card)}</div>`;
-  d.ondblclick = ()=> editCard(col, idx);
-  d.onkeydown = (e)=>{ if(e.key==='Delete'){ removeCard(col, idx); } };
-  return d;
-}
-
+/* =========================
+   Renderização
+========================= */
 function render(){
-  const data = ensureModel(load());
-  const board = document.getElementById('board');
-  board.innerHTML='';
-  COLUMNS.forEach(col=>{
-    const el = document.createElement('div');
-    el.className='col';
-    el.innerHTML = `<h3>${col} (${data[col].length})</h3><div class="lane" data-col="${col}"></div>`;
-    const lane = el.querySelector('.lane');
-    data[col].forEach((card,i)=> lane.appendChild(cardEl(card, col, i)));
-    board.appendChild(el);
-  });
-  enableDnD();
-}
+  const data = load();
+  const q = Q.trim().toLowerCase();
+  const byStage = {};
+  STAGES.forEach(s=> byStage[s.key] = []);
 
-function enableDnD(){
-  document.querySelectorAll('.lane .card').forEach(card=>{
-    card.addEventListener('dragstart', ev=>{
-      const lane = card.closest('.lane');
-      const col = lane.dataset.col;
-      const idx = Array.from(lane.children).indexOf(card);
-      ev.dataTransfer.setData('text/plain', JSON.stringify({col, idx}));
-    });
+  data.forEach(item=>{
+    const txt = [item.cliente,item.imovel,item.zona,item.consultor].map(v=>String(v||'').toLowerCase()).join(' ');
+    if (q && !txt.includes(q)) return;
+    (byStage[item.stage]||byStage['novo']).push(item);
   });
-  document.querySelectorAll('.lane').forEach(lane=>{
-    lane.addEventListener('dragover', ev=> ev.preventDefault());
-    lane.addEventListener('drop', ev=>{
+
+  grid.innerHTML = '';
+  STAGES.forEach(s=>{
+    const col = document.createElement('div');
+    col.className = 'col';
+    col.dataset.stage = s.key;
+    col.innerHTML = `
+      <div class="h"><div class="t">${s.title}</div><div class="n" id="n_${s.key}">0</div></div>
+      <div class="drop" data-drop="${s.key}"></div>
+    `;
+    const drop = col.querySelector('.drop');
+    drop.ondragover = ev => ev.preventDefault();
+    drop.ondrop = ev => {
       ev.preventDefault();
-      const src = JSON.parse(ev.dataTransfer.getData('text/plain'));
-      const dstCol = lane.dataset.col;
-      const data = ensureModel(load());
-      const [item] = data[src.col].splice(src.idx,1);
-      data[dstCol].unshift(item);
-      save(data); render();
+      const id = ev.dataTransfer.getData('text/plain');
+      moveLead(id, s.key);
+    };
+
+    (byStage[s.key]||[]).forEach(item=>{
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.draggable = true;
+      card.id = item.id;
+      card.ondragstart = ev => ev.dataTransfer.setData('text/plain', item.id);
+      card.innerHTML = `
+        <div class="title">${item.cliente || '(sem nome)'}</div>
+        <div class="meta">${item.consultor||'—'} · ${item.imovel||'—'} · ${item.zona||'—'}</div>
+        <div class="meta">
+          <span class="tag">${item.tipo||''}</span>
+          <span class="tag">${item.cv||''}</span>
+          ${item.vs==='Sim' ? '<span class="tag">Fez visitas</span>' : ''}
+        </div>
+        <div class="tools">
+          <button class="btn" data-a="edit">Editar</button>
+          <button class="btn" data-a="del">Remover</button>
+        </div>
+      `;
+      card.querySelector('[data-a="edit"]').onclick = () => edit(item.id);
+      card.querySelector('[data-a="del"]').onclick = () => del(item.id);
+      drop.appendChild(card);
     });
+
+    grid.appendChild(col);
+    document.getElementById('n_'+s.key).textContent = (byStage[s.key]||[]).length;
   });
 }
 
-// helpers
-function getVal(id){ return document.getElementById(id).value.trim(); }
-function getSel(id){ return document.getElementById(id).value; }
-function isEmail(s){ return !!s && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s); }
+/* =========================
+   CRUD
+========================= */
+function uid(){ return 'L'+Math.random().toString(36).slice(2,9); }
 
-// CRUD
-function addCard(){
-  const titulo = getVal('f_titulo');
-  if(!titulo) return alert('Indique um título.');
-
-  let consultor = getSel('f_consultor');
-  if(consultor === 'Outro…'){
-    const alt = prompt('Nome do consultor:','');
-    if(!alt) return alert('Indique o nome do consultor.');
-    consultor = alt.trim();
-  }
-
-  const email = getVal('f_email');
-  if(email && !isEmail(email)) return alert('Email inválido.');
-
-  const card = {
-    titulo,
-    consultor,
-    valor: getVal('f_valor'),
-    cliente: getVal('f_cliente'),
-    contacto: getVal('f_contacto'),
-    email,
-    imovel: getVal('f_imovel'),
-    zona: getVal('f_zona'),
-    capitais: getVal('f_capitais'),
-    finb: getSel('f_finb'),
-    perfil: getSel('f_perfil'),
-    tipo: getSel('f_tipo'),
-    temcasa: getSel('f_temcasa'),
-    urg: getSel('f_urg'),
-    outroag: getSel('f_outroag'),
-    visitas: getSel('f_visitas'),
-    primeira: getSel('f_primeira'),
-    uso: getSel('f_uso'),
-    notas: getVal('f_notas')
+function collectForm(){
+  return {
+    cliente: document.getElementById('cli').value.trim(),
+    tel:     document.getElementById('tel').value.trim(),
+    email:   document.getElementById('em').value.trim(),
+    imovel:  document.getElementById('imv').value.trim(),
+    zona:    document.getElementById('zona').value.trim(),
+    cp:      Number(document.getElementById('cp').value)||null,
+    fin:     document.getElementById('fin').value,
+    cv:      document.getElementById('cv').value,
+    tipo:    document.getElementById('tipo').value,
+    tcv:     document.getElementById('tcv').value,
+    urg:     document.getElementById('urg').value,
+    val:     Number(document.getElementById('val').value)||null,
+    h1:      document.getElementById('h1').value,
+    hs:      document.getElementById('hs').value,
+    oa:      document.getElementById('oa').value,
+    vs:      document.getElementById('vs').value,
+    notas:   document.getElementById('nt').value.trim(),
+    consultor: document.getElementById('cons').value,
+    stage:   document.getElementById('est').value
   };
-
-  const data = ensureModel(load());
-  data["Novo"].unshift(card);
-  save(data); render(); resetForm();
 }
 
-function resetForm(){
-  const ids = ['f_titulo','f_valor','f_cliente','f_contacto','f_email','f_imovel','f_zona','f_capitais','f_notas'];
-  ids.forEach(id=> document.getElementById(id).value='');
-  ['f_finb','f_perfil','f_tipo','f_temcasa','f_urg','f_outroag','f_visitas','f_primeira','f_uso'].forEach(id=> document.getElementById(id).value='');
-  document.getElementById('f_consultor').value = CONSULTORS[0];
+function clearForm(){
+  ['cli','tel','em','imv','zona','cp','val','nt'].forEach(id=> document.getElementById(id).value='');
+  ['fin','cv','tipo','tcv','urg','h1','hs','oa','vs','cons','est'].forEach(id=>{
+    const el=document.getElementById(id); if(el && el.options && el.options.length) el.selectedIndex=0;
+  });
 }
 
-function editCard(col, idx){
-  const data = ensureModel(load());
-  const c = data[col][idx];
-
-  const titulo   = prompt('Título:', c.titulo||'') ?? c.titulo;
-  let consultor  = prompt('Consultor:', c.consultor||'') ?? c.consultor;
-  const valor    = prompt('Valor (€):', c.valor||'') ?? c.valor;
-
-  const cliente  = prompt('Cliente:', c.cliente||'') ?? c.cliente;
-  const contacto = prompt('Contacto:', c.contacto||'') ?? c.contacto;
-  const email    = prompt('Email:', c.email||'') ?? c.email;
-
-  const imovel   = prompt('Imóvel:', c.imovel||'') ?? c.imovel;
-  const zona     = prompt('Zona:', c.zona||'') ?? c.zona;
-  const capitais = prompt('Capitais próprios (€):', c.capitais||'') ?? c.capitais;
-
-  const finb     = prompt('Financiamento B. (Sim/Não/Em análise):', c.finb||'') ?? c.finb;
-  const perfil   = prompt('Perfil (Comprador/Vendedor):', c.perfil||'') ?? c.perfil;
-  const tipo     = prompt('Tipo (Investidor/Cliente final):', c.tipo||'') ?? c.tipo;
-
-  const temcasa  = prompt('Tem casa para vender (Sim/Não):', c.temcasa||'') ?? c.temcasa;
-  const urg      = prompt('Urgência/Planta:', c.urg||'') ?? c.urg;
-  const outroag  = prompt('Acomp. por outro agente (Sim/Não):', c.outroag||'') ?? c.outroag;
-
-  const visitas  = prompt('Já fez visitas (Sim/Não):', c.visitas||'') ?? c.visitas;
-  const primeira = prompt('1.ª habitação (Sim/Não):', c.primeira||'') ?? c.primeira;
-  const uso      = prompt('Uso (Hab. própria/secundária):', c.uso||'') ?? c.uso;
-
-  const notas    = prompt('Notas:', c.notas||'') ?? c.notas;
-
-  data[col][idx] = {titulo, consultor, valor, cliente, contacto, email, imovel, zona, capitais, finb, perfil, tipo, temcasa, urg, outroag, visitas, primeira, uso, notas};
-  save(data); render();
+function add(){
+  const f = collectForm();
+  if(!f.cliente){ alert('Indique o nome do cliente.'); return; }
+  const all = load();
+  all.unshift({ id:uid(), ...f, createdAt: new Date().toISOString() });
+  save(all);
+  clearForm();
+  render();
 }
 
-function removeCard(col, idx){
+function findById(id){
+  const all = load();
+  const idx = all.findIndex(x=>x.id===id);
+  return { all, idx, item: all[idx] };
+}
+
+function edit(id){
+  const { all, idx, item } = findById(id);
+  if(idx<0) return;
+
+  const cliente = prompt('Cliente:', item.cliente)||item.cliente;
+  const imovel  = prompt('Imóvel:', item.imovel||'')??item.imovel;
+  const zona    = prompt('Zona:', item.zona||'')??item.zona;
+  const consultor = prompt('Consultor:', item.consultor||'')??item.consultor;
+  const notas = prompt('Notas:', item.notas||'')??item.notas;
+
+  all[idx] = { ...item, cliente, imovel, zona, consultor, notas };
+  save(all);
+  render();
+}
+
+function del(id){
   if(!confirm('Remover esta lead?')) return;
-  const data = ensureModel(load());
-  data[col].splice(idx,1);
-  save(data); render();
+  const { all, idx } = findById(id);
+  if(idx<0) return;
+  all.splice(idx,1);
+  save(all);
+  render();
 }
 
-// Seed demo (10) — com novos campos
-function seedDemo(){
-  if(!confirm('Carregar 10 leads de exemplo? (substitui as atuais)')) return;
-  const ex = {
-    "Novo": [
-      {titulo:"T2 Matosinhos — Arrendamento", consultor:"Armanda Meireles", valor:"1200",
-       cliente:"Daniela Lopes", contacto:"+351 9xx", email:"", imovel:"T2", zona:"Matosinhos",
-       capitais:"", finb:"", perfil:"Comprador", tipo:"Cliente final", temcasa:"Não", urg:"Urgente",
-       outroag:"Não", visitas:"Não", primeira:"Sim", uso:"Habitação própria", notas:"Procura perto do metro"},
-      {titulo:"T3 Boavista — Venda", consultor:"Manuel Oliveira", valor:"620000",
-       cliente:"Miguel Duarte", contacto:"+351 9xx", email:"", imovel:"T3", zona:"Boavista",
-       capitais:"300000", finb:"Em análise", perfil:"Comprador", tipo:"Investidor", temcasa:"Não",
-       urg:"Sem urgência", outroag:"Não", visitas:"Não", primeira:"Não", uso:"Habitação secundária", notas:"Rendimento mínimo 4%"}
-    ],
-    "Em contacto": [
-      {titulo:"Terreno Gondomar — Investidor", consultor:"João Sousa", valor:"",
-       cliente:"IF Capital", contacto:"+351 2xx", email:"if@cap.pt", imovel:"Terreno", zona:"Gondomar",
-       capitais:"1000000", finb:"Não", perfil:"Comprador", tipo:"Investidor", temcasa:"Não",
-       urg:"Sem urgência", outroag:"Não", visitas:"Não", primeira:"", uso:"", notas:"Interessa BTR"}
-    ],
-    "Qualificado": [
-      {titulo:"T1 Cedofeita — Estudante FR", consultor:"Audrey Lucas", valor:"235000",
-       cliente:"Claire M.", contacto:"+33 6xx", email:"", imovel:"T1", zona:"Cedofeita",
-       capitais:"235000", finb:"Não", perfil:"Comprador", tipo:"Cliente final", temcasa:"Não",
-       urg:"P. em planta", outroag:"Não", visitas:"Não", primeira:"Não", uso:"Habitação secundária", notas:"Entrada 2026"},
-      {titulo:"Loja Foz — Rent Yield", consultor:"Manuel Oliveira", valor:"450000",
-       cliente:"TGP Retail", contacto:"+351 2xx", email:"", imovel:"Loja", zona:"Foz",
-       capitais:"450000", finb:"Não", perfil:"Comprador", tipo:"Investidor", temcasa:"Não",
-       urg:"Sem urgência", outroag:"Não", visitas:"Sim", primeira:"", uso:"", notas:"Yield alvo 6%"}
-    ],
-    "Proposta": [
-      {titulo:"T4 Gaia — 1ª habitação", consultor:"Armanda Meireles", valor:"395000",
-       cliente:"Família Pires", contacto:"+351 9xx", email:"", imovel:"T4", zona:"V.N. Gaia",
-       capitais:"120000", finb:"Sim", perfil:"Comprador", tipo:"Cliente final", temcasa:"Sim",
-       urg:"Urgente", outroag:"Não", visitas:"Sim", primeira:"Sim", uso:"Habitação própria", notas:"Proposta enviada 05/11"},
-      {titulo:"Prédio Baixa — BTR", consultor:"João Sousa", valor:"",
-       cliente:"Fundo Norte", contacto:"+351 2xx", email:"", imovel:"Prédio", zona:"Baixa Porto",
-       capitais:"", finb:"", perfil:"Comprador", tipo:"Investidor", temcasa:"Não",
-       urg:"Sem urgência", outroag:"Não", visitas:"Não", primeira:"", uso:"", notas:"Aguardam pipeline 2026"}
-    ],
-    "Fecho": [
-      {titulo:"T2 Antas — Chaves esta semana", consultor:"Manuel Oliveira", valor:"285000",
-       cliente:"Raquel S.", contacto:"+351 9xx", email:"", imovel:"T2", zona:"Antas",
-       capitais:"85000", finb:"Sim", perfil:"Comprador", tipo:"Cliente final", temcasa:"Não",
-       urg:"Urgente", outroag:"Não", visitas:"Sim", primeira:"Sim", uso:"Habitação própria", notas:"Chaves 6ª feira"},
-      {titulo:"T3 Leça — Proc. financiamento", consultor:"Audrey Lucas", valor:"",
-       cliente:"Família P.", contacto:"+351 9xx", email:"", imovel:"T3", zona:"Leça",
-       capitais:"", finb:"Em análise", perfil:"Comprador", tipo:"Cliente final", temcasa:"Não",
-       urg:"Sem urgência", outroag:"Não", visitas:"Sim", primeira:"Não", uso:"Habitação secundária", notas:"Banco pediu declaração"},
-      {titulo:"T0 Bonfim — Escritura 10/12", consultor:"Rui Quelhas", valor:"175000",
-       cliente:"Jorge C.", contacto:"+351 9xx", email:"", imovel:"T0", zona:"Bonfim",
-       capitais:"175000", finb:"Não", perfil:"Comprador", tipo:"Investidor", temcasa:"Não",
-       urg:"Sem urgência", outroag:"Não", visitas:"Sim", primeira:"Não", uso:"Habitação secundária", notas:"Tudo confirmado"}
-    ]
-  };
-  save(ex); render();
+function moveLead(id, stage){
+  const { all, idx, item } = findById(id);
+  if(idx<0) return;
+  all[idx] = { ...item, stage };
+  save(all);
+  render();
 }
 
-// Eventos
-document.getElementById('add').onclick=addCard;
-document.getElementById('reset').onclick=resetForm;
-document.getElementById('seed').onclick=seedDemo;
-document.getElementById('clear').onclick=()=>{ if(confirm('Apagar todas as leads?')){ localStorage.removeItem(LS_KEY); render(); } };
+/* =========================
+   Pesquisa
+========================= */
+document.getElementById('apply').onclick = ()=>{
+  Q = document.getElementById('q').value||'';
+  render();
+};
 
-fillConsultorSelect();
+/* =========================
+   Exportação CSV
+========================= */
+function toCSVRow(arr){ return arr.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(','); }
+function exportCSV(){
+  const data = load();
+  const headers = ["ID","Cliente","Contacto","Email","Imóvel","Zona","Capitais próp.","Financiamento","Comprador/Vendedor","Tipo","Tem casa para vender","Urgência/Planta","Valor (€)","1ª habitação","Habitação","Outro agente","Já fez visitas","Notas","Consultor","Estado","Criado em"];
+  const lines = [toCSVRow(headers)];
+  const q = Q.trim().toLowerCase();
+
+  data.forEach(a=>{
+    const txt = [a.cliente,a.imovel,a.zona,a.consultor].map(v=>String(v||'').toLowerCase()).join(' ');
+    if (q && !txt.includes(q)) return;
+    lines.push(toCSVRow([
+      a.id,a.cliente,a.tel,a.email,a.imovel,a.zona,a.cp,a.fin,a.cv,a.tipo,a.tcv,a.urg,a.val,a.h1,a.hs,a.oa,a.vs,a.notas,a.consultor,a.stage,a.createdAt
+    ]));
+  });
+
+  const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const aEl = document.createElement('a');
+  aEl.href = url; aEl.download = 'leads_kanban.csv';
+  document.body.appendChild(aEl); aEl.click(); aEl.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* =========================
+   Seed de exemplo
+========================= */
+function seed(){
+  if(!confirm('Substituir pelas leads de exemplo?')) return;
+  const ex = [
+    {id:uid(), cliente:"Paulo Andrade", tel:"912345678", email:"paulo@ex.pt", imovel:"T2 Boavista", zona:"Porto", cp:150000, fin:"Em análise", cv:"Comprador", tipo:"Cliente final", tcv:"Não", urg:"Sem urgência", val:420000, h1:"Sim", hs:"Própria", oa:"Não", vs:"Não", notas:"Avaliar planta em Matosinhos", consultor:"Rui Quelhas", stage:"novo", createdAt:new Date().toISOString()},
+    {id:uid(), cliente:"Sofia Martins", tel:"919111222", email:"sofia@ex.pt", imovel:"T3 Canidelo vista mar", zona:"V.N. Gaia", cp:200000, fin:"Sim", cv:"Comprador", tipo:"Investidor", tcv:"Sim", urg:"Compra em planta", val:650000, h1:"Não", hs:"Secundária", oa:"Não", vs:"Não", notas:"Preferência T3 duplex", consultor:"Manuel Oliveira", stage:"em_contacto", createdAt:new Date().toISOString()},
+    {id:uid(), cliente:"Miguel Costa", tel:"913222333", email:"miguel@ex.pt", imovel:"Moradia Senhora da Hora", zona:"Matosinhos", cp:300000, fin:"Não", cv:"Comprador", tipo:"Cliente final", tcv:"Não", urg:"Urgente", val:900000, h1:"Sim", hs:"Própria", oa:"Sim", vs:"Sim", notas:"Precisa vender apartamento atual", consultor:"João Sousa", stage:"qualificado", createdAt:new Date().toISOString()},
+    {id:uid(), cliente:"Ana Ribeiro", tel:"914444555", email:"ana@ex.pt", imovel:"Lote Gondomar", zona:"Gondomar", cp:120000, fin:"Em análise", cv:"Vendedor", tipo:"Investidor", tcv:"—", urg:"Sem urgência", val:230000, h1:"—", hs:"—", oa:"Não", vs:"Sim", notas:"Aguarda visita técnica", consultor:"Armanda Meireles", stage:"visita", createdAt:new Date().toISOString()},
+    {id:uid(), cliente:"Carlos Lima", tel:"915666777", email:"carlos@ex.pt", imovel:"Loja Baixa", zona:"Porto", cp:500000, fin:"Não", cv:"Vendedor", tipo:"Investidor", tcv:"—", urg:"Sem urgência", val:1200000, h1:"—", hs:"—", oa:"Não", vs:"Sim", notas:"Proposta a preparar", consultor:"Audrey Lucas", stage:"proposta", createdAt:new Date().toISOString()},
+    {id:uid(), cliente:"Essence Penthouse", tel:"", email:"", imovel:"T4 Essência", zona:"Porto", cp:null, fin:"Em análise", cv:"Comprador", tipo:"Investidor", tcv:"Não", urg:"Sem urgência", val:1400000, h1:"Não", hs:"Secundária", oa:"Não", vs:"Sim", notas:"Fecho previsto 30 dias", consultor:"Francisco dos Santos", stage:"fecho", createdAt:new Date().toISOString()}
+  ];
+  save(ex);
+  render();
+}
+
+/* =========================
+   Ligações UI
+========================= */
+document.getElementById('add').onclick = add;
+document.getElementById('seed').onclick = seed;
+document.getElementById('clear').onclick = ()=>{ if(confirm('Limpar todas as leads?')){ localStorage.removeItem(LS_KEY); render(); } };
+document.getElementById('export').onclick = exportCSV;
+
+/* Primeira renderização */
 render();
 </script>
 </body>
