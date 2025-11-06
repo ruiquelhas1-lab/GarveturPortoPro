@@ -49,17 +49,31 @@
     <h3>Nova Angariação</h3>
     <label>Propriedade</label><input id="p" placeholder="Ex.: T3 Boavista | Porto">
     <label>Consultor</label><input id="c" placeholder="Ex.: Manuel">
+    <label>Proprietário</label><input id="propNome" placeholder="Ex.: Sr. António Silva">
+    <label>Data</label><input id="dataAng" type="date">
     <label>Origem</label><input id="o" placeholder="Ex.: Referral / Porta-a-porta / Online">
+
+    <label>Comissão</label>
+    <select id="com">
+      <option value="6">6%</option>
+      <option value="5">5%</option>
+      <option value="4">4%</option>
+      <option value="3">3%</option>
+    </select>
+
     <label>Preço pedido (€)</label><input id="pp" type="number" step="0.01" placeholder="Ex.: 650000">
     <label>Preço sugerido (€)</label><input id="ps" type="number" step="0.01" placeholder="Ex.: 620000">
     <div style="margin-top:8px;font-size:12px;">% Ajustamento: <span id="aj">—</span> <span class="semaforo" id="sf"></span></div>
+
     <div class="chk">
       <label><input type="checkbox" id="doc_cc"> CC</label>
       <label><input type="checkbox" id="doc_caderneta"> Caderneta</label>
       <label><input type="checkbox" id="doc_cert_ener"> Cert. Energético</label>
       <label><input type="checkbox" id="doc_planta"> Planta</label>
-      <label><input type="checkbox" id="doc_cpcv"> Minuta CPCV</label>
+      <label><input type="checkbox" id="doc_cmi"> CMI assinado</label>
+      <label><input type="checkbox" id="doc_crp"> CRP</label>
     </div>
+
     <label>Notas</label><textarea id="n" rows="3" placeholder="Observações relevantes"></textarea>
     <div style="margin-top:8px;display:flex;gap:8px;">
       <button class="btn" id="add">Guardar angariação</button>
@@ -73,7 +87,7 @@
 </div>
 
 <script>
-const LS_KEY = 'gpp_ang_v1';
+const LS_KEY = 'gpp_ang_v2';
 
 function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch(e){ return []; } }
 function save(d){ localStorage.setItem(LS_KEY, JSON.stringify(d)); }
@@ -91,15 +105,18 @@ function semaforo(el, val){
 function cardEl(a, idx){
   const d = document.createElement('div');
   d.className='card';
-  d.innerHTML = `<div class="t">${a.prop}</div>
-                 <div class="m">${a.consultor || ''} · ${a.origem || ''}</div>
-                 <div class="m">Pedido: ${a.pp||'-'}€ · Sugerido: ${a.ps||'-'}€ · Ajuste: ${a.aj!=null?a.aj+'%':'—'}</div>
-                 <div class="m">Docs: ${a.docs?.join(', ')||'—'}</div>
-                 ${a.notas? `<div class="m"><em>${a.notas}</em></div>`:''}
-                 <div style="margin-top:6px;display:flex;gap:6px;">
-                   <button class="btn" data-a="edit">Editar</button>
-                   <button class="btn" data-a="del">Remover</button>
-                 </div>`;
+  d.innerHTML = `
+    <div class="t">${a.prop}</div>
+    <div class="m">${a.consultor || ''} · ${a.origem || ''}</div>
+    <div class="m">Proprietário: ${a.proprietario || '—'} · Data: ${a.data || '—'}</div>
+    <div class="m">Comissão: ${a.comissao!=null ? a.comissao+'%' : '—'}</div>
+    <div class="m">Pedido: ${a.pp||'-'}€ · Sugerido: ${a.ps||'-'}€ · Ajuste: ${a.aj!=null?a.aj+'%':'—'}</div>
+    <div class="m">Docs: ${a.docs?.join(', ')||'—'}</div>
+    ${a.notas? `<div class="m"><em>${a.notas}</em></div>`:''}
+    <div style="margin-top:6px;display:flex;gap:6px;">
+      <button class="btn" data-a="edit">Editar</button>
+      <button class="btn" data-a="del">Remover</button>
+    </div>`;
   d.querySelector('[data-a="edit"]').onclick=()=> edit(idx);
   d.querySelector('[data-a="del"]').onclick=()=> del(idx);
   return d;
@@ -112,51 +129,65 @@ function render(){
   data.forEach((a,i)=> list.appendChild(cardEl(a,i)));
 }
 
-function add(){
-  const prop = document.getElementById('p').value.trim();
-  if(!prop) return alert('Indique a propriedade.');
-  const consultor = document.getElementById('c').value.trim();
-  const origem = document.getElementById('o').value.trim();
-  const pp = Number(document.getElementById('pp').value) || null;
-  const ps = Number(document.getElementById('ps').value) || null;
-  const aj = pct(pp, ps);
+function collectDocs(){
   const docs = [];
   if(document.getElementById('doc_cc').checked) docs.push('CC');
   if(document.getElementById('doc_caderneta').checked) docs.push('Caderneta');
   if(document.getElementById('doc_cert_ener').checked) docs.push('Cert. Energético');
   if(document.getElementById('doc_planta').checked) docs.push('Planta');
-  if(document.getElementById('doc_cpcv').checked) docs.push('Minuta CPCV');
+  if(document.getElementById('doc_cmi').checked) docs.push('CMI assinado');
+  if(document.getElementById('doc_crp').checked) docs.push('CRP');
+  return docs;
+}
+
+function add(){
+  const prop = document.getElementById('p').value.trim();
+  if(!prop) return alert('Indique a propriedade.');
+  const consultor = document.getElementById('c').value.trim();
+  const proprietario = document.getElementById('propNome').value.trim();
+  const data = document.getElementById('dataAng').value;
+  const origem = document.getElementById('o').value.trim();
+  const comissao = Number(document.getElementById('com').value); // 6/5/4/3
+  const pp = Number(document.getElementById('pp').value) || null;
+  const ps = Number(document.getElementById('ps').value) || null;
+  const aj = pct(pp, ps);
+  const docs = collectDocs();
   const notas = document.getElementById('n').value.trim();
 
-  const data = load();
-  data.unshift({prop, consultor, origem, pp, ps, aj, docs, notas});
-  save(data); render(); clearForm();
+  const arr = load();
+  arr.unshift({prop, consultor, proprietario, data, origem, comissao, pp, ps, aj, docs, notas});
+  save(arr); render(); clearForm();
 }
 
 function clearForm(){
-  ['p','c','o','pp','ps','n'].forEach(id=> document.getElementById(id).value='');
-  ['doc_cc','doc_caderneta','doc_cert_ener','doc_planta','doc_cpcv'].forEach(id=> document.getElementById(id).checked=false);
+  ['p','c','propNome','o','pp','ps','n','dataAng'].forEach(id=> document.getElementById(id).value='');
+  ['doc_cc','doc_caderneta','doc_cert_ener','doc_planta','doc_cmi','doc_crp'].forEach(id=> document.getElementById(id).checked=false);
+  document.getElementById('com').value='6';
   document.getElementById('aj').textContent='—'; semaforo(document.getElementById('sf'), null);
 }
 
 function edit(idx){
-  const data = load(); const a = data[idx];
+  const dataAll = load(); const a = dataAll[idx];
   const prop = prompt('Propriedade:', a.prop)||a.prop;
   const consultor = prompt('Consultor:', a.consultor||'')??a.consultor;
+  const proprietario = prompt('Proprietário:', a.proprietario||'')??a.proprietario;
+  const data = prompt('Data (AAAA-MM-DD):', a.data||'')??a.data;
   const origem = prompt('Origem:', a.origem||'')??a.origem;
+  const comissao = Number(prompt('Comissão (%):', a.comissao ?? '6')) || a.comissao || 6;
   const pp = Number(prompt('Preço pedido (€):', a.pp ?? '')) || null;
   const ps = Number(prompt('Preço sugerido (€):', a.ps ?? '')) || null;
   const aj = pct(pp, ps);
   const notas = prompt('Notas:', a.notas||'')??a.notas;
-  data[idx] = {prop, consultor, origem, pp, ps, aj, docs:a.docs||[], notas};
-  save(data); render();
+  // Mantém documentos existentes
+  dataAll[idx] = {prop, consultor, proprietario, data, origem, comissao, pp, ps, aj, docs:a.docs||[], notas};
+  save(dataAll); render();
 }
 
 function del(idx){
   if(!confirm('Remover esta angariação?')) return;
-  const data = load();
-  data.splice(idx,1);
-  save(data); render();
+  const arr = load();
+  arr.splice(idx,1);
+  save(arr); render();
 }
 
 // Atualizar % ajustamento e semáforo em tempo real
@@ -170,15 +201,15 @@ function del(idx){
   });
 });
 
-// Seed demo (5)
+// Seed demo (5) com novos campos
 function seedDemo(){
   if(!confirm('Carregar 5 angariações de exemplo? (substitui as atuais)')) return;
   const ex = [
-    {prop:"T3 Boavista | Porto", consultor:"Manuel", origem:"Referral", pp:650000, ps:620000, aj:-4.6, docs:["CC","Caderneta","Cert. Energético"], notas:"Avaliação agendada"},
-    {prop:"T2 Madalena | V.N. Gaia", consultor:"Armanda", origem:"Porta-a-porta", pp:320000, ps:315000, aj:-1.6, docs:["CC","Caderneta"], notas:"Vendedor disponível negociar"},
-    {prop:"Loja Foz | Porto", consultor:"João", origem:"Online", pp:480000, ps:450000, aj:-6.3, docs:["CC","Caderneta","Planta"], notas:"Objetivo yield 6%"},
-    {prop:"Terreno Gondomar", consultor:"Manuel", origem:"Investidor", pp:900000, ps:870000, aj:-3.3, docs:["CC"], notas:"Pedido minuta CPCV"},
-    {prop:"Prédio Baixa | Porto", consultor:"Audrey", origem:"Gestor de ativos", pp:2200000, ps:2100000, aj:-4.5, docs:["CC","Caderneta","Cert. Energético","Planta","Minuta CPCV"], notas:"Visita técnica 5ª feira"}
+    {prop:"T3 Boavista | Porto", consultor:"Manuel", proprietario:"António Silva", data:"2025-11-06", origem:"Referral", comissao:6, pp:650000, ps:620000, aj:-4.6, docs:["CC","Caderneta","Cert. Energético","CMI assinado"], notas:"Avaliação agendada"},
+    {prop:"T2 Madalena | V.N. Gaia", consultor:"Armanda", proprietario:"Maria Lopes", data:"2025-11-01", origem:"Porta-a-porta", comissao:5, pp:320000, ps:315000, aj:-1.6, docs:["CC","Caderneta","CRP"], notas:"Vendedor disponível negociar"},
+    {prop:"Loja Foz | Porto", consultor:"João", proprietario:"ImoFoz Lda.", data:"2025-10-28", origem:"Online", comissao:4, pp:480000, ps:450000, aj:-6.3, docs:["CC","Caderneta","Planta"], notas:"Objetivo yield 6%"},
+    {prop:"Terreno Gondomar", consultor:"Manuel", proprietario:"Joaquim Rocha", data:"2025-11-03", origem:"Investidor", comissao:3, pp:900000, ps:870000, aj:-3.3, docs:["CC","CRP"], notas:"Pedido de CMI assinado"},
+    {prop:"Prédio Baixa | Porto", consultor:"Audrey", proprietario:"Gestora Norte, SA", data:"2025-11-05", origem:"Gestor de ativos", comissao:5, pp:2200000, ps:2100000, aj:-4.5, docs:["CC","Caderneta","Cert. Energético","Planta","CMI assinado","CRP"], notas:"Visita técnica 5ª feira"}
   ];
   save(ex); render();
 }
