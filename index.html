@@ -18,9 +18,17 @@
     .actionBtn { background:transparent; border:1px solid rgba(163,139,99,.5); color:#fff; padding:6px 9px; border-radius:8px; cursor:pointer; font-size:12px; }
     #status { font-size:12px; color:#E6E6E6; margin-left:auto; }
     #map { position:absolute; inset:46px 0 0 0; }
-    .legend { position:absolute; bottom:20px; left:20px; background:#111; color:#eee; font-size:11px; padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,.1); line-height:1.4; }
+
+    /* Legenda */
+    .legend { position:absolute; bottom:20px; left:20px; background:#111; color:#eee; font-size:11px; padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,.1); line-height:1.4; z-index:400; }
     .legend div { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
     .swatch { width:12px; height:12px; border-radius:50%; display:inline-block; }
+
+    /* Pin “bandeira” — bem visível, com halo e hover-zoom */
+    .gpp-pin { will-change: transform; transition: transform .12s ease; filter: drop-shadow(0 1px 2px rgba(0,0,0,.55)) drop-shadow(0 6px 12px rgba(0,0,0,.35)); }
+    .gpp-pin:hover { transform: translate(-12px,-36px) scale(1.12); }
+    /* Ajuste base do wrapper para o centro do pin ancorar corretamente */
+    .gpp-wrap { transform: translate(-12px, -36px); }
     @media (max-width:640px){ #map{ inset:78px 0 0 0; } }
   </style>
 </head>
@@ -50,69 +58,114 @@
     <div><span class="swatch" style="background:#06D6A0"></span> Concluído</div>
   </div>
 
+  <!-- CSV parser e Leaflet -->
   <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script>
   const CSV_SOURCE = "./data/empreendimentos.csv";
   const PORTO_CENTER = [41.15, -8.61];
+
   const statusEl = document.getElementById('status');
   const map = L.map('map', { zoomControl:true, scrollWheelZoom:true }).setView(PORTO_CENTER, 11);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(map);
-  const cluster = L.markerClusterGroup(); map.addLayer(cluster);
+  const cluster = L.markerClusterGroup({ maxClusterRadius: 45 }); map.addLayer(cluster);
 
   function setStatus(m){ statusEl.textContent = m; }
   function toNum(v){ if(v==null) return null; const n = Number(String(v).replace(',','.')); return Number.isFinite(n)?n:null; }
   function colorByEstado(e){
     const s=(e||'').toLowerCase();
-    if(s.includes('conclu')) return '#06D6A0';
-    if(s.includes('licen')) return '#118AB2';
-    if(s.includes('constr')) return '#FFD166';
+    if(s.includes('conclu')) return '#06D6A0';     // concluído
+    if(s.includes('licen')) return '#118AB2';     // licenciado
+    if(s.includes('constr')) return '#FFD166';    // em construção
     return '#A38B63';
   }
 
+  // SVG “bandeira” com mastro: muito visível e com halo
+  function makeFlagIcon(color){
+    const html = `
+      <div class="gpp-wrap gpp-pin">
+        <svg width="28" height="36" viewBox="0 0 28 36" xmlns="http://www.w3.org/2000/svg">
+          <!-- mastro -->
+          <rect x="12.5" y="4" width="3" height="26" fill="#ffffff" opacity="0.95"/>
+          <rect x="13" y="4" width="2" height="26" fill="#222222" opacity="0.9"/>
+          <!-- bandeira -->
+          <path d="M14 6 C18 6, 18 9, 22 9 C24 9, 26 8, 26 8 L26 17 C26 17, 24 18, 22 18 C18 18, 18 15, 14 15 Z"
+                fill="${color}" stroke="#ffffff" stroke-width="1.2"/>
+          <!-- ponta/âncora -->
+          <circle cx="14" cy="30" r="3.5" fill="${color}" stroke="#ffffff" stroke-width="1.2"/>
+        </svg>
+      </div>`;
+    return L.divIcon({ html, className: '', iconSize: [28,36], iconAnchor: [14,30] });
+  }
+
+  function fmt(v){ return v==null ? '' : String(v).trim(); }
+
+  function rowToPoint(row){
+    const lat=toNum(row.latitude || row.Latitude);
+    const lng=toNum(row.longitude || row.Longitude);
+    const nome=row.nome || row.Nome;
+    if(!nome || lat==null || lng==null) return null;
+
+    return {
+      nome: fmt(row.nome||row.Nome),
+      concelho: fmt(row.concelho||row.Concelho),
+      estado: fmt(row.estado||row.Estado),
+      promotor: fmt(row.promotor||row.Promotor),
+      tipologias: fmt(row.tipologias||row.Tipologias),
+      conclusao: fmt(row.conclusao||row.Conclusao||row['Conclusão']),
+      preco_m2: fmt(row.preco_m2||row['Preço/m2']||row['preco_m2']),
+      notas: fmt(row.notas||row.Notas),
+      link: fmt(row.link||row.Link||row.URL||row.Website),
+      lat, lng
+    };
+  }
+
   function createMarker(p){
-    const marker = L.circleMarker([p.lat,p.lng], {
-      radius:8, color:colorByEstado(p.estado), fillColor:colorByEstado(p.estado), fillOpacity:0.7, weight:1
-    });
-    marker.bindPopup(`
-      <b>${p.nome}</b><br>
-      ${p.concelho || ''}${p.estado ? ' · ' + p.estado : ''}<br>
-      ${p.conclusao ? 'Conclusão: '+p.conclusao+'<br>' : ''}
-      ${p.promotor ? 'Promotor: '+p.promotor+'<br>' : ''}
-      ${p.tipologias ? 'Tipologias: '+p.tipologias+'<br>' : ''}
-      ${p.preco_m2 ? 'Preço/m²: '+p.preco_m2+'€<br>' : ''}
-      ${p.notas ? '<em>'+p.notas+'</em><br>' : ''}
-      ${p.link ? '<a href="${p.link}" target="_blank" rel="noreferrer">Abrir Link</a>' : ''}
-    `);
+    const color = colorByEstado(p.estado);
+    const marker = L.marker([p.lat, p.lng], { icon: makeFlagIcon(color) });
+
+    // Tooltip on-hover (rápido)
+    const ttEstado = p.estado ? p.estado.toLowerCase() : '';
+    const ttConclusao = p.conclusao ? ` · ${p.conclusao}` : '';
+    const ttConcelho = p.concelho ? ` · ${p.concelho}` : '';
+    marker.bindTooltip(`${p.nome}${ttConcelho}${ttConclusao}`, { direction:'top', offset:[0,-26], opacity:0.92 });
+
+    // Popup on-click (detalhes)
+    const linhas = [
+      `<b>${p.nome}</b>`,
+      `${p.concelho || ''}${p.estado ? ' · ' + p.estado : ''}${p.conclusao ? ' · Conclusão: '+p.conclusao : ''}`,
+      p.promotor ? `Promotor: ${p.promotor}` : '',
+      p.tipologias ? `Tipologias: ${p.tipologias}` : '',
+      p.preco_m2 ? `Preço/m²: ${p.preco_m2} €` : '',
+      p.notas ? `<em>${p.notas}</em>` : '',
+      p.link ? `<a href="${p.link}" target="_blank" rel="noreferrer">Abrir Link</a>` : ''
+    ].filter(Boolean).join('<br>');
+    marker.bindPopup(linhas, { maxWidth: 320 });
+
     return marker;
   }
 
   async function loadCSV(){
     try{
-      setStatus("A carregar ficheiro CSV...");
+      setStatus("A carregar CSV…");
       const resp = await fetch(CSV_SOURCE, { cache:'no-store' });
       if(!resp.ok) throw new Error("HTTP "+resp.status);
       const csvText = await resp.text();
       const parsed = Papa.parse(csvText, { header:true, skipEmptyLines:true });
       const data = parsed.data || [];
+
       cluster.clearLayers();
-      let count=0;
-      data.forEach(row=>{
-        const lat=toNum(row.latitude || row.Latitude);
-        const lng=toNum(row.longitude || row.Longitude);
-        const nome=row.nome || row.Nome;
-        if(!nome || lat==null || lng==null) return;
-        const p={
-          nome, concelho:row.concelho||row.Concelho, estado:row.estado||row.Estado,
-          promotor:row.promotor||row.Promotor, tipologias:row.tipologias||row.Tipologias,
-          conclusao:row.conclusao||row.Conclusao, preco_m2:row.preco_m2||row['Preço/m2']||row['preco_m2'],
-          notas:row.notas||row.Notas, link:row.link||row.Link, lat, lng
-        };
-        cluster.addLayer(createMarker(p)); count++;
-      });
-      setStatus(`✅ ${count} empreendimentos carregados`);
-      if(count>0) map.setView(PORTO_CENTER, 11);
+      const pontos = data.map(rowToPoint).filter(Boolean);
+      pontos.forEach(p => cluster.addLayer(createMarker(p)));
+
+      if(pontos.length){
+        const bounds = L.latLngBounds(pontos.map(p => [p.lat,p.lng]));
+        if (bounds.isValid()) map.fitBounds(bounds.pad(0.2));
+      } else {
+        map.setView(PORTO_CENTER, 11);
+      }
+      setStatus(`✅ ${pontos.length} empreendimentos carregados`);
     }catch(err){
       console.error(err);
       setStatus("❌ Falha ao carregar CSV ("+(err.message||err)+")");
