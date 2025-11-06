@@ -37,12 +37,22 @@
   .semaforo{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:8px;background:#888;}
   .muted{color:#c9c9c9;font-size:12px}
   .tools{display:flex;gap:8px;align-items:center;padding:0 12px 8px 12px}
-  @media(max-width:1200px){.list{grid-template-columns:repeat(2,1fr)}}
+
+  /* Mini-bar chart */
+  .chart{background:#0E0E0E;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px 10px;margin:6px 12px 12px 12px}
+  .chart .title{font-size:12px;color:#cfcfcf;margin-bottom:8px}
+  .barrow{display:flex;align-items:center;gap:10px;margin:6px 0}
+  .barrow .name{width:180px;font-size:12px;color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .barrow .barwrap{flex:1;background:#151515;border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,.08)}
+  .barrow .bar{height:14px;background:linear-gradient(90deg,#A38B63,#d6c4a1)}
+  .barrow .val{width:36px;text-align:right;font-size:12px;color:#bdbdbd}
+  .barrow.highlight .bar{background:linear-gradient(90deg,#ffd166,#f9b24e)}
   @media(max-width:900px){
     .wrap{grid-template-columns:1fr}
     .filters{grid-template-columns:1fr 1fr;}
     .kpis{grid-template-columns:1fr}
     .kpi-table{grid-column:span 1}
+    .barrow .name{width:120px}
   }
 </style>
 </head>
@@ -169,8 +179,15 @@
       </div>
     </div>
 
+    <!-- Mini-bar chart -->
+    <div class="chart">
+      <div class="title">Nº de angariações por consultor (filtro aplicado)</div>
+      <div id="mini_chart"></div>
+    </div>
+
     <div class="tools">
       <button class="btn" id="btn_export_csv">Exportar CSV (filtro)</button>
+      <button class="btn" id="btn_export_xls">Exportar Excel (filtro)</button>
       <div class="muted" id="resumo">—</div>
     </div>
 
@@ -269,8 +286,9 @@ function render(list=null){
   })();
   document.getElementById('resumo').textContent = `Total: ${total} · Média de ajustamento: ${mediaAj!=null? mediaAj+'%' : '—'}`;
 
-  // KPIs
+  // KPIs + tabela + gráfico
   renderKPIs(data);
+  renderMiniChart(data);
 }
 
 /* =========================
@@ -398,7 +416,7 @@ function view(){
 }
 
 /* =========================
-   KPIs
+   KPIs + MINI-CHART
 ========================= */
 function renderKPIs(data){
   // KPIs gerais
@@ -442,6 +460,31 @@ function renderKPIs(data){
   }
 }
 
+function renderMiniChart(data){
+  // Agregação simples
+  const counts = {};
+  data.forEach(x=>{
+    const k = x.consultor || '(sem consultor)';
+    counts[k] = (counts[k]||0)+1;
+  });
+  const entries = Object.entries(counts).sort((a,b)=> b[1]-a[1]);
+  const max = entries.length ? entries[0][1] : 0;
+
+  const focus = f_consultor.value || '';
+  const wrap = document.getElementById('mini_chart');
+  wrap.innerHTML = '';
+  entries.forEach(([name, val])=>{
+    const row = document.createElement('div');
+    row.className = 'barrow' + (focus && name===focus ? ' highlight':'');
+    const pct = max>0 ? Math.max(5, Math.round(val/max*100)) : 0; // barra mínima 5%
+    row.innerHTML = `
+      <div class="name">${name}</div>
+      <div class="barwrap"><div class="bar" style="width:${pct}%"></div></div>
+      <div class="val">${val}</div>`;
+    wrap.appendChild(row);
+  });
+}
+
 /* =========================
    EXPORTAÇÃO CSV (filtro)
 ========================= */
@@ -469,6 +512,43 @@ function exportCSVFiltered(){
   const aEl = document.createElement('a');
   aEl.href = url;
   aEl.download = 'angariacoes_filtradas.csv';
+  document.body.appendChild(aEl);
+  aEl.click();
+  aEl.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* =========================
+   EXPORTAÇÃO EXCEL (compatível, .xls)
+========================= */
+function exportExcelFiltered(){
+  const data = view(); // respeita filtros + ordenação
+  // Tabela HTML simples que o Excel abre nativamente (sem libs)
+  const headers = ["Propriedade","Consultor","Proprietário","Data","Origem","Comissão","Preço pedido","Preço sugerido","% Ajustamento","Documentos","Notas"];
+  let html = '<table border="1"><thead><tr>' + headers.map(h=>`<th>${h}</th>`).join('') + '</tr></thead><tbody>';
+  data.forEach(a=>{
+    html += '<tr>' + [
+      a.prop||'',
+      a.consultor||'',
+      a.proprietario||'',
+      fmtDate(a.data),
+      a.origem||'',
+      (a.comissao!=null? a.comissao+'%':''),
+      (a.pp!=null? a.pp:''),
+      (a.ps!=null? a.ps:''),
+      (a.aj!=null? a.aj+'%':''),
+      (a.docs&&a.docs.length? a.docs.join('; '):''),
+      (a.notas||'')
+    ].map(v=>`<td>${String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;')}</td>`).join('') + '</tr>';
+  });
+  html += '</tbody></table>';
+
+  const blob = new Blob([`\ufeff<html><head><meta charset="utf-8"></head><body>${html}</body></html>`],
+                        {type: 'application/vnd.ms-excel'});
+  const url = URL.createObjectURL(blob);
+  const aEl = document.createElement('a');
+  aEl.href = url;
+  aEl.download = 'angariacoes_filtradas.xls'; // Excel abre diretamente
   document.body.appendChild(aEl);
   aEl.click();
   aEl.remove();
@@ -579,8 +659,9 @@ document.getElementById('f_clear').onclick = ()=>{
   render();
 };
 
-// Exportação CSV
+// Exportação CSV / Excel
 document.getElementById('btn_export_csv').onclick = exportCSVFiltered;
+document.getElementById('btn_export_xls').onclick = exportExcelFiltered;
 
 // Garantir dropdown de consultores SEMPRE visível
 if (document.readyState === 'loading') {
