@@ -38,13 +38,16 @@
   .card .title{font-weight:600}
   .card .meta{font-size:12px;color:#cfcfcf;margin-top:2px}
   .tag{display:inline-block;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:2px 6px;font-size:11px;margin-right:4px;color:#ddd}
-  .tools{display:flex;gap:6px;margin-top:8px}
+  .tools{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
   .tools .btn{padding:4px 7px;font-size:11px}
-  .filters{display:grid;grid-template-columns:1fr 120px;gap:8px;align-items:end;margin-top:8px}
 
-  /* Barra de relatórios */
-  .reports{display:flex;gap:8px;align-items:center;margin-top:8px}
-  .reports select{width:auto;min-width:220px}
+  .filters{display:grid;grid-template-columns:1fr 110px 110px 110px;gap:8px;align-items:end;margin-top:8px}
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 0 0}
+  .kpi{background:#0E0E0E;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px}
+  .kpi .h{font-size:11px;color:#cfcfcf;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+  .kpi .v{font-size:18px;font-weight:700}
+  .kpi .s{font-size:12px;color:#bdbdbd;margin-top:2px}
+  .kpi .row{display:flex;justify-content:space-between;font-size:12px;color:#ddd;margin-top:6px}
 
   @media(max-width:1200px){.grid{grid-template-columns:repeat(3,1fr)} .wrap{grid-template-columns:1fr}}
   @media(max-width:700px){.grid{grid-template-columns:1fr}}
@@ -64,7 +67,7 @@
   <div class="actions">
     <button id="seed" class="btn">Seed (exemplo)</button>
     <button id="clear" class="btn">Limpar</button>
-    <button id="export" class="btn">Exportar CSV (todas/filtradas)</button>
+    <button id="export" class="btn">Exportar CSV (filtro)</button>
   </div>
 </header>
 
@@ -117,23 +120,34 @@
       <h3>Filtros</h3>
       <div class="filters">
         <input id="q" placeholder="Pesquisar: cliente / imóvel / zona / consultor" />
+        <input type="date" id="f_de" />
+        <input type="date" id="f_ate" />
         <button id="apply" class="btn">Aplicar</button>
       </div>
-
-      <div class="reports">
-        <label style="margin:0">Relatório por consultor</label>
-        <select id="rep_cons">
-          <option value="">(selecione consultor)</option>
-          <option>Rui Quelhas</option>
-          <option>Manuel Oliveira</option>
-          <option>João Sousa</option>
-          <option>Francisco dos Santos</option>
-          <option>Rosário Vasconcelos</option>
-          <option>Armanda Meireles</option>
-          <option>Audrey Lucas</option>
-        </select>
-        <button id="rep_csv" class="btn">Exportar CSV</button>
-        <button id="rep_xls" class="btn">Exportar XLS</button>
+      <div class="kpis" id="kpiArea">
+        <div class="kpi">
+          <div class="h">Total (filtro)</div>
+          <div class="v" id="k_total">—</div>
+          <div class="s">Novas (7 dias): <span id="k_week">—</span></div>
+          <div class="row"><span>Novo</span><span id="k_novo">—</span></div>
+          <div class="row"><span>Em Contacto</span><span id="k_ec">—</span></div>
+          <div class="row"><span>Qualificado</span><span id="k_qua">—</span></div>
+          <div class="row"><span>Visita</span><span id="k_vis">—</span></div>
+          <div class="row"><span>Proposta</span><span id="k_pro">—</span></div>
+          <div class="row"><span>Fecho</span><span id="k_fec">—</span></div>
+        </div>
+        <div class="kpi">
+          <div class="h">Conversões (snapshot)</div>
+          <div class="v" id="k_conv1">—</div>
+          <div class="s">Visita → Proposta</div>
+          <div class="row"><span>Fórmula</span><span>#Proposta / (#Visita + #Proposta)</span></div>
+        </div>
+        <div class="kpi">
+          <div class="h">Conversões (snapshot)</div>
+          <div class="v" id="k_conv2">—</div>
+          <div class="s">Proposta → Fecho</div>
+          <div class="row"><span>Fórmula</span><span>#Fecho / (#Proposta + #Fecho)</span></div>
+        </div>
       </div>
     </div>
   </div>
@@ -160,6 +174,14 @@ const STAGES = [
 const LS_KEY = 'gpp_leads_v3'; // versão com "visita"
 const CONSULTORS = ["Rui Quelhas","Manuel Oliveira","João Sousa","Francisco dos Santos","Rosário Vasconcelos","Armanda Meireles","Audrey Lucas"];
 
+let Q = ''; // pesquisa
+let F_DE = ''; // ISO date (inclusive)
+let F_ATE = ''; // ISO date (inclusive)
+
+const grid = document.getElementById('grid');
+const est = document.getElementById('est');
+est.innerHTML = STAGES.map(s=>`<option value="${s.key}">${s.title}</option>`).join('');
+
 /* =========================
    Storage / Migração
 ========================= */
@@ -178,19 +200,10 @@ function migrate(arr){
     let s = (x.stage||'').toLowerCase();
     if (s === 'emcontacto' || s === 'em-contacto') s = 'em_contacto';
     if (!valid.has(s)) s = 'novo';
-    // garantir createdAt
     if (!x.createdAt) x.createdAt = new Date().toISOString();
     return { ...x, stage:s };
   });
 }
-
-/* =========================
-   Estado UI
-========================= */
-let Q = '';
-const grid = document.getElementById('grid');
-const est = document.getElementById('est');
-est.innerHTML = STAGES.map(s=>`<option value="${s.key}">${s.title}</option>`).join('');
 
 /* =========================
    Datas / Semana corrente
@@ -203,25 +216,70 @@ function inLastWeek(iso){
   const t = Date.parse(iso);
   return Number.isFinite(t) && t >= WEEK_START.getTime();
 }
+function inRange(iso, d1, d2){
+  if(!iso) return false;
+  const t = Date.parse(iso);
+  if(!Number.isFinite(t)) return false;
+  if(d1 && t < Date.parse(d1)) return false;
+  if(d2){
+    const end = new Date(d2); end.setHours(23,59,59,999);
+    if(t > end.getTime()) return false;
+  }
+  return true;
+}
 
 /* =========================
    Renderização
 ========================= */
 function render(){
-  const data = load();
+  const data0 = load();
   const q = Q.trim().toLowerCase();
+
+  // filtro texto
+  let data = data0.filter(item=>{
+    const txt = [item.cliente,item.imovel,item.zona,item.consultor].map(v=>String(v||'').toLowerCase()).join(' ');
+    return !q || txt.includes(q);
+  });
+
+  // filtro datas
+  if (F_DE || F_ATE) {
+    data = data.filter(x=> inRange(x.createdAt, F_DE, F_ATE));
+  }
+
+  // Agregação por estado + semana
   const byStage = {};
   const weekly = {};
   STAGES.forEach(s=>{ byStage[s.key]=[]; weekly[s.key]=0; });
-
   data.forEach(item=>{
-    const txt = [item.cliente,item.imovel,item.zona,item.consultor].map(v=>String(v||'').toLowerCase()).join(' ');
-    if (q && !txt.includes(q)) return;
     const st = byStage[item.stage] ? item.stage : 'novo';
     byStage[st].push(item);
     if (inLastWeek(item.createdAt)) weekly[st] += 1;
   });
 
+  // KPIs
+  document.getElementById('k_total').textContent = data.length;
+  document.getElementById('k_week').textContent  = Object.values(weekly).reduce((a,b)=>a+b,0);
+  const n_n = byStage.novo.length,
+        n_e = byStage.em_contacto.length,
+        n_q = byStage.qualificado.length,
+        n_v = byStage.visita.length,
+        n_p = byStage.proposta.length,
+        n_f = byStage.fecho.length;
+
+  document.getElementById('k_novo').textContent = n_n;
+  document.getElementById('k_ec').textContent   = n_e;
+  document.getElementById('k_qua').textContent  = n_q;
+  document.getElementById('k_vis').textContent  = n_v;
+  document.getElementById('k_pro').textContent  = n_p;
+  document.getElementById('k_fec').textContent  = n_f;
+
+  // Conversões "snapshot"
+  const conv1 = (n_v + n_p) ? Math.round((n_p / (n_v + n_p))*100) : null; // Visita → Proposta
+  const conv2 = (n_p + n_f) ? Math.round((n_f / (n_p + n_f))*100) : null; // Proposta → Fecho
+  document.getElementById('k_conv1').textContent = conv1!=null ? (conv1+'%') : '—';
+  document.getElementById('k_conv2').textContent = conv2!=null ? (conv2+'%') : '—';
+
+  // Desenho das colunas
   grid.innerHTML = '';
   STAGES.forEach(s=>{
     const col = document.createElement('div');
@@ -231,8 +289,8 @@ function render(){
       <div class="h">
         <div class="t">${s.title}</div>
         <div>
-          <span class="n" id="n_${s.key}">0</span>
-          <span class="w" id="w_${s.key}"></span>
+          <span class="n" id="n_${s.key}">${byStage[s.key].length}</span>
+          <span class="w" id="w_${s.key}">${weekly[s.key] ? '(+'+weekly[s.key]+'/sem)' : ''}</span>
         </div>
       </div>
       <div class="drop" data-drop="${s.key}"></div>
@@ -260,23 +318,31 @@ function render(){
           ${item.vs==='Sim' ? '<span class="tag">Fez visitas</span>' : ''}
         </div>
         <div class="tools">
+          <button class="btn" data-a="next">Próximo estado</button>
+          <select data-a="to" title="Mover para…">
+            ${STAGES.map(st=>`<option value="${st.key}" ${st.key===item.stage?'selected':''}>${st.title}</option>`).join('')}
+          </select>
+          <button class="btn" data-a="apply">Aplicar</button>
           <button class="btn" data-a="edit">Editar</button>
           <button class="btn" data-a="del">Remover</button>
         </div>
       `;
+      card.querySelector('[data-a="next"]').onclick = () => moveNext(item.id);
+      card.querySelector('[data-a="apply"]').onclick = () => {
+        const sel = card.querySelector('select[data-a="to"]');
+        moveLead(item.id, sel.value);
+      };
       card.querySelector('[data-a="edit"]').onclick = () => edit(item.id);
       card.querySelector('[data-a="del"]').onclick = () => del(item.id);
       drop.appendChild(card);
     });
 
     grid.appendChild(col);
-    document.getElementById('n_'+s.key).textContent = (byStage[s.key]||[]).length;
-    document.getElementById('w_'+s.key).textContent = weekly[s.key] ? `(+${weekly[s.key]}/sem)` : '';
   });
 }
 
 /* =========================
-   CRUD
+   CRUD e Movimentação
 ========================= */
 function uid(){ return 'L'+Math.random().toString(36).slice(2,9); }
 
@@ -360,76 +426,51 @@ function moveLead(id, stage){
   render();
 }
 
+function moveNext(id){
+  const { all, idx, item } = findById(id);
+  if(idx<0) return;
+  const order = STAGES.map(s=>s.key);
+  const i = order.indexOf(item.stage);
+  const next = order[Math.min(i+1, order.length-1)];
+  if (next === item.stage) return; // já no último
+  all[idx] = { ...item, stage: next };
+  save(all);
+  render();
+}
+
 /* =========================
-   Pesquisa
+   Pesquisa e Filtros
 ========================= */
 document.getElementById('apply').onclick = ()=>{
   Q = document.getElementById('q').value||'';
+  F_DE  = document.getElementById('f_de').value || '';
+  F_ATE = document.getElementById('f_ate').value || '';
   render();
 };
 
 /* =========================
-   Exportações (CSV/XLS)
+   Exportação CSV (filtro)
 ========================= */
 function toCSVRow(arr){ return arr.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(','); }
-function toTableRows(data){
-  const headers = ["ID","Cliente","Contacto","Email","Imóvel","Zona","Capitais próp.","Financiamento","Comprador/Vendedor","Tipo","Tem casa p/ vender","Urgência/Planta","Valor (€)","1ª habitação","Habitação","Outro agente","Já fez visitas","Notas","Consultor","Estado","Criado em"];
-  let html = '<table border="1"><thead><tr>' + headers.map(h=>`<th>${h}</th>`).join('') + '</tr></thead><tbody>';
-  data.forEach(a=>{
-    html += '<tr>' + [
-      a.id,a.cliente,a.tel,a.email,a.imovel,a.zona,a.cp,a.fin,a.cv,a.tipo,a.tcv,a.urg,a.val,a.h1,a.hs,a.oa,a.vs,(a.notas||''),a.consultor,a.stage,a.createdAt
-    ].map(v=>`<td>${String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;')}</td>`).join('') + '</tr>';
-  });
-  html += '</tbody></table>';
-  return html;
-}
-
-function exportCSV(all=true){
-  const data = load();
-  const q = all ? '' : (Q.trim().toLowerCase());
+function exportCSV(){
   const headers = ["ID","Cliente","Contacto","Email","Imóvel","Zona","Capitais próp.","Financiamento","Comprador/Vendedor","Tipo","Tem casa p/ vender","Urgência/Planta","Valor (€)","1ª habitação","Habitação","Outro agente","Já fez visitas","Notas","Consultor","Estado","Criado em"];
   const lines = [toCSVRow(headers)];
-  data.forEach(a=>{
+  const q = Q.trim().toLowerCase();
+  const data = load().filter(a=>{
     const txt = [a.cliente,a.imovel,a.zona,a.consultor].map(v=>String(v||'').toLowerCase()).join(' ');
-    if (q && !txt.includes(q)) return; // respeita pesquisa ativa
+    let ok = !q || txt.includes(q);
+    if (ok && (F_DE || F_ATE)) ok = inRange(a.createdAt, F_DE, F_ATE);
+    return ok;
+  });
+  data.forEach(a=>{
     lines.push(toCSVRow([a.id,a.cliente,a.tel,a.email,a.imovel,a.zona,a.cp,a.fin,a.cv,a.tipo,a.tcv,a.urg,a.val,a.h1,a.hs,a.oa,a.vs,a.notas,a.consultor,a.stage,a.createdAt]));
   });
   const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
   const aEl = document.createElement('a');
-  aEl.href = url; aEl.download = all ? 'leads_completas.csv' : 'leads_filtradas.csv';
+  aEl.href = url; aEl.download = 'leads_filtradas.csv';
   document.body.appendChild(aEl); aEl.click(); aEl.remove();
   URL.revokeObjectURL(url);
-}
-
-function exportXLS(data, filename){
-  const html = toTableRows(data);
-  const blob = new Blob([`\ufeff<html><head><meta charset="utf-8"></head><body>${html}</body></html>`],
-                        {type:'application/vnd.ms-excel'});
-  const url = URL.createObjectURL(blob);
-  const aEl = document.createElement('a');
-  aEl.href = url; aEl.download = filename.endsWith('.xls')? filename : (filename+'.xls');
-  document.body.appendChild(aEl); aEl.click(); aEl.remove();
-  URL.revokeObjectURL(url);
-}
-
-/* Relatório por consultor (CSV/XLS) */
-function reportByConsultor(fmt){
-  const c = document.getElementById('rep_cons').value;
-  if(!c){ alert('Selecione um consultor.'); return; }
-  const data = load().filter(x=> x.consultor === c);
-  if(!data.length){ alert('Sem registos para esse consultor.'); return; }
-  if(fmt==='csv'){
-    const headers = ["ID","Cliente","Contacto","Email","Imóvel","Zona","Capitais próp.","Financiamento","Comprador/Vendedor","Tipo","Tem casa p/ vender","Urgência/Planta","Valor (€)","1ª habitação","Habitação","Outro agente","Já fez visitas","Notas","Consultor","Estado","Criado em"];
-    const lines = [toCSVRow(headers)];
-    data.forEach(a=> lines.push(toCSVRow([a.id,a.cliente,a.tel,a.email,a.imovel,a.zona,a.cp,a.fin,a.cv,a.tipo,a.tcv,a.urg,a.val,a.h1,a.hs,a.oa,a.vs,a.notas,a.consultor,a.stage,a.createdAt])));
-    const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
-    const url = URL.createObjectURL(blob);
-    const aEl = document.createElement('a'); aEl.href = url; aEl.download = `leads_${c}.csv`;
-    document.body.appendChild(aEl); aEl.click(); aEl.remove(); URL.revokeObjectURL(url);
-  } else {
-    exportXLS(data, `leads_${c}.xls`);
-  }
 }
 
 /* =========================
@@ -453,13 +494,16 @@ function seed(){
 /* =========================
    Ligações UI
 ========================= */
-document.getElementById('add').onclick = add;
-document.getElementById('seed').onclick = seed;
+document.getElementById('add').onclick   = add;
+document.getElementById('seed').onclick  = seed;
 document.getElementById('clear').onclick = ()=>{ if(confirm('Limpar todas as leads?')){ localStorage.removeItem(LS_KEY); render(); } };
-document.getElementById('export').onclick = ()=> exportCSV(false); // respeita filtro de pesquisa
-document.getElementById('apply').onclick = ()=>{ Q = document.getElementById('q').value||''; render(); };
-document.getElementById('rep_csv').onclick = ()=> reportByConsultor('csv');
-document.getElementById('rep_xls').onclick = ()=> reportByConsultor('xls');
+document.getElementById('export').onclick= exportCSV;
+document.getElementById('apply').onclick = ()=>{
+  Q = document.getElementById('q').value||'';
+  F_DE  = document.getElementById('f_de').value || '';
+  F_ATE = document.getElementById('f_ate').value || '';
+  render();
+};
 
 /* Primeira renderização */
 render();
