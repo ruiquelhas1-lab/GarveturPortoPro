@@ -24,7 +24,13 @@
   .chk{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
   .chk label{display:flex;gap:6px;align-items:center;background:#0E0E0E;border:1px solid rgba(255,255,255,.18);padding:6px 8px;border-radius:8px;}
   .semaforo{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:8px;background:#888;}
-  @media(max-width:1000px){.wrap{grid-template-columns:1fr}}
+  .filters{display:grid;grid-template-columns:200px 160px 160px 200px auto; gap:8px; align-items:end; padding:0 12px 12px 12px;}
+  .muted{color:#c9c9c9;font-size:12px}
+  @media(max-width:1200px){.list{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:900px){
+    .wrap{grid-template-columns:1fr}
+    .filters{grid-template-columns:1fr 1fr; }
+  }
 </style>
 </head>
 <body>
@@ -82,53 +88,105 @@
 
   <div class="panel">
     <h3>Lista</h3>
+
+    <!-- Filtros e ordenação -->
+    <div class="filters">
+      <div>
+        <label>Consultor</label>
+        <select id="f_consultor"><option value="">(todos)</option></select>
+      </div>
+      <div>
+        <label>Data — De</label>
+        <input type="date" id="f_de">
+      </div>
+      <div>
+        <label>Data — Até</label>
+        <input type="date" id="f_ate">
+      </div>
+      <div>
+        <label>Ordenar por</label>
+        <select id="f_sort">
+          <option value="data_desc">Data (mais recente)</option>
+          <option value="data_asc">Data (mais antiga)</option>
+          <option value="aj_desc">% Ajustamento (↓)</option>
+          <option value="aj_asc">% Ajustamento (↑)</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn" id="f_apply">Aplicar</button>
+        <button class="btn" id="f_clear">Limpar filtros</button>
+      </div>
+    </div>
+
     <div class="list" id="list"></div>
+    <div class="muted" id="resumo" style="padding:8px 12px 0 12px;">—</div>
   </div>
 </div>
 
 <script>
-const LS_KEY = 'gpp_ang_v2';
+const LS_KEY = 'gpp_ang_v3'; // nova versão do storage (para não chocar com anteriores)
 
 function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch(e){ return []; } }
 function save(d){ localStorage.setItem(LS_KEY, JSON.stringify(d)); }
+
+// -------- Utilitários --------
 function pct(pp,ps){ if(!pp||!ps) return null; const v=(ps-pp)/pp*100; return Math.round(v*10)/10; }
 function semaforo(el, val){
   let c='#888';
   if(val!=null){
-    if(val>=-3 && val<=3) c='#22c55e';       // verde (ajuste controlado)
-    else if(val>-7) c='#f59e0b';             // âmbar
-    else c='#ef4444';                        // vermelho
+    if(val>=-3 && val<=3) c='#22c55e';
+    else if(val>-7) c='#f59e0b';
+    else c='#ef4444';
   }
   el.style.background=c;
 }
+function parseDate(s){ if(!s) return null; const t=Date.parse(s); return Number.isFinite(t)? new Date(t): null; }
+function fmtDate(s){ const d=parseDate(s); if(!d) return '—'; return d.toISOString().slice(0,10); }
+function sanitizeFile(s){ return String(s||'proposta').replace(/[^a-z0-9\-_. ]/gi,'_'); }
 
+// -------- Modelo → UI --------
 function cardEl(a, idx){
   const d = document.createElement('div');
   d.className='card';
   d.innerHTML = `
     <div class="t">${a.prop}</div>
     <div class="m">${a.consultor || ''} · ${a.origem || ''}</div>
-    <div class="m">Proprietário: ${a.proprietario || '—'} · Data: ${a.data || '—'}</div>
+    <div class="m">Proprietário: ${a.proprietario || '—'} · Data: ${fmtDate(a.data)}</div>
     <div class="m">Comissão: ${a.comissao!=null ? a.comissao+'%' : '—'}</div>
     <div class="m">Pedido: ${a.pp||'-'}€ · Sugerido: ${a.ps||'-'}€ · Ajuste: ${a.aj!=null?a.aj+'%':'—'}</div>
     <div class="m">Docs: ${a.docs?.join(', ')||'—'}</div>
     ${a.notas? `<div class="m"><em>${a.notas}</em></div>`:''}
-    <div style="margin-top:6px;display:flex;gap:6px;">
+    <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
       <button class="btn" data-a="edit">Editar</button>
       <button class="btn" data-a="del">Remover</button>
+      <button class="btn" data-a="pdf">Proposta (PDF)</button>
+      <button class="btn" data-a="doc">Proposta (Word)</button>
     </div>`;
   d.querySelector('[data-a="edit"]').onclick=()=> edit(idx);
   d.querySelector('[data-a="del"]').onclick=()=> del(idx);
+  d.querySelector('[data-a="pdf"]').onclick=()=> exportPDF(load()[idx]);
+  d.querySelector('[data-a="doc"]').onclick=()=> exportWord(load()[idx]);
   return d;
 }
 
-function render(){
-  const data = load();
-  const list = document.getElementById('list');
-  list.innerHTML='';
-  data.forEach((a,i)=> list.appendChild(cardEl(a,i)));
+function render(list=null){
+  const data = (list ?? view()); // se vier lista filtrada, usa; senão calcula
+  const listEl = document.getElementById('list');
+  listEl.innerHTML='';
+  data.forEach((a,i)=> listEl.appendChild(cardEl(a,i)));
+
+  // Resumo
+  const total = data.length;
+  const mediaAj = (()=>{
+    const vals = data.map(x=>x.aj).filter(v=>v!=null);
+    if(!vals.length) return '—';
+    const m = Math.round(vals.reduce((s,v)=>s+v,0)/vals.length*10)/10;
+    return m+'%';
+  })();
+  document.getElementById('resumo').textContent = `Total: ${total} · Média de ajustamento: ${mediaAj}`;
 }
 
+// -------- CRUD --------
 function collectDocs(){
   const docs = [];
   if(document.getElementById('doc_cc').checked) docs.push('CC');
@@ -147,7 +205,7 @@ function add(){
   const proprietario = document.getElementById('propNome').value.trim();
   const data = document.getElementById('dataAng').value;
   const origem = document.getElementById('o').value.trim();
-  const comissao = Number(document.getElementById('com').value); // 6/5/4/3
+  const comissao = Number(document.getElementById('com').value);
   const pp = Number(document.getElementById('pp').value) || null;
   const ps = Number(document.getElementById('ps').value) || null;
   const aj = pct(pp, ps);
@@ -156,7 +214,10 @@ function add(){
 
   const arr = load();
   arr.unshift({prop, consultor, proprietario, data, origem, comissao, pp, ps, aj, docs, notas});
-  save(arr); render(); clearForm();
+  save(arr);
+  populateConsultores(); // atualiza dropdown de filtro
+  clearForm();
+  render();
 }
 
 function clearForm(){
@@ -178,30 +239,135 @@ function edit(idx){
   const ps = Number(prompt('Preço sugerido (€):', a.ps ?? '')) || null;
   const aj = pct(pp, ps);
   const notas = prompt('Notas:', a.notas||'')??a.notas;
-  // Mantém documentos existentes
   dataAll[idx] = {prop, consultor, proprietario, data, origem, comissao, pp, ps, aj, docs:a.docs||[], notas};
-  save(dataAll); render();
+  save(dataAll);
+  populateConsultores();
+  render();
 }
 
 function del(idx){
   if(!confirm('Remover esta angariação?')) return;
   const arr = load();
   arr.splice(idx,1);
-  save(arr); render();
+  save(arr);
+  populateConsultores();
+  render();
 }
 
-// Atualizar % ajustamento e semáforo em tempo real
-['pp','ps'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', ()=>{
-    const pp = Number(document.getElementById('pp').value)||null;
-    const ps = Number(document.getElementById('ps').value)||null;
-    const val = pct(pp, ps);
-    document.getElementById('aj').textContent = (val!=null ? val+'%' : '—');
-    semaforo(document.getElementById('sf'), val);
-  });
-});
+// -------- Filtros e Ordenação --------
+const f_consultor = document.getElementById('f_consultor');
+const f_de = document.getElementById('f_de');
+const f_ate = document.getElementById('f_ate');
+const f_sort = document.getElementById('f_sort');
 
-// Seed demo (5) com novos campos
+function populateConsultores(){
+  const data = load();
+  const set = new Set(data.map(x=>x.consultor).filter(Boolean));
+  const vals = Array.from(set).sort((a,b)=>a.localeCompare(b,'pt'));
+  const cur = f_consultor.value;
+  f_consultor.innerHTML = '<option value="">(todos)</option>' + vals.map(v=>`<option value="${v}">${v}</option>`).join('');
+  if(vals.includes(cur)) f_consultor.value = cur;
+}
+
+function view(){
+  const data = load().slice();
+
+  // filtro consultor
+  let out = data.filter(x=> !f_consultor.value || x.consultor === f_consultor.value);
+
+  // filtro datas
+  const d1 = parseDate(f_de.value), d2 = parseDate(f_ate.value);
+  if(d1) out = out.filter(x=> { const dx=parseDate(x.data); return dx ? dx>=d1 : false; });
+  if(d2) out = out.filter(x=> { const dx=parseDate(x.data); return dx ? dx<=d2 : false; });
+
+  // ordenação
+  const sort = f_sort.value;
+  out.sort((a,b)=>{
+    if(sort==='aj_desc'){ // % ajustamento ↓
+      const A = (a.aj==null? -Infinity : a.aj);
+      const B = (b.aj==null? -Infinity : b.aj);
+      return B - A;
+    }
+    if(sort==='aj_asc'){ // % ajustamento ↑
+      const A = (a.aj==null? Infinity : a.aj);
+      const B = (b.aj==null? Infinity : b.aj);
+      return A - B;
+    }
+    if(sort==='data_asc'){ // data antiga → recente
+      const A = parseDate(a.data)?.getTime() ?? 0;
+      const B = parseDate(b.data)?.getTime() ?? 0;
+      return A - B;
+    }
+    // default: data recente → antiga
+    const A = parseDate(a.data)?.getTime() ?? 0;
+    const B = parseDate(b.data)?.getTime() ?? 0;
+    return B - A;
+  });
+
+  return out;
+}
+
+// -------- Exportações: PDF e Word --------
+function buildProposalHTML(a){
+  const css = `
+    <style>
+      body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:28px;}
+      h1{font-size:20px;margin:0 0 12px 0;color:#333;}
+      .brand{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #A38B63;}
+      .brand .name{font-weight:700;color:#A38B63;font-size:18px;}
+      table{width:100%;border-collapse:collapse;margin-top:10px;}
+      th,td{padding:8px;border:1px solid #ddd;font-size:13px;text-align:left;}
+      th{background:#f6f6f6;}
+      .muted{color:#555}
+      .section{margin-top:14px}
+      .foot{margin-top:18px;font-size:12px;color:#666;}
+      @media print { .no-print{display:none} }
+    </style>`;
+  const docs = (a.docs&&a.docs.length)? a.docs.join(', ') : '—';
+  const aj   = (a.aj!=null? (a.aj+'%') : '—');
+  const data = a.data ? fmtDate(a.data) : '—';
+
+  return `<!DOCTYPE html><html><head><meta charset="utf-8">${css}<title>Proposta de Angariação</title></head>
+  <body>
+    <div class="brand">
+      <div class="name">Garvetur Luxury Porto</div>
+      <div class="muted">Proposta de Angariação</div>
+    </div>
+    <h1>${a.prop || '(Sem título)'}</h1>
+    <table>
+      <tr><th>Consultor</th><td>${a.consultor||'—'}</td><th>Origem</th><td>${a.origem||'—'}</td></tr>
+      <tr><th>Proprietário</th><td>${a.proprietario||'—'}</td><th>Data</th><td>${data}</td></tr>
+      <tr><th>Comissão</th><td>${a.comissao!=null? a.comissao+'%':'—'}</td><th>Documentação</th><td>${docs}</td></tr>
+      <tr><th>Preço pedido</th><td>${a.pp!=null? a.pp+'€':'—'}</td><th>Preço sugerido</th><td>${a.ps!=null? a.ps+'€':'—'}</td></tr>
+      <tr><th>% Ajustamento</th><td>${aj}</td><th>Notas</th><td>${a.notas||'—'}</td></tr>
+    </table>
+    <div class="foot">Gerado por Garvetur Porto Pro — ${new Date().toLocaleString('pt-PT')}</div>
+  </body></html>`;
+}
+
+function exportPDF(a){
+  const w = window.open('', '_blank');
+  w.document.open();
+  w.document.write(buildProposalHTML(a));
+  w.document.close();
+  // aguarda DOM e imprime
+  w.onload = ()=> { try{ w.focus(); w.print(); }catch(e){} };
+}
+
+function exportWord(a){
+  const html = buildProposalHTML(a);
+  const blob = new Blob(['\ufeff', html], {type: 'application/msword'});
+  const url = URL.createObjectURL(blob);
+  const aEl = document.createElement('a');
+  aEl.href = url;
+  aEl.download = sanitizeFile((a.prop||'proposta')) + '.doc';
+  document.body.appendChild(aEl);
+  aEl.click();
+  aEl.remove();
+  URL.revokeObjectURL(url);
+}
+
+// -------- Seed demo --------
 function seedDemo(){
   if(!confirm('Carregar 5 angariações de exemplo? (substitui as atuais)')) return;
   const ex = [
@@ -211,12 +377,40 @@ function seedDemo(){
     {prop:"Terreno Gondomar", consultor:"Manuel", proprietario:"Joaquim Rocha", data:"2025-11-03", origem:"Investidor", comissao:3, pp:900000, ps:870000, aj:-3.3, docs:["CC","CRP"], notas:"Pedido de CMI assinado"},
     {prop:"Prédio Baixa | Porto", consultor:"Audrey", proprietario:"Gestora Norte, SA", data:"2025-11-05", origem:"Gestor de ativos", comissao:5, pp:2200000, ps:2100000, aj:-4.5, docs:["CC","Caderneta","Cert. Energético","Planta","CMI assinado","CRP"], notas:"Visita técnica 5ª feira"}
   ];
-  save(ex); render();
+  save(ex);
+  populateConsultores();
+  render();
 }
 
+// -------- Ligações UI --------
 document.getElementById('add').onclick=add;
 document.getElementById('seed').onclick=seedDemo;
-document.getElementById('clear').onclick=()=>{ if(confirm('Apagar todas as angariações?')){ localStorage.removeItem(LS_KEY); render(); } };
+document.getElementById('clear').onclick=()=>{ if(confirm('Apagar todas as angariações?')){ localStorage.removeItem(LS_KEY); populateConsultores(); render(); } };
+
+document.getElementById('pp').addEventListener('input', ()=>{
+  const pp = Number(document.getElementById('pp').value)||null;
+  const ps = Number(document.getElementById('ps').value)||null;
+  const val = pct(pp, ps);
+  document.getElementById('aj').textContent = (val!=null ? val+'%' : '—');
+  semaforo(document.getElementById('sf'), val);
+});
+document.getElementById('ps').addEventListener('input', ()=>{
+  const pp = Number(document.getElementById('pp').value)||null;
+  const ps = Number(document.getElementById('ps').value)||null;
+  const val = pct(pp, ps);
+  document.getElementById('aj').textContent = (val!=null ? val+'%' : '—');
+  semaforo(document.getElementById('sf'), val);
+});
+
+// filtros
+document.getElementById('f_apply').onclick = ()=> render(view());
+document.getElementById('f_clear').onclick = ()=>{
+  f_consultor.value=''; f_de.value=''; f_ate.value=''; f_sort.value='data_desc';
+  render();
+};
+
+// iniciar
+populateConsultores();
 render();
 </script>
 </body>
