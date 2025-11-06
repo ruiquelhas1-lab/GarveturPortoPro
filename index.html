@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Garvetur Porto Pro — Mapa (JSON local)</title>
+  <title>Garvetur Porto Pro — Mapa (dados embebidos)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="preconnect" href="https://unpkg.com" crossorigin>
   <link rel="preconnect" href="https://a.tile.openstreetmap.org" crossorigin>
@@ -18,7 +18,6 @@
       display:flex;gap:10px;align-items:center;position:relative;z-index:30;flex-wrap:wrap}
     .tab{font-size:12px;padding:6px 10px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:#121212;color:#ddd;text-decoration:none}
     .tab.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:600}
-    .actionBtn{background:transparent;border:1px solid rgba(163,139,99,.5);color:#fff;padding:6px 9px;border-radius:8px;cursor:pointer;font-size:12px}
     #status{font-size:12px;color:#E6E6E6;margin-left:auto}
     #map{position:absolute;inset:48px 0 0 0}
     @media (max-width: 640px){ #map{ inset: 80px 0 0 0 } }
@@ -36,49 +35,46 @@
         <a class="tab" href="./dashboard.html">Dashboard</a>
       </nav>
     </div>
-    <button id="retryBtn" class="actionBtn">Recarregar</button>
-    <a id="openGeo" class="actionBtn" target="_blank" rel="noreferrer">Abrir JSON</a>
     <div id="status">A iniciar…</div>
   </div>
 
   <div id="map"></div>
 
+  <!-- COLE AQUI O CONTEÚDO INTEGRAL DO empreendimentos.json -->
+  <script id="gpp-data" type="application/json">
+  {
+    "type": "FeatureCollection",
+    "features": [
+      // ❗️SUBSTITUA ESTE BLOCO pelo JSON real (133 registos)
+      // Cole o conteúdo do seu empreendimentos.json aqui dentro (desde "type" até ao fim)
+    ]
+  }
+  </script>
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script>
-  // === FONTE LOCAL (mesma origem) ===
-  const SOURCE = "./data/empreendimentos.json";
-
   const statusEl = document.getElementById('status');
-  const openGeo  = document.getElementById('openGeo');
-  openGeo.href = SOURCE;
 
-  // Mapa base
   const map = L.map('map',{ zoomControl:true, scrollWheelZoom:true }).setView([41.15,-8.61],11);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(map);
   const cluster = L.markerClusterGroup(); map.addLayer(cluster);
 
-  function setStatus(m){ statusEl.textContent = m; }
   function colorByEstado(e){
     const m={ licenciado:"#118AB2", em_construcao:"#FFD166", em_licenciamento:"#8E7CC3", concluido:"#06D6A0" };
     return m[(e||'').toLowerCase()]||"#A38B63";
   }
 
-  async function load(){
+  function loadInline(){
     try{
-      setStatus("A carregar: " + SOURCE);
-      const r = await fetch(SOURCE, { cache:'reload' });
-      if(!r.ok) throw new Error("HTTP " + r.status);
-      const t = await r.text();
-      if(t.trim().startsWith("<")) throw new Error("Conteúdo HTML (404/página). Verifique se o ficheiro existe em /data/empreendimentos.json");
-      const gj = JSON.parse(t);
+      const raw = document.getElementById('gpp-data').textContent;
+      const gj = JSON.parse(raw);
       if(gj.type!=="FeatureCollection" || !Array.isArray(gj.features)) throw new Error("Formato inesperado");
-
       cluster.clearLayers();
-      let added=0;
+      let added = 0;
       (gj.features||[]).forEach(f=>{
-        if(!f.geometry || f.geometry.type!=="Point") return;
-        const [lng,lat]=f.geometry.coordinates||[];
+        if(!f||!f.geometry||f.geometry.type!=="Point") return;
+        const [lng,lat] = f.geometry.coordinates||[];
         if(!Number.isFinite(lat)||!Number.isFinite(lng)) return;
         const p=f.properties||{};
         const marker=L.marker([lat,lng],{
@@ -96,16 +92,14 @@
         cluster.addLayer(marker); added++;
       });
       if(added){ const b=cluster.getBounds(); if(b&&b.isValid()) map.fitBounds(b.pad(0.2)); }
-      setStatus(`✅ Dados carregados (${added} pontos).`);
+      statusEl.textContent = `✅ Dados embebidos carregados (visíveis: ${added})`;
     }catch(e){
       console.error(e);
-      setStatus("❌ Falha ao carregar JSON: " + (e.message || e));
-      alert("Falha ao carregar o ficheiro ./data/empreendimentos.json.\nVerifique se existe e abre JSON no navegador.");
+      statusEl.textContent = "❌ Erro ao ler dados embebidos: " + (e.message||e);
     }
   }
 
-  document.getElementById('retryBtn').onclick = load;
-  load();
+  loadInline();
   </script>
 </body>
 </html>
