@@ -1,34 +1,176 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8" />
-  <title>Garvetur Porto Pro — Leads</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    :root{ --bg:#0E0E0E; --text:#FFFFFF; --gold:#A38B63 }
-    html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-    #topbar{background:#0F0F0F;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.08);
-      display:flex;gap:10px;align-items:center;position:relative;z-index:30;flex-wrap:wrap}
-    .tab{font-size:12px;padding:6px 10px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:#121212;color:#ddd;text-decoration:none}
-    .tab.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:600}
-    .wrap{padding:16px}
-  </style>
+<meta charset="UTF-8">
+<title>Garvetur Porto Pro — Leads (Kanban)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<style>
+  :root{--gold:#A38B63;--bg:#0E0E0E;--panel:#131313;--text:#fff;--muted:#bdbdbd;}
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;}
+  header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.1);background:#0F0F0F;}
+  nav a{margin-right:6px;text-decoration:none;color:#ddd;border:1px solid rgba(255,255,255,.12);padding:6px 10px;border-radius:8px;}
+  nav a.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:600;}
+  .actions{display:flex;gap:8px;}
+  .btn{background:transparent;border:1px solid rgba(163,139,99,.5);color:#fff;padding:6px 9px;border-radius:8px;cursor:pointer;font-size:12px;}
+  .board{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;padding:12px;height:calc(100% - 54px);}
+  .col{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:12px;display:flex;flex-direction:column;overflow:auto;}
+  .col h3{margin:0;padding:10px;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px;color:#eaeaea;}
+  .lane{padding:10px;display:flex;flex-direction:column;gap:8px;}
+  .card{background:#0E0E0E;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px;}
+  .card .t{font-weight:600;margin-bottom:4px;}
+  .card .m{font-size:12px;color:#cfcfcf;}
+  .help{padding:8px 12px;color:#ddd;font-size:12px;border-top:1px dashed rgba(255,255,255,.15);}
+  @media(max-width:900px){.board{grid-template-columns:1fr;}}
+</style>
 </head>
 <body>
-  <div id="topbar">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:#FFD166"><circle cx="12" cy="12" r="10" stroke-width="1.5"/><path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/></svg>
-      <h1 style="margin:0;font-size:16px;color:#FFD166">Garvetur Porto Pro</h1>
-      <nav style="display:flex;gap:6px;margin-left:10px">
-        <a class="tab" href="./index.html">Mapa</a>
-        <a class="tab active" href="./kanban.html">Leads</a>
-        <a class="tab" href="./angariacoes.html">Angariações</a>
-        <a class="tab" href="./dashboard.html">Dashboard</a>
-      </nav>
-    </div>
+<header>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <strong style="color:#FFD166">Garvetur Porto Pro</strong>
+    <nav>
+      <a href="./index.html">Mapa</a>
+      <a class="active" href="./kanban.html">Leads</a>
+      <a href="./angariacoes.html">Angariações</a>
+      <a href="./dashboard.html">Dashboard</a>
+    </nav>
   </div>
-  <div class="wrap">
-    <p>O módulo de Leads mantém-se como no seu repositório. Navegação ajustada.</p>
+  <div class="actions">
+    <button id="add" class="btn">+ Nova lead</button>
+    <button id="seed" class="btn">Carregar dados de exemplo (10)</button>
+    <button id="clear" class="btn">Limpar tudo</button>
   </div>
+</header>
+
+<div class="board" id="board"></div>
+<div class="help">Dica: arraste as cards entre colunas. Duplo-clique abre a edição; tecla <em>Delete</em> remove.</div>
+
+<script>
+const LS_KEY = 'gpp_leads_v1';
+const COLUMNS = ["Novo","Em contacto","Qualificado","Proposta","Fecho"];
+
+function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'{}'); }catch(e){ return {}; } }
+function save(data){ localStorage.setItem(LS_KEY, JSON.stringify(data)); }
+
+function ensureModel(d){
+  COLUMNS.forEach(c=>{ if(!Array.isArray(d[c])) d[c]=[]; });
+  return d;
+}
+
+function render(){
+  const data = ensureModel(load());
+  const board = document.getElementById('board');
+  board.innerHTML='';
+  COLUMNS.forEach(col=>{
+    const el = document.createElement('div');
+    el.className='col';
+    el.innerHTML = `<h3>${col} (${data[col].length})</h3><div class="lane" data-col="${col}"></div>`;
+    const lane = el.querySelector('.lane');
+    data[col].forEach((card,i)=> lane.appendChild(cardEl(card, col, i)));
+    board.appendChild(el);
+  });
+  enableDnD();
+}
+
+function cardEl(card, col, idx){
+  const d = document.createElement('div');
+  d.className='card'; d.draggable=true;
+  d.innerHTML = `<div class="t">${card.titulo || '(Sem título)'}</div>
+                 <div class="m">${card.consultor||''}${card.valor? ' · '+card.valor+'€':''}${card.etiquetas? ' · '+card.etiquetas:''}</div>`;
+  d.ondblclick = ()=> editCard(col, idx);
+  d.onkeydown = (e)=>{ if(e.key==='Delete'){ removeCard(col, idx); } };
+  return d;
+}
+
+function addCard(){
+  const titulo = prompt('Título da lead (ex.: T3 Boavista – Investidor NL):','');
+  if(titulo==null) return;
+  const consultor = prompt('Consultor (ex.: Manuel / Armanda / João):','');
+  const valor = prompt('Valor (estimado) em € (opcional):','');
+  const etiquetas = prompt('Etiquetas (ex.: Internacional, Investidor, Alto valor):','');
+  const data = ensureModel(load());
+  data["Novo"].unshift({titulo, consultor, valor, etiquetas});
+  save(data); render();
+}
+
+function editCard(col, idx){
+  const data = ensureModel(load());
+  const c = data[col][idx];
+  const titulo = prompt('Editar título:', c.titulo||'') ?? c.titulo;
+  const consultor = prompt('Editar consultor:', c.consultor||'') ?? c.consultor;
+  const valor = prompt('Editar valor (€):', c.valor||'') ?? c.valor;
+  const etiquetas = prompt('Editar etiquetas:', c.etiquetas||'') ?? c.etiquetas;
+  data[col][idx] = {titulo, consultor, valor, etiquetas};
+  save(data); render();
+}
+
+function removeCard(col, idx){
+  if(!confirm('Remover esta lead?')) return;
+  const data = ensureModel(load());
+  data[col].splice(idx,1);
+  save(data); render();
+}
+
+function enableDnD(){
+  document.querySelectorAll('.lane .card').forEach(card=>{
+    card.addEventListener('dragstart', ev=>{
+      const lane = card.closest('.lane');
+      const col = lane.dataset.col;
+      const idx = Array.from(lane.children).indexOf(card);
+      ev.dataTransfer.setData('text/plain', JSON.stringify({col, idx}));
+    });
+  });
+  document.querySelectorAll('.lane').forEach(lane=>{
+    lane.addEventListener('dragover', ev=> ev.preventDefault());
+    lane.addEventListener('drop', ev=>{
+      ev.preventDefault();
+      const src = JSON.parse(ev.dataTransfer.getData('text/plain'));
+      const dstCol = lane.dataset.col;
+      const data = ensureModel(load());
+      const [item] = data[src.col].splice(src.idx,1);
+      data[dstCol].unshift(item);
+      save(data); render();
+    });
+  });
+}
+
+// Seed demo (10)
+function seedDemo(){
+  if(!confirm('Carregar 10 leads de exemplo? (substitui as atuais)')) return;
+  const ex = {
+    "Novo": [
+      {titulo:"T2 Matosinhos — Arrendamento", consultor:"Armanda", valor:"1200", etiquetas:"Internacional"},
+      {titulo:"T3 Boavista — Venda", consultor:"Manuel", valor:"620000", etiquetas:"Alto valor"}
+    ],
+    "Em contacto": [
+      {titulo:"Terreno Gondomar — Investidor", consultor:"João", valor:"", etiquetas:"Investidor"}
+    ],
+    "Qualificado": [
+      {titulo:"T1 Cedofeita — Estudante FR", consultor:"Audrey", valor:"235000", etiquetas:"Internacional"},
+      {titulo:"Loja Foz — Rent Yield", consultor:"Manuel", valor:"450000", etiquetas:"Yield"}
+    ],
+    "Proposta": [
+      {titulo:"T4 Gaia — 1ª habitação", consultor:"Armanda", valor:"395000", etiquetas:"Nacional"},
+      {titulo:"Prédio Baixa — BTR", consultor:"João", valor:"", etiquetas:"Investidor, BTR"}
+    ],
+    "Fecho": [
+      {titulo:"T2 Antas — Chaves esta semana", consultor:"Manuel", valor:"285000", etiquetas:"Fecho"},
+      {titulo:"T3 Leça — Proc. financiamento", consultor:"Audrey", valor:"", etiquetas:"Financiamento"},
+      {titulo:"T0 Bonfim — Escritura 10/12", consultor:"Armanda", valor:"175000", etiquetas:"Fecho"}
+    ]
+  };
+  save(ex); render();
+}
+
+function clearAll(){
+  if(!confirm('Apagar todas as leads?')) return;
+  localStorage.removeItem(LS_KEY); render();
+}
+
+document.getElementById('add').onclick=addCard;
+document.getElementById('seed').onclick=seedDemo;
+document.getElementById('clear').onclick=clearAll;
+
+render();
+</script>
 </body>
 </html>
