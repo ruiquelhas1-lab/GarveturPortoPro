@@ -2,10 +2,9 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Garvetur Porto Pro — Mapa (CDN fixo)</title>
+  <title>Garvetur Porto Pro — Mapa (mesma origem)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="preconnect" href="https://unpkg.com" crossorigin>
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://a.tile.openstreetmap.org" crossorigin>
   <link rel="preconnect" href="https://b.tile.openstreetmap.org" crossorigin>
   <link rel="preconnect" href="https://c.tile.openstreetmap.org" crossorigin>
@@ -47,14 +46,14 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script>
-  // === FONTE ÚNICA (CDN) — já validada por si ===
-  const SOURCE = "https://cdn.jsdelivr.net/gh/ruiquelhas1-lab/GarveturPortoPro@main/data/empreendimentos.geojson";
+  // Fonte única na MESMA ORIGEM (evita bloqueios de rede/CORS)
+  const SOURCE = "./data/empreendimentos.geojson";
 
   const statusEl = document.getElementById('status');
   const openGeo  = document.getElementById('openGeo');
   openGeo.href = SOURCE;
 
-  // Mapa
+  // Mapa base
   const map = L.map('map',{ zoomControl:true, scrollWheelZoom:true }).setView([41.15,-8.61],11);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(map);
   const cluster = L.markerClusterGroup(); map.addLayer(cluster);
@@ -71,13 +70,13 @@
       const r = await fetch(SOURCE + "?v=" + Date.now(), { cache:'no-store' });
       if(!r.ok) throw new Error("HTTP " + r.status);
       const t = await r.text();
-      if(t.trim().startsWith("<")) throw new Error("Conteúdo HTML (404/página)");
+      if(t.trim().startsWith("<")) throw new Error("Conteúdo HTML (404/página) — verifique se o ficheiro está em /data/");
       const gj = JSON.parse(t);
       if(gj.type!=="FeatureCollection" || !Array.isArray(gj.features)) throw new Error("Formato inesperado");
 
       // Desenhar
-      let added=0;
       cluster.clearLayers();
+      let added=0;
       (gj.features||[]).forEach(f=>{
         if(!f||!f.geometry||f.geometry.type!=="Point") return;
         const c=f.geometry.coordinates||[];
@@ -100,11 +99,11 @@
         cluster.addLayer(marker); added++;
       });
       if(added){ const b=cluster.getBounds(); if(b&&b.isValid()) map.fitBounds(b.pad(0.2)); }
-      setStatus(`✅ Dados carregados (features: ${(gj.features||[]).length}; visíveis: ${added}) do CDN`);
+      setStatus(`✅ Dados carregados (features: ${(gj.features||[]).length}; visíveis: ${added})`);
     }catch(e){
       console.error(e);
       setStatus("❌ Falha ao carregar GeoJSON: " + (e && e.message ? e.message : e));
-      alert('Falha ao carregar o GeoJSON a partir do CDN. Abra "Abrir GeoJSON" para confirmar que vê JSON.');
+      alert('Falha ao carregar o GeoJSON local. Abra "Abrir GeoJSON" e confirme que abre JSON.\nSe abrir HTML/404, confirme que o ficheiro está em /data/empreendimentos.geojson.');
     }
   }
 
