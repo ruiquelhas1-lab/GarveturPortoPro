@@ -6,6 +6,11 @@ on:
     paths:
       - 'data/empreendimentos.xlsx'
       - 'tools/xlsx2geojson.py'
+  workflow_dispatch: {}
+
+concurrency:
+  group: build-data
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -15,20 +20,54 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
 
       - name: Install deps
         run: |
           python -m pip install --upgrade pip
           pip install openpyxl
 
+      - name: Debug repo state
+        run: |
+          echo "== git status =="; git status
+          echo "== tree =="; ls -R
+          test -f data/empreendimentos.xlsx && echo "XLSX encontrado" || (echo "FALTA data/empreendimentos.xlsx" && exit 1)
+
+      - name: Inspect XLSX headers (first 10 rows)
+        run: |
+          python - << 'PY'
+          import openpyxl, json
+          wb = openpyxl.load_workbook('data/empreendimentos.xlsx', data_only=True)
+          ws = wb.worksheets[0]
+          rows = list(ws.iter_rows(min_row=1, max_row=10, values_only=True))
+          print("Preview das 10 primeiras linhas:")
+          for i, r in enumerate(rows, 1):
+              print(i, ["" if v is None else str(v) for v in r])
+          PY
+
       - name: Convert XLSX to JSON
         run: |
           python tools/xlsx2geojson.py
+
+      - name: Validate JSON
+        run: |
+          python - << 'PY'
+          import json, sys
+          t = open('data/empreendimentos.json','r',encoding='utf-8').read()
+          if ' NaN' in t or ': NaN' in t:
+              print("ERRO: JSON contém NaN.")
+              sys.exit(1)
+          gj = json.loads(t)
+          assert gj.get('type')=='FeatureCollection' and isinstance(gj.get('features'), list)
+          print(f"OK: {len(gj['features'])} features")
+          PY
 
       - name: Commit JSON
         run: |
