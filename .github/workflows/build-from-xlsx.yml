@@ -1,0 +1,39 @@
+name: Build data from XLSX (-> JSON)
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'data/empreendimentos.xlsx'
+      - 'tools/xlsx2geojson.py'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install openpyxl
+
+      - name: Convert XLSX to JSON
+        run: |
+          python tools/xlsx2geojson.py
+
+      - name: Commit JSON
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add data/empreendimentos.json
+          git commit -m "build: atualizar empreendimentos.json a partir do XLSX" || echo "Sem alterações"
+          git push
