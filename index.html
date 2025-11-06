@@ -84,12 +84,21 @@
   baseDark.addTo(map);
   let darkOn = true;
 
+  // Normalizar string (remover acentos) para identificar estados com e sem acentos
+  function normalize(str){
+    return (str||"").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  }
+
   function colorByEstado(e){
-    const s=(e||'').toLowerCase();
-    if(s.includes('conclu')) return '#10b981';  // verde
-    if(s.includes('licen'))  return '#1d4ed8';  // azul
-    if(s.includes('constr')) return '#e63946';  // 🔴 vermelho forte
+    const s = normalize(e);
+    if(s.includes('conclu')) return '#10b981';   // verde
+    if(s.includes('licen'))  return '#1d4ed8';   // azul
+    if(s.includes('constr')) return '#e63946';   // 🔴 vermelho forte (em construção)
     return '#ef4444';
+  }
+
+  function isConstrucao(e){
+    return normalize(e).includes('constr');
   }
 
   function toNum(v){ if(v==null) return null; const n = Number(String(v).replace(',','.')); return Number.isFinite(n)?n:null; }
@@ -99,6 +108,9 @@
   let layerGroup = L.layerGroup().addTo(map);
   let labelsOn=false;
   let currentPoints=[];
+  let blinkTimer = null;
+  let blinking = false;
+  let constructionMarkers = []; // guarda marcadores de "em construção" para animar
 
   function fmt(v){ return v==null?'':String(v).trim(); }
   function rowToPoint(r){
@@ -114,6 +126,10 @@
   }
 
   function drawPoints(points){
+    // parar animação anterior, se existir
+    if (blinkTimer) { clearInterval(blinkTimer); blinkTimer = null; }
+    constructionMarkers = [];
+
     layerGroup.clearLayers();
     const r=radiusForZoom();
     points.forEach(p=>{
@@ -135,7 +151,22 @@
       m.bindPopup(linhas,{maxWidth:360});
       if(labelsOn){ m.bindTooltip(p.nome,{permanent:true,direction:'right',offset:[r,0],opacity:0.95}); }
       m.addTo(layerGroup);
+
+      // Guardar marcadores de "em construção" para animar
+      if (isConstrucao(p.estado)) {
+        constructionMarkers.push(m);
+      }
     });
+
+    // Iniciar piscar subtil nos "em construção"
+    if (constructionMarkers.length) {
+      blinking = false;
+      blinkTimer = setInterval(()=>{
+        blinking = !blinking;
+        const targetOpacity = blinking ? 0.55 : 0.95;  // pulsar discreto
+        constructionMarkers.forEach(m => m.setStyle({ fillOpacity: targetOpacity }));
+      }, 700);
+    }
   }
 
   async function loadCSV(){
