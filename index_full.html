@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <title>Garvetur Porto Pro — Mapa</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://a.tile.openstreetmap.org" crossorigin>
+  <link rel="preconnect" href="https://b.tile.openstreetmap.org" crossorigin>
+  <link rel="preconnect" href="https://c.tile.openstreetmap.org" crossorigin>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin="anonymous">
+  <style>
+    :root{
+      --bg:#0E0E0E; --panel:#131313; --text:#FFFFFF; --muted:#9AA0A6;
+      --gold:#A38B63; --blue:#118AB2; --green:#06D6A0; --yellow:#FFC107; --red:#EF476F;
+      --card:#111; --border:rgba(255,255,255,.10); --edge:#181818;
+    }
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    #topbar{background:#0F0F0F;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.08);
+      display:flex;gap:10px;flex-wrap:wrap;align-items:center;position:relative;z-index:30}
+    .tabs{display:flex;gap:6px;align-items:center;margin-left:10px}
+    .tab{font-size:12px;padding:6px 10px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:#121212;color:#ddd;text-decoration:none}
+    .tab:hover{border-color:var(--gold)}
+    .tab.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:600}
+    .searchWrap{display:flex;align-items:center;gap:6px;background:#121212;border:1px solid rgba(255,255,255,.12);
+      border-radius:10px;padding:4px 8px}
+    .searchWrap input{background:transparent;border:none;color:#fff;outline:none;width:220px;font-size:13px}
+    #filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    #filters label{font-size:12px;color:#D9D9D9}
+    .actionBtn{background:transparent;border:1px solid rgba(163,139,99,.5);color:#fff;padding:6px 9px;border-radius:8px;cursor:pointer;font-size:12px}
+    .actionBtn:hover{border-color:var(--gold)}
+    #kpiBar{background:#0E0E0E;border-bottom:1px solid var(--border);padding:6px 12px;position:relative;z-index:20}
+    .kpiGrid{display:grid;gap:8px;grid-template-columns:repeat(12,1fr)}
+    .kpiCard{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px;min-height:44px}
+    .kpiTitle{font-size:10px;color:#CFCFCF;text-transform:uppercase;letter-spacing:.05em}
+    .kpiValue{font-size:16px;font-weight:700;margin-top:2px}
+    #viewport{position:relative;height:calc(100% - 54px - 64px)}
+    #map{position:absolute;inset:0}
+    #drawer{position:absolute;top:0;right:0;height:100%;width:360px;background:linear-gradient(180deg,#151515,#101010);
+      border-left:1px solid var(--edge);transform:translateX(100%);transition:transform .28s ease;
+      display:flex;flex-direction:column;z-index:1000;box-shadow:-12px 0 30px rgba(0,0,0,.35)}
+    #drawer.open{transform:translateX(0)}
+    .drawer-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px;border-bottom:1px solid var(--edge)}
+    .drawer-title{font-weight:700;font-size:14px;color:#FFD166;line-height:1.2}
+    .drawer-sub{font-size:11px;color:#BFBFBF}
+    .drawer-body{padding:10px;overflow:auto}
+    .row{margin-bottom:8px}
+    .label{font-size:10px;color:#9AA0A6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+    .value{font-size:13px;color:#EAEAEA;white-space:pre-wrap}
+    .btn{background:transparent;border:1px solid rgba(255,209,102,.5);color:#fff;padding:7px 9px;border-radius:9px;cursor:pointer;font-size:12px}
+    .btn:hover{border-color:var(--gold)}
+    .legend{background:#0F0F0F;color:#fff;padding:8px 10px;font:12px/14px Arial,sans-serif;box-shadow:0 0 15px rgba(0,0,0,.3);border-radius:8px;border:1px solid rgba(255,255,255,.06)}
+    .legend .row{display:flex;align-items:center;gap:8px;margin:4px 0}
+    .legend .color{width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.2)}
+    .leaflet-bottom.leaflet-left .legend{margin-bottom:96px;margin-left:10px}
+    .marker-cluster div{background:#FFD166;color:#111}
+  </style>
+</head>
+<body>
+  <div id="topbar">
+    <div class="brand" style="display:flex;align-items:center;gap:10px;margin-right:6px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:#FFD166"><circle cx="12" cy="12" r="10" stroke-width="1.5"/><path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/></svg>
+      <h1 style="margin:0;font-size:16px;color:#FFD166">Garvetur Porto Pro</h1>
+      <nav class="tabs">
+        <a class="tab active" href="./index.html">Mapa</a>
+        <a class="tab" href="./kanban.html">Leads</a>
+        <a class="tab" href="./angariacoes.html">Angariações</a>
+        <a class="tab" href="./dashboard.html">Dashboard</a>
+      </nav>
+    </div>
+    <div class="searchWrap" title="Pesquisar por nome, notas…">
+      <input id="search" placeholder="Pesquisar empreendimentos…" />
+    </div>
+    <div class="searchWrap">
+      <input id="concelhoSearch" placeholder="Concelho (ex.: Porto, Matosinhos…)" list="concelhosList" />
+      <datalist id="concelhosList"></datalist>
+    </div>
+    <div class="searchWrap">
+      <input id="yearSearch" placeholder="Ano/Conclusão (ex.: 2027)" />
+    </div>
+    <div id="filters">
+      <label><input type="checkbox" class="state-filter" value="em_construcao" checked> Em construção</label>
+      <label><input type="checkbox" class="state-filter" value="licenciado" checked> Licenciado</label>
+      <label><input type="checkbox" class="state-filter" value="em_licenciamento" checked> Em licenciamento</label>
+      <label><input type="checkbox" class="state-filter" value="concluido" checked> Concluído</label>
+    </div>
+    <button id="focusBtn" class="actionBtn">Focar AMP/Porto</button>
+    <button id="clearBtn" class="actionBtn">Limpar filtros</button>
+    <button id="exportBtn" class="actionBtn">Exportar CSV</button>
+  </div>
+
+  <div id="kpiBar">
+    <div class="kpiGrid" id="kpis"></div>
+  </div>
+
+  <div id="viewport">
+    <div id="map"></div>
+    <div id="drawer">
+      <div class="drawer-head">
+        <div>
+          <div class="drawer-title" id="dw_title">—</div>
+          <div class="drawer-sub" id="dw_sub">—</div>
+        </div>
+        <button class="btn" id="dw_close">Fechar</button>
+      </div>
+      <div class="drawer-body" id="dw_body"></div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" crossorigin="anonymous"></script>
+  <script>
+  const DEFAULT_URL = "https://ruiquelhas1-lab.github.io/Mapa-Porto/data/empreendimentos.geojson";
+  const map = L.map('map', { zoomControl: true, scrollWheelZoom: true }).setView([41.15, -8.61], 11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
+  const cluster = L.markerClusterGroup(); map.addLayer(cluster);
+  const colors = { licenciado:"#118AB2", em_construcao:"#FFD166", em_licenciamento:"#8E7CC3", concluido:"#06D6A0", default:"#A38B63" };
+
+  let feats = []; let filtered = [];
+  const search = document.getElementById('search');
+  const concelhoSearch = document.getElementById('concelhoSearch');
+  const yearSearch = document.getElementById('yearSearch');
+  const stateChecks = Array.from(document.querySelectorAll('.state-filter'));
+  const kpisEl = document.getElementById('kpis');
+  const drawer = document.getElementById('drawer');
+  const dwTitle = document.getElementById('dw_title');
+  const dwSub = document.getElementById('dw_sub');
+  const dwBody = document.getElementById('dw_body');
+
+  function normalizeEstado(v){
+    if(!v) return '';
+    const s=String(v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'_');
+    if(s.includes('licen')) return 'licenciado';
+    if(s.includes('conclu')||s.includes('entreg')) return 'concluido';
+    if(s.includes('licenciam')) return 'em_licenciamento';
+    if(s.includes('constr')) return 'em_construcao';
+    return s;
+  }
+  function load(){
+    fetch(DEFAULT_URL, {cache:'no-store'}).then(r=>r.json()).then(g=>{
+      feats = (g.features||[]).map(f=>{
+        const p=f.properties||{}; const coords=f.geometry&&f.geometry.type==='Point'? f.geometry.coordinates : null;
+        const lng=Array.isArray(coords)? Number(coords[0]) : NaN;
+        const lat=Array.isArray(coords)? Number(coords[1]) : NaN;
+        return {
+          nome: p.nome||p.name||p.titulo||p['título']||'—',
+          concelho: p.concelho||p.municipio||p['município']||p.city||'',
+          estado: normalizeEstado(p.estado||p.status||''),
+          promotor: p.promotor||p.developer||'',
+          conclusao: p.conclusao||p['conclusão']||p.entrega||'',
+          notas: p.notas||p.observacoes||p['observações']||'',
+          link: p.link||p.url||'',
+          lat: Number.isFinite(lat)? lat:null, lng: Number.isFinite(lng)? lng:null
+        };
+      });
+      populateConcelhos();
+      apply();
+    }).catch(()=> alert('Falha ao carregar GeoJSON.'));
+  }
+  function populateConcelhos(){
+    const d = document.getElementById('concelhosList');
+    d.innerHTML='';
+    Array.from(new Set(feats.map(x=>x.concelho).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'pt'))
+      .forEach(c=>{ const o=document.createElement('option'); o.value=c; d.appendChild(o); });
+  }
+  function apply(){
+    const q = (search.value||'').toLowerCase();
+    const conc = (concelhoSearch.value||'').toLowerCase();
+    const y = (yearSearch.value||'').replace(/\D/g,'');
+    const allowed = new Set(stateChecks.filter(c=>c.checked).map(c=>c.value));
+
+    filtered = feats.filter(p=>{
+      const txt = [p.nome,p.concelho,p.promotor,p.notas].join(' ').toLowerCase();
+      const okTxt = !q || txt.includes(q);
+      const okConc = !conc || (p.concelho||'').toLowerCase().includes(conc);
+      const okYear = !y || String(p.conclusao||'').includes(y);
+      const okState = !p.estado || allowed.has(p.estado);
+      return okTxt && okConc && okYear && okState;
+    });
+
+    drawMarkers();
+    drawKPIs();
+  }
+  function colorByEstado(e){ return colors[e] || colors.default; }
+  let currentLayer = null;
+  function drawMarkers(){
+    cluster.clearLayers();
+    filtered.forEach(p=>{
+      if(p.lat==null || p.lng==null) return;
+      const m = L.marker([p.lat,p.lng], {
+        title: p.nome,
+        icon: L.divIcon({
+          className:'gpp-pin',
+          html:`<div style="transform:translate(-10px,-24px)">
+                  <svg width="24" height="24" viewBox="0 0 24 24">
+                    <path d="M12 2C8.1 2 5 5.1 5 9c0 5.3 7 13 7 13s7-7.7 7-13c0-3.9-3.1-7-7-7z" fill="${colorByEstado(p.estado)}" stroke="white" stroke-width="1"/>
+                    <circle cx="12" cy="9" r="3" fill="#111" stroke="white" stroke-width="1"/>
+                  </svg>
+                </div>`,
+          iconSize:[24,24], iconAnchor:[12,24]
+        })
+      });
+      m.bindTooltip(`${p.nome}`, {permanent:false, direction:'top'});
+      m.on('click',()=> openDrawer(p));
+      cluster.addLayer(m);
+    });
+  }
+  function openDrawer(p){
+    dwTitle.textContent = p.nome || '—';
+    dwSub.textContent = `${p.concelho||'—'} · ${p.estado||'—'}`;
+    dwBody.innerHTML = `
+      <div class="row"><div class="label">Promotor</div><div class="value">${p.promotor||'—'}</div></div>
+      <div class="row"><div class="label">Conclusão</div><div class="value">${p.conclusao||'—'}</div></div>
+      <div class="row"><div class="label">Notas</div><div class="value">${p.notas||'—'}</div></div>
+      <div class="row"><div class="label">Coordenadas</div><div class="value">${p.lat??'—'}, ${p.lng??'—'}</div></div>
+      <div class="row">
+        <button class="btn" onclick="focusOn(${p.lat||'null'}, ${p.lng||'null'})">Centrar</button>
+        <button class="btn" onclick="openGM(${p.lat||'null'}, ${p.lng||'null'})">Google Maps</button>
+        ${p.link? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>`:''}
+        <button class="btn" onclick="copyResumo(${JSON.stringify(p).replace(/"/g,'&quot;')})">Copiar resumo</button>
+        <button class="btn" onclick="shareResumo(${JSON.stringify(p).replace(/"/g,'&quot;')})">Partilhar</button>
+      </div>
+    `;
+    drawer.classList.add('open');
+  }
+  document.getElementById('dw_close').addEventListener('click',()=> drawer.classList.remove('open'));
+  function focusOn(lat,lng){ if(Number.isFinite(lat)&&Number.isFinite(lng)) map.setView([lat,lng], 16, {animate:true}); }
+  function openGM(lat,lng){ if(Number.isFinite(lat)&&Number.isFinite(lng)) window.open(`https://www.google.com/maps?q=${lat},${lng}`,'_blank'); }
+  function copyResumo(p){
+    const txt = `${p.nome||'—'} | ${p.concelho||'—'} | ${p.estado||'—'} | Conclusão: ${p.conclusao||'—'}${p.link? ' | '+p.link:''}`;
+    navigator.clipboard.writeText(txt).then(()=> alert('Resumo copiado.'));
+  }
+  function shareResumo(p){
+    const txt = `${p.nome||'—'} | ${p.concelho||'—'} | ${p.estado||'—'} | Conclusão: ${p.conclusao||'—'}${p.link? ' | '+p.link:''}`;
+    if(navigator.share){ navigator.share({title:p.nome||'Empreendimento', text:txt, url: location.href}).catch(()=>{}); }
+    else{ window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`,'_blank'); }
+  }
+  function drawKPIs(){
+    const total = filtered.length;
+    const porEstado = filtered.reduce((acc,p)=>{ acc[p.estado]=(acc[p.estado]||0)+1; return acc; },{});
+    const topConcelhos = Object.entries(filtered.reduce((a,p)=>{ const c=p.concelho||'—'; a[c]=(a[c]||0)+1; return a; },{}))
+      .sort((a,b)=>b[1]-a[1]).slice(0,5);
+    kpisEl.innerHTML = `
+      <div class="kpiCard"><div class="kpiTitle">Total</div><div class="kpiValue">${total}</div></div>
+      <div class="kpiCard"><div class="kpiTitle">Em construção</div><div class="kpiValue">${porEstado.em_construcao||0}</div></div>
+      <div class="kpiCard"><div class="kpiTitle">Licenciado</div><div class="kpiValue">${porEstado.licenciado||0}</div></div>
+      <div class="kpiCard"><div class="kpiTitle">Em licenciamento</div><div class="kpiValue">${porEstado.em_licenciamento||0}</div></div>
+      <div class="kpiCard"><div class="kpiTitle">Concluído</div><div class="kpiValue">${porEstado.concluido||0}</div></div>
+      <div class="kpiCard" style="grid-column: span 7;">
+        <div class="kpiTitle">Top 5 concelhos</div>
+        <div class="kpiValue" style="font-size:13px;font-weight:600">
+          ${topConcelhos.map(([n,v])=>`<span style="margin-right:10px">${n}: ${v}</span>`).join('') || '—'}
+        </div>
+      </div>`;
+  }
+  // legend
+  const legend = L.control({position:'bottomleft'});
+  legend.onAdd = function(){
+    const div = L.DomUtil.create('div','legend');
+    div.innerHTML = `
+      <div class="row"><span class="color" style="background:${colors.em_construcao}"></span> Em construção</div>
+      <div class="row"><span class="color" style="background:${colors.licenciado}"></span> Licenciado</div>
+      <div class="row"><span class="color" style="background:${colors.em_licenciamento}"></span> Em licenciamento</div>
+      <div class="row"><span class="color" style="background:${colors.concluido}"></span> Concluído</div>`;
+    return div;
+  };
+  legend.addTo(map);
+
+  // eventos
+  [search, concelhoSearch, yearSearch].forEach(el=> el.addEventListener('input', apply));
+  stateChecks.forEach(c=> c.addEventListener('change', apply));
+  document.getElementById('focusBtn').addEventListener('click',()=> map.fitBounds([[41.28,-8.75],[41.05,-8.45]]).pad=0.1);
+  document.getElementById('clearBtn').addEventListener('click',()=>{
+    search.value=''; concelhoSearch.value=''; yearSearch.value=''; stateChecks.forEach(c=>c.checked=true); apply();
+  });
+  document.getElementById('exportBtn').addEventListener('click',()=>{
+    const headers=['nome','concelho','estado','promotor','conclusao','notas','lat','lng','link'];
+    const csv=[headers.join(';')].concat(filtered.map(p=>headers.map(h=>String(p[h]??'').replace(/[\r\n]/g,' ')).join(';'))).join('\n');
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download='empreendimentos_filtrados.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  });
+
+  load();
+  </script>
+</body>
+</html>
