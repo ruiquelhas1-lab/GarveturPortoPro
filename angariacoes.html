@@ -27,10 +27,7 @@
   .filters{display:grid;grid-template-columns:200px 160px 160px 200px auto; gap:8px; align-items:end; padding:0 12px 12px 12px;}
   .muted{color:#c9c9c9;font-size:12px}
   @media(max-width:1200px){.list{grid-template-columns:repeat(2,1fr)}}
-  @media(max-width:900px){
-    .wrap{grid-template-columns:1fr}
-    .filters{grid-template-columns:1fr 1fr; }
-  }
+  @media(max-width:900px){.wrap{grid-template-columns:1fr}.filters{grid-template-columns:1fr 1fr;}}
 </style>
 </head>
 <body>
@@ -54,7 +51,12 @@
   <div class="panel">
     <h3>Nova Angariação</h3>
     <label>Propriedade</label><input id="p" placeholder="Ex.: T3 Boavista | Porto">
-    <label>Consultor</label><input id="c" placeholder="Ex.: Manuel">
+
+    <label>Consultor</label>
+    <select id="c">
+      <!-- preenchido pelo JS com a lista de consultores -->
+    </select>
+
     <label>Proprietário</label><input id="propNome" placeholder="Ex.: Sr. António Silva">
     <label>Data</label><input id="dataAng" type="date">
     <label>Origem</label><input id="o" placeholder="Ex.: Referral / Porta-a-porta / Online">
@@ -124,7 +126,19 @@
 </div>
 
 <script>
-const LS_KEY = 'gpp_ang_v3'; // nova versão do storage (para não chocar com anteriores)
+const LS_KEY = 'gpp_ang_v4'; // nova versão (para não chocar com versões anteriores)
+
+// Equipa predefinida
+const CONSULTORS = [
+  "Rui Quelhas",
+  "Manuel Oliveira",
+  "João Sousa",
+  "Francisco dos Santos",
+  "Rosário Vasconcelos",
+  "Armanda Meireles",
+  "Audrey Lucas",
+  "Outro…"
+];
 
 function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch(e){ return []; } }
 function save(d){ localStorage.setItem(LS_KEY, JSON.stringify(d)); }
@@ -143,6 +157,15 @@ function semaforo(el, val){
 function parseDate(s){ if(!s) return null; const t=Date.parse(s); return Number.isFinite(t)? new Date(t): null; }
 function fmtDate(s){ const d=parseDate(s); if(!d) return '—'; return d.toISOString().slice(0,10); }
 function sanitizeFile(s){ return String(s||'proposta').replace(/[^a-z0-9\-_. ]/gi,'_'); }
+
+// -------- UI Helpers --------
+function fillConsultorSelects(){
+  const selNew = document.getElementById('c');
+  selNew.innerHTML = CONSULTORS.map(n=>`<option value="${n}">${n}</option>`).join('');
+  selNew.value = CONSULTORS[0];
+
+  populateConsultoresFilter(); // inicializa o filtro também
+}
 
 // -------- Modelo → UI --------
 function cardEl(a, idx){
@@ -170,7 +193,7 @@ function cardEl(a, idx){
 }
 
 function render(list=null){
-  const data = (list ?? view()); // se vier lista filtrada, usa; senão calcula
+  const data = (list ?? view());
   const listEl = document.getElementById('list');
   listEl.innerHTML='';
   data.forEach((a,i)=> listEl.appendChild(cardEl(a,i)));
@@ -201,7 +224,14 @@ function collectDocs(){
 function add(){
   const prop = document.getElementById('p').value.trim();
   if(!prop) return alert('Indique a propriedade.');
-  const consultor = document.getElementById('c').value.trim();
+
+  let consultor = document.getElementById('c').value;
+  if(consultor === 'Outro…'){
+    const alt = prompt('Nome do consultor:','');
+    if(!alt) return alert('Indique o nome do consultor.');
+    consultor = alt.trim();
+  }
+
   const proprietario = document.getElementById('propNome').value.trim();
   const data = document.getElementById('dataAng').value;
   const origem = document.getElementById('o').value.trim();
@@ -215,13 +245,14 @@ function add(){
   const arr = load();
   arr.unshift({prop, consultor, proprietario, data, origem, comissao, pp, ps, aj, docs, notas});
   save(arr);
-  populateConsultores(); // atualiza dropdown de filtro
+  populateConsultoresFilter();
   clearForm();
   render();
 }
 
 function clearForm(){
-  ['p','c','propNome','o','pp','ps','n','dataAng'].forEach(id=> document.getElementById(id).value='');
+  ['p','propNome','o','pp','ps','n','dataAng'].forEach(id=> document.getElementById(id).value='');
+  document.getElementById('c').value = CONSULTORS[0];
   ['doc_cc','doc_caderneta','doc_cert_ener','doc_planta','doc_cmi','doc_crp'].forEach(id=> document.getElementById(id).checked=false);
   document.getElementById('com').value='6';
   document.getElementById('aj').textContent='—'; semaforo(document.getElementById('sf'), null);
@@ -230,7 +261,9 @@ function clearForm(){
 function edit(idx){
   const dataAll = load(); const a = dataAll[idx];
   const prop = prompt('Propriedade:', a.prop)||a.prop;
-  const consultor = prompt('Consultor:', a.consultor||'')??a.consultor;
+  let consultor = prompt('Consultor:', a.consultor||'') ?? a.consultor;
+  if(!consultor) consultor = a.consultor;
+
   const proprietario = prompt('Proprietário:', a.proprietario||'')??a.proprietario;
   const data = prompt('Data (AAAA-MM-DD):', a.data||'')??a.data;
   const origem = prompt('Origem:', a.origem||'')??a.origem;
@@ -239,9 +272,10 @@ function edit(idx){
   const ps = Number(prompt('Preço sugerido (€):', a.ps ?? '')) || null;
   const aj = pct(pp, ps);
   const notas = prompt('Notas:', a.notas||'')??a.notas;
+
   dataAll[idx] = {prop, consultor, proprietario, data, origem, comissao, pp, ps, aj, docs:a.docs||[], notas};
   save(dataAll);
-  populateConsultores();
+  populateConsultoresFilter();
   render();
 }
 
@@ -250,7 +284,7 @@ function del(idx){
   const arr = load();
   arr.splice(idx,1);
   save(arr);
-  populateConsultores();
+  populateConsultoresFilter();
   render();
 }
 
@@ -260,9 +294,9 @@ const f_de = document.getElementById('f_de');
 const f_ate = document.getElementById('f_ate');
 const f_sort = document.getElementById('f_sort');
 
-function populateConsultores(){
+function populateConsultoresFilter(){
   const data = load();
-  const set = new Set(data.map(x=>x.consultor).filter(Boolean));
+  const set = new Set([...CONSULTORS.filter(n=>n!=='Outro…'), ...data.map(x=>x.consultor).filter(Boolean)]);
   const vals = Array.from(set).sort((a,b)=>a.localeCompare(b,'pt'));
   const cur = f_consultor.value;
   f_consultor.innerHTML = '<option value="">(todos)</option>' + vals.map(v=>`<option value="${v}">${v}</option>`).join('');
@@ -283,25 +317,10 @@ function view(){
   // ordenação
   const sort = f_sort.value;
   out.sort((a,b)=>{
-    if(sort==='aj_desc'){ // % ajustamento ↓
-      const A = (a.aj==null? -Infinity : a.aj);
-      const B = (b.aj==null? -Infinity : b.aj);
-      return B - A;
-    }
-    if(sort==='aj_asc'){ // % ajustamento ↑
-      const A = (a.aj==null? Infinity : a.aj);
-      const B = (b.aj==null? Infinity : b.aj);
-      return A - B;
-    }
-    if(sort==='data_asc'){ // data antiga → recente
-      const A = parseDate(a.data)?.getTime() ?? 0;
-      const B = parseDate(b.data)?.getTime() ?? 0;
-      return A - B;
-    }
-    // default: data recente → antiga
-    const A = parseDate(a.data)?.getTime() ?? 0;
-    const B = parseDate(b.data)?.getTime() ?? 0;
-    return B - A;
+    if(sort==='aj_desc'){ const A=(a.aj==null?-Infinity:a.aj), B=(b.aj==null?-Infinity:b.aj); return B-A; }
+    if(sort==='aj_asc'){  const A=(a.aj==null? Infinity:a.aj), B=(b.aj==null? Infinity:b.aj); return A-B; }
+    if(sort==='data_asc'){const A=parseDate(a.data)?.getTime()??0, B=parseDate(b.data)?.getTime()??0; return A-B; }
+    const A=parseDate(a.data)?.getTime()??0, B=parseDate(b.data)?.getTime()??0; return B-A; // data_desc
   });
 
   return out;
@@ -319,7 +338,6 @@ function buildProposalHTML(a){
       th,td{padding:8px;border:1px solid #ddd;font-size:13px;text-align:left;}
       th{background:#f6f6f6;}
       .muted{color:#555}
-      .section{margin-top:14px}
       .foot{margin-top:18px;font-size:12px;color:#666;}
       @media print { .no-print{display:none} }
     </style>`;
@@ -350,7 +368,6 @@ function exportPDF(a){
   w.document.open();
   w.document.write(buildProposalHTML(a));
   w.document.close();
-  // aguarda DOM e imprime
   w.onload = ()=> { try{ w.focus(); w.print(); }catch(e){} };
 }
 
@@ -371,46 +388,76 @@ function exportWord(a){
 function seedDemo(){
   if(!confirm('Carregar 5 angariações de exemplo? (substitui as atuais)')) return;
   const ex = [
-    {prop:"T3 Boavista | Porto", consultor:"Manuel", proprietario:"António Silva", data:"2025-11-06", origem:"Referral", comissao:6, pp:650000, ps:620000, aj:-4.6, docs:["CC","Caderneta","Cert. Energético","CMI assinado"], notas:"Avaliação agendada"},
-    {prop:"T2 Madalena | V.N. Gaia", consultor:"Armanda", proprietario:"Maria Lopes", data:"2025-11-01", origem:"Porta-a-porta", comissao:5, pp:320000, ps:315000, aj:-1.6, docs:["CC","Caderneta","CRP"], notas:"Vendedor disponível negociar"},
-    {prop:"Loja Foz | Porto", consultor:"João", proprietario:"ImoFoz Lda.", data:"2025-10-28", origem:"Online", comissao:4, pp:480000, ps:450000, aj:-6.3, docs:["CC","Caderneta","Planta"], notas:"Objetivo yield 6%"},
-    {prop:"Terreno Gondomar", consultor:"Manuel", proprietario:"Joaquim Rocha", data:"2025-11-03", origem:"Investidor", comissao:3, pp:900000, ps:870000, aj:-3.3, docs:["CC","CRP"], notas:"Pedido de CMI assinado"},
-    {prop:"Prédio Baixa | Porto", consultor:"Audrey", proprietario:"Gestora Norte, SA", data:"2025-11-05", origem:"Gestor de ativos", comissao:5, pp:2200000, ps:2100000, aj:-4.5, docs:["CC","Caderneta","Cert. Energético","Planta","CMI assinado","CRP"], notas:"Visita técnica 5ª feira"}
+    {prop:"T3 Boavista | Porto", consultor:"Manuel Oliveira", proprietario:"António Silva", data:"2025-11-06", origem:"Referral", comissao:6, pp:650000, ps:620000, aj:-4.6, docs:["CC","Caderneta","Cert. Energético","CMI assinado"], notas:"Avaliação agendada"},
+    {prop:"T2 Madalena | V.N. Gaia", consultor:"Armanda Meireles", proprietario:"Maria Lopes", data:"2025-11-01", origem:"Porta-a-porta", comissao:5, pp:320000, ps:315000, aj:-1.6, docs:["CC","Caderneta","CRP"], notas:"Vendedor disponível negociar"},
+    {prop:"Loja Foz | Porto", consultor:"João Sousa", proprietario:"ImoFoz Lda.", data:"2025-10-28", origem:"Online", comissao:4, pp:480000, ps:450000, aj:-6.3, docs:["CC","Caderneta","Planta"], notas:"Objetivo yield 6%"},
+    {prop:"Terreno Gondomar", consultor:"Rui Quelhas", proprietario:"Joaquim Rocha", data:"2025-11-03", origem:"Investidor", comissao:3, pp:900000, ps:870000, aj:-3.3, docs:["CC","CRP"], notas:"Pedido de CMI assinado"},
+    {prop:"Prédio Baixa | Porto", consultor:"Audrey Lucas", proprietario:"Gestora Norte, SA", data:"2025-11-05", origem:"Gestor de ativos", comissao:5, pp:2200000, ps:2100000, aj:-4.5, docs:["CC","Caderneta","Cert. Energético","Planta","CMI assinado","CRP"], notas:"Visita técnica 5ª feira"}
   ];
   save(ex);
-  populateConsultores();
+  populateConsultoresFilter();
   render();
+}
+
+// -------- Filtros e Ordenação --------
+const f_consultor = document.getElementById('f_consultor');
+const f_de = document.getElementById('f_de');
+const f_ate = document.getElementById('f_ate');
+const f_sort = document.getElementById('f_sort');
+
+function populateConsultoresFilter(){
+  const data = load();
+  const set = new Set([
+    ...CONSULTORS.filter(n=>n!=='Outro…'),
+    ...data.map(x=>x.consultor).filter(Boolean)
+  ]);
+  const vals = Array.from(set).sort((a,b)=>a.localeCompare(b,'pt'));
+  const cur = f_consultor.value;
+  f_consultor.innerHTML = '<option value="">(todos)</option>' + vals.map(v=>`<option value="${v}">${v}</option>`).join('');
+  if(vals.includes(cur)) f_consultor.value = cur;
+}
+
+function view(){
+  const data = load().slice();
+
+  // filtro consultor
+  let out = data.filter(x=> !f_consultor.value || x.consultor === f_consultor.value);
+
+  // filtro datas
+  const d1 = parseDate(f_de.value), d2 = parseDate(f_ate.value);
+  if(d1) out = out.filter(x=> { const dx=parseDate(x.data); return dx ? dx>=d1 : false; });
+  if(d2) out = out.filter(x=> { const dx=parseDate(x.data); return dx ? dx<=d2 : false; });
+
+  // ordenação
+  const sort = f_sort.value;
+  out.sort((a,b)=>{
+    if(sort==='aj_desc'){ const A=(a.aj==null?-Infinity:a.aj), B=(b.aj==null?-Infinity:b.aj); return B-A; }
+    if(sort==='aj_asc'){  const A=(a.aj==null? Infinity:a.aj), B=(b.aj==null? Infinity:b.aj); return A-B; }
+    if(sort==='data_asc'){const A=parseDate(a.data)?.getTime()??0, B=parseDate(b.data)?.getTime()??0; return A-B; }
+    const A=parseDate(a.data)?.getTime()??0, B=parseDate(b.data)?.getTime()??0; return B-A; // data_desc
+  });
+
+  return out;
 }
 
 // -------- Ligações UI --------
 document.getElementById('add').onclick=add;
 document.getElementById('seed').onclick=seedDemo;
-document.getElementById('clear').onclick=()=>{ if(confirm('Apagar todas as angariações?')){ localStorage.removeItem(LS_KEY); populateConsultores(); render(); } };
+document.getElementById('clear').onclick=()=>{ if(confirm('Apagar todas as angariações?')){ localStorage.removeItem(LS_KEY); populateConsultoresFilter(); render(); } };
 
-document.getElementById('pp').addEventListener('input', ()=>{
-  const pp = Number(document.getElementById('pp').value)||null;
-  const ps = Number(document.getElementById('ps').value)||null;
-  const val = pct(pp, ps);
-  document.getElementById('aj').textContent = (val!=null ? val+'%' : '—');
-  semaforo(document.getElementById('sf'), val);
+['pp','ps'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>{
+    const pp = Number(document.getElementById('pp').value)||null;
+    const ps = Number(document.getElementById('ps').value)||null;
+    const val = pct(pp, ps);
+    document.getElementById('aj').textContent = (val!=null ? val+'%' : '—');
+    semaforo(document.getElementById('sf'), val);
+  });
 });
-document.getElementById('ps').addEventListener('input', ()=>{
-  const pp = Number(document.getElementById('pp').value)||null;
-  const ps = Number(document.getElementById('ps').value)||null;
-  const val = pct(pp, ps);
-  document.getElementById('aj').textContent = (val!=null ? val+'%' : '—');
-  semaforo(document.getElementById('sf'), val);
-});
-
-// filtros
-document.getElementById('f_apply').onclick = ()=> render(view());
-document.getElementById('f_clear').onclick = ()=>{
-  f_consultor.value=''; f_de.value=''; f_ate.value=''; f_sort.value='data_desc';
-  render();
-};
 
 // iniciar
-populateConsultores();
+fillConsultorSelects();
+populateConsultoresFilter();
 render();
 </script>
 </body>
