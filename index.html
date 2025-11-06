@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Garvetur Porto Pro — Mapa (Local + Auto-zoom)</title>
+  <title>Garvetur Porto Pro — Mapa (Correção Coordenadas + Diagnóstico)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="anonymous">
@@ -47,7 +47,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" crossorigin="anonymous"></script>
   <script>
-  // Fonte local (mesmo repositório) + fallbacks
+  // Fonte local + fallbacks
   const SOURCES = [
     "./data/empreendimentos.geojson",
     "https://raw.githubusercontent.com/ruiquelhas1-lab/Mapa-Porto/main/data/empreendimentos.geojson",
@@ -65,6 +65,13 @@
   document.getElementById('retryBtn').addEventListener('click', ()=> loadGeo());
 
   function setStatus(msg){ statusEl.textContent = msg; }
+  const toNum = (v) => {
+    if (typeof v === 'number') return v;
+    if (typeof v === 'string') return Number(v.replace(',', '.').trim());
+    return NaN;
+  };
+  const looksLikeLat = (x) => Number.isFinite(x) && x >= -90 && x <= 90;
+  const looksLikeLng = (x) => Number.isFinite(x) && x >= -180 && x <= 180;
 
   async function tryFetch(url){
     setStatus('A carregar: ' + url);
@@ -87,9 +94,24 @@
           throw new Error('Formato inesperado (não é FeatureCollection) em '+url);
         }
         const feats = gj.features.map(f=>{
-          const p=f.properties||{}; const c=f.geometry&&f.geometry.type==='Point'? f.geometry.coordinates : null;
-          const lng=Array.isArray(c)? Number(c[0]) : NaN;
-          const lat=Array.isArray(c)? Number(c[1]) : NaN;
+          const p = f.properties || {};
+          const c = (f.geometry && f.geometry.type === 'Point') ? f.geometry.coordinates : null;
+          let lng = Array.isArray(c) ? toNum(c[0]) : NaN;
+          let lat = Array.isArray(c) ? toNum(c[1]) : NaN;
+
+          // Heurística: se a ordem vier invertida (lat,lng), corrigir
+          // Em Portugal: lat ~ 41; lng ~ -9..-6
+          if (looksLikeLat(lng) && looksLikeLng(lat) && Math.abs(lat) < 20 && Math.abs(lng) > 20) {
+            // exemplo de inversão clássica  (lng=41, lat=-8) -> swap
+            const tmp = lng; lng = lat; lat = tmp;
+          }
+          // Outra heurística: se (lng,lat) não couberem em ranges válidos, tentar swap
+          if (!looksLikeLng(lng) || !looksLikeLat(lat)) {
+            const a = Array.isArray(c) ? toNum(c[1]) : NaN;
+            const b = Array.isArray(c) ? toNum(c[0]) : NaN;
+            if (looksLikeLng(a) && looksLikeLat(b)) { lng = a; lat = b; }
+          }
+
           return {
             nome: p.nome||p.name||p.titulo||'—',
             concelho: p.concelho||p.city||'',
@@ -98,12 +120,12 @@
             conclusao: p.conclusao||'',
             notas: p.notas||'',
             link: p.link||'',
-            lat: isFinite(lat)? lat:null, lng: isFinite(lng)? lng:null
+            lat: looksLikeLat(lat) ? lat : null,
+            lng: looksLikeLng(lng) ? lng : null
           };
         });
         drawMarkers(feats);
-        setStatus(`✅ Dados carregados (${feats.length} registos) de ${url}`);
-        return;
+        return setStatus(`✅ Dados carregados (${feats.length} registos; visíveis: ${cluster.getLayers().length}) de ${url}`);
       }catch(err){ lastErr = err; }
     }
     setStatus('❌ Falha ao carregar GeoJSON. '+ (lastErr? String(lastErr.message||lastErr) : 'Sem detalhe.'));
@@ -112,7 +134,7 @@
 
   function colorByEstado(e){ return colors[e] || colors.default; }
   function drawMarkers(arr){
-    let added = 0;
+    cluster.clearLayers();
     arr.forEach(p=>{
       if(p.lat==null || p.lng==null) return;
       const m = L.marker([p.lat,p.lng], {
@@ -132,16 +154,11 @@
       const body = `${p.concelho||'—'} · ${p.estado||'—'}<br>Conclusão: ${p.conclusao||'—'}${p.promotor? '<br>Promotor: '+p.promotor:''}${p.link? '<br><a target="_blank" href="'+p.link+'">Abrir link</a>':''}`;
       m.bindPopup(`<b>${p.nome||'—'}</b><br>${body}`);
       cluster.addLayer(m);
-      added++;
     });
-    // ⬇️ Auto-zoom aos marcadores
     if (cluster.getLayers().length) {
       const bounds = cluster.getBounds();
       if(bounds && bounds.isValid()) map.fitBounds(bounds.pad(0.2));
     }
-    // Mostrar total no status (útil para confirmar se há registos)
-    const cur = statusEl.textContent;
-    if (cur.startsWith('✅')) setStatus(cur.replace(/\)$/, `; visíveis: ${added})`));
   }
 
   const legend = L.control({position:'bottomleft'});
