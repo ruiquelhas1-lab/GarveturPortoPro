@@ -170,6 +170,7 @@
         <button id="act_gmaps" class="btn">Abrir no Google Maps</button>
         <button id="act_copy"  class="btn">Copiar resumo</button>
         <a id="act_share" class="btn" href="#" target="_blank" rel="noopener noreferrer">Partilhar</a>
+        <button id="act_to_kanban" class="btn">Criar lead no Kanban</button>
       </div>
     </aside>
   </div>
@@ -290,6 +291,7 @@
       const bGMaps=document.getElementById('act_gmaps');
       const bCopy=document.getElementById('act_copy');
       const aShare=document.getElementById('act_share');
+      const bToKanban=document.getElementById('act_to_kanban');
 
       try{ await loadLeafletStack(); }catch(e){
         document.body.innerHTML='<div style="padding:16px;font-family:Arial;color:#111">❌ Falha a carregar bibliotecas do mapa (CDNs bloqueados). Tente noutro browser/rede.</div>';
@@ -560,6 +562,39 @@
         }
         try { navigator.clipboard.writeText(text); } catch(_) {}
       }, { passive:false });
+
+      // ✅ Criar lead no Kanban a partir do Mapa
+      function pushLeadToKanban(sel){
+        const STORAGE_KEY='gpp_kanban_v1';
+        let state;
+        try{ state=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'); }catch(_){ state={}; }
+        const cols=['nova','contacto','visita','proposta','cpcv','escritura'];
+        cols.forEach(k=>{ if(!Array.isArray(state[k])) state[k]=[]; });
+
+        const id = 'id_'+Math.random().toString(36).slice(2,9);
+        const item = {
+          id,
+          consultor: prompt('Consultor (ex.: Armanda, Manuel, João)…') || '',
+          cliente: prompt('Cliente…') || '',
+          imovel: sel.nomeDisplay || 'Empreendimento',
+          promotor: sel.concLabel || '',
+          valor: '',
+          proxima: 'Follow-up',
+          quando: new Date().toISOString().slice(0,10),
+          origem: 'Mapa',
+          prioridade: 'B',
+          notas: (sel.notasFull||'').toString().slice(0,200)
+        };
+        state.nova.unshift(item);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        if(confirm('Lead criada no Kanban. Deseja abrir o Kanban agora?')){
+          window.open('./kanban.html?v='+Date.now(), '_blank', 'noopener,noreferrer');
+        }
+      }
+      bToKanban.addEventListener('click', ()=>{
+        if(!currentSel) return;
+        pushLeadToKanban(currentSel);
+      });
 
       // KPIs iniciais
       renderKPIs(allMarkers);
