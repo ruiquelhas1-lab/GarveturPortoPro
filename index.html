@@ -2,11 +2,10 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Garvetur Porto Pro — Mapa</title>
+  <title>Garvetur Porto Pro — Mapa (CDN fixo)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="preconnect" href="https://unpkg.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
   <link rel="preconnect" href="https://a.tile.openstreetmap.org" crossorigin>
   <link rel="preconnect" href="https://b.tile.openstreetmap.org" crossorigin>
   <link rel="preconnect" href="https://c.tile.openstreetmap.org" crossorigin>
@@ -15,7 +14,6 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
   <style>
     :root{ --bg:#0E0E0E; --text:#FFFFFF; --gold:#A38B63 }
-    *{ box-sizing: border-box }
     html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
     #topbar{background:#0F0F0F;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.08);
       display:flex;gap:10px;align-items:center;position:relative;z-index:30;flex-wrap:wrap}
@@ -49,19 +47,16 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script>
-  const RAW  = "https://raw.githubusercontent.com/ruiquelhas1-lab/GarveturPortoPro/main/data/empreendimentos.geojson";
-  const CDN  = "https://cdn.jsdelivr.net/gh/ruiquelhas1-lab/GarveturPortoPro@main/data/empreendimentos.geojson";
-  const LOCAL= "./data/empreendimentos.geojson";
-
-  const params   = new URLSearchParams(location.search);
-  const override = params.get("src");
-  const SOURCES  = override ? [override, RAW, CDN, LOCAL] : [RAW, CDN, LOCAL];
+  // === FONTE ÚNICA (CDN) — já validada por si ===
+  const SOURCE = "https://cdn.jsdelivr.net/gh/ruiquelhas1-lab/GarveturPortoPro@main/data/empreendimentos.geojson";
 
   const statusEl = document.getElementById('status');
   const openGeo  = document.getElementById('openGeo');
+  openGeo.href = SOURCE;
 
-  const map = L.map('map', { zoomControl:true, scrollWheelZoom:true }).setView([41.15,-8.61], 11);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(map);
+  // Mapa
+  const map = L.map('map',{ zoomControl:true, scrollWheelZoom:true }).setView([41.15,-8.61],11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(map);
   const cluster = L.markerClusterGroup(); map.addLayer(cluster);
 
   function setStatus(m){ statusEl.textContent = m; }
@@ -70,61 +65,47 @@
     return m[(e||'').toLowerCase()]||"#A38B63";
   }
 
-  async function tryFetch(url){
-    const bust = (url.includes("?")? "&":"?") + "v=" + Date.now();
-    setStatus("A carregar: " + url);
-    openGeo.href = url;
-    const r = await fetch(url + bust, {cache:'no-store'});
-    if(!r.ok) throw new Error("HTTP " + r.status + " em " + url);
-    const t = await r.text();
-    if(t.trim().startsWith("<")) throw new Error("Conteúdo HTML (404/página) em " + url);
-    let gj; try{ gj = JSON.parse(t); }catch(e){ throw new Error("JSON inválido em " + url + " (" + e.message + ")"); }
-    if(gj.type!=="FeatureCollection" || !Array.isArray(gj.features)) throw new Error("Formato inesperado em " + url);
-    return gj;
-  }
-
-  function addMarkers(features){
-    cluster.clearLayers();
-    let added=0;
-    features.forEach(f=>{
-      if(!f||!f.geometry||f.geometry.type!=="Point") return;
-      const c=f.geometry.coordinates||[];
-      const lng=Number(String(c[0]).replace(',','.'));
-      const lat=Number(String(c[1]).replace(',','.'));
-      if(!Number.isFinite(lat)||!Number.isFinite(lng)) return;
-      const p=f.properties||{};
-      const marker=L.marker([lat,lng],{
-        icon:L.divIcon({className:'gpp-pin',html:`<div style="transform:translate(-10px,-24px)">
-        <svg width="24" height="24" viewBox="0 0 24 24">
-          <path d="M12 2C8.1 2 5 5.1 5 9c0 5.3 7 13 7 13s7-7.7 7-13c0-3.9-3.1-7-7-7z" fill="${colorByEstado(p.estado)}" stroke="white" stroke-width="1"/>
-          <circle cx="12" cy="9" r="3" fill="#111" stroke="white" stroke-width="1"/>
-        </svg></div>`,iconSize:[24,24],iconAnchor:[12,24]})
-      });
-      marker.bindTooltip(p.nome||'—',{direction:'top'});
-      marker.bindPopup(`<b>${p.nome||'—'}</b><br>${p.concelho||''} · ${(p.estado||'').toLowerCase()}
-        ${p.conclusao?'<br>Conclusão: '+p.conclusao:''}
-        ${p.promotor?'<br>Promotor: '+p.promotor:''}
-        ${p.link?'<br><a href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>':''}`);
-      cluster.addLayer(marker); added++;
-    });
-    if(added){ const b=cluster.getBounds(); if(b&&b.isValid()) map.fitBounds(b.pad(0.2)); }
-    return added;
-  }
-
   async function load(){
-    cluster.clearLayers();
-    let lastErr=null;
-    for(const url of SOURCES){
-      try{
-        const gj = await tryFetch(url);
-        const total = Array.isArray(gj.features)? gj.features.length:0;
-        const vis  = addMarkers(gj.features||[]);
-        setStatus(`✅ Dados carregados (features: ${total}; visíveis: ${vis}) de ${url}`);
-        return;
-      }catch(err){ console.warn("Falha nesta fonte:", url, err); lastErr=err; }
+    try{
+      setStatus("A carregar: " + SOURCE);
+      const r = await fetch(SOURCE + "?v=" + Date.now(), { cache:'no-store' });
+      if(!r.ok) throw new Error("HTTP " + r.status);
+      const t = await r.text();
+      if(t.trim().startsWith("<")) throw new Error("Conteúdo HTML (404/página)");
+      const gj = JSON.parse(t);
+      if(gj.type!=="FeatureCollection" || !Array.isArray(gj.features)) throw new Error("Formato inesperado");
+
+      // Desenhar
+      let added=0;
+      cluster.clearLayers();
+      (gj.features||[]).forEach(f=>{
+        if(!f||!f.geometry||f.geometry.type!=="Point") return;
+        const c=f.geometry.coordinates||[];
+        const lng=Number(String(c[0]).replace(',','.'));
+        const lat=Number(String(c[1]).replace(',','.'));
+        if(!Number.isFinite(lat)||!Number.isFinite(lng)) return;
+        const p=f.properties||{};
+        const marker=L.marker([lat,lng],{
+          icon:L.divIcon({className:'gpp-pin',html:`<div style="transform:translate(-10px,-24px)">
+            <svg width="24" height="24" viewBox="0 0 24 24">
+              <path d="M12 2C8.1 2 5 5.1 5 9c0 5.3 7 13 7 13s7-7.7 7-13c0-3.9-3.1-7-7-7z" fill="${colorByEstado(p.estado)}" stroke="white" stroke-width="1"/>
+              <circle cx="12" cy="9" r="3" fill="#111" stroke="white" stroke-width="1"/>
+            </svg></div>`,iconSize:[24,24],iconAnchor:[12,24]})
+        });
+        marker.bindTooltip(p.nome||'—',{direction:'top'});
+        marker.bindPopup(`<b>${p.nome||'—'}</b><br>${p.concelho||''} · ${(p.estado||'').toLowerCase()}
+          ${p.conclusao?'<br>Conclusão: '+p.conclusao:''}
+          ${p.promotor?'<br>Promotor: '+p.promotor:''}
+          ${p.link?'<br><a href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>':''}`);
+        cluster.addLayer(marker); added++;
+      });
+      if(added){ const b=cluster.getBounds(); if(b&&b.isValid()) map.fitBounds(b.pad(0.2)); }
+      setStatus(`✅ Dados carregados (features: ${(gj.features||[]).length}; visíveis: ${added}) do CDN`);
+    }catch(e){
+      console.error(e);
+      setStatus("❌ Falha ao carregar GeoJSON: " + (e && e.message ? e.message : e));
+      alert('Falha ao carregar o GeoJSON a partir do CDN. Abra "Abrir GeoJSON" para confirmar que vê JSON.');
     }
-    setStatus("❌ Falha ao carregar GeoJSON. " + (lastErr? lastErr.message : "Sem detalhe"));
-    alert('Falha ao carregar o ficheiro GeoJSON. Use "Abrir GeoJSON" para confirmar que abre JSON (FeatureCollection).');
   }
 
   document.getElementById('retryBtn').onclick = load;
