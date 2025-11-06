@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <title>Garvetur Porto Pro — Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
+  <style>
+    :root{ --bg:#0E0E0E; --panel:#131313; --text:#FFFFFF; --muted:#9AA0A6; --gold:#FFD166; --edge:#1a1a1a; --card:#141414; --acc:#118AB2; --ok:#06D6A0; --warn:#FFC107; }
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    #topbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.08);background:#0F0F0F}
+    .tabs{display:flex;gap:6px;align-items:center;margin-left:4px}
+    .tab{font-size:12px;padding:6px 10px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:#121212;color:#ddd;text-decoration:none}
+    .tab:hover{border-color:var(--gold)}
+    .tab.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:600}
+    .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;padding:12px}
+    .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px}
+    .t{font-size:11px;color:#CFCFCF;text-transform:uppercase;letter-spacing:.05em}
+    .v{font-size:20px;font-weight:800;margin-top:6px}
+    .table{margin:12px;padding:0 12px}
+    table{width:100%;border-collapse:collapse}
+    th,td{border-bottom:1px solid rgba(255,255,255,.08);padding:8px;text-align:left;font-size:13px}
+    th{color:#CFCFCF;text-transform:uppercase;letter-spacing:.05em;font-size:11px}
+  </style>
+</head>
+<body>
+  <div id="topbar">
+    <div class="brand" style="display:flex;align-items:center;gap:10px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:#FFD166"><circle cx="12" cy="12" r="10" stroke-width="1.5"/><path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/></svg>
+      <h1 style="margin:0;font-size:16px;color:#FFD166">Garvetur Porto Pro</h1>
+      <nav class="tabs">
+        <a class="tab" href="./index.html">Mapa</a>
+        <a class="tab" href="./kanban.html">Leads</a>
+        <a class="tab" href="./angariacoes.html">Angariações</a>
+        <a class="tab active" href="./dashboard.html">Dashboard</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+  <div class="table">
+    <h3 style="margin:8px 0 0 0">Top Consultores (últimos 30 dias)</h3>
+    <table id="tbl">
+      <thead><tr><th>Consultor</th><th>Leads novas</th><th>Contratos (ang.)</th><th>Angariações activas</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+<script>
+function getLS(key, fallback){ try{ const raw=localStorage.getItem(key); if(raw) return JSON.parse(raw);}catch(e){} return fallback; }
+const leads = getLS('gpp_leads_v1', {novo:[],qualificacao:[],apresentacao:[],proposta:[],negociacao:[],fechado:[]});
+const angs  = getLS('gpp_ang_v1',   {prospeccao:[],contacto_prop:[],visita_tecnica:[],proposta_ang:[],em_revisao:[],contrato:[],activo:[],perdido:[]});
+
+function countAll(obj){ return Object.values(obj).reduce((n, arr)=> n + (Array.isArray(arr)? arr.length : 0), 0); }
+
+function renderKPIs(){
+  const totalLeads = countAll(leads);
+  const leadsFechadas = (leads.fechado||[]).length;
+  const totalAngs = countAll(angs);
+  const angsContrato = (angs.contrato||[]).length;
+  const angsAtivas = (angs.activo||[]).length;
+  const el=document.getElementById('kpis');
+  el.innerHTML = `
+    <div class="card"><div class="t">Leads totais</div><div class="v">${totalLeads}</div></div>
+    <div class="card"><div class="t">Leads fechadas</div><div class="v">${leadsFechadas}</div></div>
+    <div class="card"><div class="t">Angariações totais</div><div class="v">${totalAngs}</div></div>
+    <div class="card"><div class="t">Contratos (ang.)</div><div class="v">${angsContrato}</div></div>
+    <div class="card"><div class="t">Activas em carteira</div><div class="v">${angsAtivas}</div></div>
+    <div class="card"><div class="t">Última actualização</div><div class="v">${new Date().toLocaleString('pt-PT')}</div></div>
+  `;
+}
+
+function renderRanking(){
+  // sumarizar por consultor
+  const byConsultor = {};
+  const add = (name, k)=>{ if(!name) return; byConsultor[name]=byConsultor[name]||{leadsNovas:0, contratos:0, activas:0}; byConsultor[name][k]++; };
+  Object.values(leads).forEach(arr=> (arr||[]).forEach(it=> add(it.consultor||'—','leadsNovas')));
+  (angs.contrato||[]).forEach(it=> add(it.consultor||'—','contratos'));
+  (angs.activo||[]).forEach(it=> add(it.consultor||'—','activas'));
+  const rows = Object.entries(byConsultor).sort((a,b)=> (b[1].contratos - a[1].contratos) || (b[1].activas - a[1].activas) || (b[1].leadsNovas - a[1].leadsNovas));
+  const tb=document.querySelector('#tbl tbody'); tb.innerHTML='';
+  rows.forEach(([name, v])=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${name}</td><td>${v.leadsNovas}</td><td>${v.contratos}</td><td>${v.activas}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+renderKPIs(); renderRanking();
+</script>
+</body>
+</html>
