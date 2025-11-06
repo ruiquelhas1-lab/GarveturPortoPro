@@ -8,7 +8,7 @@
 <style>
 :root{
   --bg:#0E0E0E; --panel:#131313; --text:#FFFFFF; --muted:#9AA0A6;
-  --gold:#A38B63; --edge:#1a1a1a; --card:#141414; --ok:#06D6A0; --warn:#FFD166; --info:#118AB2;
+  --gold:#A38B63; --edge:#1a1a1a; --card:#141414; --ok:#06D6A0; --warn:#FFD166; --info:#118AB2; --red:#EF476F;
 }
 html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
 #topbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.08);background:#0F0F0F;position:sticky;top:0;z-index:50}
@@ -50,6 +50,13 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
 .actions{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
 .btn-sm{font-size:12px;border:1px solid rgba(255,255,255,.14);background:#121212;color:#ddd;padding:5px 7px;border-radius:8px;cursor:pointer}
 .btn-sm:hover{border-color:var(--gold)}
+.doclist{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.doclist label{display:flex;align-items:center;gap:6px;font-size:12px;background:#171717;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:4px 8px;cursor:pointer}
+.doclist input{accent-color:var(--gold)}
+.badgePct{padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);}
+.badgePct.ok{background:rgba(6,214,160,.15); border-color:rgba(6,214,160,.35)}
+.badgePct.mid{background:rgba(255,193,7,.15); border-color:rgba(255,193,7,.35)}
+.badgePct.high{background:rgba(239,71,111,.15); border-color:rgba(239,71,111,.35)}
 .drag-over{outline:2px dashed var(--gold);outline-offset:-6px;border-radius:10px}
 .hidden{display:none}
 </style>
@@ -94,7 +101,6 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
   <div id="board"></div>
 
 <script>
-// Funil de angariações
 const COLUMNS = [
   { key:'prospeccao', label:'Prospecção' },
   { key:'contacto_prop', label:'Contacto proprietário' },
@@ -105,13 +111,11 @@ const COLUMNS = [
   { key:'activo', label:'Activo em carteira' },
   { key:'perdido', label:'Perdido' },
 ];
-
 const STORAGE_KEY = 'gpp_ang_v1';
 let state = loadState();
 let filterQuery = '';
 let filterConsultor = '';
 let filterConcelho = '';
-
 function loadState(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -124,16 +128,24 @@ function uid(){ return 'id_'+Math.random().toString(36).slice(2,9); }
 function money(v){ const n=Number(v); return Number.isFinite(n)? n.toLocaleString('pt-PT',{style:'currency',currency:'EUR'}) : '—'; }
 function fmtDate(s){ return s? new Date(s).toLocaleDateString('pt-PT') : '—'; }
 function norm(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
-
+function calcAjustePct(preco, sugerido){
+  const p = Number(preco), s = Number(sugerido);
+  if(!Number.isFinite(p) || p<=0 || !Number.isFinite(s)) return null;
+  const diff = (s - p) / p * 100; // variação face ao pedido
+  return Math.round(diff*10)/10; // 1 casa
+}
+function classeSemaforo(pct){
+  if(pct===null) return '';
+  const abs = Math.abs(pct);
+  if(abs <= 5) return 'ok';       // alinhado
+  if(abs <= 10) return 'mid';     // atenção
+  return 'high';                  // desalinhado
+}
 const board = document.getElementById('board');
-
 function render(){
   board.innerHTML = '';
   let total=0;
   let somaPedido=0, somaSug=0;
-  const consultoresSet=new Set();
-  const concelhosSet=new Set();
-
   COLUMNS.forEach(col=>{
     const colEl = document.createElement('div');
     colEl.className = 'col';
@@ -142,7 +154,6 @@ function render(){
     head.className = 'head';
     head.innerHTML = `<div class="title">${col.label}</div><div class="count" id="count_${col.key}">0</div>`;
     colEl.appendChild(head);
-
     const drop = document.createElement('div');
     drop.className = 'drop';
     drop.addEventListener('dragover', (e)=>{ e.preventDefault(); drop.classList.add('drag-over'); });
@@ -154,39 +165,35 @@ function render(){
       moveCardToColumn(cardId, col.key);
     });
     colEl.appendChild(drop);
-
     const list = state[col.key] || [];
     const listFiltered = list.filter(item=>{
       const text = [
         item.consultor,item.proprietario,item.telefone,item.email,
         item.imovel,item.morada,item.concelho,item.tipologia,
-        item.documentacao,item.etiquetas,item.notas
+        (item.documentacao||[]).join(','),item.etiquetas,item.notas
       ].map(norm).join(' ');
       const okText = !filterQuery || text.includes(norm(filterQuery));
       const okCons = !filterConsultor || norm(item.consultor)===norm(filterConsultor);
       const okConc = !filterConcelho || norm(item.concelho)===norm(filterConcelho);
       return okText && okCons && okConc;
     });
-
     listFiltered.forEach(item=>{
       total++;
       const vPed = Number(item.preco_pedido);
       const vSug = Number(item.valor_sugerido);
       if(Number.isFinite(vPed)) somaPedido+=vPed;
       if(Number.isFinite(vSug)) somaSug+=vSug;
-      consultoresSet.add(item.consultor||'');
-      if(item.concelho) concelhosSet.add(item.concelho);
-
+      const pct = calcAjustePct(item.preco_pedido, item.valor_sugerido);
+      const cls = classeSemaforo(pct);
+      const pctHtml = pct===null ? '—' : `${pct>0?'+':''}${pct}%`;
+      const docs = Array.isArray(item.documentacao) ? item.documentacao : ((item.documentacao||'').split(',').map(s=>s.trim()).filter(Boolean));
+      const has = (k)=> docs.includes(k);
       const card = document.createElement('div');
       card.className = 'card';
       card.draggable = true;
       card.id = item.id;
       card.addEventListener('dragstart', (e)=>{ card.classList.add('dragging'); e.dataTransfer.setData('text/plain', item.id); });
       card.addEventListener('dragend', ()=> card.classList.remove('dragging'));
-
-      const tags = (item.etiquetas||'').split(',').map(s=>s.trim()).filter(Boolean).slice(0,6);
-      const docs = (item.documentacao||'').split(',').map(s=>s.trim()).filter(Boolean).slice(0,6);
-
       card.innerHTML = `
         <div class="row">
           <span class="badge">${item.consultor || '—'}</span>
@@ -197,15 +204,22 @@ function render(){
         <div class="kv"><label>Proprietário</label>${item.proprietario || '—'} ${item.telefone? ' · '+item.telefone:''} ${item.email? ' · '+item.email:''}</div>
         <div class="kv"><label>Imóvel</label>${item.imovel || '—'} ${item.morada? ' · '+item.morada:''} ${item.concelho? ' · '+item.concelho:''}</div>
         <div class="kv"><label>Tipologia / Área</label>${item.tipologia || '—'} ${item.area? ' · '+item.area+' m²':''}</div>
-        <div class="kv"><label>Preço pedido / Valor sugerido</label>${money(item.preco_pedido)} / ${money(item.valor_sugerido)}</div>
-        <div class="kv"><label>Documentação</label><div class="tags">${docs.map(t=>`<span class="tag">${t}</span>`).join(' ')||'—'}</div></div>
-        <div class="kv"><label>Etiquetas</label><div class="tags">${tags.map(t=>`<span class="tag">${t}</span>`).join(' ')||'—'}</div></div>
+        <div class="kv"><label>Pedido / Sugerido</label>${money(item.preco_pedido)} / ${money(item.valor_sugerido)} <span class="badgePct ${cls}" title="% de ajustamento">${pctHtml}</span></div>
+        <div class="kv"><label>Documentação</label>
+          <div class="doclist" data-doc="${item.id}">
+            ${['CE','Licença','Caderneta','Certidão','Plantas','RU','Ficha Técnica'].map(k=>`
+              <label><input type="checkbox" data-k="${k}" ${has(k)?'checked':''}> ${k}</label>
+            `).join('')}
+          </div>
+        </div>
+        <div class="kv"><label>Etiquetas</label><div class="tags">${(item.etiquetas||'').split(',').map(s=>s.trim()).filter(Boolean).slice(0,6).map(t=>`<span class="tag">${t}</span>`).join(' ')||'—'}</div></div>
         <div class="kv"><label>Próx. ação</label>${item.proxima || '—'} <span style="color:#9aa0a6">(${fmtDate(item.quando)})</span></div>
         <div class="kv"><label>Notas</label>${item.notas || '—'}</div>
         <div class="actions">
           <button class="btn-sm" data-act="edit">Editar</button>
           <button class="btn-sm" data-act="move">Mover…</button>
           <button class="btn-sm" data-act="whatsapp">WhatsApp</button>
+          <button class="btn-sm" data-act="doc">Proposta de Angariação</button>
           <button class="btn-sm" data-act="del">Remover</button>
         </div>
       `;
@@ -213,14 +227,28 @@ function render(){
       card.querySelector('[data-act="move"]').addEventListener('click', ()=> promptMove(item.id));
       card.querySelector('[data-act="del"]').addEventListener('click', ()=> deleteCard(item.id));
       card.querySelector('[data-act="whatsapp"]').addEventListener('click', ()=> shareWhatsapp(item));
+      card.querySelector('[data-act="doc"]').addEventListener('click', ()=> exportProposta(item));
+      card.querySelectorAll('.doclist input[type="checkbox"]').forEach(cb=>{
+        cb.addEventListener('change', (e)=>{
+          const k=e.target.getAttribute('data-k');
+          const f=findCard(item.id);
+          if(!f) return;
+          let arr = Array.isArray(state[f.col][f.idx].documentacao) ? state[f.col][f.idx].documentacao : ((state[f.col][f.idx].documentacao||'').split(',').map(s=>s.trim()).filter(Boolean));
+          const hasIndex = arr.indexOf(k);
+          if(e.target.checked){
+            if(hasIndex===-1) arr.push(k);
+          }else{
+            if(hasIndex>-1) arr.splice(hasIndex,1);
+          }
+          state[f.col][f.idx].documentacao = arr;
+          saveState();
+        });
+      });
       drop.appendChild(card);
     });
-
     board.appendChild(colEl);
     document.getElementById(`count_${col.key}`).textContent = String(listFiltered.length);
   });
-
-  // KPIs topo
   document.getElementById('kpi_total').textContent = total;
   document.getElementById('kpi_prospec').textContent = (state.prospeccao||[]).length;
   document.getElementById('kpi_visita').textContent = (state.visita_tecnica||[]).length;
@@ -228,8 +256,7 @@ function render(){
   document.getElementById('kpi_contr').textContent = (state.contrato||[]).length;
   document.getElementById('kpi_activo').textContent = (state.activo||[]).length;
   document.getElementById('kpi').innerHTML = `Pedido visível: <b>${money(somaPedido)}</b> · Sugerido visível: <b>${money(somaSug)}</b>`;
-
-  // Popular filtros (consultor/concelho)
+  // filtros dinâmicos
   const selCons = document.getElementById('consultor');
   const curCons = selCons.value;
   selCons.innerHTML = `<option value="">— Todos os consultores —</option>`;
@@ -239,7 +266,6 @@ function render(){
     const opt=document.createElement('option'); opt.value=n; opt.textContent=n; selCons.appendChild(opt);
   });
   if([...selCons.options].some(o=>o.value===curCons)) selCons.value=curCons;
-
   const selConc = document.getElementById('concelho');
   const curConc = selConc.value;
   selConc.innerHTML = `<option value="">— Todos os concelhos —</option>`;
@@ -250,7 +276,6 @@ function render(){
   });
   if([...selConc.options].some(o=>o.value===curConc)) selConc.value=curConc;
 }
-
 function findCard(cardId){
   for(const c of COLUMNS){ const i=(state[c.key]||[]).findIndex(x=>x.id===cardId); if(i>-1) return {col:c.key, idx:i, item:state[c.key][i]}; }
   return null;
@@ -280,8 +305,10 @@ function editCard(cardId){
   it.area        = prompt('Área bruta (m²):', it.area||'') ?? it.area;
   it.preco_pedido= prompt('Preço pedido (€):', it.preco_pedido||'') ?? it.preco_pedido;
   it.valor_sugerido= prompt('Valor sugerido (€):', it.valor_sugerido||'') ?? it.valor_sugerido;
-  it.documentacao= prompt('Documentação (separado por vírgulas, ex.: CE, Licença, Caderneta, Certidão):', it.documentacao||'') ?? it.documentacao;
-  it.etiquetas   = prompt('Etiquetas (ex.: Exclusivo, Urgente, Investidor) — separar por vírgulas:', it.etiquetas||'') ?? it.etiquetas;
+  // documentação como lista de etiquetas
+  const docsPrompt = prompt('Documentação (separar por vírgulas: CE, Licença, Caderneta, Certidão, Plantas, RU, Ficha Técnica):', Array.isArray(it.documentacao)? it.documentacao.join(', ') : (it.documentacao||''));
+  it.documentacao = (docsPrompt||'').split(',').map(s=>s.trim()).filter(Boolean);
+  it.etiquetas   = prompt('Etiquetas (Exclusivo, Urgente, Investidor) — separar por vírgulas:', it.etiquetas||'') ?? it.etiquetas;
   it.proxima     = prompt('Próxima ação:', it.proxima||'') ?? it.proxima;
   it.quando      = prompt('Data próxima ação (AAAA-MM-DD):', it.quando||'') ?? it.quando;
   it.origem      = prompt('Origem (ex.: inbound, porta-a-porta, promotor):', it.origem||'') ?? it.origem;
@@ -294,13 +321,9 @@ function deleteCard(cardId){
   const f = findCard(cardId); if(!f) return;
   if(confirm('Remover esta angariação?')){ state[f.col].splice(f.idx,1); saveState(); render(); }
 }
-
-// Pesquisa e filtros
 document.getElementById('q').addEventListener('input', e=>{ filterQuery=e.target.value; render(); });
 document.getElementById('consultor').addEventListener('change', e=>{ filterConsultor=e.target.value; render(); });
 document.getElementById('concelho').addEventListener('change', e=>{ filterConcelho=e.target.value; render(); });
-
-// Adicionar nova angariação
 document.getElementById('addCard').addEventListener('click', ()=>{
   const id = uid();
   const consultor = prompt('Consultor (ex.: Armanda, Manuel, João)…') || '';
@@ -314,7 +337,7 @@ document.getElementById('addCard').addEventListener('click', ()=>{
   const area = prompt('Área bruta (m²)…') || '';
   const preco_pedido = prompt('Preço pedido (€)…') || '';
   const valor_sugerido = prompt('Valor sugerido (€)…') || '';
-  const documentacao = prompt('Documentação (ex.: CE, Licença, Caderneta, Certidão) — separada por vírgulas…') || '';
+  const docStr = prompt('Documentação (CE, Licença, Caderneta, Certidão, Plantas, RU, Ficha Técnica) — separada por vírgulas…') || '';
   const etiquetas = prompt('Etiquetas (Exclusivo, Urgente, Investidor) — separadas por vírgulas…') || '';
   const proxima = prompt('Próxima ação…') || '';
   const quando = prompt('Data próxima ação (AAAA-MM-DD)…') || '';
@@ -322,22 +345,23 @@ document.getElementById('addCard').addEventListener('click', ()=>{
   const prioridade = prompt('Prioridade (A/B/C)…') || 'B';
   const notas = prompt('Notas…') || '';
   const createdAt = new Date().toISOString().slice(0,10);
-
   state.prospeccao.unshift({
     id, consultor, proprietario, telefone, email,
     imovel, morada, concelho, tipologia, area,
-    preco_pedido, valor_sugerido, documentacao, etiquetas,
-    proxima, quando, origem, prioridade, notas, createdAt
+    preco_pedido, valor_sugerido, documentacao: docStr.split(',').map(s=>s.trim()).filter(Boolean),
+    etiquetas, proxima, quando, origem, prioridade, notas, createdAt
   });
   saveState(); render();
 });
-
-// Exportações/Importações
 document.getElementById('exportCsv').addEventListener('click', ()=>{
   const rows = [];
   COLUMNS.forEach(c=>{ (state[c.key]||[]).forEach(it=> rows.push({ coluna:c.key, ...it })); });
   const headers=['coluna','id','consultor','proprietario','telefone','email','imovel','morada','concelho','tipologia','area','preco_pedido','valor_sugerido','documentacao','etiquetas','proxima','quando','origem','prioridade','notas','createdAt'];
-  const csv = [headers.join(';')].concat(rows.map(r=>headers.map(h=>String(r[h]??'').replace(/[\r\n]/g,' ').trim()).join(';'))).join('\n');
+  const csv = [headers.join(';')].concat(rows.map(r=>headers.map(h=>{
+    let val = r[h];
+    if(h==='documentacao' && Array.isArray(val)) val = val.join(', ');
+    return String(val??'').replace(/[\r\n]/g,' ').trim();
+  }).join(';'))).join('\n');
   const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'}); const a=document.createElement('a');
   a.href=URL.createObjectURL(blob); a.download='angariacoes_garvetur.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
 });
@@ -354,7 +378,6 @@ document.getElementById('importJsonInput').addEventListener('change', async (e)=
   }catch(err){ alert('Erro ao importar JSON.'); }
   e.target.value='';
 });
-
 function shareWhatsapp(item){
   const linhas = [
     `Consultor: ${item.consultor||'—'}`,
@@ -362,8 +385,8 @@ function shareWhatsapp(item){
     `Email: ${item.email||'—'}`,
     `Imóvel: ${item.imovel||'—'} ${item.morada? ' · '+item.morada:''} ${item.concelho? ' · '+item.concelho:''}`,
     `Tipologia/Área: ${item.tipologia||'—'} ${item.area? ' · '+item.area+' m²':''}`,
-    `Preço pedido / Valor sugerido: ${item.preco_pedido||'—'} / ${item.valor_sugerido||'—'}`,
-    `Documentação: ${item.documentacao||'—'}`,
+    `Pedido/Sugerido: ${item.preco_pedido||'—'} / ${item.valor_sugerido||'—'}`,
+    `Documentação: ${(Array.isArray(item.documentacao)?item.documentacao.join(', '): (item.documentacao||'—'))}`,
     `Etiquetas: ${item.etiquetas||'—'}`,
     `Próx. ação: ${item.proxima||'—'} (${fmtDate(item.quando)})`,
     `Notas: ${item.notas||'—'}`
@@ -371,7 +394,64 @@ function shareWhatsapp(item){
   const wa = `https://wa.me/?text=${encodeURIComponent(linhas)}`;
   window.location.href = wa;
 }
+function exportProposta(it){
+  const html = `<!DOCTYPE html>
+<html lang="pt"><head><meta charset="utf-8"><title>Proposta de Angariação</title>
+<style>
+  body{font-family:Arial,Helvetica,sans-serif; color:#111; margin:36px}
+  h1{font-size:20px;margin:0 0 6px 0}
+  .muted{color:#666;font-size:12px;margin-bottom:16px}
+  .sec{border:1px solid #ddd;border-radius:8px;padding:12px;margin:12px 0}
+  .row{display:flex;gap:16px;flex-wrap:wrap}
+  .kv{flex:1 1 240px; margin:4px 0}
+  .kv label{display:block;font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.05em}
+  .kv .v{font-size:14px;font-weight:600}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .chip{border:1px solid #ccc;border-radius:999px;padding:3px 8px;font-size:12px}
+</style></head>
+<body>
+  <h1>Proposta de Angariação</h1>
+  <div class="muted">Garvetur Porto Pro · ${new Date().toLocaleDateString('pt-PT')}</div>
 
+  <div class="sec">
+    <div class="row">
+      <div class="kv"><label>Consultor</label><div class="v">${it.consultor||'—'}</div></div>
+      <div class="kv"><label>Proprietário</label><div class="v">${it.proprietario||'—'}</div></div>
+      <div class="kv"><label>Contacto</label><div class="v">${(it.telefone||'')+(it.email? ' · '+it.email:'')}</div></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="row">
+      <div class="kv"><label>Imóvel</label><div class="v">${it.imovel||'—'}</div></div>
+      <div class="kv"><label>Morada</label><div class="v">${(it.morada||'—')+(it.concelho? ' · '+it.concelho:'')}</div></div>
+      <div class="kv"><label>Tipologia / Área</label><div class="v">${(it.tipologia||'—')+(it.area? ' · '+it.area+' m²':'')}</div></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="row">
+      <div class="kv"><label>Preço pedido</label><div class="v">${money(it.preco_pedido)}</div></div>
+      <div class="kv"><label>Valor sugerido</label><div class="v">${money(it.valor_sugerido)}</div></div>
+      <div class="kv"><label>% de ajustamento</label><div class="v">${(function(){ const p=(Number(it.valor_sugerido)-Number(it.preco_pedido))/Number(it.preco_pedido)*100; return (isFinite(p)? (p>0?'+':'')+p.toFixed(1)+'%':'—'); })()}</div></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div><label style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.05em">Documentação</label></div>
+    <div class="chips">${(Array.isArray(it.documentacao)?it.documentacao: (it.documentacao||'').split(',')).map(s=>`<span class="chip">${String(s).trim()}</span>`).join('')}</div>
+  </div>
+
+  <div class="sec">
+    <div class="kv"><label>Notas</label><div class="v">${it.notas||'—'}</div></div>
+  </div>
+</body></html>`;
+  const blob = new Blob([html], {type:'application/msword'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'Proposta_Angariacao.doc';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
 render();
 </script>
 </body>
