@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Garvetur Porto Pro — Mapa de Empreendimentos</title>
+  <title>Garvetur Porto Pro — Mapa de Empreendimentos (Alta Visibilidade)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="preconnect" href="https://unpkg.com" crossorigin>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -19,17 +19,38 @@
     #status { font-size:12px; color:#E6E6E6; margin-left:auto; }
     #map { position:absolute; inset:46px 0 0 0; }
 
-    /* Legenda */
-    .legend { position:absolute; bottom:20px; left:20px; background:#111; color:#eee; font-size:11px; padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,.1); line-height:1.4; z-index:400; }
-    .legend div { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
-    .swatch { width:12px; height:12px; border-radius:50%; display:inline-block; }
+    /* Painel de controlos no mapa */
+    .ctrls {
+      position:absolute; top:70px; left:12px; z-index:5000; display:flex; flex-direction:column; gap:6px;
+    }
+    .ctrls .btn {
+      background:#111; color:#f6f6f6; border:1px solid rgba(255,255,255,.18);
+      border-radius:10px; padding:7px 10px; font-size:12px; cursor:pointer; min-width:145px;
+      box-shadow:0 2px 12px rgba(0,0,0,.35);
+    }
+    .ctrls .btn:hover { border-color:#FFD166; color:#fff; }
 
-    /* Pin “bandeira” — bem visível, com halo e hover-zoom */
-    .gpp-pin { will-change: transform; transition: transform .12s ease; filter: drop-shadow(0 1px 2px rgba(0,0,0,.55)) drop-shadow(0 6px 12px rgba(0,0,0,.35)); }
-    .gpp-pin:hover { transform: translate(-12px,-36px) scale(1.12); }
-    /* Ajuste base do wrapper para o centro do pin ancorar corretamente */
-    .gpp-wrap { transform: translate(-12px, -36px); }
-    @media (max-width:640px){ #map{ inset:78px 0 0 0; } }
+    /* Legenda */
+    .legend { position:absolute; bottom:26px; left:16px; background:#111; color:#eee; font-size:11px;
+      padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,.1); line-height:1.4; z-index:400; }
+    .legend div { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+    .swatch { width:14px; height:14px; border-radius:50%; display:inline-block; border:2px solid #fff; box-shadow:0 1px 3px rgba(0,0,0,.5); }
+
+    /* Pin “bandeira” com halo/sombra forte e tamanho escalável */
+    .gpp-pin { will-change: transform; transition: transform .08s ease;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,.8)) drop-shadow(0 10px 18px rgba(0,0,0,.45));
+    }
+    .gpp-pin:hover { transform: translate(-18px,-54px) scale(1.05); }
+    .gpp-wrap { transform: translate(-18px, -54px); } /* ancoragem correta */
+    /* Clusters com alto contraste */
+    .marker-cluster-small { background: rgba(255, 209, 102, 0.85); }
+    .marker-cluster-small div { background: rgba(255, 209, 102, 0.95); color:#111; font-weight:700; }
+    .marker-cluster-medium { background: rgba(17, 138, 178, 0.85); }
+    .marker-cluster-medium div { background: rgba(17, 138, 178, 0.95); color:#fff; font-weight:700; }
+    .marker-cluster-large { background: rgba(6, 214, 160, 0.85); }
+    .marker-cluster-large div { background: rgba(6, 214, 160, 0.95); color:#111; font-weight:700; }
+
+    @media (max-width:640px){ #map{ inset:78px 0 0 0; } .ctrls{ top:96px; } }
   </style>
 </head>
 <body>
@@ -52,6 +73,16 @@
   </div>
 
   <div id="map"></div>
+
+  <!-- Controlos de mapa -->
+  <div class="ctrls">
+    <button class="btn" id="focusPorto">Focar AMP/Porto</button>
+    <button class="btn" id="biggerPins">Aumentar pins</button>
+    <button class="btn" id="smallerPins">Diminuir pins</button>
+    <button class="btn" id="toggleContrast">Alternar contraste do mapa</button>
+  </div>
+
+  <!-- Legenda (subida para ficar sempre visível) -->
   <div class="legend">
     <div><span class="swatch" style="background:#FFD166"></span> Em Construção</div>
     <div><span class="swatch" style="background:#118AB2"></span> Licenciado</div>
@@ -66,10 +97,32 @@
   const CSV_SOURCE = "./data/empreendimentos.csv";
   const PORTO_CENTER = [41.15, -8.61];
 
+  let PIN_SCALE = 1.35; // tamanho base aumentada (pode ajustar pelos botões)
   const statusEl = document.getElementById('status');
-  const map = L.map('map', { zoomControl:true, scrollWheelZoom:true }).setView(PORTO_CENTER, 11);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(map);
-  const cluster = L.markerClusterGroup({ maxClusterRadius: 45 }); map.addLayer(cluster);
+
+  // Camadas base: OSM normal e fundo de alto contraste
+  const baseOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ maxZoom:19, attribution:'&copy; OpenStreetMap' });
+  const baseHi = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+                              { maxZoom:19, attribution:'&copy; OpenStreetMap, ©Carto' });
+
+  const map = L.map('map', { zoomControl:true, scrollWheelZoom:true, preferCanvas:false })
+               .setView(PORTO_CENTER, 11);
+  baseOSM.addTo(map);
+  let hiContrast = false;
+
+  // Cluster com ícones fortes
+  const cluster = L.markerClusterGroup({
+    maxClusterRadius: 45,
+    iconCreateFunction: (cluster) => {
+      const count = cluster.getChildCount();
+      let cls = 'marker-cluster-small';
+      if (count > 30) cls = 'marker-cluster-large';
+      else if (count > 10) cls = 'marker-cluster-medium';
+      const html = `<div><span>${count}</span></div>`;
+      return L.divIcon({ html, className: 'marker-cluster ' + cls, iconSize: L.point(40, 40) });
+    }
+  });
+  map.addLayer(cluster);
 
   function setStatus(m){ statusEl.textContent = m; }
   function toNum(v){ if(v==null) return null; const n = Number(String(v).replace(',','.')); return Number.isFinite(n)?n:null; }
@@ -78,25 +131,32 @@
     if(s.includes('conclu')) return '#06D6A0';     // concluído
     if(s.includes('licen')) return '#118AB2';     // licenciado
     if(s.includes('constr')) return '#FFD166';    // em construção
-    return '#A38B63';
+    return '#FF4D6D'; // fallback bem visível
   }
 
-  // SVG “bandeira” com mastro: muito visível e com halo
+  // “Bandeira” grande, com halo branco e base circular, dimensionável via PIN_SCALE
   function makeFlagIcon(color){
+    const scale = PIN_SCALE;
+    const sizeW = Math.round(36 * scale);
+    const sizeH = Math.round(54 * scale);
+    const anchorX = Math.round(18 * scale);
+    const anchorY = Math.round(54 * scale);
+
     const html = `
-      <div class="gpp-wrap gpp-pin">
-        <svg width="28" height="36" viewBox="0 0 28 36" xmlns="http://www.w3.org/2000/svg">
+      <div class="gpp-wrap gpp-pin" style="transform: translate(-${anchorX}px, -${anchorY}px);">
+        <svg width="${sizeW}" height="${sizeH}" viewBox="0 0 36 54" xmlns="http://www.w3.org/2000/svg">
+          <!-- base circular (halo) -->
+          <circle cx="18" cy="48" r="7.5" fill="${color}" stroke="#ffffff" stroke-width="2.2"/>
+          <circle cx="18" cy="48" r="11.5" fill="rgba(255,255,255,0.16)"/>
           <!-- mastro -->
-          <rect x="12.5" y="4" width="3" height="26" fill="#ffffff" opacity="0.95"/>
-          <rect x="13" y="4" width="2" height="26" fill="#222222" opacity="0.9"/>
+          <rect x="17" y="8" width="3" height="34" fill="#ffffff" opacity="0.98"/>
+          <rect x="17.5" y="8" width="2" height="34" fill="#1a1a1a" opacity="0.95"/>
           <!-- bandeira -->
-          <path d="M14 6 C18 6, 18 9, 22 9 C24 9, 26 8, 26 8 L26 17 C26 17, 24 18, 22 18 C18 18, 18 15, 14 15 Z"
-                fill="${color}" stroke="#ffffff" stroke-width="1.2"/>
-          <!-- ponta/âncora -->
-          <circle cx="14" cy="30" r="3.5" fill="${color}" stroke="#ffffff" stroke-width="1.2"/>
+          <path d="M19 10 C24 10, 24 14, 29 14 C31 14, 34 12.5, 34 12 L34 23 C34 23, 31 24.5, 29 24.5 C24 24.5, 24 21, 19 21 Z"
+                fill="${color}" stroke="#ffffff" stroke-width="2"/>
         </svg>
       </div>`;
-    return L.divIcon({ html, className: '', iconSize: [28,36], iconAnchor: [14,30] });
+    return L.divIcon({ html, className: '', iconSize: [sizeW, sizeH], iconAnchor: [anchorX, anchorY] });
   }
 
   function fmt(v){ return v==null ? '' : String(v).trim(); }
@@ -123,15 +183,14 @@
 
   function createMarker(p){
     const color = colorByEstado(p.estado);
-    const marker = L.marker([p.lat, p.lng], { icon: makeFlagIcon(color) });
+    const marker = L.marker([p.lat, p.lng], { icon: makeFlagIcon(color), riseOnHover:true });
 
-    // Tooltip on-hover (rápido)
-    const ttEstado = p.estado ? p.estado.toLowerCase() : '';
-    const ttConclusao = p.conclusao ? ` · ${p.conclusao}` : '';
-    const ttConcelho = p.concelho ? ` · ${p.concelho}` : '';
-    marker.bindTooltip(`${p.nome}${ttConcelho}${ttConclusao}`, { direction:'top', offset:[0,-26], opacity:0.92 });
+    // Tooltip on-hover (forte e imediato)
+    const sConcelho = p.concelho ? ` · ${p.concelho}` : '';
+    const sConclusao = p.conclusao ? ` · ${p.conclusao}` : '';
+    marker.bindTooltip(`${p.nome}${sConcelho}${sConclusao}`, { direction:'top', offset:[0,-Math.round(44*PIN_SCALE)], opacity:0.97 });
 
-    // Popup on-click (detalhes)
+    // Popup on-click (detalhe)
     const linhas = [
       `<b>${p.nome}</b>`,
       `${p.concelho || ''}${p.estado ? ' · ' + p.estado : ''}${p.conclusao ? ' · Conclusão: '+p.conclusao : ''}`,
@@ -141,9 +200,16 @@
       p.notas ? `<em>${p.notas}</em>` : '',
       p.link ? `<a href="${p.link}" target="_blank" rel="noreferrer">Abrir Link</a>` : ''
     ].filter(Boolean).join('<br>');
-    marker.bindPopup(linhas, { maxWidth: 320 });
+    marker.bindPopup(linhas, { maxWidth: 360 });
 
     return marker;
+  }
+
+  let _pontos = []; // cache para re-render com tamanhos diferentes
+
+  function renderPoints(pontos){
+    cluster.clearLayers();
+    pontos.forEach(p => cluster.addLayer(createMarker(p)));
   }
 
   async function loadCSV(){
@@ -155,24 +221,35 @@
       const parsed = Papa.parse(csvText, { header:true, skipEmptyLines:true });
       const data = parsed.data || [];
 
-      cluster.clearLayers();
-      const pontos = data.map(rowToPoint).filter(Boolean);
-      pontos.forEach(p => cluster.addLayer(createMarker(p)));
+      _pontos = data.map(rowToPoint).filter(Boolean);
+      renderPoints(_pontos);
 
-      if(pontos.length){
-        const bounds = L.latLngBounds(pontos.map(p => [p.lat,p.lng]));
-        if (bounds.isValid()) map.fitBounds(bounds.pad(0.2));
+      if(_pontos.length){
+        const bounds = L.latLngBounds(_pontos.map(p => [p.lat,p.lng]));
+        if (bounds.isValid()) map.fitBounds(bounds.pad(0.18));
       } else {
         map.setView(PORTO_CENTER, 11);
       }
-      setStatus(`✅ ${pontos.length} empreendimentos carregados`);
+      setStatus(`✅ ${_pontos.length} empreendimentos carregados`);
     }catch(err){
       console.error(err);
       setStatus("❌ Falha ao carregar CSV ("+(err.message||err)+")");
     }
   }
 
+  // Botões do topo
   document.getElementById('reloadBtn').addEventListener('click', loadCSV);
+
+  // Botões do painel lateral
+  document.getElementById('focusPorto').addEventListener('click', () => map.setView(PORTO_CENTER, 12));
+  document.getElementById('biggerPins').addEventListener('click', () => { PIN_SCALE = Math.min(PIN_SCALE + 0.2, 2.2); renderPoints(_pontos); });
+  document.getElementById('smallerPins').addEventListener('click', () => { PIN_SCALE = Math.max(PIN_SCALE - 0.2, 0.8); renderPoints(_pontos); });
+  document.getElementById('toggleContrast').addEventListener('click', () => {
+    if (hiContrast) { map.removeLayer(baseHi); baseOSM.addTo(map); }
+    else { map.removeLayer(baseOSM); baseHi.addTo(map); }
+    hiContrast = !hiContrast;
+  });
+
   loadCSV();
   </script>
 </body>
