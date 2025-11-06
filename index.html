@@ -2,76 +2,53 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Garvetur Porto Pro — Mapa (concelho dinâmico + limpar filtros)</title>
+  <title>Garvetur Porto Pro — Mapa (concelho fix)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Preconnects -->
   <link rel="preconnect" href="https://unpkg.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://a.tile.openstreetmap.org" crossorigin>
   <link rel="preconnect" href="https://b.tile.openstreetmap.org" crossorigin>
   <link rel="preconnect" href="https://c.tile.openstreetmap.org" crossorigin>
-
-  <!-- Leaflet CSS -->
   <link id="leaflet-css" rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
-  <!-- MarkerCluster CSS -->
   <link id="mc-css" rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="anonymous">
   <link id="mc-def" rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin="anonymous">
-
   <style>
-    :root{
-      --bg:#0E0E0E; --panel:#131313; --text:#FFFFFF; --muted:#9AA0A6;
-      --gold:#FFD166; --blue:#118AB2; --green:#06D6A0; --yellow:#FFC107;
+    :root{ --bg:#0E0E0E; --panel:#131313; --text:#FFFFFF; --muted:#9AA0A6;
+           --gold:#FFD166; --blue:#118AB2; --green:#06D6A0; --yellow:#FFC107; }
+    html, body { height:100%; margin:0; background:var(--bg); color:var(--text); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    #topbar{
+      background:#0F0F0F; padding:10px 14px; border-bottom:1px solid rgba(255,255,255,.08);
+      display:flex; gap:12px; flex-wrap:wrap; align-items:center; position:relative; z-index:2;
     }
-    html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
-
-    /* Topbar */
-    #topbar {
-      background: #0F0F0F; padding: 10px 14px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      display:flex; gap:12px; flex-wrap:wrap; align-items:center;
-    }
-    #stats { font-size: 14px; color:#E6E6E6; margin-right:auto; }
-
-    .searchWrap, .selectWrap {
-      display:flex; align-items:center; gap:8px;
-      background:#121212; border:1px solid rgba(255,255,255,.12);
+    #stats{ font-size:14px; color:#E6E6E6; margin-right:auto; }
+    .searchWrap,.selectWrap{
+      display:flex; align-items:center; gap:8px; background:#121212; border:1px solid rgba(255,255,255,.12);
       border-radius:10px; padding:6px 10px;
     }
-    .searchWrap input { background:transparent; border:none; color:#fff; outline:none; width:220px; }
-    .selectWrap select {
-      background:#121212; color:#fff; border:none; outline:none; min-width:180px;
+    .searchWrap input{ background:transparent; border:none; color:#fff; outline:none; width:220px; }
+    .selectWrap select{
+      appearance:auto; -webkit-appearance:menulist; -moz-appearance:menulist;
+      background:#121212; color:#fff; border:none; outline:none; min-width:220px; height:28px;
+      cursor:pointer; z-index:3; position:relative;
     }
-
-    #filters { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
-    #filters label { font-size: 13px; color:#D9D9D9; }
-    #filters input { transform: translateY(1px); }
-
-    .actionBtn {
-      background: transparent; border:1px solid rgba(255,209,102,.5); color:#fff;
-      padding:6px 10px; border-radius:8px; cursor:pointer;
+    #filters{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    #filters label{ font-size:13px; color:#D9D9D9; }
+    .actionBtn{ background:transparent; border:1px solid rgba(255,209,102,.5); color:#fff; padding:6px 10px; border-radius:8px; cursor:pointer; }
+    .actionBtn:hover{ border-color:var(--gold); }
+    #map{ height:calc(100% - 66px); }
+    .legend{ background:#0F0F0F; color:#fff; padding:8px 10px; font:12px/14px Arial,sans-serif;
+      box-shadow:0 0 15px rgba(0,0,0,0.3); border-radius:8px; border:1px solid rgba(255,255,255,.06); }
+    .legend .row{ display:flex; align-items:center; gap:8px; margin:4px 0; }
+    .legend .color{ width:12px; height:12px; border-radius:50%; border:1px solid rgba(0,0,0,.2); }
+    .leaflet-bottom.leaflet-left .legend{ margin-bottom:20px; }
+    .marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{ background:rgba(255,209,102,.15); border:2px solid var(--gold); color:#111; }
+    .marker-cluster div{ background:var(--gold); color:#111; }
+    .leaflet-tooltip{ background:#111; color:#fff; border:1px solid rgba(255,255,255,.1); border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,.4); }
+    .leaflet-tooltip-top:before,.leaflet-tooltip-bottom:before,.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{
+      border-top-color:#111!important; border-bottom-color:#111!important; border-left-color:#111!important; border-right-color:#111!important;
     }
-    .actionBtn:hover { border-color: var(--gold); }
-
-    #map { height: calc(100% - 66px); }
-
-    /* Legenda (subida) */
-    .legend { background: #0F0F0F; color:#fff; padding: 8px 10px; font: 12px/14px Arial, sans-serif;
-      box-shadow: 0 0 15px rgba(0,0,0,0.3); border-radius: 8px; border:1px solid rgba(255,255,255,.06); }
-    .legend .row { display:flex; align-items:center; gap:8px; margin:4px 0; }
-    .legend .color { width:12px; height:12px; border-radius:50%; border:1px solid rgba(0,0,0,.2); }
-    .leaflet-bottom.leaflet-left .legend { margin-bottom: 20px; }
-
-    /* Clusters */
-    .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
-      background: rgba(255,209,102, .15); border: 2px solid var(--gold); color:#111;
-    }
-    .marker-cluster div { background: var(--gold); color:#111; }
-
-    /* Tooltip dark */
-    .leaflet-tooltip { background:#111; color:#fff; border:1px solid rgba(255,255,255,.1); border-radius:8px; box-shadow: 0 2px 10px rgba(0,0,0,.4); }
-    .leaflet-tooltip-top:before, .leaflet-tooltip-bottom:before, .leaflet-tooltip-left:before, .leaflet-tooltip-right:before {
-      border-top-color:#111 !important; border-bottom-color:#111 !important; border-left-color:#111 !important; border-right-color:#111 !important;
-    }
+    /* evita que algo sobreponha o select */
+    .selectWrap{ position:relative; z-index:3; }
   </style>
 </head>
 <body>
@@ -79,20 +56,25 @@
     <div id="stats">A carregar…</div>
 
     <div class="searchWrap" title="Pesquisar por nome, concelho ou notas">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2">
+        <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
+      </svg>
       <input id="search" placeholder="Pesquisar empreendimentos…" />
     </div>
 
     <div class="searchWrap" title="Filtrar por ano de conclusão (ex.: 2027) ou texto de conclusão">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2">
+        <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
+      </svg>
       <input id="yearSearch" placeholder="Ano/Conclusão (ex.: 2027 ou Q2 2026)" />
     </div>
 
-    <div class="selectWrap" title="Filtrar por Concelho">
+    <div class="selectWrap" id="concelhoWrap" title="Filtrar por Concelho">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
       <select id="concelhoSelect">
         <option value="">Todos os Concelhos</option>
       </select>
+      <span id="concelhoCount" style="font-size:12px;color:#9AA0A6;margin-left:6px;"></span>
     </div>
 
     <div id="filters">
@@ -108,19 +90,18 @@
   </div>
   <div id="map"></div>
 
-  <!-- Loader utilitário -->
   <script>
     function loadScript(srcPrimary, srcBackup){
       return new Promise((resolve, reject)=>{
-        const s1 = document.createElement('script');
-        s1.src = srcPrimary; s1.crossOrigin = 'anonymous'; s1.defer = true;
-        s1.onload = ()=> resolve(true);
-        s1.onerror = ()=>{
-          if (!srcBackup) return reject(new Error('Falha no CDN primário: ' + srcPrimary));
-          const s2 = document.createElement('script');
-          s2.src = srcBackup; s2.crossOrigin = 'anonymous'; s2.defer = true;
-          s2.onload = ()=> resolve(true);
-          s2.onerror = ()=> reject(new Error('Falha nos CDNs: ' + srcPrimary + ' e ' + srcBackup));
+        const s1=document.createElement('script');
+        s1.src=srcPrimary; s1.crossOrigin='anonymous'; s1.defer=true;
+        s1.onload=()=>resolve(true);
+        s1.onerror=()=>{
+          if(!srcBackup) return reject(new Error('Falha no CDN primário: '+srcPrimary));
+          const s2=document.createElement('script');
+          s2.src=srcBackup; s2.crossOrigin='anonymous'; s2.defer=true;
+          s2.onload=()=>resolve(true);
+          s2.onerror=()=>reject(new Error('Falha nos CDNs: '+srcPrimary+' e '+srcBackup));
           document.head.appendChild(s2);
         };
         document.head.appendChild(s1);
@@ -128,107 +109,72 @@
     }
   </script>
 
-  <!-- App -->
   <script>
-    const DEFAULT_GEOJSON = "https://ruiquelhas1-lab.github.io/Mapa-Porto/data/empreendimentos.geojson";
-    const RAW_MAIN       = "https://raw.githubusercontent.com/ruiquelhas1-lab/Mapa-Porto/main/data/empreendimentos.geojson";
-    const RAW_GHPAGES    = "https://raw.githubusercontent.com/ruiquelhas1-lab/Mapa-Porto/gh-pages/data/empreendimentos.geojson";
+    const DEFAULT_GEOJSON="https://ruiquelhas1-lab.github.io/Mapa-Porto/data/empreendimentos.geojson";
+    const RAW_MAIN="https://raw.githubusercontent.com/ruiquelhas1-lab/Mapa-Porto/main/data/empreendimentos.geojson";
+    const RAW_GHPAGES="https://raw.githubusercontent.com/ruiquelhas1-lab/Mapa-Porto/gh-pages/data/empreendimentos.geojson";
 
-    const stateColors = {
-      "licenciado": "#FFD166",
-      "em_construcao": "#118AB2",
-      "concluido": "#06D6A0",
-      "em_licenciamento": "#FFC107"
-    };
-    const stateDisplay = {
-      "licenciado": "Licenciado",
-      "em_construcao": "Em construção",
-      "concluido": "Concluído",
-      "em_licenciamento": "Em licenciamento"
-    };
+    const stateColors={ licenciado:"#FFD166", em_construcao:"#118AB2", concluido:"#06D6A0", em_licenciamento:"#FFC107" };
+    const stateDisplay={ licenciado:"Licenciado", em_construcao:"Em construção", concluido:"Concluído", em_licenciamento:"Em licenciamento" };
 
-    function normalizeEstado(text) {
-      if (!text) return "";
-      let s = String(text).toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-        .replace(/\s+/g,'_').replace(/[^\w]/g,'');
-      if (s.includes('licenc')) return 'licenciado';
-      if (s.includes('constr')) return 'em_construcao';
-      if (s.includes('conclu') || s.includes('entreg')) return 'concluido';
+    function normalizeEstado(text){
+      if(!text) return "";
+      let s=String(text).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'_').replace(/[^\w]/g,'');
+      if(s.includes('licenc')) return 'licenciado';
+      if(s.includes('constr')) return 'em_construcao';
+      if(s.includes('conclu')||s.includes('entreg')) return 'concluido';
       return s;
     }
 
-    // ---------- Utilitários de mapeamento/normalização ----------
-    function mapName(obj, keys) {
-      for (const k of keys) {
-        if (obj[k] != null) {
-          const v = String(obj[k]).trim();
-          if (v !== '') return v;
+    // utilitários
+    function mapName(obj, keys){
+      for(const k of keys){
+        if(obj[k]!=null){
+          const v=String(obj[k]).trim();
+          if(v!=='') return v;
         }
       }
       return '';
     }
     function normStr(s){
-      return String(s||'').trim().toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      return String(s||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
     }
     function toTitleCasePt(s){
-      return String(s||'')
-        .toLowerCase()
-        .replace(/(^|\s|[-/])(\p{L})/gu, (m, p1, p2) => p1 + p2.toUpperCase());
+      return String(s||'').toLowerCase().replace(/(^|\s|[-/])(\p{L})/gu,(m,p1,p2)=>p1+p2.toUpperCase());
     }
-    // NOVO: deteta concelho dinamicamente (variações de chave)
     function getConcelhoDynamic(props){
-      let val = mapName(props, ['concelho','Concelho','municipio','município','municipality','city','local','freguesia']);
-      if (val) return String(val).trim();
-      const keys = Object.keys(props || {});
-      for (const k of keys) {
-        const nk = normStr(k);
-        if (/(concelho|municipi|municípi|city|local|fregues)/.test(nk)) {
-          const v = String(props[k] ?? '').trim();
-          if (v) return v;
+      let val=mapName(props,['concelho','Concelho','municipio','município','municipality','city','local','freguesia']);
+      if(val) return String(val).trim();
+      const keys=Object.keys(props||{});
+      for(const k of keys){
+        const nk=normStr(k);
+        if(/(concelho|municipi|municípi|city|local|fregues)/.test(nk)){
+          const v=String(props[k]??'').trim();
+          if(v) return v;
         }
       }
       return '';
     }
 
-    function makePinIcon(color = '#FFD166') {
-      const svg = encodeURIComponent(`
+    function makePinIcon(color='#FFD166'){
+      const svg=encodeURIComponent(`
         <svg xmlns="http://www.w3.org/2000/svg" width="26" height="36" viewBox="0 0 26 36">
-          <defs>
-            <filter id="s" x="-50%" y="-50%" width="200%" height="200%">
-              <feOffset dy="1" in="SourceAlpha" result="shadow"/>
-              <feGaussianBlur stdDeviation="1.2" in="shadow" result="blur"/>
-              <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .35 0" in="blur" result="shadow"/>
-              <feMerge><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
-          <g filter="url(#s)">
-            <path d="M13 35c-3.5-6.1-10.5-11-10.5-18.3C2.5 8.6 7.8 3 13 3s10.5 5.6 10.5 13.7C23.5 24 16.5 28.9 13 35z" fill="${color}"/>
-            <circle cx="13" cy="16" r="4.2" fill="#1A1A1A" opacity="0.85"/>
-            <circle cx="13" cy="16" r="2.2" fill="#fff"/>
-            <path d="M13 0v5" stroke="${color}" stroke-width="2" stroke-linecap="round" opacity="0.75"/>
-          </g>
-        </svg>
-      `);
-      return L.icon({
-        iconUrl: `data:image/svg+xml;charset=UTF-8,${svg}`,
-        iconSize: [26, 36],
-        iconAnchor: [13, 34],
-        popupAnchor: [0, -30],
-        tooltipAnchor: [0, -30]
-      });
+          <defs><filter id="s" x="-50%" y="-50%" width="200%" height="200%">
+            <feOffset dy="1" in="SourceAlpha" result="shadow"/><feGaussianBlur stdDeviation="1.2" in="shadow" result="blur"/>
+            <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .35 0" in="blur" result="shadow"/>
+            <feMerge><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+          <g filter="url(#s)"><path d="M13 35c-3.5-6.1-10.5-11-10.5-18.3C2.5 8.6 7.8 3 13 3s10.5 5.6 10.5 13.7C23.5 24 16.5 28.9 13 35z" fill="${color}"/>
+          <circle cx="13" cy="16" r="4.2" fill="#1A1A1A" opacity="0.85"/><circle cx="13" cy="16" r="2.2" fill="#fff"/>
+          <path d="M13 0v5" stroke="${color}" stroke-width="2" stroke-linecap="round" opacity="0.75"/></g>
+        </svg>`);
+      return L.icon({ iconUrl:`data:image/svg+xml;charset=UTF-8,${svg}`, iconSize:[26,36], iconAnchor:[13,34], popupAnchor:[0,-30], tooltipAnchor:[0,-30] });
     }
 
-    function sanitizeToJSON(txt){
-      return txt.replace(/^\uFEFF/, '').replace(/\bNaN\b/g, 'null').replace(/\bInfinity\b/g, 'null').replace(/\b-Infinity\b/g, 'null').replace(/,\s*([}\]])/g, '$1');
-    }
+    function sanitizeToJSON(txt){ return txt.replace(/^\uFEFF/,'').replace(/\bNaN\b/g,'null').replace(/\bInfinity\b/g,'null').replace(/\b-Infinity\b/g,'null').replace(/,\s*([}\]])/g,'$1'); }
     function parseJSONSafe(txt){ return JSON.parse(sanitizeToJSON(txt)); }
     async function fetchTextNoCache(url){
-      const bust = url.includes('?') ? `&t=${Date.now()}` : `?t=${Date.now()}`;
-      const r = await fetch(url + bust, { cache:'no-store' });
-      if (!r.ok) throw new Error(`HTTP ${r.status} @ ${url}`);
-      return await r.text();
+      const bust=url.includes('?')?`&t=${Date.now()}`:`?t=${Date.now()}`;
+      const r=await fetch(url+bust,{cache:'no-store'}); if(!r.ok) throw new Error(`HTTP ${r.status} @ ${url}`); return await r.text();
     }
     async function loadLeafletStack(){
       await loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js','https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js');
@@ -236,249 +182,198 @@
     }
 
     (async function init(){
-      const statsEl    = document.getElementById('stats');
-      const searchEl   = document.getElementById('search');
-      const yearEl     = document.getElementById('yearSearch');
-      const concSel    = document.getElementById('concelhoSelect');
-      const exportBtn  = document.getElementById('exportBtn');
-      const focusBtn   = document.getElementById('focusBtn');
-      const clearBtn   = document.getElementById('clearBtn');
+      const statsEl=document.getElementById('stats');
+      const searchEl=document.getElementById('search');
+      const yearEl=document.getElementById('yearSearch');
+      const concWrap=document.getElementById('concelhoWrap');
 
-      try { await loadLeafletStack(); }
-      catch(e){
-        document.body.style.background = '#fff';
-        document.body.innerHTML = '<div style="padding:16px;font-family:Arial">❌ Falha a carregar bibliotecas do mapa (CDNs bloqueados). Tente noutro browser/rede.</div>';
-        return;
+      // garante que o select existe
+      let concSel=document.getElementById('concelhoSelect');
+      if(!concSel){
+        concSel=document.createElement('select'); concSel.id='concelhoSelect';
+        const opt=document.createElement('option'); opt.value=''; opt.textContent='Todos os Concelhos'; concSel.appendChild(opt);
+        concWrap.appendChild(concSel);
       }
+      const concCountEl=document.getElementById('concelhoCount');
 
-      const map = L.map('map');
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(map);
-      const cluster = L.markerClusterGroup({ showCoverageOnHover:false, disableClusteringAtZoom:17 });
+      const exportBtn=document.getElementById('exportBtn');
+      const focusBtn=document.getElementById('focusBtn');
+      const clearBtn=document.getElementById('clearBtn');
+
+      try{ await loadLeafletStack(); }
+      catch(e){ document.body.innerHTML='<div style="padding:16px;font-family:Arial;color:#111">❌ Falha a carregar bibliotecas do mapa (CDNs bloqueados).</div>'; return; }
+
+      const map=L.map('map');
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19, attribution:'&copy; OpenStreetMap'}).addTo(map);
+      const cluster=L.markerClusterGroup({ showCoverageOnHover:false, disableClusteringAtZoom:17 });
       map.addLayer(cluster);
 
-      const AMP_BOUNDS = L.latLngBounds([[41.05, -8.75], [41.25, -8.45]]);
+      const AMP_BOUNDS=L.latLngBounds([[41.05,-8.75],[41.25,-8.45]]);
       function focusAMP(){ map.fitBounds(AMP_BOUNDS.pad(0.1)); }
       focusBtn.addEventListener('click', focusAMP);
 
-      const markersByState = {};
-      const allMarkers = [];
-      let allRowsForExport = [];
-      let usedUrl = '';
+      const markersByState={};
+      const allMarkers=[];
+      let allRowsForExport=[];
+      let usedUrl='';
 
-      const candidates = [DEFAULT_GEOJSON, RAW_MAIN, RAW_GHPAGES];
-      const errors = [];
-      let gj = null;
-      for (const url of candidates) {
-        try { const txt = await fetchTextNoCache(url); gj = parseJSONSafe(txt); usedUrl = url; break; }
-        catch (e) { errors.push(url + ' → ' + e.message); }
+      const candidates=[DEFAULT_GEOJSON, RAW_MAIN, RAW_GHPAGES];
+      const errors=[]; let gj=null;
+      for(const url of candidates){
+        try{ const txt=await fetchTextNoCache(url); gj=parseJSONSafe(txt); usedUrl=url; break; }
+        catch(e){ errors.push(url+' → '+e.message); }
       }
-      if (!gj || !Array.isArray(gj.features)) {
-        statsEl.innerHTML = '❌ Falha a carregar dados. <small>' + errors.join(' · ') + '</small>';
-        return;
-      }
+      if(!gj||!Array.isArray(gj.features)){ statsEl.innerHTML='❌ Falha a carregar dados. <small>'+errors.join(' · ')+'</small>'; return; }
 
-      // — Concelhos (normalizados) para dropdown
-      const concelhosMap = new Map(); // keyNormalizada -> label em Title Case
-
-      // — Construção de marcadores
-      let total = 0;
-      const counts = { licenciado:0, em_construcao:0, concluido:0, em_licenciamento:0 };
+      const concelhosMap=new Map(); // keyNormalizada -> label
 
       gj.features.forEach(f=>{
-        const p = f?.properties || {};
-        const coords = (f?.geometry?.type === 'Point' && Array.isArray(f.geometry.coordinates)) ? f.geometry.coordinates : null;
-        if (!coords) return;
-        const [x,y] = coords;
-        const lng = Number(x), lat = Number(y);
-        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+        const p=f?.properties||{};
+        const coords=(f?.geometry?.type==='Point' && Array.isArray(f.geometry.coordinates))? f.geometry.coordinates : null;
+        if(!coords) return;
+        const [x,y]=coords; const lng=Number(x), lat=Number(y);
+        if(!Number.isFinite(lat)||!Number.isFinite(lng)) return;
 
-        // Concelho robusto
-        const concelhoRaw = getConcelhoDynamic(p);
-        const concelhoLower = normStr(concelhoRaw);
-        if (concelhoRaw) {
-          const key = concelhoLower;
-          if (!concelhosMap.has(key)) concelhosMap.set(key, toTitleCasePt(concelhoRaw));
-        }
+        const concelhoRaw=getConcelhoDynamic(p);
+        const concelhoLower=normStr(concelhoRaw);
+        if(concelhoRaw){ const key=concelhoLower; if(!concelhosMap.has(key)) concelhosMap.set(key, toTitleCasePt(concelhoRaw)); }
 
-        const nome = mapName(p, ['nome','name','titulo','título','projecto','projeto']) || 'Empreendimento';
-        const estadoKey = normalizeEstado(mapName(p, ['estado','status']));
-        const estadoLabel = stateDisplay[estadoKey] || mapName(p, ['estado','status']);
-        const conclusao = mapName(p, ['conclusao','conclusão','conclusao_prevista','completion','entrega']);
-        const notas = mapName(p, ['notas','observacoes','observações','notes']);
-        let link = mapName(p, ['link','url','website']);
+        const nome=mapName(p,['nome','name','titulo','título','projecto','projeto'])||'Empreendimento';
+        const estadoKey=normalizeEstado(mapName(p,['estado','status']));
+        const estadoLabel=stateDisplay[estadoKey]||mapName(p,['estado','status']);
+        const conclusao=mapName(p,['conclusao','conclusão','conclusao_prevista','completion','entrega']);
+        const notas=mapName(p,['notas','observacoes','observações','notes']);
+        let link=mapName(p,['link','url','website']);
 
-        if (!estadoKey || !stateDisplay[estadoKey]) return;
+        if(!estadoKey||!stateDisplay[estadoKey]) return;
 
-        total++;
-        counts[estadoKey] = (counts[estadoKey] || 0) + 1;
+        const icon=makePinIcon(stateColors[estadoKey]||'#BBBBBB');
+        const marker=L.marker([lat,lng],{icon,title:nome});
 
-        const icon = makePinIcon(stateColors[estadoKey] || '#BBBBBB');
-        const marker = L.marker([lat, lng], { icon, title: nome });
-
-        const tooltipHtml = `
+        const tooltipHtml=`
           <div style="min-width:220px">
             <div style="font-weight:700; font-size:13px; margin-bottom:4px;">${nome}</div>
-            <div style="font-size:12px; color:#ccc;">${concelhoRaw ? toTitleCasePt(concelhoRaw) + ' · ' : ''}${estadoLabel}</div>
-            ${conclusao ? `<div style="font-size:12px; margin-top:4px;"><strong>Conclusão:</strong> ${conclusao}</div>` : ''}
-            ${notas ? `<div style="font-size:12px; margin-top:4px; color:#ddd;">${String(notas).length>160 ? (String(notas).substring(0,157)+'…') : notas}</div>` : ''}
-          </div>
-        `;
-        marker.bindTooltip(tooltipHtml, { direction:'top', offset:[0, -28], sticky:true, opacity:0.95 });
+            <div style="font-size:12px; color:#ccc;">${concelhoRaw?toTitleCasePt(concelhoRaw)+' · ':''}${estadoLabel}</div>
+            ${conclusao?`<div style="font-size:12px; margin-top:4px;"><strong>Conclusão:</strong> ${conclusao}</div>`:''}
+            ${notas?`<div style="font-size:12px; margin-top:4px; color:#ddd;">${String(notas).length>160?(String(notas).substring(0,157)+'…'):notas}</div>`:''}
+          </div>`;
+        marker.bindTooltip(tooltipHtml,{direction:'top',offset:[0,-28],sticky:true,opacity:0.95});
 
-        let popup = `<div style="min-width:240px">
+        let popup=`<div style="min-width:240px">
           <div style="font-weight:700; font-size:14px; margin-bottom:6px; color:#111;">${nome}</div>
-          <div style="font-size:12px; color:#444;">${concelhoRaw ? toTitleCasePt(concelhoRaw) + ' · ' : ''}${estadoLabel}</div>
-          ${conclusao ? `<div style="font-size:12px; margin-top:6px;"><strong>Conclusão:</strong> ${conclusao}</div>` : ''}
-          ${notas ? `<div style="font-size:12px; margin-top:6px;">${notas}</div>` : ''}
-        `;
-        if (link) {
-          if (!/^https?:\/\//i.test(link)) link = 'http://' + link;
-          popup += `<div style="margin-top:8px;"><a href="${link}" target="_blank" rel="noreferrer">Abrir ligação</a></div>`;
-        }
-        popup += `</div>`;
+          <div style="font-size:12px; color:#444;">${concelhoRaw?toTitleCasePt(concelhoRaw)+' · ':''}${estadoLabel}</div>
+          ${conclusao?`<div style="font-size:12px; margin-top:6px;"><strong>Conclusão:</strong> ${conclusao}</div>`:''}
+          ${notas?`<div style="font-size:12px; margin-top:6px;">${notas}</div>`:''}`;
+        if(link){ if(!/^https?:\/\//i.test(link)) link='http://'+link;
+          popup+=`<div style="margin-top:8px;"><a href="${link}" target="_blank" rel="noreferrer">Abrir ligação</a></div>`; }
+        popup+=`</div>`;
         marker.bindPopup(popup);
 
-        if (!markersByState[estadoKey]) markersByState[estadoKey] = [];
+        if(!markersByState[estadoKey]) markersByState[estadoKey]=[];
         markersByState[estadoKey].push(marker);
 
-        const conclusaoLower = normStr(conclusao);
-        const yearMatch = /(\b20\d{2}\b)/.exec(conclusaoLower);
-        const conclusaoYear = yearMatch ? yearMatch[1] : '';
+        const conclusaoLower=normStr(conclusao);
+        const yearMatch=/(\b20\d{2}\b)/.exec(conclusaoLower);
+        const conclusaoYear=yearMatch?yearMatch[1]:'';
 
-        allMarkers.push({
-          marker, estadoKey,
-          nome: normStr(nome),
-          concelhoLower, concelhoRaw,
-          notas: normStr(notas),
-          conclusaoLower, conclusaoYear,
-          link, lat, lng
-        });
+        allMarkers.push({ marker, estadoKey, nome:normStr(nome), concelhoLower, concelhoRaw,
+                          notas:normStr(notas), conclusaoLower, conclusaoYear, link, lat, lng });
 
-        allRowsForExport.push({
-          nome, concelho: toTitleCasePt(concelhoRaw), estado: estadoLabel, conclusao, notas, link, latitude: lat, longitude: lng
-        });
-
+        allRowsForExport.push({ nome, concelho:toTitleCasePt(concelhoRaw), estado:estadoLabel, conclusao, notas, link, latitude:lat, longitude:lng });
         cluster.addLayer(marker);
       });
 
-      // Popular dropdown de concelho
-      const concelhosSorted = Array.from(concelhosMap.entries())
-        .sort((a,b)=> a[1].localeCompare(b[1], 'pt'));
-      for (const [keyNorm, label] of concelhosSorted) {
-        const opt = document.createElement('option');
-        opt.value = keyNorm;     // valor normalizado
-        opt.textContent = label; // rótulo
-        concSel.appendChild(opt);
+      // ——— Popular/forçar dropdown concelho (com segurança)
+      function populateConcelhosSelect(){
+        const entries=Array.from(concelhosMap.entries()).sort((a,b)=>a[1].localeCompare(b[1],'pt'));
+        const frag=document.createDocumentFragment();
+        const optAll=document.createElement('option'); optAll.value=''; optAll.textContent='Todos os Concelhos'; frag.appendChild(optAll);
+        for(const [keyNorm,label] of entries){
+          const opt=document.createElement('option'); opt.value=keyNorm; opt.textContent=label; frag.appendChild(opt);
+        }
+        concSel.replaceChildren(frag);
+        if(concCountEl) concCountEl.textContent = entries.length ? `(${entries.length})` : '(0)';
       }
+      populateConcelhosSelect();
 
-      // Enquadrar
-      if (cluster.getLayers().length) map.fitBounds(cluster.getBounds().pad(0.2));
-      else map.setView([41.15, -8.6], 12);
+      if(cluster.getLayers().length) map.fitBounds(cluster.getBounds().pad(0.2)); else map.setView([41.15,-8.6],12);
 
-      // KPIs + fonte
       function updateKPIs(arr){
-        const by = { licenciado:0, em_construcao:0, concluido:0, em_licenciamento:0 };
-        arr.forEach(o => { if (by.hasOwnProperty(o.estadoKey)) by[o.estadoKey]++; });
-        const parts = [
-          `Fonte: <small>${usedUrl.replace('https://','')}</small>`,
-          `Total visíveis: <strong>${arr.length}</strong>`,
-          `Licenciado: <strong>${by.licenciado}</strong>`,
-          `Em construção: <strong>${by.em_construcao}</strong>`,
-          `Concluído: <strong>${by.concluido}</strong>`
-        ];
-        if (by.em_licenciamento) parts.splice(2, 0, `Em licenciamento: <strong>${by.em_licenciamento}</strong>`);
-        statsEl.innerHTML = parts.join(' · ');
+        const by={ licenciado:0, em_construcao:0, concluido:0, em_licenciamento:0 };
+        arr.forEach(o=>{ if(by.hasOwnProperty(o.estadoKey)) by[o.estadoKey]++; });
+        const parts=[`Fonte: <small>${usedUrl.replace('https://','')}</small>`,
+                     `Total visíveis: <strong>${arr.length}</strong>`,
+                     `Licenciado: <strong>${by.licenciado}</strong>`,
+                     `Em construção: <strong>${by.em_construcao}</strong>`,
+                     `Concluído: <strong>${by.concluido}</strong>`];
+        if(by.em_licenciamento) parts.splice(2,0,`Em licenciamento: <strong>${by.em_licenciamento}</strong>`);
+        statsEl.innerHTML=parts.join(' · ');
       }
       updateKPIs(allMarkers);
 
-      // Filtros / Pesquisa / Concelho / Ano
-      function matchesYear(o, yq){
-        if (!yq) return true;
-        const s = normStr(yq);
-        const yr = /^\d{4}$/.test(s) ? s : null;
-        if (yr) return (o.conclusaoYear === yr);
+      function matchesYear(o,yq){
+        if(!yq) return true;
+        const s=normStr(yq);
+        const yr=/^\d{4}$/.test(s)?s:null;
+        if(yr) return(o.conclusaoYear===yr);
         return o.conclusaoLower.includes(s);
       }
 
       function applyFilters(){
-        const q   = normStr(searchEl.value);
-        const yq  = yearEl.value;
-        const sel = concSel.value; // já normalizado
+        const q=normStr(searchEl.value);
+        const yq=yearEl.value;
+        const sel=concSel.value; // normalizado
 
-        const allowed = new Set(
-          Array.from(document.querySelectorAll('.state-filter'))
-            .filter(cb => cb.checked)
-            .map(cb => cb.value)
-        );
-
+        const allowed=new Set(Array.from(document.querySelectorAll('.state-filter')).filter(cb=>cb.checked).map(cb=>cb.value));
         cluster.clearLayers();
 
-        const filtered = allMarkers.filter(o => {
-          if (!allowed.has(o.estadoKey)) return false;
-          if (sel && o.concelhoLower !== sel) return false;
-
-          const textOk = !q || o.nome.includes(q) || o.concelhoLower.includes(q) || o.notas.includes(q);
-          const conclOk = matchesYear(o, yq);
-
+        const filtered=allMarkers.filter(o=>{
+          if(!allowed.has(o.estadoKey)) return false;
+          if(sel && o.concelhoLower!==sel) return false;
+          const textOk=!q || o.nome.includes(q) || o.concelhoLower.includes(q) || o.notas.includes(q);
+          const conclOk=matchesYear(o,yq);
           return textOk && conclOk;
         });
 
-        filtered.forEach(o => cluster.addLayer(o.marker));
+        filtered.forEach(o=>cluster.addLayer(o.marker));
         updateKPIs(filtered);
-
-        if (!filtered.length) focusAMP();
+        if(!filtered.length) focusAMP();
       }
 
-      // Eventos
-      document.querySelectorAll('.state-filter').forEach(cb => cb.addEventListener('change', applyFilters));
-      let to1=null, to2=null;
-      searchEl.addEventListener('input', ()=>{ clearTimeout(to1); to1=setTimeout(applyFilters, 150); });
-      yearEl.addEventListener('input',   ()=>{ clearTimeout(to2); to2=setTimeout(applyFilters, 150); });
-      concSel.addEventListener('change', applyFilters);
+      document.querySelectorAll('.state-filter').forEach(cb=>cb.addEventListener('change',applyFilters));
+      let to1=null,to2=null;
+      searchEl.addEventListener('input',()=>{ clearTimeout(to1); to1=setTimeout(applyFilters,150); });
+      yearEl.addEventListener('input',()=>{ clearTimeout(to2); to2=setTimeout(applyFilters,150); });
+      concSel.addEventListener('change',applyFilters);
 
-      // Limpar filtros
-      clearBtn.addEventListener('click', ()=>{
-        searchEl.value = '';
-        yearEl.value   = '';
-        concSel.value  = '';
-        document.querySelectorAll('.state-filter').forEach(cb => cb.checked = true);
+      clearBtn.addEventListener('click',()=>{
+        searchEl.value=''; yearEl.value=''; concSel.value='';
+        document.querySelectorAll('.state-filter').forEach(cb=>cb.checked=true);
         applyFilters();
       });
 
-      // Export CSV (visível)
-      exportBtn.addEventListener('click', () => {
-        const visible = cluster.getAllChildMarkers();
-        if (!visible || !visible.length) { alert('Não há empreendimentos visíveis para exportar.'); return; }
-        const key = v => `${v.latitude}|${v.longitude}`;
-        const visibleKeys = new Set(visible.map(m => key({latitude: m.getLatLng().lat, longitude: m.getLatLng().lng})));
-        const exportData = allRowsForExport.filter(r => visibleKeys.has(key(r)));
-
-        const headers = ['nome','concelho','estado','conclusao','notas','link','latitude','longitude'];
-        const csv = [headers.join(';')].concat(
-          exportData.map(r => headers.map(h => (r[h] ?? '')).join(';'))
-        ).join('\n');
-
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'empreendimentos_filtrados.csv';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+      exportBtn.addEventListener('click',()=>{
+        const visible=cluster.getAllChildMarkers();
+        if(!visible||!visible.length){ alert('Não há empreendimentos visíveis para exportar.'); return; }
+        const key=v=>`${v.latitude}|${v.longitude}`;
+        const visibleKeys=new Set(visible.map(m=>key({latitude:m.getLatLng().lat, longitude:m.getLatLng().lng})));
+        const exportData=allRowsForExport.filter(r=>visibleKeys.has(key(r)));
+        const headers=['nome','concelho','estado','conclusao','notas','link','latitude','longitude'];
+        const csv=[headers.join(';')].concat(exportData.map(r=>headers.map(h=>(r[h]??'')).join(';'))).join('\n');
+        const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob); a.download='empreendimentos_filtrados.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
       });
 
-      // Legenda
-      const legend = L.control({ position: 'bottomleft' });
-      legend.onAdd = function() {
-        const div = L.DomUtil.create('div', 'legend');
-        div.innerHTML = `
-          <div class="row"><span class="color" style="background:${stateColors.licenciado}"></span> Licenciado</div>
-          <div class="row"><span class="color" style="background:${stateColors.em_construcao}"></span> Em construção</div>
-          <div class="row"><span class="color" style="background:${stateColors.concluido}"></span> Concluído</div>
-        `;
-        return div;
-      };
+      const legend=L.control({position:'bottomleft'});
+      legend.onAdd=function(){ const div=L.DomUtil.create('div','legend');
+        div.innerHTML=`<div class="row"><span class="color" style="background:${stateColors.licenciado}"></span> Licenciado</div>
+                       <div class="row"><span class="color" style="background:${stateColors.em_construcao}"></span> Em construção</div>
+                       <div class="row"><span class="color" style="background:${stateColors.concluido}"></span> Concluído</div>`;
+        return div; };
       legend.addTo(map);
+
+      // Fallback: se por qualquer motivo o dropdown ficar vazio, repovoa 1s depois
+      setTimeout(()=>{ if(concSel.options.length<=1) populateConcelhosSelect(); }, 1000);
     })();
   </script>
 </body>
