@@ -98,6 +98,7 @@
       <nav class="tabs">
         <a class="tab active" href="./index.html">Mapa</a>
         <a class="tab" href="./kanban.html">Kanban</a>
+        <a class="tab" href="./dashboard.html">Dashboard</a>
       </nav>
     </div>
 
@@ -168,7 +169,6 @@
         <button id="act_center" class="btn">Centrar no mapa</button>
         <button id="act_gmaps" class="btn">Abrir no Google Maps</button>
         <button id="act_copy"  class="btn">Copiar resumo</button>
-        <!-- Botão de Partilhar é um link real -->
         <a id="act_share" class="btn" href="#" target="_blank" rel="noopener noreferrer">Partilhar</a>
       </div>
     </aside>
@@ -213,15 +213,11 @@
     }
     function mapName(obj, keys){ for(const k of keys){ if(obj && obj[k]!=null){ const v=String(obj[k]).trim(); if(v!=='') return v; } } return ''; }
     function normStr(s){ return String(s||'').replace(/\u00A0/g,' ').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
-
-    // Title Case PT com exceções
     function toTitleCasePt(s){
       const small = new Set(['de','da','do','das','dos','e']);
       const parts = String(s||'').trim().toLowerCase().split(/\s+/);
       return parts.map((w,i)=> small.has(w) && i>0 ? w : w.replace(/^\p{L}/u, m=>m.toUpperCase())).join(' ');
     }
-
-    // Normaliza “2028.0” -> “2028”
     function normalizeConclusao(val){
       if(val==null) return '';
       let s=String(val).trim();
@@ -230,8 +226,6 @@
       if(Number.isFinite(n) && Math.abs(n - Math.round(n))<1e-9) return String(Math.round(n));
       return s;
     }
-
-    // Pin SVG com cor
     function makePinIcon(color='#FFD166'){
       const svg = `
         <svg xmlns="http://www.w3.org/2000/svg" width="26" height="36" viewBox="0 0 26 36">
@@ -245,8 +239,6 @@
       const url = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
       return L.icon({ iconUrl:url, iconSize:[26,36], iconAnchor:[13,34], popupAnchor:[0,-30], tooltipAnchor:[0,-30] });
     }
-
-    // Fallback por BBOX (AMP/Norte)
     const BBOX = {
       "Porto":            { minLat:41.12, maxLat:41.20, minLng:-8.69, maxLng:-8.55 },
       "Vila Nova de Gaia":{ minLat:41.03, maxLat:41.16, minLng:-8.70, maxLng:-8.51 },
@@ -264,7 +256,6 @@
       }
       return '';
     }
-
     function sanitizeToJSON(txt){ return txt.replace(/^\uFEFF/,'').replace(/\bNaN\b/g,'null').replace(/\bInfinity\b/g,'null').replace(/\b-Infinity\b/g,'null').replace(/,\s*([}\]])/g,'$1'); }
     function parseJSONSafe(txt){ return JSON.parse(sanitizeToJSON(txt)); }
     async function fetchTextNoCache(url){ const bust=url.includes('?')?`&t=${Date.now()}`:`?t=${Date.now()}`; const r=await fetch(url+bust,{cache:'no-store'}); if(!r.ok) throw new Error(`HTTP ${r.status} @ ${url}`); return await r.text(); }
@@ -290,7 +281,6 @@
       const drawer=document.getElementById('drawer');
       const dName=document.getElementById('d_name');
       const dSub=document.getElementById('d_sub');
-      const dConc=document.getElementById('d_conc');
       const dNotes=document.getElementById('d_notes');
       const dCoords=document.getElementById('d_coords');
       const dLinkRow=document.getElementById('d_link_row');
@@ -299,7 +289,7 @@
       const bCenter=document.getElementById('act_center');
       const bGMaps=document.getElementById('act_gmaps');
       const bCopy=document.getElementById('act_copy');
-      const aShare=document.getElementById('act_share'); // link (não botão)
+      const aShare=document.getElementById('act_share');
 
       try{ await loadLeafletStack(); }catch(e){
         document.body.innerHTML='<div style="padding:16px;font-family:Arial;color:#111">❌ Falha a carregar bibliotecas do mapa (CDNs bloqueados). Tente noutro browser/rede.</div>';
@@ -320,6 +310,7 @@
       });
 
       // Export
+      let allRowsForExport=[];
       document.getElementById('exportBtn').addEventListener('click', ()=>{
         const visible=cluster.getAllChildMarkers();
         if(!visible||!visible.length){ alert('Não há empreendimentos visíveis para exportar.'); return; }
@@ -344,30 +335,33 @@
       };
       legend.addTo(map);
 
-      // Carregar dados (3 fontes)
-      const candidates=[DEFAULT_GEOJSON, RAW_MAIN, RAW_GHPAGES];
+      // Carregar dados
+      const candidates=[
+        "https://ruiquelhas1-lab.github.io/Mapa-Porto/data/empreendimentos.geojson",
+        "https://raw.githubusercontent.com/ruiquelhas1-lab/Mapa-Porto/main/data/empreendimentos.geojson",
+        "https://raw.githubusercontent.com/ruiquelhas1-lab/Mapa-Porto/gh-pages/data/empreendimentos.geojson"
+      ];
       const errors=[]; let gj=null; let usedUrl='';
       for(const url of candidates){
         try{ const txt=await fetchTextNoCache(url); gj=parseJSONSafe(txt); usedUrl=url; break; }
         catch(e){ errors.push(url+' → '+e.message); }
       }
       if(!gj||!Array.isArray(gj.features)){
-        statsLine.innerHTML='❌ Falha a carregar dados. <small>'+errors.join(' · ')+'</small>';
+        document.getElementById('statsLine').innerHTML='❌ Falha a carregar dados. <small>'+errors.join(' · ')+'</small>';
         return;
       }
       window.__usedUrl = usedUrl;
 
       const concelhosSet=new Set();
-      const allMarkers=[]; let allRowsForExport=[];
-      let currentSel=null;
+      const allMarkers=[]; let currentSel=null;
 
       function openDrawer(data){
         currentSel=data;
-        dName.textContent = data.nomeDisplay || 'Empreendimento';
-        dSub.innerHTML = `${data.concLabel?toTitleCasePt(data.concLabel)+' · ':''}<span class="chip">${data.estadoLabel||'—'}</span>`;
-        dConc.textContent = normalizeConclusao(data.conclusao) || '—';
-        dNotes.textContent = data.notasFull || '—';
-        dCoords.textContent = `${data.lat.toFixed(6)}, ${data.lng.toFixed(6)}`;
+        document.getElementById('d_name').textContent = data.nomeDisplay || 'Empreendimento';
+        document.getElementById('d_sub').innerHTML = `${data.concLabel?toTitleCasePt(data.concLabel)+' · ':''}<span class="chip">${data.estadoLabel||'—'}</span>`;
+        document.getElementById('d_conc').textContent = normalizeConclusao(data.conclusao) || '—';
+        document.getElementById('d_notes').textContent = data.notasFull || '—';
+        document.getElementById('d_coords').textContent = `${data.lat.toFixed(6)}, ${data.lng.toFixed(6)}`;
         if(data.link){
           dLinkRow.style.display='';
           dLink.href = /^https?:\/\//i.test(data.link) ? data.link : ('http://' + data.link);
@@ -394,7 +388,6 @@
         const [x,y]=coords; const lng=Number(x), lat=Number(y);
         if(!Number.isFinite(lat)||!Number.isFinite(lng)) return;
 
-        // concelho (properties → fallback BBOX)
         let concelho=mapName(p,['concelho','Concelho','municipio','município','city','local','freguesia']).replace(/\s+/g,' ').trim();
         if(!concelho || concelho==='NaN' || concelho==='—'){
           const g = guessConcelhoFromBBox(lat, lng);
@@ -406,11 +399,11 @@
         const nomeRaw=mapName(p,['nome','name','titulo','título','projecto','projeto'])||'Empreendimento';
         const nomeDisplay=nomeRaw; const nome=normStr(nomeRaw);
         const estadoKey=normalizeEstado(mapName(p,['estado','status']));
-        const estadoLabel=stateDisplay[estadoKey]||mapName(p,['estado','status']);
+        const estadoLabel={ licenciado:"Licenciado", em_construcao:"Em construção", concluido:"Concluído", em_licenciamento:"Em licenciamento" }[estadoKey]||mapName(p,['estado','status']);
         const conclusao=normalizeConclusao(mapName(p,['conclusao','conclusão','conclusao_prevista','completion','entrega']));
         const notasFull=mapName(p,['notas','observacoes','observações','notes']); const notas=normStr(notasFull);
         let link=mapName(p,['link','url','website']);
-        if(!estadoKey||!stateDisplay[estadoKey]) return;
+        if(!estadoKey||!stateColors[estadoKey]) return;
 
         if(concLabel) concelhosSet.add(concLabel);
 
@@ -429,7 +422,6 @@
           map.setView([lat,lng], Math.max(map.getZoom(), 15), {animate:true});
           openDrawer({ nomeDisplay, concLabel, estadoLabel, conclusao, notasFull, link, lat, lng });
         });
-        marker.bindPopup(`<strong>${nomeDisplay}</strong><br>${concLabel?concLabel+' · ':''}${estadoLabel}`);
 
         allMarkers.push({
           marker, estadoKey, estadoLabel,
@@ -440,10 +432,6 @@
           link, lat, lng
         });
         cluster.addLayer(marker);
-
-        allRowsForExport.push({
-          nome: nomeDisplay, concelho: concLabel, estado: estadoLabel, conclusao, notas: notasFull, link, latitude: lat, longitude: lng
-        });
       });
 
       // Autocomplete concelhos
@@ -545,15 +533,10 @@
           `Coordenadas: ${currentSel.lat.toFixed(6)}, ${currentSel.lng.toFixed(6)}`,
           currentSel.link ? `Link: ${/^https?:\/\//i.test(currentSel.link)?currentSel.link:('http://'+currentSel.link)}` : ''
         ].filter(Boolean).join('\n');
-        try{
-          await navigator.clipboard.writeText(lines);
-          alert('Resumo copiado para a área de transferência.');
-        }catch(_){
-          prompt('Copie manualmente o resumo:', lines);
-        }
+        try{ await navigator.clipboard.writeText(lines); alert('Resumo copiado para a área de transferência.'); }
+        catch(_){ prompt('Copie manualmente o resumo:', lines); }
       });
 
-      // PARTILHAR (link real + Web Share + clipboard)
       function buildShareText(sel){
         const gmaps = `https://www.google.com/maps?q=${sel.lat},${sel.lng}`;
         return `${sel.nomeDisplay||'Empreendimento'} · ${sel.concLabel||'—'} · ${sel.estadoLabel||'—'}\n`+
@@ -570,15 +553,12 @@
         if(!currentSel) { ev.preventDefault(); return; }
         const text = buildShareText(currentSel);
         const gmaps = `https://www.google.com/maps?q=${currentSel.lat},${currentSel.lng}`;
-
         if (navigator.share) {
           ev.preventDefault();
-          navigator.share({ title: currentSel.nomeDisplay || 'Empreendimento', text, url: gmaps })
-            .catch(()=>{ /* cancelado */ });
+          navigator.share({ title: currentSel.nomeDisplay || 'Empreendimento', text, url: gmaps }).catch(()=>{});
           return;
         }
         try { navigator.clipboard.writeText(text); } catch(_) {}
-        // Em desktop, deixamos o <a> navegar para o WhatsApp Web
       }, { passive:false });
 
       // KPIs iniciais
