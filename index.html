@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Garvetur Porto Pro — Mapa (KPIs + Ficha + Ações)</title>
+  <title>Garvetur Porto Pro — Mapa</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Preconnects -->
@@ -27,46 +27,46 @@
     html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
 
     /* Topbar */
-    #topbar{background:#0F0F0F;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.08);
-      display:flex;gap:12px;flex-wrap:wrap;align-items:center;position:relative;z-index:30}
-    .searchWrap{display:flex;align-items:center;gap:8px;background:#121212;border:1px solid rgba(255,255,255,.12);
-      border-radius:10px;padding:6px 10px}
-    .searchWrap input{background:transparent;border:none;color:#fff;outline:none;width:240px}
-    #filters{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-    #filters label{font-size:13px;color:#D9D9D9}
-    .actionBtn{background:transparent;border:1px solid rgba(255,209,102,.5);color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer}
+    #topbar{background:#0F0F0F;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.08);
+      display:flex;gap:10px;flex-wrap:wrap;align-items:center;position:relative;z-index:30}
+    .searchWrap{display:flex;align-items:center;gap:6px;background:#121212;border:1px solid rgba(255,255,255,.12);
+      border-radius:10px;padding:4px 8px}
+    .searchWrap input{background:transparent;border:none;color:#fff;outline:none;width:220px;font-size:13px}
+    #filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    #filters label{font-size:12px;color:#D9D9D9}
+    .actionBtn{background:transparent;border:1px solid rgba(255,209,102,.5);color:#fff;padding:6px 9px;border-radius:8px;cursor:pointer;font-size:12px}
     .actionBtn:hover{border-color:var(--gold)}
-    #statsLine{font-size:13px;color:#E6E6E6;margin-right:auto}
+    #statsLine{font-size:12px;color:#E6E6E6;margin-right:auto}
 
-    /* KPIs */
-    #kpiBar{background:#0E0E0E;border-bottom:1px solid var(--border);padding:10px 14px;position:relative;z-index:20}
-    .kpiGrid{display:grid;gap:10px;grid-template-columns:repeat(12,1fr)}
-    .kpiCard{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;min-height:74px}
-    .kpiTitle{font-size:12px;color:#CFCFCF;text-transform:uppercase;letter-spacing:.05em}
-    .kpiValue{font-size:22px;font-weight:700;margin-top:4px}
-    .kpiNote{font-size:11px;color:#9AA0A6;margin-top:6px}
-    .badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--border);background:#141414;margin-right:6px;margin-bottom:6px}
+    /* KPIs – compacto (~50% da altura anterior) */
+    #kpiBar{background:#0E0E0E;border-bottom:1px solid var(--border);padding:6px 12px;position:relative;z-index:20}
+    .kpiGrid{display:grid;gap:8px;grid-template-columns:repeat(12,1fr)}
+    .kpiCard{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px;min-height:44px}
+    .kpiTitle{font-size:10px;color:#CFCFCF;text-transform:uppercase;letter-spacing:.05em}
+    .kpiValue{font-size:16px;font-weight:700;margin-top:2px}
+    .kpiNote{font-size:10px;color:#9AA0A6;margin-top:4px;line-height:1.3}
+    .badge{display:inline-block;font-size:10px;padding:1px 6px;border-radius:999px;border:1px solid var(--border);background:#141414;margin-right:4px;margin-bottom:4px}
 
     /* Viewport */
-    #viewport{position:relative;height:calc(100% - 66px - 112px);z-index:10}
-    @media (max-width:1100px){#viewport{height:calc(100% - 66px - 160px)}}
+    #viewport{position:relative;height:calc(100% - 54px - 64px);z-index:10}
+    @media (max-width:1100px){#viewport{height:calc(100% - 54px - 100px)}}
     #map{position:absolute;inset:0}
 
     /* Painel lateral */
-    #drawer{position:absolute;top:0;right:0;height:100%;width:380px;background:linear-gradient(180deg,#151515,#101010);
+    #drawer{position:absolute;top:0;right:0;height:100%;width:360px;background:linear-gradient(180deg,#151515,#101010);
       border-left:1px solid var(--edge);transform:translateX(100%);transition:transform .28s ease;
       display:flex;flex-direction:column;z-index:1000;box-shadow:-12px 0 30px rgba(0,0,0,.35)}
     #drawer.open{transform:translateX(0)}
-    .drawer-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px;border-bottom:1px solid var(--edge)}
-    .drawer-title{font-weight:700;font-size:15px;color:#FFD166;line-height:1.2}
-    .drawer-sub{font-size:12px;color:#BFBFBF}
-    .drawer-body{padding:12px;overflow:auto}
-    .row{margin-bottom:10px}
-    .label{font-size:11px;color:#9AA0A6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
-    .value{font-size:14px;color:#EAEAEA;white-space:pre-wrap}
-    .chip{display:inline-block;font-size:11px;padding:4px 8px;background:#171717;border:1px solid rgba(255,255,255,.12);border-radius:999px}
-    .drawer-actions{display:flex;flex-wrap:wrap;gap:8px;padding:12px;border-top:1px dashed var(--edge)}
-    .btn{background:transparent;border:1px solid rgba(255,209,102,.5);color:#fff;padding:8px 10px;border-radius:10px;cursor:pointer}
+    .drawer-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px;border-bottom:1px solid var(--edge)}
+    .drawer-title{font-weight:700;font-size:14px;color:#FFD166;line-height:1.2}
+    .drawer-sub{font-size:11px;color:#BFBFBF}
+    .drawer-body{padding:10px;overflow:auto}
+    .row{margin-bottom:8px}
+    .label{font-size:10px;color:#9AA0A6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+    .value{font-size:13px;color:#EAEAEA;white-space:pre-wrap}
+    .chip{display:inline-block;font-size:10px;padding:3px 7px;background:#171717;border:1px solid rgba(255,255,255,.12);border-radius:999px}
+    .drawer-actions{display:flex;flex-wrap:wrap;gap:6px;padding:10px;border-top:1px dashed var(--edge)}
+    .btn{background:transparent;border:1px solid rgba(255,209,102,.5);color:#fff;padding:7px 9px;border-radius:9px;cursor:pointer;font-size:12px}
     .btn:hover{border-color:var(--gold)}
     .closeBtn{background:#191919;border:1px solid rgba(255,255,255,.15);color:#ddd;padding:6px 8px;border-radius:8px;cursor:pointer}
 
@@ -74,7 +74,9 @@
     .legend{background:#0F0F0F;color:#fff;padding:8px 10px;font:12px/14px Arial,sans-serif;box-shadow:0 0 15px rgba(0,0,0,.3);border-radius:8px;border:1px solid rgba(255,255,255,.06)}
     .legend .row{display:flex;align-items:center;gap:8px;margin:4px 0}
     .legend .color{width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.2)}
-    .leaflet-bottom.leaflet-left .legend{margin-bottom:20px}
+    /* subir para não “colidir” com limites do ecrã */
+    .leaflet-bottom.leaflet-left .legend{margin-bottom:96px;margin-left:10px}
+
     .marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{background:rgba(255,209,102,.15);border:2px solid var(--gold);color:#111}
     .marker-cluster div{background:var(--gold);color:#111}
     .leaflet-tooltip{background:#111;color:#fff;border:1px solid rgba(255,255,255,.1);border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.4)}
@@ -88,18 +90,18 @@
     <div id="statsLine">A carregar…</div>
 
     <div class="searchWrap" title="Pesquisar por nome, notas…">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
       <input id="search" placeholder="Pesquisar empreendimentos…" />
     </div>
 
     <div class="searchWrap" title="Concelho (inferido)">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
       <input id="concelhoSearch" placeholder="Concelho (ex.: Porto, Matosinhos…)" list="concelhosList" />
       <datalist id="concelhosList"></datalist>
     </div>
 
     <div class="searchWrap" title="Ano/Conclusão">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
       <input id="yearSearch" placeholder="Ano/Conclusão (ex.: 2027 ou Q2 2026)" />
     </div>
 
@@ -115,7 +117,7 @@
     <button id="exportBtn" class="actionBtn">Exportar CSV</button>
   </div>
 
-  <!-- KPIs -->
+  <!-- KPIs (compacto) -->
   <div id="kpiBar">
     <div class="kpiGrid">
       <div class="kpiCard" style="grid-column: span 2;"><div class="kpiTitle">Total visíveis</div><div class="kpiValue" id="kpiTotal">—</div></div>
@@ -202,9 +204,7 @@
     function normalizeConclusao(val){
       if(val==null) return '';
       let s=String(val).trim();
-      // se for número com .0 ou ,0
       if(/^(\d{4})([.,]0+)$/.test(s)) return s.replace(/^(\d{4}).*$/,'$1');
-      // se for número puro (float) convertido
       const n=Number(s);
       if(Number.isFinite(n) && Math.abs(n - Math.round(n))<1e-9) return String(Math.round(n));
       return s;
@@ -223,6 +223,25 @@
         </svg>`;
       const url = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
       return L.icon({ iconUrl:url, iconSize:[26,36], iconAnchor:[13,34], popupAnchor:[0,-30], tooltipAnchor:[0,-30] });
+    }
+
+    // --- Fallback por BBOX (AMP/Norte) para preencher "concelho" quando falta nas properties ---
+    const BBOX = {
+      "Porto":            { minLat:41.12, maxLat:41.20, minLng:-8.69, maxLng:-8.55 },
+      "Vila Nova de Gaia":{ minLat:41.03, maxLat:41.16, minLng:-8.70, maxLng:-8.51 },
+      "Matosinhos":       { minLat:41.17, maxLat:41.26, minLng:-8.75, maxLng:-8.60 },
+      "Gondomar":         { minLat:41.09, maxLat:41.19, minLng:-8.59, maxLng:-8.44 },
+      "Maia":             { minLat:41.20, maxLat:41.28, minLng:-8.67, maxLng:-8.52 },
+      "Valongo":          { minLat:41.16, maxLat:41.25, minLng:-8.53, maxLat:41.25, maxLng:-8.41 }, /* corrigir limite se necessário */
+      "Espinho":          { minLat:40.98, maxLat:41.02, minLng:-8.68, maxLng:-8.58 },
+      "Póvoa de Varzim":  { minLat:41.34, maxLat:41.44, minLng:-8.78, maxLng:-8.71 },
+      "Vila do Conde":    { minLat:41.27, maxLat:41.41, minLng:-8.78, maxLng:-8.64 }
+    };
+    function guessConcelhoFromBBox(lat, lng){
+      for (const [name, box] of Object.entries(BBOX)) {
+        if (lat>=box.minLat && lat<=box.maxLat && lng>=box.minLng && lng<=box.maxLng) return name;
+      }
+      return '';
     }
 
     function sanitizeToJSON(txt){ return txt.replace(/^\uFEFF/,'').replace(/\bNaN\b/g,'null').replace(/\bInfinity\b/g,'null').replace(/\b-Infinity\b/g,'null').replace(/,\s*([}\]])/g,'$1'); }
@@ -248,7 +267,6 @@
       const kpiTopConc=document.getElementById('kpiTopConc');
 
       const drawer=document.getElementById('drawer');
-      const dClose=document.getElementById('drawerClose');
       const dName=document.getElementById('d_name');
       const dSub=document.getElementById('d_sub');
       const dConc=document.getElementById('d_conc');
@@ -294,6 +312,16 @@
         a.href=URL.createObjectURL(blob); a.download='empreendimentos_filtrados.csv';
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
       });
+
+      // Legenda (VISÍVEL no canto inferior-esquerdo)
+      const legend=L.control({position:'bottomleft'});
+      legend.onAdd=function(){
+        const div=L.DomUtil.create('div','legend');
+        const item=(c,l)=>`<div class="row"><span class="color" style="background:${c}"></span><span>${l}</span></div>`;
+        div.innerHTML = item('#118AB2','Em construção') + item('#FFD166','Licenciado') + item('#FFC107','Em licenciamento') + item('#06D6A0','Concluído');
+        return div;
+      };
+      legend.addTo(map);
 
       // Carregar dados (3 fontes)
       const candidates=[DEFAULT_GEOJSON, RAW_MAIN, RAW_GHPAGES];
@@ -342,8 +370,14 @@
         const [x,y]=coords; const lng=Number(x), lat=Number(y);
         if(!Number.isFinite(lat)||!Number.isFinite(lng)) return;
 
-        const concelho=mapName(p,['concelho','Concelho','municipio','município','city','local','freguesia']);
-        const concLower=normStr(concelho||''); const concLabel=toTitleCasePt(concelho||'');
+        // concelho (properties → fallback BBOX)
+        let concelho=mapName(p,['concelho','Concelho','municipio','município','city','local','freguesia']);
+        if(!concelho || concelho==='NaN' || concelho==='—'){
+          const g = guessConcelhoFromBBox(lat, lng);
+          if(g) concelho = g;
+        }
+        const concLower=normStr(concelho||'').trim(); 
+        const concLabel=toTitleCasePt((concelho||'').trim());
 
         const nomeRaw=mapName(p,['nome','name','titulo','título','projecto','projeto'])||'Empreendimento';
         const nomeDisplay=nomeRaw; const nome=normStr(nomeRaw);
@@ -354,15 +388,18 @@
         let link=mapName(p,['link','url','website']);
         if(!estadoKey||!stateDisplay[estadoKey]) return;
 
-        if(concelho){ if(!concelhosMap.has(concLower)) concelhosMap.set(concLower, concLabel); }
+        if(concLabel){ // conta concelhos só quando há rótulo visível
+          const k=concLabel;
+          if(!concelhosMap.has(k)) concelhosMap.set(k,0);
+          concelhosMap.set(k, concelhosMap.get(k)+1);
+        }
 
-        const icon = makePinIcon(stateColors[estadoKey] || '#FFD166');  /* <- cor do estado */
-
+        const icon = makePinIcon(stateColors[estadoKey] || '#FFD166');
         const marker=L.marker([lat,lng],{icon,title:nomeDisplay});
 
         const tooltipHtml=`<div style="min-width:220px">
             <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${nomeDisplay}</div>
-            <div style="font-size:12px;color:#ccc;">${concelho?concLabel+' · ':''}${estadoLabel}</div>
+            <div style="font-size:12px;color:#ccc;">${concLabel?concLabel+' · ':''}${estadoLabel}</div>
             ${conclusao?`<div style="font-size:12px;margin-top:4px;"><strong>Conclusão:</strong> ${conclusao}</div>`:''}
             ${notasFull?`<div style="font-size:12px;margin-top:4px;color:#ddd;">${String(notasFull).length>160?(String(notasFull).substring(0,157)+'…'):notasFull}</div>`:''}
           </div>`;
@@ -392,9 +429,9 @@
         });
       });
 
-      // Autocomplete concelhos
+      // Autocomplete concelhos (com base no que ficou contado)
       const frag=document.createDocumentFragment();
-      Array.from(concelhosMap.entries()).sort((a,b)=>a[1].localeCompare(b[1],'pt')).forEach(([_,label])=>{
+      Array.from(concelhosMap.keys()).sort((a,b)=>a.localeCompare(b,'pt')).forEach(label=>{
         const opt=document.createElement('option'); opt.value=label; frag.appendChild(opt);
       });
       concListEl.replaceChildren(frag);
@@ -408,7 +445,8 @@
         const concCounts=new Map();
         arr.forEach(o=>{
           if(by.hasOwnProperty(o.estadoKey)) by[o.estadoKey]++;
-          if(o.concLabel){ concCounts.set(o.concLabel, (concCounts.get(o.concLabel)||0)+1 ); }
+          const label=(o.concLabel||'').trim();
+          if(label){ concCounts.set(label, (concCounts.get(label)||0)+1 ); }
         });
         kpiTotal.textContent=arr.length;
         kpiLic.textContent=by.licenciado;
@@ -420,6 +458,7 @@
           ? top.map(([label,n])=>`<span class="badge">${label}: ${n}</span>`).join(' ')
           : '—';
 
+        const usedUrl=(window.__usedUrl||DEFAULT_GEOJSON);
         statsLine.innerHTML=[
           `Fonte: <small>${usedUrl.replace('https://','')}</small>`,
           `Total visíveis: <strong>${arr.length}</strong>`,
@@ -428,7 +467,6 @@
           `Concluído: <strong>${by.concluido}</strong>`
         ].join(' · ');
       }
-      renderKPIs(allMarkers);
 
       // Filtros
       function matchesYear(o,yq){
@@ -456,26 +494,30 @@
           const b=L.latLngBounds(filtered.map(o=>[o.lat,o.lng]));
           if(b.isValid()) map.fitBounds(b.pad(0.2));
         }
-        if(currentSel && !filtered.some(o=>o.lat===currentSel.lat && o.lng===currentSel.lng)){ closeDrawer(); }
+        if(currentSel && !filtered.some(o=>o.lat===currentSel.lat && o.lng===currentSel.lng)){
+          // fecha painel se item deixar de estar visível
+          drawer.classList.remove('open');
+          drawer.setAttribute('aria-hidden','true');
+        }
       }
 
       document.querySelectorAll('.state-filter').forEach(cb=>cb.addEventListener('change', applyFilters));
       let t1=null,t2=null,t3=null;
-      searchEl.addEventListener('input', ()=>{ clearTimeout(t1); t1=setTimeout(applyFilters,120); });
-      concSearchEl.addEventListener('input', ()=>{ clearTimeout(t2); t2=setTimeout(applyFilters,120); });
-      yearEl.addEventListener('input', ()=>{ clearTimeout(t3); t3=setTimeout(applyFilters,120); });
+      document.getElementById('search').addEventListener('input', ()=>{ clearTimeout(t1); t1=setTimeout(applyFilters,120); });
+      document.getElementById('concelhoSearch').addEventListener('input', ()=>{ clearTimeout(t2); t2=setTimeout(applyFilters,120); });
+      document.getElementById('yearSearch').addEventListener('input', ()=>{ clearTimeout(t3); t3=setTimeout(applyFilters,120); });
 
       // Botões do painel
-      bCenter.addEventListener('click', ()=>{
+      document.getElementById('act_center').addEventListener('click', ()=>{
         if(!currentSel) return;
         map.setView([currentSel.lat,currentSel.lng], Math.max(map.getZoom(), 16), {animate:true});
       });
-      bGMaps.addEventListener('click', ()=>{
+      document.getElementById('act_gmaps').addEventListener('click', ()=>{
         if(!currentSel) return;
         const url=`https://www.google.com/maps?q=${currentSel.lat},${currentSel.lng}`;
         window.open(url,'_blank','noopener,noreferrer');
       });
-      bCopy.addEventListener('click', async ()=>{
+      document.getElementById('act_copy').addEventListener('click', async ()=>{
         if(!currentSel) return;
         const lines=[
           `Empreendimento: ${currentSel.nomeDisplay||'—'}`,
@@ -493,27 +535,34 @@
           prompt('Copie manualmente o resumo:', lines);
         }
       });
-      bShare.addEventListener('click', async ()=>{
+      document.getElementById('act_share').addEventListener('click', async ()=>{
         if(!currentSel) return;
-        const shareText = `${currentSel.nomeDisplay||'Empreendimento'} · ${currentSel.concLabel||'—'} · ${currentSel.estadoLabel||'—'}\n` +
-                          `Conclusão: ${normalizeConclusao(currentSel.conclusao)||'—'}\n` +
-                          `Google Maps: https://www.google.com/maps?q=${currentSel.lat},${currentSel.lng}`;
-        const shareData={
-          title: currentSel.nomeDisplay || 'Empreendimento',
-          text: shareText,
-          url: `https://www.google.com/maps?q=${currentSel.lat},${currentSel.lng}`
-        };
-        if(navigator.share){
-          try{ await navigator.share(shareData); }catch(_){ /* cancelado */ }
-        }else{
-          try{
-            await navigator.clipboard.writeText(shareText);
-            alert('Conteúdo de partilha copiado (desktop). Cole no WhatsApp/Email.');
-          }catch(_){
-            prompt('Copie e partilhe:', shareText);
-          }
+        const gmaps = `https://www.google.com/maps?q=${currentSel.lat},${currentSel.lng}`;
+        const shareText =
+          `${currentSel.nomeDisplay||'Empreendimento'} · ${currentSel.concLabel||'—'} · ${currentSel.estadoLabel||'—'}\n`+
+          `Conclusão: ${normalizeConclusao(currentSel.conclusao)||'—'}\n${gmaps}`;
+
+        // 1) Web Share API (mobile/navegadores compatíveis)
+        if (navigator.share) {
+          try { await navigator.share({ title: currentSel.nomeDisplay || 'Empreendimento', text: shareText, url: gmaps }); return; }
+          catch(_) { /* cancelado */ }
         }
+
+        // 2) WhatsApp Web (click sintético evita bloqueio em alguns browsers)
+        const a=document.createElement('a');
+        a.href=`https://wa.me/?text=${encodeURIComponent(shareText)}`;
+        a.target='_blank'; a.rel='noopener noreferrer';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        // 3) Fallback: copiar para clipboard (se usuário fechar WhatsApp sem enviar)
+        try { await navigator.clipboard.writeText(shareText); alert('Conteúdo de partilha copiado. Cole no WhatsApp/Email.'); }
+        catch(_) { prompt('Copie e partilhe manualmente:', shareText); }
       });
+
+      // KPIs iniciais
+      renderKPIs(allMarkers);
     })();
   </script>
 </body>
