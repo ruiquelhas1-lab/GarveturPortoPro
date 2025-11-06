@@ -38,7 +38,7 @@
     .actionBtn:hover{border-color:var(--gold)}
     #statsLine{font-size:12px;color:#E6E6E6;margin-right:auto}
 
-    /* KPIs – compacto (~50% da altura anterior) */
+    /* KPIs – compacto */
     #kpiBar{background:#0E0E0E;border-bottom:1px solid var(--border);padding:6px 12px;position:relative;z-index:20}
     .kpiGrid{display:grid;gap:8px;grid-template-columns:repeat(12,1fr)}
     .kpiCard{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px;min-height:44px}
@@ -74,7 +74,6 @@
     .legend{background:#0F0F0F;color:#fff;padding:8px 10px;font:12px/14px Arial,sans-serif;box-shadow:0 0 15px rgba(0,0,0,.3);border-radius:8px;border:1px solid rgba(255,255,255,.06)}
     .legend .row{display:flex;align-items:center;gap:8px;margin:4px 0}
     .legend .color{width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.2)}
-    /* subir para não “colidir” com limites do ecrã */
     .leaflet-bottom.leaflet-left .legend{margin-bottom:96px;margin-left:10px}
 
     .marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{background:rgba(255,209,102,.15);border:2px solid var(--gold);color:#111}
@@ -198,7 +197,13 @@
     }
     function mapName(obj, keys){ for(const k of keys){ if(obj && obj[k]!=null){ const v=String(obj[k]).trim(); if(v!=='') return v; } } return ''; }
     function normStr(s){ return String(s||'').replace(/\u00A0/g,' ').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
-    function toTitleCasePt(s){ return String(s||'').toLowerCase().replace(/(^|\s|[-/])(\p{L})/gu,(m,p1,p2)=>p1+p2.toUpperCase()); }
+
+    // Title Case PT com exceções (de/da/do/das/dos/e)
+    function toTitleCasePt(s){
+      const small = new Set(['de','da','do','das','dos','e']);
+      const parts = String(s||'').trim().toLowerCase().split(/\s+/);
+      return parts.map((w,i)=> small.has(w) && i>0 ? w : w.replace(/^\p{L}/u, m=>m.toUpperCase())).join(' ');
+    }
 
     // Normaliza “2028.0” -> “2028”
     function normalizeConclusao(val){
@@ -232,7 +237,7 @@
       "Matosinhos":       { minLat:41.17, maxLat:41.26, minLng:-8.75, maxLng:-8.60 },
       "Gondomar":         { minLat:41.09, maxLat:41.19, minLng:-8.59, maxLng:-8.44 },
       "Maia":             { minLat:41.20, maxLat:41.28, minLng:-8.67, maxLng:-8.52 },
-      "Valongo":          { minLat:41.16, maxLat:41.25, minLng:-8.53, maxLat:41.25, maxLng:-8.41 }, /* corrigir limite se necessário */
+      "Valongo":          { minLat:41.16, maxLat:41.25, minLng:-8.53, maxLng:-8.41 },
       "Espinho":          { minLat:40.98, maxLat:41.02, minLng:-8.68, maxLng:-8.58 },
       "Póvoa de Varzim":  { minLat:41.34, maxLat:41.44, minLng:-8.78, maxLng:-8.71 },
       "Vila do Conde":    { minLat:41.27, maxLat:41.41, minLng:-8.78, maxLng:-8.64 }
@@ -313,7 +318,7 @@
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
       });
 
-      // Legenda (VISÍVEL no canto inferior-esquerdo)
+      // Legenda
       const legend=L.control({position:'bottomleft'});
       legend.onAdd=function(){
         const div=L.DomUtil.create('div','legend');
@@ -334,8 +339,9 @@
         statsLine.innerHTML='❌ Falha a carregar dados. <small>'+errors.join(' · ')+'</small>';
         return;
       }
+      window.__usedUrl = usedUrl;
 
-      const concelhosMap=new Map();
+      const concelhosSet=new Set(); // para datalist
       const allMarkers=[]; let allRowsForExport=[];
       let currentSel=null;
 
@@ -371,13 +377,13 @@
         if(!Number.isFinite(lat)||!Number.isFinite(lng)) return;
 
         // concelho (properties → fallback BBOX)
-        let concelho=mapName(p,['concelho','Concelho','municipio','município','city','local','freguesia']);
+        let concelho=mapName(p,['concelho','Concelho','municipio','município','city','local','freguesia']).replace(/\s+/g,' ').trim();
         if(!concelho || concelho==='NaN' || concelho==='—'){
           const g = guessConcelhoFromBBox(lat, lng);
           if(g) concelho = g;
         }
-        const concLower=normStr(concelho||'').trim(); 
-        const concLabel=toTitleCasePt((concelho||'').trim());
+        const concLower=normStr(concelho);
+        const concLabel=toTitleCasePt(concelho);
 
         const nomeRaw=mapName(p,['nome','name','titulo','título','projecto','projeto'])||'Empreendimento';
         const nomeDisplay=nomeRaw; const nome=normStr(nomeRaw);
@@ -388,11 +394,7 @@
         let link=mapName(p,['link','url','website']);
         if(!estadoKey||!stateDisplay[estadoKey]) return;
 
-        if(concLabel){ // conta concelhos só quando há rótulo visível
-          const k=concLabel;
-          if(!concelhosMap.has(k)) concelhosMap.set(k,0);
-          concelhosMap.set(k, concelhosMap.get(k)+1);
-        }
+        if(concLabel) concelhosSet.add(concLabel);
 
         const icon = makePinIcon(stateColors[estadoKey] || '#FFD166');
         const marker=L.marker([lat,lng],{icon,title:nomeDisplay});
@@ -407,9 +409,6 @@
 
         marker.on('click', ()=>{
           map.setView([lat,lng], Math.max(map.getZoom(), 15), {animate:true});
-          openDrawer({ nomeDisplay, concLabel, estadoLabel, conclusao, notasFull, link, lat, lng });
-        });
-        marker.on('popupopen', ()=>{
           openDrawer({ nomeDisplay, concLabel, estadoLabel, conclusao, notasFull, link, lat, lng });
         });
         marker.bindPopup(`<strong>${nomeDisplay}</strong><br>${concLabel?concLabel+' · ':''}${estadoLabel}`);
@@ -429,9 +428,9 @@
         });
       });
 
-      // Autocomplete concelhos (com base no que ficou contado)
+      // Autocomplete concelhos
       const frag=document.createDocumentFragment();
-      Array.from(concelhosMap.keys()).sort((a,b)=>a.localeCompare(b,'pt')).forEach(label=>{
+      Array.from(concelhosSet.values()).sort((a,b)=>a.localeCompare(b,'pt')).forEach(label=>{
         const opt=document.createElement('option'); opt.value=label; frag.appendChild(opt);
       });
       concListEl.replaceChildren(frag);
@@ -467,6 +466,7 @@
           `Concluído: <strong>${by.concluido}</strong>`
         ].join(' · ');
       }
+      renderKPIs(allMarkers);
 
       // Filtros
       function matchesYear(o,yq){
@@ -495,7 +495,6 @@
           if(b.isValid()) map.fitBounds(b.pad(0.2));
         }
         if(currentSel && !filtered.some(o=>o.lat===currentSel.lat && o.lng===currentSel.lng)){
-          // fecha painel se item deixar de estar visível
           drawer.classList.remove('open');
           drawer.setAttribute('aria-hidden','true');
         }
@@ -503,21 +502,21 @@
 
       document.querySelectorAll('.state-filter').forEach(cb=>cb.addEventListener('change', applyFilters));
       let t1=null,t2=null,t3=null;
-      document.getElementById('search').addEventListener('input', ()=>{ clearTimeout(t1); t1=setTimeout(applyFilters,120); });
-      document.getElementById('concelhoSearch').addEventListener('input', ()=>{ clearTimeout(t2); t2=setTimeout(applyFilters,120); });
-      document.getElementById('yearSearch').addEventListener('input', ()=>{ clearTimeout(t3); t3=setTimeout(applyFilters,120); });
+      searchEl.addEventListener('input', ()=>{ clearTimeout(t1); t1=setTimeout(applyFilters,120); });
+      concSearchEl.addEventListener('input', ()=>{ clearTimeout(t2); t2=setTimeout(applyFilters,120); });
+      yearEl.addEventListener('input', ()=>{ clearTimeout(t3); t3=setTimeout(applyFilters,120); });
 
       // Botões do painel
-      document.getElementById('act_center').addEventListener('click', ()=>{
+      bCenter.addEventListener('click', ()=>{
         if(!currentSel) return;
         map.setView([currentSel.lat,currentSel.lng], Math.max(map.getZoom(), 16), {animate:true});
       });
-      document.getElementById('act_gmaps').addEventListener('click', ()=>{
+      bGMaps.addEventListener('click', ()=>{
         if(!currentSel) return;
         const url=`https://www.google.com/maps?q=${currentSel.lat},${currentSel.lng}`;
         window.open(url,'_blank','noopener,noreferrer');
       });
-      document.getElementById('act_copy').addEventListener('click', async ()=>{
+      bCopy.addEventListener('click', async ()=>{
         if(!currentSel) return;
         const lines=[
           `Empreendimento: ${currentSel.nomeDisplay||'—'}`,
@@ -535,30 +534,28 @@
           prompt('Copie manualmente o resumo:', lines);
         }
       });
-      document.getElementById('act_share').addEventListener('click', async ()=>{
+
+      // Partilhar (síncrono → evita bloqueios)
+      bShare.addEventListener('click', ()=>{
         if(!currentSel) return;
         const gmaps = `https://www.google.com/maps?q=${currentSel.lat},${currentSel.lng}`;
         const shareText =
           `${currentSel.nomeDisplay||'Empreendimento'} · ${currentSel.concLabel||'—'} · ${currentSel.estadoLabel||'—'}\n`+
           `Conclusão: ${normalizeConclusao(currentSel.conclusao)||'—'}\n${gmaps}`;
 
-        // 1) Web Share API (mobile/navegadores compatíveis)
+        // 1) Web Share API
         if (navigator.share) {
-          try { await navigator.share({ title: currentSel.nomeDisplay || 'Empreendimento', text: shareText, url: gmaps }); return; }
-          catch(_) { /* cancelado */ }
+          navigator.share({ title: currentSel.nomeDisplay||'Empreendimento', text: shareText, url: gmaps })
+            .catch(()=>{/* ignorar cancelamento */});
+          return;
         }
+        // 2) WhatsApp Web (abrir imediatamente na “gestura” do clique)
+        const wa = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+        const w = window.open(wa, '_blank', 'noopener,noreferrer');
 
-        // 2) WhatsApp Web (click sintético evita bloqueio em alguns browsers)
-        const a=document.createElement('a');
-        a.href=`https://wa.me/?text=${encodeURIComponent(shareText)}`;
-        a.target='_blank'; a.rel='noopener noreferrer';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-
-        // 3) Fallback: copiar para clipboard (se usuário fechar WhatsApp sem enviar)
-        try { await navigator.clipboard.writeText(shareText); alert('Conteúdo de partilha copiado. Cole no WhatsApp/Email.'); }
-        catch(_) { prompt('Copie e partilhe manualmente:', shareText); }
+        // 3) Fallback: copiar (caso o browser bloqueie popups)
+        try { navigator.clipboard.writeText(shareText); } catch(_) {}
+        if(!w || w.closed){ alert('Conteúdo copiado. Se o WhatsApp não abriu, cole no WhatsApp/Email.'); }
       });
 
       // KPIs iniciais
