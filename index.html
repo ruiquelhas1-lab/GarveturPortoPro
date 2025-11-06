@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Garvetur Porto Pro — Mapa (KPIs + concelho inferido)</title>
+  <title>Garvetur Porto Pro — Mapa (KPIs + Ficha)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Preconnects -->
@@ -23,6 +23,7 @@
       --bg:#0E0E0E; --panel:#131313; --text:#FFFFFF; --muted:#9AA0A6;
       --gold:#FFD166; --blue:#118AB2; --green:#06D6A0; --yellow:#FFC107; --red:#EF476F;
       --card:#111111; --border:rgba(255,255,255,.10);
+      --panelEdge:#181818;
     }
     html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
 
@@ -48,24 +49,40 @@
       background:#0E0E0E; border-bottom:1px solid var(--border);
       padding:10px 14px;
     }
-    .kpiGrid{
-      display:grid; gap:10px;
-      grid-template-columns: repeat(12, 1fr);
-    }
-    .kpiCard{
-      background:var(--card); border:1px solid var(--border); border-radius:12px;
-      padding:12px; min-height:74px;
-    }
+    .kpiGrid{display:grid; gap:10px; grid-template-columns: repeat(12, 1fr);}
+    .kpiCard{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px; min-height:74px;}
     .kpiTitle{font-size:12px; color:#CFCFCF; text-transform:uppercase; letter-spacing:.05em}
     .kpiValue{font-size:22px; font-weight:700; margin-top:4px}
     .kpiNote{font-size:11px; color:#9AA0A6; margin-top:6px}
     .badge{display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; border:1px solid var(--border); background:#141414; margin-right:6px; margin-bottom:6px}
 
-    /* Mapa */
-    #map{height:calc(100% - 66px - 112px)} /* 66 topbar + ~112 KPIs */
-    @media (max-width: 1100px){
-      #map{height:calc(100% - 66px - 160px)}
+    /* Layout mapa + painel */
+    #viewport{position:relative; height:calc(100% - 66px - 112px);}
+    @media (max-width: 1100px){ #viewport{height:calc(100% - 66px - 160px);} }
+    #map{position:absolute; inset:0}
+
+    /* Painel lateral (Ficha) */
+    #drawer{
+      position:absolute; top:0; right:0; height:100%; width:380px;
+      background:linear-gradient(180deg, #151515, #101010);
+      border-left:1px solid var(--panelEdge);
+      transform:translateX(100%); transition:transform .28s ease;
+      display:flex; flex-direction:column; z-index:5;
+      box-shadow:-12px 0 30px rgba(0,0,0,.35);
     }
+    #drawer.open{ transform:translateX(0); }
+    .drawer-head{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:12px; border-bottom:1px solid var(--panelEdge)}
+    .drawer-title{font-weight:700; font-size:15px; color:#FFD166; line-height:1.2}
+    .drawer-sub{font-size:12px; color:#BFBFBF}
+    .drawer-body{padding:12px; overflow:auto}
+    .row{margin-bottom:10px}
+    .label{font-size:11px; color:#9AA0A6; text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px}
+    .value{font-size:14px; color:#EAEAEA; white-space:pre-wrap}
+    .chip{display:inline-block; font-size:11px; padding:4px 8px; background:#171717; border:1px solid rgba(255,255,255,.12); border-radius:999px}
+    .drawer-actions{display:flex; flex-wrap:wrap; gap:8px; padding:12px; border-top:1px dashed var(--panelEdge)}
+    .btn{background:transparent; border:1px solid rgba(255,209,102,.5); color:#fff; padding:8px 10px; border-radius:10px; cursor:pointer}
+    .btn:hover{border-color:var(--gold)}
+    .closeBtn{background:#191919; border:1px solid rgba(255,255,255,.15); color:#ddd; padding:6px 8px; border-radius:8px; cursor:pointer}
 
     /* Legenda e clusters */
     .legend{background:#0F0F0F;color:#fff;padding:8px 10px;font:12px/14px Arial,sans-serif;box-shadow:0 0 15px rgba(0,0,0,0.3);border-radius:8px;border:1px solid rgba(255,255,255,.06)}
@@ -95,7 +112,7 @@
     </div>
 
     <div class="searchWrap" title="Ano/Conclusão (ex.: 2027 ou 'Q2 2026')">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24  " fill="none" stroke="#FFD166" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
       <input id="yearSearch" placeholder="Ano/Conclusão (ex.: 2027 ou Q2 2026)" />
     </div>
 
@@ -114,19 +131,46 @@
   <!-- Faixa de KPIs -->
   <div id="kpiBar">
     <div class="kpiGrid" id="kpiGrid">
-      <!-- 12 colunas:
-           2 col Total, 2 Licenciado, 2 Em constr., 2 Concluído, 2 Concelhos distintos, 2 Top Concelhos -->
       <div class="kpiCard" style="grid-column: span 2;"><div class="kpiTitle">Total visíveis</div><div class="kpiValue" id="kpiTotal">—</div><div class="kpiNote" id="kpiTotalNote"></div></div>
       <div class="kpiCard" style="grid-column: span 2;"><div class="kpiTitle">Licenciado</div><div class="kpiValue" id="kpiLic">—</div><div class="kpiNote" id="kpiLicNote"></div></div>
       <div class="kpiCard" style="grid-column: span 2;"><div class="kpiTitle">Em construção</div><div class="kpiValue" id="kpiCons">—</div><div class="kpiNote" id="kpiConsNote"></div></div>
       <div class="kpiCard" style="grid-column: span 2;"><div class="kpiTitle">Concluído</div><div class="kpiValue" id="kpiConc">—</div><div class="kpiNote" id="kpiConcNote"></div></div>
-      <div class="kpiCard" style="grid-column: span 2;"><div class="kpiTitle">Concelhos distintos</div><div class="kpiValue" id="kpiConcelhos">—</div><div class="kpiNote" id="kpiConcNote2"></div></div>
       <div class="kpiCard" style="grid-column: span 2;"><div class="kpiTitle">Top 5 Concelhos</div><div class="kpiNote" id="kpiTopConc">—</div></div>
     </div>
   </div>
 
-  <!-- Mapa -->
-  <div id="map"></div>
+  <!-- Viewport: mapa + painel -->
+  <div id="viewport">
+    <div id="map"></div>
+
+    <!-- Painel Lateral (Ficha) -->
+    <aside id="drawer" aria-hidden="true">
+      <div class="drawer-head">
+        <div>
+          <div class="drawer-title" id="d_name">—</div>
+          <div class="drawer-sub" id="d_sub">—</div>
+        </div>
+        <button id="drawerClose" class="closeBtn" title="Fechar">Fechar ✕</button>
+      </div>
+
+      <div class="drawer-body">
+        <div class="row"><div class="label">Conclusão</div><div class="value" id="d_conc">—</div></div>
+        <div class="row"><div class="label">Notas</div><div class="value" id="d_notes">—</div></div>
+        <div class="row"><div class="label">Coordenadas</div><div class="value" id="d_coords">—</div></div>
+        <div class="row" id="d_link_row" style="display:none;">
+          <div class="label">Ligação</div>
+          <div class="value"><a id="d_link" href="#" target="_blank" rel="noreferrer">Abrir ligação do promotor</a></div>
+        </div>
+      </div>
+
+      <div class="drawer-actions">
+        <button id="act_center" class="btn">Centrar no mapa</button>
+        <button id="act_gmaps" class="btn">Abrir no Google Maps</button>
+        <button id="act_copy"  class="btn">Copiar resumo</button>
+        <button id="act_share" class="btn">Partilhar</button>
+      </div>
+    </aside>
+  </div>
 
   <!-- Loader utilitário -->
   <script>
@@ -183,34 +227,20 @@
     function toTitleCasePt(s){
       return String(s||'').toLowerCase().replace(/(^|\s|[-/])(\p{L})/gu,(m,p1,p2)=>p1+p2.toUpperCase());
     }
-
-    // Saneia valores de concelho
     function sanitizeConcelhoValue(v){
       if(v==null) return '';
       let s=String(v).replace(/\u00A0/g,' ').trim();
-      s=s.replace(/^\s*(concelho|munic[ií]pio)\s*[:\-–]\s*/i,''); // "Concelho: Porto" -> "Porto"
-      s=s.split(/[\/,;|\-–]+/)[0].trim();                         // "Porto / Cedofeita" -> "Porto"
+      s=s.replace(/^\s*(concelho|munic[ií]pio)\s*[:\-–]\s*/i,'');
+      s=s.split(/[\/,;|\-–]+/)[0].trim();
       if(s.toLowerCase()==='nan' || s==='') return '';
       return s;
     }
-
-    // 1) Ler concelho diretamente, 2) por texto, 3) por BBox AMP
     function getConcelhoDynamic(props){
       let val=mapName(props,['concelho','Concelho','concelho ','Concelho ','municipio','município','municipality','city','local','freguesia']);
       val=sanitizeConcelhoValue(val);
       if(val) return val;
-
-      // texto (procura palavras AMP em todos os campos)
-      const MUNICIPIOS_AMP = [
-        "Porto","Vila Nova de Gaia","Matosinhos","Gondomar","Maia",
-        "Valongo","Espinho","Póvoa de Varzim","Vila do Conde"
-      ];
-      const BAG = Object.values(props||{}).map(v=>normStr(v)).join(" | ");
-      for(const nome of MUNICIPIOS_AMP){ if(BAG.includes(normStr(nome))) return nome; }
-
       return '';
     }
-
     const BBOX = {
       "Porto":            { minLat:41.12, maxLat:41.20, minLng:-8.69, maxLng:-8.55 },
       "Vila Nova de Gaia":{ minLat:41.03, maxLat:41.16, minLng:-8.70, maxLng:-8.51 },
@@ -261,17 +291,27 @@
       const concListEl=document.getElementById('concelhosList');
       const yearEl=document.getElementById('yearSearch');
 
-      const exportBtn=document.getElementById('exportBtn');
-      const focusBtn=document.getElementById('focusBtn');
-      const clearBtn=document.getElementById('clearBtn');
-
       // KPI elements
       const kpiTotal=document.getElementById('kpiTotal');
       const kpiLic=document.getElementById('kpiLic');
       const kpiCons=document.getElementById('kpiCons');
       const kpiConc=document.getElementById('kpiConc');
-      const kpiConcelhos=document.getElementById('kpiConcelhos');
       const kpiTopConc=document.getElementById('kpiTopConc');
+
+      // Drawer elements
+      const drawer=document.getElementById('drawer');
+      const dClose=document.getElementById('drawerClose');
+      const dName=document.getElementById('d_name');
+      const dSub=document.getElementById('d_sub');
+      const dConc=document.getElementById('d_conc');
+      const dNotes=document.getElementById('d_notes');
+      const dCoords=document.getElementById('d_coords');
+      const dLinkRow=document.getElementById('d_link_row');
+      const dLink=document.getElementById('d_link');
+      const bCenter=document.getElementById('act_center');
+      const bGMaps=document.getElementById('act_gmaps');
+      const bCopy=document.getElementById('act_copy');
+      const bShare=document.getElementById('act_share');
 
       try{ await loadLeafletStack(); }
       catch(e){
@@ -286,15 +326,29 @@
 
       const AMP_BOUNDS=L.latLngBounds([[41.03,-8.78],[41.44,-8.41]]);
       function focusAMP(){ map.fitBounds(AMP_BOUNDS.pad(0.1)); }
-      focusBtn.addEventListener('click', focusAMP);
+      document.getElementById('focusBtn').addEventListener('click', focusAMP);
+      document.getElementById('clearBtn').addEventListener('click', ()=>{
+        searchEl.value=''; concSearchEl.value=''; yearEl.value='';
+        document.querySelectorAll('.state-filter').forEach(cb=>cb.checked=true);
+        applyFilters();
+      });
+      document.getElementById('exportBtn').addEventListener('click', ()=>{
+        const visible=cluster.getAllChildMarkers();
+        if(!visible||!visible.length){ alert('Não há empreendimentos visíveis para exportar.'); return; }
+        const key=v=>`${v.latitude}|${v.longitude}`;
+        const visibleKeys=new Set(visible.map(m=>key({latitude:m.getLatLng().lat, longitude:m.getLatLng().lng})));
+        const headers=['nome','concelho','estado','conclusao','notas','link','latitude','longitude'];
+        const csv=[headers.join(';')].concat(
+          allRowsForExport.filter(r=>visibleKeys.has(key(r))).map(r=>headers.map(h=>(r[h]??'')).join(';'))
+        ).join('\n');
+        const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob); a.download='empreendimentos_filtrados.csv';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      });
 
-      const allMarkers=[];
-      let usedUrl='';
-      let allRowsForExport=[];
-
-      // Carregar GeoJSON (3 fontes)
+      // Estado da app
       const candidates=[DEFAULT_GEOJSON, RAW_MAIN, RAW_GHPAGES];
-      const errors=[]; let gj=null;
+      const errors=[]; let gj=null; let usedUrl='';
       for(const url of candidates){
         try{ const txt=await fetchTextNoCache(url); gj=parseJSONSafe(txt); usedUrl=url; break; }
         catch(e){ errors.push(url+' → '+e.message); }
@@ -304,8 +358,34 @@
         return;
       }
 
-      // Concelhos para sugestões
-      const concelhosMap = new Map(); // norm -> label
+      const allMarkers=[]; let allRowsForExport=[];
+      const concelhosMap=new Map();
+
+      // Registo do selecionado (para ações do painel)
+      let currentSel = null; // {nome, concLabel, estadoLabel, conclusao, notas, link, lat, lng, marker}
+
+      function openDrawer(data){
+        currentSel=data;
+        dName.textContent = data.nomeDisplay || 'Empreendimento';
+        dSub.innerHTML = `${data.concLabel?toTitleCasePt(data.concLabel)+' · ':''}<span class="chip">${data.estadoLabel||'—'}</span>`;
+        dConc.textContent = data.conclusao || '—';
+        dNotes.textContent = data.notasFull || '—';
+        dCoords.textContent = `${data.lat.toFixed(6)}, ${data.lng.toFixed(6)}`;
+        if(data.link){
+          dLinkRow.style.display='';
+          dLink.href = /^https?:\/\//i.test(data.link) ? data.link : ('http://' + data.link);
+        } else {
+          dLinkRow.style.display='none';
+        }
+        drawer.classList.add('open');
+        drawer.setAttribute('aria-hidden','false');
+      }
+      function closeDrawer(){
+        drawer.classList.remove('open');
+        drawer.setAttribute('aria-hidden','true');
+        currentSel=null;
+      }
+      dClose.addEventListener('click', closeDrawer);
 
       // Construir marcadores
       gj.features.forEach(f=>{
@@ -318,60 +398,55 @@
         let concelho=getConcelhoDynamic(p);
         if(!concelho){ const guess=guessConcelhoFromBBox(lat,lng); if(guess) concelho=guess; }
         const concLower=normStr(concelho);
+        const concLabel=toTitleCasePt(concelho||'');
 
-        const nome=mapName(p,['nome','name','titulo','título','projecto','projeto'])||'Empreendimento';
+        const nomeRaw=mapName(p,['nome','name','titulo','título','projecto','projeto'])||'Empreendimento';
+        const nomeDisplay=nomeRaw;
+        const nome=normStr(nomeRaw);
         const estadoKey=normalizeEstado(mapName(p,['estado','status']));
         const estadoLabel=stateDisplay[estadoKey]||mapName(p,['estado','status']);
         const conclusao=mapName(p,['conclusao','conclusão','conclusao_prevista','completion','entrega']);
-        const notas=mapName(p,['notas','observacoes','observações','notes']);
+        const notasFull=mapName(p,['notas','observacoes','observações','notes']);
+        const notas=normStr(notasFull);
         let link=mapName(p,['link','url','website']);
         if(!estadoKey||!stateDisplay[estadoKey]) return;
 
-        if(concelho){ const label=toTitleCasePt(concelho); if(!concelhosMap.has(concLower)) concelhosMap.set(concLower,label); }
+        if(concelho){ if(!concelhosMap.has(concLower)) concelhosMap.set(concLower, concLabel); }
 
         const icon=makePinIcon(stateColors[estadoKey]||'#BBBBBB');
-        const marker=L.marker([lat,lng],{icon,title:nome});
+        const marker=L.marker([lat,lng],{icon,title:nomeDisplay});
 
         const tooltipHtml=`
           <div style="min-width:220px">
-            <div style="font-weight:700; font-size:13px; margin-bottom:4px;">${nome}</div>
-            <div style="font-size:12px; color:#ccc;">${concelho?toTitleCasePt(concelho)+' · ':''}${estadoLabel}</div>
+            <div style="font-weight:700; font-size:13px; margin-bottom:4px;">${nomeDisplay}</div>
+            <div style="font-size:12px; color:#ccc;">${concelho?concLabel+' · ':''}${estadoLabel}</div>
             ${conclusao?`<div style="font-size:12px; margin-top:4px;"><strong>Conclusão:</strong> ${conclusao}</div>`:''}
-            ${notas?`<div style="font-size:12px; margin-top:4px; color:#ddd;">${String(notas).length>160?(String(notas).substring(0,157)+'…'):notas}</div>`:''}
+            ${notasFull?`<div style="font-size:12px; margin-top:4px; color:#ddd;">${String(notasFull).length>160?(String(notasFull).substring(0,157)+'…'):notasFull}</div>`:''}
           </div>`;
         marker.bindTooltip(tooltipHtml,{direction:'top',offset:[0,-28],sticky:true,opacity:0.95});
 
-        let popup=`<div style="min-width:240px">
-          <div style="font-weight:700; font-size:14px; margin-bottom:6px; color:#111;">${nome}</div>
-          <div style="font-size:12px; color:#444;">${concelho?toTitleCasePt(concelho)+' · ':''}${estadoLabel}</div>
-          ${conclusao?`<div style="font-size:12px; margin-top:6px;"><strong>Conclusão:</strong> ${conclusao}</div>`:''}
-          ${notas?`<div style="font-size:12px; margin-top:6px;">${notas}</div>`:''}`;
-        if(link){ if(!/^https?:\/\//i.test(link)) link='http://'+link;
-          popup+=`<div style="margin-top:8px;"><a href="${link}" target="_blank" rel="noreferrer">Abrir ligação</a></div>`; }
-        popup+=`</div>`;
-        marker.bindPopup(popup);
-
-        const conclusaoLower=normStr(conclusao);
-        const yearMatch=/(\b20\d{2}\b)/.exec(conclusaoLower);
-        const conclusaoYear=yearMatch?yearMatch[1]:'';
+        marker.on('click', ()=>{
+          map.setView([lat,lng], Math.max(map.getZoom(), 15), {animate:true});
+          openDrawer({ nomeDisplay, concLabel, estadoLabel, conclusao, notasFull, link, lat, lng, marker });
+        });
 
         allMarkers.push({
           marker, estadoKey, estadoLabel,
-          nome: normStr(nome),
-          concLower, concLabel: toTitleCasePt(concelho||''),
-          notas: normStr(notas),
-          conclusaoLower, conclusaoYear,
+          nome, nomeDisplay,
+          concLower, concLabel,
+          notas, notasFull,
+          conclusaoLower: normStr(conclusao), conclusaoYear: (/(\b20\d{2}\b)/.exec(normStr(conclusao))||[])[1] || '',
           link, lat, lng
         });
 
         allRowsForExport.push({
-          nome, concelho: toTitleCasePt(concelho||''), estado: estadoLabel, conclusao, notas, link, latitude: lat, longitude: lng
+          nome: nomeDisplay, concelho: concLabel, estado: estadoLabel, conclusao, notas: notasFull, link, latitude: lat, longitude: lng
         });
 
         cluster.addLayer(marker);
       });
 
-      // Preencher autocomplete de concelhos
+      // Autocomplete concelhos
       (function populateConcelhos(){
         const frag=document.createDocumentFragment();
         const arr = Array.from(concelhosMap.entries()).sort((a,b)=>a[1].localeCompare(b[1],'pt'));
@@ -381,33 +456,23 @@
         concListEl.replaceChildren(frag);
       })();
 
-      // Enquadramento
+      // Enquadramento inicial
       if(cluster.getLayers().length) map.fitBounds(cluster.getBounds().pad(0.2)); else map.setView([41.15,-8.6],12);
 
       // KPIs + linha de estado
       function renderKPIs(arr){
         const by={ licenciado:0, em_construcao:0, concluido:0, em_licenciamento:0 };
-        const concCounts=new Map(); // label -> count
-
+        const concCounts=new Map();
         arr.forEach(o=>{
           if(by.hasOwnProperty(o.estadoKey)) by[o.estadoKey]++;
           if(o.concLabel){ concCounts.set(o.concLabel, (concCounts.get(o.concLabel)||0)+1 ); }
         });
-
-        // Valores
         kpiTotal.textContent = arr.length;
         kpiLic.textContent   = by.licenciado;
         kpiCons.textContent  = by.em_construcao;
         kpiConc.textContent  = by.concluido;
-        kpiConcelhos.textContent = new Set(arr.map(o=>o.concLower).filter(Boolean)).size;
-
-        // Top 5 concelhos
         const top = Array.from(concCounts.entries()).sort((a,b)=>b[1]-a[1]).slice(0,5);
-        kpiTopConc.innerHTML = top.length
-          ? top.map(([label,n])=>`<span class="badge">${label}: ${n}</span>`).join(' ')
-          : '—';
-
-        // Linha de estado (fonte+resumo)
+        kpiTopConc.innerHTML = top.length ? top.map(([label,n])=>`<span class="badge">${label}: ${n}</span>`).join(' ') : '—';
         statsLine.innerHTML = [
           `Fonte: <small>${usedUrl.replace('https://','')}</small>`,
           `Total visíveis: <strong>${arr.length}</strong>`,
@@ -416,6 +481,7 @@
           `Concluído: <strong>${by.concluido}</strong>`
         ].join(' · ');
       }
+      renderKPIs(allMarkers);
 
       // Filtros
       function matchesYear(o,yq){
@@ -425,20 +491,14 @@
         if(yr) return(o.conclusaoYear===yr);
         return o.conclusaoLower.includes(s);
       }
-
       function applyFilters(){
         const q   = normStr(searchEl.value);
         const cq  = normStr(concSearchEl.value);
         const yq  = yearEl.value;
-
         const allowed = new Set(
-          Array.from(document.querySelectorAll('.state-filter'))
-            .filter(cb => cb.checked)
-            .map(cb => cb.value)
+          Array.from(document.querySelectorAll('.state-filter')).filter(cb=>cb.checked).map(cb=>cb.value)
         );
-
         cluster.clearLayers();
-
         const filtered = allMarkers.filter(o=>{
           if(!allowed.has(o.estadoKey)) return false;
           const textOk = !q || o.nome.includes(q) || o.notas.includes(q);
@@ -446,56 +506,54 @@
           const conclOk= matchesYear(o, yq);
           return textOk && concOk && conclOk;
         });
-
         filtered.forEach(o=>cluster.addLayer(o.marker));
         renderKPIs(filtered);
-
-        if(!filtered.length) {
-          map.fitBounds(AMP_BOUNDS.pad(0.1));
-        } else {
+        if(!filtered.length) { map.fitBounds(AMP_BOUNDS.pad(0.1)); }
+        else {
           const bounds = L.latLngBounds(filtered.map(o=>[o.lat,o.lng]));
           if(bounds.isValid()) map.fitBounds(bounds.pad(0.2));
         }
-
-        // (Opcional) registo local para comparações futuras
-        try{
-          const snapshot={
-            ts:Date.now(),
-            total:filtered.length,
-            lic:filtered.filter(o=>o.estadoKey==='licenciado').length,
-            cons:filtered.filter(o=>o.estadoKey==='em_construcao').length,
-            conc:filtered.filter(o=>o.estadoKey==='concluido').length
-          };
-          localStorage.setItem('gpp_last_snapshot', JSON.stringify(snapshot));
-        }catch(_){}
+        // se o selecionado sair do filtro, fecha o painel
+        if(currentSel && !filtered.some(o=>o.marker===currentSel.marker)) closeDrawer();
       }
-
-      // Eventos (com debounce)
       document.querySelectorAll('.state-filter').forEach(cb=>cb.addEventListener('change', applyFilters));
       let t1=null,t2=null,t3=null;
       searchEl.addEventListener('input', ()=>{ clearTimeout(t1); t1=setTimeout(applyFilters,130); });
       concSearchEl.addEventListener('input', ()=>{ clearTimeout(t2); t2=setTimeout(applyFilters,130); });
       yearEl.addEventListener('input', ()=>{ clearTimeout(t3); t3=setTimeout(applyFilters,130); });
 
-      // Limpar filtros
-      clearBtn.addEventListener('click', ()=>{
-        searchEl.value=''; concSearchEl.value=''; yearEl.value='';
-        document.querySelectorAll('.state-filter').forEach(cb=>cb.checked=true);
-        applyFilters();
+      // Ações do painel
+      bCenter.addEventListener('click', ()=>{
+        if(!currentSel) return;
+        map.setView([currentSel.lat,currentSel.lng], Math.max(map.getZoom(), 16), {animate:true});
       });
-
-      // Export CSV (visível)
-      exportBtn.addEventListener('click', ()=>{
-        const visible=cluster.getAllChildMarkers();
-        if(!visible||!visible.length){ alert('Não há empreendimentos visíveis para exportar.'); return; }
-        const key=v=>`${v.latitude}|${v.longitude}`;
-        const visibleKeys=new Set(visible.map(m=>key({latitude:m.getLatLng().lat, longitude:m.getLatLng().lng})));
-        const exportData=allRowsForExport.filter(r=>visibleKeys.has(key(r)));
-        const headers=['nome','concelho','estado','conclusao','notas','link','latitude','longitude'];
-        const csv=[headers.join(';')].concat(exportData.map(r=>headers.map(h=>(r[h]??'')).join(';'))).join('\n');
-        const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const a=document.createElement('a');
-        a.href=URL.createObjectURL(blob); a.download='empreendimentos_filtrados.csv';
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      bGMaps.addEventListener('click', ()=>{
+        if(!currentSel) return;
+        const url=`https://www.google.com/maps?q=${currentSel.lat},${currentSel.lng}`;
+        window.open(url,'_blank','noopener,noreferrer');
+      });
+      bCopy.addEventListener('click', async ()=>{
+        if(!currentSel) return;
+        const lines=[
+          `Empreendimento: ${currentSel.nomeDisplay||'—'}`,
+          `Concelho: ${currentSel.concLabel||'—'}`,
+          `Estado: ${currentSel.estadoLabel||'—'}`,
+          `Conclusão: ${currentSel.conclusao||'—'}`,
+          `Notas: ${currentSel.notasFull||'—'}`,
+          `Coords: ${currentSel.lat.toFixed(6)}, ${currentSel.lng.toFixed(6)}`,
+          currentSel.link ? `Link: ${/^https?:\/\//i.test(currentSel.link)?currentSel.link:('http://'+currentSel.link)}` : ''
+        ].filter(Boolean).join('\n');
+        try{ await navigator.clipboard.writeText(lines); alert('Resumo copiado.'); }catch(_){ alert('Não foi possível copiar.'); }
+      });
+      bShare.addEventListener('click', async ()=>{
+        if(!currentSel) return;
+        const shareData={
+          title: currentSel.nomeDisplay || 'Empreendimento',
+          text: `${currentSel.nomeDisplay||'Empreendimento'} · ${currentSel.concLabel||'—'} · ${currentSel.estadoLabel||'—'}`,
+          url: `https://www.google.com/maps?q=${currentSel.lat},${currentSel.lng}`
+        };
+        if(navigator.share){ try{ await navigator.share(shareData); }catch(_){ /* cancelado */ } }
+        else{ alert('Partilha nativa não disponível neste dispositivo.'); }
       });
 
       // Legenda
@@ -508,9 +566,6 @@
         return div;
       };
       legend.addTo(map);
-
-      // Primeira renderização (sem filtros ativos)
-      renderKPIs(allMarkers);
     })();
   </script>
 </body>
