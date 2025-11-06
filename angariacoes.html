@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<title>Garvetur Porto Pro — Angariações</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<style>
+:root{
+  --bg:#0E0E0E; --panel:#131313; --text:#FFFFFF; --muted:#9AA0A6;
+  --gold:#A38B63; --edge:#1a1a1a; --card:#141414; --ok:#06D6A0; --warn:#FFD166; --info:#118AB2;
+}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+#topbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.08);background:#0F0F0F;position:sticky;top:0;z-index:50}
+.brand{display:flex;align-items:center;gap:10px}
+.brand h1{margin:0;font-size:16px;color:var(--gold)}
+.input{background:#121212;border:1px solid rgba(255,255,255,.12);color:#fff;padding:7px 9px;border-radius:10px;outline:none}
+.input::placeholder{color:#8f8f8f}
+.btn{background:transparent;border:1px solid rgba(163,139,99,.5);color:#fff;padding:7px 10px;border-radius:10px;cursor:pointer}
+.btn:hover{border-color:var(--gold)}
+.notice{font-size:12px;color:#cfcfcf}
+.tabs{display:flex;gap:6px;align-items:center;margin-left:4px}
+.tab{font-size:12px;padding:6px 10px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:#121212;color:#ddd;text-decoration:none}
+.tab:hover{border-color:var(--gold)}
+.tab.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:600}
+
+#kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.08);background:#0E0E0E}
+.kpi{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px}
+.kpi .t{font-size:10px;color:#CFCFCF;text-transform:uppercase;letter-spacing:.05em}
+.kpi .v{font-size:16px;font-weight:800;margin-top:4px}
+
+#board{display:grid;grid-template-columns:repeat(8,1fr);gap:12px;padding:12px}
+@media (max-width:1200px){#board{grid-template-columns:repeat(4,1fr)}}
+@media (max-width:800px){#board{grid-template-columns:1fr}}
+
+.col{background:var(--panel);border:1px solid rgba(255,255,255,.06);border-radius:12px;display:flex;flex-direction:column;min-height:280px}
+.col .head{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--edge)}
+.col .head .title{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#ddd}
+.col .head .count{font-size:12px;color:#bbb}
+.col .drop{flex:1;padding:10px;display:flex;flex-direction:column;gap:10px}
+
+.card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px;cursor:grab}
+.card.dragging{opacity:.6}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.badge{font-size:11px;border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:2px 8px;background:#161616;color:#ddd}
+.kv{font-size:12px;color:#eaeaea}
+.kv label{font-size:10px;color:#9aa0a6;text-transform:uppercase;letter-spacing:.05em;display:block}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.tag{font-size:10px;padding:2px 8px;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:#171717}
+.actions{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.btn-sm{font-size:12px;border:1px solid rgba(255,255,255,.14);background:#121212;color:#ddd;padding:5px 7px;border-radius:8px;cursor:pointer}
+.btn-sm:hover{border-color:var(--gold)}
+.drag-over{outline:2px dashed var(--gold);outline-offset:-6px;border-radius:10px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+  <div id="topbar">
+    <div class="brand">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--gold)"><circle cx="12" cy="12" r="10" stroke-width="1.5"/><path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/></svg>
+      <h1>Garvetur Porto Pro</h1>
+      <nav class="tabs">
+        <a class="tab" href="./index.html">Mapa</a>
+        <a class="tab" href="./kanban.html">Leads</a>
+        <a class="tab active" href="./angariacoes.html">Angariações</a>
+        <a class="tab" href="./dashboard.html">Dashboard</a>
+      </nav>
+    </div>
+    <a class="btn" href="./index.html" style="margin-left:auto">← Voltar ao Mapa</a>
+    <input id="q" class="input" placeholder="Pesquisar (proprietário, imóvel, concelho, notas…)" />
+    <select id="consultor" class="input">
+      <option value="">— Todos os consultores —</option>
+    </select>
+    <select id="concelho" class="input">
+      <option value="">— Todos os concelhos —</option>
+    </select>
+    <button id="addCard" class="btn">+ Nova angariação</button>
+    <button id="exportCsv" class="btn">Exportar CSV</button>
+    <button id="exportJson" class="btn">Exportar JSON</button>
+    <label class="btn" for="importJsonInput">Importar JSON</label>
+    <input id="importJsonInput" type="file" accept="application/json" class="hidden">
+    <div id="kpi" class="notice"></div>
+  </div>
+
+  <div id="kpis">
+    <div class="kpi"><div class="t">Total</div><div id="kpi_total" class="v">—</div></div>
+    <div class="kpi"><div class="t">Prospecção</div><div id="kpi_prospec" class="v">—</div></div>
+    <div class="kpi"><div class="t">Visitas técnicas</div><div id="kpi_visita" class="v">—</div></div>
+    <div class="kpi"><div class="t">Propostas</div><div id="kpi_prop" class="v">—</div></div>
+    <div class="kpi"><div class="t">Contratos</div><div id="kpi_contr" class="v">—</div></div>
+    <div class="kpi"><div class="t">Activo em carteira</div><div id="kpi_activo" class="v">—</div></div>
+  </div>
+
+  <div id="board"></div>
+
+<script>
+// Funil de angariações
+const COLUMNS = [
+  { key:'prospeccao', label:'Prospecção' },
+  { key:'contacto_prop', label:'Contacto proprietário' },
+  { key:'visita_tecnica', label:'Visita técnica' },
+  { key:'proposta_ang', label:'Proposta de angariação' },
+  { key:'em_revisao', label:'Em revisão' },
+  { key:'contrato', label:'Contrato assinado' },
+  { key:'activo', label:'Activo em carteira' },
+  { key:'perdido', label:'Perdido' },
+];
+
+const STORAGE_KEY = 'gpp_ang_v1';
+let state = loadState();
+let filterQuery = '';
+let filterConsultor = '';
+let filterConcelho = '';
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){ return JSON.parse(raw); }
+  }catch(e){}
+  return { prospeccao:[], contacto_prop:[], visita_tecnica:[], proposta_ang:[], em_revisao:[], contrato:[], activo:[], perdido:[] };
+}
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function uid(){ return 'id_'+Math.random().toString(36).slice(2,9); }
+function money(v){ const n=Number(v); return Number.isFinite(n)? n.toLocaleString('pt-PT',{style:'currency',currency:'EUR'}) : '—'; }
+function fmtDate(s){ return s? new Date(s).toLocaleDateString('pt-PT') : '—'; }
+function norm(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+
+const board = document.getElementById('board');
+
+function render(){
+  board.innerHTML = '';
+  let total=0;
+  let somaPedido=0, somaSug=0;
+  const consultoresSet=new Set();
+  const concelhosSet=new Set();
+
+  COLUMNS.forEach(col=>{
+    const colEl = document.createElement('div');
+    colEl.className = 'col';
+    colEl.dataset.col = col.key;
+    const head = document.createElement('div');
+    head.className = 'head';
+    head.innerHTML = `<div class="title">${col.label}</div><div class="count" id="count_${col.key}">0</div>`;
+    colEl.appendChild(head);
+
+    const drop = document.createElement('div');
+    drop.className = 'drop';
+    drop.addEventListener('dragover', (e)=>{ e.preventDefault(); drop.classList.add('drag-over'); });
+    drop.addEventListener('dragleave', ()=> drop.classList.remove('drag-over'));
+    drop.addEventListener('drop', (e)=>{
+      e.preventDefault();
+      drop.classList.remove('drag-over');
+      const cardId = e.dataTransfer.getData('text/plain');
+      moveCardToColumn(cardId, col.key);
+    });
+    colEl.appendChild(drop);
+
+    const list = state[col.key] || [];
+    const listFiltered = list.filter(item=>{
+      const text = [
+        item.consultor,item.proprietario,item.telefone,item.email,
+        item.imovel,item.morada,item.concelho,item.tipologia,
+        item.documentacao,item.etiquetas,item.notas
+      ].map(norm).join(' ');
+      const okText = !filterQuery || text.includes(norm(filterQuery));
+      const okCons = !filterConsultor || norm(item.consultor)===norm(filterConsultor);
+      const okConc = !filterConcelho || norm(item.concelho)===norm(filterConcelho);
+      return okText && okCons && okConc;
+    });
+
+    listFiltered.forEach(item=>{
+      total++;
+      const vPed = Number(item.preco_pedido);
+      const vSug = Number(item.valor_sugerido);
+      if(Number.isFinite(vPed)) somaPedido+=vPed;
+      if(Number.isFinite(vSug)) somaSug+=vSug;
+      consultoresSet.add(item.consultor||'');
+      if(item.concelho) concelhosSet.add(item.concelho);
+
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.draggable = true;
+      card.id = item.id;
+      card.addEventListener('dragstart', (e)=>{ card.classList.add('dragging'); e.dataTransfer.setData('text/plain', item.id); });
+      card.addEventListener('dragend', ()=> card.classList.remove('dragging'));
+
+      const tags = (item.etiquetas||'').split(',').map(s=>s.trim()).filter(Boolean).slice(0,6);
+      const docs = (item.documentacao||'').split(',').map(s=>s.trim()).filter(Boolean).slice(0,6);
+
+      card.innerHTML = `
+        <div class="row">
+          <span class="badge">${item.consultor || '—'}</span>
+          <span class="badge">${item.origem || 'Captação'}</span>
+          <span class="badge">${item.prioridade || 'B'}</span>
+          ${item.createdAt? `<span class="badge">${new Date(item.createdAt).toLocaleDateString('pt-PT')}</span>`: ''}
+        </div>
+        <div class="kv"><label>Proprietário</label>${item.proprietario || '—'} ${item.telefone? ' · '+item.telefone:''} ${item.email? ' · '+item.email:''}</div>
+        <div class="kv"><label>Imóvel</label>${item.imovel || '—'} ${item.morada? ' · '+item.morada:''} ${item.concelho? ' · '+item.concelho:''}</div>
+        <div class="kv"><label>Tipologia / Área</label>${item.tipologia || '—'} ${item.area? ' · '+item.area+' m²':''}</div>
+        <div class="kv"><label>Preço pedido / Valor sugerido</label>${money(item.preco_pedido)} / ${money(item.valor_sugerido)}</div>
+        <div class="kv"><label>Documentação</label><div class="tags">${docs.map(t=>`<span class="tag">${t}</span>`).join(' ')||'—'}</div></div>
+        <div class="kv"><label>Etiquetas</label><div class="tags">${tags.map(t=>`<span class="tag">${t}</span>`).join(' ')||'—'}</div></div>
+        <div class="kv"><label>Próx. ação</label>${item.proxima || '—'} <span style="color:#9aa0a6">(${fmtDate(item.quando)})</span></div>
+        <div class="kv"><label>Notas</label>${item.notas || '—'}</div>
+        <div class="actions">
+          <button class="btn-sm" data-act="edit">Editar</button>
+          <button class="btn-sm" data-act="move">Mover…</button>
+          <button class="btn-sm" data-act="whatsapp">WhatsApp</button>
+          <button class="btn-sm" data-act="del">Remover</button>
+        </div>
+      `;
+      card.querySelector('[data-act="edit"]').addEventListener('click', ()=> editCard(item.id));
+      card.querySelector('[data-act="move"]').addEventListener('click', ()=> promptMove(item.id));
+      card.querySelector('[data-act="del"]').addEventListener('click', ()=> deleteCard(item.id));
+      card.querySelector('[data-act="whatsapp"]').addEventListener('click', ()=> shareWhatsapp(item));
+      drop.appendChild(card);
+    });
+
+    board.appendChild(colEl);
+    document.getElementById(`count_${col.key}`).textContent = String(listFiltered.length);
+  });
+
+  // KPIs topo
+  document.getElementById('kpi_total').textContent = total;
+  document.getElementById('kpi_prospec').textContent = (state.prospeccao||[]).length;
+  document.getElementById('kpi_visita').textContent = (state.visita_tecnica||[]).length;
+  document.getElementById('kpi_prop').textContent = (state.proposta_ang||[]).length;
+  document.getElementById('kpi_contr').textContent = (state.contrato||[]).length;
+  document.getElementById('kpi_activo').textContent = (state.activo||[]).length;
+  document.getElementById('kpi').innerHTML = `Pedido visível: <b>${money(somaPedido)}</b> · Sugerido visível: <b>${money(somaSug)}</b>`;
+
+  // Popular filtros (consultor/concelho)
+  const selCons = document.getElementById('consultor');
+  const curCons = selCons.value;
+  selCons.innerHTML = `<option value="">— Todos os consultores —</option>`;
+  Array.from(new Set(
+    COLUMNS.flatMap(c => (state[c.key]||[]).map(it => it.consultor || ''))
+  )).filter(Boolean).sort((a,b)=>a.localeCompare(b,'pt')).forEach(n=>{
+    const opt=document.createElement('option'); opt.value=n; opt.textContent=n; selCons.appendChild(opt);
+  });
+  if([...selCons.options].some(o=>o.value===curCons)) selCons.value=curCons;
+
+  const selConc = document.getElementById('concelho');
+  const curConc = selConc.value;
+  selConc.innerHTML = `<option value="">— Todos os concelhos —</option>`;
+  Array.from(new Set(
+    COLUMNS.flatMap(c => (state[c.key]||[]).map(it => it.concelho || ''))
+  )).filter(Boolean).sort((a,b)=>a.localeCompare(b,'pt')).forEach(n=>{
+    const opt=document.createElement('option'); opt.value=n; opt.textContent=n; selConc.appendChild(opt);
+  });
+  if([...selConc.options].some(o=>o.value===curConc)) selConc.value=curConc;
+}
+
+function findCard(cardId){
+  for(const c of COLUMNS){ const i=(state[c.key]||[]).findIndex(x=>x.id===cardId); if(i>-1) return {col:c.key, idx:i, item:state[c.key][i]}; }
+  return null;
+}
+function moveCardToColumn(cardId, dest){
+  const f = findCard(cardId); if(!f) return;
+  const [item] = state[f.col].splice(f.idx,1);
+  state[dest].unshift(item);
+  saveState(); render();
+}
+function promptMove(cardId){
+  const dest = prompt('Mover para coluna (prospeccao, contacto_prop, visita_tecnica, proposta_ang, em_revisao, contrato, activo, perdido):');
+  if(!dest || !state[dest]) return;
+  moveCardToColumn(cardId, dest);
+}
+function editCard(cardId){
+  const f = findCard(cardId); if(!f) return;
+  const it = Object.assign({}, f.item);
+  it.consultor   = prompt('Consultor:', it.consultor||'') ?? it.consultor;
+  it.proprietario= prompt('Proprietário:', it.proprietario||'') ?? it.proprietario;
+  it.telefone    = prompt('Telefone:', it.telefone||'') ?? it.telefone;
+  it.email       = prompt('Email:', it.email||'') ?? it.email;
+  it.imovel      = prompt('Imóvel (ex.: T2 Boavista):', it.imovel||'') ?? it.imovel;
+  it.morada      = prompt('Morada:', it.morada||'') ?? it.morada;
+  it.concelho    = prompt('Concelho:', it.concelho||'') ?? it.concelho;
+  it.tipologia   = prompt('Tipologia (T0/T1/T2/…):', it.tipologia||'') ?? it.tipologia;
+  it.area        = prompt('Área bruta (m²):', it.area||'') ?? it.area;
+  it.preco_pedido= prompt('Preço pedido (€):', it.preco_pedido||'') ?? it.preco_pedido;
+  it.valor_sugerido= prompt('Valor sugerido (€):', it.valor_sugerido||'') ?? it.valor_sugerido;
+  it.documentacao= prompt('Documentação (separado por vírgulas, ex.: CE, Licença, Caderneta, Certidão):', it.documentacao||'') ?? it.documentacao;
+  it.etiquetas   = prompt('Etiquetas (ex.: Exclusivo, Urgente, Investidor) — separar por vírgulas:', it.etiquetas||'') ?? it.etiquetas;
+  it.proxima     = prompt('Próxima ação:', it.proxima||'') ?? it.proxima;
+  it.quando      = prompt('Data próxima ação (AAAA-MM-DD):', it.quando||'') ?? it.quando;
+  it.origem      = prompt('Origem (ex.: inbound, porta-a-porta, promotor):', it.origem||'') ?? it.origem;
+  it.prioridade  = prompt('Prioridade (A/B/C):', it.prioridade||'') ?? it.prioridade;
+  if(!it.createdAt) it.createdAt = new Date().toISOString().slice(0,10);
+  it.notas       = prompt('Notas:', it.notas||'') ?? it.notas;
+  state[f.col][f.idx]=it; saveState(); render();
+}
+function deleteCard(cardId){
+  const f = findCard(cardId); if(!f) return;
+  if(confirm('Remover esta angariação?')){ state[f.col].splice(f.idx,1); saveState(); render(); }
+}
+
+// Pesquisa e filtros
+document.getElementById('q').addEventListener('input', e=>{ filterQuery=e.target.value; render(); });
+document.getElementById('consultor').addEventListener('change', e=>{ filterConsultor=e.target.value; render(); });
+document.getElementById('concelho').addEventListener('change', e=>{ filterConcelho=e.target.value; render(); });
+
+// Adicionar nova angariação
+document.getElementById('addCard').addEventListener('click', ()=>{
+  const id = uid();
+  const consultor = prompt('Consultor (ex.: Armanda, Manuel, João)…') || '';
+  const proprietario = prompt('Proprietário…') || '';
+  const telefone = prompt('Telefone…') || '';
+  const email = prompt('Email…') || '';
+  const imovel = prompt('Imóvel (ex.: T2… / Lote… / Moradia…)?') || '';
+  const morada = prompt('Morada…') || '';
+  const concelho = prompt('Concelho…') || '';
+  const tipologia = prompt('Tipologia (T0/T1/T2/…):') || '';
+  const area = prompt('Área bruta (m²)…') || '';
+  const preco_pedido = prompt('Preço pedido (€)…') || '';
+  const valor_sugerido = prompt('Valor sugerido (€)…') || '';
+  const documentacao = prompt('Documentação (ex.: CE, Licença, Caderneta, Certidão) — separada por vírgulas…') || '';
+  const etiquetas = prompt('Etiquetas (Exclusivo, Urgente, Investidor) — separadas por vírgulas…') || '';
+  const proxima = prompt('Próxima ação…') || '';
+  const quando = prompt('Data próxima ação (AAAA-MM-DD)…') || '';
+  const origem = prompt('Origem (inbound, porta-a-porta, promotor)…') || '';
+  const prioridade = prompt('Prioridade (A/B/C)…') || 'B';
+  const notas = prompt('Notas…') || '';
+  const createdAt = new Date().toISOString().slice(0,10);
+
+  state.prospeccao.unshift({
+    id, consultor, proprietario, telefone, email,
+    imovel, morada, concelho, tipologia, area,
+    preco_pedido, valor_sugerido, documentacao, etiquetas,
+    proxima, quando, origem, prioridade, notas, createdAt
+  });
+  saveState(); render();
+});
+
+// Exportações/Importações
+document.getElementById('exportCsv').addEventListener('click', ()=>{
+  const rows = [];
+  COLUMNS.forEach(c=>{ (state[c.key]||[]).forEach(it=> rows.push({ coluna:c.key, ...it })); });
+  const headers=['coluna','id','consultor','proprietario','telefone','email','imovel','morada','concelho','tipologia','area','preco_pedido','valor_sugerido','documentacao','etiquetas','proxima','quando','origem','prioridade','notas','createdAt'];
+  const csv = [headers.join(';')].concat(rows.map(r=>headers.map(h=>String(r[h]??'').replace(/[\r\n]/g,' ').trim()).join(';'))).join('\n');
+  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'}); const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='angariacoes_garvetur.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+});
+document.getElementById('exportJson').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(state,null,2)],{type:'application/json'}); const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='angariacoes_garvetur.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+});
+document.getElementById('importJsonInput').addEventListener('change', async (e)=>{
+  const file=e.target.files[0]; if(!file) return;
+  try{ const txt = await file.text(); const json = JSON.parse(txt);
+    const ok = COLUMNS.every(c=>Array.isArray(json[c.key]));
+    if(!ok){ alert('Formato inválido.'); return; }
+    state = json; saveState(); render();
+  }catch(err){ alert('Erro ao importar JSON.'); }
+  e.target.value='';
+});
+
+function shareWhatsapp(item){
+  const linhas = [
+    `Consultor: ${item.consultor||'—'}`,
+    `Proprietário: ${item.proprietario||'—'} ${item.telefone? '('+item.telefone+')':''}`,
+    `Email: ${item.email||'—'}`,
+    `Imóvel: ${item.imovel||'—'} ${item.morada? ' · '+item.morada:''} ${item.concelho? ' · '+item.concelho:''}`,
+    `Tipologia/Área: ${item.tipologia||'—'} ${item.area? ' · '+item.area+' m²':''}`,
+    `Preço pedido / Valor sugerido: ${item.preco_pedido||'—'} / ${item.valor_sugerido||'—'}`,
+    `Documentação: ${item.documentacao||'—'}`,
+    `Etiquetas: ${item.etiquetas||'—'}`,
+    `Próx. ação: ${item.proxima||'—'} (${fmtDate(item.quando)})`,
+    `Notas: ${item.notas||'—'}`
+  ].join('\n');
+  const wa = `https://wa.me/?text=${encodeURIComponent(linhas)}`;
+  window.location.href = wa;
+}
+
+render();
+</script>
+</body>
+</html>
