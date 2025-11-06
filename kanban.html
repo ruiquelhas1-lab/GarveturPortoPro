@@ -12,7 +12,13 @@
   nav a.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:600;}
   .actions{display:flex;gap:8px;}
   .btn{background:transparent;border:1px solid rgba(163,139,99,.5);color:#fff;padding:6px 9px;border-radius:8px;cursor:pointer;font-size:12px;}
-  .board{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;padding:12px;height:calc(100% - 54px);}
+  .wrap{display:grid;grid-template-columns:1fr;gap:12px;padding:12px;}
+  .panel{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px;}
+  .panel h3{margin:0 0 8px 0;font-size:13px;color:#eaeaea;border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:6px;}
+  .form-grid{display:grid;grid-template-columns:1.4fr 1fr 0.8fr 1fr auto;gap:8px;align-items:end}
+  label{font-size:12px;color:#ddd;display:block;margin:4px 0 2px;}
+  input,select{width:100%;background:#0E0E0E;color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:8px 10px;}
+  .board{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;height:calc(100vh - 220px);}
   .col{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:12px;display:flex;flex-direction:column;overflow:auto;}
   .col h3{margin:0;padding:10px;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px;color:#eaeaea;}
   .lane{padding:10px;display:flex;flex-direction:column;gap:8px;}
@@ -20,7 +26,11 @@
   .card .t{font-weight:600;margin-bottom:4px;}
   .card .m{font-size:12px;color:#cfcfcf;}
   .help{padding:8px 12px;color:#ddd;font-size:12px;border-top:1px dashed rgba(255,255,255,.15);}
-  @media(max-width:900px){.board{grid-template-columns:1fr;}}
+  @media(max-width:1200px){.board{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:900px){
+    .form-grid{grid-template-columns:1fr}
+    .board{grid-template-columns:1fr;height:auto;min-height:60vh;}
+  }
 </style>
 </head>
 <body>
@@ -35,24 +45,73 @@
     </nav>
   </div>
   <div class="actions">
-    <button id="add" class="btn">+ Nova lead</button>
     <button id="seed" class="btn">Carregar dados de exemplo (10)</button>
     <button id="clear" class="btn">Limpar tudo</button>
   </div>
 </header>
 
-<div class="board" id="board"></div>
-<div class="help">Dica: arraste as cards entre colunas. Duplo-clique abre a edição; tecla <em>Delete</em> remove.</div>
+<div class="wrap">
+  <div class="panel">
+    <h3>Nova lead</h3>
+    <div class="form-grid">
+      <div>
+        <label>Título</label>
+        <input id="f_titulo" placeholder="Ex.: T3 Boavista – Investidor NL">
+      </div>
+      <div>
+        <label>Consultor</label>
+        <select id="f_consultor"></select>
+      </div>
+      <div>
+        <label>Valor (€)</label>
+        <input id="f_valor" type="number" inputmode="decimal" placeholder="Ex.: 620000">
+      </div>
+      <div>
+        <label>Etiquetas</label>
+        <input id="f_tags" placeholder="Ex.: Internacional, Alto valor">
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button id="add" class="btn">+ Adicionar</button>
+        <button id="reset" class="btn">Limpar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="board" id="board"></div>
+  <div class="help">Dica: arraste as cards entre colunas. Duplo-clique para editar; tecla <em>Delete</em> remove.</div>
+</div>
 
 <script>
-const LS_KEY = 'gpp_leads_v1';
+const LS_KEY = 'gpp_leads_v2';           // versão nova p/ não chocar com dados antigos
 const COLUMNS = ["Novo","Em contacto","Qualificado","Proposta","Fecho"];
+const CONSULTORS = [
+  "Rui Quelhas",
+  "Manuel Oliveira",
+  "João Sousa",
+  "Francisco dos Santos",
+  "Rosário Vasconcelos",
+  "Armanda Meireles",
+  "Audrey Lucas",
+  "Outro…"
+];
 
 function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'{}'); }catch(e){ return {}; } }
 function save(data){ localStorage.setItem(LS_KEY, JSON.stringify(data)); }
+function ensureModel(d){ COLUMNS.forEach(c=>{ if(!Array.isArray(d[c])) d[c]=[]; }); return d; }
 
-function ensureModel(d){
-  COLUMNS.forEach(c=>{ if(!Array.isArray(d[c])) d[c]=[]; });
+function fillConsultorSelect(){
+  const sel = document.getElementById('f_consultor');
+  sel.innerHTML = CONSULTORS.map(n=>`<option value="${n}">${n}</option>`).join('');
+  sel.value = CONSULTORS[0];
+}
+
+function cardEl(card, col, idx){
+  const d = document.createElement('div');
+  d.className='card'; d.draggable=true; d.tabIndex=0;
+  d.innerHTML = `<div class="t">${card.titulo || '(Sem título)'}</div>
+                 <div class="m">${card.consultor||''}${card.valor? ' · '+card.valor+'€':''}${card.etiquetas? ' · '+card.etiquetas:''}</div>`;
+  d.ondblclick = ()=> editCard(col, idx);
+  d.onkeydown = (e)=>{ if(e.key==='Delete'){ removeCard(col, idx); } };
   return d;
 }
 
@@ -69,45 +128,6 @@ function render(){
     board.appendChild(el);
   });
   enableDnD();
-}
-
-function cardEl(card, col, idx){
-  const d = document.createElement('div');
-  d.className='card'; d.draggable=true;
-  d.innerHTML = `<div class="t">${card.titulo || '(Sem título)'}</div>
-                 <div class="m">${card.consultor||''}${card.valor? ' · '+card.valor+'€':''}${card.etiquetas? ' · '+card.etiquetas:''}</div>`;
-  d.ondblclick = ()=> editCard(col, idx);
-  d.onkeydown = (e)=>{ if(e.key==='Delete'){ removeCard(col, idx); } };
-  return d;
-}
-
-function addCard(){
-  const titulo = prompt('Título da lead (ex.: T3 Boavista – Investidor NL):','');
-  if(titulo==null) return;
-  const consultor = prompt('Consultor (ex.: Manuel / Armanda / João):','');
-  const valor = prompt('Valor (estimado) em € (opcional):','');
-  const etiquetas = prompt('Etiquetas (ex.: Internacional, Investidor, Alto valor):','');
-  const data = ensureModel(load());
-  data["Novo"].unshift({titulo, consultor, valor, etiquetas});
-  save(data); render();
-}
-
-function editCard(col, idx){
-  const data = ensureModel(load());
-  const c = data[col][idx];
-  const titulo = prompt('Editar título:', c.titulo||'') ?? c.titulo;
-  const consultor = prompt('Editar consultor:', c.consultor||'') ?? c.consultor;
-  const valor = prompt('Editar valor (€):', c.valor||'') ?? c.valor;
-  const etiquetas = prompt('Editar etiquetas:', c.etiquetas||'') ?? c.etiquetas;
-  data[col][idx] = {titulo, consultor, valor, etiquetas};
-  save(data); render();
-}
-
-function removeCard(col, idx){
-  if(!confirm('Remover esta lead?')) return;
-  const data = ensureModel(load());
-  data[col].splice(idx,1);
-  save(data); render();
 }
 
 function enableDnD(){
@@ -133,43 +153,89 @@ function enableDnD(){
   });
 }
 
+// CRUD
+function addCard(){
+  const titulo = document.getElementById('f_titulo').value.trim();
+  if(!titulo) return alert('Indique um título.');
+  let consultor = document.getElementById('f_consultor').value;
+  if(consultor === 'Outro…'){
+    const alt = prompt('Nome do consultor:','');
+    if(!alt) return alert('Indique o nome do consultor.');
+    consultor = alt.trim();
+  }
+  const valor = document.getElementById('f_valor').value.trim();
+  const etiquetas = document.getElementById('f_tags').value.trim();
+
+  const data = ensureModel(load());
+  data["Novo"].unshift({titulo, consultor, valor, etiquetas});
+  save(data); render(); resetForm();
+}
+
+function resetForm(){
+  document.getElementById('f_titulo').value='';
+  document.getElementById('f_valor').value='';
+  document.getElementById('f_tags').value='';
+  document.getElementById('f_consultor').value = CONSULTORS[0];
+}
+
+function editCard(col, idx){
+  const data = ensureModel(load());
+  const c = data[col][idx];
+  const titulo = prompt('Editar título:', c.titulo||'') ?? c.titulo;
+
+  // Sugere lista mas mantém liberdade (não bloqueia)
+  let consultor = prompt('Editar consultor (ex.: ' + CONSULTORS.slice(0,7).join(', ') + '):', c.consultor||'');
+  if(consultor===null) consultor = c.consultor;
+
+  const valor = prompt('Editar valor (€):', c.valor||'');
+  const etiquetas = prompt('Editar etiquetas:', c.etiquetas||'');
+
+  data[col][idx] = {titulo, consultor, valor: (valor??c.valor), etiquetas:(etiquetas??c.etiquetas)};
+  save(data); render();
+}
+
+function removeCard(col, idx){
+  if(!confirm('Remover esta lead?')) return;
+  const data = ensureModel(load());
+  data[col].splice(idx,1);
+  save(data); render();
+}
+
 // Seed demo (10)
 function seedDemo(){
   if(!confirm('Carregar 10 leads de exemplo? (substitui as atuais)')) return;
   const ex = {
     "Novo": [
-      {titulo:"T2 Matosinhos — Arrendamento", consultor:"Armanda", valor:"1200", etiquetas:"Internacional"},
-      {titulo:"T3 Boavista — Venda", consultor:"Manuel", valor:"620000", etiquetas:"Alto valor"}
+      {titulo:"T2 Matosinhos — Arrendamento", consultor:"Armanda Meireles", valor:"1200", etiquetas:"Internacional"},
+      {titulo:"T3 Boavista — Venda", consultor:"Manuel Oliveira", valor:"620000", etiquetas:"Alto valor"}
     ],
     "Em contacto": [
-      {titulo:"Terreno Gondomar — Investidor", consultor:"João", valor:"", etiquetas:"Investidor"}
+      {titulo:"Terreno Gondomar — Investidor", consultor:"João Sousa", valor:"", etiquetas:"Investidor"}
     ],
     "Qualificado": [
-      {titulo:"T1 Cedofeita — Estudante FR", consultor:"Audrey", valor:"235000", etiquetas:"Internacional"},
-      {titulo:"Loja Foz — Rent Yield", consultor:"Manuel", valor:"450000", etiquetas:"Yield"}
+      {titulo:"T1 Cedofeita — Estudante FR", consultor:"Audrey Lucas", valor:"235000", etiquetas:"Internacional"},
+      {titulo:"Loja Foz — Rent Yield", consultor:"Manuel Oliveira", valor:"450000", etiquetas:"Yield"}
     ],
     "Proposta": [
-      {titulo:"T4 Gaia — 1ª habitação", consultor:"Armanda", valor:"395000", etiquetas:"Nacional"},
-      {titulo:"Prédio Baixa — BTR", consultor:"João", valor:"", etiquetas:"Investidor, BTR"}
+      {titulo:"T4 Gaia — 1ª habitação", consultor:"Armanda Meireles", valor:"395000", etiquetas:"Nacional"},
+      {titulo:"Prédio Baixa — BTR", consultor:"João Sousa", valor:"", etiquetas:"Investidor, BTR"}
     ],
     "Fecho": [
-      {titulo:"T2 Antas — Chaves esta semana", consultor:"Manuel", valor:"285000", etiquetas:"Fecho"},
-      {titulo:"T3 Leça — Proc. financiamento", consultor:"Audrey", valor:"", etiquetas:"Financiamento"},
-      {titulo:"T0 Bonfim — Escritura 10/12", consultor:"Armanda", valor:"175000", etiquetas:"Fecho"}
+      {titulo:"T2 Antas — Chaves esta semana", consultor:"Manuel Oliveira", valor:"285000", etiquetas:"Fecho"},
+      {titulo:"T3 Leça — Proc. financiamento", consultor:"Audrey Lucas", valor:"", etiquetas:"Financiamento"},
+      {titulo:"T0 Bonfim — Escritura 10/12", consultor:"Rui Quelhas", valor:"175000", etiquetas:"Fecho"}
     ]
   };
   save(ex); render();
 }
 
-function clearAll(){
-  if(!confirm('Apagar todas as leads?')) return;
-  localStorage.removeItem(LS_KEY); render();
-}
-
+// Eventos
 document.getElementById('add').onclick=addCard;
+document.getElementById('reset').onclick=resetForm;
 document.getElementById('seed').onclick=seedDemo;
-document.getElementById('clear').onclick=clearAll;
+document.getElementById('clear').onclick=()=>{ if(confirm('Apagar todas as leads?')){ localStorage.removeItem(LS_KEY); render(); } };
 
+fillConsultorSelect();
 render();
 </script>
 </body>
