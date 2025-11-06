@@ -18,7 +18,17 @@
   label{font-size:12px;color:#ddd;display:block;margin:7px 0 2px;}
   input,select,textarea{width:100%;background:#0E0E0E;color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:8px 10px;}
   .filters{display:grid;grid-template-columns:200px 160px 160px 200px auto; gap:8px; align-items:end; padding:0 12px 12px 12px;}
-  .list{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 12px 8px 12px;}
+  .kpi{background:#0E0E0E;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px}
+  .kpi .h{font-size:11px;color:#cfcfcf;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+  .kpi .v{font-size:18px;font-weight:700}
+  .kpi .s{font-size:12px;color:#bdbdbd;margin-top:2px}
+  .kpi-table{grid-column:span 3;background:#0E0E0E;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:6px 8px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th,td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.06)}
+  th{text-align:left;color:#cfcfcf;font-weight:600}
+  tr.highlight td{background:rgba(163,139,99,.10)}
+  .list{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 12px 12px 12px;}
   .card{background:#0E0E0E;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px;}
   .t{font-weight:600;margin-bottom:4px;}
   .m{font-size:12px;color:#cfcfcf;}
@@ -26,8 +36,14 @@
   .chk label{display:flex;gap:6px;align-items:center;background:#0E0E0E;border:1px solid rgba(255,255,255,.18);padding:6px 8px;border-radius:8px;}
   .semaforo{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:8px;background:#888;}
   .muted{color:#c9c9c9;font-size:12px}
+  .tools{display:flex;gap:8px;align-items:center;padding:0 12px 8px 12px}
   @media(max-width:1200px){.list{grid-template-columns:repeat(2,1fr)}}
-  @media(max-width:900px){.wrap{grid-template-columns:1fr}.filters{grid-template-columns:1fr 1fr;}}
+  @media(max-width:900px){
+    .wrap{grid-template-columns:1fr}
+    .filters{grid-template-columns:1fr 1fr;}
+    .kpis{grid-template-columns:1fr}
+    .kpi-table{grid-column:span 1}
+  }
 </style>
 </head>
 <body>
@@ -52,7 +68,7 @@
     <h3>Nova Angariação</h3>
     <label>Propriedade</label><input id="p" placeholder="Ex.: T3 Boavista | Porto">
 
-    <!-- Fallback HTML: a lista aparece mesmo que o JS não carregue -->
+    <!-- Fallback HTML: lista garantida mesmo sem JS -->
     <label>Consultor</label>
     <select id="c">
       <option>Rui Quelhas</option>
@@ -128,8 +144,37 @@
       </div>
     </div>
 
+    <!-- KPIs + Tabela por consultor -->
+    <div class="kpis" id="kpiArea">
+      <div class="kpi">
+        <div class="h">Total de Angariações</div>
+        <div class="v" id="k_total">—</div>
+        <div class="s">Conjunto filtrado</div>
+      </div>
+      <div class="kpi">
+        <div class="h">% Ajustamento Médio</div>
+        <div class="v" id="k_media">—</div>
+        <div class="s">Conjunto filtrado</div>
+      </div>
+      <div class="kpi">
+        <div class="h">Consultor em Filtro</div>
+        <div class="v" id="k_focus">—</div>
+        <div class="s" id="k_focus_aux">—</div>
+      </div>
+      <div class="kpi-table">
+        <table id="tbl_cons">
+          <thead><tr><th>Consultor</th><th>#</th><th>% Ajust. médio</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="tools">
+      <button class="btn" id="btn_export_csv">Exportar CSV (filtro)</button>
+      <div class="muted" id="resumo">—</div>
+    </div>
+
     <div class="list" id="list"></div>
-    <div class="muted" id="resumo" style="padding:8px 12px 0 12px;">—</div>
   </div>
 </div>
 
@@ -137,7 +182,7 @@
 /* =========================
    CONFIG / STORAGE
 ========================= */
-const LS_KEY = 'gpp_ang_v4'; // mantém versão
+const LS_KEY = 'gpp_ang_v4';
 const CONSULTORS = [
   "Rui Quelhas",
   "Manuel Oliveira",
@@ -168,11 +213,11 @@ function semaforo(el, val){
 function parseDate(s){ if(!s) return null; const t=Date.parse(s); return Number.isFinite(t)? new Date(t): null; }
 function fmtDate(s){ const d=parseDate(s); if(!d) return '—'; return d.toISOString().slice(0,10); }
 function sanitizeFile(s){ return String(s||'proposta').replace(/[^a-z0-9\-_. ]/gi,'_'); }
+function toCSVRow(arr){ return arr.map(v=> `"${String(v??'').replaceAll('"','""')}"`).join(','); }
 
 /* =========================
    UI BASE (consultores)
 ========================= */
-// Preenche o <select id="c"> apenas se estiver vazio (respeita fallback HTML)
 function fillConsultorSelects(){
   const sel = document.getElementById('c');
   if (sel && sel.options.length === 0) {
@@ -214,15 +259,18 @@ function render(list=null){
   listEl.innerHTML='';
   data.forEach((a,i)=> listEl.appendChild(cardEl(a,i)));
 
-  // Resumo
+  // Resumo simples
   const total = data.length;
   const mediaAj = (()=>{
     const vals = data.map(x=>x.aj).filter(v=>v!=null);
-    if(!vals.length) return '—';
+    if(!vals.length) return null;
     const m = Math.round(vals.reduce((s,v)=>s+v,0)/vals.length*10)/10;
-    return m+'%';
+    return m;
   })();
-  document.getElementById('resumo').textContent = `Total: ${total} · Média de ajustamento: ${mediaAj}`;
+  document.getElementById('resumo').textContent = `Total: ${total} · Média de ajustamento: ${mediaAj!=null? mediaAj+'%' : '—'}`;
+
+  // KPIs
+  renderKPIs(data);
 }
 
 /* =========================
@@ -290,6 +338,7 @@ function edit(idx){
   const ps = Number(prompt('Preço sugerido (€):', a.ps ?? '')) || null;
   const aj = pct(pp, ps);
   const notas = prompt('Notas:', a.notas||'')??a.notas;
+
   dataAll[idx] = {prop, consultor, proprietario, data, origem, comissao, pp, ps, aj, docs:a.docs||[], notas};
   save(dataAll);
   populateConsultoresFilter();
@@ -349,7 +398,85 @@ function view(){
 }
 
 /* =========================
-   EXPORTAÇÕES
+   KPIs
+========================= */
+function renderKPIs(data){
+  // KPIs gerais
+  const total = data.length;
+  const vals = data.map(x=>x.aj).filter(v=>v!=null);
+  const media = vals.length ? Math.round(vals.reduce((s,v)=>s+v,0)/vals.length*10)/10 : null;
+  document.getElementById('k_total').textContent = total;
+  document.getElementById('k_media').textContent = media!=null? (media+'%') : '—';
+
+  // Agregação por consultor
+  const agg = {};
+  data.forEach(x=>{
+    const k = x.consultor || '(sem consultor)';
+    if(!agg[k]) agg[k] = {n:0, soma:0, cont:0};
+    agg[k].n++;
+    if(x.aj!=null){ agg[k].soma += x.aj; agg[k].cont++; }
+  });
+  const rows = Object.entries(agg).map(([k,v])=>{
+    const m = v.cont ? Math.round(v.soma/v.cont*10)/10 : null;
+    return {k, n:v.n, m};
+  }).sort((a,b)=> b.n - a.n || (b.m??-999)-(a.m??-999));
+
+  // Desenhar tabela
+  const tb = document.querySelector('#tbl_cons tbody');
+  tb.innerHTML = '';
+  const focus = f_consultor.value || '';
+  rows.forEach(r=>{
+    const tr = document.createElement('tr');
+    if (focus && r.k === focus) tr.classList.add('highlight');
+    tr.innerHTML = `<td>${r.k}</td><td>${r.n}</td><td>${r.m!=null? r.m+'%' : '—'}</td>`;
+    tb.appendChild(tr);
+  });
+
+  // Cartão “consultor em filtro”
+  document.getElementById('k_focus').textContent = focus || '(todos)';
+  if(focus){
+    const found = rows.find(x=>x.k===focus);
+    document.getElementById('k_focus_aux').textContent = found ? (`${found.n} reg. · média ${found.m!=null? found.m+'%':'—'}`) : '—';
+  } else {
+    document.getElementById('k_focus_aux').textContent = 'Sem filtro de consultor';
+  }
+}
+
+/* =========================
+   EXPORTAÇÃO CSV (filtro)
+========================= */
+function exportCSVFiltered(){
+  const data = view(); // respeita filtros + ordenação
+  const headers = ["Propriedade","Consultor","Proprietário","Data","Origem","Comissão","Preço pedido","Preço sugerido","% Ajustamento","Documentos","Notas"];
+  const lines = [toCSVRow(headers)];
+  data.forEach(a=>{
+    lines.push(toCSVRow([
+      a.prop||'',
+      a.consultor||'',
+      a.proprietario||'',
+      fmtDate(a.data),
+      a.origem||'',
+      a.comissao!=null? a.comissao+'%' : '',
+      a.pp!=null? a.pp : '',
+      a.ps!=null? a.ps : '',
+      a.aj!=null? a.aj+'%' : '',
+      (a.docs&&a.docs.length? a.docs.join('; ') : ''),
+      a.notas||''
+    ]));
+  });
+  const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const aEl = document.createElement('a');
+  aEl.href = url;
+  aEl.download = 'angariacoes_filtradas.csv';
+  document.body.appendChild(aEl);
+  aEl.click();
+  aEl.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* =========================
+   EXPORTAÇÕES: PDF / Word
 ========================= */
 function buildProposalHTML(a){
   const css = `
@@ -432,7 +559,6 @@ document.getElementById('add').onclick=add;
 document.getElementById('seed').onclick=seedDemo;
 document.getElementById('clear').onclick=()=>{ if(confirm('Apagar todas as angariações?')){ localStorage.removeItem(LS_KEY); populateConsultoresFilter(); render(); } };
 
-// Atualização dinâmica do % ajustamento
 ['pp','ps'].forEach(id=>{
   document.getElementById(id).addEventListener('input', ()=>{
     const pp = Number(document.getElementById('pp').value)||null;
@@ -453,7 +579,10 @@ document.getElementById('f_clear').onclick = ()=>{
   render();
 };
 
-// Garantir que o dropdown de consultores aparece SEMPRE (fallback + carga dinâmica)
+// Exportação CSV
+document.getElementById('btn_export_csv').onclick = exportCSVFiltered;
+
+// Garantir dropdown de consultores SEMPRE visível
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', fillConsultorSelects);
 } else {
