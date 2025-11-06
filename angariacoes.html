@@ -1,457 +1,191 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <title>Garvetur Porto Pro — Angariações</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
 <style>
-:root{
-  --bg:#0E0E0E; --panel:#131313; --text:#FFFFFF; --muted:#9AA0A6;
-  --gold:#A38B63; --edge:#1a1a1a; --card:#141414; --ok:#06D6A0; --warn:#FFD166; --info:#118AB2; --red:#EF476F;
-}
-html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-#topbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.08);background:#0F0F0F;position:sticky;top:0;z-index:50}
-.brand{display:flex;align-items:center;gap:10px}
-.brand h1{margin:0;font-size:16px;color:var(--gold)}
-.input{background:#121212;border:1px solid rgba(255,255,255,.12);color:#fff;padding:7px 9px;border-radius:10px;outline:none}
-.input::placeholder{color:#8f8f8f}
-.btn{background:transparent;border:1px solid rgba(163,139,99,.5);color:#fff;padding:7px 10px;border-radius:10px;cursor:pointer}
-.btn:hover{border-color:var(--gold)}
-.notice{font-size:12px;color:#cfcfcf}
-.tabs{display:flex;gap:6px;align-items:center;margin-left:4px}
-.tab{font-size:12px;padding:6px 10px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:#121212;color:#ddd;text-decoration:none}
-.tab:hover{border-color:var(--gold)}
-.tab.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:600}
-
-#kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.08);background:#0E0E0E}
-.kpi{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px}
-.kpi .t{font-size:10px;color:#CFCFCF;text-transform:uppercase;letter-spacing:.05em}
-.kpi .v{font-size:16px;font-weight:800;margin-top:4px}
-
-#board{display:grid;grid-template-columns:repeat(8,1fr);gap:12px;padding:12px}
-@media (max-width:1200px){#board{grid-template-columns:repeat(4,1fr)}}
-@media (max-width:800px){#board{grid-template-columns:1fr}}
-
-.col{background:var(--panel);border:1px solid rgba(255,255,255,.06);border-radius:12px;display:flex;flex-direction:column;min-height:280px}
-.col .head{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--edge)}
-.col .head .title{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#ddd}
-.col .head .count{font-size:12px;color:#bbb}
-.col .drop{flex:1;padding:10px;display:flex;flex-direction:column;gap:10px}
-
-.card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px;cursor:grab}
-.card.dragging{opacity:.6}
-.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.badge{font-size:11px;border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:2px 8px;background:#161616;color:#ddd}
-.kv{font-size:12px;color:#eaeaea}
-.kv label{font-size:10px;color:#9aa0a6;text-transform:uppercase;letter-spacing:.05em;display:block}
-.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
-.tag{font-size:10px;padding:2px 8px;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:#171717}
-.actions{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
-.btn-sm{font-size:12px;border:1px solid rgba(255,255,255,.14);background:#121212;color:#ddd;padding:5px 7px;border-radius:8px;cursor:pointer}
-.btn-sm:hover{border-color:var(--gold)}
-.doclist{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
-.doclist label{display:flex;align-items:center;gap:6px;font-size:12px;background:#171717;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:4px 8px;cursor:pointer}
-.doclist input{accent-color:var(--gold)}
-.badgePct{padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);}
-.badgePct.ok{background:rgba(6,214,160,.15); border-color:rgba(6,214,160,.35)}
-.badgePct.mid{background:rgba(255,193,7,.15); border-color:rgba(255,193,7,.35)}
-.badgePct.high{background:rgba(239,71,111,.15); border-color:rgba(239,71,111,.35)}
-.drag-over{outline:2px dashed var(--gold);outline-offset:-6px;border-radius:10px}
-.hidden{display:none}
+  :root{--gold:#A38B63;--bg:#0E0E0E;--panel:#131313;--text:#fff;--muted:#bdbdbd;}
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;}
+  header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.1);background:#0F0F0F;}
+  nav a{margin-right:6px;text-decoration:none;color:#ddd;border:1px solid rgba(255,255,255,.12);padding:6px 10px;border-radius:8px;}
+  nav a.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:600;}
+  .actions{display:flex;gap:8px;}
+  .btn{background:transparent;border:1px solid rgba(163,139,99,.5);color:#fff;padding:6px 9px;border-radius:8px;cursor:pointer;font-size:12px;}
+  .wrap{display:grid;grid-template-columns:380px 1fr;gap:12px;padding:12px;}
+  .panel{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px;}
+  .panel h3{margin:0 0 8px 0;font-size:13px;color:#eaeaea;border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:6px;}
+  label{font-size:12px;color:#ddd;display:block;margin:7px 0 2px;}
+  input,select,textarea{width:100%;background:#0E0E0E;color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:8px 10px;}
+  .list{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .card{background:#0E0E0E;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px;}
+  .t{font-weight:600;margin-bottom:4px;}
+  .m{font-size:12px;color:#cfcfcf;}
+  .chk{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
+  .chk label{display:flex;gap:6px;align-items:center;background:#0E0E0E;border:1px solid rgba(255,255,255,.18);padding:6px 8px;border-radius:8px;}
+  .semaforo{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:8px;background:#888;}
+  @media(max-width:1000px){.wrap{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-  <div id="topbar">
-    <div class="brand">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--gold)"><circle cx="12" cy="12" r="10" stroke-width="1.5"/><path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/></svg>
-      <h1>Garvetur Porto Pro</h1>
-      <nav class="tabs">
-        <a class="tab" href="./index.html">Mapa</a>
-        <a class="tab" href="./kanban.html">Leads</a>
-        <a class="tab active" href="./angariacoes.html">Angariações</a>
-        <a class="tab" href="./dashboard.html">Dashboard</a>
-      </nav>
+<header>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <strong style="color:#FFD166">Garvetur Porto Pro</strong>
+    <nav>
+      <a href="./index.html">Mapa</a>
+      <a href="./kanban.html">Leads</a>
+      <a class="active" href="./angariacoes.html">Angariações</a>
+      <a href="./dashboard.html">Dashboard</a>
+    </nav>
+  </div>
+  <div class="actions">
+    <button id="seed" class="btn">Carregar dados de exemplo (5)</button>
+    <button id="clear" class="btn">Limpar tudo</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="panel">
+    <h3>Nova Angariação</h3>
+    <label>Propriedade</label><input id="p" placeholder="Ex.: T3 Boavista | Porto">
+    <label>Consultor</label><input id="c" placeholder="Ex.: Manuel">
+    <label>Origem</label><input id="o" placeholder="Ex.: Referral / Porta-a-porta / Online">
+    <label>Preço pedido (€)</label><input id="pp" type="number" step="0.01" placeholder="Ex.: 650000">
+    <label>Preço sugerido (€)</label><input id="ps" type="number" step="0.01" placeholder="Ex.: 620000">
+    <div style="margin-top:8px;font-size:12px;">% Ajustamento: <span id="aj">—</span> <span class="semaforo" id="sf"></span></div>
+    <div class="chk">
+      <label><input type="checkbox" id="doc_cc"> CC</label>
+      <label><input type="checkbox" id="doc_caderneta"> Caderneta</label>
+      <label><input type="checkbox" id="doc_cert_ener"> Cert. Energético</label>
+      <label><input type="checkbox" id="doc_planta"> Planta</label>
+      <label><input type="checkbox" id="doc_cpcv"> Minuta CPCV</label>
     </div>
-    <a class="btn" href="./index.html" style="margin-left:auto">← Voltar ao Mapa</a>
-    <input id="q" class="input" placeholder="Pesquisar (proprietário, imóvel, concelho, notas…)" />
-    <select id="consultor" class="input">
-      <option value="">— Todos os consultores —</option>
-    </select>
-    <select id="concelho" class="input">
-      <option value="">— Todos os concelhos —</option>
-    </select>
-    <button id="addCard" class="btn">+ Nova angariação</button>
-    <button id="exportCsv" class="btn">Exportar CSV</button>
-    <button id="exportJson" class="btn">Exportar JSON</button>
-    <label class="btn" for="importJsonInput">Importar JSON</label>
-    <input id="importJsonInput" type="file" accept="application/json" class="hidden">
-    <div id="kpi" class="notice"></div>
+    <label>Notas</label><textarea id="n" rows="3" placeholder="Observações relevantes"></textarea>
+    <div style="margin-top:8px;display:flex;gap:8px;">
+      <button class="btn" id="add">Guardar angariação</button>
+    </div>
   </div>
 
-  <div id="kpis">
-    <div class="kpi"><div class="t">Total</div><div id="kpi_total" class="v">—</div></div>
-    <div class="kpi"><div class="t">Prospecção</div><div id="kpi_prospec" class="v">—</div></div>
-    <div class="kpi"><div class="t">Visitas técnicas</div><div id="kpi_visita" class="v">—</div></div>
-    <div class="kpi"><div class="t">Propostas</div><div id="kpi_prop" class="v">—</div></div>
-    <div class="kpi"><div class="t">Contratos</div><div id="kpi_contr" class="v">—</div></div>
-    <div class="kpi"><div class="t">Activo em carteira</div><div id="kpi_activo" class="v">—</div></div>
+  <div class="panel">
+    <h3>Lista</h3>
+    <div class="list" id="list"></div>
   </div>
-
-  <div id="board"></div>
+</div>
 
 <script>
-const COLUMNS = [
-  { key:'prospeccao', label:'Prospecção' },
-  { key:'contacto_prop', label:'Contacto proprietário' },
-  { key:'visita_tecnica', label:'Visita técnica' },
-  { key:'proposta_ang', label:'Proposta de angariação' },
-  { key:'em_revisao', label:'Em revisão' },
-  { key:'contrato', label:'Contrato assinado' },
-  { key:'activo', label:'Activo em carteira' },
-  { key:'perdido', label:'Perdido' },
-];
-const STORAGE_KEY = 'gpp_ang_v1';
-let state = loadState();
-let filterQuery = '';
-let filterConsultor = '';
-let filterConcelho = '';
-function loadState(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw){ return JSON.parse(raw); }
-  }catch(e){}
-  return { prospeccao:[], contacto_prop:[], visita_tecnica:[], proposta_ang:[], em_revisao:[], contrato:[], activo:[], perdido:[] };
+const LS_KEY = 'gpp_ang_v1';
+
+function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch(e){ return []; } }
+function save(d){ localStorage.setItem(LS_KEY, JSON.stringify(d)); }
+function pct(pp,ps){ if(!pp||!ps) return null; const v=(ps-pp)/pp*100; return Math.round(v*10)/10; }
+function semaforo(el, val){
+  let c='#888';
+  if(val!=null){
+    if(val>=-3 && val<=3) c='#22c55e';       // verde (ajuste controlado)
+    else if(val>-7) c='#f59e0b';             // âmbar
+    else c='#ef4444';                        // vermelho
+  }
+  el.style.background=c;
 }
-function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-function uid(){ return 'id_'+Math.random().toString(36).slice(2,9); }
-function money(v){ const n=Number(v); return Number.isFinite(n)? n.toLocaleString('pt-PT',{style:'currency',currency:'EUR'}) : '—'; }
-function fmtDate(s){ return s? new Date(s).toLocaleDateString('pt-PT') : '—'; }
-function norm(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
-function calcAjustePct(preco, sugerido){
-  const p = Number(preco), s = Number(sugerido);
-  if(!Number.isFinite(p) || p<=0 || !Number.isFinite(s)) return null;
-  const diff = (s - p) / p * 100; // variação face ao pedido
-  return Math.round(diff*10)/10; // 1 casa
+
+function cardEl(a, idx){
+  const d = document.createElement('div');
+  d.className='card';
+  d.innerHTML = `<div class="t">${a.prop}</div>
+                 <div class="m">${a.consultor || ''} · ${a.origem || ''}</div>
+                 <div class="m">Pedido: ${a.pp||'-'}€ · Sugerido: ${a.ps||'-'}€ · Ajuste: ${a.aj!=null?a.aj+'%':'—'}</div>
+                 <div class="m">Docs: ${a.docs?.join(', ')||'—'}</div>
+                 ${a.notas? `<div class="m"><em>${a.notas}</em></div>`:''}
+                 <div style="margin-top:6px;display:flex;gap:6px;">
+                   <button class="btn" data-a="edit">Editar</button>
+                   <button class="btn" data-a="del">Remover</button>
+                 </div>`;
+  d.querySelector('[data-a="edit"]').onclick=()=> edit(idx);
+  d.querySelector('[data-a="del"]').onclick=()=> del(idx);
+  return d;
 }
-function classeSemaforo(pct){
-  if(pct===null) return '';
-  const abs = Math.abs(pct);
-  if(abs <= 5) return 'ok';       // alinhado
-  if(abs <= 10) return 'mid';     // atenção
-  return 'high';                  // desalinhado
-}
-const board = document.getElementById('board');
+
 function render(){
-  board.innerHTML = '';
-  let total=0;
-  let somaPedido=0, somaSug=0;
-  COLUMNS.forEach(col=>{
-    const colEl = document.createElement('div');
-    colEl.className = 'col';
-    colEl.dataset.col = col.key;
-    const head = document.createElement('div');
-    head.className = 'head';
-    head.innerHTML = `<div class="title">${col.label}</div><div class="count" id="count_${col.key}">0</div>`;
-    colEl.appendChild(head);
-    const drop = document.createElement('div');
-    drop.className = 'drop';
-    drop.addEventListener('dragover', (e)=>{ e.preventDefault(); drop.classList.add('drag-over'); });
-    drop.addEventListener('dragleave', ()=> drop.classList.remove('drag-over'));
-    drop.addEventListener('drop', (e)=>{
-      e.preventDefault();
-      drop.classList.remove('drag-over');
-      const cardId = e.dataTransfer.getData('text/plain');
-      moveCardToColumn(cardId, col.key);
-    });
-    colEl.appendChild(drop);
-    const list = state[col.key] || [];
-    const listFiltered = list.filter(item=>{
-      const text = [
-        item.consultor,item.proprietario,item.telefone,item.email,
-        item.imovel,item.morada,item.concelho,item.tipologia,
-        (item.documentacao||[]).join(','),item.etiquetas,item.notas
-      ].map(norm).join(' ');
-      const okText = !filterQuery || text.includes(norm(filterQuery));
-      const okCons = !filterConsultor || norm(item.consultor)===norm(filterConsultor);
-      const okConc = !filterConcelho || norm(item.concelho)===norm(filterConcelho);
-      return okText && okCons && okConc;
-    });
-    listFiltered.forEach(item=>{
-      total++;
-      const vPed = Number(item.preco_pedido);
-      const vSug = Number(item.valor_sugerido);
-      if(Number.isFinite(vPed)) somaPedido+=vPed;
-      if(Number.isFinite(vSug)) somaSug+=vSug;
-      const pct = calcAjustePct(item.preco_pedido, item.valor_sugerido);
-      const cls = classeSemaforo(pct);
-      const pctHtml = pct===null ? '—' : `${pct>0?'+':''}${pct}%`;
-      const docs = Array.isArray(item.documentacao) ? item.documentacao : ((item.documentacao||'').split(',').map(s=>s.trim()).filter(Boolean));
-      const has = (k)=> docs.includes(k);
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.draggable = true;
-      card.id = item.id;
-      card.addEventListener('dragstart', (e)=>{ card.classList.add('dragging'); e.dataTransfer.setData('text/plain', item.id); });
-      card.addEventListener('dragend', ()=> card.classList.remove('dragging'));
-      card.innerHTML = `
-        <div class="row">
-          <span class="badge">${item.consultor || '—'}</span>
-          <span class="badge">${item.origem || 'Captação'}</span>
-          <span class="badge">${item.prioridade || 'B'}</span>
-          ${item.createdAt? `<span class="badge">${new Date(item.createdAt).toLocaleDateString('pt-PT')}</span>`: ''}
-        </div>
-        <div class="kv"><label>Proprietário</label>${item.proprietario || '—'} ${item.telefone? ' · '+item.telefone:''} ${item.email? ' · '+item.email:''}</div>
-        <div class="kv"><label>Imóvel</label>${item.imovel || '—'} ${item.morada? ' · '+item.morada:''} ${item.concelho? ' · '+item.concelho:''}</div>
-        <div class="kv"><label>Tipologia / Área</label>${item.tipologia || '—'} ${item.area? ' · '+item.area+' m²':''}</div>
-        <div class="kv"><label>Pedido / Sugerido</label>${money(item.preco_pedido)} / ${money(item.valor_sugerido)} <span class="badgePct ${cls}" title="% de ajustamento">${pctHtml}</span></div>
-        <div class="kv"><label>Documentação</label>
-          <div class="doclist" data-doc="${item.id}">
-            ${['CE','Licença','Caderneta','Certidão','Plantas','RU','Ficha Técnica'].map(k=>`
-              <label><input type="checkbox" data-k="${k}" ${has(k)?'checked':''}> ${k}</label>
-            `).join('')}
-          </div>
-        </div>
-        <div class="kv"><label>Etiquetas</label><div class="tags">${(item.etiquetas||'').split(',').map(s=>s.trim()).filter(Boolean).slice(0,6).map(t=>`<span class="tag">${t}</span>`).join(' ')||'—'}</div></div>
-        <div class="kv"><label>Próx. ação</label>${item.proxima || '—'} <span style="color:#9aa0a6">(${fmtDate(item.quando)})</span></div>
-        <div class="kv"><label>Notas</label>${item.notas || '—'}</div>
-        <div class="actions">
-          <button class="btn-sm" data-act="edit">Editar</button>
-          <button class="btn-sm" data-act="move">Mover…</button>
-          <button class="btn-sm" data-act="whatsapp">WhatsApp</button>
-          <button class="btn-sm" data-act="doc">Proposta de Angariação</button>
-          <button class="btn-sm" data-act="del">Remover</button>
-        </div>
-      `;
-      card.querySelector('[data-act="edit"]').addEventListener('click', ()=> editCard(item.id));
-      card.querySelector('[data-act="move"]').addEventListener('click', ()=> promptMove(item.id));
-      card.querySelector('[data-act="del"]').addEventListener('click', ()=> deleteCard(item.id));
-      card.querySelector('[data-act="whatsapp"]').addEventListener('click', ()=> shareWhatsapp(item));
-      card.querySelector('[data-act="doc"]').addEventListener('click', ()=> exportProposta(item));
-      card.querySelectorAll('.doclist input[type="checkbox"]').forEach(cb=>{
-        cb.addEventListener('change', (e)=>{
-          const k=e.target.getAttribute('data-k');
-          const f=findCard(item.id);
-          if(!f) return;
-          let arr = Array.isArray(state[f.col][f.idx].documentacao) ? state[f.col][f.idx].documentacao : ((state[f.col][f.idx].documentacao||'').split(',').map(s=>s.trim()).filter(Boolean));
-          const hasIndex = arr.indexOf(k);
-          if(e.target.checked){
-            if(hasIndex===-1) arr.push(k);
-          }else{
-            if(hasIndex>-1) arr.splice(hasIndex,1);
-          }
-          state[f.col][f.idx].documentacao = arr;
-          saveState();
-        });
-      });
-      drop.appendChild(card);
-    });
-    board.appendChild(colEl);
-    document.getElementById(`count_${col.key}`).textContent = String(listFiltered.length);
+  const data = load();
+  const list = document.getElementById('list');
+  list.innerHTML='';
+  data.forEach((a,i)=> list.appendChild(cardEl(a,i)));
+}
+
+function add(){
+  const prop = document.getElementById('p').value.trim();
+  if(!prop) return alert('Indique a propriedade.');
+  const consultor = document.getElementById('c').value.trim();
+  const origem = document.getElementById('o').value.trim();
+  const pp = Number(document.getElementById('pp').value) || null;
+  const ps = Number(document.getElementById('ps').value) || null;
+  const aj = pct(pp, ps);
+  const docs = [];
+  if(document.getElementById('doc_cc').checked) docs.push('CC');
+  if(document.getElementById('doc_caderneta').checked) docs.push('Caderneta');
+  if(document.getElementById('doc_cert_ener').checked) docs.push('Cert. Energético');
+  if(document.getElementById('doc_planta').checked) docs.push('Planta');
+  if(document.getElementById('doc_cpcv').checked) docs.push('Minuta CPCV');
+  const notas = document.getElementById('n').value.trim();
+
+  const data = load();
+  data.unshift({prop, consultor, origem, pp, ps, aj, docs, notas});
+  save(data); render(); clearForm();
+}
+
+function clearForm(){
+  ['p','c','o','pp','ps','n'].forEach(id=> document.getElementById(id).value='');
+  ['doc_cc','doc_caderneta','doc_cert_ener','doc_planta','doc_cpcv'].forEach(id=> document.getElementById(id).checked=false);
+  document.getElementById('aj').textContent='—'; semaforo(document.getElementById('sf'), null);
+}
+
+function edit(idx){
+  const data = load(); const a = data[idx];
+  const prop = prompt('Propriedade:', a.prop)||a.prop;
+  const consultor = prompt('Consultor:', a.consultor||'')??a.consultor;
+  const origem = prompt('Origem:', a.origem||'')??a.origem;
+  const pp = Number(prompt('Preço pedido (€):', a.pp ?? '')) || null;
+  const ps = Number(prompt('Preço sugerido (€):', a.ps ?? '')) || null;
+  const aj = pct(pp, ps);
+  const notas = prompt('Notas:', a.notas||'')??a.notas;
+  data[idx] = {prop, consultor, origem, pp, ps, aj, docs:a.docs||[], notas};
+  save(data); render();
+}
+
+function del(idx){
+  if(!confirm('Remover esta angariação?')) return;
+  const data = load();
+  data.splice(idx,1);
+  save(data); render();
+}
+
+// Atualizar % ajustamento e semáforo em tempo real
+['pp','ps'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>{
+    const pp = Number(document.getElementById('pp').value)||null;
+    const ps = Number(document.getElementById('ps').value)||null;
+    const val = pct(pp, ps);
+    document.getElementById('aj').textContent = (val!=null ? val+'%' : '—');
+    semaforo(document.getElementById('sf'), val);
   });
-  document.getElementById('kpi_total').textContent = total;
-  document.getElementById('kpi_prospec').textContent = (state.prospeccao||[]).length;
-  document.getElementById('kpi_visita').textContent = (state.visita_tecnica||[]).length;
-  document.getElementById('kpi_prop').textContent = (state.proposta_ang||[]).length;
-  document.getElementById('kpi_contr').textContent = (state.contrato||[]).length;
-  document.getElementById('kpi_activo').textContent = (state.activo||[]).length;
-  document.getElementById('kpi').innerHTML = `Pedido visível: <b>${money(somaPedido)}</b> · Sugerido visível: <b>${money(somaSug)}</b>`;
-  // filtros dinâmicos
-  const selCons = document.getElementById('consultor');
-  const curCons = selCons.value;
-  selCons.innerHTML = `<option value="">— Todos os consultores —</option>`;
-  Array.from(new Set(
-    COLUMNS.flatMap(c => (state[c.key]||[]).map(it => it.consultor || ''))
-  )).filter(Boolean).sort((a,b)=>a.localeCompare(b,'pt')).forEach(n=>{
-    const opt=document.createElement('option'); opt.value=n; opt.textContent=n; selCons.appendChild(opt);
-  });
-  if([...selCons.options].some(o=>o.value===curCons)) selCons.value=curCons;
-  const selConc = document.getElementById('concelho');
-  const curConc = selConc.value;
-  selConc.innerHTML = `<option value="">— Todos os concelhos —</option>`;
-  Array.from(new Set(
-    COLUMNS.flatMap(c => (state[c.key]||[]).map(it => it.concelho || ''))
-  )).filter(Boolean).sort((a,b)=>a.localeCompare(b,'pt')).forEach(n=>{
-    const opt=document.createElement('option'); opt.value=n; opt.textContent=n; selConc.appendChild(opt);
-  });
-  if([...selConc.options].some(o=>o.value===curConc)) selConc.value=curConc;
-}
-function findCard(cardId){
-  for(const c of COLUMNS){ const i=(state[c.key]||[]).findIndex(x=>x.id===cardId); if(i>-1) return {col:c.key, idx:i, item:state[c.key][i]}; }
-  return null;
-}
-function moveCardToColumn(cardId, dest){
-  const f = findCard(cardId); if(!f) return;
-  const [item] = state[f.col].splice(f.idx,1);
-  state[dest].unshift(item);
-  saveState(); render();
-}
-function promptMove(cardId){
-  const dest = prompt('Mover para coluna (prospeccao, contacto_prop, visita_tecnica, proposta_ang, em_revisao, contrato, activo, perdido):');
-  if(!dest || !state[dest]) return;
-  moveCardToColumn(cardId, dest);
-}
-function editCard(cardId){
-  const f = findCard(cardId); if(!f) return;
-  const it = Object.assign({}, f.item);
-  it.consultor   = prompt('Consultor:', it.consultor||'') ?? it.consultor;
-  it.proprietario= prompt('Proprietário:', it.proprietario||'') ?? it.proprietario;
-  it.telefone    = prompt('Telefone:', it.telefone||'') ?? it.telefone;
-  it.email       = prompt('Email:', it.email||'') ?? it.email;
-  it.imovel      = prompt('Imóvel (ex.: T2 Boavista):', it.imovel||'') ?? it.imovel;
-  it.morada      = prompt('Morada:', it.morada||'') ?? it.morada;
-  it.concelho    = prompt('Concelho:', it.concelho||'') ?? it.concelho;
-  it.tipologia   = prompt('Tipologia (T0/T1/T2/…):', it.tipologia||'') ?? it.tipologia;
-  it.area        = prompt('Área bruta (m²):', it.area||'') ?? it.area;
-  it.preco_pedido= prompt('Preço pedido (€):', it.preco_pedido||'') ?? it.preco_pedido;
-  it.valor_sugerido= prompt('Valor sugerido (€):', it.valor_sugerido||'') ?? it.valor_sugerido;
-  // documentação como lista de etiquetas
-  const docsPrompt = prompt('Documentação (separar por vírgulas: CE, Licença, Caderneta, Certidão, Plantas, RU, Ficha Técnica):', Array.isArray(it.documentacao)? it.documentacao.join(', ') : (it.documentacao||''));
-  it.documentacao = (docsPrompt||'').split(',').map(s=>s.trim()).filter(Boolean);
-  it.etiquetas   = prompt('Etiquetas (Exclusivo, Urgente, Investidor) — separar por vírgulas:', it.etiquetas||'') ?? it.etiquetas;
-  it.proxima     = prompt('Próxima ação:', it.proxima||'') ?? it.proxima;
-  it.quando      = prompt('Data próxima ação (AAAA-MM-DD):', it.quando||'') ?? it.quando;
-  it.origem      = prompt('Origem (ex.: inbound, porta-a-porta, promotor):', it.origem||'') ?? it.origem;
-  it.prioridade  = prompt('Prioridade (A/B/C):', it.prioridade||'') ?? it.prioridade;
-  if(!it.createdAt) it.createdAt = new Date().toISOString().slice(0,10);
-  it.notas       = prompt('Notas:', it.notas||'') ?? it.notas;
-  state[f.col][f.idx]=it; saveState(); render();
-}
-function deleteCard(cardId){
-  const f = findCard(cardId); if(!f) return;
-  if(confirm('Remover esta angariação?')){ state[f.col].splice(f.idx,1); saveState(); render(); }
-}
-document.getElementById('q').addEventListener('input', e=>{ filterQuery=e.target.value; render(); });
-document.getElementById('consultor').addEventListener('change', e=>{ filterConsultor=e.target.value; render(); });
-document.getElementById('concelho').addEventListener('change', e=>{ filterConcelho=e.target.value; render(); });
-document.getElementById('addCard').addEventListener('click', ()=>{
-  const id = uid();
-  const consultor = prompt('Consultor (ex.: Armanda, Manuel, João)…') || '';
-  const proprietario = prompt('Proprietário…') || '';
-  const telefone = prompt('Telefone…') || '';
-  const email = prompt('Email…') || '';
-  const imovel = prompt('Imóvel (ex.: T2… / Lote… / Moradia…)?') || '';
-  const morada = prompt('Morada…') || '';
-  const concelho = prompt('Concelho…') || '';
-  const tipologia = prompt('Tipologia (T0/T1/T2/…):') || '';
-  const area = prompt('Área bruta (m²)…') || '';
-  const preco_pedido = prompt('Preço pedido (€)…') || '';
-  const valor_sugerido = prompt('Valor sugerido (€)…') || '';
-  const docStr = prompt('Documentação (CE, Licença, Caderneta, Certidão, Plantas, RU, Ficha Técnica) — separada por vírgulas…') || '';
-  const etiquetas = prompt('Etiquetas (Exclusivo, Urgente, Investidor) — separadas por vírgulas…') || '';
-  const proxima = prompt('Próxima ação…') || '';
-  const quando = prompt('Data próxima ação (AAAA-MM-DD)…') || '';
-  const origem = prompt('Origem (inbound, porta-a-porta, promotor)…') || '';
-  const prioridade = prompt('Prioridade (A/B/C)…') || 'B';
-  const notas = prompt('Notas…') || '';
-  const createdAt = new Date().toISOString().slice(0,10);
-  state.prospeccao.unshift({
-    id, consultor, proprietario, telefone, email,
-    imovel, morada, concelho, tipologia, area,
-    preco_pedido, valor_sugerido, documentacao: docStr.split(',').map(s=>s.trim()).filter(Boolean),
-    etiquetas, proxima, quando, origem, prioridade, notas, createdAt
-  });
-  saveState(); render();
 });
-document.getElementById('exportCsv').addEventListener('click', ()=>{
-  const rows = [];
-  COLUMNS.forEach(c=>{ (state[c.key]||[]).forEach(it=> rows.push({ coluna:c.key, ...it })); });
-  const headers=['coluna','id','consultor','proprietario','telefone','email','imovel','morada','concelho','tipologia','area','preco_pedido','valor_sugerido','documentacao','etiquetas','proxima','quando','origem','prioridade','notas','createdAt'];
-  const csv = [headers.join(';')].concat(rows.map(r=>headers.map(h=>{
-    let val = r[h];
-    if(h==='documentacao' && Array.isArray(val)) val = val.join(', ');
-    return String(val??'').replace(/[\r\n]/g,' ').trim();
-  }).join(';'))).join('\n');
-  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'}); const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob); a.download='angariacoes_garvetur.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
-});
-document.getElementById('exportJson').addEventListener('click', ()=>{
-  const blob = new Blob([JSON.stringify(state,null,2)],{type:'application/json'}); const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob); a.download='angariacoes_garvetur.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
-});
-document.getElementById('importJsonInput').addEventListener('change', async (e)=>{
-  const file=e.target.files[0]; if(!file) return;
-  try{ const txt = await file.text(); const json = JSON.parse(txt);
-    const ok = COLUMNS.every(c=>Array.isArray(json[c.key]));
-    if(!ok){ alert('Formato inválido.'); return; }
-    state = json; saveState(); render();
-  }catch(err){ alert('Erro ao importar JSON.'); }
-  e.target.value='';
-});
-function shareWhatsapp(item){
-  const linhas = [
-    `Consultor: ${item.consultor||'—'}`,
-    `Proprietário: ${item.proprietario||'—'} ${item.telefone? '('+item.telefone+')':''}`,
-    `Email: ${item.email||'—'}`,
-    `Imóvel: ${item.imovel||'—'} ${item.morada? ' · '+item.morada:''} ${item.concelho? ' · '+item.concelho:''}`,
-    `Tipologia/Área: ${item.tipologia||'—'} ${item.area? ' · '+item.area+' m²':''}`,
-    `Pedido/Sugerido: ${item.preco_pedido||'—'} / ${item.valor_sugerido||'—'}`,
-    `Documentação: ${(Array.isArray(item.documentacao)?item.documentacao.join(', '): (item.documentacao||'—'))}`,
-    `Etiquetas: ${item.etiquetas||'—'}`,
-    `Próx. ação: ${item.proxima||'—'} (${fmtDate(item.quando)})`,
-    `Notas: ${item.notas||'—'}`
-  ].join('\n');
-  const wa = `https://wa.me/?text=${encodeURIComponent(linhas)}`;
-  window.location.href = wa;
+
+// Seed demo (5)
+function seedDemo(){
+  if(!confirm('Carregar 5 angariações de exemplo? (substitui as atuais)')) return;
+  const ex = [
+    {prop:"T3 Boavista | Porto", consultor:"Manuel", origem:"Referral", pp:650000, ps:620000, aj:-4.6, docs:["CC","Caderneta","Cert. Energético"], notas:"Avaliação agendada"},
+    {prop:"T2 Madalena | V.N. Gaia", consultor:"Armanda", origem:"Porta-a-porta", pp:320000, ps:315000, aj:-1.6, docs:["CC","Caderneta"], notas:"Vendedor disponível negociar"},
+    {prop:"Loja Foz | Porto", consultor:"João", origem:"Online", pp:480000, ps:450000, aj:-6.3, docs:["CC","Caderneta","Planta"], notas:"Objetivo yield 6%"},
+    {prop:"Terreno Gondomar", consultor:"Manuel", origem:"Investidor", pp:900000, ps:870000, aj:-3.3, docs:["CC"], notas:"Pedido minuta CPCV"},
+    {prop:"Prédio Baixa | Porto", consultor:"Audrey", origem:"Gestor de ativos", pp:2200000, ps:2100000, aj:-4.5, docs:["CC","Caderneta","Cert. Energético","Planta","Minuta CPCV"], notas:"Visita técnica 5ª feira"}
+  ];
+  save(ex); render();
 }
-function exportProposta(it){
-  const html = `<!DOCTYPE html>
-<html lang="pt"><head><meta charset="utf-8"><title>Proposta de Angariação</title>
-<style>
-  body{font-family:Arial,Helvetica,sans-serif; color:#111; margin:36px}
-  h1{font-size:20px;margin:0 0 6px 0}
-  .muted{color:#666;font-size:12px;margin-bottom:16px}
-  .sec{border:1px solid #ddd;border-radius:8px;padding:12px;margin:12px 0}
-  .row{display:flex;gap:16px;flex-wrap:wrap}
-  .kv{flex:1 1 240px; margin:4px 0}
-  .kv label{display:block;font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.05em}
-  .kv .v{font-size:14px;font-weight:600}
-  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-  .chip{border:1px solid #ccc;border-radius:999px;padding:3px 8px;font-size:12px}
-</style></head>
-<body>
-  <h1>Proposta de Angariação</h1>
-  <div class="muted">Garvetur Porto Pro · ${new Date().toLocaleDateString('pt-PT')}</div>
 
-  <div class="sec">
-    <div class="row">
-      <div class="kv"><label>Consultor</label><div class="v">${it.consultor||'—'}</div></div>
-      <div class="kv"><label>Proprietário</label><div class="v">${it.proprietario||'—'}</div></div>
-      <div class="kv"><label>Contacto</label><div class="v">${(it.telefone||'')+(it.email? ' · '+it.email:'')}</div></div>
-    </div>
-  </div>
-
-  <div class="sec">
-    <div class="row">
-      <div class="kv"><label>Imóvel</label><div class="v">${it.imovel||'—'}</div></div>
-      <div class="kv"><label>Morada</label><div class="v">${(it.morada||'—')+(it.concelho? ' · '+it.concelho:'')}</div></div>
-      <div class="kv"><label>Tipologia / Área</label><div class="v">${(it.tipologia||'—')+(it.area? ' · '+it.area+' m²':'')}</div></div>
-    </div>
-  </div>
-
-  <div class="sec">
-    <div class="row">
-      <div class="kv"><label>Preço pedido</label><div class="v">${money(it.preco_pedido)}</div></div>
-      <div class="kv"><label>Valor sugerido</label><div class="v">${money(it.valor_sugerido)}</div></div>
-      <div class="kv"><label>% de ajustamento</label><div class="v">${(function(){ const p=(Number(it.valor_sugerido)-Number(it.preco_pedido))/Number(it.preco_pedido)*100; return (isFinite(p)? (p>0?'+':'')+p.toFixed(1)+'%':'—'); })()}</div></div>
-    </div>
-  </div>
-
-  <div class="sec">
-    <div><label style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.05em">Documentação</label></div>
-    <div class="chips">${(Array.isArray(it.documentacao)?it.documentacao: (it.documentacao||'').split(',')).map(s=>`<span class="chip">${String(s).trim()}</span>`).join('')}</div>
-  </div>
-
-  <div class="sec">
-    <div class="kv"><label>Notas</label><div class="v">${it.notas||'—'}</div></div>
-  </div>
-</body></html>`;
-  const blob = new Blob([html], {type:'application/msword'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'Proposta_Angariacao.doc';
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-}
+document.getElementById('add').onclick=add;
+document.getElementById('seed').onclick=seedDemo;
+document.getElementById('clear').onclick=()=>{ if(confirm('Apagar todas as angariações?')){ localStorage.removeItem(LS_KEY); render(); } };
 render();
 </script>
 </body>
