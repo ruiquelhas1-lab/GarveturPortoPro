@@ -97,4 +97,4 @@ with open(JSON_OUT, "w", encoding="utf-8") as f:
     json.dump(gj, f, ensure_ascii=False, indent=2)
 
 print(f"OK: {len(feats)} pontos gerados a partir de {rows} linhas (ignoradas: {skipped}).")
-
+add: script de conversão XLSX para JSON
