@@ -92,11 +92,10 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
   function uid(){ return 'id_'+Math.random().toString(36).slice(2,9); }
   function money(v){ const n=Number(v); return Number.isFinite(n)? n.toLocaleString('pt-PT',{style:'currency',currency:'EUR'}) : '—'; }
   function fmtDate(s){ return s? new Date(s).toLocaleDateString('pt-PT') : '—'; }
-  function norm(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+  function norm(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,''); }
   const board = document.getElementById('board');
   function render(){
     board.innerHTML = '';
-    const consultoresSet = new Set();
     let total=0, soma=0;
     COLUMNS.forEach(col=>{
       const colEl = document.createElement('div');
@@ -118,7 +117,6 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
       });
       colEl.appendChild(drop);
       const list = state[col.key] || [];
-      // ✅ CORRIGIDO: "item++" → "item=>"
       const listFiltered = list.filter(item=>{
         const text = [item.consultor,item.cliente,item.imovel,item.promotor,item.notas].map(norm).join(' ');
         const okText = !filterQuery || text.includes(norm(filterQuery));
@@ -126,7 +124,6 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
         return okText && okCons;
       });
       listFiltered.forEach(item=>{
-        consultoresSet.add(item.consultor || '');
         total++;
         const vnum = Number(item.valor);
         if(Number.isFinite(vnum)) soma += vnum;
@@ -168,26 +165,12 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
     const sel = document.getElementById('consultor');
     const current = sel.value;
     sel.innerHTML = `<option value="">— Todos os consultores —</option>`;
-    Array.from([...new Set(COLUMNS.flatMap(c => (state[c.key]||[]).map(it => it.consultor || '')))])
-    .filter(x=>x && x.trim()!=='')
-    .sort((a,b)=>a.localeCompare(b,'pt'))
-    .forEach(name=>{ const opt=document.createElement('option'); opt.value=name; opt.textContent=name; sel.appendChild(opt); });
+    Array.from(new Set(
+      COLUMNS.flatMap(c => (state[c.key]||[]).map(it => it.consultor || ''))
+    )).filter(Boolean).sort((a,b)=>a.localeCompare(b,'pt')).forEach(n=>{
+      const opt=document.createElement('option'); opt.value=n; opt.textContent=n; sel.appendChild(opt);
+    });
     if([...sel.options].some(o=>o.value===current)) sel.value=current;
-  }
-  function newCard(){
-    const id = uid();
-    const consultor = prompt('Consultor (ex.: Armanda, Manuel, João)…') || '';
-    const cliente = prompt('Cliente…') || '';
-    const imovel = prompt('Imóvel/Empreendimento…') || '';
-    const promotor = prompt('Promotor…') || '';
-    const valor = prompt('Valor potencial (€)…') || '';
-    const proxima = prompt('Próxima ação…') || '';
-    const quando = prompt('Data próxima ação (AAAA-MM-DD)…') || '';
-    const origem = prompt('Origem (ex.: inbound, promotor, feiras)…') || '';
-    const prioridade = prompt('Prioridade (A/B/C)…') || 'B';
-    const notas = prompt('Notas…') || '';
-    state.nova.unshift({ id, consultor, cliente, imovel, promotor, valor, proxima, quando, origem, prioridade, notas });
-    saveState(); render();
   }
   function findCard(cardId){
     for(const c of COLUMNS){ const i=(state[c.key]||[]).findIndex(x=>x.id===cardId); if(i>-1) return {col:c.key, idx:i, item:state[c.key][i]}; }
@@ -225,10 +208,24 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
   }
   document.getElementById('q').addEventListener('input', e=>{ filterQuery=e.target.value; render(); });
   document.getElementById('consultor').addEventListener('change', e=>{ filterConsultor=e.target.value; render(); });
-  document.getElementById('addCard').addEventListener('click', newCard);
+  document.getElementById('addCard').addEventListener('click', ()=>{
+    const id = uid();
+    const consultor = prompt('Consultor (ex.: Armanda, Manuel, João)…') || '';
+    const cliente = prompt('Cliente…') || '';
+    const imovel = prompt('Imóvel/Empreendimento…') || '';
+    const promotor = prompt('Promotor…') || '';
+    const valor = prompt('Valor potencial (€)…') || '';
+    const proxima = prompt('Próxima ação…') || '';
+    const quando = prompt('Data próxima ação (AAAA-MM-DD)…') || '';
+    const origem = prompt('Origem (ex.: inbound, promotor, feiras)…') || '';
+    const prioridade = prompt('Prioridade (A/B/C)…') || 'B';
+    const notas = prompt('Notas…') || '';
+    state.nova.unshift({ id, consultor, cliente, imovel, promotor, valor, proxima, quando, origem, prioridade, notas });
+    saveState(); render();
+  });
   document.getElementById('exportCsv').addEventListener('click', ()=>{
     const rows = [];
-    COLUMNS.forEach(c=>{ (state[c.key]||[]).forEach(it=>{ rows.push({ coluna:c.key, ...it }); }); });
+    COLUMNS.forEach(c=>{ (state[c.key]||[]).forEach(it=> rows.push({ coluna:c.key, ...it })); });
     const headers=['coluna','id','consultor','cliente','imovel','promotor','valor','proxima','quando','origem','prioridade','notas'];
     const csv = [headers.join(';')].concat(rows.map(r=>headers.map(h=>String(r[h]??'').replace(/[\r\n]/g,' ').trim()).join(';'))).join('\n');
     const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'}); const a=document.createElement('a');
