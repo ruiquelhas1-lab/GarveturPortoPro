@@ -153,7 +153,8 @@
         <button id="act_center" class="btn">Centrar no mapa</button>
         <button id="act_gmaps" class="btn">Abrir no Google Maps</button>
         <button id="act_copy"  class="btn">Copiar resumo</button>
-        <button id="act_share" class="btn">Partilhar</button>
+        <!-- ALTERAÇÃO: botão → link real -->
+        <a id="act_share" class="btn" href="#" target="_blank" rel="noopener noreferrer">Partilhar</a>
       </div>
     </aside>
   </div>
@@ -198,7 +199,7 @@
     function mapName(obj, keys){ for(const k of keys){ if(obj && obj[k]!=null){ const v=String(obj[k]).trim(); if(v!=='') return v; } } return ''; }
     function normStr(s){ return String(s||'').replace(/\u00A0/g,' ').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
 
-    // Title Case PT com exceções (de/da/do/das/dos/e)
+    // Title Case PT com exceções
     function toTitleCasePt(s){
       const small = new Set(['de','da','do','das','dos','e']);
       const parts = String(s||'').trim().toLowerCase().split(/\s+/);
@@ -230,7 +231,7 @@
       return L.icon({ iconUrl:url, iconSize:[26,36], iconAnchor:[13,34], popupAnchor:[0,-30], tooltipAnchor:[0,-30] });
     }
 
-    // --- Fallback por BBOX (AMP/Norte) para preencher "concelho" quando falta nas properties ---
+    // Fallback por BBOX (AMP/Norte)
     const BBOX = {
       "Porto":            { minLat:41.12, maxLat:41.20, minLng:-8.69, maxLng:-8.55 },
       "Vila Nova de Gaia":{ minLat:41.03, maxLat:41.16, minLng:-8.70, maxLng:-8.51 },
@@ -283,7 +284,7 @@
       const bCenter=document.getElementById('act_center');
       const bGMaps=document.getElementById('act_gmaps');
       const bCopy=document.getElementById('act_copy');
-      const bShare=document.getElementById('act_share');
+      const aShare=document.getElementById('act_share'); // link (não botão)
 
       try{ await loadLeafletStack(); }catch(e){
         document.body.innerHTML='<div style="padding:16px;font-family:Arial;color:#111">❌ Falha a carregar bibliotecas do mapa (CDNs bloqueados). Tente noutro browser/rede.</div>';
@@ -341,7 +342,7 @@
       }
       window.__usedUrl = usedUrl;
 
-      const concelhosSet=new Set(); // para datalist
+      const concelhosSet=new Set();
       const allMarkers=[]; let allRowsForExport=[];
       let currentSel=null;
 
@@ -360,11 +361,14 @@
         }
         drawer.classList.add('open');
         drawer.setAttribute('aria-hidden','false');
+        // Atualiza destino do link de partilha a cada seleção
+        setShareHref();
       }
       function closeDrawer(){
         drawer.classList.remove('open');
         drawer.setAttribute('aria-hidden','true');
         currentSel=null;
+        setShareHref();
       }
       document.getElementById('drawerClose').addEventListener('click', closeDrawer);
 
@@ -535,28 +539,35 @@
         }
       });
 
-      // Partilhar (síncrono → evita bloqueios)
-      bShare.addEventListener('click', ()=>{
-        if(!currentSel) return;
+      // PARTILHAR (link real + Web Share + clipboard)
+      function buildShareText(sel){
+        const gmaps = `https://www.google.com/maps?q=${sel.lat},${sel.lng}`;
+        return `${sel.nomeDisplay||'Empreendimento'} · ${sel.concLabel||'—'} · ${sel.estadoLabel||'—'}\n`+
+               `Conclusão: ${normalizeConclusao(sel.conclusao)||'—'}\n${gmaps}`;
+      }
+      function setShareHref(){
+        if(!aShare) return;
+        if(!currentSel){ aShare.setAttribute('href','#'); return; }
+        const text = buildShareText(currentSel);
+        const wa = `https://wa.me/?text=${encodeURIComponent(text)}`;
+        aShare.setAttribute('href', wa);
+      }
+      // Handler robusto
+      aShare.addEventListener('click', (ev)=>{
+        if(!currentSel) { ev.preventDefault(); return; }
+        const text = buildShareText(currentSel);
         const gmaps = `https://www.google.com/maps?q=${currentSel.lat},${currentSel.lng}`;
-        const shareText =
-          `${currentSel.nomeDisplay||'Empreendimento'} · ${currentSel.concLabel||'—'} · ${currentSel.estadoLabel||'—'}\n`+
-          `Conclusão: ${normalizeConclusao(currentSel.conclusao)||'—'}\n${gmaps}`;
 
-        // 1) Web Share API
         if (navigator.share) {
-          navigator.share({ title: currentSel.nomeDisplay||'Empreendimento', text: shareText, url: gmaps })
-            .catch(()=>{/* ignorar cancelamento */});
+          ev.preventDefault();
+          navigator.share({ title: currentSel.nomeDisplay || 'Empreendimento', text, url: gmaps })
+            .catch(()=>{ /* cancelado */ });
           return;
         }
-        // 2) WhatsApp Web (abrir imediatamente na “gestura” do clique)
-        const wa = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
-        const w = window.open(wa, '_blank', 'noopener,noreferrer');
-
-        // 3) Fallback: copiar (caso o browser bloqueie popups)
-        try { navigator.clipboard.writeText(shareText); } catch(_) {}
-        if(!w || w.closed){ alert('Conteúdo copiado. Se o WhatsApp não abriu, cole no WhatsApp/Email.'); }
-      });
+        // Sem Web Share: segue o link (WhatsApp). Copiamos em paralelo.
+        try { navigator.clipboard.writeText(text); } catch(_) {}
+        // não impedir a navegação do <a>
+      }, { passive:false });
 
       // KPIs iniciais
       renderKPIs(allMarkers);
