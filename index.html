@@ -38,6 +38,12 @@
     .actionBtn:hover{border-color:var(--gold)}
     #statsLine{font-size:12px;color:#E6E6E6;margin-right:auto}
 
+    /* Tabs */
+    .tabs{display:flex;gap:6px;align-items:center;margin-left:10px}
+    .tab{font-size:12px;padding:6px 10px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:#121212;color:#ddd;text-decoration:none}
+    .tab:hover{border-color:var(--gold)}
+    .tab.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:600}
+
     /* KPIs – compacto */
     #kpiBar{background:#0E0E0E;border-bottom:1px solid var(--border);padding:6px 12px;position:relative;z-index:20}
     .kpiGrid{display:grid;gap:8px;grid-template-columns:repeat(12,1fr)}
@@ -84,8 +90,17 @@
   </style>
 </head>
 <body>
-  <!-- Topbar -->
+  <!-- Topbar com tabs -->
   <div id="topbar">
+    <div class="brand" style="display:flex;align-items:center;gap:10px;margin-right:6px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--gold)"><circle cx="12" cy="12" r="10" stroke-width="1.5"/><path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/></svg>
+      <h1 style="margin:0;font-size:16px;color:#FFD166">Garvetur Porto Pro</h1>
+      <nav class="tabs">
+        <a class="tab active" href="./index.html">Mapa</a>
+        <a class="tab" href="./kanban.html">Kanban</a>
+      </nav>
+    </div>
+
     <div id="statsLine">A carregar…</div>
 
     <div class="searchWrap" title="Pesquisar por nome, notas…">
@@ -153,7 +168,7 @@
         <button id="act_center" class="btn">Centrar no mapa</button>
         <button id="act_gmaps" class="btn">Abrir no Google Maps</button>
         <button id="act_copy"  class="btn">Copiar resumo</button>
-        <!-- ALTERAÇÃO: botão → link real -->
+        <!-- Botão de Partilhar é um link real -->
         <a id="act_share" class="btn" href="#" target="_blank" rel="noopener noreferrer">Partilhar</a>
       </div>
     </aside>
@@ -361,7 +376,6 @@
         }
         drawer.classList.add('open');
         drawer.setAttribute('aria-hidden','false');
-        // Atualiza destino do link de partilha a cada seleção
         setShareHref();
       }
       function closeDrawer(){
@@ -552,7 +566,6 @@
         const wa = `https://wa.me/?text=${encodeURIComponent(text)}`;
         aShare.setAttribute('href', wa);
       }
-      // Handler robusto
       aShare.addEventListener('click', (ev)=>{
         if(!currentSel) { ev.preventDefault(); return; }
         const text = buildShareText(currentSel);
@@ -564,9 +577,8 @@
             .catch(()=>{ /* cancelado */ });
           return;
         }
-        // Sem Web Share: segue o link (WhatsApp). Copiamos em paralelo.
         try { navigator.clipboard.writeText(text); } catch(_) {}
-        // não impedir a navegação do <a>
+        // Em desktop, deixamos o <a> navegar para o WhatsApp Web
       }, { passive:false });
 
       // KPIs iniciais
