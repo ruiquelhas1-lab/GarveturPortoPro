@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Garvetur Porto Pro — Mapa (concelho inferido)</title>
+  <title>Garvetur Porto Pro — Mapa (KPIs + concelho inferido)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Preconnects -->
@@ -21,14 +21,16 @@
   <style>
     :root{
       --bg:#0E0E0E; --panel:#131313; --text:#FFFFFF; --muted:#9AA0A6;
-      --gold:#FFD166; --blue:#118AB2; --green:#06D6A0; --yellow:#FFC107;
+      --gold:#FFD166; --blue:#118AB2; --green:#06D6A0; --yellow:#FFC107; --red:#EF476F;
+      --card:#111111; --border:rgba(255,255,255,.10);
     }
     html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+
+    /* Barra superior com pesquisas e ações */
     #topbar{
       background:#0F0F0F;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.08);
-      display:flex;gap:12px;flex-wrap:wrap;align-items:center;position:relative;z-index:2
+      display:flex;gap:12px;flex-wrap:wrap;align-items:center;position:relative;z-index:3
     }
-    #stats{font-size:14px;color:#E6E6E6;margin-right:auto}
     .searchWrap{
       display:flex;align-items:center;gap:8px;background:#121212;border:1px solid rgba(255,255,255,.12);
       border-radius:10px;padding:6px 10px
@@ -38,7 +40,34 @@
     #filters label{font-size:13px;color:#D9D9D9}
     .actionBtn{background:transparent;border:1px solid rgba(255,209,102,.5);color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer}
     .actionBtn:hover{border-color:var(--gold)}
-    #map{height:calc(100% - 66px)}
+    #statsLine{font-size:13px;color:#E6E6E6;margin-right:auto}
+
+    /* Faixa de KPIs */
+    #kpiBar{
+      position:relative; z-index:2;
+      background:#0E0E0E; border-bottom:1px solid var(--border);
+      padding:10px 14px;
+    }
+    .kpiGrid{
+      display:grid; gap:10px;
+      grid-template-columns: repeat(12, 1fr);
+    }
+    .kpiCard{
+      background:var(--card); border:1px solid var(--border); border-radius:12px;
+      padding:12px; min-height:74px;
+    }
+    .kpiTitle{font-size:12px; color:#CFCFCF; text-transform:uppercase; letter-spacing:.05em}
+    .kpiValue{font-size:22px; font-weight:700; margin-top:4px}
+    .kpiNote{font-size:11px; color:#9AA0A6; margin-top:6px}
+    .badge{display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; border:1px solid var(--border); background:#141414; margin-right:6px; margin-bottom:6px}
+
+    /* Mapa */
+    #map{height:calc(100% - 66px - 112px)} /* 66 topbar + ~112 KPIs */
+    @media (max-width: 1100px){
+      #map{height:calc(100% - 66px - 160px)}
+    }
+
+    /* Legenda e clusters */
     .legend{background:#0F0F0F;color:#fff;padding:8px 10px;font:12px/14px Arial,sans-serif;box-shadow:0 0 15px rgba(0,0,0,0.3);border-radius:8px;border:1px solid rgba(255,255,255,.06)}
     .legend .row{display:flex;align-items:center;gap:8px;margin:4px 0}
     .legend .color{width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.2)}
@@ -47,29 +76,25 @@
     .marker-cluster div{background:var(--gold);color:#111}
     .leaflet-tooltip{background:#111;color:#fff;border:1px solid rgba(255,255,255,.1);border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.4)}
     .leaflet-tooltip-top:before,.leaflet-tooltip-bottom:before,.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{border-top-color:#111!important;border-bottom-color:#111!important;border-left-color:#111!important;border-right-color:#111!important}
-    #concCount{font-size:12px;color:#9AA0A6}
   </style>
 </head>
 <body>
+  <!-- Barra de pesquisa/ações -->
   <div id="topbar">
-    <div id="stats">A carregar…</div>
+    <div id="statsLine">A carregar…</div>
 
-    <!-- Pesquisa por EMPREENDIMENTO -->
     <div class="searchWrap" title="Pesquisar por nome, notas…">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
       <input id="search" placeholder="Pesquisar empreendimentos…" />
     </div>
 
-    <!-- Pesquisa por CONCELHO (com sugestões dinâmicas e inferência) -->
-    <div class="searchWrap" title="Pesquisar por concelho (inferido)">
+    <div class="searchWrap" title="Concelho (inferido: propriedades, texto, ou bbox AMP)">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
       <input id="concelhoSearch" placeholder="Concelho (ex.: Porto, Matosinhos…)" list="concelhosList" />
       <datalist id="concelhosList"></datalist>
-      <span id="concCount"></span>
     </div>
 
-    <!-- Pesquisa por ANO/CONCLUSÃO -->
-    <div class="searchWrap" title="Filtrar por ano de conclusão (ex.: 2027) ou texto de conclusão">
+    <div class="searchWrap" title="Ano/Conclusão (ex.: 2027 ou 'Q2 2026')">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
       <input id="yearSearch" placeholder="Ano/Conclusão (ex.: 2027 ou Q2 2026)" />
     </div>
@@ -81,10 +106,26 @@
       <label><input type="checkbox" class="state-filter" value="concluido" checked> Concluído</label>
     </div>
 
-    <button id="focusBtn" class="actionBtn" title="Recentrar no Grande Porto (AMP)">Focar AMP/Porto</button>
-    <button id="clearBtn" class="actionBtn" title="Repõe todos os filtros e pesquisas">Limpar filtros</button>
-    <button id="exportBtn" class="actionBtn" title="Exporta os empreendimentos visíveis/filtrados">Exportar CSV</button>
+    <button id="focusBtn" class="actionBtn" title="Recentrar AMP">Focar AMP/Porto</button>
+    <button id="clearBtn" class="actionBtn" title="Limpar filtros">Limpar filtros</button>
+    <button id="exportBtn" class="actionBtn" title="Exportar CSV">Exportar CSV</button>
   </div>
+
+  <!-- Faixa de KPIs -->
+  <div id="kpiBar">
+    <div class="kpiGrid" id="kpiGrid">
+      <!-- 12 colunas:
+           2 col Total, 2 Licenciado, 2 Em constr., 2 Concluído, 2 Concelhos distintos, 2 Top Concelhos -->
+      <div class="kpiCard" style="grid-column: span 2;"><div class="kpiTitle">Total visíveis</div><div class="kpiValue" id="kpiTotal">—</div><div class="kpiNote" id="kpiTotalNote"></div></div>
+      <div class="kpiCard" style="grid-column: span 2;"><div class="kpiTitle">Licenciado</div><div class="kpiValue" id="kpiLic">—</div><div class="kpiNote" id="kpiLicNote"></div></div>
+      <div class="kpiCard" style="grid-column: span 2;"><div class="kpiTitle">Em construção</div><div class="kpiValue" id="kpiCons">—</div><div class="kpiNote" id="kpiConsNote"></div></div>
+      <div class="kpiCard" style="grid-column: span 2;"><div class="kpiTitle">Concluído</div><div class="kpiValue" id="kpiConc">—</div><div class="kpiNote" id="kpiConcNote"></div></div>
+      <div class="kpiCard" style="grid-column: span 2;"><div class="kpiTitle">Concelhos distintos</div><div class="kpiValue" id="kpiConcelhos">—</div><div class="kpiNote" id="kpiConcNote2"></div></div>
+      <div class="kpiCard" style="grid-column: span 2;"><div class="kpiTitle">Top 5 Concelhos</div><div class="kpiNote" id="kpiTopConc">—</div></div>
+    </div>
+  </div>
+
+  <!-- Mapa -->
   <div id="map"></div>
 
   <!-- Loader utilitário -->
@@ -136,19 +177,8 @@
       return '';
     }
     function normStr(s){
-      return String(s||'')
-        .replace(/\u00A0/g, ' ')
-        .trim()
-        .toLowerCase()
+      return String(s||'').replace(/\u00A0/g, ' ').trim().toLowerCase()
         .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-    }
-    function normKey(s){
-      return String(s||'')
-        .replace(/\u00A0/g, ' ')
-        .trim()
-        .toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-        .replace(/[^a-z0-9]+/g,'_');
     }
     function toTitleCasePt(s){
       return String(s||'').toLowerCase().replace(/(^|\s|[-/])(\p{L})/gu,(m,p1,p2)=>p1+p2.toUpperCase());
@@ -158,53 +188,29 @@
     function sanitizeConcelhoValue(v){
       if(v==null) return '';
       let s=String(v).replace(/\u00A0/g,' ').trim();
-      s=s.replace(/^\s*(concelho|munic[ií]pio)\s*[:\-–]\s*/i,'');
-      s=s.split(/[\/,;|\-–]+/)[0].trim();
+      s=s.replace(/^\s*(concelho|munic[ií]pio)\s*[:\-–]\s*/i,''); // "Concelho: Porto" -> "Porto"
+      s=s.split(/[\/,;|\-–]+/)[0].trim();                         // "Porto / Cedofeita" -> "Porto"
       if(s.toLowerCase()==='nan' || s==='') return '';
       return s;
     }
 
-    // 1) Tenta ler concelho diretamente
+    // 1) Ler concelho diretamente, 2) por texto, 3) por BBox AMP
     function getConcelhoDynamic(props){
       let val=mapName(props,['concelho','Concelho','concelho ','Concelho ','municipio','município','municipality','city','local','freguesia']);
       val=sanitizeConcelhoValue(val);
       if(val) return val;
 
-      const keys=Object.keys(props||{});
-      for(const k of keys){
-        const nk=normKey(k);
-        if (/(^|_)concelho($|_)|(^|_)municipio($|_)|(^|_)city($|_)|(^|_)local($|_)|(^|_)freguesia($|_)/.test(nk)){
-          const v=sanitizeConcelhoValue(props[k]);
-          if(v) return v;
-        }
-      }
+      // texto (procura palavras AMP em todos os campos)
+      const MUNICIPIOS_AMP = [
+        "Porto","Vila Nova de Gaia","Matosinhos","Gondomar","Maia",
+        "Valongo","Espinho","Póvoa de Varzim","Vila do Conde"
+      ];
+      const BAG = Object.values(props||{}).map(v=>normStr(v)).join(" | ");
+      for(const nome of MUNICIPIOS_AMP){ if(BAG.includes(normStr(nome))) return nome; }
+
       return '';
     }
 
-    // 2) Se falhar, deteta por texto em qualquer campo (lista AMP)
-    const MUNICIPIOS_AMP = [
-      "Porto","Vila Nova de Gaia","Matosinhos","Gondomar","Maia",
-      "Valongo","Espinho","Póvoa de Varzim","Vila do Conde"
-    ];
-    const MUNICIPIOS_AMP_NORM = MUNICIPIOS_AMP.map(n => normStr(n));
-    function guessConcelhoFromText(props){
-      const vals = [];
-      for (const k of Object.keys(props||{})) {
-        const v = props[k];
-        if (v == null) continue;
-        const s = normStr(String(v));
-        if (s) vals.push(s);
-      }
-      const bag = vals.join(' | ');
-      for (let i=0;i<MUNICIPIOS_AMP.length;i++){
-        const target = MUNICIPIOS_AMP_NORM[i];
-        if (bag.includes(target)) return MUNICIPIOS_AMP[i];
-      }
-      return '';
-    }
-
-    // 3) Se ainda falhar, aproximação por bounding box (AMP)
-    // Nota: caixas conservadoras (não apanham todo o concelho, mas evitam “entranços” fronteira)
     const BBOX = {
       "Porto":            { minLat:41.12, maxLat:41.20, minLng:-8.69, maxLng:-8.55 },
       "Vila Nova de Gaia":{ minLat:41.03, maxLat:41.16, minLng:-8.70, maxLng:-8.51 },
@@ -249,16 +255,23 @@
     }
 
     (async function init(){
-      const statsEl=document.getElementById('stats');
+      const statsLine=document.getElementById('statsLine');
       const searchEl=document.getElementById('search');
       const concSearchEl=document.getElementById('concelhoSearch');
       const concListEl=document.getElementById('concelhosList');
-      const concCountEl=document.getElementById('concCount');
       const yearEl=document.getElementById('yearSearch');
 
       const exportBtn=document.getElementById('exportBtn');
       const focusBtn=document.getElementById('focusBtn');
       const clearBtn=document.getElementById('clearBtn');
+
+      // KPI elements
+      const kpiTotal=document.getElementById('kpiTotal');
+      const kpiLic=document.getElementById('kpiLic');
+      const kpiCons=document.getElementById('kpiCons');
+      const kpiConc=document.getElementById('kpiConc');
+      const kpiConcelhos=document.getElementById('kpiConcelhos');
+      const kpiTopConc=document.getElementById('kpiTopConc');
 
       try{ await loadLeafletStack(); }
       catch(e){
@@ -276,10 +289,10 @@
       focusBtn.addEventListener('click', focusAMP);
 
       const allMarkers=[];
-      let allRowsForExport=[];
       let usedUrl='';
+      let allRowsForExport=[];
 
-      // Tenta 3 fontes (prod / raw-main / raw-gh-pages)
+      // Carregar GeoJSON (3 fontes)
       const candidates=[DEFAULT_GEOJSON, RAW_MAIN, RAW_GHPAGES];
       const errors=[]; let gj=null;
       for(const url of candidates){
@@ -287,14 +300,14 @@
         catch(e){ errors.push(url+' → '+e.message); }
       }
       if(!gj||!Array.isArray(gj.features)){
-        statsEl.innerHTML='❌ Falha a carregar dados. <small>'+errors.join(' · ')+'</small>';
+        statsLine.innerHTML='❌ Falha a carregar dados. <small>'+errors.join(' · ')+'</small>';
         return;
       }
 
-      // Construção de marcadores + INFERÊNCIA de concelho
-      const concelhosSet = new Set(); // normalizado -> contar únicos para sugestões
-      const concelhosMap = new Map(); // normalizado -> label
+      // Concelhos para sugestões
+      const concelhosMap = new Map(); // norm -> label
 
+      // Construir marcadores
       gj.features.forEach(f=>{
         const p=f?.properties||{};
         const coords=(f?.geometry?.type==='Point' && Array.isArray(f.geometry.coordinates))? f.geometry.coordinates : null;
@@ -302,16 +315,9 @@
         const [x,y]=coords; const lng=Number(x), lat=Number(y);
         if(!Number.isFinite(lat)||!Number.isFinite(lng)) return;
 
-        // 1) direto; 2) texto; 3) bbox
-        let concelhoRaw = getConcelhoDynamic(p);
-        if (!concelhoRaw) concelhoRaw = guessConcelhoFromText(p);
-        if (!concelhoRaw) concelhoRaw = guessConcelhoFromBBox(lat, lng);
-        const concelhoLower = normStr(concelhoRaw);
-
-        if(concelhoRaw){
-          concelhosSet.add(concelhoLower);
-          if(!concelhosMap.has(concelhoLower)) concelhosMap.set(concelhoLower, toTitleCasePt(concelhoRaw));
-        }
+        let concelho=getConcelhoDynamic(p);
+        if(!concelho){ const guess=guessConcelhoFromBBox(lat,lng); if(guess) concelho=guess; }
+        const concLower=normStr(concelho);
 
         const nome=mapName(p,['nome','name','titulo','título','projecto','projeto'])||'Empreendimento';
         const estadoKey=normalizeEstado(mapName(p,['estado','status']));
@@ -321,13 +327,15 @@
         let link=mapName(p,['link','url','website']);
         if(!estadoKey||!stateDisplay[estadoKey]) return;
 
+        if(concelho){ const label=toTitleCasePt(concelho); if(!concelhosMap.has(concLower)) concelhosMap.set(concLower,label); }
+
         const icon=makePinIcon(stateColors[estadoKey]||'#BBBBBB');
         const marker=L.marker([lat,lng],{icon,title:nome});
 
         const tooltipHtml=`
           <div style="min-width:220px">
             <div style="font-weight:700; font-size:13px; margin-bottom:4px;">${nome}</div>
-            <div style="font-size:12px; color:#ccc;">${concelhoRaw?toTitleCasePt(concelhoRaw)+' · ':''}${estadoLabel}</div>
+            <div style="font-size:12px; color:#ccc;">${concelho?toTitleCasePt(concelho)+' · ':''}${estadoLabel}</div>
             ${conclusao?`<div style="font-size:12px; margin-top:4px;"><strong>Conclusão:</strong> ${conclusao}</div>`:''}
             ${notas?`<div style="font-size:12px; margin-top:4px; color:#ddd;">${String(notas).length>160?(String(notas).substring(0,157)+'…'):notas}</div>`:''}
           </div>`;
@@ -335,7 +343,7 @@
 
         let popup=`<div style="min-width:240px">
           <div style="font-weight:700; font-size:14px; margin-bottom:6px; color:#111;">${nome}</div>
-          <div style="font-size:12px; color:#444;">${concelhoRaw?toTitleCasePt(concelhoRaw)+' · ':''}${estadoLabel}</div>
+          <div style="font-size:12px; color:#444;">${concelho?toTitleCasePt(concelho)+' · ':''}${estadoLabel}</div>
           ${conclusao?`<div style="font-size:12px; margin-top:6px;"><strong>Conclusão:</strong> ${conclusao}</div>`:''}
           ${notas?`<div style="font-size:12px; margin-top:6px;">${notas}</div>`:''}`;
         if(link){ if(!/^https?:\/\//i.test(link)) link='http://'+link;
@@ -348,49 +356,68 @@
         const conclusaoYear=yearMatch?yearMatch[1]:'';
 
         allMarkers.push({
-          marker, estadoKey,
+          marker, estadoKey, estadoLabel,
           nome: normStr(nome),
-          concelhoLower, concelhoRaw,
+          concLower, concLabel: toTitleCasePt(concelho||''),
           notas: normStr(notas),
           conclusaoLower, conclusaoYear,
           link, lat, lng
         });
 
+        allRowsForExport.push({
+          nome, concelho: toTitleCasePt(concelho||''), estado: estadoLabel, conclusao, notas, link, latitude: lat, longitude: lng
+        });
+
         cluster.addLayer(marker);
       });
 
-      // Sugerir concelhos (datalist)
-      (function populateConcelhosDatalist(){
+      // Preencher autocomplete de concelhos
+      (function populateConcelhos(){
         const frag=document.createDocumentFragment();
         const arr = Array.from(concelhosMap.entries()).sort((a,b)=>a[1].localeCompare(b[1],'pt'));
         arr.forEach(([key,label])=>{
-          const opt=document.createElement('option');
-          opt.value = label;
-          frag.appendChild(opt);
+          const opt=document.createElement('option'); opt.value = label; frag.appendChild(opt);
         });
         concListEl.replaceChildren(frag);
-        concCountEl.textContent = `(${arr.length})`;
       })();
 
-      // Enquadramento inicial
+      // Enquadramento
       if(cluster.getLayers().length) map.fitBounds(cluster.getBounds().pad(0.2)); else map.setView([41.15,-8.6],12);
 
-      // KPIs + fonte
-      function updateKPIs(arr){
+      // KPIs + linha de estado
+      function renderKPIs(arr){
         const by={ licenciado:0, em_construcao:0, concluido:0, em_licenciamento:0 };
-        arr.forEach(o=>{ if(by.hasOwnProperty(o.estadoKey)) by[o.estadoKey]++; });
-        const parts=[
+        const concCounts=new Map(); // label -> count
+
+        arr.forEach(o=>{
+          if(by.hasOwnProperty(o.estadoKey)) by[o.estadoKey]++;
+          if(o.concLabel){ concCounts.set(o.concLabel, (concCounts.get(o.concLabel)||0)+1 ); }
+        });
+
+        // Valores
+        kpiTotal.textContent = arr.length;
+        kpiLic.textContent   = by.licenciado;
+        kpiCons.textContent  = by.em_construcao;
+        kpiConc.textContent  = by.concluido;
+        kpiConcelhos.textContent = new Set(arr.map(o=>o.concLower).filter(Boolean)).size;
+
+        // Top 5 concelhos
+        const top = Array.from(concCounts.entries()).sort((a,b)=>b[1]-a[1]).slice(0,5);
+        kpiTopConc.innerHTML = top.length
+          ? top.map(([label,n])=>`<span class="badge">${label}: ${n}</span>`).join(' ')
+          : '—';
+
+        // Linha de estado (fonte+resumo)
+        statsLine.innerHTML = [
           `Fonte: <small>${usedUrl.replace('https://','')}</small>`,
           `Total visíveis: <strong>${arr.length}</strong>`,
           `Licenciado: <strong>${by.licenciado}</strong>`,
           `Em construção: <strong>${by.em_construcao}</strong>`,
           `Concluído: <strong>${by.concluido}</strong>`
-        ];
-        statsEl.innerHTML=parts.join(' · ');
+        ].join(' · ');
       }
-      updateKPIs(allMarkers);
 
-      // ------------ FILTROS ------------
+      // Filtros
       function matchesYear(o,yq){
         if(!yq) return true;
         const s=normStr(yq);
@@ -401,7 +428,7 @@
 
       function applyFilters(){
         const q   = normStr(searchEl.value);
-        const cq  = normStr(concSearchEl.value); // pesquisa por concelho inferido
+        const cq  = normStr(concSearchEl.value);
         const yq  = yearEl.value;
 
         const allowed = new Set(
@@ -414,16 +441,14 @@
 
         const filtered = allMarkers.filter(o=>{
           if(!allowed.has(o.estadoKey)) return false;
-
           const textOk = !q || o.nome.includes(q) || o.notas.includes(q);
-          const concOk = !cq || (o.concelhoLower && o.concelhoLower.includes(cq));
-          const conclOk = matchesYear(o, yq);
-
+          const concOk = !cq || (o.concLower && o.concLower.includes(cq));
+          const conclOk= matchesYear(o, yq);
           return textOk && concOk && conclOk;
         });
 
         filtered.forEach(o=>cluster.addLayer(o.marker));
-        updateKPIs(filtered);
+        renderKPIs(filtered);
 
         if(!filtered.length) {
           map.fitBounds(AMP_BOUNDS.pad(0.1));
@@ -431,6 +456,18 @@
           const bounds = L.latLngBounds(filtered.map(o=>[o.lat,o.lng]));
           if(bounds.isValid()) map.fitBounds(bounds.pad(0.2));
         }
+
+        // (Opcional) registo local para comparações futuras
+        try{
+          const snapshot={
+            ts:Date.now(),
+            total:filtered.length,
+            lic:filtered.filter(o=>o.estadoKey==='licenciado').length,
+            cons:filtered.filter(o=>o.estadoKey==='em_construcao').length,
+            conc:filtered.filter(o=>o.estadoKey==='concluido').length
+          };
+          localStorage.setItem('gpp_last_snapshot', JSON.stringify(snapshot));
+        }catch(_){}
       }
 
       // Eventos (com debounce)
@@ -451,16 +488,13 @@
       exportBtn.addEventListener('click', ()=>{
         const visible=cluster.getAllChildMarkers();
         if(!visible||!visible.length){ alert('Não há empreendimentos visíveis para exportar.'); return; }
-        // Nota: exporta sem o campo concelho (como label), pode ser acrescentado se desejar
-        const rows = [];
-        visible.forEach(m=>{
-          const ll=m.getLatLng();
-          rows.push({ latitude: ll.lat, longitude: ll.lng });
-        });
-        const headers=['latitude','longitude'];
-        const csv=[headers.join(';')].concat(rows.map(r=>headers.map(h=>r[h]).join(';'))).join('\n');
+        const key=v=>`${v.latitude}|${v.longitude}`;
+        const visibleKeys=new Set(visible.map(m=>key({latitude:m.getLatLng().lat, longitude:m.getLatLng().lng})));
+        const exportData=allRowsForExport.filter(r=>visibleKeys.has(key(r)));
+        const headers=['nome','concelho','estado','conclusao','notas','link','latitude','longitude'];
+        const csv=[headers.join(';')].concat(exportData.map(r=>headers.map(h=>(r[h]??'')).join(';'))).join('\n');
         const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const a=document.createElement('a');
-        a.href=URL.createObjectURL(blob); a.download='visiveis.csv';
+        a.href=URL.createObjectURL(blob); a.download='empreendimentos_filtrados.csv';
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
       });
 
@@ -474,6 +508,9 @@
         return div;
       };
       legend.addTo(map);
+
+      // Primeira renderização (sem filtros ativos)
+      renderKPIs(allMarkers);
     })();
   </script>
 </body>
