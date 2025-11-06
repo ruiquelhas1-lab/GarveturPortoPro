@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Garvetur Porto Pro — Mapa (pesquisa por concelho)</title>
+  <title>Garvetur Porto Pro — Mapa (concelho inferido)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Preconnects -->
@@ -33,9 +33,7 @@
       display:flex;align-items:center;gap:8px;background:#121212;border:1px solid rgba(255,255,255,.12);
       border-radius:10px;padding:6px 10px
     }
-    .searchWrap input{
-      background:transparent;border:none;color:#fff;outline:none;width:240px
-    }
+    .searchWrap input{background:transparent;border:none;color:#fff;outline:none;width:240px}
     #filters{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
     #filters label{font-size:13px;color:#D9D9D9}
     .actionBtn{background:transparent;border:1px solid rgba(255,209,102,.5);color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer}
@@ -62,8 +60,8 @@
       <input id="search" placeholder="Pesquisar empreendimentos…" />
     </div>
 
-    <!-- Pesquisa por CONCELHO (com sugestões dinâmicas) -->
-    <div class="searchWrap" title="Pesquisar por concelho">
+    <!-- Pesquisa por CONCELHO (com sugestões dinâmicas e inferência) -->
+    <div class="searchWrap" title="Pesquisar por concelho (inferido)">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
       <input id="concelhoSearch" placeholder="Concelho (ex.: Porto, Matosinhos…)" list="concelhosList" />
       <datalist id="concelhosList"></datalist>
@@ -127,7 +125,7 @@
       return s;
     }
 
-    // ---------- Utilitários de normalização ----------
+    // ---------- Utilitários ----------
     function mapName(obj, keys){
       for(const k of keys){
         if(obj[k]!=null){
@@ -137,47 +135,41 @@
       }
       return '';
     }
-    // Normaliza valores (pesquisa/comparação)
     function normStr(s){
       return String(s||'')
-        .replace(/\u00A0/g, ' ')     // NBSP -> espaço
+        .replace(/\u00A0/g, ' ')
         .trim()
         .toLowerCase()
         .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
     }
-    // Normaliza NOMES DE CHAVE (cobre acentos, NBSP, símbolos; tudo vira snake)
     function normKey(s){
       return String(s||'')
         .replace(/\u00A0/g, ' ')
         .trim()
         .toLowerCase()
         .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-        .replace(/[^a-z0-9]+/g,'_'); // só [a-z0-9], resto "_"
+        .replace(/[^a-z0-9]+/g,'_');
     }
     function toTitleCasePt(s){
-      return String(s||'')
-        .toLowerCase()
-        .replace(/(^|\s|[-/])(\p{L})/gu,(m,p1,p2)=>p1+p2.toUpperCase());
+      return String(s||'').toLowerCase().replace(/(^|\s|[-/])(\p{L})/gu,(m,p1,p2)=>p1+p2.toUpperCase());
     }
-    // Saneia valores de concelho (remove prefixos e separadores)
+
+    // Saneia valores de concelho
     function sanitizeConcelhoValue(v){
       if(v==null) return '';
-      let s=String(v).replace(/\u00A0/g,' ').trim(); // NBSP -> espaço
-      s=s.replace(/^\s*(concelho|munic[ií]pio)\s*[:\-–]\s*/i,''); // "Concelho: Porto" -> "Porto"
-      s=s.split(/[\/,;|\-–]+/)[0].trim(); // "Porto / Cedofeita" -> "Porto"
+      let s=String(v).replace(/\u00A0/g,' ').trim();
+      s=s.replace(/^\s*(concelho|munic[ií]pio)\s*[:\-–]\s*/i,'');
+      s=s.split(/[\/,;|\-–]+/)[0].trim();
       if(s.toLowerCase()==='nan' || s==='') return '';
       return s;
     }
-    // Deteção dinâmica de concelho (varre chaves normalizadas)
+
+    // 1) Tenta ler concelho diretamente
     function getConcelhoDynamic(props){
-      // 1) Tentativa direta (nomes comuns)
-      let val=mapName(props,['concelho','Concelho','concelho ','Concelho ',
-                             'municipio','município','municipality',
-                             'city','local','freguesia']);
+      let val=mapName(props,['concelho','Concelho','concelho ','Concelho ','municipio','município','municipality','city','local','freguesia']);
       val=sanitizeConcelhoValue(val);
       if(val) return val;
 
-      // 2) Varredura total com normKey
       const keys=Object.keys(props||{});
       for(const k of keys){
         const nk=normKey(k);
@@ -185,6 +177,48 @@
           const v=sanitizeConcelhoValue(props[k]);
           if(v) return v;
         }
+      }
+      return '';
+    }
+
+    // 2) Se falhar, deteta por texto em qualquer campo (lista AMP)
+    const MUNICIPIOS_AMP = [
+      "Porto","Vila Nova de Gaia","Matosinhos","Gondomar","Maia",
+      "Valongo","Espinho","Póvoa de Varzim","Vila do Conde"
+    ];
+    const MUNICIPIOS_AMP_NORM = MUNICIPIOS_AMP.map(n => normStr(n));
+    function guessConcelhoFromText(props){
+      const vals = [];
+      for (const k of Object.keys(props||{})) {
+        const v = props[k];
+        if (v == null) continue;
+        const s = normStr(String(v));
+        if (s) vals.push(s);
+      }
+      const bag = vals.join(' | ');
+      for (let i=0;i<MUNICIPIOS_AMP.length;i++){
+        const target = MUNICIPIOS_AMP_NORM[i];
+        if (bag.includes(target)) return MUNICIPIOS_AMP[i];
+      }
+      return '';
+    }
+
+    // 3) Se ainda falhar, aproximação por bounding box (AMP)
+    // Nota: caixas conservadoras (não apanham todo o concelho, mas evitam “entranços” fronteira)
+    const BBOX = {
+      "Porto":            { minLat:41.12, maxLat:41.20, minLng:-8.69, maxLng:-8.55 },
+      "Vila Nova de Gaia":{ minLat:41.03, maxLat:41.16, minLng:-8.70, maxLng:-8.51 },
+      "Matosinhos":       { minLat:41.17, maxLat:41.26, minLng:-8.75, maxLng:-8.60 },
+      "Gondomar":         { minLat:41.09, maxLat:41.19, minLng:-8.59, maxLng:-8.44 },
+      "Maia":             { minLat:41.20, maxLat:41.28, minLng:-8.67, maxLng:-8.52 },
+      "Valongo":          { minLat:41.16, maxLat:41.25, minLng:-8.53, maxLng:-8.41 },
+      "Espinho":          { minLat:40.98, maxLat:41.02, minLng:-8.68, maxLng:-8.58 },
+      "Póvoa de Varzim":  { minLat:41.34, maxLat:41.44, minLng:-8.78, maxLng:-8.71 },
+      "Vila do Conde":    { minLat:41.27, maxLat:41.41, minLng:-8.78, maxLng:-8.64 }
+    };
+    function guessConcelhoFromBBox(lat, lng){
+      for (const [name, box] of Object.entries(BBOX)) {
+        if (lat>=box.minLat && lat<=box.maxLat && lng>=box.minLng && lng<=box.maxLng) return name;
       }
       return '';
     }
@@ -226,9 +260,8 @@
       const focusBtn=document.getElementById('focusBtn');
       const clearBtn=document.getElementById('clearBtn');
 
-      try{ 
-        await loadLeafletStack(); 
-      } catch(e){
+      try{ await loadLeafletStack(); }
+      catch(e){
         document.body.innerHTML='<div style="padding:16px;font-family:Arial;color:#111">❌ Falha a carregar bibliotecas do mapa (CDNs bloqueados). Tente noutro browser/rede.</div>';
         return;
       }
@@ -238,7 +271,7 @@
       const cluster=L.markerClusterGroup({ showCoverageOnHover:false, disableClusteringAtZoom:17 });
       map.addLayer(cluster);
 
-      const AMP_BOUNDS=L.latLngBounds([[41.05,-8.75],[41.25,-8.45]]);
+      const AMP_BOUNDS=L.latLngBounds([[41.03,-8.78],[41.44,-8.41]]);
       function focusAMP(){ map.fitBounds(AMP_BOUNDS.pad(0.1)); }
       focusBtn.addEventListener('click', focusAMP);
 
@@ -258,8 +291,8 @@
         return;
       }
 
-      // Construção de marcadores + inventário de concelhos
-      const concelhosSet = new Set(); // normalizado
+      // Construção de marcadores + INFERÊNCIA de concelho
+      const concelhosSet = new Set(); // normalizado -> contar únicos para sugestões
       const concelhosMap = new Map(); // normalizado -> label
 
       gj.features.forEach(f=>{
@@ -269,8 +302,12 @@
         const [x,y]=coords; const lng=Number(x), lat=Number(y);
         if(!Number.isFinite(lat)||!Number.isFinite(lng)) return;
 
-        const concelhoRaw=getConcelhoDynamic(p);
-        const concelhoLower=normStr(concelhoRaw);
+        // 1) direto; 2) texto; 3) bbox
+        let concelhoRaw = getConcelhoDynamic(p);
+        if (!concelhoRaw) concelhoRaw = guessConcelhoFromText(p);
+        if (!concelhoRaw) concelhoRaw = guessConcelhoFromBBox(lat, lng);
+        const concelhoLower = normStr(concelhoRaw);
+
         if(concelhoRaw){
           concelhosSet.add(concelhoLower);
           if(!concelhosMap.has(concelhoLower)) concelhosMap.set(concelhoLower, toTitleCasePt(concelhoRaw));
@@ -319,10 +356,6 @@
           link, lat, lng
         });
 
-        allRowsForExport.push({
-          nome, concelho: toTitleCasePt(concelhoRaw), estado: estadoLabel, conclusao, notas, link, latitude: lat, longitude: lng
-        });
-
         cluster.addLayer(marker);
       });
 
@@ -332,7 +365,7 @@
         const arr = Array.from(concelhosMap.entries()).sort((a,b)=>a[1].localeCompare(b[1],'pt'));
         arr.forEach(([key,label])=>{
           const opt=document.createElement('option');
-          opt.value = label;  // mostra o label (bonito) no autocomplete
+          opt.value = label;
           frag.appendChild(opt);
         });
         concListEl.replaceChildren(frag);
@@ -368,7 +401,7 @@
 
       function applyFilters(){
         const q   = normStr(searchEl.value);
-        const cq  = normStr(concSearchEl.value); // pesquisa por concelho (livre, com autocomplete)
+        const cq  = normStr(concSearchEl.value); // pesquisa por concelho inferido
         const yq  = yearEl.value;
 
         const allowed = new Set(
@@ -382,13 +415,8 @@
         const filtered = allMarkers.filter(o=>{
           if(!allowed.has(o.estadoKey)) return false;
 
-          // Nome/Notas
           const textOk = !q || o.nome.includes(q) || o.notas.includes(q);
-
-          // Concelho (inclui substring; torna a UX mais indulgente)
           const concOk = !cq || (o.concelhoLower && o.concelhoLower.includes(cq));
-
-          // Conclusão (ano/expressão)
           const conclOk = matchesYear(o, yq);
 
           return textOk && concOk && conclOk;
@@ -397,16 +425,15 @@
         filtered.forEach(o=>cluster.addLayer(o.marker));
         updateKPIs(filtered);
 
-        if(!filtered.length) { // se nada, recentrar na AMP
+        if(!filtered.length) {
           map.fitBounds(AMP_BOUNDS.pad(0.1));
         } else {
-          // tentar ajustar aos resultados
           const bounds = L.latLngBounds(filtered.map(o=>[o.lat,o.lng]));
           if(bounds.isValid()) map.fitBounds(bounds.pad(0.2));
         }
       }
 
-      // Eventos (com ligeiro debounce nas pesquisas)
+      // Eventos (com debounce)
       document.querySelectorAll('.state-filter').forEach(cb=>cb.addEventListener('change', applyFilters));
       let t1=null,t2=null,t3=null;
       searchEl.addEventListener('input', ()=>{ clearTimeout(t1); t1=setTimeout(applyFilters,130); });
@@ -424,15 +451,16 @@
       exportBtn.addEventListener('click', ()=>{
         const visible=cluster.getAllChildMarkers();
         if(!visible||!visible.length){ alert('Não há empreendimentos visíveis para exportar.'); return; }
-        const key=v=>`${v.latitude}|${v.longitude}`;
-        const visibleKeys=new Set(visible.map(m=>key({latitude:m.getLatLng().lat, longitude:m.getLatLng().lng})));
-        const exportData=allRowsForExport.filter(r=>visibleKeys.has(key(r)));
-        const headers=['nome','concelho','estado','conclusao','notas','link','latitude','longitude'];
-        const csv=[headers.join(';')].concat(
-          exportData.map(r=>headers.map(h=>(r[h]??'')).join(';'))
-        ).join('\n');
+        // Nota: exporta sem o campo concelho (como label), pode ser acrescentado se desejar
+        const rows = [];
+        visible.forEach(m=>{
+          const ll=m.getLatLng();
+          rows.push({ latitude: ll.lat, longitude: ll.lng });
+        });
+        const headers=['latitude','longitude'];
+        const csv=[headers.join(';')].concat(rows.map(r=>headers.map(h=>r[h]).join(';'))).join('\n');
         const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const a=document.createElement('a');
-        a.href=URL.createObjectURL(blob); a.download='empreendimentos_filtrados.csv';
+        a.href=URL.createObjectURL(blob); a.download='visiveis.csv';
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
       });
 
