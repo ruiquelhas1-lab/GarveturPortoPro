@@ -2,163 +2,124 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Garvetur Porto Pro — Mapa (Local + Fallbacks no mesmo repo)</title>
+  <title>Garvetur Porto Pro — Mapa (RAW-first)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin="anonymous">
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
   <style>
-    :root{ --bg:#0E0E0E; --panel:#131313; --text:#FFFFFF; --muted:#9AA0A6; --gold:#A38B63; --card:#111; --border:rgba(255,255,255,.10);}
+    :root{ --bg:#0E0E0E; --text:#FFFFFF; --gold:#A38B63 }
     html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
     #topbar{background:#0F0F0F;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.08);
-      display:flex;gap:10px;flex-wrap:wrap;align-items:center;position:relative;z-index:30}
-    .tabs{display:flex;gap:6px;align-items:center;margin-left:10px}
+      display:flex;gap:10px;align-items:center;position:relative;z-index:30;flex-wrap:wrap}
     .tab{font-size:12px;padding:6px 10px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:#121212;color:#ddd;text-decoration:none}
     .tab.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:600}
     .actionBtn{background:transparent;border:1px solid rgba(163,139,99,.5);color:#fff;padding:6px 9px;border-radius:8px;cursor:pointer;font-size:12px}
-    .actionBtn:hover{border-color:var(--gold)}
     #status{font-size:12px;color:#E6E6E6;margin-left:auto}
     #map{position:absolute;inset:0}
-    .legend{background:#0F0F0F;color:#fff;padding:8px 10px;font:12px/14px Arial,sans-serif;box-shadow:0 0 15px rgba(0,0,0,.3);border-radius:8px;border:1px solid rgba(255,255,255,.06)}
-    .legend .row{display:flex;align-items:center;gap:8px;margin:4px 0}
-    .legend .color{width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.2)}
   </style>
 </head>
 <body>
   <div id="topbar">
-    <div class="brand" style="display:flex;align-items:center;gap:10px;">
+    <div style="display:flex;align-items:center;gap:10px;">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:#FFD166"><circle cx="12" cy="12" r="10" stroke-width="1.5"/><path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/></svg>
       <h1 style="margin:0;font-size:16px;color:#FFD166">Garvetur Porto Pro</h1>
-      <nav class="tabs">
+      <nav style="display:flex;gap:6px;margin-left:10px">
         <a class="tab active" href="./index.html">Mapa</a>
         <a class="tab" href="./kanban.html">Leads</a>
         <a class="tab" href="./angariacoes.html">Angariações</a>
         <a class="tab" href="./dashboard.html">Dashboard</a>
       </nav>
     </div>
-    <button id="focusBtn" class="actionBtn">Focar AMP/Porto</button>
-    <button id="retryBtn" class="actionBtn">Tentar novamente</button>
+    <button id="retryBtn" class="actionBtn">Recarregar</button>
     <a id="openGeo" class="actionBtn" target="_blank" rel="noreferrer">Abrir GeoJSON</a>
     <div id="status">A iniciar…</div>
   </div>
 
   <div id="map"></div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script>
-  // Fontes: todas no MESMO repositório do site (elimina dependências externas)
-  const SOURCES = [
-    "./data/empreendimentos.geojson",
-    "https://raw.githubusercontent.com/ruiquelhas1-lab/GarveturPortoPro/main/data/empreendimentos.geojson",
-    "https://cdn.jsdelivr.net/gh/ruiquelhas1-lab/GarveturPortoPro/data/empreendimentos.geojson"
-  ];
+  // --- Fontes de dados ---
+  const RAW = "https://raw.githubusercontent.com/ruiquelhas1-lab/GarveturPortoPro/main/data/empreendimentos.geojson";
+  const CDN = "https://cdn.jsdelivr.net/gh/ruiquelhas1-lab/GarveturPortoPro@main/data/empreendimentos.geojson";
+  const LOCAL = "./data/empreendimentos.geojson";
+
+  // Respeitar ?src=… (força 1ª fonte)
+  const params = new URLSearchParams(location.search);
+  const override = params.get("src");
+  const SOURCES = override ? [override, RAW, CDN, LOCAL] : [RAW, CDN, LOCAL];
 
   const statusEl = document.getElementById('status');
   const openGeo = document.getElementById('openGeo');
-  const map = L.map('map', { zoomControl: true, scrollWheelZoom: true }).setView([41.15, -8.61], 11);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
+
+  // --- Mapa ---
+  const map = L.map('map',{zoomControl:true,scrollWheelZoom:true}).setView([41.15,-8.61],11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
   const cluster = L.markerClusterGroup(); map.addLayer(cluster);
-  const colors = { licenciado:"#118AB2", em_construcao:"#FFD166", em_licenciamento:"#8E7CC3", concluido:"#06D6A0", default:"#A38B63" };
 
-  document.getElementById('focusBtn').addEventListener('click',()=> map.fitBounds([[41.28,-8.75],[41.05,-8.45]]).pad=0.1);
-  document.getElementById('retryBtn').addEventListener('click', ()=> loadGeo());
-
-  function setStatus(msg){ statusEl.textContent = msg; }
+  function setStatus(m){ statusEl.textContent = m; }
+  function colorByEstado(e){ const m={licenciado:"#118AB2",em_construcao:"#FFD166",em_licenciamento:"#8E7CC3",concluido:"#06D6A0"}; return m[(e||'').toLowerCase()]||"#A38B63"; }
 
   async function tryFetch(url){
-    setStatus('A carregar: ' + url);
+    const bust = (url.includes("?")? "&":"?") + "v=" + Date.now(); // cache-bust
+    setStatus("A carregar: " + url);
     openGeo.href = url;
-    const res = await fetch(url, {cache:'no-store'});
-    if(!res.ok) throw new Error('HTTP '+res.status+' em '+url);
-    const txt = await res.text();
-    if(txt.trim().startsWith('<')) throw new Error('Conteúdo HTML (não JSON) em '+url);
-    try { return JSON.parse(txt); } 
-    catch(e){ throw new Error('JSON inválido em '+url+': '+(e.message||e)); }
+    const r = await fetch(url + bust, {cache:'no-store'});
+    if(!r.ok) throw new Error("HTTP " + r.status + " em " + url);
+    const t = await r.text();
+    if(t.trim().startsWith("<")) throw new Error("Conteúdo HTML (404/página) em " + url);
+    let gj;
+    try { gj = JSON.parse(t); } catch(e){ throw new Error("JSON inválido em " + url + " (" + e.message + ")"); }
+    if (gj.type !== "FeatureCollection" || !Array.isArray(gj.features)) throw new Error("Formato inesperado em " + url);
+    return gj;
   }
 
-  async function loadGeo(){
+  function addMarkers(features){
+    cluster.clearLayers();
+    let added = 0;
+    features.forEach(f=>{
+      if(!f || !f.geometry || f.geometry.type!=="Point") return;
+      const c = f.geometry.coordinates||[];
+      const lng = Number(String(c[0]).replace(',','.'));
+      const lat = Number(String(c[1]).replace(',','.'));
+      if(!Number.isFinite(lat)||!Number.isFinite(lng)) return;
+      const p = f.properties||{};
+      const m = L.marker([lat,lng],{
+        icon:L.divIcon({className:'gpp-pin', html:`<div style="transform:translate(-10px,-24px)"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.3 7 13 7 13s7-7.7 7-13c0-3.9-3.1-7-7-7z" fill="${colorByEstado(p.estado)}" stroke="white" stroke-width="1"/><circle cx="12" cy="9" r="3" fill="#111" stroke="white" stroke-width="1"/></svg></div>`,iconSize:[24,24],iconAnchor:[12,24]})
+      });
+      m.bindTooltip(p.nome||'—',{direction:'top'});
+      m.bindPopup(`<b>${p.nome||'—'}</b><br>${p.concelho||''} · ${(p.estado||'').toLowerCase()}${p.conclusao?'<br>Conclusão: '+p.conclusao:''}${p.promotor?'<br>Promotor: '+p.promotor:''}${p.link?'<br><a href="'+p.link+'" target="_blank" rel="noreferrer">Abrir link</a>':''}`);
+      cluster.addLayer(m); added++;
+    });
+    if(added){ const b = cluster.getBounds(); if(b && b.isValid()) map.fitBounds(b.pad(0.2)); }
+    return added;
+  }
+
+  async function load(){
     cluster.clearLayers();
     let lastErr = null;
     for(const url of SOURCES){
       try{
         const gj = await tryFetch(url);
-        if(!gj || gj.type!=='FeatureCollection' || !Array.isArray(gj.features)) {
-          throw new Error('Formato inesperado (não é FeatureCollection) em '+url);
-        }
-        const feats = gj.features.map(f=>{
-          const p=f.properties||{}; const c=f.geometry&&f.geometry.type==='Point'? f.geometry.coordinates : null;
-          const lng=Array.isArray(c)? Number(String(c[0]).replace(',','.')) : NaN;
-          const lat=Array.isArray(c)? Number(String(c[1]).replace(',','.')) : NaN;
-          return {
-            nome: p.nome||p.name||p.titulo||'—',
-            concelho: p.concelho||p.city||'',
-            estado: (p.estado||'').toLowerCase(),
-            promotor: p.promotor||'',
-            conclusao: (p.conclusao||'').toString().replace('.0',''),
-            notas: p.notas||'',
-            link: p.link||'',
-            lat: isFinite(lat)? lat:null, lng: isFinite(lng)? lng:null
-          };
-        });
-        drawMarkers(feats);
-        const visiveis = cluster.getLayers().length;
-        setStatus(`✅ Dados carregados (${feats.length} registos; visíveis: ${visiveis}) de ${url}`);
-        if (visiveis) {
-          const b = cluster.getBounds(); if (b && b.isValid()) map.fitBounds(b.pad(0.2));
-        }
+        const added = addMarkers(gj.features||[]);
+        setStatus(`✅ Dados carregados (features: ${(gj.features||[]).length}; visíveis: ${added}) de ${url}`);
         return;
-      }catch(err){ lastErr = err; }
+      }catch(err){
+        lastErr = err;
+        console.warn("Falha nesta fonte:", url, err);
+      }
     }
-    setStatus('❌ Falha ao carregar GeoJSON. '+ (lastErr? String(lastErr.message||lastErr) : 'Sem detalhe.'));
+    setStatus("❌ Falha ao carregar GeoJSON. " + (lastErr? lastErr.message : "Sem detalhe"));
     alert('Falha ao carregar o ficheiro GeoJSON. Clique "Abrir GeoJSON" e confirme que abre JSON (FeatureCollection).');
   }
 
-  function colorByEstado(e){
-    const m = { licenciado:"#118AB2", em_construcao:"#FFD166", em_licenciamento:"#8E7CC3", concluido:"#06D6A0" };
-    return m[e] || "#A38B63";
-  }
-
-  function drawMarkers(arr){
-    cluster.clearLayers();
-    arr.forEach(p=>{
-      if(p.lat==null || p.lng==null) return;
-      const m = L.marker([p.lat,p.lng], {
-        title: p.nome,
-        icon: L.divIcon({
-          className:'gpp-pin',
-          html:`<div style="transform:translate(-10px,-24px)">
-                  <svg width="24" height="24" viewBox="0 0 24 24">
-                    <path d="M12 2C8.1 2 5 5.1 5 9c0 5.3 7 13 7 13s7-7.7 7-13c0-3.9-3.1-7-7-7z" fill="${colorByEstado(p.estado)}" stroke="white" stroke-width="1"/>
-                    <circle cx="12" cy="9" r="3" fill="#111" stroke="white" stroke-width="1"/>
-                  </svg>
-                </div>`,
-          iconSize:[24,24], iconAnchor:[12,24]
-        })
-      });
-      m.bindTooltip(`${p.nome}`, {permanent:false, direction:'top'});
-      const body = `${p.concelho||'—'} · ${(p.estado||'—')}`
-                 + `<br>Conclusão: ${p.conclusao||'—'}`
-                 + (p.promotor? '<br>Promotor: '+p.promotor : '')
-                 + (p.link? '<br><a target="_blank" href="'+p.link+'">Abrir link</a>' : '');
-      m.bindPopup(`<b>${p.nome||'—'}</b><br>${body}`);
-      cluster.addLayer(m);
-    });
-  }
-
-  const legend = L.control({position:'bottomleft'});
-  legend.onAdd = function(){
-    const div = L.DomUtil.create('div','legend');
-    div.innerHTML = `
-      <div class="row"><span class="color" style="background:#FFD166"></span> Em construção</div>
-      <div class="row"><span class="color" style="background:#118AB2"></span> Licenciado</div>
-      <div class="row"><span class="color" style="background:#8E7CC3"></span> Em licenciamento</div>
-      <div class="row"><span class="color" style="background:#06D6A0"></span> Concluído</div>`;
-    return div;
-  };
-  legend.addTo(map);
-
-  loadGeo();
+  document.getElementById('retryBtn').onclick = load;
+  load();
   </script>
 </body>
 </html>
