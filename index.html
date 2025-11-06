@@ -169,14 +169,444 @@
     const DEFAULT_GEOJSON="https://ruiquelhas1-lab.github.io/Mapa-Porto/data/empreendimentos.geojson";
     const stateColors={ licenciado:"#FFD166", em_construcao:"#118AB2", concluido:"#06D6A0", em_licenciamento:"#FFC107" };
     const stateDisplay={ licenciado:"Licenciado", em_construcao:"Em construção", concluido:"Concluído", em_licenciamento:"Em licenciamento" };
+
     function normalizeEstado(text){
       if(!text) return "";
-      let s=String(text).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'_').replace([^\w],''); // corrigido já no upload final
+      let s=String(text).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'_');
       if(s.includes('licenc')) return 'licenciado';
       if(s.includes('constr')) return 'em_construcao';
       if(s.includes('conclu')||s.includes('entreg')) return 'concluido';
+      if(s.includes('licenciam')) return 'em_licenciamento';
       return s;
     }
+    function mapName(obj, keys){ for(const k of keys){ if(obj && obj[k]!=null){ const v=String(obj[k]).trim(); if(v!=='') return v; } } return ''; }
+    function normStr(s){ return String(s||'').replace(/\u00A0/g,' ').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+    function toTitleCasePt(s){
+      const small=new Set(['de','da','do','das','dos','e']); const parts=String(s||'').trim().toLowerCase().split(/\s+/);
+      return parts.map((w,i)=> small.has(w) && i>0 ? w : w.replace(/^\p{L}/u, m=>m.toUpperCase())).join(' ');
+    }
+    function normalizeConclusao(val){
+      if(val==null) return '';
+      let s=String(val).trim();
+      if(/^(\d{4})([.,]0+)$/.test(s)) return s.replace(/^(\d{4}).*$/,'$1');
+      const n=Number(s);
+      if(Number.isFinite(n) && Math.abs(n - Math.round(n))<1e-9) return String(Math.round(n));
+      return s;
+    }
+    function makePinIcon(color='#FFD166'){
+      const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="36" viewBox="0 0 26 36">
+          <defs><filter id="s" x="-50%" y="-50%" width="200%" height="200%">
+            <feOffset dy="1" in="SourceAlpha" result="sh"/><feGaussianBlur stdDeviation="1.2" in="sh" result="b"/>
+            <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .35 0" in="b" result="sh2"/>
+            <feMerge><feMergeNode in="sh2"/><feMergeNode in="SourceGraphic"/></feMerge></feMerge></filter></defs>
+          <g filter="url(#s)"><path d="M13 35c-3.5-6.1-10.5-11-10.5-18.3C2.5 8.6 7.8 3 13 3s10.5 5.6 10.5 13.7C23.5 24 16.5 28.9 13 35z" fill="${color}"/>
+          <circle cx="13" cy="16" r="4.2" fill="#1A1A1A" opacity="0.85"/><circle cx="13" cy="16" r="2.2" fill="#ffffff"/></g>
+        </svg>`;
+      const url = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+      return L.icon({ iconUrl:url, iconSize:[26,36], iconAnchor:[13,34], popupAnchor:[0,-30], tooltipAnchor:[0,-30] });
+    }
+    const BBOX = {
+      "Porto":            { minLat:41.12, maxLat:41.20, minLng:-8.69, maxLng:-8.55 },
+      "Vila Nova de Gaia":{ minLat:41.03, maxLat:41.16, minLng:-8.70, maxLng:-8.51 },
+      "Matosinhos":       { minLat:41.17, maxLat:41.26, minLng:-8.75, maxLng:-8.60 },
+      "Gondomar":         { minLat:41.09, maxLat:41.19, minLng:-8.59, maxLng:-8.44 },
+      "Maia":             { minLat:41.20, maxLat:41.28, minLng:-8.67, maxLng:-8.52 },
+      "Valongo":          { minLat:41.16, maxLat:41.25, minLng:-8.53, maxLng:-8.41 },
+      "Espinho":          { minLat:40.98, maxLat:41.02, minLng:-8.68, maxLng:-8.58 },
+      "Póvoa de Varzim":  { minLat:41.34, maxLat:41.44, minLng:-8.78, maxLng:-8.71 },
+      "Vila do Conde":    { minLat:41.27, maxLat:41.41, minLng:-8.78, maxLng:-8.64 }
+    };
+    function guessConcelhoFromBBox(lat, lng){
+      for (const [name, box] of Object.entries(BBOX)) {
+        if (lat>=box.minLat && lat<=box.maxLat && lng>=box.minLng && lng<=box.maxLng) return name;
+      }
+      return '';
+    }
+    function sanitizeToJSON(txt){ return txt.replace(/^\uFEFF/,'').replace(/\bNaN\b/g,'null').replace(/\bInfinity\b/g,'null').replace(/\b-Infinity\b/g,'null').replace(/,\s*([}\]])/g,'$1'); }
+    function parseJSONSafe(txt){ return JSON.parse(sanitizeToJSON(txt)); }
+    async function fetchTextNoCache(url){ const bust=url.includes('?')?`&t=${Date.now()}`:`?t=${Date.now()}`; const r=await fetch(url+bust,{cache:'no-store'}); if(!r.ok) throw new Error(`HTTP ${r.status} @ ${url}`); return await r.text(); }
+    function loadLeafletStack(){
+      return Promise.resolve()
+        .then(()=>loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js','https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js'))
+        .then(()=>loadScript('https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js','https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'));
+    }
+
+    (async function init(){
+      const statsLine=document.getElementById('statsLine');
+      const searchEl=document.getElementById('search');
+      const concSearchEl=document.getElementById('concelhoSearch');
+      const concListEl=document.getElementById('concelhosList');
+      const yearEl=document.getElementById('yearSearch');
+
+      const kpiTotal=document.getElementById('kpiTotal');
+      const kpiLic=document.getElementById('kpiLic');
+      const kpiCons=document.getElementById('kpiCons');
+      const kpiConc=document.getElementById('kpiConc');
+      const kpiTopConc=document.getElementById('kpiTopConc');
+
+      const drawer=document.getElementById('drawer');
+      const dName=document.getElementById('d_name');
+      const dSub=document.getElementById('d_sub');
+      const dNotes=document.getElementById('d_notes');
+      const dCoords=document.getElementById('d_coords');
+      const dLinkRow=document.getElementById('d_link_row');
+      const dLink=document.getElementById('d_link');
+
+      const bCenter=document.getElementById('act_center');
+      const bGMaps=document.getElementById('act_gmaps');
+      const bCopy=document.getElementById('act_copy');
+      const aShare=document.getElementById('act_share');
+      const bToKanban=document.getElementById('act_to_kanban');
+      const bQuickLead=document.getElementById('act_quicklead');
+
+      try{ await loadLeafletStack(); }catch(e){
+        document.body.innerHTML='<div style="padding:16px;font-family:Arial;color:#111">❌ Falha a carregar bibliotecas do mapa (CDNs bloqueados). Tente noutro browser/rede.</div>';
+        return;
+      }
+
+      const map=L.map('map');
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19, attribution:'&copy; OpenStreetMap'}).addTo(map);
+      const cluster=L.markerClusterGroup({ showCoverageOnHover:false, disableClusteringAtZoom:17 });
+      map.addLayer(cluster);
+
+      const AMP_BOUNDS=L.latLngBounds([[41.03,-8.78],[41.44,-8.41]]);
+      document.getElementById('focusBtn').addEventListener('click', ()=>map.fitBounds(AMP_BOUNDS.pad(0.1)));
+      document.getElementById('clearBtn').addEventListener('click', ()=>{
+        searchEl.value=''; concSearchEl.value=''; yearEl.value='';
+        document.querySelectorAll('.state-filter').forEach(cb=>cb.checked=true);
+        applyFilters();
+      });
+
+      document.getElementById('exportBtn').addEventListener('click', ()=>{
+        const visible=cluster.getAllChildMarkers();
+        if(!visible||!visible.length){ alert('Não há empreendimentos visíveis para exportar.'); return; }
+        const key=v=>`${v.latitude}|${v.longitude}`;
+        const visibleKeys=new Set(visible.map(m=>key({latitude:m.getLatLng().lat, longitude:m.getLatLng().lng})));
+        const headers=['nome','concelho','estado','conclusao','notas','link','latitude','longitude'];
+        const csv=[headers.join(';')].concat(
+          allRowsForExport.filter(r=>visibleKeys.has(key(r))).map(r=>headers.map(h=>(r[h]??'')).join(';'))
+        ).join('\n');
+        const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob); a.download='empreendimentos_filtrados.csv';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      });
+
+      const legend=L.control({position:'bottomleft'});
+      legend.onAdd=function(){
+        const div=L.DomUtil.create('div','legend');
+        const item=(c,l)=>`<div class="row"><span class="color" style="background:${c}"></span><span>${l}</span></div>`;
+        div.innerHTML = item('#118AB2','Em construção') + item('#FFD166','Licenciado') + item('#FFC107','Em licenciamento') + item('#06D6A0','Concluído');
+        return div;
+      };
+      legend.addTo(map);
+
+      const candidates=[
+        "https://ruiquelhas1-lab.github.io/Mapa-Porto/data/empreendimentos.geojson",
+        "https://raw.githubusercontent.com/ruiquelhas1-lab/Mapa-Porto/main/data/empreendimentos.geojson",
+        "https://raw.githubusercontent.com/ruiquelhas1-lab/Mapa-Porto/gh-pages/data/empreendimentos.geojson"
+      ];
+      const errors=[]; let gj=null; let usedUrl='';
+      for(const url of candidates){
+        try{ const txt=await fetchTextNoCache(url); gj=parseJSONSafe(txt); usedUrl=url; break; }
+        catch(e){ errors.push(url+' → '+e.message); }
+      }
+      if(!gj||!Array.isArray(gj.features)){
+        document.getElementById('statsLine').innerHTML='❌ Falha a carregar dados. <small>'+errors.join(' · ')+'</small>';
+        return;
+      }
+      window.__usedUrl = usedUrl;
+
+      const concelhosSet=new Set();
+      const allMarkers=[]; let currentSel=null;
+      window.allRowsForExport=[];
+
+      function openDrawer(data){
+        currentSel=data;
+        document.getElementById('d_name').textContent = data.nomeDisplay || 'Empreendimento';
+        document.getElementById('d_sub').innerHTML = `${data.concLabel?toTitleCasePt(data.concLabel)+' · ':''}<span class="chip">${data.estadoLabel||'—'}</span>`;
+        document.getElementById('d_conc').textContent = normalizeConclusao(data.conclusao) || '—';
+        document.getElementById('d_notes').textContent = data.notasFull || '—';
+        document.getElementById('d_coords').textContent = `${data.lat.toFixed(6)}, ${data.lng.toFixed(6)}`;
+        if(data.link){
+          dLinkRow.style.display='';
+          dLink.href = /^https?:\/\//i.test(data.link) ? data.link : ('http://' + data.link);
+        } else {
+          dLinkRow.style.display='none';
+        }
+        drawer.classList.add('open'); drawer.setAttribute('aria-hidden','false');
+        setShareHref();
+      }
+      function closeDrawer(){
+        drawer.classList.remove('open'); drawer.setAttribute('aria-hidden','true'); currentSel=null; setShareHref();
+      }
+      document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+
+      gj.features.forEach(f=>{
+        const p=f?.properties||{};
+        const coords=(f?.geometry?.type==='Point' && Array.isArray(f.geometry.coordinates))? f.geometry.coordinates : null;
+        if(!coords) return;
+        const [x,y]=coords; const lng=Number(x), lat=Number(y);
+        if(!Number.isFinite(lat)||!Number.isFinite(lng)) return;
+
+        let concelho=mapName(p,['concelho','Concelho','municipio','município','city','local','freguesia']).replace(/\s+/g,' ').trim();
+        if(!concelho || concelho==='NaN' || concelho==='—'){
+          const g = guessConcelhoFromBBox(lat, lng);
+          if(g) concelho = g;
+        }
+        const concLower=normStr(concelho);
+        const concLabel=toTitleCasePt(concelho);
+
+        const nomeRaw=mapName(p,['nome','name','titulo','título','projecto','projeto'])||'Empreendimento';
+        const nomeDisplay=nomeRaw; const nome=normStr(nomeRaw);
+        const estadoKey=normalizeEstado(mapName(p,['estado','status']));
+        const estadoLabel=stateDisplay[estadoKey]||mapName(p,['estado','status']);
+        const conclusao=normalizeConclusao(mapName(p,['conclusao','conclusão','conclusao_prevista','completion','entrega']));
+        const notasFull=mapName(p,['notas','observacoes','observações','notes']); const notas=normStr(notasFull);
+        let link=mapName(p,['link','url','website']);
+        if(!estadoKey||!stateColors[estadoKey]) return;
+
+        if(concLabel) concelhosSet.add(concLabel);
+
+        const icon = makePinIcon(stateColors[estadoKey] || '#FFD166');
+        const marker=L.marker([lat,lng],{icon,title:nomeDisplay});
+
+        const tooltipHtml=`<div style="min-width:220px">
+            <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${nomeDisplay}</div>
+            <div style="font-size:12px;color:#ccc;">${concLabel?concLabel+' · ':''}${estadoLabel}</div>
+            ${conclusao?`<div style="font-size:12px;margin-top:4px;"><strong>Conclusão:</strong> ${conclusao}</div>`:''}
+            ${notasFull?`<div style="font-size:12px;margin-top:4px;color:#ddd;">${String(notasFull).length>160?(String(notasFull).substring(0,157)+'…'):notasFull}</div>`:''}
+          </div>`;
+        marker.bindTooltip(tooltipHtml,{direction:'top',offset:[0,-28],sticky:true,opacity:0.95});
+
+        marker.on('click', ()=>{
+          map.setView([lat,lng], Math.max(map.getZoom(), 15), {animate:true});
+          openDrawer({ nomeDisplay, concLabel, estadoLabel, conclusao, notasFull, link, lat, lng });
+        });
+
+        allMarkers.push({
+          marker, estadoKey, estadoLabel,
+          nome, nomeDisplay, concLower, concLabel,
+          notas, notasFull,
+          conclusaoLower: normStr(conclusao),
+          conclusaoYear: (/(\b20\d{2}\b)/.exec(normStr(conclusao))||[])[1]||'',
+          link, lat, lng
+        });
+        cluster.addLayer(marker);
+
+        // Para exportação rápida do que está visível (CSV)
+        window.allRowsForExport.push({
+          nome:nomeDisplay, concelho:concLabel, estado:estadoLabel, conclusao, notas:notasFull, link, latitude:lat, longitude:lng
+        });
+      });
+
+      const frag=document.createDocumentFragment();
+      Array.from(concelhosSet.values()).sort((a,b)=>a.localeCompare(b,'pt')).forEach(label=>{
+        const opt=document.createElement('option'); opt.value=label; frag.appendChild(opt);
+      });
+      concListEl.replaceChildren(frag);
+
+      if(cluster.getLayers().length) map.fitBounds(cluster.getBounds().pad(0.2)); else map.setView([41.15,-8.6],12);
+
+      function renderKPIs(arr){
+        const by={ licenciado:0, em_construcao:0, concluido:0, em_licenciamento:0 };
+        const concCounts=new Map();
+        arr.forEach(o=>{
+          if(by.hasOwnProperty(o.estadoKey)) by[o.estadoKey]++;
+          const label=(o.concLabel||'').trim();
+          if(label){ concCounts.set(label, (concCounts.get(label)||0)+1 ); }
+        });
+        kpiTotal.textContent=arr.length;
+        kpiLic.textContent=by.licenciado;
+        kpiCons.textContent=by.em_construcao;
+        kpiConc.textContent=by.concluido;
+
+        const top = Array.from(concCounts.entries()).sort((a,b)=>b[1]-a[1]).slice(0,5);
+        kpiTopConc.innerHTML = top.length
+          ? top.map(([label,n])=>`<span class="badge">${label}: ${n}</span>`).join(' ')
+          : '—';
+
+        const usedUrl=(window.__usedUrl||DEFAULT_GEOJSON);
+        statsLine.innerHTML=[
+          `Fonte: <small>${usedUrl.replace('https://','')}</small>`,
+          `Total visíveis: <strong>${arr.length}</strong>`,
+          `Licenciado: <strong>${by.licenciado}</strong>`,
+          `Em construção: <strong>${by.em_construcao}</strong>`,
+          `Concluído: <strong>${by.concluido}</strong>`
+        ].join(' · ');
+      }
+      renderKPIs(allMarkers);
+
+      function matchesYear(o,yq){
+        if(!yq) return true; const s=normStr(yq);
+        const yr=/^\d{4}$/.test(s)?s:null; if(yr) return o.conclusaoYear===yr;
+        return o.conclusaoLower.includes(s);
+      }
+      function applyFilters(){
+        const q=normStr(searchEl.value);
+        const cq=normStr(concSearchEl.value);
+        const yq=yearEl.value;
+        const allowed=new Set(Array.from(document.querySelectorAll('.state-filter')).filter(cb=>cb.checked).map(cb=>cb.value));
+        cluster.clearLayers();
+        const filtered=allMarkers.filter(o=>{
+          if(!allowed.has(o.estadoKey)) return false;
+          const textOk=!q || o.nome.includes(q) || o.notas.includes(q);
+          const concOk=!cq|| (o.concLower && o.concLower.includes(cq));
+          const conclOk=matchesYear(o,yq);
+          return textOk && concOk && conclOk;
+        });
+        filtered.forEach(o=>cluster.addLayer(o.marker));
+        renderKPIs(filtered);
+        if(!filtered.length){ map.fitBounds(AMP_BOUNDS.pad(0.1)); }
+        else {
+          const b=L.latLngBounds(filtered.map(o=>[o.lat,o.lng]));
+          if(b.isValid()) map.fitBounds(b.pad(0.2));
+        }
+        if(currentSel && !filtered.some(o=>o.lat===currentSel.lat && o.lng===currentSel.lng)){
+          drawer.classList.remove('open');
+          drawer.setAttribute('aria-hidden','true');
+        }
+      }
+
+      document.querySelectorAll('.state-filter').forEach(cb=>cb.addEventListener('change', applyFilters));
+      let t1=null,t2=null,t3=null;
+      searchEl.addEventListener('input', ()=>{ clearTimeout(t1); t1=setTimeout(applyFilters,120); });
+      concSearchEl.addEventListener('input', ()=>{ clearTimeout(t2); t2=setTimeout(applyFilters,120); });
+      yearEl.addEventListener('input', ()=>{ clearTimeout(t3); t3=setTimeout(applyFilters,120); });
+
+      bCenter.addEventListener('click', ()=>{
+        if(!currentSel) return;
+        map.setView([currentSel.lat,currentSel.lng], Math.max(map.getZoom(), 16), {animate:true});
+      });
+      bGMaps.addEventListener('click', ()=>{
+        if(!currentSel) return;
+        const url=`https://www.google.com/maps?q=${currentSel.lat},${currentSel.lng}`;
+        window.open(url,'_blank','noopener,noreferrer');
+      });
+      bCopy.addEventListener('click', async ()=>{
+        if(!currentSel) return;
+        const lines=[
+          `Empreendimento: ${currentSel.nomeDisplay||'—'}`,
+          `Concelho: ${currentSel.concLabel||'—'}`,
+          `Estado: ${currentSel.estadoLabel||'—'}`,
+          `Conclusão: ${normalizeConclusao(currentSel.conclusao)||'—'}`,
+          `Notas: ${currentSel.notasFull||'—'}`,
+          `Coordenadas: ${currentSel.lat.toFixed(6)}, ${currentSel.lng.toFixed(6)}`,
+          currentSel.link ? `Link: ${/^https?:\/\//i.test(currentSel.link)?currentSel.link:('http://'+currentSel.link)}` : ''
+        ].filter(Boolean).join('\n');
+        try{ await navigator.clipboard.writeText(lines); alert('Resumo copiado para a área de transferência.'); }
+        catch(_){ prompt('Copie manualmente o resumo:', lines); }
+      });
+
+      function buildShareText(sel){
+        const gmaps = `https://www.google.com/maps?q=${sel.lat},${sel.lng}`;
+        return `${sel.nomeDisplay||'Empreendimento'} · ${sel.concLabel||'—'} · ${sel.estadoLabel||'—'}\n`+
+               `Conclusão: ${normalizeConclusao(sel.conclusao)||'—'}\n${gmaps}`;
+      }
+      function setShareHref(){
+        const aShare=document.getElementById('act_share');
+        if(!aShare) return;
+        if(!currentSel){ aShare.setAttribute('href','#'); return; }
+        const text = buildShareText(currentSel);
+        const wa = `https://wa.me/?text=${encodeURIComponent(text)}`;
+        aShare.setAttribute('href', wa);
+      }
+      const aShare2=document.getElementById('act_share');
+      aShare2.addEventListener('click', (ev)=>{
+        if(!currentSel) { ev.preventDefault(); return; }
+        const text = buildShareText(currentSel);
+        const gmaps = `https://www.google.com/maps?q=${currentSel.lat},${currentSel.lng}`;
+        if (navigator.share) {
+          ev.preventDefault();
+          navigator.share({ title: currentSel.nomeDisplay || 'Empreendimento', text, url: gmaps }).catch(()=>{});
+          return;
+        }
+        try { navigator.clipboard.writeText(text); } catch(_) {}
+      }, { passive:false });
+
+      function pushLeadToKanban(sel){
+        const STORAGE_KEY='gpp_kanban_v1';
+        let state;
+        try{ state=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'); }catch(_){ state={}; }
+        const cols=['nova','contacto','visita','proposta','cpcv','escritura'];
+        cols.forEach(k=>{ if(!Array.isArray(state[k])) state[k]=[]; });
+
+        const id = 'id_'+Math.random().toString(36).slice(2,9);
+        const consultor = prompt('Consultor (ex.: Armanda, Manuel, João)…') || '';
+        const cliente = prompt('Cliente…') || '';
+        const telefone = prompt('Telefone do cliente…') || '';
+        const email = prompt('Email do cliente…') || '';
+        const etiquetas = prompt('Etiquetas (ex.: Internacional, Investidor) — separar por vírgulas') || '';
+
+        const item = {
+          id, consultor, cliente, telefone, email,
+          imovel: sel.nomeDisplay || 'Empreendimento',
+          promotor: sel.concLabel || '',
+          valor: '',
+          proxima: 'Follow-up',
+          quando: new Date().toISOString().slice(0,10),
+          origem: 'Mapa',
+          prioridade: 'B',
+          etiquetas,
+          notas: (sel.notasFull||'').toString().slice(0,200),
+          createdAt: new Date().toISOString().slice(0,10)
+        };
+        state.nova.unshift(item);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        if(confirm('Lead criada no Kanban. Deseja abrir o Kanban agora?')){
+          window.open('./kanban.html?v='+Date.now(), '_blank', 'noopener,noreferrer');
+        }
+      }
+      document.getElementById('act_to_kanban').addEventListener('click', ()=>{
+        if(!currentSel) return;
+        pushLeadToKanban(currentSel);
+      });
+
+      document.getElementById('act_quicklead').addEventListener('click', ()=>{
+        if(!currentSel) return;
+        const consultor = prompt('Consultor…')||'';
+        const cliente = prompt('Cliente…')||'';
+        const telefone = prompt('Telefone…')||'';
+        const email = prompt('Email…')||'';
+        const etiquetas = prompt('Etiquetas (ex.: Internacional, Investidor) — separar por vírgulas') || '';
+        const row = {
+          consultor, cliente, telefone, email, etiquetas,
+          imovel: currentSel.nomeDisplay||'Empreendimento',
+          concelho: currentSel.concLabel||'',
+          estado: currentSel.estadoLabel||'',
+          conclusao: normalizeConclusao(currentSel.conclusao)||'',
+          notas: (currentSel.notasFull||'').toString().slice(0,200),
+          latitude: currentSel.lat, longitude: currentSel.lng,
+          link: `https://www.google.com/maps?q=${currentSel.lat},${currentSel.lng}`,
+          createdAt: new Date().toISOString().slice(0,10),
+          origem:'Mapa', prioridade:'B'
+        };
+        const headers=Object.keys(row);
+        const csv=[headers.join(';'), headers.map(h=>String(row[h]).replace(/[\r\n]/g,' ').trim()).join(';')].join('\n');
+        const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob); a.download='lead_rapida.csv';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        const linhas=[
+          `Consultor: ${consultor}`,
+          `Cliente: ${cliente} ${telefone? '('+telefone+')':''}`,
+          `Email: ${email}`,
+          `Etiquetas: ${etiquetas}`,
+          `Empreendimento: ${row.imovel}`,
+          `Concelho/Estado: ${row.concelho} · ${row.estado}`,
+          `Conclusão: ${row.conclusao}`,
+          `Notas: ${row.notas}`,
+          `Mapa: ${row.link}`
+        ].join('\n');
+        const wa=`https://wa.me/?text=${encodeURIComponent(linhas)}`;
+        window.open(wa,'_blank','noopener,noreferrer');
+      });
+
+      function renderKPIsPublic(){
+        renderKPIs(allMarkers);
+      }
+      renderKPIsPublic();
+    })();
   </script>
 </body>
 </html>
