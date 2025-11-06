@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<title>Garvetur Porto Pro — Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<style>
+:root{
+  --bg:#0E0E0E; --panel:#131313; --text:#FFFFFF; --muted:#9AA0A6;
+  --gold:#A38B63; --edge:#1a1a1a; --card:#141414; --accent:#FFD166; --ok:#06D6A0; --info:#118AB2; --warn:#FFC107;
+}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+#topbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.08);background:#0F0F0F;position:sticky;top:0;z-index:50}
+.brand{display:flex;align-items:center;gap:10px}
+.brand h1{margin:0;font-size:16px;color:var(--accent)}
+.btn{background:transparent;border:1px solid rgba(255,209,102,.5);color:#fff;padding:7px 10px;border-radius:10px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.input, select{background:#121212;border:1px solid rgba(255,255,255,.12);color:#fff;padding:7px 9px;border-radius:10px;outline:none}
+.tabs{display:flex;gap:6px;align-items:center;margin-left:6px}
+.tab{font-size:12px;padding:6px 10px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:#121212;color:#ddd;text-decoration:none}
+.tab:hover{border-color:var(--accent)}
+.tab.active{background:var(--accent);color:#111;border-color:var(--accent);font-weight:600}
+.container{padding:12px}
+.grid{display:grid;gap:12px}
+.kpis{grid-template-columns:repeat(6,1fr)}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:700px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.card{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px}
+.kpi .title{font-size:11px;color:#cfcfcf;text-transform:uppercase;letter-spacing:.05em}
+.kpi .value{font-size:22px;font-weight:800;margin-top:4px}
+.kpi .note{font-size:11px;color:#9aa0a6;margin-top:2px}
+.section-title{font-size:13px;color:#ddd;text-transform:uppercase;letter-spacing:.06em;margin:6px 0}
+.row{display:grid;gap:12px;grid-template-columns:1fr 1fr}
+@media (max-width:1100px){.row{grid-template-columns:1fr}}
+.table{width:100%;border-collapse:separate;border-spacing:0 6px}
+.table th{font-size:11px;color:#cfcfcf;text-align:left;padding:6px 8px}
+.table td{font-size:13px;color:#eaeaea;background:#151515;border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);padding:8px}
+.table tr td:first-child{border-left:1px solid rgba(255,255,255,.06);border-top-left-radius:8px;border-bottom-left-radius:8px}
+.table tr td:last-child{border-right:1px solid rgba(255,255,255,.06);border-top-right-radius:8px;border-bottom-right-radius:8px}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:#1a1a1a;border:1px solid rgba(255,255,255,.12);color:#ddd}
+.legend{font-size:11px;color:#bbb}
+footer{padding:16px;color:#9aa0a6;text-align:center}
+.print-note{font-size:11px;color:#bdbdbd}
+@media print{
+  #topbar{position:static}
+  .btn, .tabs{display:none}
+  body{background:#fff;color:#000}
+  .card{background:#fff;border:1px solid #ccc}
+}
+</style>
+</head>
+<body>
+  <div id="topbar">
+    <div class="brand">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--accent)"><circle cx="12" cy="12" r="10" stroke-width="1.5"/><path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/></svg>
+      <h1>Garvetur Porto Pro</h1>
+      <nav class="tabs">
+        <a class="tab" href="./index.html">Mapa</a>
+        <a class="tab" href="./kanban.html">Kanban</a>
+        <a class="tab active" href="./dashboard.html">Dashboard</a>
+      </nav>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+      <select id="range" class="input" title="Período de análise">
+        <option value="30">Últimos 30 dias</option>
+        <option value="90" selected>Últimos 90 dias</option>
+        <option value="365">Últimos 12 meses</option>
+        <option value="all">Tudo</option>
+      </select>
+      <button id="btnPrint" class="btn">Imprimir / PDF</button>
+      <button id="btnExportCsv" class="btn">Exportar CSV</button>
+      <button id="btnSeed" class="btn" title="Adicionar exemplos (se não houver dados)">💾 Sem dados? Criar exemplos</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="grid kpis" id="kpis">
+      <!-- KPIs gerados por JS -->
+    </div>
+
+    <div class="section-title">Evolução e distribuição</div>
+    <div class="row">
+      <div class="card"><canvas id="chartStages"></canvas></div>
+      <div class="card"><canvas id="chartByConsultant"></canvas></div>
+    </div>
+    <div class="row">
+      <div class="card"><canvas id="chartMonthly"></canvas></div>
+      <div class="card"><canvas id="chartFunnel"></canvas></div>
+    </div>
+
+    <div class="section-title">Leads visíveis</div>
+    <div class="card">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+        <input id="q" class="input" placeholder="Pesquisar (cliente, imóvel, promotor, notas…)" style="min-width:260px">
+        <select id="consultor" class="input">
+          <option value="">— Todos os consultores —</option>
+        </select>
+      </div>
+      <table class="table" id="tbl">
+        <thead><tr>
+          <th>Consultor</th><th>Cliente</th><th>Imóvel</th><th>Promotor</th><th>Coluna</th><th>Próx. ação</th><th>Quando</th><th>Valor</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="legend">Fonte: localStorage (<code>gpp_kanban_v1</code>). Se estiver vazio, use “Criar exemplos”.</div>
+    </div>
+
+    <footer>
+      <div class="print-note">Dica: para PDF, clique em “Imprimir / PDF” e em “Destino” selecione “Guardar como PDF”.</div>
+    </footer>
+  </div>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+
+  <script>
+  // ---------- Utilitários ----------
+  const STORAGE_KEY = 'gpp_kanban_v1';
+  const COLUMNS = [
+    { key:'nova',        label:'Novas' },
+    { key:'contacto',    label:'Em contacto' },
+    { key:'visita',      label:'Visita' },
+    { key:'proposta',    label:'Proposta' },
+    { key:'cpcv',        label:'CPCV' },
+    { key:'escritura',   label:'Escritura' },
+  ];
+  const COLORS = {
+    nova:'#9AA0A6', contacto:'#118AB2', visita:'#7C5CFC', proposta:'#FFD166', cpcv:'#06D6A0', escritura:'#33D69F'
+  };
+  function loadState(){
+    try{ const raw = localStorage.getItem(STORAGE_KEY); return raw? JSON.parse(raw) : null; }catch(e){ return null; }
+  }
+  function saveState(st){ localStorage.setItem(STORAGE_KEY, JSON.stringify(st)); }
+  function norm(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+  function money(v){ const n=Number(v); return Number.isFinite(n)? n.toLocaleString('pt-PT',{style:'currency',currency:'EUR'}):'—'; }
+  function toDate(s){ if(!s) return null; const d=new Date(s); return isNaN(d)? null : d; }
+  function fmtDate(d){ return d? d.toLocaleDateString('pt-PT') : '—'; }
+
+  // ---------- Preparar dados ----------
+  function flatten(state){
+    const arr=[];
+    COLUMNS.forEach(c=>{
+      (state[c.key]||[]).forEach(it=>{
+        arr.push({
+          coluna:c.key, colunaLabel:COLUMNS.find(x=>x.key===c.key).label,
+          consultor: it.consultor||'—', cliente: it.cliente||'—', imovel: it.imovel||'—',
+          promotor: it.promotor||'—', valor: Number(it.valor)||0, proxima: it.proxima||'—',
+          quando: toDate(it.quando), quandoRaw: it.quando||'', notas: it.notas||''
+        });
+      });
+    });
+    return arr;
+  }
+
+  // Seed de exemplo quando vazio
+  function seedExample(){
+    const today=new Date();
+    function dOff(days){ const d=new Date(today); d.setDate(d.getDate()-days); return d.toISOString().substring(0,10); }
+    const st={ nova:[], contacto:[], visita:[], proposta:[], cpcv:[], escritura:[] };
+    st.nova.push({id:'a1',consultor:'Armanda',cliente:'Família Sousa',imovel:'Essence',promotor:'Taga',valor:350000,proxima:'Telefonar',quando:dOff(2),notas:'Interesse em T2'});
+    st.contacto.push({id:'b1',consultor:'Manuel',cliente:'Jean Dupont',imovel:'The View II',promotor:'Aspire',valor:520000,proxima:'Enviar brochura',quando:dOff(5),notas:'Francês; vista rio'});
+    st.visita.push({id:'c1',consultor:'João',cliente:'Paula Rocha',imovel:'Madalena Vista Mar',promotor:'—',valor:460000,proxima:'Visita',quando:dOff(1),notas:'Preferência topo'});
+    st.proposta.push({id:'d1',consultor:'Audrey',cliente:'Peter & Janet',imovel:'Ferreira de Castro Flats',promotor:'—',valor:610000,proxima:'Negociação',quando:dOff(12),notas:'Cash buyer'});
+    st.cpcv.push({id:'e1',consultor:'Armanda',cliente:'Miguel A.',imovel:'Boavista II',promotor:'—',valor:780000,proxima:'Preparar CPCV',quando:dOff(20),notas:'Condições especiais'});
+    st.escritura.push({id:'f1',consultor:'Manuel',cliente:'Sara M.',imovel:'Bloom Living',promotor:'—',valor:390000,proxima:'Escritura',quando:dOff(40),notas:'Financiamento aprovado'});
+    saveState(st);
+    return st;
+  }
+
+  // Filtro por período (usa campo "quando" como referência; se vazio, assume últimos 365 dias)
+  function filterByRange(rows, rangeVal){
+    if(rangeVal==='all') return rows;
+    const days = parseInt(rangeVal,10)||365;
+    const min = new Date(); min.setDate(min.getDate() - days);
+    return rows.filter(r=> (r.quando ? r.quando >= min : true) );
+  }
+
+  // ---------- Render ----------
+  const elKpis=document.getElementById('kpis');
+  const elRange=document.getElementById('range');
+  const elQ=document.getElementById('q');
+  const elConsultor=document.getElementById('consultor');
+  const elTblBody=document.querySelector('#tbl tbody');
+
+  let DATA = loadState();
+  if(!DATA || Object.values(DATA).every(arr=>!arr || arr.length===0)){
+    // não bloquear — permitir criar exemplos
+    DATA = { nova:[], contacto:[], visita:[], proposta:[], cpcv:[], escritura:[] };
+  }
+
+  function renderAll(){
+    const flat = flatten(DATA);
+    const rows = filterByRange(flat, elRange.value);
+    // filtros de pesquisa/consultor (para a tabela)
+    const q = norm(elQ.value);
+    const cons = elConsultor.value;
+    const filtered = rows.filter(r=>{
+      const text = norm([r.consultor,r.cliente,r.imovel,r.promotor,r.notas].join(' '));
+      const okQ = !q || text.includes(q);
+      const okC = !cons || r.consultor===cons;
+      return okQ && okC;
+    });
+
+    // popular select de consultores
+    const setCons = new Set(flat.map(r=>r.consultor).filter(Boolean));
+    const cur = elConsultor.value;
+    elConsultor.innerHTML = `<option value="">— Todos os consultores —</option>` + Array.from(setCons).sort((a,b)=>a.localeCompare(b,'pt')).map(n=>`<option value="${n}">${n}</option>`).join('');
+    if([...elConsultor.options].some(o=>o.value===cur)) elConsultor.value=cur;
+
+    // KPIs
+    const tot = filtered.length;
+    const sum = filtered.reduce((a,b)=>a+(b.valor||0),0);
+    const byCol = Object.fromEntries(COLUMNS.map(c=>[c.key,0]));
+    filtered.forEach(r=>{ byCol[r.coluna]=(byCol[r.coluna]||0)+1; });
+
+    elKpis.innerHTML = `
+      <div class="card kpi"><div class="title">Total leads</div><div class="value">${tot}</div><div class="note">Período: ${elRange.options[elRange.selectedIndex].text}</div></div>
+      <div class="card kpi"><div class="title">Potencial</div><div class="value">${sum.toLocaleString('pt-PT',{style:'currency',currency:'EUR'})}</div><div class="note">Soma de valores</div></div>
+      ${COLUMNS.map(c=>`<div class="card kpi"><div class="title">${c.label}</div><div class="value">${byCol[c.key]||0}</div><div class="note">Leads em “${c.label}”</div></div>`).join('')}
+    `;
+
+    // Tabelas
+    elTblBody.innerHTML = filtered.map(r=>`
+      <tr>
+        <td>${r.consultor}</td>
+        <td>${r.cliente}</td>
+        <td>${r.imovel}</td>
+        <td>${r.promotor}</td>
+        <td><span class="badge">${COLUMNS.find(x=>x.key===r.coluna).label}</span></td>
+        <td>${r.proxima||'—'}</td>
+        <td>${fmtDate(r.quando)||'—'}</td>
+        <td style="text-align:right">${r.valor? (r.valor.toLocaleString('pt-PT',{style:'currency',currency:'EUR'})) : '—'}</td>
+      </tr>
+    `).join('');
+
+    // Gráficos
+    buildCharts(filtered);
+  }
+
+  let _charts=[];
+  function clearCharts(){ _charts.forEach(c=>c.destroy()); _charts=[]; }
+
+  function buildCharts(rows){
+    clearCharts();
+    // Stages
+    const ctx1=document.getElementById('chartStages');
+    const byStage = COLUMNS.map(c=> rows.filter(r=>r.coluna===c.key).length );
+    _charts.push(new Chart(ctx1,{
+      type:'bar',
+      data:{ labels:COLUMNS.map(c=>c.label), datasets:[{ label:'Leads por etapa', data:byStage }]},
+      options:{ responsive:true, plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#ddd'}}, y:{ticks:{color:'#ddd'}, beginAtZero:true}}}
+    }));
+
+    // By consultant
+    const ctx2=document.getElementById('chartByConsultant');
+    const byConsMap=new Map();
+    rows.forEach(r=>byConsMap.set(r.consultor,(byConsMap.get(r.consultor)||0)+1));
+    const consLabels=Array.from(byConsMap.keys()); const consVals=Array.from(byConsMap.values());
+    _charts.push(new Chart(ctx2,{
+      type:'bar',
+      data:{ labels:consLabels, datasets:[{ label:'Leads por consultor', data:consVals }]},
+      options:{ indexAxis:'y', responsive:true, plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#ddd'}}, y:{ticks:{color:'#ddd'}}}}
+    }));
+
+    // Monthly (por data "quando" se existir, caso contrário agrupa em "Sem data")
+    const ctx3=document.getElementById('chartMonthly');
+    const byMonth=new Map();
+    rows.forEach(r=>{
+      const d=r.quando; const key=d? (d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')) : 'Sem data';
+      byMonth.set(key,(byMonth.get(key)||0)+1);
+    });
+    const monthLabels=Array.from(byMonth.keys()).sort();
+    _charts.push(new Chart(ctx3,{
+      type:'line',
+      data:{ labels:monthLabels, datasets:[{ label:'Evolução mensal', data:monthLabels.map(k=>byMonth.get(k)) }]},
+      options:{ responsive:true, plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#ddd'}}, y:{ticks:{color:'#ddd'}, beginAtZero:true}}}
+    }));
+
+    // Funnel (ordem das colunas)
+    const ctx4=document.getElementById('chartFunnel');
+    const funnelVals = COLUMNS.map(c=> rows.filter(r=>r.coluna===c.key).length );
+    _charts.push(new Chart(ctx4,{
+      type:'bar',
+      data:{ labels:COLUMNS.map(c=>c.label), datasets:[{ label:'Funil', data:funnelVals }]},
+      options:{ indexAxis:'y', responsive:true, plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#ddd'}, beginAtZero:true}, y:{ticks:{color:'#ddd'}}}}
+    }));
+  }
+
+  // ---------- Eventos topo ----------
+  document.getElementById('btnPrint').addEventListener('click', ()=> window.print());
+  document.getElementById('btnExportCsv').addEventListener('click', ()=>{
+    const flat=flatten(DATA);
+    const rows=filterByRange(flat, elRange.value);
+    const headers=['consultor','cliente','imovel','promotor','coluna','proxima','quando','valor'];
+    const csv=[headers.join(';')].concat(rows.map(r=>headers.map(h=>{
+      const val=h==='quando' ? (r.quando? r.quando.toISOString().substring(0,10):'') : (r[h]??'');
+      return String(val).replace(/[\r\n]/g,' ').trim();
+    }).join(';'))).join('\n');
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+    a.download='dashboard_leads.csv'; a.click();
+  });
+  document.getElementById('btnSeed').addEventListener('click', ()=>{
+    if(!confirm('Adicionar dados de exemplo? (Não apaga os seus dados)')) return;
+    const st = (function seed(){
+      const today=new Date();
+      function dOff(days){ const d=new Date(today); d.setDate(d.getDate()-days); return d.toISOString().substring(0,10); }
+      const st={ nova:[], contacto:[], visita:[], proposta:[], cpcv:[], escritura:[] };
+      st.nova.push({id:'a1',consultor:'Armanda',cliente:'Família Sousa',imovel:'Essence',promotor:'Taga',valor:350000,proxima:'Telefonar',quando:dOff(2),notas:'Interesse em T2'});
+      st.contacto.push({id:'b1',consultor:'Manuel',cliente:'Jean Dupont',imovel:'The View II',promotor:'Aspire',valor:520000,proxima:'Enviar brochura',quando:dOff(5),notas:'Francês; vista rio'});
+      st.visita.push({id:'c1',consultor:'João',cliente:'Paula Rocha',imovel:'Madalena Vista Mar',promotor:'—',valor:460000,proxima:'Visita',quando:dOff(1),notas:'Preferência topo'});
+      st.proposta.push({id:'d1',consultor:'Audrey',cliente:'Peter & Janet',imovel:'Ferreira de Castro Flats',promotor:'—',valor:610000,proxima:'Negociação',quando:dOff(12),notas:'Cash buyer'});
+      st.cpcv.push({id:'e1',consultor:'Armanda',cliente:'Miguel A.',imovel:'Boavista II',promotor:'—',valor:780000,proxima:'Preparar CPCV',quando:dOff(20),notas:'Condições especiais'});
+      st.escritura.push({id:'f1',consultor:'Manuel',cliente:'Sara M.',imovel:'Bloom Living',promotor:'—',valor:390000,proxima:'Escritura',quando:dOff(40),notas:'Financiamento aprovado'});
+      return st;
+    })();
+    // merge não destrutivo
+    const cur = loadState() || { nova:[], contacto:[], visita:[], proposta:[], cpcv:[], escritura:[] };
+    Object.keys(st).forEach(k=>{ cur[k] = (cur[k]||[]).concat(st[k]); });
+    saveState(cur); DATA=cur; renderAll();
+  });
+  elRange.addEventListener('change', renderAll);
+  elQ.addEventListener('input', ()=>{ clearTimeout(window.__tq); window.__tq=setTimeout(renderAll,150); });
+  elConsultor.addEventListener('change', renderAll);
+
+  // Kickoff
+  renderAll();
+  </script>
+</body>
+</html>
