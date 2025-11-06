@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Garvetur Porto Pro — Mapa (concelho robusto)</title>
+  <title>Garvetur Porto Pro — Mapa (pesquisa por concelho)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Preconnects -->
@@ -29,14 +29,12 @@
       display:flex;gap:12px;flex-wrap:wrap;align-items:center;position:relative;z-index:2
     }
     #stats{font-size:14px;color:#E6E6E6;margin-right:auto}
-    .searchWrap,.selectWrap{
+    .searchWrap{
       display:flex;align-items:center;gap:8px;background:#121212;border:1px solid rgba(255,255,255,.12);
       border-radius:10px;padding:6px 10px
     }
-    .searchWrap input{background:transparent;border:none;color:#fff;outline:none;width:220px}
-    .selectWrap select{
-      appearance:auto;-webkit-appearance:menulist;background:#121212;color:#fff;border:none;outline:none;
-      min-width:220px;height:28px;cursor:pointer;z-index:3;position:relative
+    .searchWrap input{
+      background:transparent;border:none;color:#fff;outline:none;width:240px
     }
     #filters{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
     #filters label{font-size:13px;color:#D9D9D9}
@@ -51,30 +49,31 @@
     .marker-cluster div{background:var(--gold);color:#111}
     .leaflet-tooltip{background:#111;color:#fff;border:1px solid rgba(255,255,255,.1);border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.4)}
     .leaflet-tooltip-top:before,.leaflet-tooltip-bottom:before,.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{border-top-color:#111!important;border-bottom-color:#111!important;border-left-color:#111!important;border-right-color:#111!important}
-    .selectWrap{position:relative;z-index:3}
-    #concelhoCount{font-size:12px;color:#9AA0A6;margin-left:6px}
+    #concCount{font-size:12px;color:#9AA0A6}
   </style>
 </head>
 <body>
   <div id="topbar">
     <div id="stats">A carregar…</div>
 
-    <div class="searchWrap" title="Pesquisar por nome, concelho ou notas">
+    <!-- Pesquisa por EMPREENDIMENTO -->
+    <div class="searchWrap" title="Pesquisar por nome, notas…">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
       <input id="search" placeholder="Pesquisar empreendimentos…" />
     </div>
 
+    <!-- Pesquisa por CONCELHO (com sugestões dinâmicas) -->
+    <div class="searchWrap" title="Pesquisar por concelho">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input id="concelhoSearch" placeholder="Concelho (ex.: Porto, Matosinhos…)" list="concelhosList" />
+      <datalist id="concelhosList"></datalist>
+      <span id="concCount"></span>
+    </div>
+
+    <!-- Pesquisa por ANO/CONCLUSÃO -->
     <div class="searchWrap" title="Filtrar por ano de conclusão (ex.: 2027) ou texto de conclusão">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
       <input id="yearSearch" placeholder="Ano/Conclusão (ex.: 2027 ou Q2 2026)" />
-    </div>
-
-    <div class="selectWrap" id="concelhoWrap" title="Filtrar por Concelho">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-      <select id="concelhoSelect">
-        <option value="">Todos os Concelhos</option>
-      </select>
-      <span id="concelhoCount"></span>
     </div>
 
     <div id="filters">
@@ -218,12 +217,18 @@
     (async function init(){
       const statsEl=document.getElementById('stats');
       const searchEl=document.getElementById('search');
+      const concSearchEl=document.getElementById('concelhoSearch');
+      const concListEl=document.getElementById('concelhosList');
+      const concCountEl=document.getElementById('concCount');
       const yearEl=document.getElementById('yearSearch');
-      const concSel=document.getElementById('concelhoSelect');
-      const concCountEl=document.getElementById('concelhoCount');
 
-      try{ await loadLeafletStack(); }
-      catch(e){
+      const exportBtn=document.getElementById('exportBtn');
+      const focusBtn=document.getElementById('focusBtn');
+      const clearBtn=document.getElementById('clearBtn');
+
+      try{ 
+        await loadLeafletStack(); 
+      } catch(e){
         document.body.innerHTML='<div style="padding:16px;font-family:Arial;color:#111">❌ Falha a carregar bibliotecas do mapa (CDNs bloqueados). Tente noutro browser/rede.</div>';
         return;
       }
@@ -235,9 +240,8 @@
 
       const AMP_BOUNDS=L.latLngBounds([[41.05,-8.75],[41.25,-8.45]]);
       function focusAMP(){ map.fitBounds(AMP_BOUNDS.pad(0.1)); }
-      document.getElementById('focusBtn').addEventListener('click', focusAMP);
+      focusBtn.addEventListener('click', focusAMP);
 
-      const markersByState={};
       const allMarkers=[];
       let allRowsForExport=[];
       let usedUrl='';
@@ -254,12 +258,9 @@
         return;
       }
 
-      // Concelhos (normalizados) -> label
-      const concelhosMap=new Map(); // keyNorm -> label Title Case
-
-      // Construção de marcadores
-      let total=0;
-      const counts={ licenciado:0, em_construcao:0, concluido:0, em_licenciamento:0 };
+      // Construção de marcadores + inventário de concelhos
+      const concelhosSet = new Set(); // normalizado
+      const concelhosMap = new Map(); // normalizado -> label
 
       gj.features.forEach(f=>{
         const p=f?.properties||{};
@@ -271,8 +272,8 @@
         const concelhoRaw=getConcelhoDynamic(p);
         const concelhoLower=normStr(concelhoRaw);
         if(concelhoRaw){
-          const key=concelhoLower;
-          if(!concelhosMap.has(key)) concelhosMap.set(key, toTitleCasePt(concelhoRaw));
+          concelhosSet.add(concelhoLower);
+          if(!concelhosMap.has(concelhoLower)) concelhosMap.set(concelhoLower, toTitleCasePt(concelhoRaw));
         }
 
         const nome=mapName(p,['nome','name','titulo','título','projecto','projeto'])||'Empreendimento';
@@ -281,10 +282,7 @@
         const conclusao=mapName(p,['conclusao','conclusão','conclusao_prevista','completion','entrega']);
         const notas=mapName(p,['notas','observacoes','observações','notes']);
         let link=mapName(p,['link','url','website']);
-
         if(!estadoKey||!stateDisplay[estadoKey]) return;
-
-        total++; counts[estadoKey]=(counts[estadoKey]||0)+1;
 
         const icon=makePinIcon(stateColors[estadoKey]||'#BBBBBB');
         const marker=L.marker([lat,lng],{icon,title:nome});
@@ -308,33 +306,40 @@
         popup+=`</div>`;
         marker.bindPopup(popup);
 
-        if(!markersByState[estadoKey]) markersByState[estadoKey]=[];
-        markersByState[estadoKey].push(marker);
-
         const conclusaoLower=normStr(conclusao);
         const yearMatch=/(\b20\d{2}\b)/.exec(conclusaoLower);
         const conclusaoYear=yearMatch?yearMatch[1]:'';
 
-        allMarkers.push({ marker, estadoKey, nome:normStr(nome), concelhoLower, concelhoRaw,
-                          notas:normStr(notas), conclusaoLower, conclusaoYear, link, lat, lng });
+        allMarkers.push({
+          marker, estadoKey,
+          nome: normStr(nome),
+          concelhoLower, concelhoRaw,
+          notas: normStr(notas),
+          conclusaoLower, conclusaoYear,
+          link, lat, lng
+        });
 
-        allRowsForExport.push({ nome, concelho:toTitleCasePt(concelhoRaw), estado:estadoLabel, conclusao, notas, link, latitude:lat, longitude:lng });
+        allRowsForExport.push({
+          nome, concelho: toTitleCasePt(concelhoRaw), estado: estadoLabel, conclusao, notas, link, latitude: lat, longitude: lng
+        });
+
         cluster.addLayer(marker);
       });
 
-      // Popular dropdown de concelho
-      (function populateConcelhos(){
-        const entries=Array.from(concelhosMap.entries()).sort((a,b)=>a[1].localeCompare(b[1],'pt'));
+      // Sugerir concelhos (datalist)
+      (function populateConcelhosDatalist(){
         const frag=document.createDocumentFragment();
-        const optAll=document.createElement('option'); optAll.value=''; optAll.textContent='Todos os Concelhos'; frag.appendChild(optAll);
-        for(const [keyNorm,label] of entries){
-          const opt=document.createElement('option'); opt.value=keyNorm; opt.textContent=label; frag.appendChild(opt);
-        }
-        concSel.replaceChildren(frag);
-        if(concCountEl) concCountEl.textContent = entries.length ? `(${entries.length})` : '(0)';
+        const arr = Array.from(concelhosMap.entries()).sort((a,b)=>a[1].localeCompare(b[1],'pt'));
+        arr.forEach(([key,label])=>{
+          const opt=document.createElement('option');
+          opt.value = label;  // mostra o label (bonito) no autocomplete
+          frag.appendChild(opt);
+        });
+        concListEl.replaceChildren(frag);
+        concCountEl.textContent = `(${arr.length})`;
       })();
 
-      // Enquadramento
+      // Enquadramento inicial
       if(cluster.getLayers().length) map.fitBounds(cluster.getBounds().pad(0.2)); else map.setView([41.15,-8.6],12);
 
       // KPIs + fonte
@@ -346,14 +351,13 @@
           `Total visíveis: <strong>${arr.length}</strong>`,
           `Licenciado: <strong>${by.licenciado}</strong>`,
           `Em construção: <strong>${by.em_construcao}</strong>`,
-          `Concluído: <strong>${by.concluido}</strong>`,
-          `Concelhos distintos: <strong>${new Set(arr.map(o=>o.concelhoLower).filter(Boolean)).size}</strong>`
+          `Concluído: <strong>${by.concluido}</strong>`
         ];
         statsEl.innerHTML=parts.join(' · ');
       }
       updateKPIs(allMarkers);
 
-      // Filtros
+      // ------------ FILTROS ------------
       function matchesYear(o,yq){
         if(!yq) return true;
         const s=normStr(yq);
@@ -361,48 +365,72 @@
         if(yr) return(o.conclusaoYear===yr);
         return o.conclusaoLower.includes(s);
       }
-      function applyFilters(){
-        const q=normStr(searchEl.value);
-        const yq=document.getElementById('yearSearch').value;
-        const sel=concSel.value; // normalizado
 
-        const allowed=new Set(Array.from(document.querySelectorAll('.state-filter')).filter(cb=>cb.checked).map(cb=>cb.value));
+      function applyFilters(){
+        const q   = normStr(searchEl.value);
+        const cq  = normStr(concSearchEl.value); // pesquisa por concelho (livre, com autocomplete)
+        const yq  = yearEl.value;
+
+        const allowed = new Set(
+          Array.from(document.querySelectorAll('.state-filter'))
+            .filter(cb => cb.checked)
+            .map(cb => cb.value)
+        );
+
         cluster.clearLayers();
 
-        const filtered=allMarkers.filter(o=>{
+        const filtered = allMarkers.filter(o=>{
           if(!allowed.has(o.estadoKey)) return false;
-          if(sel && o.concelhoLower!==sel) return false;
-          const textOk=!q || o.nome.includes(q) || o.concelhoLower.includes(q) || o.notas.includes(q);
-          const conclOk=matchesYear(o,yq);
-          return textOk && conclOk;
+
+          // Nome/Notas
+          const textOk = !q || o.nome.includes(q) || o.notas.includes(q);
+
+          // Concelho (inclui substring; torna a UX mais indulgente)
+          const concOk = !cq || (o.concelhoLower && o.concelhoLower.includes(cq));
+
+          // Conclusão (ano/expressão)
+          const conclOk = matchesYear(o, yq);
+
+          return textOk && concOk && conclOk;
         });
 
         filtered.forEach(o=>cluster.addLayer(o.marker));
         updateKPIs(filtered);
-        if(!filtered.length) focusAMP();
+
+        if(!filtered.length) { // se nada, recentrar na AMP
+          map.fitBounds(AMP_BOUNDS.pad(0.1));
+        } else {
+          // tentar ajustar aos resultados
+          const bounds = L.latLngBounds(filtered.map(o=>[o.lat,o.lng]));
+          if(bounds.isValid()) map.fitBounds(bounds.pad(0.2));
+        }
       }
 
-      document.querySelectorAll('.state-filter').forEach(cb=>cb.addEventListener('change',applyFilters));
-      let to1=null,to2=null;
-      searchEl.addEventListener('input',()=>{ clearTimeout(to1); to1=setTimeout(applyFilters,150); });
-      yearEl.addEventListener('input',()=>{ clearTimeout(to2); to2=setTimeout(applyFilters,150); });
-      concSel.addEventListener('change',applyFilters);
+      // Eventos (com ligeiro debounce nas pesquisas)
+      document.querySelectorAll('.state-filter').forEach(cb=>cb.addEventListener('change', applyFilters));
+      let t1=null,t2=null,t3=null;
+      searchEl.addEventListener('input', ()=>{ clearTimeout(t1); t1=setTimeout(applyFilters,130); });
+      concSearchEl.addEventListener('input', ()=>{ clearTimeout(t2); t2=setTimeout(applyFilters,130); });
+      yearEl.addEventListener('input', ()=>{ clearTimeout(t3); t3=setTimeout(applyFilters,130); });
 
-      document.getElementById('clearBtn').addEventListener('click',()=>{
-        searchEl.value=''; document.getElementById('yearSearch').value=''; concSel.value='';
+      // Limpar filtros
+      clearBtn.addEventListener('click', ()=>{
+        searchEl.value=''; concSearchEl.value=''; yearEl.value='';
         document.querySelectorAll('.state-filter').forEach(cb=>cb.checked=true);
         applyFilters();
       });
 
       // Export CSV (visível)
-      document.getElementById('exportBtn').addEventListener('click',()=>{
+      exportBtn.addEventListener('click', ()=>{
         const visible=cluster.getAllChildMarkers();
         if(!visible||!visible.length){ alert('Não há empreendimentos visíveis para exportar.'); return; }
         const key=v=>`${v.latitude}|${v.longitude}`;
         const visibleKeys=new Set(visible.map(m=>key({latitude:m.getLatLng().lat, longitude:m.getLatLng().lng})));
         const exportData=allRowsForExport.filter(r=>visibleKeys.has(key(r)));
         const headers=['nome','concelho','estado','conclusao','notas','link','latitude','longitude'];
-        const csv=[headers.join(';')].concat(exportData.map(r=>headers.map(h=>(r[h]??'')).join(';'))).join('\n');
+        const csv=[headers.join(';')].concat(
+          exportData.map(r=>headers.map(h=>(r[h]??'')).join(';'))
+        ).join('\n');
         const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const a=document.createElement('a');
         a.href=URL.createObjectURL(blob); a.download='empreendimentos_filtrados.csv';
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
