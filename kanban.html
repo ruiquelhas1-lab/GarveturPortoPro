@@ -11,8 +11,6 @@
   --gold:#A38B63; --edge:#1a1a1a; --card:#141414; --ok:#06D6A0; --warn:#FFD166; --info:#118AB2;
 }
 html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-
-/* Topbar */
 #topbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.08);background:#0F0F0F;position:sticky;top:0;z-index:50}
 .brand{display:flex;align-items:center;gap:10px}
 .brand h1{margin:0;font-size:16px;color:var(--gold)}
@@ -21,14 +19,10 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
 .btn{background:transparent;border:1px solid rgba(163,139,99,.5);color:#fff;padding:7px 10px;border-radius:10px;cursor:pointer}
 .btn:hover{border-color:var(--gold)}
 .notice{font-size:12px;color:#cfcfcf}
-
-/* Tabs */
 .tabs{display:flex;gap:6px;align-items:center;margin-left:4px}
 .tab{font-size:12px;padding:6px 10px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:#121212;color:#ddd;text-decoration:none}
 .tab:hover{border-color:var(--gold)}
 .tab.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:600}
-
-/* Board */
 #board{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;padding:12px}
 @media (max-width:1100px){#board{grid-template-columns:repeat(3,1fr)}}
 @media (max-width:700px){#board{grid-template-columns:1fr}}
@@ -61,9 +55,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
         <a class="tab" href="./dashboard.html">Dashboard</a>
       </nav>
     </div>
-
     <a class="btn" href="./index.html" style="margin-left:auto">← Voltar ao Mapa</a>
-
     <input id="q" class="input" placeholder="Pesquisar (cliente, imóvel, promotor, notas…)" />
     <select id="consultor" class="input">
       <option value="">— Todos os consultores —</option>
@@ -75,9 +67,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
     <input id="importJsonInput" type="file" accept="application/json" class="hidden">
     <div id="kpi" class="notice"></div>
   </div>
-
   <div id="board"></div>
-
   <script>
   const COLUMNS = [
     { key:'nova',        label:'Novas' },
@@ -88,11 +78,9 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
     { key:'escritura',   label:'Escritura' },
   ];
   const STORAGE_KEY = 'gpp_kanban_v1';
-
   let state = loadState();
   let filterQuery = '';
   let filterConsultor = '';
-
   function loadState(){
     try{
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -104,24 +92,20 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
   function uid(){ return 'id_'+Math.random().toString(36).slice(2,9); }
   function money(v){ const n=Number(v); return Number.isFinite(n)? n.toLocaleString('pt-PT',{style:'currency',currency:'EUR'}) : '—'; }
   function fmtDate(s){ return s? new Date(s).toLocaleDateString('pt-PT') : '—'; }
-  function norm(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,''); }
-
+  function norm(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
   const board = document.getElementById('board');
   function render(){
     board.innerHTML = '';
     const consultoresSet = new Set();
     let total=0, soma=0;
-
     COLUMNS.forEach(col=>{
       const colEl = document.createElement('div');
       colEl.className = 'col';
       colEl.dataset.col = col.key;
-
       const head = document.createElement('div');
       head.className = 'head';
       head.innerHTML = `<div class="title">${col.label}</div><div class="count" id="count_${col.key}">0</div>`;
       colEl.appendChild(head);
-
       const drop = document.createElement('div');
       drop.className = 'drop';
       drop.addEventListener('dragover', (e)=>{ e.preventDefault(); drop.classList.add('drag-over'); });
@@ -133,28 +117,25 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
         moveCardToColumn(cardId, col.key);
       });
       colEl.appendChild(drop);
-
       const list = state[col.key] || [];
-      const listFiltered = list.filter(item++){
+      // ✅ CORRIGIDO: "item++" → "item=>"
+      const listFiltered = list.filter(item=>{
         const text = [item.consultor,item.cliente,item.imovel,item.promotor,item.notas].map(norm).join(' ');
         const okText = !filterQuery || text.includes(norm(filterQuery));
         const okCons = !filterConsultor || norm(item.consultor)===norm(filterConsultor);
         return okText && okCons;
       });
-
       listFiltered.forEach(item=>{
         consultoresSet.add(item.consultor || '');
         total++;
         const vnum = Number(item.valor);
         if(Number.isFinite(vnum)) soma += vnum;
-
         const card = document.createElement('div');
         card.className = 'card';
         card.draggable = true;
         card.id = item.id;
         card.addEventListener('dragstart', (e)=>{ card.classList.add('dragging'); e.dataTransfer.setData('text/plain', item.id); });
         card.addEventListener('dragend', ()=> card.classList.remove('dragging'));
-
         card.innerHTML = `
           <div class="row">
             <span class="badge">${item.consultor || '—'}</span>
@@ -178,25 +159,36 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
         card.querySelector('[data-act="move"]').addEventListener('click', ()=> promptMove(item.id));
         card.querySelector('[data-act="del"]').addEventListener('click', ()=> deleteCard(item.id));
         card.querySelector('[data-act="whatsapp"]').addEventListener('click', ()=> shareWhatsapp(item));
-
         drop.appendChild(card);
       });
-
       board.appendChild(colEl);
       document.getElementById(`count_${col.key}`).textContent = String(listFiltered.length);
     });
-
-    document.getElementById('kpi').innerHTML =
-      `Leads visíveis: <b>${total}</b> · Potencial: <b>${soma.toLocaleString('pt-PT',{style:'currency',currency:'EUR'})}</b>`;
-
+    document.getElementById('kpi').innerHTML = `Leads visíveis: <b>${total}</b> · Potencial: <b>${money(soma)}</b>`;
     const sel = document.getElementById('consultor');
     const current = sel.value;
-    sel.innerHTML = `<option value="">— Todos os consultores —</option>` + Array.from(new Set(
-      COLUMNS.flatMap(c => (state[c.key]||[]).map(it => it.consultor || ''))
-    )).filter(Boolean).sort((a,b)=>a.localeCompare(b,'pt')).map(n=>`<option value="${n}">${n}</option>`).join('');
+    sel.innerHTML = `<option value="">— Todos os consultores —</option>`;
+    Array.from([...new Set(COLUMNS.flatMap(c => (state[c.key]||[]).map(it => it.consultor || '')))])
+    .filter(x=>x && x.trim()!=='')
+    .sort((a,b)=>a.localeCompare(b,'pt'))
+    .forEach(name=>{ const opt=document.createElement('option'); opt.value=name; opt.textContent=name; sel.appendChild(opt); });
     if([...sel.options].some(o=>o.value===current)) sel.value=current;
   }
-
+  function newCard(){
+    const id = uid();
+    const consultor = prompt('Consultor (ex.: Armanda, Manuel, João)…') || '';
+    const cliente = prompt('Cliente…') || '';
+    const imovel = prompt('Imóvel/Empreendimento…') || '';
+    const promotor = prompt('Promotor…') || '';
+    const valor = prompt('Valor potencial (€)…') || '';
+    const proxima = prompt('Próxima ação…') || '';
+    const quando = prompt('Data próxima ação (AAAA-MM-DD)…') || '';
+    const origem = prompt('Origem (ex.: inbound, promotor, feiras)…') || '';
+    const prioridade = prompt('Prioridade (A/B/C)…') || 'B';
+    const notas = prompt('Notas…') || '';
+    state.nova.unshift({ id, consultor, cliente, imovel, promotor, valor, proxima, quando, origem, prioridade, notas });
+    saveState(); render();
+  }
   function findCard(cardId){
     for(const c of COLUMNS){ const i=(state[c.key]||[]).findIndex(x=>x.id===cardId); if(i>-1) return {col:c.key, idx:i, item:state[c.key][i]}; }
     return null;
@@ -231,27 +223,12 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
     const f = findCard(cardId); if(!f) return;
     if(confirm('Remover esta lead?')){ state[f.col].splice(f.idx,1); saveState(); render(); }
   }
-
   document.getElementById('q').addEventListener('input', e=>{ filterQuery=e.target.value; render(); });
   document.getElementById('consultor').addEventListener('change', e=>{ filterConsultor=e.target.value; render(); });
-  document.getElementById('addCard').addEventListener('click', ()=>{
-    const id = uid();
-    const consultor = prompt('Consultor (ex.: Armanda, Manuel, João)…') || '';
-    const cliente = prompt('Cliente…') || '';
-    const imovel = prompt('Imóvel/Empreendimento…') || '';
-    const promotor = prompt('Promotor…') || '';
-    const valor = prompt('Valor potencial (€)…') || '';
-    const proxima = prompt('Próxima ação…') || '';
-    const quando = prompt('Data próxima ação (AAAA-MM-DD)…') || '';
-    const origem = prompt('Origem (ex.: inbound, promotor, feiras)…') || '';
-    const prioridade = prompt('Prioridade (A/B/C)…') || 'B';
-    const notas = prompt('Notas…') || '';
-    state.nova.unshift({ id, consultor, cliente, imovel, promotor, valor, proxima, quando, origem, prioridade, notas });
-    saveState(); render();
-  });
+  document.getElementById('addCard').addEventListener('click', newCard);
   document.getElementById('exportCsv').addEventListener('click', ()=>{
     const rows = [];
-    COLUMNS.forEach(c=>{ (state[c.key]||[]).forEach(it=> rows.push({ coluna:c.key, ...it })); });
+    COLUMNS.forEach(c=>{ (state[c.key]||[]).forEach(it=>{ rows.push({ coluna:c.key, ...it }); }); });
     const headers=['coluna','id','consultor','cliente','imovel','promotor','valor','proxima','quando','origem','prioridade','notas'];
     const csv = [headers.join(';')].concat(rows.map(r=>headers.map(h=>String(r[h]??'').replace(/[\r\n]/g,' ').trim()).join(';'))).join('\n');
     const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'}); const a=document.createElement('a');
@@ -263,9 +240,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
   });
   document.getElementById('importJsonInput').addEventListener('change', async (e)=>{
     const file=e.target.files[0]; if(!file) return;
-    try{
-      const txt = await file.text();
-      const json = JSON.parse(txt);
+    try{ const txt = await file.text(); const json = JSON.parse(txt);
       if(!COLUMNS.every(c=>Array.isArray(json[c.key]))){ alert('Formato inválido.'); return; }
       state = json; saveState(); render();
     }catch(err){ alert('Erro ao importar JSON.'); }
@@ -277,7 +252,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
       `Cliente: ${item.cliente||'—'}`,
       `Imóvel/Empreendimento: ${item.imovel||'—'}`,
       `Promotor: ${item.promotor||'—'}`,
-      `Valor potencial: ${item.valor?Number(item.valor).toLocaleString('pt-PT',{style:'currency',currency:'EUR'}):'—'}`,
+      `Valor potencial: ${item.valor?money(item.valor):'—'}`,
       `Próxima ação: ${item.proxima||'—'} (${fmtDate(item.quando)})`,
       `Notas: ${item.notas||'—'}`
     ].join('\n');
