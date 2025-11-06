@@ -2,17 +2,21 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Garvetur Porto Pro — Mapa (Concelho robusto + debug)</title>
+  <title>Garvetur Porto Pro — Mapa (concelho robusto)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Preconnects -->
   <link rel="preconnect" href="https://unpkg.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://a.tile.openstreetmap.org" crossorigin>
   <link rel="preconnect" href="https://b.tile.openstreetmap.org" crossorigin>
   <link rel="preconnect" href="https://c.tile.openstreetmap.org" crossorigin>
 
-  <link id="leaflet-css" rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
-  <link id="mc-css" rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="anonymous">
-  <link id="mc-def" rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin="anonymous">
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+  <!-- MarkerCluster CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin="anonymous">
 
   <style>
     :root{
@@ -20,11 +24,20 @@
       --gold:#FFD166; --blue:#118AB2; --green:#06D6A0; --yellow:#FFC107;
     }
     html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-    #topbar{background:#0F0F0F;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;gap:12px;flex-wrap:wrap;align-items:center;position:relative;z-index:2}
+    #topbar{
+      background:#0F0F0F;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.08);
+      display:flex;gap:12px;flex-wrap:wrap;align-items:center;position:relative;z-index:2
+    }
     #stats{font-size:14px;color:#E6E6E6;margin-right:auto}
-    .searchWrap,.selectWrap{display:flex;align-items:center;gap:8px;background:#121212;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:6px 10px}
+    .searchWrap,.selectWrap{
+      display:flex;align-items:center;gap:8px;background:#121212;border:1px solid rgba(255,255,255,.12);
+      border-radius:10px;padding:6px 10px
+    }
     .searchWrap input{background:transparent;border:none;color:#fff;outline:none;width:220px}
-    .selectWrap select{appearance:auto;-webkit-appearance:menulist;background:#121212;color:#fff;border:none;outline:none;min-width:220px;height:28px;cursor:pointer;z-index:3;position:relative}
+    .selectWrap select{
+      appearance:auto;-webkit-appearance:menulist;background:#121212;color:#fff;border:none;outline:none;
+      min-width:220px;height:28px;cursor:pointer;z-index:3;position:relative
+    }
     #filters{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
     #filters label{font-size:13px;color:#D9D9D9}
     .actionBtn{background:transparent;border:1px solid rgba(255,209,102,.5);color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer}
@@ -39,7 +52,7 @@
     .leaflet-tooltip{background:#111;color:#fff;border:1px solid rgba(255,255,255,.1);border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.4)}
     .leaflet-tooltip-top:before,.leaflet-tooltip-bottom:before,.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{border-top-color:#111!important;border-bottom-color:#111!important;border-left-color:#111!important;border-right-color:#111!important}
     .selectWrap{position:relative;z-index:3}
-    #concDebug{font-size:12px;color:#9AA0A6}
+    #concelhoCount{font-size:12px;color:#9AA0A6;margin-left:6px}
   </style>
 </head>
 <body>
@@ -61,8 +74,7 @@
       <select id="concelhoSelect">
         <option value="">Todos os Concelhos</option>
       </select>
-      <span id="concelhoCount" style="font-size:12px;color:#9AA0A6;margin-left:6px;"></span>
-      <span id="concDebug"></span>
+      <span id="concelhoCount"></span>
     </div>
 
     <div id="filters">
@@ -78,6 +90,7 @@
   </div>
   <div id="map"></div>
 
+  <!-- Loader utilitário -->
   <script>
     function loadScript(srcPrimary, srcBackup){
       return new Promise((resolve, reject)=>{
@@ -97,6 +110,7 @@
     }
   </script>
 
+  <!-- App -->
   <script>
     const DEFAULT_GEOJSON="https://ruiquelhas1-lab.github.io/Mapa-Porto/data/empreendimentos.geojson";
     const RAW_MAIN="https://raw.githubusercontent.com/ruiquelhas1-lab/Mapa-Porto/main/data/empreendimentos.geojson";
@@ -114,7 +128,7 @@
       return s;
     }
 
-    // Utilitários
+    // ---------- Utilitários de normalização ----------
     function mapName(obj, keys){
       for(const k of keys){
         if(obj[k]!=null){
@@ -124,36 +138,51 @@
       }
       return '';
     }
+    // Normaliza valores (pesquisa/comparação)
     function normStr(s){
-      return String(s||'').trim().toLowerCase()
+      return String(s||'')
+        .replace(/\u00A0/g, ' ')     // NBSP -> espaço
+        .trim()
+        .toLowerCase()
         .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
     }
+    // Normaliza NOMES DE CHAVE (cobre acentos, NBSP, símbolos; tudo vira snake)
+    function normKey(s){
+      return String(s||'')
+        .replace(/\u00A0/g, ' ')
+        .trim()
+        .toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+        .replace(/[^a-z0-9]+/g,'_'); // só [a-z0-9], resto "_"
+    }
     function toTitleCasePt(s){
-      return String(s||'').toLowerCase()
+      return String(s||'')
+        .toLowerCase()
         .replace(/(^|\s|[-/])(\p{L})/gu,(m,p1,p2)=>p1+p2.toUpperCase());
     }
-
-    // Saneia valores de concelho (remove prefixos e apanha 1º token antes de / , ; | -)
+    // Saneia valores de concelho (remove prefixos e separadores)
     function sanitizeConcelhoValue(v){
       if(v==null) return '';
       let s=String(v).replace(/\u00A0/g,' ').trim(); // NBSP -> espaço
-      s=s.replace(/^\s*(concelho|munic[ií]pio)\s*[:\-–]\s*/i,''); // remove "Concelho: ..."
-      // se vier "Porto / Cedofeita" ficar "Porto"
-      s=s.split(/[\/,;|\-–]+/)[0].trim();
+      s=s.replace(/^\s*(concelho|munic[ií]pio)\s*[:\-–]\s*/i,''); // "Concelho: Porto" -> "Porto"
+      s=s.split(/[\/,;|\-–]+/)[0].trim(); // "Porto / Cedofeita" -> "Porto"
       if(s.toLowerCase()==='nan' || s==='') return '';
       return s;
     }
-
-    // Detecta concelho (dinâmico por regex + chaves “clássicas”)
+    // Deteção dinâmica de concelho (varre chaves normalizadas)
     function getConcelhoDynamic(props){
-      let val=mapName(props,['concelho','Concelho','concelho ','Concelho ','municipio','município','municipality','city','local','freguesia']);
+      // 1) Tentativa direta (nomes comuns)
+      let val=mapName(props,['concelho','Concelho','concelho ','Concelho ',
+                             'municipio','município','municipality',
+                             'city','local','freguesia']);
       val=sanitizeConcelhoValue(val);
       if(val) return val;
 
+      // 2) Varredura total com normKey
       const keys=Object.keys(props||{});
       for(const k of keys){
-        const nk=normStr(k);
-        if(/(concelho|municipi|municípi|city|local|fregues)/.test(nk)){
+        const nk=normKey(k);
+        if (/(^|_)concelho($|_)|(^|_)municipio($|_)|(^|_)city($|_)|(^|_)local($|_)|(^|_)freguesia($|_)/.test(nk)){
           const v=sanitizeConcelhoValue(props[k]);
           if(v) return v;
         }
@@ -190,22 +219,14 @@
       const statsEl=document.getElementById('stats');
       const searchEl=document.getElementById('search');
       const yearEl=document.getElementById('yearSearch');
-      const concWrap=document.getElementById('concelhoWrap');
-      let concSel=document.getElementById('concelhoSelect');
+      const concSel=document.getElementById('concelhoSelect');
       const concCountEl=document.getElementById('concelhoCount');
-      const concDebug=document.getElementById('concDebug');
-
-      if(!concSel){
-        concSel=document.createElement('select'); concSel.id='concelhoSelect';
-        concWrap.appendChild(concSel);
-      }
-
-      const exportBtn=document.getElementById('exportBtn');
-      const focusBtn=document.getElementById('focusBtn');
-      const clearBtn=document.getElementById('clearBtn');
 
       try{ await loadLeafletStack(); }
-      catch(e){ document.body.innerHTML='<div style="padding:16px;font-family:Arial;color:#111">❌ Falha a carregar bibliotecas do mapa (CDNs bloqueados).</div>'; return; }
+      catch(e){
+        document.body.innerHTML='<div style="padding:16px;font-family:Arial;color:#111">❌ Falha a carregar bibliotecas do mapa (CDNs bloqueados). Tente noutro browser/rede.</div>';
+        return;
+      }
 
       const map=L.map('map');
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19, attribution:'&copy; OpenStreetMap'}).addTo(map);
@@ -214,25 +235,29 @@
 
       const AMP_BOUNDS=L.latLngBounds([[41.05,-8.75],[41.25,-8.45]]);
       function focusAMP(){ map.fitBounds(AMP_BOUNDS.pad(0.1)); }
-      focusBtn.addEventListener('click', focusAMP);
+      document.getElementById('focusBtn').addEventListener('click', focusAMP);
 
       const markersByState={};
       const allMarkers=[];
       let allRowsForExport=[];
       let usedUrl='';
 
+      // Tenta 3 fontes (prod / raw-main / raw-gh-pages)
       const candidates=[DEFAULT_GEOJSON, RAW_MAIN, RAW_GHPAGES];
       const errors=[]; let gj=null;
       for(const url of candidates){
         try{ const txt=await fetchTextNoCache(url); gj=parseJSONSafe(txt); usedUrl=url; break; }
         catch(e){ errors.push(url+' → '+e.message); }
       }
-      if(!gj||!Array.isArray(gj.features)){ statsEl.innerHTML='❌ Falha a carregar dados. <small>'+errors.join(' · ')+'</small>'; return; }
+      if(!gj||!Array.isArray(gj.features)){
+        statsEl.innerHTML='❌ Falha a carregar dados. <small>'+errors.join(' · ')+'</small>';
+        return;
+      }
 
-      // Mapa de concelhos (normalizados) -> rótulo
-      const concelhosMap=new Map();
-      const concelhosAmostra=new Set(); // para debug mostrar alguns
+      // Concelhos (normalizados) -> label
+      const concelhosMap=new Map(); // keyNorm -> label Title Case
 
+      // Construção de marcadores
       let total=0;
       const counts={ licenciado:0, em_construcao:0, concluido:0, em_licenciamento:0 };
 
@@ -248,7 +273,6 @@
         if(concelhoRaw){
           const key=concelhoLower;
           if(!concelhosMap.has(key)) concelhosMap.set(key, toTitleCasePt(concelhoRaw));
-          if(concelhosAmostra.size<5) concelhosAmostra.add(toTitleCasePt(concelhoRaw));
         }
 
         const nome=mapName(p,['nome','name','titulo','título','projecto','projeto'])||'Empreendimento';
@@ -298,37 +322,38 @@
         cluster.addLayer(marker);
       });
 
-      // Popular dropdown concelho
-      function populateConcelhosSelect(){
+      // Popular dropdown de concelho
+      (function populateConcelhos(){
         const entries=Array.from(concelhosMap.entries()).sort((a,b)=>a[1].localeCompare(b[1],'pt'));
         const frag=document.createDocumentFragment();
         const optAll=document.createElement('option'); optAll.value=''; optAll.textContent='Todos os Concelhos'; frag.appendChild(optAll);
         for(const [keyNorm,label] of entries){
           const opt=document.createElement('option'); opt.value=keyNorm; opt.textContent=label; frag.appendChild(opt);
         }
-        document.getElementById('concelhoSelect').replaceChildren(frag);
+        concSel.replaceChildren(frag);
         if(concCountEl) concCountEl.textContent = entries.length ? `(${entries.length})` : '(0)';
-        if(concDebug) concDebug.textContent = entries.length ? `  • Ex.: ${entries.slice(0,3).map(e=>e[1]).join(', ')}` : '';
-      }
-      populateConcelhosSelect();
-      // Fallback: repovoar 1s depois (caso o DOM substitua algo)
-      setTimeout(()=>{ if(document.getElementById('concelhoSelect').options.length<=1) populateConcelhosSelect(); },1000);
+      })();
 
+      // Enquadramento
       if(cluster.getLayers().length) map.fitBounds(cluster.getBounds().pad(0.2)); else map.setView([41.15,-8.6],12);
 
+      // KPIs + fonte
       function updateKPIs(arr){
         const by={ licenciado:0, em_construcao:0, concluido:0, em_licenciamento:0 };
         arr.forEach(o=>{ if(by.hasOwnProperty(o.estadoKey)) by[o.estadoKey]++; });
-        const parts=[`Fonte: <small>${usedUrl.replace('https://','')}</small>`,
-                     `Total visíveis: <strong>${arr.length}</strong>`,
-                     `Licenciado: <strong>${by.licenciado}</strong>`,
-                     `Em construção: <strong>${by.em_construcao}</strong>`,
-                     `Concluído: <strong>${by.concluido}</strong>`,
-                     `Concelhos distintos: <strong>${new Set(arr.map(o=>o.concelhoLower).filter(Boolean)).size}</strong>`];
+        const parts=[
+          `Fonte: <small>${usedUrl.replace('https://','')}</small>`,
+          `Total visíveis: <strong>${arr.length}</strong>`,
+          `Licenciado: <strong>${by.licenciado}</strong>`,
+          `Em construção: <strong>${by.em_construcao}</strong>`,
+          `Concluído: <strong>${by.concluido}</strong>`,
+          `Concelhos distintos: <strong>${new Set(arr.map(o=>o.concelhoLower).filter(Boolean)).size}</strong>`
+        ];
         statsEl.innerHTML=parts.join(' · ');
       }
       updateKPIs(allMarkers);
 
+      // Filtros
       function matchesYear(o,yq){
         if(!yq) return true;
         const s=normStr(yq);
@@ -336,11 +361,10 @@
         if(yr) return(o.conclusaoYear===yr);
         return o.conclusaoLower.includes(s);
       }
-
       function applyFilters(){
-        const q=normStr(document.getElementById('search').value);
+        const q=normStr(searchEl.value);
         const yq=document.getElementById('yearSearch').value;
-        const sel=document.getElementById('concelhoSelect').value;
+        const sel=concSel.value; // normalizado
 
         const allowed=new Set(Array.from(document.querySelectorAll('.state-filter')).filter(cb=>cb.checked).map(cb=>cb.value));
         cluster.clearLayers();
@@ -360,18 +384,17 @@
 
       document.querySelectorAll('.state-filter').forEach(cb=>cb.addEventListener('change',applyFilters));
       let to1=null,to2=null;
-      document.getElementById('search').addEventListener('input',()=>{ clearTimeout(to1); to1=setTimeout(applyFilters,150); });
-      document.getElementById('yearSearch').addEventListener('input',()=>{ clearTimeout(to2); to2=setTimeout(applyFilters,150); });
-      document.getElementById('concelhoSelect').addEventListener('change',applyFilters);
+      searchEl.addEventListener('input',()=>{ clearTimeout(to1); to1=setTimeout(applyFilters,150); });
+      yearEl.addEventListener('input',()=>{ clearTimeout(to2); to2=setTimeout(applyFilters,150); });
+      concSel.addEventListener('change',applyFilters);
 
       document.getElementById('clearBtn').addEventListener('click',()=>{
-        document.getElementById('search').value='';
-        document.getElementById('yearSearch').value='';
-        document.getElementById('concelhoSelect').value='';
+        searchEl.value=''; document.getElementById('yearSearch').value=''; concSel.value='';
         document.querySelectorAll('.state-filter').forEach(cb=>cb.checked=true);
         applyFilters();
       });
 
+      // Export CSV (visível)
       document.getElementById('exportBtn').addEventListener('click',()=>{
         const visible=cluster.getAllChildMarkers();
         if(!visible||!visible.length){ alert('Não há empreendimentos visíveis para exportar.'); return; }
@@ -385,12 +408,15 @@
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
       });
 
+      // Legenda
       const legend=L.control({position:'bottomleft'});
-      legend.onAdd=function(){ const div=L.DomUtil.create('div','legend');
+      legend.onAdd=function(){
+        const div=L.DomUtil.create('div','legend');
         div.innerHTML=`<div class="row"><span class="color" style="background:${stateColors.licenciado}"></span> Licenciado</div>
                        <div class="row"><span class="color" style="background:${stateColors.em_construcao}"></span> Em construção</div>
                        <div class="row"><span class="color" style="background:${stateColors.concluido}"></span> Concluído</div>`;
-        return div; };
+        return div;
+      };
       legend.addTo(map);
     })();
   </script>
