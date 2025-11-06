@@ -47,8 +47,10 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" crossorigin="anonymous"></script>
   <script>
+  // 1) Fonte local (mesmo domínio e repositório) por RELATIVO — evita CORS e diferenças de domínio
+  // 2) Fallbacks externos
   const SOURCES = [
-    "https://ruiquelhas1-lab.github.io/GarveturPortoPro/data/empreendimentos.geojson", // fonte local principal
+    "./data/empreendimentos.geojson",
     "https://raw.githubusercontent.com/ruiquelhas1-lab/Mapa-Porto/main/data/empreendimentos.geojson",
     "https://cdn.jsdelivr.net/gh/ruiquelhas1-lab/Mapa-Porto/data/empreendimentos.geojson"
   ];
@@ -63,14 +65,17 @@
   document.getElementById('focusBtn').addEventListener('click',()=> map.fitBounds([[41.28,-8.75],[41.05,-8.45]]).pad=0.1);
   document.getElementById('retryBtn').addEventListener('click', ()=> loadGeo());
 
+  function setStatus(msg){ statusEl.textContent = msg; }
+
   async function tryFetch(url){
-    statusEl.textContent = 'A carregar: ' + url;
+    setStatus('A carregar: ' + url);
     openGeo.href = url;
     const res = await fetch(url, {cache:'no-store'});
     if(!res.ok) throw new Error('HTTP '+res.status+' em '+url);
     const txt = await res.text();
-    if(txt.trim().startsWith('<')) throw new Error('Conteúdo HTML em '+url);
-    return JSON.parse(txt);
+    if(txt.trim().startsWith('<')) throw new Error('Conteúdo HTML (não JSON) em '+url);
+    try { return JSON.parse(txt); } 
+    catch(e){ throw new Error('JSON inválido em '+url+': '+(e.message||e)); }
   }
 
   async function loadGeo(){
@@ -79,7 +84,10 @@
     for(const url of SOURCES){
       try{
         const gj = await tryFetch(url);
-        const feats = (gj.features||[]).map(f=>{
+        if(!gj || gj.type!=='FeatureCollection' || !Array.isArray(gj.features)) {
+          throw new Error('Formato inesperado (não é FeatureCollection) em '+url);
+        }
+        const feats = gj.features.map(f=>{
           const p=f.properties||{}; const c=f.geometry&&f.geometry.type==='Point'? f.geometry.coordinates : null;
           const lng=Array.isArray(c)? Number(c[0]) : NaN;
           const lat=Array.isArray(c)? Number(c[1]) : NaN;
@@ -95,12 +103,12 @@
           };
         });
         drawMarkers(feats);
-        statusEl.textContent = `✅ Dados carregados (${feats.length} registos)`;
+        setStatus(`✅ Dados carregados (${feats.length} registos) de ${url}`);
         return;
       }catch(err){ lastErr = err; }
     }
-    statusEl.textContent = '❌ Falha ao carregar GeoJSON.';
-    alert('Falha ao carregar o ficheiro GeoJSON. Verifique o link em "Abrir GeoJSON".');
+    setStatus('❌ Falha ao carregar GeoJSON. '+ (lastErr? String(lastErr.message||lastErr) : 'Sem detalhe.'));
+    alert('Falha ao carregar o ficheiro GeoJSON. Clique "Abrir GeoJSON" e confirme que abre JSON (FeatureCollection).');
   }
 
   function colorByEstado(e){ return colors[e] || colors.default; }
