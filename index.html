@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Garvetur Porto Pro — Mapa (Local + Fallback)</title>
+  <title>Garvetur Porto Pro — Mapa (Local + Auto-zoom)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="anonymous">
@@ -47,8 +47,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" crossorigin="anonymous"></script>
   <script>
-  // 1) Fonte local (mesmo domínio e repositório) por RELATIVO — evita CORS e diferenças de domínio
-  // 2) Fallbacks externos
+  // Fonte local (mesmo repositório) + fallbacks
   const SOURCES = [
     "./data/empreendimentos.geojson",
     "https://raw.githubusercontent.com/ruiquelhas1-lab/Mapa-Porto/main/data/empreendimentos.geojson",
@@ -113,6 +112,7 @@
 
   function colorByEstado(e){ return colors[e] || colors.default; }
   function drawMarkers(arr){
+    let added = 0;
     arr.forEach(p=>{
       if(p.lat==null || p.lng==null) return;
       const m = L.marker([p.lat,p.lng], {
@@ -132,7 +132,16 @@
       const body = `${p.concelho||'—'} · ${p.estado||'—'}<br>Conclusão: ${p.conclusao||'—'}${p.promotor? '<br>Promotor: '+p.promotor:''}${p.link? '<br><a target="_blank" href="'+p.link+'">Abrir link</a>':''}`;
       m.bindPopup(`<b>${p.nome||'—'}</b><br>${body}`);
       cluster.addLayer(m);
+      added++;
     });
+    // ⬇️ Auto-zoom aos marcadores
+    if (cluster.getLayers().length) {
+      const bounds = cluster.getBounds();
+      if(bounds && bounds.isValid()) map.fitBounds(bounds.pad(0.2));
+    }
+    // Mostrar total no status (útil para confirmar se há registos)
+    const cur = statusEl.textContent;
+    if (cur.startsWith('✅')) setStatus(cur.replace(/\)$/, `; visíveis: ${added})`));
   }
 
   const legend = L.control({position:'bottomleft'});
