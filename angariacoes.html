@@ -17,6 +17,7 @@
   .panel h3{margin:0 0 8px 0;font-size:13px;color:#eaeaea;border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:6px;}
   label{font-size:12px;color:#ddd;display:block;margin:7px 0 2px;}
   input,select,textarea{width:100%;background:#0E0E0E;color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:8px 10px;}
+  .filters{display:grid;grid-template-columns:200px 160px 160px 200px auto; gap:8px; align-items:end; padding:0 12px 12px 12px;}
   .list{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
   .card{background:#0E0E0E;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px;}
   .t{font-weight:600;margin-bottom:4px;}
@@ -24,7 +25,6 @@
   .chk{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
   .chk label{display:flex;gap:6px;align-items:center;background:#0E0E0E;border:1px solid rgba(255,255,255,.18);padding:6px 8px;border-radius:8px;}
   .semaforo{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:8px;background:#888;}
-  .filters{display:grid;grid-template-columns:200px 160px 160px 200px auto; gap:8px; align-items:end; padding:0 12px 12px 12px;}
   .muted{color:#c9c9c9;font-size:12px}
   @media(max-width:1200px){.list{grid-template-columns:repeat(2,1fr)}}
   @media(max-width:900px){.wrap{grid-template-columns:1fr}.filters{grid-template-columns:1fr 1fr;}}
@@ -52,9 +52,17 @@
     <h3>Nova Angariação</h3>
     <label>Propriedade</label><input id="p" placeholder="Ex.: T3 Boavista | Porto">
 
+    <!-- Fallback HTML: a lista aparece mesmo que o JS não carregue -->
     <label>Consultor</label>
     <select id="c">
-      <!-- preenchido pelo JS com a lista de consultores -->
+      <option>Rui Quelhas</option>
+      <option>Manuel Oliveira</option>
+      <option>João Sousa</option>
+      <option>Francisco dos Santos</option>
+      <option>Rosário Vasconcelos</option>
+      <option>Armanda Meireles</option>
+      <option>Audrey Lucas</option>
+      <option>Outro…</option>
     </select>
 
     <label>Proprietário</label><input id="propNome" placeholder="Ex.: Sr. António Silva">
@@ -126,9 +134,10 @@
 </div>
 
 <script>
-const LS_KEY = 'gpp_ang_v4'; // nova versão (para não chocar com versões anteriores)
-
-// Equipa predefinida
+/* =========================
+   CONFIG / STORAGE
+========================= */
+const LS_KEY = 'gpp_ang_v4'; // mantém versão
 const CONSULTORS = [
   "Rui Quelhas",
   "Manuel Oliveira",
@@ -143,7 +152,9 @@ const CONSULTORS = [
 function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch(e){ return []; } }
 function save(d){ localStorage.setItem(LS_KEY, JSON.stringify(d)); }
 
-// -------- Utilitários --------
+/* =========================
+   HELPERS
+========================= */
 function pct(pp,ps){ if(!pp||!ps) return null; const v=(ps-pp)/pp*100; return Math.round(v*10)/10; }
 function semaforo(el, val){
   let c='#888';
@@ -158,16 +169,21 @@ function parseDate(s){ if(!s) return null; const t=Date.parse(s); return Number.
 function fmtDate(s){ const d=parseDate(s); if(!d) return '—'; return d.toISOString().slice(0,10); }
 function sanitizeFile(s){ return String(s||'proposta').replace(/[^a-z0-9\-_. ]/gi,'_'); }
 
-// -------- UI Helpers --------
+/* =========================
+   UI BASE (consultores)
+========================= */
+// Preenche o <select id="c"> apenas se estiver vazio (respeita fallback HTML)
 function fillConsultorSelects(){
-  const selNew = document.getElementById('c');
-  selNew.innerHTML = CONSULTORS.map(n=>`<option value="${n}">${n}</option>`).join('');
-  selNew.value = CONSULTORS[0];
-
-  populateConsultoresFilter(); // inicializa o filtro também
+  const sel = document.getElementById('c');
+  if (sel && sel.options.length === 0) {
+    sel.innerHTML = CONSULTORS.map(n=>`<option value="${n}">${n}</option>`).join('');
+  }
+  populateConsultoresFilter();
 }
 
-// -------- Modelo → UI --------
+/* =========================
+   RENDER LISTA / CARDS
+========================= */
 function cardEl(a, idx){
   const d = document.createElement('div');
   d.className='card';
@@ -209,7 +225,9 @@ function render(list=null){
   document.getElementById('resumo').textContent = `Total: ${total} · Média de ajustamento: ${mediaAj}`;
 }
 
-// -------- CRUD --------
+/* =========================
+   CRUD
+========================= */
 function collectDocs(){
   const docs = [];
   if(document.getElementById('doc_cc').checked) docs.push('CC');
@@ -272,7 +290,6 @@ function edit(idx){
   const ps = Number(prompt('Preço sugerido (€):', a.ps ?? '')) || null;
   const aj = pct(pp, ps);
   const notas = prompt('Notas:', a.notas||'')??a.notas;
-
   dataAll[idx] = {prop, consultor, proprietario, data, origem, comissao, pp, ps, aj, docs:a.docs||[], notas};
   save(dataAll);
   populateConsultoresFilter();
@@ -288,7 +305,9 @@ function del(idx){
   render();
 }
 
-// -------- Filtros e Ordenação --------
+/* =========================
+   FILTROS / ORDENAÇÃO
+========================= */
 const f_consultor = document.getElementById('f_consultor');
 const f_de = document.getElementById('f_de');
 const f_ate = document.getElementById('f_ate');
@@ -296,7 +315,10 @@ const f_sort = document.getElementById('f_sort');
 
 function populateConsultoresFilter(){
   const data = load();
-  const set = new Set([...CONSULTORS.filter(n=>n!=='Outro…'), ...data.map(x=>x.consultor).filter(Boolean)]);
+  const set = new Set([
+    ...CONSULTORS.filter(n=>n!=='Outro…'),
+    ...data.map(x=>x.consultor).filter(Boolean)
+  ]);
   const vals = Array.from(set).sort((a,b)=>a.localeCompare(b,'pt'));
   const cur = f_consultor.value;
   f_consultor.innerHTML = '<option value="">(todos)</option>' + vals.map(v=>`<option value="${v}">${v}</option>`).join('');
@@ -326,7 +348,9 @@ function view(){
   return out;
 }
 
-// -------- Exportações: PDF e Word --------
+/* =========================
+   EXPORTAÇÕES
+========================= */
 function buildProposalHTML(a){
   const css = `
     <style>
@@ -384,7 +408,9 @@ function exportWord(a){
   URL.revokeObjectURL(url);
 }
 
-// -------- Seed demo --------
+/* =========================
+   SEED DEMO
+========================= */
 function seedDemo(){
   if(!confirm('Carregar 5 angariações de exemplo? (substitui as atuais)')) return;
   const ex = [
@@ -399,52 +425,14 @@ function seedDemo(){
   render();
 }
 
-// -------- Filtros e Ordenação --------
-const f_consultor = document.getElementById('f_consultor');
-const f_de = document.getElementById('f_de');
-const f_ate = document.getElementById('f_ate');
-const f_sort = document.getElementById('f_sort');
-
-function populateConsultoresFilter(){
-  const data = load();
-  const set = new Set([
-    ...CONSULTORS.filter(n=>n!=='Outro…'),
-    ...data.map(x=>x.consultor).filter(Boolean)
-  ]);
-  const vals = Array.from(set).sort((a,b)=>a.localeCompare(b,'pt'));
-  const cur = f_consultor.value;
-  f_consultor.innerHTML = '<option value="">(todos)</option>' + vals.map(v=>`<option value="${v}">${v}</option>`).join('');
-  if(vals.includes(cur)) f_consultor.value = cur;
-}
-
-function view(){
-  const data = load().slice();
-
-  // filtro consultor
-  let out = data.filter(x=> !f_consultor.value || x.consultor === f_consultor.value);
-
-  // filtro datas
-  const d1 = parseDate(f_de.value), d2 = parseDate(f_ate.value);
-  if(d1) out = out.filter(x=> { const dx=parseDate(x.data); return dx ? dx>=d1 : false; });
-  if(d2) out = out.filter(x=> { const dx=parseDate(x.data); return dx ? dx<=d2 : false; });
-
-  // ordenação
-  const sort = f_sort.value;
-  out.sort((a,b)=>{
-    if(sort==='aj_desc'){ const A=(a.aj==null?-Infinity:a.aj), B=(b.aj==null?-Infinity:b.aj); return B-A; }
-    if(sort==='aj_asc'){  const A=(a.aj==null? Infinity:a.aj), B=(b.aj==null? Infinity:b.aj); return A-B; }
-    if(sort==='data_asc'){const A=parseDate(a.data)?.getTime()??0, B=parseDate(b.data)?.getTime()??0; return A-B; }
-    const A=parseDate(a.data)?.getTime()??0, B=parseDate(b.data)?.getTime()??0; return B-A; // data_desc
-  });
-
-  return out;
-}
-
-// -------- Ligações UI --------
+/* =========================
+   LIGAÇÕES UI
+========================= */
 document.getElementById('add').onclick=add;
 document.getElementById('seed').onclick=seedDemo;
 document.getElementById('clear').onclick=()=>{ if(confirm('Apagar todas as angariações?')){ localStorage.removeItem(LS_KEY); populateConsultoresFilter(); render(); } };
 
+// Atualização dinâmica do % ajustamento
 ['pp','ps'].forEach(id=>{
   document.getElementById(id).addEventListener('input', ()=>{
     const pp = Number(document.getElementById('pp').value)||null;
@@ -455,9 +443,24 @@ document.getElementById('clear').onclick=()=>{ if(confirm('Apagar todas as angar
   });
 });
 
-// iniciar
-fillConsultorSelects();
-populateConsultoresFilter();
+// Filtros
+document.getElementById('f_apply').onclick = ()=> render(view());
+document.getElementById('f_clear').onclick = ()=>{
+  document.getElementById('f_consultor').value=''; 
+  document.getElementById('f_de').value=''; 
+  document.getElementById('f_ate').value=''; 
+  document.getElementById('f_sort').value='data_desc';
+  render();
+};
+
+// Garantir que o dropdown de consultores aparece SEMPRE (fallback + carga dinâmica)
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', fillConsultorSelects);
+} else {
+  fillConsultorSelects();
+}
+
+// Primeira renderização
 render();
 </script>
 </body>
