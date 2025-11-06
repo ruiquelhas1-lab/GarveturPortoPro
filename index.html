@@ -2,53 +2,44 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Garvetur Porto Pro — Mapa (concelho fix)</title>
+  <title>Garvetur Porto Pro — Mapa (Concelho robusto + debug)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="preconnect" href="https://unpkg.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://a.tile.openstreetmap.org" crossorigin>
   <link rel="preconnect" href="https://b.tile.openstreetmap.org" crossorigin>
   <link rel="preconnect" href="https://c.tile.openstreetmap.org" crossorigin>
+
   <link id="leaflet-css" rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
   <link id="mc-css" rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="anonymous">
   <link id="mc-def" rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin="anonymous">
+
   <style>
-    :root{ --bg:#0E0E0E; --panel:#131313; --text:#FFFFFF; --muted:#9AA0A6;
-           --gold:#FFD166; --blue:#118AB2; --green:#06D6A0; --yellow:#FFC107; }
-    html, body { height:100%; margin:0; background:var(--bg); color:var(--text); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
-    #topbar{
-      background:#0F0F0F; padding:10px 14px; border-bottom:1px solid rgba(255,255,255,.08);
-      display:flex; gap:12px; flex-wrap:wrap; align-items:center; position:relative; z-index:2;
+    :root{
+      --bg:#0E0E0E; --panel:#131313; --text:#FFFFFF; --muted:#9AA0A6;
+      --gold:#FFD166; --blue:#118AB2; --green:#06D6A0; --yellow:#FFC107;
     }
-    #stats{ font-size:14px; color:#E6E6E6; margin-right:auto; }
-    .searchWrap,.selectWrap{
-      display:flex; align-items:center; gap:8px; background:#121212; border:1px solid rgba(255,255,255,.12);
-      border-radius:10px; padding:6px 10px;
-    }
-    .searchWrap input{ background:transparent; border:none; color:#fff; outline:none; width:220px; }
-    .selectWrap select{
-      appearance:auto; -webkit-appearance:menulist; -moz-appearance:menulist;
-      background:#121212; color:#fff; border:none; outline:none; min-width:220px; height:28px;
-      cursor:pointer; z-index:3; position:relative;
-    }
-    #filters{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
-    #filters label{ font-size:13px; color:#D9D9D9; }
-    .actionBtn{ background:transparent; border:1px solid rgba(255,209,102,.5); color:#fff; padding:6px 10px; border-radius:8px; cursor:pointer; }
-    .actionBtn:hover{ border-color:var(--gold); }
-    #map{ height:calc(100% - 66px); }
-    .legend{ background:#0F0F0F; color:#fff; padding:8px 10px; font:12px/14px Arial,sans-serif;
-      box-shadow:0 0 15px rgba(0,0,0,0.3); border-radius:8px; border:1px solid rgba(255,255,255,.06); }
-    .legend .row{ display:flex; align-items:center; gap:8px; margin:4px 0; }
-    .legend .color{ width:12px; height:12px; border-radius:50%; border:1px solid rgba(0,0,0,.2); }
-    .leaflet-bottom.leaflet-left .legend{ margin-bottom:20px; }
-    .marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{ background:rgba(255,209,102,.15); border:2px solid var(--gold); color:#111; }
-    .marker-cluster div{ background:var(--gold); color:#111; }
-    .leaflet-tooltip{ background:#111; color:#fff; border:1px solid rgba(255,255,255,.1); border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,.4); }
-    .leaflet-tooltip-top:before,.leaflet-tooltip-bottom:before,.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{
-      border-top-color:#111!important; border-bottom-color:#111!important; border-left-color:#111!important; border-right-color:#111!important;
-    }
-    /* evita que algo sobreponha o select */
-    .selectWrap{ position:relative; z-index:3; }
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    #topbar{background:#0F0F0F;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;gap:12px;flex-wrap:wrap;align-items:center;position:relative;z-index:2}
+    #stats{font-size:14px;color:#E6E6E6;margin-right:auto}
+    .searchWrap,.selectWrap{display:flex;align-items:center;gap:8px;background:#121212;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:6px 10px}
+    .searchWrap input{background:transparent;border:none;color:#fff;outline:none;width:220px}
+    .selectWrap select{appearance:auto;-webkit-appearance:menulist;background:#121212;color:#fff;border:none;outline:none;min-width:220px;height:28px;cursor:pointer;z-index:3;position:relative}
+    #filters{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    #filters label{font-size:13px;color:#D9D9D9}
+    .actionBtn{background:transparent;border:1px solid rgba(255,209,102,.5);color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer}
+    .actionBtn:hover{border-color:var(--gold)}
+    #map{height:calc(100% - 66px)}
+    .legend{background:#0F0F0F;color:#fff;padding:8px 10px;font:12px/14px Arial,sans-serif;box-shadow:0 0 15px rgba(0,0,0,0.3);border-radius:8px;border:1px solid rgba(255,255,255,.06)}
+    .legend .row{display:flex;align-items:center;gap:8px;margin:4px 0}
+    .legend .color{width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.2)}
+    .leaflet-bottom.leaflet-left .legend{margin-bottom:20px}
+    .marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{background:rgba(255,209,102,.15);border:2px solid var(--gold);color:#111}
+    .marker-cluster div{background:var(--gold);color:#111}
+    .leaflet-tooltip{background:#111;color:#fff;border:1px solid rgba(255,255,255,.1);border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+    .leaflet-tooltip-top:before,.leaflet-tooltip-bottom:before,.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{border-top-color:#111!important;border-bottom-color:#111!important;border-left-color:#111!important;border-right-color:#111!important}
+    .selectWrap{position:relative;z-index:3}
+    #concDebug{font-size:12px;color:#9AA0A6}
   </style>
 </head>
 <body>
@@ -56,16 +47,12 @@
     <div id="stats">A carregar…</div>
 
     <div class="searchWrap" title="Pesquisar por nome, concelho ou notas">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2">
-        <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
-      </svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
       <input id="search" placeholder="Pesquisar empreendimentos…" />
     </div>
 
     <div class="searchWrap" title="Filtrar por ano de conclusão (ex.: 2027) ou texto de conclusão">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2">
-        <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
-      </svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
       <input id="yearSearch" placeholder="Ano/Conclusão (ex.: 2027 ou Q2 2026)" />
     </div>
 
@@ -75,6 +62,7 @@
         <option value="">Todos os Concelhos</option>
       </select>
       <span id="concelhoCount" style="font-size:12px;color:#9AA0A6;margin-left:6px;"></span>
+      <span id="concDebug"></span>
     </div>
 
     <div id="filters">
@@ -126,7 +114,7 @@
       return s;
     }
 
-    // utilitários
+    // Utilitários
     function mapName(obj, keys){
       for(const k of keys){
         if(obj[k]!=null){
@@ -137,19 +125,36 @@
       return '';
     }
     function normStr(s){
-      return String(s||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      return String(s||'').trim().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
     }
     function toTitleCasePt(s){
-      return String(s||'').toLowerCase().replace(/(^|\s|[-/])(\p{L})/gu,(m,p1,p2)=>p1+p2.toUpperCase());
+      return String(s||'').toLowerCase()
+        .replace(/(^|\s|[-/])(\p{L})/gu,(m,p1,p2)=>p1+p2.toUpperCase());
     }
+
+    // Saneia valores de concelho (remove prefixos e apanha 1º token antes de / , ; | -)
+    function sanitizeConcelhoValue(v){
+      if(v==null) return '';
+      let s=String(v).replace(/\u00A0/g,' ').trim(); // NBSP -> espaço
+      s=s.replace(/^\s*(concelho|munic[ií]pio)\s*[:\-–]\s*/i,''); // remove "Concelho: ..."
+      // se vier "Porto / Cedofeita" ficar "Porto"
+      s=s.split(/[\/,;|\-–]+/)[0].trim();
+      if(s.toLowerCase()==='nan' || s==='') return '';
+      return s;
+    }
+
+    // Detecta concelho (dinâmico por regex + chaves “clássicas”)
     function getConcelhoDynamic(props){
-      let val=mapName(props,['concelho','Concelho','municipio','município','municipality','city','local','freguesia']);
-      if(val) return String(val).trim();
+      let val=mapName(props,['concelho','Concelho','concelho ','Concelho ','municipio','município','municipality','city','local','freguesia']);
+      val=sanitizeConcelhoValue(val);
+      if(val) return val;
+
       const keys=Object.keys(props||{});
       for(const k of keys){
         const nk=normStr(k);
         if(/(concelho|municipi|municípi|city|local|fregues)/.test(nk)){
-          const v=String(props[k]??'').trim();
+          const v=sanitizeConcelhoValue(props[k]);
           if(v) return v;
         }
       }
@@ -186,15 +191,14 @@
       const searchEl=document.getElementById('search');
       const yearEl=document.getElementById('yearSearch');
       const concWrap=document.getElementById('concelhoWrap');
-
-      // garante que o select existe
       let concSel=document.getElementById('concelhoSelect');
+      const concCountEl=document.getElementById('concelhoCount');
+      const concDebug=document.getElementById('concDebug');
+
       if(!concSel){
         concSel=document.createElement('select'); concSel.id='concelhoSelect';
-        const opt=document.createElement('option'); opt.value=''; opt.textContent='Todos os Concelhos'; concSel.appendChild(opt);
         concWrap.appendChild(concSel);
       }
-      const concCountEl=document.getElementById('concelhoCount');
 
       const exportBtn=document.getElementById('exportBtn');
       const focusBtn=document.getElementById('focusBtn');
@@ -225,7 +229,12 @@
       }
       if(!gj||!Array.isArray(gj.features)){ statsEl.innerHTML='❌ Falha a carregar dados. <small>'+errors.join(' · ')+'</small>'; return; }
 
-      const concelhosMap=new Map(); // keyNormalizada -> label
+      // Mapa de concelhos (normalizados) -> rótulo
+      const concelhosMap=new Map();
+      const concelhosAmostra=new Set(); // para debug mostrar alguns
+
+      let total=0;
+      const counts={ licenciado:0, em_construcao:0, concluido:0, em_licenciamento:0 };
 
       gj.features.forEach(f=>{
         const p=f?.properties||{};
@@ -236,7 +245,11 @@
 
         const concelhoRaw=getConcelhoDynamic(p);
         const concelhoLower=normStr(concelhoRaw);
-        if(concelhoRaw){ const key=concelhoLower; if(!concelhosMap.has(key)) concelhosMap.set(key, toTitleCasePt(concelhoRaw)); }
+        if(concelhoRaw){
+          const key=concelhoLower;
+          if(!concelhosMap.has(key)) concelhosMap.set(key, toTitleCasePt(concelhoRaw));
+          if(concelhosAmostra.size<5) concelhosAmostra.add(toTitleCasePt(concelhoRaw));
+        }
 
         const nome=mapName(p,['nome','name','titulo','título','projecto','projeto'])||'Empreendimento';
         const estadoKey=normalizeEstado(mapName(p,['estado','status']));
@@ -246,6 +259,8 @@
         let link=mapName(p,['link','url','website']);
 
         if(!estadoKey||!stateDisplay[estadoKey]) return;
+
+        total++; counts[estadoKey]=(counts[estadoKey]||0)+1;
 
         const icon=makePinIcon(stateColors[estadoKey]||'#BBBBBB');
         const marker=L.marker([lat,lng],{icon,title:nome});
@@ -283,7 +298,7 @@
         cluster.addLayer(marker);
       });
 
-      // ——— Popular/forçar dropdown concelho (com segurança)
+      // Popular dropdown concelho
       function populateConcelhosSelect(){
         const entries=Array.from(concelhosMap.entries()).sort((a,b)=>a[1].localeCompare(b[1],'pt'));
         const frag=document.createDocumentFragment();
@@ -291,10 +306,13 @@
         for(const [keyNorm,label] of entries){
           const opt=document.createElement('option'); opt.value=keyNorm; opt.textContent=label; frag.appendChild(opt);
         }
-        concSel.replaceChildren(frag);
+        document.getElementById('concelhoSelect').replaceChildren(frag);
         if(concCountEl) concCountEl.textContent = entries.length ? `(${entries.length})` : '(0)';
+        if(concDebug) concDebug.textContent = entries.length ? `  • Ex.: ${entries.slice(0,3).map(e=>e[1]).join(', ')}` : '';
       }
       populateConcelhosSelect();
+      // Fallback: repovoar 1s depois (caso o DOM substitua algo)
+      setTimeout(()=>{ if(document.getElementById('concelhoSelect').options.length<=1) populateConcelhosSelect(); },1000);
 
       if(cluster.getLayers().length) map.fitBounds(cluster.getBounds().pad(0.2)); else map.setView([41.15,-8.6],12);
 
@@ -305,8 +323,8 @@
                      `Total visíveis: <strong>${arr.length}</strong>`,
                      `Licenciado: <strong>${by.licenciado}</strong>`,
                      `Em construção: <strong>${by.em_construcao}</strong>`,
-                     `Concluído: <strong>${by.concluido}</strong>`];
-        if(by.em_licenciamento) parts.splice(2,0,`Em licenciamento: <strong>${by.em_licenciamento}</strong>`);
+                     `Concluído: <strong>${by.concluido}</strong>`,
+                     `Concelhos distintos: <strong>${new Set(arr.map(o=>o.concelhoLower).filter(Boolean)).size}</strong>`];
         statsEl.innerHTML=parts.join(' · ');
       }
       updateKPIs(allMarkers);
@@ -320,9 +338,9 @@
       }
 
       function applyFilters(){
-        const q=normStr(searchEl.value);
-        const yq=yearEl.value;
-        const sel=concSel.value; // normalizado
+        const q=normStr(document.getElementById('search').value);
+        const yq=document.getElementById('yearSearch').value;
+        const sel=document.getElementById('concelhoSelect').value;
 
         const allowed=new Set(Array.from(document.querySelectorAll('.state-filter')).filter(cb=>cb.checked).map(cb=>cb.value));
         cluster.clearLayers();
@@ -342,17 +360,19 @@
 
       document.querySelectorAll('.state-filter').forEach(cb=>cb.addEventListener('change',applyFilters));
       let to1=null,to2=null;
-      searchEl.addEventListener('input',()=>{ clearTimeout(to1); to1=setTimeout(applyFilters,150); });
-      yearEl.addEventListener('input',()=>{ clearTimeout(to2); to2=setTimeout(applyFilters,150); });
-      concSel.addEventListener('change',applyFilters);
+      document.getElementById('search').addEventListener('input',()=>{ clearTimeout(to1); to1=setTimeout(applyFilters,150); });
+      document.getElementById('yearSearch').addEventListener('input',()=>{ clearTimeout(to2); to2=setTimeout(applyFilters,150); });
+      document.getElementById('concelhoSelect').addEventListener('change',applyFilters);
 
-      clearBtn.addEventListener('click',()=>{
-        searchEl.value=''; yearEl.value=''; concSel.value='';
+      document.getElementById('clearBtn').addEventListener('click',()=>{
+        document.getElementById('search').value='';
+        document.getElementById('yearSearch').value='';
+        document.getElementById('concelhoSelect').value='';
         document.querySelectorAll('.state-filter').forEach(cb=>cb.checked=true);
         applyFilters();
       });
 
-      exportBtn.addEventListener('click',()=>{
+      document.getElementById('exportBtn').addEventListener('click',()=>{
         const visible=cluster.getAllChildMarkers();
         if(!visible||!visible.length){ alert('Não há empreendimentos visíveis para exportar.'); return; }
         const key=v=>`${v.latitude}|${v.longitude}`;
@@ -361,7 +381,8 @@
         const headers=['nome','concelho','estado','conclusao','notas','link','latitude','longitude'];
         const csv=[headers.join(';')].concat(exportData.map(r=>headers.map(h=>(r[h]??'')).join(';'))).join('\n');
         const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const a=document.createElement('a');
-        a.href=URL.createObjectURL(blob); a.download='empreendimentos_filtrados.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        a.href=URL.createObjectURL(blob); a.download='empreendimentos_filtrados.csv';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
       });
 
       const legend=L.control({position:'bottomleft'});
@@ -371,9 +392,6 @@
                        <div class="row"><span class="color" style="background:${stateColors.concluido}"></span> Concluído</div>`;
         return div; };
       legend.addTo(map);
-
-      // Fallback: se por qualquer motivo o dropdown ficar vazio, repovoa 1s depois
-      setTimeout(()=>{ if(concSel.options.length<=1) populateConcelhosSelect(); }, 1000);
     })();
   </script>
 </body>
