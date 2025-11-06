@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style>
     :root { --gold:#A38B63; --bg:#0E0E0E; --text:#FFFFFF; }
-    html,body { height:100%; margin:0; background:var(--bg); color:var(--text); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial; }
+    html,body { height:100%; margin:0; background:#0E0E0E; color:var(--text); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial; }
     #topbar { background:#0F0F0F; padding:8px 12px; border-bottom:1px solid rgba(255,255,255,.08);
       display:flex; gap:10px; align-items:center; position:relative; z-index:30; flex-wrap:wrap; }
     .tab { font-size:12px; padding:6px 10px; border:1px solid rgba(255,255,255,.12); border-radius:8px; background:#121212; color:#ddd; text-decoration:none; }
@@ -18,8 +18,7 @@
     #map { position:absolute; inset:46px 0 0 0; }
     .ctrls { position:absolute; top:70px; left:12px; z-index:5000; display:flex; flex-direction:column; gap:6px; }
     .ctrls .btn { background:#111; color:#f6f6f6; border:1px solid rgba(255,255,255,.18);
-      border-radius:10px; padding:7px 10px; font-size:12px; cursor:pointer; min-width:165px;
-      box-shadow:0 2px 12px rgba(0,0,0,.35);}
+      border-radius:10px; padding:7px 10px; font-size:12px; cursor:pointer; min-width:165px; box-shadow:0 2px 12px rgba(0,0,0,.35);}
     .ctrls .btn:hover { border-color:#FFD166; color:#fff; }
     .ctrls .row { display:flex; gap:6px; }
     .ctrls label { font-size:12px; display:flex; align-items:center; gap:6px; background:#111; padding:7px 10px; border-radius:10px; border:1px solid rgba(255,255,255,.18); }
@@ -74,43 +73,43 @@
   <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-  const CSV_SOURCE = "./data/empreendimentos.csv";
+  const CSV_SOURCE   = "./data/empreendimentos.csv";
   const PORTO_CENTER = [41.15, -8.61];
+  const PORTO_ZOOM   = 12;
 
   const statusEl = document.getElementById('status');
-  const baseDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19});
-  const baseLight = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19});
-  const map = L.map('map', { zoomControl:true, scrollWheelZoom:true, preferCanvas:true }).setView(PORTO_CENTER, 11);
-  baseDark.addTo(map);
-  let darkOn = true;
 
-  // Normalizar string (remover acentos) para identificar estados com e sem acentos
-  function normalize(str){
-    return (str||"").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-  }
+  // 🌍 CLARO por omissão; ESCURO opcional
+  const baseLight = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19, attribution:'&copy; OpenStreetMap'});
+  const baseDark  = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19, attribution:'&copy; OpenStreetMap, ©Carto'});
 
+  // 🎯 Arranque focado na AMP/Porto
+  const map = L.map('map', { zoomControl:true, scrollWheelZoom:true, preferCanvas:true })
+               .setView(PORTO_CENTER, PORTO_ZOOM);
+  let darkOn = false; // começa CLARO
+  baseLight.addTo(map);
+
+  // Normalizar string para identificar estados
+  function normalize(str){ return (str||"").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
   function colorByEstado(e){
     const s = normalize(e);
     if(s.includes('conclu')) return '#10b981';   // verde
     if(s.includes('licen'))  return '#1d4ed8';   // azul
-    if(s.includes('constr')) return '#e63946';   // 🔴 vermelho forte (em construção)
+    if(s.includes('constr')) return '#e63946';   // vermelho (em construção)
     return '#ef4444';
   }
-
-  function isConstrucao(e){
-    return normalize(e).includes('constr');
-  }
-
+  function isConstrucao(e){ return normalize(e).includes('constr'); }
   function toNum(v){ if(v==null) return null; const n = Number(String(v).replace(',','.')); return Number.isFinite(n)?n:null; }
+
+  // Tamanho base dos pins + adaptação por zoom
   let BASE_RADIUS = 11;
   function radiusForZoom(){ const z=map.getZoom(); const k=Math.max(0.9,Math.min(1.8,(z-10)*0.16+1)); return Math.round(BASE_RADIUS*k); }
 
   let layerGroup = L.layerGroup().addTo(map);
   let labelsOn=false;
   let currentPoints=[];
-  let blinkTimer = null;
-  let blinking = false;
-  let constructionMarkers = []; // guarda marcadores de "em construção" para animar
+  let blinkTimer=null, blinking=false;
+  let constructionMarkers=[];
 
   function fmt(v){ return v==null?'':String(v).trim(); }
   function rowToPoint(r){
@@ -126,19 +125,24 @@
   }
 
   function drawPoints(points){
-    // parar animação anterior, se existir
-    if (blinkTimer) { clearInterval(blinkTimer); blinkTimer = null; }
-    constructionMarkers = [];
+    if (blinkTimer) { clearInterval(blinkTimer); blinkTimer=null; }
+    constructionMarkers=[];
 
     layerGroup.clearLayers();
     const r=radiusForZoom();
+
     points.forEach(p=>{
       const c=colorByEstado(p.estado);
+      const isCons = isConstrucao(p.estado);
       const m=L.circleMarker([p.lat,p.lng],{
-        radius:r,color:'#fff',weight:3,fillColor:c,fillOpacity:0.95,pane:'overlayPane'
+        radius:r, color:'#fff', weight:3,
+        fillColor:c, fillOpacity:isCons?0.85:0.95,
+        pane:'overlayPane'
       });
+
       const tt=`${p.nome}${p.concelho?' · '+p.concelho:''}${p.conclusao?' · '+p.conclusao:''}`;
       m.bindTooltip(tt,{direction:'top',opacity:0.95,offset:[0,-r]});
+
       const linhas=[
         `<b>${p.nome}</b>`,
         `${p.concelho||''}${p.estado?' · '+p.estado:''}${p.conclusao?' · Conclusão: '+p.conclusao:''}`,
@@ -149,23 +153,22 @@
         p.link?`<a href="${p.link}" target="_blank" rel="noreferrer">Abrir Link</a>`:''
       ].filter(Boolean).join('<br>');
       m.bindPopup(linhas,{maxWidth:360});
+
       if(labelsOn){ m.bindTooltip(p.nome,{permanent:true,direction:'right',offset:[r,0],opacity:0.95}); }
+
       m.addTo(layerGroup);
 
-      // Guardar marcadores de "em construção" para animar
-      if (isConstrucao(p.estado)) {
-        constructionMarkers.push(m);
-      }
+      if (isCons) constructionMarkers.push(m);
     });
 
-    // Iniciar piscar subtil nos "em construção"
-    if (constructionMarkers.length) {
-      blinking = false;
-      blinkTimer = setInterval(()=>{
-        blinking = !blinking;
-        const targetOpacity = blinking ? 0.55 : 0.95;  // pulsar discreto
-        constructionMarkers.forEach(m => m.setStyle({ fillOpacity: targetOpacity }));
-      }, 700);
+    // 🔴 Pulsar suave nos “em construção” (intensidade)
+    if (constructionMarkers.length){
+      blinking=false;
+      blinkTimer=setInterval(()=>{
+        blinking=!blinking;
+        const target = blinking ? 1.0 : 0.55;
+        constructionMarkers.forEach(m=> m.setStyle({ fillOpacity: target }));
+      }, 750);
     }
   }
 
@@ -178,22 +181,30 @@
       const parsed=Papa.parse(text,{header:true,skipEmptyLines:true});
       currentPoints=parsed.data.map(rowToPoint).filter(Boolean);
       drawPoints(currentPoints);
-      if(currentPoints.length){
-        const b=L.latLngBounds(currentPoints.map(p=>[p.lat,p.lng]));
-        if(b.isValid()) map.fitBounds(b.pad(0.15));
-      }else map.setView(PORTO_CENTER,11);
+
+      // 🎯 manter SEMPRE o foco na AMP/Porto
+      map.setView(PORTO_CENTER, PORTO_ZOOM);
+
       statusEl.textContent=`✅ ${currentPoints.length} empreendimentos carregados`;
     }catch(e){ console.error(e); statusEl.textContent="❌ Falha ao carregar CSV ("+(e.message||e)+")"; }
   }
 
-  map.on('zoomend',()=>drawPoints(currentPoints));
-  document.getElementById('reloadBtn').onclick=loadCSV;
-  document.getElementById('focusPorto').onclick=()=>map.setView(PORTO_CENTER,12);
-  document.getElementById('toggleContrast').onclick=()=>{ if(darkOn){map.removeLayer(baseDark);baseLight.addTo(map);}else{map.removeLayer(baseLight);baseDark.addTo(map);} darkOn=!darkOn; };
-  document.getElementById('biggerPins').onclick=()=>{BASE_RADIUS=Math.min(BASE_RADIUS+2,24);drawPoints(currentPoints);};
-  document.getElementById('smallerPins').onclick=()=>{BASE_RADIUS=Math.max(BASE_RADIUS-2,6);drawPoints(currentPoints);};
-  document.getElementById('toggleLabels').onchange=e=>{labelsOn=e.target.checked;drawPoints(currentPoints);};
+  // Reescala pins ao mudar o zoom
+  map.on('zoomend', ()=> drawPoints(currentPoints));
 
+  // Controlo topo e painel
+  document.getElementById('reloadBtn').onclick=loadCSV;
+  document.getElementById('focusPorto').onclick=()=> map.setView(PORTO_CENTER, PORTO_ZOOM);
+  document.getElementById('toggleContrast').onclick=()=>{
+    if(darkOn){ map.removeLayer(baseDark); baseLight.addTo(map); }
+    else       { map.removeLayer(baseLight); baseDark.addTo(map); }
+    darkOn = !darkOn;
+  };
+  document.getElementById('biggerPins').onclick=()=>{ BASE_RADIUS = Math.min(BASE_RADIUS+2, 24); drawPoints(currentPoints); };
+  document.getElementById('smallerPins').onclick=()=>{ BASE_RADIUS = Math.max(BASE_RADIUS-2, 6);  drawPoints(currentPoints); };
+  document.getElementById('toggleLabels').onchange=e=>{ labelsOn=e.target.checked; drawPoints(currentPoints); };
+
+  // Arranque fixo na AMP/Porto
   loadCSV();
   </script>
 </body>
