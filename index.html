@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Garvetur Porto Pro — Mapa (mesma origem, sem cache-bust local)</title>
+  <title>Garvetur Porto Pro — Mapa (JSON local)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="preconnect" href="https://unpkg.com" crossorigin>
   <link rel="preconnect" href="https://a.tile.openstreetmap.org" crossorigin>
@@ -37,7 +37,7 @@
       </nav>
     </div>
     <button id="retryBtn" class="actionBtn">Recarregar</button>
-    <a id="openGeo" class="actionBtn" target="_blank" rel="noreferrer">Abrir GeoJSON</a>
+    <a id="openGeo" class="actionBtn" target="_blank" rel="noreferrer">Abrir JSON</a>
     <div id="status">A iniciar…</div>
   </div>
 
@@ -46,8 +46,8 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script>
-  // Fonte única na MESMA ORIGEM
-  const SOURCE = "./data/empreendimentos.geojson";
+  // === FONTE LOCAL (mesma origem) ===
+  const SOURCE = "./data/empreendimentos.json";
 
   const statusEl = document.getElementById('status');
   const openGeo  = document.getElementById('openGeo');
@@ -67,24 +67,18 @@
   async function load(){
     try{
       setStatus("A carregar: " + SOURCE);
-      // ⚠️ para MESMA ORIGEM, não adicionamos cache-bust (evita 404 do Pages/Jekyll)
       const r = await fetch(SOURCE, { cache:'reload' });
       if(!r.ok) throw new Error("HTTP " + r.status);
-      const ct = (r.headers.get('content-type')||'').toLowerCase();
-      const t  = await r.text();
-      if (t.trim().startsWith("<")) throw new Error("Conteúdo HTML (404/página) — confirme /data/empreendimentos.geojson no branch de deploy");
-      let gj;
-      try { gj = JSON.parse(t); } catch(e){ throw new Error("JSON inválido: " + e.message); }
+      const t = await r.text();
+      if(t.trim().startsWith("<")) throw new Error("Conteúdo HTML (404/página). Verifique se o ficheiro existe em /data/empreendimentos.json");
+      const gj = JSON.parse(t);
       if(gj.type!=="FeatureCollection" || !Array.isArray(gj.features)) throw new Error("Formato inesperado");
 
-      // Desenhar
       cluster.clearLayers();
       let added=0;
       (gj.features||[]).forEach(f=>{
-        if(!f||!f.geometry||f.geometry.type!=="Point") return;
-        const c=f.geometry.coordinates||[];
-        const lng=Number(String(c[0]).replace(',','.'));
-        const lat=Number(String(c[1]).replace(',','.'));
+        if(!f.geometry || f.geometry.type!=="Point") return;
+        const [lng,lat]=f.geometry.coordinates||[];
         if(!Number.isFinite(lat)||!Number.isFinite(lng)) return;
         const p=f.properties||{};
         const marker=L.marker([lat,lng],{
@@ -102,11 +96,11 @@
         cluster.addLayer(marker); added++;
       });
       if(added){ const b=cluster.getBounds(); if(b&&b.isValid()) map.fitBounds(b.pad(0.2)); }
-      setStatus(`✅ Dados carregados (features: ${(gj.features||[]).length}; visíveis: ${added})`);
+      setStatus(`✅ Dados carregados (${added} pontos).`);
     }catch(e){
       console.error(e);
-      setStatus("❌ Falha ao carregar GeoJSON: " + (e && e.message ? e.message : e));
-      alert('Falha ao carregar o GeoJSON local. Abra "Abrir GeoJSON" e confirme que abre JSON.\nSe abrir HTML/404, confirme o caminho /data/empreendimentos.geojson no branch de deploy.');
+      setStatus("❌ Falha ao carregar JSON: " + (e.message || e));
+      alert("Falha ao carregar o ficheiro ./data/empreendimentos.json.\nVerifique se existe e abre JSON no navegador.");
     }
   }
 
