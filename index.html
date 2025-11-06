@@ -2,36 +2,48 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Garvetur Porto Pro — Mapa (Alta Legibilidade)</title>
+  <title>Garvetur Porto Pro — Mapa (Pesquisa + Filtros)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="preconnect" href="https://unpkg.com" crossorigin>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style>
     :root { --gold:#A38B63; --bg:#0E0E0E; --text:#FFFFFF; }
     html,body { height:100%; margin:0; background:#0E0E0E; color:var(--text); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial; }
+    /* Topbar */
     #topbar { background:#0F0F0F; padding:8px 12px; border-bottom:1px solid rgba(255,255,255,.08);
       display:flex; gap:10px; align-items:center; position:relative; z-index:30; flex-wrap:wrap; }
     .tab { font-size:12px; padding:6px 10px; border:1px solid rgba(255,255,255,.12); border-radius:8px; background:#121212; color:#ddd; text-decoration:none; }
     .tab.active { background:var(--gold); color:#111; border-color:var(--gold); font-weight:600; }
     .actionBtn { background:transparent; border:1px solid rgba(163,139,99,.5); color:#fff; padding:6px 9px; border-radius:8px; cursor:pointer; font-size:12px; }
     #status { font-size:12px; color:#E6E6E6; margin-left:auto; }
-    #map { position:absolute; inset:46px 0 0 0; }
-    .ctrls { position:absolute; top:70px; left:12px; z-index:5000; display:flex; flex-direction:column; gap:6px; }
+    /* Barra de filtros */
+    #filters { background:#111; border-bottom:1px solid rgba(255,255,255,.08); padding:8px 12px; display:grid; gap:8px;
+      grid-template-columns: 1fr 200px auto auto auto; align-items:center; }
+    #search { background:#0E0E0E; color:#fff; border:1px solid rgba(255,255,255,.18); border-radius:10px; padding:8px 10px; }
+    #concelho { background:#0E0E0E; color:#fff; border:1px solid rgba(255,255,255,.18); border-radius:10px; padding:8px 10px; }
+    .chips { display:flex; gap:6px; flex-wrap:wrap; }
+    .chip { font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.18); background:#0E0E0E; color:#ddd; cursor:pointer; }
+    .chip.active { background:var(--gold); color:#111; border-color:var(--gold); font-weight:600; }
+    #map { position:absolute; inset:112px 0 0 0; }
+    /* Controlos adicionais */
+    .ctrls { position:absolute; top:154px; left:12px; z-index:5000; display:flex; flex-direction:column; gap:6px; }
     .ctrls .btn { background:#111; color:#f6f6f6; border:1px solid rgba(255,255,255,.18);
       border-radius:10px; padding:7px 10px; font-size:12px; cursor:pointer; min-width:165px; box-shadow:0 2px 12px rgba(0,0,0,.35);}
     .ctrls .btn:hover { border-color:#FFD166; color:#fff; }
-    .ctrls .row { display:flex; gap:6px; }
-    .ctrls label { font-size:12px; display:flex; align-items:center; gap:6px; background:#111; padding:7px 10px; border-radius:10px; border:1px solid rgba(255,255,255,.18); }
     .legend { position:absolute; bottom:26px; left:16px; background:#111; color:#eee; font-size:11px;
       padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,.1); line-height:1.4; z-index:400; }
     .legend div { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
     .swatch { width:14px; height:14px; border-radius:50%; display:inline-block; border:2px solid #fff; box-shadow:0 1px 3px rgba(0,0,0,.5); }
     .leaflet-tooltip.permanent { background:rgba(17,17,17,0.92); border:1px solid rgba(255,255,255,.25); color:#fff; padding:3px 6px; border-radius:6px; font-size:11px; }
     .leaflet-tooltip-top:before { border-top-color:rgba(17,17,17,0.92); }
-    @media (max-width:640px){ #map{ inset:78px 0 0 0; } .ctrls{ top:96px; } }
+    @media (max-width:900px){
+      #filters { grid-template-columns: 1fr 1fr 1fr; }
+      #map { inset:156px 0 0 0; }
+    }
   </style>
 </head>
 <body>
+  <!-- Topbar -->
   <div id="topbar">
     <div style="display:flex;align-items:center;gap:10px;">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:#FFD166">
@@ -50,20 +62,32 @@
     <div id="status">A iniciar…</div>
   </div>
 
-  <div id="map"></div>
-
-  <div class="ctrls">
-    <div class="row">
-      <button class="btn" id="focusPorto">Focar AMP/Porto</button>
-      <button class="btn" id="toggleContrast">Alternar contraste</button>
+  <!-- Filtros -->
+  <div id="filters">
+    <input id="search" placeholder="Pesquisar: nome / concelho / promotor" />
+    <select id="concelho"><option value="">Concelho (todos)</option></select>
+    <div class="chips" id="chips">
+      <div class="chip active" data-estado="todos">Todos</div>
+      <div class="chip" data-estado="construcao">Em construção</div>
+      <div class="chip" data-estado="licenciado">Licenciado</div>
+      <div class="chip" data-estado="concluido">Concluído</div>
     </div>
-    <div class="row">
-      <button class="btn" id="biggerPins">Aumentar pins</button>
-      <button class="btn" id="smallerPins">Diminuir pins</button>
-    </div>
-    <label><input type="checkbox" id="toggleLabels"> Mostrar etiquetas (nomes)</label>
+    <button id="exportBtn" class="actionBtn">Exportar (CSV)</button>
+    <div style="font-size:12px;color:#bbb" id="kpis">—</div>
   </div>
 
+  <div id="map"></div>
+
+  <!-- Controlos extra -->
+  <div class="ctrls">
+    <button class="btn" id="focusPorto">Focar AMP/Porto</button>
+    <button class="btn" id="toggleContrast">Alternar contraste</button>
+    <button class="btn" id="biggerPins">Aumentar pins</button>
+    <button class="btn" id="smallerPins">Diminuir pins</button>
+    <label style="margin-top:2px;"><input type="checkbox" id="toggleLabels"> Mostrar etiquetas (nomes)</label>
+  </div>
+
+  <!-- Legenda -->
   <div class="legend">
     <div><span class="swatch" style="background:#e63946"></span> Em Construção</div>
     <div><span class="swatch" style="background:#1d4ed8"></span> Licenciado</div>
@@ -78,71 +102,104 @@
   const PORTO_ZOOM   = 12;
 
   const statusEl = document.getElementById('status');
+  const kpisEl   = document.getElementById('kpis');
 
-  // 🌍 CLARO por omissão; ESCURO opcional
+  // Base maps
   const baseLight = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19, attribution:'&copy; OpenStreetMap'});
   const baseDark  = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19, attribution:'&copy; OpenStreetMap, ©Carto'});
+  const map = L.map('map', { zoomControl:true, scrollWheelZoom:true, preferCanvas:true }).setView(PORTO_CENTER, PORTO_ZOOM);
+  let darkOn = false; baseLight.addTo(map);
 
-  // 🎯 Arranque focado na AMP/Porto
-  const map = L.map('map', { zoomControl:true, scrollWheelZoom:true, preferCanvas:true })
-               .setView(PORTO_CENTER, PORTO_ZOOM);
-  let darkOn = false; // começa CLARO
-  baseLight.addTo(map);
-
-  // Normalizar string para identificar estados
-  function normalize(str){ return (str||"").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+  // Estado → normalização simples
+  const normalize = s => (s||"").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const isConstr  = s => normalize(s).includes('constr');
+  const isLic     = s => normalize(s).includes('licen');
+  const isConcl   = s => normalize(s).includes('conclu');
   function colorByEstado(e){
-    const s = normalize(e);
-    if(s.includes('conclu')) return '#10b981';   // verde
-    if(s.includes('licen'))  return '#1d4ed8';   // azul
-    if(s.includes('constr')) return '#e63946';   // vermelho (em construção)
+    if(isConcl(e)) return '#10b981';       // verde
+    if(isLic(e))   return '#1d4ed8';       // azul
+    if(isConstr(e))return '#e63946';       // vermelho
     return '#ef4444';
   }
-  function isConstrucao(e){ return normalize(e).includes('constr'); }
   function toNum(v){ if(v==null) return null; const n = Number(String(v).replace(',','.')); return Number.isFinite(n)?n:null; }
-
-  // Tamanho base dos pins + adaptação por zoom
   let BASE_RADIUS = 11;
-  function radiusForZoom(){ const z=map.getZoom(); const k=Math.max(0.9,Math.min(1.8,(z-10)*0.16+1)); return Math.round(BASE_RADIUS*k); }
+  const radiusForZoom = ()=> Math.round(BASE_RADIUS * Math.max(0.9,Math.min(1.8,(map.getZoom()-10)*0.16+1)));
 
-  let layerGroup = L.layerGroup().addTo(map);
-  let labelsOn=false;
-  let currentPoints=[];
-  let blinkTimer=null, blinking=false;
+  let labelsOn=false, blinkTimer=null, blinking=false;
+  let allPoints=[], viewPoints=[];
+  const layerGroup = L.layerGroup().addTo(map);
   let constructionMarkers=[];
+
+  // Elementos UI
+  const searchInput   = document.getElementById('search');
+  const concelhoSel   = document.getElementById('concelho');
+  const chipsWrap     = document.getElementById('chips');
+  const exportBtn     = document.getElementById('exportBtn');
+  let estadoAtivo     = 'todos';
 
   function fmt(v){ return v==null?'':String(v).trim(); }
   function rowToPoint(r){
-    const lat=toNum(r.latitude||r.Latitude),lng=toNum(r.longitude||r.Longitude);
+    const lat=toNum(r.latitude||r.Latitude), lng=toNum(r.longitude||r.Longitude);
     const nome=r.nome||r.Nome; if(!nome||lat==null||lng==null) return null;
-    return {nome:fmt(r.nome||r.Nome),concelho:fmt(r.concelho||r.Concelho),
-      estado:fmt(r.estado||r.Estado),promotor:fmt(r.promotor||r.Promotor),
+    return {
+      nome:fmt(r.nome||r.Nome), concelho:fmt(r.concelho||r.Concelho),
+      estado:fmt(r.estado||r.Estado), promotor:fmt(r.promotor||r.Promotor),
       tipologias:fmt(r.tipologias||r.Tipologias),
       conclusao:fmt(r.conclusao||r.Conclusao||r['Conclusão']),
       preco_m2:fmt(r.preco_m2||r['Preço/m2']||r['preco_m2']),
-      notas:fmt(r.notas||r.Notas),link:fmt(r.link||r.Link||r.URL||r.Website),
-      lat,lng};
+      notas:fmt(r.notas||r.Notas), link:fmt(r.link||r.Link||r.URL||r.Website),
+      lat, lng
+    };
+  }
+
+  function updateKPIs(arr){
+    const total = arr.length;
+    const c = arr.reduce((acc,p)=>{
+      if(isConstr(p.estado)) acc.constr++;
+      else if(isLic(p.estado)) acc.lic++;
+      else if(isConcl(p.estado)) acc.concl++;
+      else acc.outros++;
+      return acc;
+    }, {constr:0, lic:0, concl:0, outros:0});
+    kpisEl.textContent = `Total: ${total} | Em construção: ${c.constr} | Licenciados: ${c.lic} | Concluídos: ${c.concl}`;
+  }
+
+  function applyFilters(){
+    const q = searchInput.value.trim().toLowerCase();
+    const conc = concelhoSel.value;
+    viewPoints = allPoints.filter(p=>{
+      const estadoOK = (estadoAtivo==='todos') ||
+                       (estadoAtivo==='construcao' && isConstr(p.estado)) ||
+                       (estadoAtivo==='licenciado' && isLic(p.estado)) ||
+                       (estadoAtivo==='concluido' && isConcl(p.estado));
+      const concOK = !conc || p.concelho === conc;
+      const qOK = !q || [p.nome, p.concelho, p.promotor].some(v => (v||'').toLowerCase().includes(q));
+      return estadoOK && concOK && qOK;
+    });
+    drawPoints(viewPoints);
+    updateKPIs(viewPoints);
+  }
+
+  function populateConcelhos(arr){
+    const set = new Set(arr.map(p=>p.concelho).filter(Boolean));
+    const list = Array.from(set).sort((a,b)=>a.localeCompare(b,'pt'));
+    concelhoSel.innerHTML = '<option value="">Concelho (todos)</option>' + list.map(v=>`<option value="${v}">${v}</option>`).join('');
   }
 
   function drawPoints(points){
     if (blinkTimer) { clearInterval(blinkTimer); blinkTimer=null; }
-    constructionMarkers=[];
-
+    constructionMarkers = [];
     layerGroup.clearLayers();
     const r=radiusForZoom();
 
     points.forEach(p=>{
       const c=colorByEstado(p.estado);
-      const isCons = isConstrucao(p.estado);
+      const cons = isConstr(p.estado);
       const m=L.circleMarker([p.lat,p.lng],{
-        radius:r, color:'#fff', weight:3,
-        fillColor:c, fillOpacity:isCons?0.85:0.95,
-        pane:'overlayPane'
+        radius:r, color:'#fff', weight:3, fillColor:c, fillOpacity:cons?0.85:0.95, pane:'overlayPane'
       });
-
       const tt=`${p.nome}${p.concelho?' · '+p.concelho:''}${p.conclusao?' · '+p.conclusao:''}`;
       m.bindTooltip(tt,{direction:'top',opacity:0.95,offset:[0,-r]});
-
       const linhas=[
         `<b>${p.nome}</b>`,
         `${p.concelho||''}${p.estado?' · '+p.estado:''}${p.conclusao?' · Conclusão: '+p.conclusao:''}`,
@@ -153,21 +210,17 @@
         p.link?`<a href="${p.link}" target="_blank" rel="noreferrer">Abrir Link</a>`:''
       ].filter(Boolean).join('<br>');
       m.bindPopup(linhas,{maxWidth:360});
-
       if(labelsOn){ m.bindTooltip(p.nome,{permanent:true,direction:'right',offset:[r,0],opacity:0.95}); }
-
       m.addTo(layerGroup);
-
-      if (isCons) constructionMarkers.push(m);
+      if (cons) constructionMarkers.push(m);
     });
 
-    // 🔴 Pulsar suave nos “em construção” (intensidade)
+    // pulsar nos “em construção”
     if (constructionMarkers.length){
-      blinking=false;
+      let on=false;
       blinkTimer=setInterval(()=>{
-        blinking=!blinking;
-        const target = blinking ? 1.0 : 0.55;
-        constructionMarkers.forEach(m=> m.setStyle({ fillOpacity: target }));
+        on=!on; const op = on?1.0:0.55;
+        constructionMarkers.forEach(m=>m.setStyle({ fillOpacity: op }));
       }, 750);
     }
   }
@@ -179,32 +232,60 @@
       if(!resp.ok) throw new Error("HTTP "+resp.status);
       const text=await resp.text();
       const parsed=Papa.parse(text,{header:true,skipEmptyLines:true});
-      currentPoints=parsed.data.map(rowToPoint).filter(Boolean);
-      drawPoints(currentPoints);
-
-      // 🎯 manter SEMPRE o foco na AMP/Porto
+      allPoints=parsed.data.map(rowToPoint).filter(Boolean);
+      populateConcelhos(allPoints);
+      applyFilters();
+      // manter SEMPRE foco AMP/Porto
       map.setView(PORTO_CENTER, PORTO_ZOOM);
-
-      statusEl.textContent=`✅ ${currentPoints.length} empreendimentos carregados`;
+      statusEl.textContent=`✅ ${allPoints.length} empreendimentos carregados`;
     }catch(e){ console.error(e); statusEl.textContent="❌ Falha ao carregar CSV ("+(e.message||e)+")"; }
   }
 
-  // Reescala pins ao mudar o zoom
-  map.on('zoomend', ()=> drawPoints(currentPoints));
-
-  // Controlo topo e painel
+  // UI events
   document.getElementById('reloadBtn').onclick=loadCSV;
   document.getElementById('focusPorto').onclick=()=> map.setView(PORTO_CENTER, PORTO_ZOOM);
   document.getElementById('toggleContrast').onclick=()=>{
     if(darkOn){ map.removeLayer(baseDark); baseLight.addTo(map); }
     else       { map.removeLayer(baseLight); baseDark.addTo(map); }
-    darkOn = !darkOn;
+    darkOn=!darkOn;
   };
-  document.getElementById('biggerPins').onclick=()=>{ BASE_RADIUS = Math.min(BASE_RADIUS+2, 24); drawPoints(currentPoints); };
-  document.getElementById('smallerPins').onclick=()=>{ BASE_RADIUS = Math.max(BASE_RADIUS-2, 6);  drawPoints(currentPoints); };
-  document.getElementById('toggleLabels').onchange=e=>{ labelsOn=e.target.checked; drawPoints(currentPoints); };
+  document.getElementById('biggerPins').onclick=()=>{ BASE_RADIUS = Math.min(BASE_RADIUS+2, 24); drawPoints(viewPoints); };
+  document.getElementById('smallerPins').onclick=()=>{ BASE_RADIUS = Math.max(BASE_RADIUS-2, 6);  drawPoints(viewPoints); };
+  document.getElementById('toggleLabels').onchange=e=>{ labelsOn=e.target.checked; drawPoints(viewPoints); };
+  map.on('zoomend',()=> drawPoints(viewPoints));
 
-  // Arranque fixo na AMP/Porto
+  // Chips de estado
+  chipsWrap.addEventListener('click', (ev)=>{
+    const el = ev.target.closest('.chip'); if(!el) return;
+    [...chipsWrap.children].forEach(c=>c.classList.remove('active'));
+    el.classList.add('active');
+    estadoAtivo = el.dataset.estado || 'todos';
+    applyFilters();
+  });
+
+  // Pesquisa e concelho
+  searchInput.addEventListener('input', applyFilters);
+  concelhoSel.addEventListener('change', applyFilters);
+
+  // Exportar CSV (vista filtrada)
+  exportBtn.addEventListener('click', ()=>{
+    const rows = [
+      ["nome","concelho","estado","promotor","tipologias","conclusao","preco_m2","notas","latitude","longitude","link"],
+      ...viewPoints.map(p=>[p.nome,p.concelho,p.estado,p.promotor,p.tipologias,p.conclusao,p.preco_m2,p.notas,p.lat,p.lng,p.link])
+    ];
+    const csv = rows.map(r=>r.map(v=>{
+      const s = (v==null? "": String(v));
+      return /[",;\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
+    }).join(";")).join("\n");
+    const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = "empreendimentos_filtrados.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  // Arranque
   loadCSV();
   </script>
 </body>
