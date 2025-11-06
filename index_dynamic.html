@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <title>Garvetur Porto Pro — Mapa (dados dinâmicos)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
+  <link rel="preconnect" href="https://a.tile.openstreetmap.org" crossorigin>
+  <link rel="preconnect" href="https://b.tile.openstreetmap.org" crossorigin>
+  <link rel="preconnect" href="https://c.tile.openstreetmap.org" crossorigin>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+  <style>
+    :root{ --bg:#0E0E0E; --text:#FFFFFF; --gold:#A38B63 }
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    #topbar{background:#0F0F0F;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.08);
+      display:flex;gap:10px;align-items:center;position:relative;z-index:30;flex-wrap:wrap}
+    .tab{font-size:12px;padding:6px 10px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:#121212;color:#ddd;text-decoration:none}
+    .tab.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:600}
+    .actionBtn{background:transparent;border:1px solid rgba(163,139,99,.5);color:#fff;padding:6px 9px;border-radius:8px;cursor:pointer;font-size:12px}
+    #status{font-size:12px;color:#E6E6E6;margin-left:auto}
+    #map{position:absolute;inset:48px 0 0 0}
+    @media (max-width: 640px){ #map{ inset: 80px 0 0 0 } }
+  </style>
+</head>
+<body>
+  <div id="topbar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:#FFD166"><circle cx="12" cy="12" r="10" stroke-width="1.5"/><path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/></svg>
+      <h1 style="margin:0;font-size:16px;color:#FFD166">Garvetur Porto Pro</h1>
+      <nav style="display:flex;gap:6px;margin-left:10px">
+        <a class="tab active" href="./index.html">Mapa</a>
+        <a class="tab" href="./kanban.html">Leads</a>
+        <a class="tab" href="./angariacoes.html">Angariações</a>
+        <a class="tab" href="./dashboard.html">Dashboard</a>
+      </nav>
+    </div>
+    <button id="reloadBtn" class="actionBtn">Atualizar dados</button>
+    <div id="status">A iniciar…</div>
+  </div>
+
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script>
+  const SOURCE = "./data/empreendimentos.json";
+  const AMP_CENTER = [41.15,-8.61];
+
+  const statusEl = document.getElementById('status');
+  const map = L.map('map',{ zoomControl:true, scrollWheelZoom:true }).setView(AMP_CENTER, 11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(map);
+  const cluster = L.markerClusterGroup(); map.addLayer(cluster);
+
+  function setStatus(m){ statusEl.textContent = m; }
+  function colorByEstado(e){
+    const m={ licenciado:"#118AB2", em_construcao:"#FFD166", em_licenciamento:"#8E7CC3", concluido:"#06D6A0" };
+    return m[(e||'').toLowerCase()]||"#A38B63";
+  }
+  function n(v){ const x=Number(String(v).replace(',','.')); return Number.isFinite(x)?x:null; }
+
+  async function loadData(){
+    try{
+      setStatus("A carregar dados…");
+      const r = await fetch(SOURCE, { cache: 'reload' });
+      if(!r.ok) throw new Error("HTTP " + r.status);
+      const t = await r.text();
+      if (t.trim().startsWith("<")) throw new Error("Recebi HTML (404?). Confirme /data/empreendimentos.json");
+      const gj = JSON.parse(t);
+      if(gj.type!=="FeatureCollection" || !Array.isArray(gj.features)) throw new Error("Formato inesperado");
+
+      cluster.clearLayers();
+      const coords = [];
+      let added = 0;
+
+      (gj.features||[]).forEach(f=>{
+        if(!f||!f.geometry||f.geometry.type!=="Point") return;
+        const c=f.geometry.coordinates||[];
+        const lng=n(c[0]), lat=n(c[1]);
+        if(lat==null || lng==null) return;
+        const p=f.properties||{};
+        const marker=L.marker([lat,lng],{
+          icon:L.divIcon({className:'gpp-pin',html:`<div style="transform:translate(-10px,-24px)">
+            <svg width="24" height="24" viewBox="0 0 24 24">
+              <path d="M12 2C8.1 2 5 5.1 5 9c0 5.3 7 13 7 13s7-7.7 7-13c0-3.9-3.1-7-7-7z" fill="${colorByEstado(p.estado)}" stroke="white" stroke-width="1"/>
+              <circle cx="12" cy="9" r="3" fill="#111" stroke="white" stroke-width="1"/>
+            </svg></div>`,iconSize:[24,24],iconAnchor:[12,24]})
+        });
+        marker.bindTooltip(p.nome||'—',{direction:'top'});
+        marker.bindPopup(`<b>${p.nome||'—'}</b><br>${p.concelho||''} · ${(p.estado||'').toLowerCase()}
+          ${p.conclusao?'<br>Conclusão: '+p.conclusao:''}
+          ${p.promotor?'<br>Promotor: '+p.promotor:''}
+          ${p.link?'<br><a href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>':''}`);
+        cluster.addLayer(marker); added++; coords.push([lat,lng]);
+      });
+
+      if (coords.length>0){
+        const bounds = L.latLngBounds(coords);
+        if (bounds.isValid()) map.fitBounds(bounds.pad(0.2));
+      }
+
+      setStatus(`✅ Dados carregados (visíveis: ${added})`);
+    }catch(e){
+      console.error(e);
+      setStatus("❌ Falha ao carregar dados: " + (e.message||e));
+    }
+  }
+
+  document.getElementById('reloadBtn').addEventListener('click', loadData);
+  loadData();
+  </script>
+</body>
+</html>
