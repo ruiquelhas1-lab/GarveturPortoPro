@@ -61,6 +61,19 @@
   .c-vis .col-head{background:#0f1218}
   .c-prop .col-head{background:#171309}
   .c-fecho .col-head{background:#0f140f}
+  /* ====== MODALS ====== */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:50}
+  .modal{width:min(780px,95vw);background:#0F0F0F;border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+  .modal header{position:sticky;top:0;background:#111;border-bottom:1px solid var(--line);border-top-left-radius:16px;border-top-right-radius:16px}
+  .modal .body{padding:12px}
+  .grid{display:grid;gap:10px}
+  .g-2{grid-template-columns:1fr 1fr}
+  .g-3{grid-template-columns:1fr 1fr 1fr}
+  .row{display:grid;gap:10px}
+  .modal .actions{display:flex;justify-content:flex-end;gap:8px;padding:10px;border-top:1px solid var(--line);background:#0F0F0F;border-bottom-left-radius:16px;border-bottom-right-radius:16px}
+  .danger{border-color:#EF5350;color:#fff}
+  .req::after{content:" *";color:#FFC107}
+  .error{color:#FFC107;font-size:12px}
   /* responsivo */
   @media(max-width:1200px){ .layout{grid-template-columns:1fr} .cols{min-width:900px} }
 </style>
@@ -253,6 +266,184 @@
   </main>
 </div>
 
+<!-- ================= MODAL: NOVA LEAD ================= -->
+<div id="modalNew" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Nova lead">
+  <div class="modal">
+    <header>
+      <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+        <div style="display:flex;align-items:center;gap:10px">
+          <strong style="color:#FFD166">Nova lead</strong>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button id="mNewClose" class="btn">Fechar</button>
+        </div>
+      </div>
+    </header>
+    <div class="body">
+      <div class="error" id="mNewErr" style="display:none"></div>
+      <div class="grid g-2">
+        <div>
+          <div class="label req">Nome cliente</div>
+          <input id="m_nome" placeholder="Ex.: João Almeida">
+        </div>
+        <div class="grid g-2">
+          <div>
+            <div class="label">Contacto</div>
+            <input id="m_tel" placeholder="+351 9xx xxx xxx">
+          </div>
+          <div>
+            <div class="label">Email</div>
+            <input id="m_email" placeholder="nome@exemplo.pt">
+          </div>
+        </div>
+      </div>
+
+      <div class="grid g-3" style="margin-top:10px">
+        <div>
+          <div class="label req">Comprador ou Vendedor</div>
+          <select id="m_tipo_cli">
+            <option value="comprador">Comprador</option>
+            <option value="vendedor">Vendedor</option>
+          </select>
+        </div>
+        <div>
+          <div class="label req">Perfil</div>
+          <select id="m_perfil">
+            <option value="cliente_final">Cliente final</option>
+            <option value="investidor">Investidor</option>
+          </select>
+        </div>
+        <div>
+          <div class="label">Zona preferencial</div>
+          <input id="m_zona" placeholder="Boavista, Foz, Gaia…">
+        </div>
+      </div>
+
+      <div class="grid g-3" style="margin-top:10px">
+        <div>
+          <div class="label">Imóvel</div>
+          <select id="m_imovel_tipo">
+            <option>Moradia</option>
+            <option>Apartamento</option>
+            <option>Loja</option>
+            <option>Armazém</option>
+            <option>Escritório</option>
+            <option>Terreno</option>
+            <option>Outro</option>
+          </select>
+        </div>
+        <div>
+          <div class="label">Tipologia</div>
+          <select id="m_tipologia">
+            <option>T0</option><option>T1</option><option>T2</option><option>T3</option><option>T4</option><option>T5</option><option>>T5</option>
+          </select>
+        </div>
+        <div>
+          <div class="label">Valor (€)</div>
+          <input id="m_val" type="number" inputmode="decimal" placeholder="Ex.: 350000">
+        </div>
+      </div>
+
+      <div class="grid g-3" style="margin-top:10px">
+        <div>
+          <div class="label">Urgente</div>
+          <select id="m_urgente"><option value="nao">Não</option><option value="sim">Sim</option></select>
+        </div>
+        <div>
+          <div class="label">Pode comprar em planta</div>
+          <select id="m_planta"><option value="nao">Não</option><option value="sim">Sim</option></select>
+        </div>
+        <div>
+          <div class="label">Habitação</div>
+          <select id="m_habitacao"><option>Habitação própria</option><option>Habitação secundária</option></select>
+        </div>
+      </div>
+
+      <div class="grid g-3" style="margin-top:10px">
+        <div>
+          <div class="label">Vai recorrer a financiamento</div>
+          <select id="m_fin"><option value="nao">Não</option><option value="sim">Sim</option></select>
+        </div>
+        <div>
+          <div class="label">Já fez simulação</div>
+          <select id="m_simulacao"><option value="nao">Não</option><option value="sim">Sim</option></select>
+        </div>
+        <div>
+          <div class="label">Se sim, instituição</div>
+          <input id="m_banco" placeholder="Ex.: CGD, BPI, Novo Banco…">
+        </div>
+      </div>
+
+      <div class="grid g-3" style="margin-top:10px">
+        <div>
+          <div class="label">Tem imóvel para vender</div>
+          <select id="m_tem_vender"><option value="nao">Não</option><option value="sim">Sim</option></select>
+        </div>
+        <div>
+          <div class="label">Já colocou à venda</div>
+          <select id="m_ja_venda"><option value="nao">Não</option><option value="sim">Sim</option></select>
+        </div>
+        <div>
+          <div class="label">Origem</div>
+          <select id="m_origem">
+            <option>Indefinido</option>
+            <option>Promotor</option>
+            <option>Referência</option>
+            <option>Digital</option>
+            <option>Walk-in</option>
+            <option>Outro</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <div>
+          <div class="label">Notas</div>
+          <textarea id="m_notas" rows="3" style="width:100%;background:#0E0E0E;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:8px 10px;color:#fff;resize:vertical" placeholder="Observações relevantes, expectativas, condicionantes…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <button id="mNewReset" class="btn ghost">Limpar</button>
+      <button id="mNewSave" class="btn primary">Guardar lead</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL RÁPIDO: EDITAR NOME/CONTACTO/EMAIL ============ -->
+<div id="modalQuick" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Editar contacto">
+  <div class="modal">
+    <header>
+      <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+        <div><strong style="color:#FFD166">Editar contacto</strong></div>
+        <div><button id="mQClose" class="btn">Fechar</button></div>
+      </div>
+    </header>
+    <div class="body">
+      <input type="hidden" id="mQ_id">
+      <div class="grid g-2">
+        <div>
+          <div class="label req">Nome cliente</div>
+          <input id="mQ_nome">
+        </div>
+        <div class="grid g-2">
+          <div>
+            <div class="label">Contacto</div>
+            <input id="mQ_tel" placeholder="+351…">
+          </div>
+          <div>
+            <div class="label">Email</div>
+            <input id="mQ_email" placeholder="nome@exemplo.pt">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <button id="mQSave" class="btn primary">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ======= STORAGE KEYS ======= */
 const LS_LEADS='gpp_leads_v3';
@@ -278,8 +469,10 @@ function dateIn(iso,d1,d2){
   const ok2 = !d2 || t <= Date.parse(d2+'T23:59:59');
   return ok1 && ok2;
 }
+function normalizePhone(p){ return String(p||'').replace(/\s+/g,''); }
+function safeMail(m){ return String(m||'').trim(); }
 
-/* ======= UI: popular datas ======= */
+/* ======= UI: datas default ======= */
 (function initDefaultDates(){
   const today = new Date().toISOString().slice(0,10);
   const d30 = new Date(); d30.setDate(d30.getDate()-30);
@@ -337,30 +530,29 @@ el('clearFilters').addEventListener('click', ()=>{
   render();
 });
 
-/* ======= CARTÃO (com Nome Cliente / Contacto / Email visíveis) ======= */
-function normalizePhone(p){ return String(p||'').replace(/\s+/g,''); }
-function safeMail(m){ return String(m||'').trim(); }
-
+/* ======= CARTÃO ======= */
 function cardHTML(l){
-  const v = isFinite(l.val) ? money(l.val) : '—';
   const tel = normalizePhone(l.tel || l.contacto || l.contact || l.telefone);
   const email = safeMail(l.email);
+  const v = isFinite(l.val) ? money(l.val) : '—';
   const tags = [];
   if(l.origem) tags.push(l.origem);
   if(l.tipo_cli) tags.push(l.tipo_cli);
   if(l.perfil) tags.push(l.perfil);
+  if(l.imovel_tipo) tags.push(l.imovel_tipo);
+  if(l.tipologia) tags.push(l.tipologia);
 
   return `
-    <div class="card" draggable="true" data-id="${l.id}">
+    <div class="card" draggable="true" data-id="${l.id}" data-dbl="1">
       <div class="name">${l.cliente || '—'}</div>
       <div class="meta">
         <span class="pill">${l.zona || '—'}</span>
-        <span class="pill">${l.consultor || '—'}</span>
+        <span class="pill">${l.consultor || 'Rui Quelhas'}</span>
         <span class="pill">${v}</span>
       </div>
       <div class="contact">
-        <div><strong>Contacto:</strong> ${tel ? `<a href="tel:${tel}" title="Ligar">${tel}</a>` : '—'}</div>
-        <div><strong>Email:</strong> ${email ? `<a href="mailto:${email}" title="Enviar email">${email}</a>` : '—'}</div>
+        <div><strong>Contacto:</strong> ${tel ? `<a href="tel:${tel}">${tel}</a>` : '—'}</div>
+        <div><strong>Email:</strong> ${email ? `<a href="mailto:${email}">${email}</a>` : '—'}</div>
       </div>
       <div class="tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
     </div>
@@ -385,7 +577,7 @@ function applyFilter(l){
     if(isFinite(cap) && cap < Number(F.capMin)) return false;
   }
   if(F.zona && !String(l.zona||'').toLowerCase().includes(F.zona.toLowerCase())) return false;
-  if(F.imovel && !String(l.imovel||'').toLowerCase().includes(F.imovel.toLowerCase())) return false;
+  if(F.imovel && !String(l.imovel||l.imovel_tipo||'').toLowerCase().includes(F.imovel.toLowerCase())) return false;
   if(!dateIn(l.createdAt, F.de, F.ate)) return false;
   return true;
 }
@@ -394,7 +586,6 @@ function applyFilter(l){
 function render(){
   const all = loadLeads();
   const buckets = {novo:[], em_contacto:[], qualificado:[], visita:[], proposta:[], fecho:[]};
-  const counts = {n:0,c:0,q:0,v:0,p:0,f:0};
 
   all.forEach(l=>{
     if(!applyFilter(l)) return;
@@ -410,6 +601,7 @@ function render(){
   el('col_p').innerHTML = buckets.proposta.map(cardHTML).join('') || '<div class="ghost-drop">Sem registos…</div>';
   el('col_f').innerHTML = buckets.fecho.map(cardHTML).join('') || '<div class="ghost-drop">Sem registos…</div>';
 
+  // contagens topo
   el('cnt_n').textContent = buckets.novo.length;
   el('cnt_c').textContent = buckets.em_contacto.length;
   el('cnt_q').textContent = buckets.qualificado.length;
@@ -418,6 +610,7 @@ function render(){
   el('cnt_f').textContent = buckets.fecho.length;
 
   attachDrag();
+  attachDblClick();
 }
 
 /* ======= DRAG & DROP ======= */
@@ -443,40 +636,111 @@ function moveLeadToColumn(id, stage){
   if(i>=0){ arr[i].stage = stage; arr[i].updatedAt = new Date().toISOString(); saveLeads(arr); render(); }
 }
 
-/* ======= NOVA LEAD (exemplo mínimo) ======= */
-el('addLead').addEventListener('click', ()=>{
-  const arr = loadLeads();
-  const id = Date.now();
-  arr.push({
-    id,
-    cliente:'Novo Cliente',
-    tel:'+351 9xx xxx xxx',
-    email:'cliente@example.com',
-    consultor:'Rui Quelhas',
-    origem:'Indefinido',
-    zona:'Porto',
-    imovel:'T2',
-    val:250000,
-    tipo_cli:'comprador',
-    perfil:'cliente_final',
-    capitais:50000,
-    fin_banc:'sim',
-    stage:'novo',
-    createdAt:new Date().toISOString(),
-    updatedAt:new Date().toISOString()
+/* ======= DBLCLICK: editar Nome/Contacto/Email ======= */
+function attachDblClick(){
+  document.querySelectorAll('.card[data-dbl="1"]').forEach(card=>{
+    card.ondblclick = ()=>{
+      const id = card.dataset.id;
+      const arr = loadLeads();
+      const l = arr.find(x=>String(x.id)===String(id));
+      if(!l) return;
+      el('mQ_id').value = id;
+      el('mQ_nome').value = l.cliente || '';
+      el('mQ_tel').value = l.tel || l.contacto || '';
+      el('mQ_email').value = l.email || '';
+      openQuick(true);
+    };
   });
-  saveLeads(arr); render();
+}
+el('mQClose').addEventListener('click', ()=>openQuick(false));
+el('mQSave').addEventListener('click', ()=>{
+  const id = el('mQ_id').value;
+  const arr = loadLeads();
+  const i = arr.findIndex(x=>String(x.id)===String(id));
+  if(i<0) return;
+  arr[i].cliente = el('mQ_nome').value.trim() || arr[i].cliente;
+  arr[i].tel = el('mQ_tel').value.trim();
+  arr[i].email = el('mQ_email').value.trim();
+  arr[i].updatedAt = new Date().toISOString();
+  saveLeads(arr); openQuick(false); render();
+});
+function openQuick(v){ $('#modalQuick').style.display = v?'flex':'none'; }
+
+/* ======= NOVA LEAD: abrir modal ======= */
+el('addLead').addEventListener('click', ()=>{ resetNewForm(); openNew(true); });
+el('mNewClose').addEventListener('click', ()=>openNew(false));
+el('mNewReset').addEventListener('click', ()=>resetNewForm());
+
+function openNew(v){ $('#modalNew').style.display = v?'flex':'none'; }
+function resetNewForm(){
+  ['m_nome','m_tel','m_email','m_zona','m_val','m_banco','m_notas'].forEach(id=>el(id).value='');
+  el('m_tipo_cli').value = 'comprador';
+  el('m_perfil').value = 'cliente_final';
+  el('m_imovel_tipo').value = 'Moradia';
+  el('m_tipologia').value = 'T2';
+  el('m_urgente').value = 'nao';
+  el('m_planta').value = 'nao';
+  el('m_habitacao').value = 'Habitação própria';
+  el('m_fin').value = 'nao';
+  el('m_simulacao').value = 'nao';
+  el('m_tem_vender').value = 'nao';
+  el('m_ja_venda').value = 'nao';
+  el('m_origem').value = 'Indefinido';
+  el('mNewErr').style.display='none';
+}
+
+/* ======= NOVA LEAD: guardar ======= */
+el('mNewSave').addEventListener('click', ()=>{
+  const nome = el('m_nome').value.trim();
+  if(!nome){
+    el('mNewErr').textContent = 'Por favor preencha o Nome do cliente.'; el('mNewErr').style.display='block'; return;
+  }
+  const tel = el('m_tel').value.trim();
+  const email = el('m_email').value.trim();
+
+  const lead = {
+    id: Date.now(),
+    cliente: nome,
+    tel, email,
+    tipo_cli: el('m_tipo_cli').value,
+    perfil: el('m_perfil').value,
+    imovel_tipo: el('m_imovel_tipo').value,
+    tipologia: el('m_tipologia').value,
+    zona: el('m_zona').value.trim(),
+    val: Number(el('m_val').value||''),
+    urgente: el('m_urgente').value,                 // sim|nao
+    planta: el('m_planta').value,                   // sim|nao
+    habitacao: el('m_habitacao').value,             // própria|secundária
+    fin_banc: el('m_fin').value,                    // sim|nao
+    simulacao: el('m_simulacao').value,             // sim|nao
+    banco: el('m_banco').value.trim(),
+    tem_imovel_vender: el('m_tem_vender').value,    // sim|nao
+    ja_venda: el('m_ja_venda').value,               // sim|nao
+    origem: el('m_origem').value,
+    notas: el('m_notas').value.trim(),
+    consultor: 'Rui Quelhas',
+    stage: 'novo',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  const arr = loadLeads(); arr.push(lead); saveLeads(arr);
+  openNew(false); render();
 });
 
 /* ======= EXPORT CSV ======= */
 el('exportLeads').addEventListener('click', ()=>{
   const arr = loadLeads().filter(applyFilter);
-  const headers = ["ID","Nome Cliente","Contacto","Email","Consultor","Origem","Zona","Imóvel","Valor","Tipo","Perfil","Capitais","Fin.B.","Estado","Criado em"];
+  const headers = ["ID","Nome Cliente","Contacto","Email","Consultor","Origem","Tipo","Perfil","Imóvel","Tipologia","Zona","Valor","Urgente","Planta","Habitação","Fin.B.","Simulação","Banco","Tem p/ vender","Já à venda","Estado","Criado em","Notas"];
   const rows = arr.map(l=>[
     l.id, l.cliente||'', l.tel||l.contacto||'', l.email||'',
-    l.consultor||'', l.origem||'', l.zona||'', l.imovel||'',
-    isFinite(l.val)? l.val : '', l.tipo_cli||'', l.perfil||'',
-    l.capitais||'', l.fin_banc||'', l.stage||'', l.createdAt||''
+    l.consultor||'', l.origem||'', l.tipo_cli||'', l.perfil||'',
+    l.imovel_tipo||'', l.tipologia||'', l.zona||'',
+    isFinite(l.val)? l.val : '',
+    l.urgente||'', l.planta||'', l.habitacao||'',
+    l.fin_banc||'', l.simulacao||'', l.banco||'',
+    l.tem_imovel_vender||'', l.ja_venda||'',
+    l.stage||'', l.createdAt||'', (l.notas||'').replace(/\n/g,' ')
   ]);
   const csv = [headers, ...rows].map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
@@ -488,6 +752,12 @@ el('exportLeads').addEventListener('click', ()=>{
 (function init(){
   if(!Array.isArray(loadLeads())) saveLeads([]);
   render();
+
+  // Fechar modais com ESC
+  window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ openNew(false); openQuick(false); } });
+  // Click fora do modal fecha
+  $('#modalNew').addEventListener('click', (e)=>{ if(e.target===e.currentTarget) openNew(false); });
+  $('#modalQuick').addEventListener('click', (e)=>{ if(e.target===e.currentTarget) openQuick(false); });
 })();
 </script>
 </body>
