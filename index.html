@@ -1,292 +1,544 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8" />
-  <title>Garvetur Porto Pro — Mapa (Pesquisa + Filtros)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="preconnect" href="https://unpkg.com" crossorigin>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <style>
-    :root { --gold:#A38B63; --bg:#0E0E0E; --text:#FFFFFF; }
-    html,body { height:100%; margin:0; background:#0E0E0E; color:var(--text); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial; }
-    /* Topbar */
-    #topbar { background:#0F0F0F; padding:8px 12px; border-bottom:1px solid rgba(255,255,255,.08);
-      display:flex; gap:10px; align-items:center; position:relative; z-index:30; flex-wrap:wrap; }
-    .tab { font-size:12px; padding:6px 10px; border:1px solid rgba(255,255,255,.12); border-radius:8px; background:#121212; color:#ddd; text-decoration:none; }
-    .tab.active { background:var(--gold); color:#111; border-color:var(--gold); font-weight:600; }
-    .actionBtn { background:transparent; border:1px solid rgba(163,139,99,.5); color:#fff; padding:6px 9px; border-radius:8px; cursor:pointer; font-size:12px; }
-    #status { font-size:12px; color:#E6E6E6; margin-left:auto; }
-    /* Barra de filtros */
-    #filters { background:#111; border-bottom:1px solid rgba(255,255,255,.08); padding:8px 12px; display:grid; gap:8px;
-      grid-template-columns: 1fr 200px auto auto auto; align-items:center; }
-    #search { background:#0E0E0E; color:#fff; border:1px solid rgba(255,255,255,.18); border-radius:10px; padding:8px 10px; }
-    #concelho { background:#0E0E0E; color:#fff; border:1px solid rgba(255,255,255,.18); border-radius:10px; padding:8px 10px; }
-    .chips { display:flex; gap:6px; flex-wrap:wrap; }
-    .chip { font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.18); background:#0E0E0E; color:#ddd; cursor:pointer; }
-    .chip.active { background:var(--gold); color:#111; border-color:var(--gold); font-weight:600; }
-    #map { position:absolute; inset:112px 0 0 0; }
-    /* Controlos adicionais */
-    .ctrls { position:absolute; top:154px; left:12px; z-index:5000; display:flex; flex-direction:column; gap:6px; }
-    .ctrls .btn { background:#111; color:#f6f6f6; border:1px solid rgba(255,255,255,.18);
-      border-radius:10px; padding:7px 10px; font-size:12px; cursor:pointer; min-width:165px; box-shadow:0 2px 12px rgba(0,0,0,.35);}
-    .ctrls .btn:hover { border-color:#FFD166; color:#fff; }
-    .legend { position:absolute; bottom:26px; left:16px; background:#111; color:#eee; font-size:11px;
-      padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,.1); line-height:1.4; z-index:400; }
-    .legend div { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
-    .swatch { width:14px; height:14px; border-radius:50%; display:inline-block; border:2px solid #fff; box-shadow:0 1px 3px rgba(0,0,0,.5); }
-    .leaflet-tooltip.permanent { background:rgba(17,17,17,0.92); border:1px solid rgba(255,255,255,.25); color:#fff; padding:3px 6px; border-radius:6px; font-size:11px; }
-    .leaflet-tooltip-top:before { border-top-color:rgba(17,17,17,0.92); }
-    @media (max-width:900px){
-      #filters { grid-template-columns: 1fr 1fr 1fr; }
-      #map { inset:156px 0 0 0; }
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Garvetur Porto Pro — Mapa</title>
+
+<!-- Leaflet + MarkerCluster -->
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="anonymous">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin="anonymous">
+
+<style>
+:root{
+  --gold:#A38B63; --bg:#0E0E0E; --panel:#131313; --text:#fff; --muted:#9AA0A6;
+  --ok:#43A047; --info:#1E88E5; --warn:#E53935;
+}
+html,body{height:100%;margin:0;background:#0E0E0E;color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+a{color:#e6e6e6}
+.app{display:grid;grid-template-columns:360px 1fr;grid-template-rows:56px 40px 1fr;height:100%}
+header{grid-column:1 / span 2;display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.08);background:#0F0F0F}
+.brand{display:flex;align-items:center;gap:10px}
+.brand h1{font-size:16px;margin:0;color:var(--gold)}
+.nav{display:flex;gap:8px}
+.nav a{border:1px solid rgba(255,255,255,.12);padding:6px 10px;border-radius:8px;color:#ddd;text-decoration:none}
+.nav a.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
+
+.kpis{grid-column:1 / span 2;display:flex;gap:8px;align-items:center;padding:6px 12px;background:#0F0F0F;border-bottom:1px solid rgba(255,255,255,.08)}
+.kpi{display:flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:6px 10px;font-size:12px}
+.dot{width:10px;height:10px;border-radius:50%;background:#999;display:inline-block;border:1px solid rgba(0,0,0,.2)}
+.dot.c{background:var(--warn)}
+.dot.l{background:var(--info)}
+.dot.f{background:var(--ok)}
+
+.sidebar{background:var(--panel);border-right:1px solid rgba(255,255,255,.08);overflow:auto}
+.section{padding:10px;border-bottom:1px solid rgba(255,255,255,.06)}
+.hint{font-size:11px;color:#bdbdbd}
+.label{font-size:12px;color:#cfcfcf;margin:6px 0 4px}
+.field{display:flex;gap:6px}
+.field input,.field select{flex:1;background:#0E0E0E;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:8px 10px;color:#fff;outline:none}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:#0E0E0E;color:#ddd;cursor:pointer}
+.chip.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
+.actions{display:flex;gap:6px;margin-top:8px}
+.btn{background:transparent;border:1px solid rgba(163,139,99,.5);color:#fff;padding:6px 10px;border-radius:10px;cursor:pointer;font-size:12px}
+.btn.primary{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
+.btn.ghost{border-color:rgba(255,255,255,.18);color:#ddd}
+
+#map{width:100%;height:100%}
+.leaflet-container{background:#eaeaea} /* mapa claro */
+.legend{
+  position:absolute;left:12px;bottom:12px;z-index:5000;
+  background:#111;border:1px solid rgba(255,255,255,.15);border-radius:10px;
+  padding:8px 10px;font-size:12px;color:#fff
+}
+.legend .row{display:flex;gap:8px;align-items:center}
+.legend .c{background:var(--warn)}
+.legend .l{background:var(--info)}
+.legend .f{background:var(--ok)}
+.legend .swatch{width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.3)}
+
+#side-panel{position:absolute;right:12px;top:80px;bottom:12px;width:min(420px,92vw);z-index:5001;
+  background:#0F0F0F;border:1px solid rgba(255,255,255,.12);border-radius:12px;overflow:auto;display:none}
+#side-panel.show{display:block}
+.panel-inner{padding:12px}
+.meta-line{font-size:13px;margin:4px 0;color:#ddd}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.15);font-size:11px}
+.btn-sm{font-size:12px;background:transparent;border:1px solid rgba(163,139,99,.4);color:#ddd;padding:6px 8px;border-radius:8px;cursor:pointer}
+.btn-sm.primary{background:var(--gold);color:#111;border-color:var(--gold)}
+.doc-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.doc-list li{cursor:pointer;padding:6px 8px;border:1px solid rgba(255,255,255,.12);border-radius:8px}
+.muted{color:#bdbdbd}
+.list{padding:8px 12px}
+.card{border:1px solid rgba(163,139,99,.25);border-radius:12px;padding:10px;margin-bottom:10px;background:#0E0E0E}
+.card .row{display:flex;justify-content:space-between;gap:8px}
+.card .name{font-weight:700}
+.card .meta{font-size:11px;color:#bbb;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.card .state{font-size:12px;color:#bbb;margin-top:4px}
+.empty{padding:10px;color:#bbb;font-size:13px}
+
+/* Pins SVG (DivIcon) */
+.pin{
+  width:24px;height:24px;border-radius:50%;border:2px solid #111;box-shadow:0 2px 6px rgba(0,0,0,.35);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:11px;
+}
+.pin.c{ background:var(--warn); }
+.pin.l{ background:var(--info); }
+.pin.f{ background:var(--ok); }
+/* animação pulse só para "em construção" */
+.pin.c::after{
+  content:""; position:absolute; width:24px;height:24px;border-radius:50%; box-shadow:0 0 0 0 rgba(229,57,53,.55);
+  animation:pulse 1.8s ease-out infinite;
+}
+@keyframes pulse{
+  0%{ box-shadow:0 0 0 0 rgba(229,57,53,.55) }
+  70%{ box-shadow:0 0 0 14px rgba(229,57,53,0) }
+  100%{ box-shadow:0 0 0 0 rgba(229,57,53,0) }
+}
+
+@media (max-width: 980px){
+  .app{grid-template-columns:1fr;grid-template-rows:56px 40px 280px 1fr}
+  .sidebar{grid-row:3}
+  #map{grid-row:4}
+  #side-panel{top:auto;bottom:72px}
+}
+</style>
 </head>
 <body>
-  <!-- Topbar -->
-  <div id="topbar">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:#FFD166">
-        <circle cx="12" cy="12" r="10" stroke-width="1.5"/>
-        <path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/>
-      </svg>
-      <h1 style="margin:0;font-size:16px;color:#FFD166">Garvetur Porto Pro</h1>
-      <nav style="display:flex;gap:6px;margin-left:10px">
-        <a class="tab active" href="./index.html">Mapa</a>
-        <a class="tab" href="./kanban.html">Leads</a>
-        <a class="tab" href="./angariacoes.html">Angariações</a>
-        <a class="tab" href="./dashboard.html">Dashboard</a>
-      </nav>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--gold)"><circle cx="12" cy="12" r="10" stroke-width="1.5"/><path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/></svg>
+        <h1>Garvetur Porto Pro — Mapa</h1>
+      </div>
+      <div class="nav">
+        <a class="active" href="./index.html">Mapa</a>
+        <a href="./kanban.html">Leads</a>
+        <a href="./angariacoes.html">Angariações</a>
+        <a href="./dashboard.html">Dashboard</a>
+      </div>
+    </header>
+
+    <div class="kpis" id="kpis">
+      <div class="kpi"><span class="dot"></span>Total: <b id="k_total">0</b></div>
+      <div class="kpi"><span class="dot c"></span>Em construção: <b id="k_c">0</b></div>
+      <div class="kpi"><span class="dot l"></span>Licenciado: <b id="k_l">0</b></div>
+      <div class="kpi"><span class="dot f"></span>Concluído: <b id="k_f">0</b></div>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <button class="btn" id="focusAmp">Focar AMP/Porto</button>
+        <button class="btn" id="exportCsv">Exportar CSV</button>
+        <a class="btn" id="openGeoJson" href="#" target="_blank" rel="noreferrer">Abrir GeoJSON</a>
+      </div>
     </div>
-    <button id="reloadBtn" class="actionBtn">Atualizar dados</button>
-    <div id="status">A iniciar…</div>
-  </div>
 
-  <!-- Filtros -->
-  <div id="filters">
-    <input id="search" placeholder="Pesquisar: nome / concelho / promotor" />
-    <select id="concelho"><option value="">Concelho (todos)</option></select>
-    <div class="chips" id="chips">
-      <div class="chip active" data-estado="todos">Todos</div>
-      <div class="chip" data-estado="construcao">Em construção</div>
-      <div class="chip" data-estado="licenciado">Licenciado</div>
-      <div class="chip" data-estado="concluido">Concluído</div>
+    <aside class="sidebar">
+      <div class="section">
+        <div class="label">Pesquisa global</div>
+        <div class="field"><input id="q" placeholder="Ex.: 'Gaia licenciado 2027 promotor X'"></div>
+        <div class="hint">Pesquisa por nome, concelho, promotor, tipologias, estado, conclusão, notas e €/m².</div>
+      </div>
+      <div class="section">
+        <div class="label">Concelho</div>
+        <div class="field"><select id="f_concelho"><option value="">(Todos)</option></select></div>
+        <div class="label">Estado</div>
+        <div class="chips" id="estadoChips">
+          <div class="chip active" data-v="">Todos</div>
+          <div class="chip" data-v="em_construcao">Em construção</div>
+          <div class="chip" data-v="licenciado">Licenciado</div>
+          <div class="chip" data-v="concluido">Concluído</div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="label">Conclusão (ano)</div>
+        <div class="field">
+          <input id="f_cmin" type="number" placeholder="Mín. ex.: 2025">
+          <input id="f_cmax" type="number" placeholder="Máx. ex.: 2028">
+        </div>
+        <div class="label" style="margin-top:6px">Preço €/m²</div>
+        <div class="field">
+          <input id="f_pmin" type="number" placeholder="Mín.">
+          <input id="f_pmax" type="number" placeholder="Máx.">
+        </div>
+      </div>
+      <div class="section">
+        <div class="label">Promotor</div>
+        <div class="field"><select id="f_promotor"><option value="">(Todos)</option></select></div>
+        <div class="label" style="margin-top:6px">Tipologias (texto)</div>
+        <div class="field"><input id="f_tipos" placeholder="Ex.: T1,T2"></div>
+      </div>
+      <div class="section">
+        <div class="actions">
+          <button class="btn primary" id="apply">Aplicar</button>
+          <button class="btn ghost" id="clear">Limpar</button>
+        </div>
+      </div>
+      <div class="section">
+        <div class="label">Resultados</div>
+      </div>
+      <div class="list" id="list"></div>
+    </aside>
+
+    <div style="position:relative">
+      <div id="map"></div>
+      <div class="legend">
+        <div class="row"><span class="swatch c"></span> Em construção</div>
+        <div class="row"><span class="swatch l"></span> Licenciado</div>
+        <div class="row"><span class="swatch f"></span> Concluído</div>
+      </div>
+      <div id="side-panel"><div class="panel-inner" id="panelInner"></div></div>
     </div>
-    <button id="exportBtn" class="actionBtn">Exportar (CSV)</button>
-    <div style="font-size:12px;color:#bbb" id="kpis">—</div>
   </div>
 
-  <div id="map"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" crossorigin="anonymous"></script>
+<script>
+/* ================== CONFIG ================== */
+const DEFAULT_URL="https://ruiquelhas1-lab.github.io/Mapa-Porto/data/empreendimentos.geojson"; // pode mudar se quiser apontar para o seu repositório
+const AMP_CENTER=[41.15,-8.61], AMP_ZOOM=12;
 
-  <!-- Controlos extra -->
-  <div class="ctrls">
-    <button class="btn" id="focusPorto">Focar AMP/Porto</button>
-    <button class="btn" id="toggleContrast">Alternar contraste</button>
-    <button class="btn" id="biggerPins">Aumentar pins</button>
-    <button class="btn" id="smallerPins">Diminuir pins</button>
-    <label style="margin-top:2px;"><input type="checkbox" id="toggleLabels"> Mostrar etiquetas (nomes)</label>
-  </div>
+/* ================== ESTADO ================== */
+let MAP, CLUSTER, LAYER;      // Leaflet
+let RAW=[], FILT=[];          // dados
+let ACTIVE=null;              // item ativo (para painel)
+let UI={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'' };
 
-  <!-- Legenda -->
-  <div class="legend">
-    <div><span class="swatch" style="background:#e63946"></span> Em Construção</div>
-    <div><span class="swatch" style="background:#1d4ed8"></span> Licenciado</div>
-    <div><span class="swatch" style="background:#10b981"></span> Concluído</div>
-  </div>
+/* ================== HELPERS ================== */
+const $=s=>document.querySelector(s);
+const el=id=>document.getElementById(id);
+function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
+function stateKey(s){
+  const x=norm(s); if(x.includes('constr'))return 'em_construcao';
+  if(x.includes('licen'))return 'licenciado'; if(x.includes('concl'))return 'concluido'; return x||'';
+}
+function colorByState(k){ if(k==='em_construcao')return '#E53935'; if(k==='licenciado')return '#1E88E5'; if(k==='concluido')return '#43A047'; return '#A38B63'; }
+function pinClass(k){ if(k==='em_construcao')return 'pin c'; if(k==='licenciado')return 'pin l'; if(k==='concluido')return 'pin f'; return 'pin'; }
+function asNum(v){ const n=Number(v); return Number.isFinite(n)?n:null; }
+function toCSV(rows){
+  return rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n');
+}
+function getParam(name){ const u=new URL(location.href); return u.searchParams.get(name); }
+function setDeepLink(obj){ const u=new URL(location.href); Object.entries(obj).forEach(([k,v])=>{ if(v==null||v==='')u.searchParams.delete(k); else u.searchParams.set(k,v); }); history.replaceState({},'',u.toString()); }
 
-  <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script>
-  const CSV_SOURCE   = "./data/empreendimentos.csv";
-  const PORTO_CENTER = [41.15, -8.61];
-  const PORTO_ZOOM   = 12;
-
-  const statusEl = document.getElementById('status');
-  const kpisEl   = document.getElementById('kpis');
-
-  // Base maps
-  const baseLight = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19, attribution:'&copy; OpenStreetMap'});
-  const baseDark  = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19, attribution:'&copy; OpenStreetMap, ©Carto'});
-  const map = L.map('map', { zoomControl:true, scrollWheelZoom:true, preferCanvas:true }).setView(PORTO_CENTER, PORTO_ZOOM);
-  let darkOn = false; baseLight.addTo(map);
-
-  // Estado → normalização simples
-  const normalize = s => (s||"").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-  const isConstr  = s => normalize(s).includes('constr');
-  const isLic     = s => normalize(s).includes('licen');
-  const isConcl   = s => normalize(s).includes('conclu');
-  function colorByEstado(e){
-    if(isConcl(e)) return '#10b981';       // verde
-    if(isLic(e))   return '#1d4ed8';       // azul
-    if(isConstr(e))return '#e63946';       // vermelho
-    return '#ef4444';
-  }
-  function toNum(v){ if(v==null) return null; const n = Number(String(v).replace(',','.')); return Number.isFinite(n)?n:null; }
-  let BASE_RADIUS = 11;
-  const radiusForZoom = ()=> Math.round(BASE_RADIUS * Math.max(0.9,Math.min(1.8,(map.getZoom()-10)*0.16+1)));
-
-  let labelsOn=false, blinkTimer=null, blinking=false;
-  let allPoints=[], viewPoints=[];
-  const layerGroup = L.layerGroup().addTo(map);
-  let constructionMarkers=[];
-
-  // Elementos UI
-  const searchInput   = document.getElementById('search');
-  const concelhoSel   = document.getElementById('concelho');
-  const chipsWrap     = document.getElementById('chips');
-  const exportBtn     = document.getElementById('exportBtn');
-  let estadoAtivo     = 'todos';
-
-  function fmt(v){ return v==null?'':String(v).trim(); }
-  function rowToPoint(r){
-    const lat=toNum(r.latitude||r.Latitude), lng=toNum(r.longitude||r.Longitude);
-    const nome=r.nome||r.Nome; if(!nome||lat==null||lng==null) return null;
-    return {
-      nome:fmt(r.nome||r.Nome), concelho:fmt(r.concelho||r.Concelho),
-      estado:fmt(r.estado||r.Estado), promotor:fmt(r.promotor||r.Promotor),
-      tipologias:fmt(r.tipologias||r.Tipologias),
-      conclusao:fmt(r.conclusao||r.Conclusao||r['Conclusão']),
-      preco_m2:fmt(r.preco_m2||r['Preço/m2']||r['preco_m2']),
-      notas:fmt(r.notas||r.Notas), link:fmt(r.link||r.Link||r.URL||r.Website),
-      lat, lng
-    };
-  }
-
-  function updateKPIs(arr){
-    const total = arr.length;
-    const c = arr.reduce((acc,p)=>{
-      if(isConstr(p.estado)) acc.constr++;
-      else if(isLic(p.estado)) acc.lic++;
-      else if(isConcl(p.estado)) acc.concl++;
-      else acc.outros++;
-      return acc;
-    }, {constr:0, lic:0, concl:0, outros:0});
-    kpisEl.textContent = `Total: ${total} | Em construção: ${c.constr} | Licenciados: ${c.lic} | Concluídos: ${c.concl}`;
-  }
-
-  function applyFilters(){
-    const q = searchInput.value.trim().toLowerCase();
-    const conc = concelhoSel.value;
-    viewPoints = allPoints.filter(p=>{
-      const estadoOK = (estadoAtivo==='todos') ||
-                       (estadoAtivo==='construcao' && isConstr(p.estado)) ||
-                       (estadoAtivo==='licenciado' && isLic(p.estado)) ||
-                       (estadoAtivo==='concluido' && isConcl(p.estado));
-      const concOK = !conc || p.concelho === conc;
-      const qOK = !q || [p.nome, p.concelho, p.promotor].some(v => (v||'').toLowerCase().includes(q));
-      return estadoOK && concOK && qOK;
-    });
-    drawPoints(viewPoints);
-    updateKPIs(viewPoints);
-  }
-
-  function populateConcelhos(arr){
-    const set = new Set(arr.map(p=>p.concelho).filter(Boolean));
-    const list = Array.from(set).sort((a,b)=>a.localeCompare(b,'pt'));
-    concelhoSel.innerHTML = '<option value="">Concelho (todos)</option>' + list.map(v=>`<option value="${v}">${v}</option>`).join('');
-  }
-
-  function drawPoints(points){
-    if (blinkTimer) { clearInterval(blinkTimer); blinkTimer=null; }
-    constructionMarkers = [];
-    layerGroup.clearLayers();
-    const r=radiusForZoom();
-
-    points.forEach(p=>{
-      const c=colorByEstado(p.estado);
-      const cons = isConstr(p.estado);
-      const m=L.circleMarker([p.lat,p.lng],{
-        radius:r, color:'#fff', weight:3, fillColor:c, fillOpacity:cons?0.85:0.95, pane:'overlayPane'
-      });
-      const tt=`${p.nome}${p.concelho?' · '+p.concelho:''}${p.conclusao?' · '+p.conclusao:''}`;
-      m.bindTooltip(tt,{direction:'top',opacity:0.95,offset:[0,-r]});
-      const linhas=[
-        `<b>${p.nome}</b>`,
-        `${p.concelho||''}${p.estado?' · '+p.estado:''}${p.conclusao?' · Conclusão: '+p.conclusao:''}`,
-        p.promotor?`Promotor: ${p.promotor}`:'',
-        p.tipologias?`Tipologias: ${p.tipologias}`:'',
-        p.preco_m2?`Preço/m²: ${p.preco_m2} €`:'',
-        p.notas?`<em>${p.notas}</em>`:'',
-        p.link?`<a href="${p.link}" target="_blank" rel="noreferrer">Abrir Link</a>`:''
-      ].filter(Boolean).join('<br>');
-      m.bindPopup(linhas,{maxWidth:360});
-      if(labelsOn){ m.bindTooltip(p.nome,{permanent:true,direction:'right',offset:[r,0],opacity:0.95}); }
-      m.addTo(layerGroup);
-      if (cons) constructionMarkers.push(m);
-    });
-
-    // pulsar nos “em construção”
-    if (constructionMarkers.length){
-      let on=false;
-      blinkTimer=setInterval(()=>{
-        on=!on; const op = on?1.0:0.55;
-        constructionMarkers.forEach(m=>m.setStyle({ fillOpacity: op }));
-      }, 750);
+/* ================== SAMPLE (fallback) ================== */
+const SAMPLE={
+  "type":"FeatureCollection",
+  "features":[
+    {
+      "type":"Feature",
+      "geometry":{"type":"Point","coordinates":[-8.6291,41.1579]},
+      "properties":{
+        "slug":"essence-porto","nome":"Essence","concelho":"Porto","estado":"em_construcao",
+        "promotor":"XPTO Capital","tipologias":"T1 a T3","conclusao":2027,"preco_m2":5200,
+        "notas":"Boavista/Foco. Condomínio com piscina e ginásio.",
+        "link":"https://exemplo-promotor.com/essence",
+        "docs":[
+          {"title":"Brochura","type":"pdf","url":"./docs/essence-porto/brochura.pdf"},
+          {"title":"Plantas T2","type":"pdf","url":"./docs/essence-porto/plantas-t2.pdf"}
+        ]
+      }
+    },
+    {
+      "type":"Feature",
+      "geometry":{"type":"Point","coordinates":[-8.6455,41.1202]},
+      "properties":{
+        "slug":"madalena-vista-mar","nome":"Madalena Vista Mar","concelho":"Vila Nova de Gaia","estado":"licenciado",
+        "promotor":"GaiaInvest","tipologias":"T2 a T4","conclusao":2026,"preco_m2":4300,
+        "notas":"Vista mar, proximidade praias.","link":"https://exemplo-promotor.com/madalena"
+      }
     }
+  ]
+};
+
+/* ================== MAPA ================== */
+function initMap(){
+  MAP = L.map('map',{ zoomControl:true, scrollWheelZoom:true }).setView(AMP_CENTER, AMP_ZOOM);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:19, attribution:'&copy; OpenStreetMap'
+  }).addTo(MAP);
+  CLUSTER = L.markerClusterGroup({ spiderfyOnEveryZoom:false, showCoverageOnHover:false, maxClusterRadius:48 });
+  LAYER = L.layerGroup().addTo(CLUSTER);
+  MAP.addLayer(CLUSTER);
+
+  // Botões topo
+  el('focusAmp').addEventListener('click', ()=>MAP.setView(AMP_CENTER, AMP_ZOOM, {animate:true}));
+  el('exportCsv').addEventListener('click', exportCSV);
+}
+
+/* ================== DADOS ================== */
+async function loadData(){
+  const srcOverride = getParam('src');
+  const url = srcOverride || DEFAULT_URL;
+  el('openGeoJson').href = url;
+
+  try{
+    const r = await fetch(url, {cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const gj = await r.json();
+    RAW = (gj.features||[]).map(f=>{
+      const p=f.properties||{}, g=f.geometry||{};
+      const coords = (g.type==='Point' && Array.isArray(g.coordinates))? g.coordinates : [null,null];
+      const lng=Number(coords[0]), lat=Number(coords[1]);
+      return {
+        slug: p.slug || norm(p.nome||'').replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,''),
+        nome: p.nome||'', concelho: p.concelho||p.municipio||'',
+        estado: stateKey(p.estado||p.status||''), promotor: p.promotor||'',
+        tipologias: p.tipologias||'', conclusao: p.conclusao||'', preco_m2: p.preco_m2||'',
+        notas: p.notas||'', link: p.link||p.url||'',
+        docs: Array.isArray(p.docs)? p.docs : [],
+        _lat: Number.isFinite(lat)? lat : null, _lng: Number.isFinite(lng)? lng : null
+      };
+    });
+  }catch(e){
+    console.warn('Falha a ler GeoJSON remoto; a carregar SAMPLE.', e);
+    RAW = SAMPLE.features.map(f=>{
+      const p=f.properties, c=f.geometry.coordinates;
+      return {
+        slug:p.slug, nome:p.nome, concelho:p.concelho, estado:p.estado, promotor:p.promotor,
+        tipologias:p.tipologias, conclusao:p.conclusao, preco_m2:p.preco_m2, notas:p.notas, link:p.link, docs:p.docs||[],
+        _lat:c[1], _lng:c[0]
+      };
+    });
   }
+}
 
-  async function loadCSV(){
-    try{
-      statusEl.textContent="A carregar CSV…";
-      const resp=await fetch(CSV_SOURCE,{cache:'no-store'});
-      if(!resp.ok) throw new Error("HTTP "+resp.status);
-      const text=await resp.text();
-      const parsed=Papa.parse(text,{header:true,skipEmptyLines:true});
-      allPoints=parsed.data.map(rowToPoint).filter(Boolean);
-      populateConcelhos(allPoints);
-      applyFilters();
-      // manter SEMPRE foco AMP/Porto
-      map.setView(PORTO_CENTER, PORTO_ZOOM);
-      statusEl.textContent=`✅ ${allPoints.length} empreendimentos carregados`;
-    }catch(e){ console.error(e); statusEl.textContent="❌ Falha ao carregar CSV ("+(e.message||e)+")"; }
-  }
+/* ================== FILTROS & PESQUISA ================== */
+function buildFacetOptions(){
+  const concelhos=[...new Set(RAW.map(x=>x.concelho).filter(Boolean))].sort();
+  const promotores=[...new Set(RAW.map(x=>x.promotor).filter(Boolean))].sort();
+  el('f_concelho').innerHTML='<option value="">(Todos)</option>'+concelhos.map(c=>`<option>${c}</option>`).join('');
+  el('f_promotor').innerHTML='<option value="">(Todos)</option>'+promotores.map(c=>`<option>${c}</option>`).join('');
+}
+function matchTokens(obj, tokens){
+  if(!tokens.length) return true;
+  const hay = norm([obj.nome,obj.concelho,obj.promotor,obj.tipologias,obj.estado,obj.notas,obj.conclusao,obj.preco_m2].join(' '));
+  return tokens.every(tok => hay.includes(tok));
+}
+function applyFilters(){
+  const tokens = norm(UI.q).split(/\s+/).filter(Boolean);
+  const tiposTokens = norm(UI.tipos).split(/[,\s]+/).filter(Boolean);
+  FILT = RAW.filter(p=>{
+    if(!matchTokens(p, tokens)) return false;
+    if(UI.concelho && p.concelho!==UI.concelho) return false;
+    if(UI.estado && p.estado!==UI.estado) return false;
+    const c = Number(p.conclusao||'');
+    if(UI.cmin && Number.isFinite(c) && c < Number(UI.cmin)) return false;
+    if(UI.cmax && Number.isFinite(c) && c > Number(UI.cmax)) return false;
+    const m2 = Number(p.preco_m2||'');
+    if(UI.pmin && Number.isFinite(m2) && m2 < Number(UI.pmin)) return false;
+    if(UI.pmax && Number.isFinite(m2) && m2 > Number(UI.pmax)) return false;
+    if(UI.promotor && p.promotor!==UI.promotor) return false;
+    if(tiposTokens.length){
+      const base=norm(p.tipologias||'');
+      const hit = tiposTokens.some(t=>base.includes(t));
+      if(!hit) return false;
+    }
+    return true;
+  });
+}
 
-  // UI events
-  document.getElementById('reloadBtn').onclick=loadCSV;
-  document.getElementById('focusPorto').onclick=()=> map.setView(PORTO_CENTER, PORTO_ZOOM);
-  document.getElementById('toggleContrast').onclick=()=>{
-    if(darkOn){ map.removeLayer(baseDark); baseLight.addTo(map); }
-    else       { map.removeLayer(baseLight); baseDark.addTo(map); }
-    darkOn=!darkOn;
-  };
-  document.getElementById('biggerPins').onclick=()=>{ BASE_RADIUS = Math.min(BASE_RADIUS+2, 24); drawPoints(viewPoints); };
-  document.getElementById('smallerPins').onclick=()=>{ BASE_RADIUS = Math.max(BASE_RADIUS-2, 6);  drawPoints(viewPoints); };
-  document.getElementById('toggleLabels').onchange=e=>{ labelsOn=e.target.checked; drawPoints(viewPoints); };
-  map.on('zoomend',()=> drawPoints(viewPoints));
+/* ================== UI LISTA & KPI ================== */
+function renderList(){
+  const box=el('list'); box.innerHTML='';
+  if(!FILT.length){ box.innerHTML='<div class="empty">Sem resultados com os filtros atuais.</div>'; return; }
+  FILT.forEach(p=>{
+    const div=document.createElement('div'); div.className='card';
+    div.innerHTML=`
+      <div class="row">
+        <div>
+          <div class="name">${p.nome||'—'}</div>
+          <div class="meta">${p.concelho||'—'}</div>
+        </div>
+        <span class="badge" style="border-color:${colorByState(p.estado)};color:${colorByState(p.estado)}">${p.estado||'—'}</span>
+      </div>
+      <div class="state">Conclusão: ${p.conclusao||'—'} · €/m²: ${p.preco_m2? Number(p.preco_m2).toLocaleString('pt-PT'): '—'}</div>
+      <div class="actions" style="margin-top:8px">
+        <button class="btn" data-act="zoom">Abrir no mapa</button>
+        ${p.link? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>` : ''}
+        <button class="btn" data-act="open">Detalhes</button>
+      </div>`;
+    div.querySelector('[data-act="zoom"]').addEventListener('click', ()=>{ if(p._lat&&p._lng) MAP.setView([p._lat,p._lng], 16, {animate:true}); });
+    div.querySelector('[data-act="open"]').addEventListener('click', ()=>openFicha(p,true));
+    box.appendChild(div);
+  });
+}
+function renderKPIs(){
+  const total = FILT.length;
+  const c=FILT.filter(x=>x.estado==='em_construcao').length;
+  const l=FILT.filter(x=>x.estado==='licenciado').length;
+  const f=FILT.filter(x=>x.estado==='concluido').length;
+  el('k_total').textContent=total; el('k_c').textContent=c; el('k_l').textContent=l; el('k_f').textContent=f;
+}
 
-  // Chips de estado
-  chipsWrap.addEventListener('click', (ev)=>{
-    const el = ev.target.closest('.chip'); if(!el) return;
-    [...chipsWrap.children].forEach(c=>c.classList.remove('active'));
-    el.classList.add('active');
-    estadoAtivo = el.dataset.estado || 'todos';
-    applyFilters();
+/* ================== MARCADORES ================== */
+function makeDivIcon(state){
+  return L.divIcon({
+    className: pinClass(state),
+    html:'', iconSize:[24,24], iconAnchor:[12,12], popupAnchor:[0,-12]
+  });
+}
+function renderMarkers(){
+  CLUSTER.clearLayers(); LAYER.clearLayers();
+  FILT.forEach(p=>{
+    if(p._lat==null||p._lng==null) return;
+    const m=L.marker([p._lat,p._lng],{icon:makeDivIcon(p.estado)});
+    m.on('click',()=>openFicha(p,true));
+    m.bindTooltip(`${p.nome||''}`,{direction:'top',offset:[0,-8],opacity:.9});
+    CLUSTER.addLayer(m);
+  });
+}
+
+/* ================== PAINEL (Ficha) ================== */
+function stateLabel(s){
+  const c=colorByState(s);
+  return `<span class="badge" style="border-color:${c};color:${c}">${s||'—'}</span>`;
+}
+function buildDocsHTML(docs){
+  if(!Array.isArray(docs)||!docs.length) return '<div class="muted">Sem documentos anexados.</div>';
+  const items = docs.map(d=>{
+    const icon = d.type==='pdf'?'📄':(d.type==='img'?'🖼️':'🔗');
+    return `<li class="doc" data-url="${d.url}" data-type="${d.type}">${icon} ${d.title||d.url}</li>`;
+  }).join('');
+  return `
+    <ul class="doc-list">${items}</ul>
+    <div id="docView" style="margin-top:8px;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:8px;min-height:140px">
+      <div class="muted">Selecione um documento para visualizar.</div>
+    </div>
+  `;
+}
+function openFicha(p, focus=false){
+  ACTIVE=p;
+  const c=colorByState(p.estado);
+  const html=`
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <div>
+        <div style="font-weight:800;font-size:16px">${p.nome||'—'}</div>
+        <div style="font-size:12px;color:#bbb">${p.concelho||'—'} · ${stateLabel(p.estado)}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn-sm" data-act="center">Centrar</button>
+        <a class="btn-sm" href="https://www.google.com/maps?q=${p._lat},${p._lng}" target="_blank" rel="noreferrer">Google Maps</a>
+        ${p.link? `<a class="btn-sm" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>`:''}
+        <button class="btn-sm" data-act="copy">Copiar resumo</button>
+        <button class="btn-sm" data-act="share">Partilhar</button>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
+      <div>
+        <div class="meta-line"><b>Promotor:</b> ${p.promotor||'—'}</div>
+        <div class="meta-line"><b>Tipologias:</b> ${p.tipologias||'—'}</div>
+        <div class="meta-line"><b>Conclusão:</b> ${p.conclusao||'—'}</div>
+        <div class="meta-line"><b>€/m²:</b> ${p.preco_m2? Number(p.preco_m2).toLocaleString('pt-PT') : '—'}</div>
+        <div class="meta-line"><b>Notas:</b> ${p.notas||'—'}</div>
+        <div class="meta-line"><b>Coordenadas:</b> ${Number.isFinite(p._lat)?p._lat.toFixed(6):'—'}, ${Number.isFinite(p._lng)?p._lng.toFixed(6):'—'}</div>
+      </div>
+      <div>
+        <div style="font-size:12px;color:#bbb;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Documentos & Media</div>
+        ${buildDocsHTML(p.docs||[])}
+      </div>
+    </div>
+  `;
+  el('panelInner').innerHTML=html;
+  el('side-panel').classList.add('show');
+  if(focus && p._lat && p._lng) MAP.setView([p._lat,p._lng], 16, {animate:true});
+
+  // ações
+  el('panelInner').querySelector('[data-act="center"]')?.addEventListener('click',()=>{ if(p._lat&&p._lng) MAP.setView([p._lat,p._lng], 16,{animate:true}); });
+  el('panelInner').querySelector('[data-act="copy"]')?.addEventListener('click',async ()=>{
+    const resumo = `${p.nome||''} — ${p.concelho||''} (${p.estado||''}); Conclusão ${p.conclusao||'—'}; ${p.link||''}`.trim();
+    try{ await navigator.clipboard.writeText(resumo); }catch{}
+  });
+  el('panelInner').querySelector('[data-act="share"]')?.addEventListener('click',async ()=>{
+    const shareData={ title:p.nome||'Empreendimento', text:`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${p.conclusao||'—'}`, url: withIdDeepLink(p) };
+    if(navigator.share){ try{ await navigator.share(shareData); }catch{} }
+    else{ try{ await navigator.clipboard.writeText(shareData.url); }catch{} }
   });
 
-  // Pesquisa e concelho
-  searchInput.addEventListener('input', applyFilters);
-  concelhoSel.addEventListener('change', applyFilters);
-
-  // Exportar CSV (vista filtrada)
-  exportBtn.addEventListener('click', ()=>{
-    const rows = [
-      ["nome","concelho","estado","promotor","tipologias","conclusao","preco_m2","notas","latitude","longitude","link"],
-      ...viewPoints.map(p=>[p.nome,p.concelho,p.estado,p.promotor,p.tipologias,p.conclusao,p.preco_m2,p.notas,p.lat,p.lng,p.link])
-    ];
-    const csv = rows.map(r=>r.map(v=>{
-      const s = (v==null? "": String(v));
-      return /[",;\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
-    }).join(";")).join("\n");
-    const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = "empreendimentos_filtrados.csv";
-    a.click();
-    URL.revokeObjectURL(a.href);
+  // docs preview
+  el('panelInner').querySelectorAll('.doc-list .doc').forEach(li=>{
+    li.addEventListener('click', ()=>{
+      const url=li.getAttribute('data-url'), tp=li.getAttribute('data-type');
+      const view=el('docView');
+      if(tp==='img') view.innerHTML=`<img src="${url}" alt="" style="max-width:100%;border-radius:8px">`;
+      else if(tp==='pdf') view.innerHTML=`<iframe src="${url}" style="width:100%;height:360px;border:0;border-radius:8px"></iframe><div style="margin-top:6px"><a class="btn-sm" href="${url}" target="_blank" rel="noreferrer">Abrir PDF</a></div>`;
+      else view.innerHTML=`<a class="btn-sm" href="${url}" target="_blank" rel="noreferrer">Abrir ligação</a>`;
+    });
   });
 
-  // Arranque
-  loadCSV();
-  </script>
+  // deep-link do id
+  setDeepLink({id:p.slug||p.nome||''});
+}
+function withIdDeepLink(p){
+  const u=new URL(location.href);
+  u.searchParams.set('id', p.slug||p.nome||'');
+  return u.toString();
+}
+
+/* ================== EXPORTAÇÃO ================== */
+function exportCSV(){
+  const headers=["nome","concelho","estado","promotor","tipologias","conclusao","preco_m2","notas","link","latitude","longitude"];
+  const rows=FILT.map(p=>[p.nome,p.concelho,p.estado,p.promotor,p.tipologias,p.conclusao,p.preco_m2||'',p.notas||'',p.link||'',p._lat||'',p._lng||'']);
+  const csv=toCSV([headers,...rows]);
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='empreendimentos_filtrados.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+
+/* ================== EVENTOS UI ================== */
+function bindUI(){
+  // chips estado
+  document.querySelectorAll('#estadoChips .chip').forEach(ch=>{
+    ch.addEventListener('click', ()=>{
+      document.querySelectorAll('#estadoChips .chip').forEach(c=>c.classList.remove('active'));
+      ch.classList.add('active'); UI.estado=ch.dataset.v||''; run();
+    });
+  });
+  // filtros
+  el('apply').addEventListener('click', ()=>{
+    UI.q=el('q').value.trim(); UI.concelho=el('f_concelho').value; UI.cmin=el('f_cmin').value; UI.cmax=el('f_cmax').value;
+    UI.pmin=el('f_pmin').value; UI.pmax=el('f_pmax').value; UI.promotor=el('f_promotor').value; UI.tipos=el('f_tipos').value.trim();
+    run();
+  });
+  el('clear').addEventListener('click', ()=>{
+    ['q','f_concelho','f_cmin','f_cmax','f_pmin','f_pmax','f_promotor','f_tipos'].forEach(id=>el(id).value='');
+    document.querySelectorAll('#estadoChips .chip').forEach(c=>c.classList.remove('active'));
+    document.querySelector('#estadoChips .chip[data-v=""]').classList.add('active');
+    UI={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'' };
+    run();
+  });
+
+  // deep-link ?q= e ?id=
+  const q0=getParam('q'); if(q0){ el('q').value=q0; UI.q=q0; }
+}
+
+/* ================== RUN (ciclo de render) ================== */
+function run(){
+  applyFilters();
+  renderKPIs();
+  renderList();
+  renderMarkers();
+
+  // ?id= abrir ficha
+  const wantId=getParam('id');
+  if(wantId){
+    const hit = FILT.find(p=> (p.slug && String(p.slug)===String(wantId)) || (p.nome && norm(p.nome)===norm(wantId)) );
+    if(hit) openFicha(hit,false);
+  } else {
+    el('side-panel').classList.remove('show');
+  }
+}
+
+/* ================== BOOT ================== */
+(async function init(){
+  initMap();
+  await loadData();
+  buildFacetOptions();
+  bindUI();
+  // foco padrão AMP/Porto
+  MAP.setView(AMP_CENTER, AMP_ZOOM, {animate:false});
+  run();
+})();
+</script>
 </body>
 </html>
