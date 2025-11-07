@@ -3,18 +3,21 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Garvetur Porto Pro — Mapa (Edição + CSV + Anexos Locais)</title>
+<title>Garvetur Porto Pro — Mapa (CSV + Edição + Anexos Locais)</title>
 
+<!-- Preconnects -->
 <link rel="preconnect" href="https://unpkg.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+<!-- Leaflet + MarkerCluster CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin="anonymous">
 
-<!-- PapaParse para CSV (pode ficar bloqueado; se ficar, continua a funcionar mas sem import CSV) -->
-<script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js" crossorigin="anonymous"></script>
-<!-- idb-keyval (pode falhar; temos fallback para dataURL) -->
-<script src="https://unpkg.com/idb-keyval@6/dist/idb-keyval.iife.min.js" crossorigin="anonymous"></script>
+<!-- Papaparse (CSV) -->
+<script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js" crossorigin="anonymous" defer></script>
+<!-- idb-keyval (IndexedDB helper) -->
+<script src="https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/idb-keyval.iife.min.js" crossorigin="anonymous" defer></script>
 
 <style>
 :root{ --gold:#A38B63; --bg:#0E0E0E; --panel:#131313; --text:#fff; --muted:#9AA0A6; --ok:#43A047; --info:#1E88E5; --warn:#E53935; --border:rgba(255,255,255,.12) }
@@ -97,6 +100,9 @@ input[type="file"]{display:none}
 .pdf-card header{padding:8px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
 .pdf-card .frame{flex:1}
 .pdf-card iframe{width:100%;height:100%;border:0}
+
+#loadingMask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:12000;display:none;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px}
+#loadingMask.show{display:flex}
 
 .hidden{display:none !important}
 @media (max-width: 1000px){
@@ -211,8 +217,8 @@ input[type="file"]{display:none}
       <div><strong id="editTitle">Novo Empreendimento</strong></div>
       <div style="display:flex;gap:8px">
         <button class="btn ghost" id="pickCoord">Definir no mapa</button>
-        <label class="btn" id="attachLocalLabel" for="attachLocalInput" style="display:none">📎 Anexar ficheiro (local)</label>
-        <input id="attachLocalInput" type="file" accept=".pdf,image/*" style="display:none">
+        <label class="btn" id="attachLocalLabel" for="attachLocalInput" style="display:none">📎 Anexar ficheiro</label>
+        <input id="attachLocalInput" type="file" accept="application/pdf,image/*" style="display:none">
         <button class="btn" id="cancelEdit">Cancelar</button>
         <button class="btn primary" id="saveEdit">Guardar</button>
       </div>
@@ -264,12 +270,17 @@ input[type="file"]{display:none}
   </div>
 </div>
 
+<!-- Loading mask (evita sensação de “bloqueio” ao gravar anexos) -->
+<div id="loadingMask"><div>⏳ A guardar anexo…</div></div>
+
+<!-- Scripts Leaflet (com fallback) -->
 <script>
-/* ================== CONFIG ================== */
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.defer=true;s.crossOrigin='anonymous';s.onload=()=>res(true);s.onerror=()=>rej(new Error('Falha a carregar '+src));document.head.appendChild(s);});}
+</script>
+<script>
 const AMP_CENTER=[41.15,-8.61], AMP_ZOOM=12;
 const LS_KEY='gpp_dataset_v1';
 
-/* ================== ESTADO ================== */
 let MAP, CLUSTER, LAYER, CLUSTER_OK=false;
 let RAW=[], FILT=[];
 let ACTIVE=null;
@@ -278,142 +289,64 @@ let EDIT_INDEX=-1;
 let PICKING=false;
 let UIState={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'' };
 
-/* ================== HELPERS ================== */
 const el=id=>document.getElementById(id);
-function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
+function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
 function stateKey(s){ const x=norm(s); if(x.includes('constr'))return 'em_construcao'; if(x.includes('licen'))return 'licenciado'; if(x.includes('concl'))return 'concluido'; return x||''; }
 function colorByState(k){ if(k==='em_construcao')return '#E53935'; if(k==='licenciado')return '#1E88E5'; if(k==='concluido')return '#43A047'; return '#A38B63'; }
 function pinClass(k){ if(k==='em_construcao')return 'pin c'; if(k==='licenciado')return 'pin l'; if(k==='concluido')return 'pin f'; return 'pin'; }
 function toCSV(rows){ return rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n'); }
 function slugify(s){ return norm(s).replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,''); }
-/* números “PT”: troca vírgula por ponto antes do Number() */
-function numPT(v){
-  if(v===null||v===undefined||v==='') return null;
-  const n = Number(String(v).replace(',','.'));
-  return Number.isFinite(n)? n : null;
-}
+function numPT(v){ if(v===null||v===undefined||v==='') return null; const n=Number(String(v).replace(',','.')); return Number.isFinite(n)? n : null; }
 
-/* ====== Loader robusto do Leaflet & MarkerCluster ====== */
-function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script'); s.src=src; s.crossOrigin='anonymous'; s.defer=true; s.onload=()=>res(true); s.onerror=()=>rej(new Error('Falha a carregar '+src)); document.head.appendChild(s);});}
 async function loadLeafletAndCluster(){
-  if(!window.L){
-    try{ await loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'); }
-    catch{ await loadScript('https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js'); }
-  }
+  if(!window.L){ try{ await loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'); }catch{ await loadScript('https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js'); } }
   try{
-    if(!window.L || window.L.markerClusterGroup) { CLUSTER_OK = !!window.L?.markerClusterGroup; return; }
-    try{ await loadScript('https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'); }
-    catch{ await loadScript('https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'); }
-    CLUSTER_OK = !!window.L.markerClusterGroup;
+    if(!window.L.markerClusterGroup){ try{ await loadScript('https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'); }catch{ await loadScript('https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'); } }
+    CLUSTER_OK=!!window.L.markerClusterGroup;
   }catch{ CLUSTER_OK=false; }
 }
 
-/* ====== Deteção de armazenamento ====== */
-let STORAGE_MODE='idb'; // 'idb' | 'dataurl'
-async function detectStorageMode(){
-  // Se idbKeyval não existir, saltamos para dataURL
-  if(!window.idbKeyval){ STORAGE_MODE='dataurl'; return; }
-  try{
-    const testKey='__gpp_test__', testVal=new Blob(['ok'],{type:'text/plain'});
-    await idbKeyval.set(testKey, testVal);
-    const v=await idbKeyval.get(testKey);
-    await idbKeyval.del(testKey);
-    if(!v) throw new Error('Sem leitura IDB');
-    STORAGE_MODE='idb';
-  }catch{ STORAGE_MODE='dataurl'; }
-}
-
-/* ====== Anexos locais (IDB + fallback DataURL) ====== */
-const DB_PREFIX='gpp_docs_';
-async function saveLocalBlob(blob, slug, filename){
-  if(STORAGE_MODE==='idb'){
-    try{
-      const key = DB_PREFIX + (slug || 'sem-slug') + '_' + (filename || ('file_' + Date.now()));
-      await idbKeyval.set(key, blob);
-      return 'idb://' + key;
-    }catch{ /* falhou IDB → tenta dataURL */ }
-  }
-  const b64 = await new Promise((res,rej)=>{ const fr=new FileReader(); fr.onerror=()=>rej(new Error('Falha FileReader')); fr.onload=()=>res(fr.result); fr.readAsDataURL(blob); });
-  return b64; // data:...
-}
-async function getLocalBlobUrl(idbUrl){
-  if(!idbUrl) return null;
-  if(idbUrl.startsWith('data:')) return idbUrl;
-  if(!window.idbKeyval) return null;
-  try{
-    const key=idbUrl.replace('idb://','');
-    const blob=await idbKeyval.get(key);
-    return blob? URL.createObjectURL(blob): null;
-  }catch{ return null; }
-}
-async function deleteLocalBlob(idbUrl){
-  try{
-    if(!idbUrl || idbUrl.startsWith('data:') || !window.idbKeyval) return;
-    const key=idbUrl.replace('idb://','');
-    await idbKeyval.del(key);
-  }catch{}
-}
-function isIdbUrl(u){ return typeof u==='string' && u.startsWith('idb://'); }
-
-/* ================== PERSISTÊNCIA ================== */
-function saveLS(){ localStorage.setItem(LS_KEY, JSON.stringify(RAW)); }
-function loadLS(){ try{ const x=localStorage.getItem(LS_KEY); return x? JSON.parse(x): null; }catch{ return null; } }
-
-/* ================== MAPA ================== */
 function initMap(){
   MAP = L.map('map',{ zoomControl:true, scrollWheelZoom:true }).setView(AMP_CENTER, AMP_ZOOM);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(MAP);
   if(CLUSTER_OK){
     const clusterOpts={ spiderfyOnEveryZoom:false, showCoverageOnHover:false, maxClusterRadius:48 };
-    CLUSTER = L.markerClusterGroup(clusterOpts);
-    LAYER = L.layerGroup().addTo(CLUSTER);
-    MAP.addLayer(CLUSTER);
+    CLUSTER=L.markerClusterGroup(clusterOpts);
+    LAYER=L.layerGroup().addTo(CLUSTER); MAP.addLayer(CLUSTER);
   }else{
-    LAYER = L.layerGroup().addTo(MAP);
+    LAYER=L.layerGroup().addTo(MAP);
   }
-  el('focusAmp').addEventListener('click', ()=>MAP.setView(AMP_CENTER, AMP_ZOOM, {animate:true}));
+  el('focusAmp').addEventListener('click',()=>MAP.setView(AMP_CENTER,AMP_ZOOM,{animate:true}));
 }
 
-/* ================== KPI, FILTROS, LISTA ================== */
 function buildFacetOptions(){
   const concelhos=[...new Set(RAW.map(x=>x.concelho).filter(Boolean))].sort();
   const promotores=[...new Set(RAW.map(x=>x.promotor).filter(Boolean))].sort();
   el('f_concelho').innerHTML='<option value="">(Todos)</option>'+concelhos.map(c=>`<option>${c}</option>`).join('');
   el('f_promotor').innerHTML='<option value="">(Todos)</option>'+promotores.map(c=>`<option>${c}</option>`).join('');
 }
-function matchTokens(obj, tokens){
-  if(!tokens.length) return true;
-  const hay = norm([obj.nome,obj.concelho,obj.promotor,obj.tipologias,obj.estado,obj.notas,obj.conclusao,obj.preco_m2].join(' '));
-  return tokens.every(tok => hay.includes(tok));
-}
+function matchTokens(obj,tokens){ if(!tokens.length) return true; const hay=norm([obj.nome,obj.concelho,obj.promotor,obj.tipologias,obj.estado,obj.notas,obj.conclusao,obj.preco_m2].join(' ')); return tokens.every(tok=>hay.includes(tok)); }
 function applyFilters(){
-  const tokens = norm(UIState.q).split(/\s+/).filter(Boolean);
-  const tiposTokens = norm(UIState.tipos||'').split(/[,\s]+/).filter(Boolean);
-  FILT = RAW.filter(p=>{
-    if(!matchTokens(p, tokens)) return false;
+  const tokens=norm(UIState.q).split(/\s+/).filter(Boolean);
+  const tiposTokens=norm(UIState.tipos||'').split(/[,\s]+/).filter(Boolean);
+  FILT=RAW.filter(p=>{
+    if(!matchTokens(p,tokens)) return false;
     if(UIState.concelho && p.concelho!==UIState.concelho) return false;
     if(UIState.estado && p.estado!==UIState.estado) return false;
-    const c = numPT(p.conclusao);
-    if(UIState.cmin && c!==null && c < Number(UIState.cmin)) return false;
-    if(UIState.cmax && c!==null && c > Number(UIState.cmax)) return false;
-    const m2 = numPT(p.preco_m2);
-    if(UIState.pmin && m2!==null && m2 < Number(UIState.pmin)) return false;
-    if(UIState.pmax && m2!==null && m2 > Number(UIState.pmax)) return false;
+    const c=numPT(p.conclusao);
+    if(UIState.cmin && c!==null && c<Number(UIState.cmin)) return false;
+    if(UIState.cmax && c!==null && c>Number(UIState.cmax)) return false;
+    const m2=numPT(p.preco_m2);
+    if(UIState.pmin && m2!==null && m2<Number(UIState.pmin)) return false;
+    if(UIState.pmax && m2!==null && m2>Number(UIState.pmax)) return false;
     if(UIState.promotor && p.promotor!==UIState.promotor) return false;
-    if(tiposTokens.length){
-      const base=norm(p.tipologias||'');
-      const hit = tiposTokens.some(t=>base.includes(t));
-      if(!hit) return false;
-    }
+    if(tiposTokens.length){ const base=norm(p.tipologias||''); const hit=tiposTokens.some(t=>base.includes(t)); if(!hit) return false; }
     return true;
   });
 }
 function renderKPIs(){
-  const total = FILT.length;
-  const c=FILT.filter(x=>x.estado==='em_construcao').length;
-  const l=FILT.filter(x=>x.estado==='licenciado').length;
-  const f=FILT.filter(x=>x.estado==='concluido').length;
-  el('k_total').textContent=total; el('k_c').textContent=c; el('k_l').textContent=l; el('k_f').textContent=f;
+  const t=FILT.length, c=FILT.filter(x=>x.estado==='em_construcao').length, l=FILT.filter(x=>x.estado==='licenciado').length, f=FILT.filter(x=>x.estado==='concluido').length;
+  el('k_total').textContent=t; el('k_c').textContent=c; el('k_l').textContent=l; el('k_f').textContent=f;
 }
 function renderList(){
   const box=el('list'); box.innerHTML='';
@@ -428,7 +361,7 @@ function renderList(){
         </div>
         <span class="badge" style="border-color:${colorByState(p.estado)};color:${colorByState(p.estado)}">${p.estado||'—'}</span>
       </div>
-      <div class="state">Conclusão: ${p.conclusao||'—'} · €/m²: ${p.preco_m2? Number(String(p.preco_m2).replace(',','.')).toLocaleString('pt-PT'): '—'}</div>
+      <div class="state">Conclusão: ${p.conclusao||'—'} · €/m²: ${p.preco_m2? Number(String(p.preco_m2).replace(',','.')).toLocaleString('pt-PT') : '—'}</div>
       <div class="actions">
         <button class="btn" data-act="zoom">Abrir no mapa</button>
         ${p.link? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>` : ''}
@@ -436,26 +369,25 @@ function renderList(){
         ${EDIT_MODE ? `<button class="btn ghost" data-act="edit">Editar</button>
         <button class="btn" style="border-color:#cc4b4b;color:#ffdddd" data-act="del">Apagar</button>`:''}
       </div>`;
-    div.querySelector('[data-act="zoom"]').addEventListener('click', ()=>{ if(p._lat&&p._lng) MAP?.setView([p._lat,p._lng], 16, {animate:true}); });
-    div.querySelector('[data-act="open"]').addEventListener('click', ()=>openFicha(p,true));
+    div.querySelector('[data-act="zoom"]').addEventListener('click',()=>{ if(p._lat&&p._lng) MAP?.setView([p._lat,p._lng],16,{animate:true}); });
+    div.querySelector('[data-act="open"]').addEventListener('click',()=>openFicha(p,true));
     if(EDIT_MODE){
-      div.querySelector('[data-act="edit"]').addEventListener('click', ()=>openEditBySlug(p.slug));
-      div.querySelector('[data-act="del"]').addEventListener('click', ()=>deleteBySlug(p.slug));
+      div.querySelector('[data-act="edit"]').addEventListener('click',()=>openEditBySlug(p.slug));
+      div.querySelector('[data-act="del"]').addEventListener('click',()=>deleteBySlug(p.slug));
     }
     box.appendChild(div);
   });
 }
 
-/* ================== MARCADORES ================== */
 function makeDivIcon(state){ return L.divIcon({ className: pinClass(state), html:'', iconSize:[28,28], iconAnchor:[14,14], popupAnchor:[0,-12] }); }
 function renderMarkers(){
-  if(!window.L || !LAYER) return; // modo sem mapa
+  if(!window.L||!LAYER) return;
   if(CLUSTER){ CLUSTER.clearLayers(); }
   LAYER.clearLayers();
   const pts=[];
   FILT.forEach(p=>{
-    const lat = numPT(p._lat), lng = numPT(p._lng);
-    if(lat===null || lng===null) return;
+    const lat=numPT(p._lat), lng=numPT(p._lng);
+    if(lat===null||lng===null) return;
     pts.push([lat,lng]);
     const m=L.marker([lat,lng],{icon:makeDivIcon(p.estado)});
     m.on('click',()=>openFicha(p,true));
@@ -463,40 +395,80 @@ function renderMarkers(){
     (CLUSTER||LAYER).addLayer ? (CLUSTER||LAYER).addLayer(m) : m.addTo(LAYER);
   });
   if(pts.length && MAP){
-    const b=L.latLngBounds(pts);
-    if(b.isValid()) MAP.fitBounds(b.pad(0.2));
+    const b=L.latLngBounds(pts); if(b.isValid()) MAP.fitBounds(b.pad(0.2));
   }
 }
 
-/* ================== FICHA (drawer) ================== */
 function stateLabel(s){ const c=colorByState(s); return `<span class="badge" style="border-color:${c};color:${c}">${s||'—'}</span>`; }
+
 function buildDocsHTML(docs){
   if(!Array.isArray(docs)||!docs.length) return '<div class="hint">Sem documentos anexados.</div>';
-  const items = docs.map(d=>{
-    const icon = d.type==='pdf'?'📄':(d.type==='img'?'🖼️':'🔗');
-    const more = d.type==='pdf' ? ` <button class="btn-sm" data-act="expand" data-url="${d.url}">Expandir</button>` : '';
+  const items=docs.map(d=>{
+    const icon=d.type==='pdf'?'📄':(d.type==='img'?'🖼️':'🔗');
+    const extra=d.type==='pdf'?` <button class="btn-sm" data-act="expand" data-url="${d.url}">Expandir</button>`:'';
     return `<li style="margin-bottom:6px;border:1px solid var(--border);padding:6px 8px;border-radius:8px" data-type="${d.type}" data-url="${d.url}">
-      ${icon} <a class="btn-sm" href="${d.url}" target="_blank" rel="noreferrer">Abrir</a> · ${d.title||d.url}${more}
+      ${icon} <a class="btn-sm" href="${d.url}" target="_blank" rel="noreferrer">Abrir</a> · ${d.title||d.url}${extra}
     </li>`;
   }).join('');
-  return `<ul id="docList" style="list-style:none;margin:0;padding:0">${items}</ul>
-          <div id="docView" style="margin-top:8px"></div>`;
+  return `<ul id="docList" style="list-style:none;margin:0;padding:0">${items}</ul><div id="docView" style="margin-top:8px"></div>`;
 }
 
-/* ======= Preview universal (Safari friendly) ======= */
-const IS_SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent || '');
-async function resolveLocalUrl(rawUrl){
-  return rawUrl && rawUrl.startsWith('idb://') ? (await getLocalBlobUrl(rawUrl)) : rawUrl;
+/* ====== PDF & Imagem Preview com Blob URL (robusto) ====== */
+const IS_SAFARI=/^((?!chrome|android).)*safari/i.test(navigator.userAgent||'');
+let STORAGE_MODE='idb'; // 'idb' | 'dataurl'
+
+async function detectStorageMode(){
+  if(!window.idbKeyval){ STORAGE_MODE='dataurl'; return; }
+  try{
+    const test='__gpp_test__'; await idbKeyval.set(test,new Blob(['ok'])); const v=await idbKeyval.get(test); await idbKeyval.del(test);
+    if(!v) throw new Error('sem leitura IDB');
+    STORAGE_MODE='idb';
+  }catch{ STORAGE_MODE='dataurl'; }
 }
-async function renderDocPreview(container, rawUrl, type){
-  const url = await resolveLocalUrl(rawUrl);
-  if(!url){ container.innerHTML = '<div class="hint">Documento indisponível.</div>'; return; }
-  if(type === 'img'){
-    container.innerHTML = `<img src="${url}" alt="" style="max-width:100%;border-radius:8px">`; return;
+
+const DB_PREFIX='gpp_docs_';
+async function saveLocalBlob(blob, slug, filename){
+  if(STORAGE_MODE==='idb'){
+    try{
+      const key=DB_PREFIX+(slug||'sem-slug')+'_'+(filename||('file_'+Date.now()));
+      await idbKeyval.set(key,{meta:{name:filename,type:blob.type||'application/octet-stream',size:blob.size||0,ts:Date.now()}, blob});
+      return 'idb://'+key;
+    }catch{ /* fallback */ }
   }
-  if(type === 'pdf'){
+  const dataUrl=await new Promise((res,rej)=>{const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=()=>rej(new Error('Falha FileReader')); fr.readAsDataURL(blob);});
+  return dataUrl;
+}
+async function getLocalBlobUrl(idbUrl){
+  if(!idbUrl) return null;
+  if(idbUrl.startsWith('data:')) return idbUrl;
+  if(!window.idbKeyval) return null;
+  try{
+    const key=idbUrl.replace('idb://',''); const v=await idbKeyval.get(key); if(!v) return null;
+    return URL.createObjectURL(v.blob);
+  }catch{ return null; }
+}
+async function deleteLocalBlob(idbUrl){
+  try{
+    if(!idbUrl||idbUrl.startsWith('data:')||!window.idbKeyval) return;
+    await idbKeyval.del(idbUrl.replace('idb://',''));
+  }catch{}
+}
+function isIdbUrl(u){ return typeof u==='string' && u.startsWith('idb://'); }
+
+function openPDF(url){
+  el('pdfFrame').src=url; el('pdfOpenNew').href=url; el('pdfModal').classList.add('show');
+}
+el('pdfClose').addEventListener('click',()=>{ el('pdfModal').classList.remove('show'); el('pdfFrame').src='about:blank'; });
+
+async function resolveLocalUrl(rawUrl){ return rawUrl && rawUrl.startsWith('idb://') ? (await getLocalBlobUrl(rawUrl)) : rawUrl; }
+
+async function renderDocPreview(container, rawUrl, type){
+  const url=await resolveLocalUrl(rawUrl);
+  if(!url){ container.innerHTML='<div class="hint">Documento indisponível.</div>'; return; }
+  if(type==='img'){ container.innerHTML=`<img src="${url}" alt="" style="max-width:100%;border-radius:8px">`; return; }
+  if(type==='pdf'){
     if(IS_SAFARI){
-      container.innerHTML = `
+      container.innerHTML=`
         <object data="${url}#view=FitH" type="application/pdf" style="width:100%;height:420px;border:0;border-radius:8px">
           <div class="hint">O seu navegador não consegue apresentar o PDF embebido. Use "Abrir em nova aba".</div>
         </object>
@@ -505,7 +477,7 @@ async function renderDocPreview(container, rawUrl, type){
           <button class="btn-sm" data-act="expand" data-url="${rawUrl}">Expandir</button>
         </div>`;
     }else{
-      container.innerHTML = `
+      container.innerHTML=`
         <iframe src="${url}#view=FitH" style="width:100%;height:420px;border:0;border-radius:8px"></iframe>
         <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
           <a class="btn-sm" href="${url}" target="_blank" rel="noreferrer">Abrir em nova aba</a>
@@ -513,16 +485,16 @@ async function renderDocPreview(container, rawUrl, type){
         </div>`;
     }
     container.querySelector('[data-act="expand"]')?.addEventListener('click', async (e)=>{
-      const raw = e.target.getAttribute('data-url');
-      const u = await resolveLocalUrl(raw);
-      openPDF(u);
+      const raw=e.target.getAttribute('data-url'); const u=await resolveLocalUrl(raw); openPDF(u);
     });
     return;
   }
-  container.innerHTML = `<a class="btn-sm" href="${url}" target="_blank" rel="noreferrer">Abrir ligação</a>`;
+  container.innerHTML=`<a class="btn-sm" href="${url}" target="_blank" rel="noreferrer">Abrir ligação</a>`;
 }
 
-function openFicha(p, focus=false){
+/* ====== Painel lateral (Ficha) ====== */
+function stateLabel(s){ const c=colorByState(s); return `<span class="badge" style="border-color:${c};color:${c}">${s||'—'}</span>`; }
+function openFicha(p,focus=false){
   ACTIVE=p;
   const html=`
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
@@ -556,45 +528,33 @@ function openFicha(p, focus=false){
   `;
   el('panelInner').innerHTML=html;
   el('side-panel').classList.add('show');
-  if(focus && numPT(p._lat)!==null && numPT(p._lng)!==null) MAP?.setView([numPT(p._lat),numPT(p._lng)], 16, {animate:true});
-
-  el('panelInner').querySelector('[data-act="center"]')?.addEventListener('click',()=>{ 
-    if(numPT(p._lat)!==null && numPT(p._lng)!==null) MAP?.setView([numPT(p._lat),numPT(p._lng)], 16,{animate:true}); 
-  });
+  if(focus && numPT(p._lat)!==null && numPT(p._lng)!==null) MAP?.setView([numPT(p._lat),numPT(p._lng)],16,{animate:true});
+  el('panelInner').querySelector('[data-act="center"]')?.addEventListener('click',()=>{ if(numPT(p._lat)!==null && numPT(p._lng)!==null) MAP?.setView([numPT(p._lat),numPT(p._lng)],16,{animate:true}); });
   el('panelInner').querySelector('[data-act="copy"]')?.addEventListener('click',async ()=>{
-    const resumo = `${p.nome||''} — ${p.concelho||''} (${p.estado||''}); Conclusão ${p.conclusao||'—'}; ${p.link||''}`.trim();
-    try{ await navigator.clipboard.writeText(resumo); }catch{}
+    const resumo=`${p.nome||''} — ${p.concelho||''} (${p.estado||''}); Conclusão ${p.conclusao||'—'}; ${p.link||''}`.trim();
+    try{ await navigator.clipboard.writeText(resumo);}catch{}
   });
   el('panelInner').querySelector('[data-act="share"]')?.addEventListener('click',async ()=>{
     const shareData={ title:p.nome||'Empreendimento', text:`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${p.conclusao||'—'}`, url: location.href };
-    if(navigator.share){ try{ await navigator.share(shareData); }catch{} }
-    else{ try{ await navigator.clipboard.writeText(shareData.text + ' ' + (p.link||location.href)); }catch{} }
+    if(navigator.share){ try{ await navigator.share(shareData);}catch{} } else { try{ await navigator.clipboard.writeText(shareData.text+' '+(p.link||location.href));}catch{} }
   });
-  if(EDIT_MODE){
-    el('panelInner').querySelector('[data-act="edit"]')?.addEventListener('click', ()=>openEditBySlug(p.slug));
-  }
 
-  const ul = el('panelInner').querySelector('#docList');
+  const ul=el('panelInner').querySelector('#docList');
   if(ul){
     ul.querySelectorAll('li').forEach(li=>{
       li.addEventListener('click', async ()=>{
-        const rawUrl = li.getAttribute('data-url');
-        const tp = li.getAttribute('data-type');
-        const view = el('panelInner').querySelector('#docView');
+        const rawUrl=li.getAttribute('data-url'); const tp=li.getAttribute('data-type'); const view=el('panelInner').querySelector('#docView');
         await renderDocPreview(view, rawUrl, tp);
       });
       li.querySelector('[data-act="expand"]')?.addEventListener('click', async (e)=>{
-        e.stopPropagation();
-        const rawUrl = e.target.getAttribute('data-url');
-        const url = await resolveLocalUrl(rawUrl);
-        openPDF(url);
+        e.stopPropagation(); const raw=e.target.getAttribute('data-url'); const u=await resolveLocalUrl(raw); openPDF(u);
       });
     });
   }
 }
-el('closePanel').addEventListener('click', ()=>{ el('side-panel').classList.remove('show'); });
+el('closePanel').addEventListener('click',()=>{ el('side-panel').classList.remove('show'); });
 
-/* ================== EXPORTAÇÃO ================== */
+/* ====== Exportações ====== */
 function exportCSV(){
   const headers=["nome","concelho","estado","promotor","tipologias","conclusao","preco_m2","notas","link","latitude","longitude"];
   const rows=FILT.map(p=>[p.nome,p.concelho,p.estado,p.promotor,p.tipologias,p.conclusao,p.preco_m2||'',p.notas||'',p.link||'',p._lat||'',p._lng||'']);
@@ -603,46 +563,37 @@ function exportCSV(){
   const a=document.createElement('a'); a.href=url; a.download='empreendimentos.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 function exportGeo(){
-  const fc = {
-    type:"FeatureCollection",
-    features: RAW.filter(p=>numPT(p._lat)!==null && numPT(p._lng)!==null).map(p=>({
-      type:"Feature",
-      geometry:{type:"Point", coordinates:[numPT(p._lng), numPT(p._lat)]},
-      properties:{ slug:p.slug,nome:p.nome,concelho:p.concelho,estado:p.estado,promotor:p.promotor,tipologias:p.tipologias,conclusao:p.conclusao,preco_m2:p.preco_m2,notas:p.notas,link:p.link,docs:p.docs||[] }
-    }))
-  };
+  const fc={ type:"FeatureCollection", features: RAW.filter(p=>numPT(p._lat)!==null && numPT(p._lng)!==null).map(p=>({ type:"Feature", geometry:{type:"Point",coordinates:[numPT(p._lng),numPT(p._lat)]}, properties:{ slug:p.slug,nome:p.nome,concelho:p.concelho,estado:p.estado,promotor:p.promotor,tipologias:p.tipologias,conclusao:p.conclusao,preco_m2:p.preco_m2,notas:p.notas,link:p.link,docs:p.docs||[] } })) };
   const blob=new Blob([JSON.stringify(fc,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob);
   const a=document.createElement('a'); a.href=url; a.download='empreendimentos.geojson'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 el('exportCsv').addEventListener('click', exportCSV);
 el('exportGeo').addEventListener('click', exportGeo);
 
-/* ================== MODO EDIÇÃO ================== */
+/* ====== Persistência ====== */
+function saveLS(){ localStorage.setItem(LS_KEY, JSON.stringify(RAW)); }
+function loadLS(){ try{ const x=localStorage.getItem(LS_KEY); return x? JSON.parse(x): null;}catch{ return null; } }
+
+/* ====== Modo Edição ====== */
 function setEditMode(on){
   EDIT_MODE=on;
-  el('toggleEdit').textContent = on? '🔓 Edição ON' : '🔒 Editar';
-  ['btnImport','btnNew','btnSave','btnClearAll','attachLocalLabel'].forEach(id=>{
-    const b = el(id); if(!b) return;
-    b.style.display = on? 'inline-block' : 'none';
-  });
+  el('toggleEdit').textContent= on? '🔓 Edição ON' : '🔒 Editar';
+  ['btnImport','btnNew','btnSave','btnClearAll','attachLocalLabel'].forEach(id=>{ const b=el(id); if(!b) return; b.style.display= on? 'inline-block' : 'none'; });
   renderList();
 }
-el('toggleEdit').addEventListener('click', ()=> setEditMode(!EDIT_MODE));
-el('btnClearAll').addEventListener('click', ()=>{
-  if(confirm('Tem a certeza que pretende limpar todos os empreendimentos?')){ RAW=[]; saveLS(); run(); }
-});
-el('btnSave').addEventListener('click', ()=>{ saveLS(); alert('Dados guardados localmente.'); });
+el('toggleEdit').addEventListener('click',()=> setEditMode(!EDIT_MODE));
+el('btnClearAll').addEventListener('click',()=>{ if(confirm('Tem a certeza que pretende limpar todos os empreendimentos?')){ RAW=[]; saveLS(); run(); }});
+el('btnSave').addEventListener('click',()=>{ saveLS(); alert('Dados guardados localmente.'); });
 
-/* ===== CSV Import ===== */
+/* ====== CSV Import ====== */
 el('csvFile').addEventListener('change', async (ev)=>{
-  const file = ev.target.files?.[0]; if(!file) return;
-  if(!window.Papa){ alert('Leitor CSV indisponível. Verifique a rede/ambiente.'); return; }
-  const text = await file.text();
-  Papa.parse(text,{
-    header:true, dynamicTyping:false, skipEmptyLines:true,
+  const file=ev.target.files?.[0]; if(!file) return;
+  if(!window.Papa){ alert('Leitor CSV indisponível.'); return; }
+  const text=await file.text();
+  Papa.parse(text,{ header:true, dynamicTyping:false, skipEmptyLines:true,
     complete:res=>{
-      const incoming = (res.data||[]).map(row=>{
-        const p = {
+      const incoming=(res.data||[]).map(row=>{
+        const p={
           slug: slugify(row.nome||row.Nome||''),
           nome: row.nome||row.Nome||'',
           concelho: row.concelho||row.Concelho||row.municipio||'',
@@ -660,13 +611,8 @@ el('csvFile').addEventListener('change', async (ev)=>{
         return p;
       }).filter(p=>p.nome);
       if(!incoming.length){ alert('Nenhuma linha válida encontrada no CSV.'); return; }
-
-      const bySlug = new Map(RAW.map(p=>[p.slug||slugify(p.nome), p]));
-      incoming.forEach(n=>{
-        const key = n.slug || slugify(n.nome);
-        if(bySlug.has(key)){ Object.assign(bySlug.get(key), n); }
-        else { RAW.push(n); }
-      });
+      const bySlug=new Map(RAW.map(p=>[p.slug||slugify(p.nome),p]));
+      incoming.forEach(n=>{ const key=n.slug||slugify(n.nome); if(bySlug.has(key)){ Object.assign(bySlug.get(key),n);} else { RAW.push(n);} });
       saveLS(); buildFacetOptions(); run();
       alert(`Importação concluída: ${incoming.length} registos processados.`);
       ev.target.value='';
@@ -675,75 +621,57 @@ el('csvFile').addEventListener('change', async (ev)=>{
   });
 });
 
-/* ===== Modal de Edição ===== */
+/* ====== Modal Edição ====== */
 function openEditBySlug(slug){
-  const idx = RAW.findIndex(p=>p.slug===slug);
-  if(idx<0) return;
-  EDIT_INDEX = idx;
-  const p = RAW[idx];
-  fillEditForm(p);
-  el('editTitle').textContent='Editar Empreendimento';
-  el('editModal').classList.add('show');
+  const idx=RAW.findIndex(p=>p.slug===slug); if(idx<0) return;
+  EDIT_INDEX=idx; const p=RAW[idx];
+  fillEditForm(p); el('editTitle').textContent='Editar Empreendimento'; el('editModal').classList.add('show');
 }
-el('btnNew').addEventListener('click', ()=>{
-  EDIT_INDEX = -1;
+el('btnNew').addEventListener('click',()=>{
+  EDIT_INDEX=-1;
   fillEditForm({nome:'',concelho:'',estado:'',promotor:'',tipologias:'',conclusao:'',preco_m2:'',notas:'',link:'',_lat:'',_lng:'',docs:[]});
   el('editTitle').textContent='Novo Empreendimento';
   el('editModal').classList.add('show');
 });
-el('cancelEdit').addEventListener('click', ()=>{ el('editModal').classList.remove('show'); PICKING=false; });
+el('cancelEdit').addEventListener('click',()=>{ el('editModal').classList.remove('show'); PICKING=false; });
 
-el('pickCoord').addEventListener('click', ()=>{
-  PICKING = !PICKING;
-  const b=el('pickCoord');
-  b.textContent = PICKING? 'Clique no mapa…' : 'Definir no mapa';
-  b.classList.toggle('primary', PICKING);
+el('pickCoord').addEventListener('click',()=>{
+  PICKING=!PICKING; const b=el('pickCoord'); b.textContent= PICKING? 'Clique no mapa…' : 'Definir no mapa'; b.classList.toggle('primary',PICKING);
 });
 
-/* anexar ficheiro local (com fallback) */
-function updateLocalAttachVisibility(){
-  const lab = el('attachLocalLabel');
-  if(lab) lab.style.display = EDIT_MODE ? 'inline-block' : 'none';
-}
+function updateLocalAttachVisibility(){ const lab=el('attachLocalLabel'); if(lab) lab.style.display= EDIT_MODE ? 'inline-block' : 'none'; }
 updateLocalAttachVisibility();
-el('toggleEdit').addEventListener('click', ()=>{ setTimeout(updateLocalAttachVisibility, 0); });
+el('toggleEdit').addEventListener('click',()=>{ setTimeout(updateLocalAttachVisibility,0); });
 
 el('attachLocalInput').addEventListener('change', async (ev)=>{
-  const file = ev.target.files?.[0];
-  if(!file) return;
-  const slugCurrent = slugify(el('f_nome').value || (EDIT_INDEX>=0 ? RAW[EDIT_INDEX].nome : 'novo'));
+  const file=ev.target.files?.[0]; if(!file) return;
+  const slugCurrent=slugify(el('f_nome').value || (EDIT_INDEX>=0 ? RAW[EDIT_INDEX].nome : 'novo'));
+  el('loadingMask').classList.add('show');
   try{
-    const url = await saveLocalBlob(file, slugCurrent, file.name);
-    const ext = (file.name.split('.').pop()||'').toLowerCase();
-    const type = (ext==='pdf') ? 'pdf' : (['png','jpg','jpeg','webp','gif'].includes(ext) ? 'img' : 'link');
-    addDocRow({ title: file.name, type, url });
+    const url=await saveLocalBlob(file, slugCurrent, file.name);
+    const ext=(file.name.split('.').pop()||'').toLowerCase();
+    const type=(ext==='pdf')?'pdf':(['png','jpg','jpeg','webp','gif'].includes(ext)?'img':'link');
+    addDocRow({ title:file.name, type, url });
   }catch(e){
-    alert('Não foi possível anexar o ficheiro. ('+(e.message||e)+')');
+    alert('Não foi possível anexar o ficheiro. '+(e.message||''));
+  }finally{
+    el('loadingMask').classList.remove('show');
+    ev.target.value='';
   }
-  ev.target.value='';
 });
 
-el('addDoc').addEventListener('click', ()=> addDocRow({title:'', type:'pdf', url:''}));
+el('addDoc').addEventListener('click',()=> addDocRow({title:'', type:'pdf', url:''}));
 
 function fillEditForm(p){
-  el('f_nome').value = p.nome||'';
-  el('f_concelho_e').value = p.concelho||'';
-  el('f_estado').value = p.estado||'';
-  el('f_promotor_e').value = p.promotor||'';
-  el('f_tipologias').value = p.tipologias||'';
-  el('f_conclusao').value = p.conclusao||'';
-  el('f_preco').value = p.preco_m2||'';
-  el('f_link').value = p.link||'';
-  el('f_lat').value = p._lat!=null? p._lat : '';
-  el('f_lng').value = p._lng!=null? p._lng : '';
-  el('f_notas').value = p.notas||'';
-  const box = el('docsBox'); box.innerHTML='';
+  el('f_nome').value=p.nome||''; el('f_concelho_e').value=p.concelho||''; el('f_estado').value=p.estado||''; el('f_promotor_e').value=p.promotor||'';
+  el('f_tipologias').value=p.tipologias||''; el('f_conclusao').value=p.conclusao||''; el('f_preco').value=p.preco_m2||'';
+  el('f_link').value=p.link||''; el('f_lat').value=p._lat!=null? p._lat : ''; el('f_lng').value=p._lng!=null? p._lng : ''; el('f_notas').value=p.notas||'';
+  const box=el('docsBox'); box.innerHTML='';
   (p.docs||[]).forEach(d=> addDocRow(d));
 }
 function addDocRow(d){
-  const row = document.createElement('div');
-  row.className='doc-row';
-  row.innerHTML = `
+  const row=document.createElement('div'); row.className='doc-row';
+  row.innerHTML=`
     <input placeholder="Título (ex.: Brochura)" value="${d.title||''}">
     <select>
       <option value="pdf" ${d.type==='pdf'?'selected':''}>pdf</option>
@@ -754,116 +682,84 @@ function addDocRow(d){
     <button class="btn del">Apagar</button>
   `;
   row.querySelector('.del').addEventListener('click', async ()=>{
-    const inputs = row.querySelectorAll('input,select');
-    const u = inputs[2].value.trim();
+    const inputs=row.querySelectorAll('input,select'); const u=inputs[2].value.trim();
     if(isIdbUrl(u)) await deleteLocalBlob(u);
     row.remove();
   });
   el('docsBox').appendChild(row);
 }
 
-el('saveEdit').addEventListener('click', ()=>{
-  const p = {
-    nome: el('f_nome').value.trim(),
-    concelho: el('f_concelho_e').value.trim(),
-    estado: el('f_estado').value,
-    promotor: el('f_promotor_e').value.trim(),
-    tipologias: el('f_tipologias').value.trim(),
-    conclusao: el('f_conclusao').value? Number(el('f_conclusao').value): '',
-    preco_m2: el('f_preco').value? Number(el('f_preco').value): '',
-    notas: el('f_notas').value.trim(),
-    link: el('f_link').value.trim(),
-    _lat: el('f_lat').value? numPT(el('f_lat').value): null,
-    _lng: el('f_lng').value? numPT(el('f_lng').value): null,
-    docs: []
+el('saveEdit').addEventListener('click',()=>{
+  const p={
+    nome:el('f_nome').value.trim(),
+    concelho:el('f_concelho_e').value.trim(),
+    estado:el('f_estado').value,
+    promotor:el('f_promotor_e').value.trim(),
+    tipologias:el('f_tipologias').value.trim(),
+    conclusao:el('f_conclusao').value? Number(el('f_conclusao').value): '',
+    preco_m2:el('f_preco').value? Number(el('f_preco').value): '',
+    notas:el('f_notas').value.trim(),
+    link:el('f_link').value.trim(),
+    _lat:el('f_lat').value? numPT(el('f_lat').value): null,
+    _lng:el('f_lng').value? numPT(el('f_lng').value): null,
+    docs:[]
   };
   el('docsBox').querySelectorAll('.doc-row').forEach(r=>{
-    const inputs = r.querySelectorAll('input,select');
-    const d = { title: inputs[0].value.trim(), type: inputs[1].value, url: inputs[2].value.trim() };
+    const inputs=r.querySelectorAll('input,select'); const d={title:inputs[0].value.trim(), type:inputs[1].value, url:inputs[2].value.trim()};
     if(d.url) p.docs.push(d);
   });
   if(!p.nome){ alert('O nome é obrigatório.'); return; }
-  p.slug = slugify(p.nome);
-
-  if(EDIT_INDEX>=0){
-    RAW[EDIT_INDEX] = Object.assign(RAW[EDIT_INDEX], p);
-  }else{
-    const exist = RAW.find(x=>x.slug===p.slug);
-    if(exist){ if(!confirm('Já existe um empreendimento com este nome. Substituir?')) return;
-      Object.assign(exist, p);
-    }else{
-      RAW.push(p);
-    }
-  }
-  saveLS();
-  el('editModal').classList.remove('show'); PICKING=false;
-  buildFacetOptions();
-  run();
+  p.slug=slugify(p.nome);
+  if(EDIT_INDEX>=0){ RAW[EDIT_INDEX]=Object.assign(RAW[EDIT_INDEX],p); }
+  else{ const exist=RAW.find(x=>x.slug===p.slug); if(exist){ if(!confirm('Já existe um empreendimento com este nome. Substituir?')) return; Object.assign(exist,p);} else { RAW.push(p);} }
+  saveLS(); el('editModal').classList.remove('show'); PICKING=false; buildFacetOptions(); run();
 });
 function deleteBySlug(slug){
   if(!confirm('Apagar este empreendimento?')) return;
-  const idx = RAW.findIndex(p=>p.slug===slug);
-  if(idx>=0){ RAW.splice(idx,1); saveLS(); buildFacetOptions(); run(); }
+  const idx=RAW.findIndex(p=>p.slug===slug); if(idx>=0){ RAW.splice(idx,1); saveLS(); buildFacetOptions(); run(); }
 }
 
-/* ================== PDF MODAL ================== */
-function openPDF(url){
-  el('pdfFrame').src=url;
-  el('pdfOpenNew').href=url;
-  el('pdfModal').classList.add('show');
-}
-el('pdfClose').addEventListener('click', ()=>{ el('pdfModal').classList.remove('show'); el('pdfFrame').src='about:blank'; });
-el('pdfModal').addEventListener('click', (e)=>{ if(e.target.id==='pdfModal') el('pdfClose').click(); });
-
-/* ================== EVENTOS UI ================== */
+/* ====== UI filtros ====== */
 document.querySelectorAll('#estadoChips .chip').forEach(ch=>{
-  ch.addEventListener('click', ()=>{
+  ch.addEventListener('click',()=>{
     document.querySelectorAll('#estadoChips .chip').forEach(c=>c.classList.remove('active'));
     ch.classList.add('active'); UIState.estado=ch.dataset.v||''; run();
   });
 });
-el('apply').addEventListener('click', ()=>{
-  UIState.q=el('q').value.trim();
-  UIState.concelho=el('f_concelho').value;
-  UIState.cmin=el('f_cmin').value;
-  UIState.cmax=el('f_cmax').value;
-  UIState.pmin=el('f_pmin').value;
-  UIState.pmax=el('f_pmax').value;
-  UIState.promotor=el('f_promotor').value;
-  UIState.tipos=el('f_tipos').value.trim();
-  run();
+el('apply').addEventListener('click',()=>{
+  UIState.q=el('q').value.trim(); UIState.concelho=el('f_concelho').value;
+  UIState.cmin=el('f_cmin').value; UIState.cmax=el('f_cmax').value;
+  UIState.pmin=el('f_pmin').value; UIState.pmax=el('f_pmax').value;
+  UIState.promotor=el('f_promotor').value; UIState.tipos=el('f_tipos').value.trim(); run();
 });
-el('clear').addEventListener('click', ()=>{
+el('clear').addEventListener('click',()=>{
   ['q','f_concelho','f_cmin','f_cmax','f_pmin','f_pmax','f_promotor','f_tipos'].forEach(id=>el(id).value='');
   document.querySelectorAll('#estadoChips .chip').forEach(c=>c.classList.remove('active'));
   document.querySelector('#estadoChips .chip[data-v=""]').classList.add('active');
-  UIState={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'' };
-  run();
+  UIState={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'' }; run();
 });
 
-/* ================== CICLO RENDER ================== */
+/* ====== Ciclo render ====== */
 function run(){ applyFilters(); renderKPIs(); renderList(); renderMarkers(); }
 
-/* ================== Arranque robusto ================== */
+/* ====== Click picking coords ====== */
+document.addEventListener('click',(e)=>{
+  if(!PICKING || !MAP) return;
+  // só processa cliques dentro do mapa
+  if(!e.target.closest('#map')) return;
+  const latlng=MAP.mouseEventToLatLng(e);
+  el('f_lat').value=latlng.lat.toFixed(6); el('f_lng').value=latlng.lng.toFixed(6);
+  PICKING=false; el('pickCoord').textContent='Definir no mapa'; el('pickCoord').classList.remove('primary');
+});
+
+/* ====== Arranque ====== */
 (async function init(){
-  // Leaflet + cluster (com fallbacks); se falhar, arranca sem mapa
-  let MAP_OK=true;
-  try{ await loadLeafletAndCluster(); }
-  catch(e){ MAP_OK=false; console.warn('Sem Leaflet:', e.message||e); }
-  if(MAP_OK && window.L){ initMap(); } else { el('map')?.classList.add('hidden'); }
+  try{ await loadLeafletAndCluster(); }catch{}
+  if(window.L){ initMap(); } else { el('map')?.classList.add('hidden'); }
 
   await detectStorageMode();
-  if(STORAGE_MODE==='dataurl'){
-    const warn=document.createElement('div');
-    warn.className='hint'; warn.style.cssText='margin-left:8px;color:#ffcc99';
-    warn.textContent='Aviso: anexos gravados como Data URL (fallback).';
-    document.querySelector('.toolbar')?.appendChild(warn);
-  }
-
-  const mem = loadLS();
-  RAW = Array.isArray(mem) ? mem : [];
-  buildFacetOptions();
-  run();
+  const mem=loadLS(); RAW=Array.isArray(mem)? mem : [];
+  buildFacetOptions(); run();
 })();
 </script>
 </body>
