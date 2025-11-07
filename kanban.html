@@ -14,7 +14,6 @@
   .btn.primary{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
   .btn.ghost{border-color:var(--line);color:#ddd}
   .layout{display:grid;grid-template-columns:320px 1fr;gap:0;height:calc(100vh - 52px)}
-
   .quick{display:flex;align-items:center;gap:10px;margin-right:4px}
   .switch{position:relative;display:inline-block;width:44px;height:22px;vertical-align:middle}
   .switch input{opacity:0;width:0;height:0}
@@ -22,7 +21,6 @@
   .slider:before{position:absolute;content:"";height:18px;width:18px;left:2px;top:1.5px;background:#d9d9d9;transition:.2s;border-radius:50%}
   input:checked + .slider{background:var(--gold)}
   input:checked + .slider:before{transform:translateX(22px);background:#111}
-
   .sidebar{background:var(--panel);border-right:1px solid var(--line);position:relative;display:flex;flex-direction:column}
   .side-scroll{padding:12px;overflow:auto;flex:1}
   .side-title{font-size:12px;color:#cfcfcf;text-transform:uppercase;letter-spacing:.05em;margin:8px 0 6px}
@@ -38,7 +36,6 @@
   .dock-actions{display:flex;gap:8px}
   .badge{display:inline-flex;align-items:center;gap:6px;background:#0E0E0E;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px;color:#ddd}
   .badge .dot{width:10px;height:10px;border-radius:50%;border:1px solid var(--line);display:inline-block}
-
   .board{overflow:auto;padding:12px}
   .cols{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;min-width:1100px}
   .col{background:var(--panel);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;max-height:100%}
@@ -46,7 +43,6 @@
   .col-title{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:#eee}
   .count{font-size:11px;color:#bbb}
   .col-body{padding:10px;overflow:auto;display:grid;gap:10px}
-
   .card{background:#0D0D0D;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px}
   .card .name{font-weight:800;margin:0 0 6px 0;font-size:13px}
   .meta{font-size:12px;color:#cfcfcf;margin-bottom:6px}
@@ -62,7 +58,6 @@
   .icon-danger{border-color:#5f1e1e;color:#ffbbbb}
   .icon-danger:hover{border-color:#EF5350;color:#fff}
   .hidden-flag{opacity:.6}
-
   @media(max-width:1200px){.layout{grid-template-columns:1fr}.cols{min-width:900px}}
 </style>
 </head>
@@ -217,50 +212,59 @@
         <div><div class="label req">Perfil</div>
           <select id="m_perfil"><option value="cliente_final">Cliente final</option><option value="investidor">Investidor</option></select>
         </div>
-        <div><div class="label">Zona preferencial</div><input id="m_zona" placeholder="Boavista, Foz, Gaia…"></div>
+        <div>
+          <div class="label req">Tipo de negócio</div>
+          <select id="m_tipo_negocio">
+            <option>Venda</option>
+            <option>Compra</option>
+            <option>Arrendamento</option>
+            <option>Permuta</option>
+          </select>
+        </div>
       </div>
 
       <div class="grid g-3" style="margin-top:10px">
+        <div><div class="label">Zona preferencial</div><input id="m_zona" placeholder="Boavista, Foz, Gaia…"></div>
         <div><div class="label">Imóvel</div>
           <select id="m_imovel_tipo"><option>Moradia</option><option>Apartamento</option><option>Loja</option><option>Armazém</option><option>Escritório</option><option>Terreno</option><option>Outro</option></select>
         </div>
         <div><div class="label">Tipologia</div>
           <select id="m_tipologia"><option>T0</option><option>T1</option><option>T2</option><option>T3</option><option>T4</option><option>T5</option><option>>T5</option></select>
         </div>
-        <div><div class="label">Valor (€)</div><input id="m_val" type="number" inputmode="decimal" placeholder="Ex.: 350000"></div>
       </div>
 
       <div class="grid g-3" style="margin-top:10px">
+        <div><div class="label">Valor (€)</div><input id="m_val" type="number" inputmode="decimal" placeholder="Ex.: 350000"></div>
         <div><div class="label">Urgente</div><select id="m_urgente"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
         <div><div class="label">Pode comprar em planta</div><select id="m_planta"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
-        <div><div class="label">Habitação</div><select id="m_habitacao"><option>Habitação própria</option><option>Habitação secundária</option></select></div>
       </div>
 
       <div class="grid g-3" style="margin-top:10px">
+        <div><div class="label">Habitação</div><select id="m_habitacao"><option>Habitação própria</option><option>Habitação secundária</option></select></div>
         <div><div class="label">Vai recorrer a financiamento</div><select id="m_fin"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
         <div><div class="label">Já fez simulação</div><select id="m_simulacao"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
-        <div><div class="label">Se sim, instituição</div><input id="m_banco" placeholder="Ex.: CGD, BPI, Novo Banco…"></div>
       </div>
 
       <div class="grid g-3" style="margin-top:10px">
+        <div><div class="label">Se sim, instituição</div><input id="m_banco" placeholder="Ex.: CGD, BPI, Novo Banco…"></div>
         <div><div class="label">Tem imóvel para vender</div><select id="m_tem_vender"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
         <div><div class="label">Já colocou à venda</div><select id="m_ja_venda"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
-        <div><div class="label">Origem</div>
-          <select id="m_origem"><option>Indefinido</option><option>Promotor</option><option>Referência</option><option>Digital</option><option>Walk-in</option><option>Outro</option></select>
-        </div>
       </div>
 
       <div class="grid g-2" style="margin-top:10px">
+        <div><div class="label">Origem</div>
+          <select id="m_origem"><option>Indefinido</option><option>Promotor</option><option>Referência</option><option>Digital</option><option>Walk-in</option><option>Outro</option></select>
+        </div>
         <div><div class="label req">Consultor</div>
           <select id="m_consultor">
             <option>Rui Quelhas</option><option>Manuel Oliveira</option><option>João Sousa</option>
             <option>Francisco dos Santos</option><option>Rosário Vasconcelos</option><option>Armanda Meireles</option><option>Audrey Lucas</option>
           </select>
         </div>
-        <div><div class="label req">Data</div><input id="m_data" type="date"></div>
       </div>
 
-      <div class="row" style="margin-top:10px">
+      <div class="grid g-2" style="margin-top:10px">
+        <div><div class="label req">Data</div><input id="m_data" type="date"></div>
         <div><div class="label">Notas</div>
           <textarea id="m_notas" rows="3" style="width:100%;background:#0E0E0E;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:8px 10px;color:#fff;resize:vertical" placeholder="Observações relevantes, expectativas, condicionantes…"></textarea>
         </div>
@@ -362,7 +366,13 @@ function cardHTML(l){
   const tel=normalizePhone(l.tel||l.contacto||l.contact||l.telefone);
   const email=safeMail(l.email);
   const v=isFinite(l.val)?money(l.val):'—';
-  const tags=[]; if(l.origem)tags.push(l.origem); if(l.tipo_cli)tags.push(l.tipo_cli); if(l.perfil)tags.push(l.perfil); if(l.imovel_tipo)tags.push(l.imovel_tipo); if(l.tipologia)tags.push(l.tipologia);
+  const tags=[];
+  if(l.tipo_negocio) tags.push(l.tipo_negocio);
+  if(l.origem) tags.push(l.origem);
+  if(l.tipo_cli) tags.push(l.tipo_cli);
+  if(l.perfil) tags.push(l.perfil);
+  if(l.imovel_tipo) tags.push(l.imovel_tipo);
+  if(l.tipologia) tags.push(l.tipologia);
   const eyeLabel=(l.hidden===true)?'Tornar visível':'Tornar invisível';
   const eyeIcon=(l.hidden===true)?'👁️':'🚫';
   return `
@@ -453,7 +463,6 @@ function moveLeadToColumn(id, stage){
 }
 
 function attachCardActions(){
-  // garantir que os botões não iniciam drag do cartão
   document.querySelectorAll('.card .actions .iconbtn').forEach(btn=>{
     btn.setAttribute('draggable','false');
     btn.addEventListener('dragstart', e=>e.preventDefault());
@@ -493,7 +502,6 @@ function attachDblClick(){
     };
   });
 }
-
 el('mQClose').addEventListener('click', ()=>openQuick(false));
 el('mQSave').addEventListener('click', ()=>{
   const id=el('mQ_id').value; const arr=loadLeads(); const i=arr.findIndex(x=>String(x.id)===String(id)); if(i<0) return;
@@ -516,6 +524,7 @@ function openNew(v){ $('#modalNew').style.display=v?'flex':'none'; $('#mNewDelet
 function resetNewForm(){
   ['m_nome','m_tel','m_email','m_zona','m_val','m_banco','m_notas'].forEach(id=>el(id).value='');
   el('m_tipo_cli').value='comprador'; el('m_perfil').value='cliente_final';
+  el('m_tipo_negocio').value='Venda';
   el('m_imovel_tipo').value='Moradia'; el('m_tipologia').value='T2';
   el('m_urgente').value='nao'; el('m_planta').value='nao'; el('m_habitacao').value='Habitação própria';
   el('m_fin').value='nao'; el('m_simulacao').value='nao'; el('m_tem_vender').value='nao'; el('m_ja_venda').value='nao';
@@ -529,6 +538,7 @@ el('mNewSave').addEventListener('click', ()=>{
   const lead={
     id:Date.now(), cliente:nome, tel, email,
     tipo_cli:el('m_tipo_cli').value, perfil:el('m_perfil').value,
+    tipo_negocio: el('m_tipo_negocio').value,
     imovel_tipo:el('m_imovel_tipo').value, tipologia:el('m_tipologia').value,
     zona:el('m_zona').value.trim(), val:Number(el('m_val').value||''),
     urgente:el('m_urgente').value, planta:el('m_planta').value, habitacao:el('m_habitacao').value,
@@ -543,8 +553,18 @@ el('mNewSave').addEventListener('click', ()=>{
 
 el('exportLeads').addEventListener('click', ()=>{
   const arr=loadLeads().filter(applyFilter);
-  const headers=["ID","Visível","Nome Cliente","Contacto","Email","Consultor","Origem","Tipo","Perfil","Imóvel","Tipologia","Zona","Valor","Urgente","Planta","Habitação","Fin.B.","Simulação","Banco","Tem p/ vender","Já à venda","Estado","Data","Atualizado em","Notas"];
-  const rows=arr.map(l=>[l.id,(l.hidden===true?'Não':'Sim'),l.cliente||'',l.tel||l.contacto||'',l.email||'',l.consultor||'',l.origem||'',l.tipo_cli||'',l.perfil||'',l.imovel_tipo||'',l.tipologia||'',l.zona||'',isFinite(l.val)?l.val:'',l.urgente||'',l.planta||'',l.habitacao||'',l.fin_banc||'',l.simulacao||'',l.banco||'',l.tem_imovel_vender||'',l.ja_venda||'',l.stage||'',l.createdAt||'',l.updatedAt||'',(l.notas||'').replace(/\n/g,' ')]);
+  const headers=["ID","Visível","Nome Cliente","Contacto","Email","Consultor","Origem","Tipo","Perfil","Negócio","Imóvel","Tipologia","Zona","Valor","Urgente","Planta","Habitação","Fin.B.","Simulação","Banco","Tem p/ vender","Já à venda","Estado","Data","Atualizado em","Notas"];
+  const rows=arr.map(l=>[
+    l.id,(l.hidden===true?'Não':'Sim'),l.cliente||'',l.tel||l.contacto||'',l.email||'',
+    l.consultor||'',l.origem||'',l.tipo_cli||'',l.perfil||'',l.tipo_negocio||'',
+    l.imovel_tipo||'',l.tipologia||'',l.zona||'',
+    isFinite(l.val)? l.val : '',
+    l.urgente||'',l.planta||'',l.habitacao||'',
+    l.fin_banc||'',l.simulacao||'',l.banco||'',
+    l.tem_imovel_vender||'',l.ja_venda||'',
+    l.stage||'',l.createdAt||'',l.updatedAt||'',
+    (l.notas||'').replace(/\n/g,' ')
+  ]);
   const csv=[headers,...rows].map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob); const a=document.createElement('a');
   a.href=url; a.download='leads_filtradas.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
