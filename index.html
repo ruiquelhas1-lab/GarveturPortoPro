@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Garvetur Porto Pro — Mapa (Edição + CSV + Anexos Locais c/ Fallback)</title>
+<title>Garvetur Porto Pro — Mapa (Edição + CSV + Anexos Locais)</title>
 
-<!-- CDNs -->
+<!-- Estilos e dependências de CSS -->
 <link rel="preconnect" href="https://unpkg.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin="anonymous">
+
+<!-- PapaParse e IndexedDB helper -->
 <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js" crossorigin="anonymous"></script>
-<!-- IndexedDB helper -->
 <script src="https://unpkg.com/idb-keyval@6/dist/idb-keyval.iife.min.js" crossorigin="anonymous"></script>
 
 <style>
@@ -64,7 +66,7 @@ input[type="file"]{display:none}
 #map{width:100%;height:100%}
 .leaflet-container{background:#eaeaea}
 .legend{
-  position:absolute;left:12px;bottom:12px;z-index:5000;
+  position:absolute;left:12px;bottom:16px;z-index:5000;
   background:#111;border:1px solid var(--border);border-radius:10px;
   padding:8px 10px;font-size:12px;color:#fff
 }
@@ -113,6 +115,8 @@ input[type="file"]{display:none}
 .pdf-card header{padding:8px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
 .pdf-card .frame{flex:1}
 .pdf-card iframe{width:100%;height:100%;border:0}
+
+.hidden{display:none !important}
 
 @media (max-width: 1000px){
   .app{grid-template-columns:1fr;grid-template-rows:56px 40px 280px 1fr}
@@ -261,7 +265,6 @@ input[type="file"]{display:none}
         <div id="docsBox"></div>
         <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap">
           <button class="btn" id="addDoc">+ Adicionar documento (URL)</button>
-          <!-- o botão de anexo local está no header -->
         </div>
       </div>
     </div>
@@ -282,8 +285,8 @@ input[type="file"]{display:none}
   </div>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" crossorigin="anonymous"></script>
+<!-- Leaflet JS será carregado via loader robusto no script abaixo -->
+
 <script>
 /* ================== CONFIG ================== */
 const AMP_CENTER=[41.15,-8.61], AMP_ZOOM=12;
@@ -296,7 +299,7 @@ let ACTIVE=null;
 let EDIT_MODE=false;
 let EDIT_INDEX=-1;
 let PICKING=false;
-let UI={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'' };
+let UIState={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'' };
 
 /* ================== HELPERS ================== */
 const el=id=>document.getElementById(id);
@@ -310,6 +313,28 @@ function pinClass(k){ if(k==='em_construcao')return 'pin c'; if(k==='licenciado'
 function toCSV(rows){ return rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n'); }
 function slugify(s){ return norm(s).replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,''); }
 function asNum(v){ const n=Number(v); return Number.isFinite(n)?n:null; }
+
+/* ====== Loader robusto do Leaflet (unpkg -> jsDelivr; senão, “modo sem mapa”) ====== */
+function loadLeafletJS(){
+  return new Promise((resolve, reject)=>{
+    if(window.L) return resolve(true);
+    const primary = document.createElement('script');
+    primary.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    primary.crossOrigin = 'anonymous';
+    primary.defer = true;
+    primary.onload = () => resolve(true);
+    primary.onerror = () => {
+      const backup = document.createElement('script');
+      backup.src = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';
+      backup.crossOrigin = 'anonymous';
+      backup.defer = true;
+      backup.onload = () => resolve(true);
+      backup.onerror = () => reject(new Error('Leaflet indisponível nos CDNs.'));
+      document.head.appendChild(backup);
+    };
+    document.head.appendChild(primary);
+  });
+}
 
 /* ====== Deteção de capacidade de armazenamento ====== */
 let STORAGE_MODE = 'idb'; // 'idb' ou 'dataurl'
@@ -391,7 +416,6 @@ function matchTokens(obj, tokens){
   const hay = norm([obj.nome,obj.concelho,obj.promotor,obj.tipologias,obj.estado,obj.notas,obj.conclusao,obj.preco_m2].join(' '));
   return tokens.every(tok => hay.includes(tok));
 }
-let UIState={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'' };
 function applyFilters(){
   const tokens = norm(UIState.q).split(/\s+/).filter(Boolean);
   const tiposTokens = norm(UIState.tipos||'').split(/[,\s]+/).filter(Boolean);
@@ -442,7 +466,7 @@ function renderList(){
         ${EDIT_MODE ? `<button class="btn ghost" data-act="edit">Editar</button>
         <button class="btn" style="border-color:#cc4b4b;color:#ffdddd" data-act="del">Apagar</button>`:''}
       </div>`;
-    div.querySelector('[data-act="zoom"]').addEventListener('click', ()=>{ if(p._lat&&p._lng) MAP.setView([p._lat,p._lng], 16, {animate:true}); });
+    div.querySelector('[data-act="zoom"]').addEventListener('click', ()=>{ if(p._lat&&p._lng) MAP?.setView([p._lat,p._lng], 16, {animate:true}); });
     div.querySelector('[data-act="open"]').addEventListener('click', ()=>openFicha(p,true));
     if(EDIT_MODE){
       div.querySelector('[data-act="edit"]').addEventListener('click', ()=>openEditBySlug(p.slug));
@@ -455,6 +479,7 @@ function renderList(){
 /* ================== MARCADORES ================== */
 function makeDivIcon(state){ return L.divIcon({ className: pinClass(state), html:'', iconSize:[28,28], iconAnchor:[14,14], popupAnchor:[0,-12] }); }
 function renderMarkers(){
+  if(!CLUSTER || !LAYER || !window.L) return; // modo sem mapa
   CLUSTER.clearLayers(); LAYER.clearLayers();
   FILT.forEach(p=>{
     if(p._lat==null||p._lng==null) return;
@@ -479,6 +504,48 @@ function buildDocsHTML(docs){
   return `<ul id="docList" style="list-style:none;margin:0;padding:0">${items}</ul>
           <div id="docView" style="margin-top:8px"></div>`;
 }
+
+/* ======= Safari-friendly preview (PDF/IMG) ======= */
+const IS_SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent || '');
+async function resolveLocalUrl(rawUrl){
+  return rawUrl && rawUrl.startsWith('idb://') ? (await getLocalBlobUrl(rawUrl)) : rawUrl;
+}
+async function renderDocPreview(container, rawUrl, type){
+  const url = await resolveLocalUrl(rawUrl);
+  if(!url){ container.innerHTML = '<div class="hint">Documento indisponível.</div>'; return; }
+
+  if(type === 'img'){
+    container.innerHTML = `<img src="${url}" alt="" style="max-width:100%;border-radius:8px">`;
+    return;
+  }
+  if(type === 'pdf'){
+    if(IS_SAFARI){
+      container.innerHTML = `
+        <object data="${url}#view=FitH" type="application/pdf" style="width:100%;height:420px;border:0;border-radius:8px">
+          <div class="hint">O seu navegador não consegue apresentar o PDF embebido. Use "Abrir em nova aba".</div>
+        </object>
+        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+          <a class="btn-sm" href="${url}" target="_blank" rel="noreferrer">Abrir em nova aba</a>
+          <button class="btn-sm" data-act="expand" data-url="${rawUrl}">Expandir</button>
+        </div>`;
+    }else{
+      container.innerHTML = `
+        <iframe src="${url}#view=FitH" style="width:100%;height:420px;border:0;border-radius:8px"></iframe>
+        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+          <a class="btn-sm" href="${url}" target="_blank" rel="noreferrer">Abrir em nova aba</a>
+          <button class="btn-sm" data-act="expand" data-url="${rawUrl}">Expandir</button>
+        </div>`;
+    }
+    container.querySelector('[data-act="expand"]')?.addEventListener('click', async (e)=>{
+      const raw = e.target.getAttribute('data-url');
+      const u = await resolveLocalUrl(raw);
+      openPDF(u);
+    });
+    return;
+  }
+  container.innerHTML = `<a class="btn-sm" href="${url}" target="_blank" rel="noreferrer">Abrir ligação</a>`;
+}
+
 function openFicha(p, focus=false){
   ACTIVE=p;
   const html=`
@@ -514,9 +581,9 @@ function openFicha(p, focus=false){
   `;
   el('panelInner').innerHTML=html;
   el('side-panel').classList.add('show');
-  if(focus && p._lat && p._lng) MAP.setView([p._lat,p._lng], 16, {animate:true});
+  if(focus && p._lat && p._lng) MAP?.setView([p._lat,p._lng], 16, {animate:true});
 
-  el('panelInner').querySelector('[data-act="center"]')?.addEventListener('click',()=>{ if(p._lat&&p._lng) MAP.setView([p._lat,p._lng], 16,{animate:true}); });
+  el('panelInner').querySelector('[data-act="center"]')?.addEventListener('click',()=>{ if(p._lat&&p._lng) MAP?.setView([p._lat,p._lng], 16,{animate:true}); });
   el('panelInner').querySelector('[data-act="copy"]')?.addEventListener('click',async ()=>{
     const resumo = `${p.nome||''} — ${p.concelho||''} (${p.estado||''}); Conclusão ${p.conclusao||'—'}; ${p.link||''}`.trim();
     try{ await navigator.clipboard.writeText(resumo); }catch{}
@@ -530,28 +597,20 @@ function openFicha(p, focus=false){
     el('panelInner').querySelector('[data-act="edit"]')?.addEventListener('click', ()=>openEditBySlug(p.slug));
   }
 
-  // docs: preview + expandir (resolvendo idb:// -> blob:, e data: direto)
+  // docs: preview + expandir (idb:// -> blob:, data: direto) — versão compatível Safari
   const ul = el('panelInner').querySelector('#docList');
   if(ul){
     ul.querySelectorAll('li').forEach(li=>{
-      li.addEventListener('click', async (ev)=>{
+      li.addEventListener('click', async ()=>{
         const rawUrl = li.getAttribute('data-url');
         const tp = li.getAttribute('data-type');
         const view = el('panelInner').querySelector('#docView');
-        const url = rawUrl.startsWith('idb://') ? (await getLocalBlobUrl(rawUrl)) : rawUrl;
-
-        if(tp==='img') view.innerHTML=`<img src="${url}" alt="" style="max-width:100%;border-radius:8px">`;
-        else if(tp==='pdf') view.innerHTML=`<iframe src="${url}" style="width:100%;height:360px;border:0;border-radius:8px"></iframe>
-          <div style="margin-top:6px">
-            <a class="btn-sm" href="${url}" target="_blank" rel="noreferrer">Abrir PDF</a>
-            <button class="btn-sm" data-act="expand" data-url="${rawUrl}">Expandir</button>
-          </div>`;
-        else view.innerHTML=`<a class="btn-sm" href="${url}" target="_blank" rel="noreferrer">Abrir ligação</a>`;
+        await renderDocPreview(view, rawUrl, tp);
       });
       li.querySelector('[data-act="expand"]')?.addEventListener('click', async (e)=>{
         e.stopPropagation();
         const rawUrl = e.target.getAttribute('data-url');
-        const url = rawUrl.startsWith('idb://') ? (await getLocalBlobUrl(rawUrl)) : rawUrl;
+        const url = await resolveLocalUrl(rawUrl);
         openPDF(url);
       });
     });
@@ -721,8 +780,8 @@ function addDocRow(d){
     <button class="btn del">Apagar</button>
   `;
   row.querySelector('.del').addEventListener('click', async ()=>{
-    const urlInput = row.querySelectorAll('input,select')[2];
-    const u = urlInput.value.trim();
+    const inputs = row.querySelectorAll('input,select');
+    const u = inputs[2].value.trim();
     if(isIdbUrl(u)) await deleteLocalBlob(u);
     row.remove();
   });
@@ -811,20 +870,42 @@ document.getElementById('clear').addEventListener('click', ()=>{
 /* ================== CICLO RENDER ================== */
 function run(){ applyFilters(); renderKPIs(); renderList(); renderMarkers(); }
 
-/* ================== BOOT ================== */
+/* ================== Arranque robusto ================== */
 (async function init(){
-  initMap();
+  // 1) Tentar carregar Leaflet; se falhar, arrancar sem mapa (UI continua funcional)
+  let MAP_OK = true;
+  try{
+    await loadLeafletJS();
+  }catch(e){
+    MAP_OK = false;
+    console.warn('A iniciar sem mapa:', e.message || e);
+    document.getElementById('map')?.classList.add('hidden');
+  }
+  if(MAP_OK){ 
+    initMap();
+    // Clique no mapa para apanhar coordenadas quando em modo "picking"
+    document.getElementById('map').addEventListener('click', (ev)=>{
+      if(!PICKING || !MAP) return;
+      const latlng = MAP.mouseEventToLatLng(ev);
+      document.getElementById('f_lat').value = latlng.lat.toFixed(6);
+      document.getElementById('f_lng').value = latlng.lng.toFixed(6);
+      PICKING=false; const b=document.getElementById('pickCoord'); b.textContent='Definir no mapa'; b.classList.remove('primary');
+    });
+  }
+
+  // 2) Deteção de storage (IDB vs dataURL)
   await detectStorageMode();
-  const mem = loadLS();
-  RAW = Array.isArray(mem) ? mem : [];
-  // Aviso visual se estiver em fallback
   if(STORAGE_MODE==='dataurl'){
     const warn = document.createElement('div');
     warn.className='hint';
     warn.style.cssText='margin-left:8px;color:#ffcc99';
-    warn.textContent='Aviso: anexos gravados como Data URL (fallback). Para melhor desempenho, use Chrome/normal com IndexedDB.';
+    warn.textContent='Aviso: anexos gravados como Data URL (fallback). Para melhor desempenho, use Chrome/normal.';
     document.querySelector('.toolbar')?.appendChild(warn);
   }
+
+  // 3) Carregar dados locais
+  const mem = loadLS();
+  RAW = Array.isArray(mem) ? mem : [];
   buildFacetOptions();
   run();
 })();
