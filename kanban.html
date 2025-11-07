@@ -17,6 +17,17 @@
   .btn.primary{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
   .btn.ghost{border-color:var(--line);color:#ddd}
   .layout{display:grid;grid-template-columns:320px 1fr;gap:0;height:calc(100vh - 52px)}
+
+  /* ====== Toggle rápido ====== */
+  .quick{display:flex;align-items:center;gap:10px;margin-right:4px}
+  .switch{position:relative;display:inline-block;width:44px;height:22px;vertical-align:middle}
+  .switch input{opacity:0;width:0;height:0}
+  .slider{position:absolute;cursor:pointer;inset:0;background:#3a3a3a;transition:.2s;border-radius:999px;border:1px solid var(--line)}
+  .slider:before{position:absolute;content:"";height:18px;width:18px;left:2px;top:1.5px;background:#d9d9d9;transition:.2s;border-radius:50%}
+  input:checked + .slider{background:var(--gold)}
+  input:checked + .slider:before{transform:translateX(22px);background:#111}
+  .quick label{font-size:12px;color:#ddd;display:flex;align-items:center;gap:6px}
+
   /* ====== SIDEBAR ====== */
   .sidebar{background:var(--panel);border-right:1px solid var(--line);position:relative;display:flex;flex-direction:column}
   .side-scroll{padding:12px;overflow:auto;flex:1}
@@ -29,12 +40,14 @@
   .chip{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:#0E0E0E;color:#ddd;cursor:pointer}
   .chip.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
   .help{font-size:11px;color:var(--muted);margin-top:6px}
+
   /* ====== DOCK DE FILTROS ====== */
   .filters-dock{position:sticky; bottom:0; background:linear-gradient(180deg, rgba(19,19,19,.85) 0%, rgba(19,19,19,1) 24%); border-top:1px solid var(--line); padding:10px; display:grid; gap:8px; z-index:5}
   .dock-grid{display:grid;grid-template-columns:1fr 1fr; gap:8px}
   .dock-actions{display:flex;gap:8px}
   .badge{display:inline-flex;align-items:center;gap:6px;background:#0E0E0E;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px;color:#ddd}
   .badge .dot{width:10px;height:10px;border-radius:50%;border:1px solid var(--line);display:inline-block}
+
   /* ====== BOARD ====== */
   .board{overflow:auto;padding:12px}
   .cols{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;min-width:1100px}
@@ -43,6 +56,7 @@
   .col-title{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:#eee}
   .count{font-size:11px;color:#bbb}
   .col-body{padding:10px;overflow:auto;display:grid;gap:10px}
+
   /* ====== CARD ====== */
   .card{background:#0D0D0D;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px}
   .card .name{font-weight:800;margin:0 0 6px 0;font-size:13px}
@@ -59,6 +73,7 @@
   .icon-danger{border-color:#5f1e1e;color:#ffbbbb}
   .icon-danger:hover{border-color:#EF5350;color:#fff}
   .hidden-flag{opacity:.6}
+
   /* ====== MODALS ====== */
   .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:50}
   .modal{width:min(780px,95vw);background:#0F0F0F;border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
@@ -72,6 +87,7 @@
   .danger{border-color:#EF5350;color:#fff}
   .req::after{content:" *";color:#FFC107}
   .error{color:#FFC107;font-size:12px}
+
   /* responsivo */
   @media(max-width:1200px){ .layout{grid-template-columns:1fr} .cols{min-width:900px} }
 </style>
@@ -87,7 +103,14 @@
       <a href="./dashboard.html">Dashboard</a>
     </nav>
   </div>
-  <div style="display:flex;gap:8px">
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="quick" title="Alterna entre só visíveis e visíveis + invisíveis">
+      <label for="q_showHidden">Mostrar invisíveis</label>
+      <label class="switch">
+        <input type="checkbox" id="q_showHidden">
+        <span class="slider"></span>
+      </label>
+    </div>
     <button id="addLead" class="btn primary">+ Nova lead</button>
     <button id="exportLeads" class="btn">Exportar CSV</button>
   </div>
@@ -120,7 +143,7 @@
           </select>
         </div>
 
-        <!-- NOVO: filtro de visibilidade -->
+        <!-- Visibilidade -->
         <div class="label" style="margin-top:8px">Visibilidade</div>
         <div class="field">
           <select id="f_vis">
@@ -222,7 +245,6 @@
         <div class="badge"><span class="dot" style="background:#4285F4"></span>Visita: <b id="s_v">0</b></div>
         <div class="badge"><span class="dot" style="background:#FFC107"></span>Proposta: <b id="s_p">0</b></div>
         <div class="badge"><span class="dot" style="background:#4CAF50"></span>Fecho: <b id="s_f">0</b></div>
-        <!-- NOVO: invisíveis filtrados -->
         <div class="badge"><span class="dot" style="background:#555"></span>Invisíveis (filtrados): <b id="s_hidden">0</b></div>
       </div>
     </div>
@@ -408,7 +430,6 @@
         </div>
       </div>
 
-      <!-- Consultor + Data -->
       <div class="grid g-2" style="margin-top:10px">
         <div>
           <div class="label req">Consultor</div>
@@ -511,9 +532,7 @@ function safeMail(m){ return String(m||'').trim(); }
 /* ======= UI: datas default ======= */
 (function initDefaultDates(){
   const today = new Date().toISOString().slice(0,10);
-  // Data default no modal "Nova Lead"
   el('m_data').value = today;
-  // Filtros rápidos (últimos 30 dias)
   const d30 = new Date(); d30.setDate(d30.getDate()-30);
   el('f_de').value = d30.toISOString().slice(0,10);
   el('f_ate').value = today;
@@ -568,6 +587,16 @@ el('clearFilters').addEventListener('click', ()=>{
   document.querySelectorAll('#chips_quick .chip').forEach(c=>c.classList.remove('active'));
   F = { q:'', consultor:'', vis:'visiveis', origem:'', de:'', ate:'', stage:'', tipo:'', perfil:'', capMin:'', fb:'', zona:'', imovel:'' };
   el('f_vis').value='visiveis';
+  $('#q_showHidden').checked = false;
+  render();
+});
+
+/* ======= Toggle rápido (Mostrar invisíveis) ======= */
+el('q_showHidden').addEventListener('change', (e)=>{
+  const on = e.target.checked;
+  F.vis = on ? 'todos' : 'visiveis';
+  // sincroniza o seletor da barra lateral
+  el('f_vis').value = F.vis;
   render();
 });
 
@@ -639,7 +668,7 @@ function render(){
   const countsAll = {novo:0, em_contacto:0, qualificado:0, visita:0, proposta:0, fecho:0};
   let hiddenCountFiltered = 0;
 
-  // buckets para render (podem incluir só visíveis, só invisíveis, ou ambos consoante F.vis)
+  // buckets para render conforme visibilidade escolhida
   const buckets = {novo:[], em_contacto:[], qualificado:[], visita:[], proposta:[], fecho:[]};
 
   all.forEach(l=>{
@@ -651,13 +680,10 @@ function render(){
 
     if(l.hidden===true) hiddenCountFiltered++;
 
-    // Política de visibilidade para DESENHO:
     const showHidden = (F.vis==='invisiveis' || F.vis==='todos');
     const showVisible = (F.vis==='visiveis' || F.vis==='todos');
-
     const isHidden = (l.hidden===true);
     const canRender = ( (isHidden && showHidden) || (!isHidden && showVisible) );
-
     if(!canRender) return;
 
     if(!buckets[s]) buckets[s]=[];
@@ -682,14 +708,10 @@ function render(){
 
   // badge de invisíveis
   el('s_hidden').textContent = hiddenCountFiltered;
-
-  attachDrag();
-  attachCardActions();
-  attachDblClick();
 }
 
 /* ======= DRAG & DROP ======= */
-function attachDrag(){
+function attachDnD(){
   document.querySelectorAll('.card').forEach(card=>{
     card.addEventListener('dragstart', e=>{
       e.dataTransfer.setData('text/plain', card.dataset.id);
@@ -708,7 +730,7 @@ function attachDrag(){
 function moveLeadToColumn(id, stage){
   const arr = loadLeads();
   const i = arr.findIndex(l=>String(l.id)===String(id));
-  if(i>=0){ arr[i].stage = stage; arr[i].updatedAt = new Date().toISOString(); saveLeads(arr); render(); }
+  if(i>=0){ arr[i].stage = stage; arr[i].updatedAt = new Date().toISOString(); saveLeads(arr); render(); attachAll(); }
 }
 
 /* ======= AÇÕES NO CARTÃO ======= */
@@ -728,12 +750,12 @@ function toggleVisibility(id){
   if(i<0) return;
   arr[i].hidden = !(arr[i].hidden===true);
   arr[i].updatedAt = new Date().toISOString();
-  saveLeads(arr); render();
+  saveLeads(arr); render(); attachAll();
 }
 function deleteLead(id){
   if(!confirm('Eliminar esta lead? Esta ação é irreversível.')) return;
   const arr = loadLeads().filter(x=>String(x.id)!==String(id));
-  saveLeads(arr); render();
+  saveLeads(arr); render(); attachAll();
 }
 
 /* ======= DBLCLICK: editar Nome/Contacto/Email ======= */
@@ -762,7 +784,7 @@ el('mQSave').addEventListener('click', ()=>{
   arr[i].tel = el('mQ_tel').value.trim();
   arr[i].email = el('mQ_email').value.trim();
   arr[i].updatedAt = new Date().toISOString();
-  saveLeads(arr); openQuick(false); render();
+  saveLeads(arr); openQuick(false); render(); attachAll();
 });
 el('mQDelete').addEventListener('click', ()=>{
   const id = el('mQ_id').value;
@@ -834,7 +856,7 @@ el('mNewSave').addEventListener('click', ()=>{
   };
 
   const arr = loadLeads(); arr.push(lead); saveLeads(arr);
-  openNew(false); render();
+  openNew(false); render(); attachAll();
 });
 
 /* ======= EXPORT CSV (inclui visibilidade) ======= */
@@ -857,11 +879,17 @@ el('exportLeads').addEventListener('click', ()=>{
   a.href=url; a.download='leads_filtradas.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 });
 
+/* ======= AFFIX ATTACHERS ======= */
+function attachAll(){ attachDnD(); attachCardActions(); attachDblClick(); }
+
 /* ======= INIT ======= */
 (function init(){
   if(!Array.isArray(loadLeads())) saveLeads([]);
+  // sincroniza estado inicial do toggle com F.vis
+  $('#q_showHidden').checked = (F.vis==='todos');
   el('f_vis').value = F.vis;
-  render();
+
+  render(); attachAll();
 
   // Fechar modais com ESC
   window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ openNew(false); openQuick(false); } });
