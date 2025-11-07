@@ -3,14 +3,16 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Garvetur Porto Pro — Mapa (com Edição & Importar CSV)</title>
+<title>Garvetur Porto Pro — Mapa (Edição + CSV + Anexos Locais)</title>
 
-<!-- Leaflet + MarkerCluster + PapaParse (CSV) -->
+<!-- CDNs -->
 <link rel="preconnect" href="https://unpkg.com" crossorigin>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin="anonymous">
 <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js" crossorigin="anonymous"></script>
+<!-- IndexedDB helper (para anexos locais) -->
+<script src="https://unpkg.com/idb-keyval@6/dist/idb-keyval.iife.min.js" crossorigin="anonymous"></script>
 
 <style>
 :root{
@@ -37,6 +39,7 @@ header{grid-column:1 / span 2;display:flex;align-items:center;justify-content:sp
 .btn{background:transparent;border:1px solid rgba(163,139,99,.5);color:#fff;padding:6px 10px;border-radius:10px;cursor:pointer;font-size:12px}
 .btn.primary{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
 .btn.ghost{border-color:var(--border);color:#ddd}
+.btn-sm{font-size:12px;border:1px solid var(--border);padding:4px 8px;border-radius:8px;background:transparent;color:#eee}
 input[type="file"]{display:none}
 
 .sidebar{background:var(--panel);border-right:1px solid var(--border);overflow:auto}
@@ -94,7 +97,7 @@ input[type="file"]{display:none}
 }
 .modal-backdrop.show{display:flex}
 .modal{
-  width:min(880px,96vw); background:#0F0F0F; border:1px solid var(--border); border-radius:12px; overflow:hidden;
+  width:min(900px,96vw); background:#0F0F0F; border:1px solid var(--border); border-radius:12px; overflow:hidden;
 }
 .modal header{padding:10px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
 .modal .content{padding:12px;max-height:72vh;overflow:auto}
@@ -226,6 +229,8 @@ input[type="file"]{display:none}
       <div><strong id="editTitle">Novo Empreendimento</strong></div>
       <div style="display:flex;gap:8px">
         <button class="btn ghost" id="pickCoord">Definir no mapa</button>
+        <label class="btn" id="attachLocalLabel" for="attachLocalInput" style="display:none">📎 Anexar ficheiro (local)</label>
+        <input id="attachLocalInput" type="file" accept=".pdf,image/*" style="display:none">
         <button class="btn" id="cancelEdit">Cancelar</button>
         <button class="btn primary" id="saveEdit">Guardar</button>
       </div>
@@ -255,7 +260,10 @@ input[type="file"]{display:none}
       <div style="margin-top:10px">
         <div class="label">Documentos & Media</div>
         <div id="docsBox"></div>
-        <div style="margin-top:8px"><button class="btn" id="addDoc">+ Adicionar documento</button></div>
+        <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap">
+          <button class="btn" id="addDoc">+ Adicionar documento (URL)</button>
+          <!-- attachLocalLabel/input já no header para agrupar com ações -->
+        </div>
       </div>
     </div>
   </div>
@@ -280,15 +288,15 @@ input[type="file"]{display:none}
 <script>
 /* ================== CONFIG ================== */
 const AMP_CENTER=[41.15,-8.61], AMP_ZOOM=12;
-const LS_KEY='gpp_dataset_v1'; // onde persistimos localmente
+const LS_KEY='gpp_dataset_v1'; // armazenamento local
 
 /* ================== ESTADO ================== */
 let MAP, CLUSTER, LAYER;
 let RAW=[], FILT=[];
-let ACTIVE=null;          // item ativo (ficha)
-let EDIT_MODE=false;      // modo edição ativo?
-let EDIT_INDEX = -1;      // índice a editar (RAW) ou -1 para novo
-let PICKING=false;        // a aguardar clique no mapa para coordenadas?
+let ACTIVE=null;          // item ativo
+let EDIT_MODE=false;      // modo edição?
+let EDIT_INDEX = -1;      // índice em edição
+let PICKING=false;        // a recolher coordenadas no mapa?
 let UI={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'' };
 
 /* ================== HELPERS ================== */
@@ -305,6 +313,26 @@ function toCSV(rows){ return rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('
 function slugify(s){ return norm(s).replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,''); }
 function asNum(v){ const n=Number(v); return Number.isFinite(n)?n:null; }
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
+
+/* ====== Anexos locais (IndexedDB) ====== */
+const DB_PREFIX = 'gpp_docs_';
+async function saveLocalBlob(blob, slug, filename){
+  const key = DB_PREFIX + (slug || 'sem-slug') + '_' + (filename || ('file_' + Date.now()));
+  await idbKeyval.set(key, blob);
+  return 'idb://' + key;
+}
+async function getLocalBlobUrl(idbUrl){
+  try{
+    const key = idbUrl.replace('idb://','');
+    const blob = await idbKeyval.get(key);
+    if(!blob) return null;
+    return URL.createObjectURL(blob);
+  }catch{return null;}
+}
+async function deleteLocalBlob(idbUrl){
+  try{ const key = idbUrl.replace('idb://',''); await idbKeyval.del(key);}catch{}
+}
+function isIdbUrl(u){ return typeof u==='string' && u.startsWith('idb://'); }
 
 /* ================== PERSISTÊNCIA ================== */
 function saveLS(){ localStorage.setItem(LS_KEY, JSON.stringify(RAW)); }
@@ -426,12 +454,13 @@ function buildDocsHTML(docs){
   if(!Array.isArray(docs)||!docs.length) return '<div class="hint">Sem documentos anexados.</div>';
   const items = docs.map(d=>{
     const icon = d.type==='pdf'?'📄':(d.type==='img'?'🖼️':'🔗');
-    const more = d.type==='pdf' ? ` <button class="btn" data-act="expand" data-url="${d.url}">Expandir</button>` : '';
-    return `<li style="margin-bottom:6px;border:1px solid var(--border);padding:6px 8px;border-radius:8px">
-      ${icon} <a href="${d.url}" target="_blank" rel="noreferrer">${d.title||d.url}</a>${more}
+    const more = d.type==='pdf' ? ` <button class="btn-sm" data-act="expand" data-url="${d.url}">Expandir</button>` : '';
+    return `<li style="margin-bottom:6px;border:1px solid var(--border);padding:6px 8px;border-radius:8px" data-type="${d.type}" data-url="${d.url}">
+      ${icon} <a class="btn-sm" href="${d.url}" target="_blank" rel="noreferrer">Abrir</a> · ${d.title||d.url}${more}
     </li>`;
   }).join('');
-  return `<ul style="list-style:none;margin:0;padding:0">${items}</ul>`;
+  return `<ul id="docList" style="list-style:none;margin:0;padding:0">${items}</ul>
+          <div id="docView" style="margin-top:8px"></div>`;
 }
 function openFicha(p, focus=false){
   ACTIVE=p;
@@ -483,10 +512,33 @@ function openFicha(p, focus=false){
   if(EDIT_MODE){
     el('panelInner').querySelector('[data-act="edit"]')?.addEventListener('click', ()=>openEditBySlug(p.slug));
   }
-  // Expandir PDFs (modal)
-  el('panelInner').querySelectorAll('[data-act="expand"]').forEach(btn=>{
-    btn.addEventListener('click', ()=>openPDF(btn.dataset.url));
-  });
+
+  // interacção com a lista de docs: preview + expand
+  const ul = el('panelInner').querySelector('#docList');
+  if(ul){
+    ul.querySelectorAll('li').forEach(li=>{
+      li.addEventListener('click', async (ev)=>{
+        const rawUrl = li.getAttribute('data-url');
+        const tp = li.getAttribute('data-type');
+        const view = el('panelInner').querySelector('#docView');
+        const url = isIdbUrl(rawUrl) ? (await getLocalBlobUrl(rawUrl)) : rawUrl;
+
+        if(tp==='img') view.innerHTML=`<img src="${url}" alt="" style="max-width:100%;border-radius:8px">`;
+        else if(tp==='pdf') view.innerHTML=`<iframe src="${url}" style="width:100%;height:360px;border:0;border-radius:8px"></iframe>
+          <div style="margin-top:6px">
+            <a class="btn-sm" href="${url}" target="_blank" rel="noreferrer">Abrir PDF</a>
+            <button class="btn-sm" data-act="expand" data-url="${rawUrl}">Expandir</button>
+          </div>`;
+        else view.innerHTML=`<a class="btn-sm" href="${url}" target="_blank" rel="noreferrer">Abrir ligação</a>`;
+      });
+      li.querySelector('[data-act="expand"]')?.addEventListener('click', async (e)=>{
+        e.stopPropagation();
+        const rawUrl = e.target.getAttribute('data-url');
+        const url = isIdbUrl(rawUrl) ? (await getLocalBlobUrl(rawUrl)) : rawUrl;
+        openPDF(url);
+      });
+    });
+  }
 }
 el('closePanel').addEventListener('click', ()=>{ el('side-panel').classList.remove('show'); });
 
@@ -513,18 +565,18 @@ function exportGeo(){
   const blob=new Blob([JSON.stringify(fc,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob);
   const a=document.createElement('a'); a.href=url; a.download='empreendimentos.geojson'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
+el('exportCsv').addEventListener('click', exportCSV);
 el('exportGeo').addEventListener('click', exportGeo);
 
 /* ================== MODO EDIÇÃO ================== */
 function setEditMode(on){
   EDIT_MODE=on;
   el('toggleEdit').textContent = on? '🔓 Edição ON' : '🔒 Editar';
-  [ 'btnImport','btnNew','btnSave','btnClearAll' ].forEach(id=>{
-    const b = (id==='btnImport') ? el(id) : el(id);
-    if(id==='btnImport'){ b.style.display = on? 'inline-block':'none'; }
-    else { b.style.display = on? 'inline-block':'none'; }
+  ['btnImport','btnNew','btnSave','btnClearAll','attachLocalLabel'].forEach(id=>{
+    const b = el(id); if(!b) return;
+    b.style.display = on? (id==='attachLocalLabel'?'inline-block':'inline-block') : 'none';
   });
-  renderList(); // para injectar botões Editar/Apagar nos cartões
+  renderList();
 }
 el('toggleEdit').addEventListener('click', ()=> setEditMode(!EDIT_MODE));
 el('btnClearAll').addEventListener('click', ()=>{
@@ -540,7 +592,6 @@ el('csvFile').addEventListener('change', async (ev)=>{
     header:true, dynamicTyping:true, skipEmptyLines:true,
     complete:res=>{
       const incoming = (res.data||[]).map(row=>{
-        // Espera colunas: nome, concelho, estado, promotor, tipologias, conclusao, preco_m2, notas, latitude, longitude, link
         const p = {
           slug: slugify(row.nome||row.Nome||''),
           nome: row.nome||row.Nome||'',
@@ -560,20 +611,15 @@ el('csvFile').addEventListener('change', async (ev)=>{
       }).filter(p=>p.nome);
       if(!incoming.length){ alert('Nenhuma linha válida encontrada no CSV.'); return; }
 
-      // Mesclar por slug (ou nome)
       const bySlug = new Map(RAW.map(p=>[p.slug||slugify(p.nome), p]));
       incoming.forEach(n=>{
         const key = n.slug || slugify(n.nome);
-        if(bySlug.has(key)){
-          const cur = bySlug.get(key);
-          Object.assign(cur, n); // update
-        }else{
-          RAW.push(n);
-        }
+        if(bySlug.has(key)){ Object.assign(bySlug.get(key), n); }
+        else { RAW.push(n); }
       });
-      saveLS(); run();
+      saveLS(); buildFacetOptions(); run();
       alert(`Importação concluída: ${incoming.length} registos processados.`);
-      ev.target.value=''; // reset input
+      ev.target.value='';
     },
     error:()=> alert('Falha a ler CSV.')
   });
@@ -603,9 +649,26 @@ el('pickCoord').addEventListener('click', ()=>{
   el('pickCoord').classList.toggle('primary', PICKING);
 });
 
-el('addDoc').addEventListener('click', ()=>{
-  addDocRow({title:'', type:'pdf', url:''});
+/* anexar ficheiro local (IndexedDB) */
+function updateLocalAttachVisibility(){
+  const lab = el('attachLocalLabel');
+  if(lab) lab.style.display = EDIT_MODE ? 'inline-block' : 'none';
+}
+updateLocalAttachVisibility();
+el('toggleEdit').addEventListener('click', ()=>{ setTimeout(updateLocalAttachVisibility, 0); });
+
+el('attachLocalInput').addEventListener('change', async (ev)=>{
+  const file = ev.target.files?.[0];
+  if(!file) return;
+  const slugCurrent = slugify(el('f_nome').value || (EDIT_INDEX>=0 ? RAW[EDIT_INDEX].nome : 'novo'));
+  const url = await saveLocalBlob(file, slugCurrent, file.name);
+  const ext = (file.name.split('.').pop()||'').toLowerCase();
+  const type = (ext==='pdf') ? 'pdf' : (['png','jpg','jpeg','webp','gif'].includes(ext) ? 'img' : 'link');
+  addDocRow({ title: file.name, type, url });
+  ev.target.value='';
 });
+
+el('addDoc').addEventListener('click', ()=> addDocRow({title:'', type:'pdf', url:''}));
 
 function fillEditForm(p){
   el('f_nome').value = p.nome||'';
@@ -633,10 +696,15 @@ function addDocRow(d){
       <option value="img" ${d.type==='img'?'selected':''}>img</option>
       <option value="link" ${d.type==='link'?'selected':''}>link</option>
     </select>
-    <input placeholder="URL (https://…)" value="${d.url||''}">
+    <input placeholder="URL (https://… ou idb://…)" value="${d.url||''}">
     <button class="btn del">Apagar</button>
   `;
-  row.querySelector('.del').addEventListener('click', ()=> row.remove());
+  row.querySelector('.del').addEventListener('click', async ()=>{
+    const urlInput = row.querySelectorAll('input,select')[2];
+    const u = urlInput.value.trim();
+    if(isIdbUrl(u)) await deleteLocalBlob(u);
+    row.remove();
+  });
   el('docsBox').appendChild(row);
 }
 
@@ -667,7 +735,6 @@ el('saveEdit').addEventListener('click', ()=>{
   if(EDIT_INDEX>=0){
     RAW[EDIT_INDEX] = Object.assign(RAW[EDIT_INDEX], p);
   }else{
-    // evitar duplicado por slug
     const exist = RAW.find(x=>x.slug===p.slug);
     if(exist){ if(!confirm('Já existe um empreendimento com este nome. Substituir?')) return;
       Object.assign(exist, p);
@@ -677,13 +744,14 @@ el('saveEdit').addEventListener('click', ()=>{
   }
   saveLS();
   el('editModal').classList.remove('show'); PICKING=false;
+  buildFacetOptions();
   run();
 });
 
 function deleteBySlug(slug){
   if(!confirm('Apagar este empreendimento?')) return;
   const idx = RAW.findIndex(p=>p.slug===slug);
-  if(idx>=0){ RAW.splice(idx,1); saveLS(); run(); }
+  if(idx>=0){ RAW.splice(idx,1); saveLS(); buildFacetOptions(); run(); }
 }
 
 /* ================== PDF MODAL ================== */
@@ -724,10 +792,8 @@ function run(){
 /* ================== BOOT ================== */
 (function init(){
   initMap();
-  // 1) Tentar carregar dados do LocalStorage
   const mem = loadLS();
-  if(Array.isArray(mem) && mem.length){ RAW = mem; }
-  else { RAW = []; } // começa vazio; poderá importar CSV ou criar manualmente
+  RAW = Array.isArray(mem) ? mem : [];
   buildFacetOptions();
   run();
 })();
