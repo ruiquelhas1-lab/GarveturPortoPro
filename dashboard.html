@@ -15,7 +15,7 @@
   .wrap{padding:12px;display:grid;gap:12px}
   .panel{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px}
   .panel h3{margin:0 0 8px 0;font-size:13px;color:#eaeaea;border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
-  .filters{display:grid;grid-template-columns:220px repeat(4,90px) 120px 120px 120px;gap:8px;align-items:end}
+  .filters{display:grid;grid-template-columns:220px repeat(4,90px) 120px 120px 160px 120px;gap:8px;align-items:end}
   label{font-size:12px;color:#ddd;display:block;margin:0 0 3px}
   select,input{width:100%;background:#0E0E0E;color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:8px 10px}
   .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
@@ -32,7 +32,6 @@
   .table th,.table td{border-bottom:1px solid rgba(255,255,255,.08);padding:6px;text-align:left}
   .rank li{display:flex;justify-content:space-between;padding:6px 4px;border-bottom:1px dashed rgba(255,255,255,.08)}
   .muted{color:#9AA0A6}
-  .ok{color:#4caf50}.warn{color:#ffc107}.bad{color:#f44336}
   @media(max-width:1200px){.kpis{grid-template-columns:repeat(3,1fr)} .grid2{grid-template-columns:1fr} .row2{grid-template-columns:1fr}}
 </style>
 </head>
@@ -96,6 +95,15 @@
         <input type="date" id="f_ate">
       </div>
       <div>
+        <label>Comissão (%)</label>
+        <select id="f_comm">
+          <option value="0.03">3%</option>
+          <option value="0.04">4%</option>
+          <option value="0.05">5%</option>
+          <option value="0.06">6%</option>
+        </select>
+      </div>
+      <div>
         <label>&nbsp;</label>
         <button id="apply" class="btn">Aplicar</button>
       </div>
@@ -110,7 +118,7 @@
       <div class="kpi"><div class="h">Fechos</div><div class="v" id="k_fechos">—</div><div class="s">Taxa Fecho: <span id="k_taxa">—</span></div></div>
       <div class="kpi"><div class="h">Tempo médio até Fecho</div><div class="v" id="k_tempo">—</div><div class="s">dias (média)</div></div>
       <div class="kpi"><div class="h">Valor médio (Fechos)</div><div class="v" id="k_vmed">—</div><div class="s">€</div></div>
-      <div class="kpi"><div class="h">Comissão Estimada</div><div class="v" id="k_comm">—</div><div class="s">padrão 5% (ajustável)</div></div>
+      <div class="kpi"><div class="h">Comissão Estimada</div><div class="v" id="k_comm">—</div><div class="s">ajustada à taxa selecionada</div></div>
       <div class="kpi"><div class="h">Leads c/ Visita</div><div class="v" id="k_visitas">—</div><div class="s">→ Proposta: <span id="k_conv_vp">—</span></div></div>
     </div>
   </div>
@@ -122,9 +130,7 @@
 
       <!-- BARRAS: Leads por consultor -->
       <div>
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-          <div class="muted">Leads por consultor (filtro)</div>
-        </div>
+        <div class="muted">Leads por consultor (filtro)</div>
         <svg id="bar_cons" viewBox="0 0 800 240" width="100%" height="240" aria-label="Barras por consultor"></svg>
       </div>
 
@@ -145,7 +151,7 @@
 
         <!-- DONUT -->
         <div>
-          <div class="muted">Distribuição — Origem (ou Comprador/Vendedor)</div>
+          <div class="muted">Distribuição — Origem (fallback: Comprador/Vendedor)</div>
           <svg id="donut" viewBox="0 0 260 260" width="100%" height="260" aria-label="Donut"></svg>
           <div id="donut_leg" class="legend"></div>
         </div>
@@ -174,10 +180,10 @@
 </div>
 
 <script>
-/* ======= PARÂMETROS ======= */
-const COMMISSION_DEFAULT = 0.05; // 5% estimado sobre leads fechadas com valor
+/* ======= PARÂMETROS / STORAGE ======= */
 const LS_LEADS = 'gpp_leads_v3';
-const LS_ANG = 'gpp_ang_v2';
+const LS_ANG   = 'gpp_ang_v2';
+const LS_COMM  = 'gpp_commission_rate'; // guarda a taxa selecionada
 
 /* ======= UTIL ======= */
 const fmtNum = (n)=> n==null || !isFinite(n) ? '—' : n.toLocaleString('pt-PT');
@@ -192,17 +198,16 @@ function inRangeISO(iso, d1, d2){
 }
 
 /* ======= LOAD ======= */
-function loadLeads(){
-  try{ return JSON.parse(localStorage.getItem(LS_LEADS)||'[]'); }catch(e){ return []; }
-}
-function loadAng(){
-  try{ return JSON.parse(localStorage.getItem(LS_ANG)||'[]'); }catch(e){ return []; }
-}
+function loadLeads(){ try{ return JSON.parse(localStorage.getItem(LS_LEADS)||'[]'); }catch(e){ return []; } }
+function loadAng(){   try{ return JSON.parse(localStorage.getItem(LS_ANG)||'[]');   }catch(e){ return []; } }
+function loadComm(){  const v = localStorage.getItem(LS_COMM); return v ? Number(v) : 0.05; }
+function saveComm(v){ localStorage.setItem(LS_COMM, String(v)); }
 
-/* ======= FILTROS (estado) ======= */
+/* ======= FILTROS ======= */
 let F_CONS = '';
 let F_DE = '';
 let F_ATE = '';
+let COMM_RATE = loadComm();
 
 /* ======= APLICA FILTRO A LEADS ======= */
 function filterLeads(leads){
@@ -230,7 +235,7 @@ function calcKPILeads(leadsFiltered){
       if (isFinite(l.val)) somaValFecho+= Number(l.val);
       if (l.createdAt) {
         const t = Date.parse(l.createdAt);
-        const u = l.updatedAt ? Date.parse(l.updatedAt) : Date.now(); // se não existir, aproximação
+        const u = l.updatedAt ? Date.parse(l.updatedAt) : Date.now();
         if(isFinite(t) && isFinite(u) && u>=t){
           const dias = Math.round((u - t)/(1000*60*60*24));
           temposFecho.push(dias);
@@ -244,7 +249,7 @@ function calcKPILeads(leadsFiltered){
   const taxaFecho = total ? Math.round((fechos/total)*100) : 0;
   const tempoMed = temposFecho.length ? Math.round(temposFecho.reduce((a,b)=>a+b,0)/temposFecho.length) : null;
   const valMed = fechos ? (somaValFecho/fechos) : null;
-  const commEst = somaValFecho * COMMISSION_DEFAULT;
+  const commEst = somaValFecho * COMM_RATE;
   const convVP = (visitas+propostas) ? Math.round((propostas/(visitas+propostas))*100) : null;
 
   return { total, novas7, fechos, taxaFecho, tempoMed, valMed, commEst, visitas, convVP, byStage };
@@ -257,7 +262,6 @@ function calcKPIAng(ang){
   const d30 = daysAgoISO(30);
   const novas30 = ang.filter(a => a.createdAt && a.createdAt.slice(0,10)>=d30).length;
   const cmi = ang.filter(a => String(a.cmi||a.cmi_assinado||'').toLowerCase()==='sim').length;
-  // docs completas: se existir array/obj “docs”, contar ✓; se não, heurística simples por flags comuns
   let completas=0, somaGap=0, gaps=0;
   ang.forEach(a=>{
     const ok = ['cc','caderneta','crp','crp_ok','di','cert_energetico','licenca'].map(k=>String(a[k]||'').toLowerCase()).filter(v=>v==='sim' || v==='ok' || v==='true').length;
@@ -271,7 +275,6 @@ function calcKPIAng(ang){
   const pctDocs = tot ? Math.round((completas/tot)*100): 0;
   const gapMed = gaps ? (somaGap/gaps) : null;
 
-  // por estado (resumo)
   const estados = {};
   ang.forEach(a=>{
     const e = (a.estado||'Em análise').toString();
@@ -282,7 +285,7 @@ function calcKPIAng(ang){
 }
 
 /* ======= BARRAS SVG ======= */
-function drawBars(svgId, dataMap){ // {label:count}
+function drawBars(svgId, dataMap){
   const svg = document.getElementById(svgId);
   svg.innerHTML='';
   const labels = Object.keys(dataMap);
@@ -291,7 +294,6 @@ function drawBars(svgId, dataMap){ // {label:count}
   const max = Math.max(1, ...vals);
   const bw = (W - pad*2)/Math.max(1, labels.length);
 
-  // eixo
   const g = document.createElementNS('http://www.w3.org/2000/svg','g');
   const axis = document.createElementNS('http://www.w3.org/2000/svg','line');
   axis.setAttribute('x1', pad); axis.setAttribute('x2', W-pad);
@@ -374,7 +376,6 @@ function drawDonut(svgId, legendId, dataMap){
     const frac = v/total;
     const ang = frac*2*Math.PI;
     const end = start + ang;
-    // arco exterior -> interior (donut)
     const x1 = cx + r*Math.cos(start), y1=cy + r*Math.sin(start);
     const x2 = cx + r*Math.cos(end),   y2=cy + r*Math.sin(end);
     const x3 = cx + (r-w)*Math.cos(end), y3=cy + (r-w)*Math.sin(end);
@@ -391,7 +392,6 @@ function drawDonut(svgId, legendId, dataMap){
     path.setAttribute('d', d);
     path.setAttribute('fill', colors[i%colors.length]); path.setAttribute('opacity','.95');
     svg.appendChild(path);
-    // legenda
     const pct = Math.round(frac*100);
     const span = document.createElement('span');
     span.innerHTML = `<span class="dot" style="background:${colors[i%colors.length]}"></span>${k} (${v} • ${pct}%)`;
@@ -438,9 +438,9 @@ function renderAngTable(tbodyId, aggr){
 
 /* ======= EXPORT CSV (conforme filtro) ======= */
 function exportCSV(leadsFiltered){
-  const headers = ["ID","Cliente","Contacto","Email","Imóvel","Zona","Valor (€)","Consultor","Estado","Criado em"];
+  const headers = ["ID","Cliente","Contacto","Email","Imóvel","Zona","Origem","Valor (€)","Consultor","Estado","Criado em"];
   const rows = leadsFiltered.map(l=>[
-    l.id, l.cliente||'', l.tel||'', l.email||'', l.imovel||'', l.zona||'', l.val??'', l.consultor||'', l.stage||'', l.createdAt||''
+    l.id, l.cliente||'', l.tel||'', l.email||'', l.imovel||'', l.zona||'', l.origem||'', l.val??'', l.consultor||'', l.stage||'', l.createdAt||''
   ]);
   const lines = [headers, ...rows].map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n');
   const blob = new Blob([lines], {type:'text/csv;charset=utf-8;'});
@@ -449,13 +449,10 @@ function exportCSV(leadsFiltered){
 }
 
 /* ======= EXPORT PNG (área do dashboard) ======= */
-/* Renderiza o HTML como imagem usando canvas + SVG serialization básica (sem libs) */
 async function exportPNG(){
   const area = document.getElementById('captureArea');
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${area.clientWidth}" height="${area.clientHeight}">
-    <foreignObject width="100%" height="100%">
-      ${new XMLSerializer().serializeToString(area.cloneNode(true))}
-    </foreignObject>
+    <foreignObject width="100%" height="100%">${new XMLSerializer().serializeToString(area.cloneNode(true))}</foreignObject>
   </svg>`;
   const blob = new Blob([svg], {type:'image/svg+xml;charset=utf-8'});
   const url = URL.createObjectURL(blob);
@@ -476,15 +473,16 @@ async function exportPNG(){
   img.src = url;
 }
 
+/* ======= DESENHO PRINCIPAL ======= */
+function drawBars(svgId, dataMap){ /* já definido acima */ }
+
 /* ======= RENDER PRINCIPAL ======= */
 function renderAll(){
   const leadsAll = loadLeads();
   const angAll = loadAng();
 
-  // aplicar filtros às leads
   const leads = filterLeads(leadsAll);
 
-  // KPIs Leads
   const k = calcKPILeads(leads);
   document.getElementById('k_leads').textContent = fmtNum(k.total);
   document.getElementById('k_leads7').textContent = fmtNum(k.novas7);
@@ -496,32 +494,30 @@ function renderAll(){
   document.getElementById('k_visitas').textContent = fmtNum(k.visitas);
   document.getElementById('k_conv_vp').textContent = k.convVP==null ? '—' : (k.convVP+'%');
 
-  // BARRAS por consultor
+  // Barras por consultor
   const porCons = {};
   leads.forEach(l=>{ const c=l.consultor||'—'; porCons[c]=(porCons[c]||0)+1; });
   drawBars('bar_cons', porCons);
 
-  // FUNIL
+  // Funil
   drawFunnel('funnel', k.byStage);
 
-  // DONUT origem (ou comprador/vendedor)
-  // Se existir l.origem, usa; caso não: mapeia por CV
+  // Donut por Origem (fallback CV)
   const mapDonut = {};
   leads.forEach(l=>{
-    const o = l.origem ? String(l.origem) :
-              (l.cv ? String(l.cv) : 'Indefinido');
-    mapDonut[o] = (mapDonut[o]||0)+1;
+    const key = l.origem ? String(l.origem) : (l.cv ? String(l.cv) : 'Indefinido');
+    mapDonut[key] = (mapDonut[key]||0)+1;
   });
   drawDonut('donut','donut_leg', mapDonut);
 
-  // ANGARIAÇÕES
+  // Angariações
   const a = calcKPIAng(angAll);
   document.getElementById('a_ativas').textContent = fmtNum(a.ativas);
   document.getElementById('a_novas30').textContent = fmtNum(a.novas30);
   document.getElementById('a_cmi').textContent = a.pctCmi + '%';
   renderAngTable('a_tab', a);
 
-  // RANKING (7 dias)
+  // Ranking
   renderRanking('rank', leadsAll, daysAgoISO(7));
 }
 
@@ -542,6 +538,8 @@ document.getElementById('apply').addEventListener('click', ()=>{
   F_CONS = document.getElementById('f_consultor').value || '';
   F_DE   = document.getElementById('f_de').value || '';
   F_ATE  = document.getElementById('f_ate').value || '';
+  const newRate = Number(document.getElementById('f_comm').value)||0.05;
+  COMM_RATE = newRate; saveComm(newRate);
   renderAll();
 });
 document.getElementById('exportCsv').addEventListener('click', ()=>{
@@ -552,9 +550,13 @@ document.getElementById('exportPng').addEventListener('click', exportPNG);
 
 /* ======= INIT ======= */
 (function init(){
-  // valores por omissão: últimos 30 dias
+  // datas por omissão: 30 dias
   document.getElementById('f_de').value = daysAgoISO(30);
   document.getElementById('f_ate').value = new Date().toISOString().slice(0,10);
+  // comissão: seleciona a persistida
+  const sel = document.getElementById('f_comm');
+  const match = Array.from(sel.options).find(o => Number(o.value) === COMM_RATE);
+  sel.value = match ? match.value : '0.05';
   renderAll();
 })();
 </script>
