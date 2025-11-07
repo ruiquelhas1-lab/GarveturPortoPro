@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Garvetur Porto Pro — Dashboard</title>
 <style>
-  :root{--gold:#A38B63;--bg:#0E0E0E;--panel:#131313;--text:#fff;--muted:#bdbdbd;}
+  :root{--gold:#A38B63;--bg:#0E0E0E;--panel:#131313;--text:#fff;--muted:#bdbdbd;--ok:#4CAF50;--warn:#FFC107;--bad:#EF5350;}
   html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
   header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.1);background:#0F0F0F;}
   nav a{margin-right:6px;text-decoration:none;color:#ddd;border:1px solid rgba(255,255,255,.12);padding:6px 10px;border-radius:8px}
@@ -15,7 +15,7 @@
   .wrap{padding:12px;display:grid;gap:12px}
   .panel{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px}
   .panel h3{margin:0 0 8px 0;font-size:13px;color:#eaeaea;border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
-  .filters{display:grid;grid-template-columns:220px repeat(4,90px) 120px 120px 160px 120px;gap:8px;align-items:end}
+  .filters{display:grid;grid-template-columns:200px 160px repeat(4,90px) 120px 120px 160px 120px;gap:8px;align-items:end}
   label{font-size:12px;color:#ddd;display:block;margin:0 0 3px}
   select,input{width:100%;background:#0E0E0E;color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:8px 10px}
   .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
@@ -23,6 +23,9 @@
   .kpi .h{font-size:11px;color:#cfcfcf;text-transform:uppercase;letter-spacing:.05em}
   .kpi .v{font-size:20px;font-weight:800;margin-top:6px}
   .kpi .s{font-size:11px;color:#bdbdbd;margin-top:2px}
+  .kpi.ok   {box-shadow:inset 0 0 0 2px rgba(76,175,80,.24)}
+  .kpi.warn {box-shadow:inset 0 0 0 2px rgba(255,193,7,.24)}
+  .kpi.bad  {box-shadow:inset 0 0 0 2px rgba(239,83,80,.28)}
   .grid2{display:grid;grid-template-columns:1.2fr 1fr;gap:12px}
   .charts{display:grid;grid-template-columns:1fr;gap:12px}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -32,7 +35,20 @@
   .table th,.table td{border-bottom:1px solid rgba(255,255,255,.08);padding:6px;text-align:left}
   .rank li{display:flex;justify-content:space-between;padding:6px 4px;border-bottom:1px dashed rgba(255,255,255,.08)}
   .muted{color:#9AA0A6}
+
   @media(max-width:1200px){.kpis{grid-template-columns:repeat(3,1fr)} .grid2{grid-template-columns:1fr} .row2{grid-template-columns:1fr}}
+
+  /* ===== Impressão (PDF A4) ===== */
+  @media print {
+    @page { size: A4; margin: 12mm; }
+    body { background:#fff; color:#000; }
+    header, .actions { display:none !important; }
+    .wrap { padding:0; }
+    .panel { background:#fff; border:1px solid #ddd; color:#000; }
+    .kpi { border-color:#ddd; }
+    .page-break { break-after: page; }
+    a { color:#000 !important; text-decoration:none }
+  }
 </style>
 </head>
 <body>
@@ -49,6 +65,7 @@
   <div class="actions">
     <button id="exportCsv" class="btn">Exportar CSV (filtro)</button>
     <button id="exportPng" class="btn">Exportar PNG</button>
+    <button id="exportPdf" class="btn">Imprimir / PDF</button>
   </div>
 </header>
 
@@ -70,6 +87,15 @@
           <option>Audrey Lucas</option>
         </select>
       </div>
+
+      <div>
+        <label>Origem</label>
+        <select id="f_origem">
+          <option value="">(Todas)</option>
+          <!-- opções dinâmicas populadas no init() -->
+        </select>
+      </div>
+
       <div>
         <label>&nbsp;</label>
         <button data-q="7" class="btn qbtn">7 dias</button>
@@ -114,12 +140,12 @@
   <div class="panel">
     <h3>KPIs Gerais</h3>
     <div class="kpis">
-      <div class="kpi"><div class="h">Leads (filtro)</div><div class="v" id="k_leads">—</div><div class="s">Novas 7d: <span id="k_leads7">—</span></div></div>
-      <div class="kpi"><div class="h">Fechos</div><div class="v" id="k_fechos">—</div><div class="s">Taxa Fecho: <span id="k_taxa">—</span></div></div>
-      <div class="kpi"><div class="h">Tempo médio até Fecho</div><div class="v" id="k_tempo">—</div><div class="s">dias (média)</div></div>
-      <div class="kpi"><div class="h">Valor médio (Fechos)</div><div class="v" id="k_vmed">—</div><div class="s">€</div></div>
-      <div class="kpi"><div class="h">Comissão Estimada</div><div class="v" id="k_comm">—</div><div class="s">ajustada à taxa selecionada</div></div>
-      <div class="kpi"><div class="h">Leads c/ Visita</div><div class="v" id="k_visitas">—</div><div class="s">→ Proposta: <span id="k_conv_vp">—</span></div></div>
+      <div class="kpi" id="kpi_leads"><div class="h">Leads (filtro)</div><div class="v" id="k_leads">—</div><div class="s">Novas 7d: <span id="k_leads7">—</span></div></div>
+      <div class="kpi" id="kpi_fechos"><div class="h">Fechos</div><div class="v" id="k_fechos">—</div><div class="s">Taxa Fecho: <span id="k_taxa">—</span></div></div>
+      <div class="kpi" id="kpi_tempo"><div class="h">Tempo médio até Fecho</div><div class="v" id="k_tempo">—</div><div class="s">dias (média)</div></div>
+      <div class="kpi" id="kpi_vmed"><div class="h">Valor médio (Fechos)</div><div class="v" id="k_vmed">—</div><div class="s">€</div></div>
+      <div class="kpi" id="kpi_comm"><div class="h">Comissão Estimada</div><div class="v" id="k_comm">—</div><div class="s">ajustada à taxa selecionada</div></div>
+      <div class="kpi" id="kpi_conv"><div class="h">Leads c/ Visita</div><div class="v" id="k_visitas">—</div><div class="s">→ Proposta: <span id="k_conv_vp">—</span></div></div>
     </div>
   </div>
 
@@ -134,7 +160,7 @@
         <svg id="bar_cons" viewBox="0 0 800 240" width="100%" height="240" aria-label="Barras por consultor"></svg>
       </div>
 
-      <div class="row2">
+      <div class="row2 page-break">
         <!-- FUNIL -->
         <div>
           <div class="muted">Funil de Conversão</div>
@@ -183,7 +209,11 @@
 /* ======= PARÂMETROS / STORAGE ======= */
 const LS_LEADS = 'gpp_leads_v3';
 const LS_ANG   = 'gpp_ang_v2';
-const LS_COMM  = 'gpp_commission_rate'; // guarda a taxa selecionada
+const LS_COMM  = 'gpp_commission_rate';
+
+/* ======= ESTADO DE FILTRO ======= */
+let F_CONS = '', F_DE = '', F_ATE = '', F_ORIG = '';
+let COMM_RATE = loadComm();
 
 /* ======= UTIL ======= */
 const fmtNum = (n)=> n==null || !isFinite(n) ? '—' : n.toLocaleString('pt-PT');
@@ -197,24 +227,19 @@ function inRangeISO(iso, d1, d2){
   return true;
 }
 
-/* ======= LOAD ======= */
+/* ======= LOAD/SAVE ======= */
 function loadLeads(){ try{ return JSON.parse(localStorage.getItem(LS_LEADS)||'[]'); }catch(e){ return []; } }
 function loadAng(){   try{ return JSON.parse(localStorage.getItem(LS_ANG)||'[]');   }catch(e){ return []; } }
 function loadComm(){  const v = localStorage.getItem(LS_COMM); return v ? Number(v) : 0.05; }
 function saveComm(v){ localStorage.setItem(LS_COMM, String(v)); }
 
-/* ======= FILTROS ======= */
-let F_CONS = '';
-let F_DE = '';
-let F_ATE = '';
-let COMM_RATE = loadComm();
-
-/* ======= APLICA FILTRO A LEADS ======= */
+/* ======= FILTRO DE LEADS ======= */
 function filterLeads(leads){
   return leads.filter(l=>{
     const byCons = !F_CONS || (l.consultor===F_CONS);
     const byDate = (!F_DE && !F_ATE) || inRangeISO(l.createdAt, F_DE, F_ATE);
-    return byCons && byDate;
+    const byOrig = !F_ORIG || (String(l.origem||'Indefinido') === F_ORIG);
+    return byCons && byDate && byOrig;
   });
 }
 
@@ -242,7 +267,7 @@ function calcKPILeads(leadsFiltered){
         }
       }
     }
-    if (s==='visita') visitas++;
+    if (s==='visita')   visitas++;
     if (s==='proposta') propostas++;
   });
 
@@ -436,11 +461,11 @@ function renderAngTable(tbodyId, aggr){
   });
 }
 
-/* ======= EXPORT CSV (conforme filtro) ======= */
+/* ======= EXPORTAÇÕES ======= */
 function exportCSV(leadsFiltered){
   const headers = ["ID","Cliente","Contacto","Email","Imóvel","Zona","Origem","Valor (€)","Consultor","Estado","Criado em"];
   const rows = leadsFiltered.map(l=>[
-    l.id, l.cliente||'', l.tel||'', l.email||'', l.imovel||'', l.zona||'', l.origem||'', l.val??'', l.consultor||'', l.stage||'', l.createdAt||''
+    l.id, l.cliente||'', l.tel||'', l.email||'', l.imovel||'', l.zona||'', l.origem||'Indefinido', l.val??'', l.consultor||'', l.stage||'', l.createdAt||''
   ]);
   const lines = [headers, ...rows].map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n');
   const blob = new Blob([lines], {type:'text/csv;charset=utf-8;'});
@@ -448,7 +473,6 @@ function exportCSV(leadsFiltered){
   a.href=url; a.download='dashboard_leads_filtradas.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 
-/* ======= EXPORT PNG (área do dashboard) ======= */
 async function exportPNG(){
   const area = document.getElementById('captureArea');
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${area.clientWidth}" height="${area.clientHeight}">
@@ -473,16 +497,113 @@ async function exportPNG(){
   img.src = url;
 }
 
-/* ======= DESENHO PRINCIPAL ======= */
-function drawBars(svgId, dataMap){ /* já definido acima */ }
+function exportPDF(){
+  // Usa o diálogo nativo do navegador com layout A4 via @media print
+  window.print();
+}
+
+/* ======= APLICA CORES/ALERTAS A KPI ======= */
+function setKpiState(elId, state){ // 'ok' | 'warn' | 'bad' | ''
+  const el = document.getElementById(elId);
+  el.classList.remove('ok','warn','bad');
+  if (state) el.classList.add(state);
+}
+
+/* ======= BARRAS ======= */
+function drawBars(svgId, dataMap){
+  const svg = document.getElementById(svgId);
+  svg.innerHTML='';
+  const labels = Object.keys(dataMap);
+  const vals = labels.map(k=>dataMap[k]);
+  const W=800,H=240, pad=40;
+  const max = Math.max(1, ...vals);
+  const bw = (W - pad*2)/Math.max(1, labels.length);
+
+  const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+  const axis = document.createElementNS('http://www.w3.org/2000/svg','line');
+  axis.setAttribute('x1', pad); axis.setAttribute('x2', W-pad);
+  axis.setAttribute('y1', H-pad); axis.setAttribute('y2', H-pad);
+  axis.setAttribute('stroke', '#666'); axis.setAttribute('stroke-width','1');
+  g.appendChild(axis);
+
+  labels.forEach((lab,i)=>{
+    const v = dataMap[lab]||0;
+    const bh = ( (H-pad*1.6) * v / max );
+    const x = pad + i*bw + 6;
+    const y = (H-pad) - bh;
+    const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x', x); rect.setAttribute('y', y);
+    rect.setAttribute('width', Math.max(10,bw-12)); rect.setAttribute('height', Math.max(0,bh));
+    rect.setAttribute('fill', '#A38B63'); rect.setAttribute('opacity','.9');
+    g.appendChild(rect);
+
+    const tx = document.createElementNS('http://www.w3.org/2000/svg','text');
+    tx.setAttribute('x', x + (Math.max(10,bw-12)/2)); tx.setAttribute('y', H-pad+14);
+    tx.setAttribute('fill', '#ddd'); tx.setAttribute('font-size','11'); tx.setAttribute('text-anchor','middle');
+    tx.textContent = lab;
+    g.appendChild(tx);
+
+    const tv = document.createElementNS('http://www.w3.org/2000/svg','text');
+    tv.setAttribute('x', x + (Math.max(10,bw-12)/2)); tv.setAttribute('y', y-4);
+    tv.setAttribute('fill', '#fff'); tv.setAttribute('font-size','11'); tv.setAttribute('text-anchor','middle');
+    tv.textContent = v;
+    g.appendChild(tv);
+  });
+
+  svg.appendChild(g);
+}
+
+/* ======= DONUT ======= */
+function drawDonut(svgId, legendId, dataMap){
+  const svg = document.getElementById(svgId);
+  const leg = document.getElementById(legendId);
+  svg.innerHTML=''; leg.innerHTML='';
+  const entries = Object.entries(dataMap).filter(([,v])=>v>0);
+  const total = entries.reduce((a,[,v])=>a+v,0);
+  if(!total){
+    const t=document.createElement('div'); t.className='muted'; t.textContent='Sem dados no filtro';
+    leg.appendChild(t); return;
+  }
+  const colors = ['#A38B63','#2ecc71','#4285F4','#FFC107','#EF5350','#AB47BC','#26C6DA','#8D6E63'];
+  const cx=130, cy=130, r=80, w=26;
+  let start=0, i=0;
+  entries.forEach(([k,v])=>{
+    const frac = v/total;
+    const ang = frac*2*Math.PI;
+    const end = start + ang;
+    const x1 = cx + r*Math.cos(start), y1=cy + r*Math.sin(start);
+    const x2 = cx + r*Math.cos(end),   y2=cy + r*Math.sin(end);
+    const x3 = cx + (r-w)*Math.cos(end), y3=cy + (r-w)*Math.sin(end);
+    const x4 = cx + (r-w)*Math.cos(start), y4=cy + (r-w)*Math.sin(start);
+    const large = ang>Math.PI ? 1:0;
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    const d = [
+      `M ${x1} ${y1}`,
+      `A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`,
+      `L ${x3} ${y3}`,
+      `A ${r-w} ${r-w} 0 ${large} 0 ${x4} ${y4}`,
+      'Z'
+    ].join(' ');
+    path.setAttribute('d', d);
+    path.setAttribute('fill', colors[i%colors.length]); path.setAttribute('opacity','.95');
+    svg.appendChild(path);
+    const pct = Math.round((v/total)*100);
+    const span = document.createElement('span');
+    span.innerHTML = `<span class="dot" style="background:${colors[i%colors.length]}"></span>${k} (${v} • ${pct}%)`;
+    leg.appendChild(span);
+    i++; start=end;
+  });
+}
 
 /* ======= RENDER PRINCIPAL ======= */
 function renderAll(){
   const leadsAll = loadLeads();
   const angAll = loadAng();
 
+  // aplicar filtros às leads
   const leads = filterLeads(leadsAll);
 
+  // KPIs Leads
   const k = calcKPILeads(leads);
   document.getElementById('k_leads').textContent = fmtNum(k.total);
   document.getElementById('k_leads7').textContent = fmtNum(k.novas7);
@@ -493,6 +614,25 @@ function renderAll(){
   document.getElementById('k_comm').textContent = fmtMoney(k.commEst);
   document.getElementById('k_visitas').textContent = fmtNum(k.visitas);
   document.getElementById('k_conv_vp').textContent = k.convVP==null ? '—' : (k.convVP+'%');
+
+  // ALERTAS (cores nos KPI)
+  // Taxa de Fecho
+  if (k.taxaFecho==null || k.total===0) setKpiState('kpi_fechos','');
+  else if (k.taxaFecho < 10) setKpiState('kpi_fechos','bad');
+  else if (k.taxaFecho < 20) setKpiState('kpi_fechos','warn');
+  else setKpiState('kpi_fechos','ok');
+
+  // Tempo médio
+  if (k.tempoMed==null) setKpiState('kpi_tempo','');
+  else if (k.tempoMed > 60) setKpiState('kpi_tempo','bad');
+  else if (k.tempoMed > 45) setKpiState('kpi_tempo','warn');
+  else setKpiState('kpi_tempo','ok');
+
+  // Conversão Visita->Proposta
+  if (k.convVP==null) setKpiState('kpi_conv','');
+  else if (k.convVP < 15) setKpiState('kpi_conv','bad');
+  else if (k.convVP < 30) setKpiState('kpi_conv','warn');
+  else setKpiState('kpi_conv','ok');
 
   // Barras por consultor
   const porCons = {};
@@ -521,6 +661,19 @@ function renderAll(){
   renderRanking('rank', leadsAll, daysAgoISO(7));
 }
 
+/* ======= POPULAR “ORIGEM” DINÂMICO ======= */
+function populateOrigemSelect(){
+  const sel = document.getElementById('f_origem');
+  const leads = loadLeads();
+  const set = new Set();
+  leads.forEach(l=>{
+    const o = l.origem ? String(l.origem) : 'Indefinido';
+    set.add(o);
+  });
+  const options = Array.from(set).sort((a,b)=>a.localeCompare(b,'pt-PT'));
+  sel.innerHTML = `<option value="">(Todas)</option>` + options.map(o=>`<option value="${o}">${o}</option>`).join('');
+}
+
 /* ======= EVENTOS ======= */
 document.querySelectorAll('.qbtn').forEach(b=>{
   b.addEventListener('click', ()=>{
@@ -536,6 +689,7 @@ document.querySelectorAll('.qbtn').forEach(b=>{
 });
 document.getElementById('apply').addEventListener('click', ()=>{
   F_CONS = document.getElementById('f_consultor').value || '';
+  F_ORIG = document.getElementById('f_origem').value || '';
   F_DE   = document.getElementById('f_de').value || '';
   F_ATE  = document.getElementById('f_ate').value || '';
   const newRate = Number(document.getElementById('f_comm').value)||0.05;
@@ -547,16 +701,20 @@ document.getElementById('exportCsv').addEventListener('click', ()=>{
   exportCSV(leads);
 });
 document.getElementById('exportPng').addEventListener('click', exportPNG);
+document.getElementById('exportPdf').addEventListener('click', exportPDF);
 
 /* ======= INIT ======= */
 (function init(){
-  // datas por omissão: 30 dias
+  // datas por omissão: últimos 30 dias
   document.getElementById('f_de').value = daysAgoISO(30);
   document.getElementById('f_ate').value = new Date().toISOString().slice(0,10);
-  // comissão: seleciona a persistida
-  const sel = document.getElementById('f_comm');
-  const match = Array.from(sel.options).find(o => Number(o.value) === COMM_RATE);
-  sel.value = match ? match.value : '0.05';
+  // comissão persistida
+  const selComm = document.getElementById('f_comm');
+  const match = Array.from(selComm.options).find(o => Number(o.value) === COMM_RATE);
+  selComm.value = match ? match.value : '0.05';
+  // origem dinâmico
+  populateOrigemSelect();
+  // render
   renderAll();
 })();
 </script>
