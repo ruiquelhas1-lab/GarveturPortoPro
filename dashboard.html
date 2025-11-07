@@ -19,10 +19,11 @@
   label{font-size:12px;color:#ddd;display:block;margin:0 0 3px}
   select,input{width:100%;background:#0E0E0E;color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:8px 10px}
   .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
-  .kpi{background:#0E0E0E;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px}
+  .kpi{background:#0E0E0E;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;position:relative}
   .kpi .h{font-size:11px;color:#cfcfcf;text-transform:uppercase;letter-spacing:.05em}
   .kpi .v{font-size:20px;font-weight:800;margin-top:6px}
   .kpi .s{font-size:11px;color:#bdbdbd;margin-top:2px}
+  .kpi .trend{position:absolute;right:10px;top:10px;font-size:12px}
   .kpi.ok   {box-shadow:inset 0 0 0 2px rgba(76,175,80,.24)}
   .kpi.warn {box-shadow:inset 0 0 0 2px rgba(255,193,7,.24)}
   .kpi.bad  {box-shadow:inset 0 0 0 2px rgba(239,83,80,.28)}
@@ -35,10 +36,12 @@
   .table th,.table td{border-bottom:1px solid rgba(255,255,255,.08);padding:6px;text-align:left}
   .rank li{display:flex;justify-content:space-between;padding:6px 4px;border-bottom:1px dashed rgba(255,255,255,.08)}
   .muted{color:#9AA0A6}
+  .insights li{margin:6px 0}
 
   @media(max-width:1200px){.kpis{grid-template-columns:repeat(3,1fr)} .grid2{grid-template-columns:1fr} .row2{grid-template-columns:1fr}}
 
   /* ===== Impressão (PDF A4) ===== */
+  .print-cover,.print-summary{display:none}
   @media print {
     @page { size: A4; margin: 12mm; }
     body { background:#fff; color:#000; }
@@ -48,6 +51,7 @@
     .kpi { border-color:#ddd; }
     .page-break { break-after: page; }
     a { color:#000 !important; text-decoration:none }
+    .print-cover,.print-summary{display:block}
   }
 </style>
 </head>
@@ -65,11 +69,28 @@
   <div class="actions">
     <button id="exportCsv" class="btn">Exportar CSV (filtro)</button>
     <button id="exportPng" class="btn">Exportar PNG</button>
-    <button id="exportPdf" class="btn">Imprimir / PDF</button>
+    <button id="exportPdf" class="btn">PDF A4 (capa+sumário)</button>
   </div>
 </header>
 
 <div class="wrap" id="captureArea">
+  <!-- CAPA PARA PDF -->
+  <section class="print-cover panel page-break">
+    <h1 style="margin:0;color:#111;font-size:28px">Garvetur Porto Pro — Dashboard Comercial</h1>
+    <p style="color:#222;margin:6px 0 2px">Período: <span id="cov_periodo"></span></p>
+    <p style="color:#222;margin:0 0 12px">Filtros: <span id="cov_filtros"></span></p>
+    <div style="margin-top:20px;border-top:1px solid #ddd;padding-top:12px;color:#222">
+      <div><strong>Comissão considerada:</strong> <span id="cov_comm"></span></div>
+      <div><strong>Gerado em:</strong> <span id="cov_dt"></span></div>
+    </div>
+  </section>
+
+  <!-- SUMÁRIO EXECUTIVO PARA PDF -->
+  <section class="print-summary panel page-break">
+    <h3>Sumário Executivo</h3>
+    <ul class="insights" id="insights_ul"></ul>
+  </section>
+
   <!-- FILTROS -->
   <div class="panel">
     <h3>Filtros</h3>
@@ -92,7 +113,6 @@
         <label>Origem</label>
         <select id="f_origem">
           <option value="">(Todas)</option>
-          <!-- opções dinâmicas populadas no init() -->
         </select>
       </div>
 
@@ -136,16 +156,16 @@
     </div>
   </div>
 
-  <!-- KPIs -->
+  <!-- KPIs + TENDÊNCIAS -->
   <div class="panel">
     <h3>KPIs Gerais</h3>
     <div class="kpis">
-      <div class="kpi" id="kpi_leads"><div class="h">Leads (filtro)</div><div class="v" id="k_leads">—</div><div class="s">Novas 7d: <span id="k_leads7">—</span></div></div>
-      <div class="kpi" id="kpi_fechos"><div class="h">Fechos</div><div class="v" id="k_fechos">—</div><div class="s">Taxa Fecho: <span id="k_taxa">—</span></div></div>
-      <div class="kpi" id="kpi_tempo"><div class="h">Tempo médio até Fecho</div><div class="v" id="k_tempo">—</div><div class="s">dias (média)</div></div>
-      <div class="kpi" id="kpi_vmed"><div class="h">Valor médio (Fechos)</div><div class="v" id="k_vmed">—</div><div class="s">€</div></div>
-      <div class="kpi" id="kpi_comm"><div class="h">Comissão Estimada</div><div class="v" id="k_comm">—</div><div class="s">ajustada à taxa selecionada</div></div>
-      <div class="kpi" id="kpi_conv"><div class="h">Leads c/ Visita</div><div class="v" id="k_visitas">—</div><div class="s">→ Proposta: <span id="k_conv_vp">—</span></div></div>
+      <div class="kpi" id="kpi_leads"><div class="h">Leads (filtro)</div><div class="v" id="k_leads">—</div><div class="s">Novas 7d: <span id="k_leads7">—</span></div><div class="trend" id="t_leads"></div></div>
+      <div class="kpi" id="kpi_fechos"><div class="h">Fechos</div><div class="v" id="k_fechos">—</div><div class="s">Taxa Fecho: <span id="k_taxa">—</span></div><div class="trend" id="t_taxa"></div></div>
+      <div class="kpi" id="kpi_tempo"><div class="h">Tempo médio até Fecho</div><div class="v" id="k_tempo">—</div><div class="s">dias (média)</div><div class="trend" id="t_tempo"></div></div>
+      <div class="kpi" id="kpi_vmed"><div class="h">Valor médio (Fechos)</div><div class="v" id="k_vmed">—</div><div class="s">€</div><div class="trend" id="t_vmed"></div></div>
+      <div class="kpi" id="kpi_comm"><div class="h">Comissão Estimada</div><div class="v" id="k_comm">—</div><div class="s">taxa selecionada</div><div class="trend" id="t_comm"></div></div>
+      <div class="kpi" id="kpi_conv"><div class="h">Leads c/ Visita</div><div class="v" id="k_visitas">—</div><div class="s">→ Proposta: <span id="k_conv_vp">—</span></div><div class="trend" id="t_conv"></div></div>
     </div>
   </div>
 
@@ -206,7 +226,7 @@
 </div>
 
 <script>
-/* ======= PARÂMETROS / STORAGE ======= */
+/* ======= STORAGE KEYS ======= */
 const LS_LEADS = 'gpp_leads_v3';
 const LS_ANG   = 'gpp_ang_v2';
 const LS_COMM  = 'gpp_commission_rate';
@@ -217,6 +237,7 @@ let COMM_RATE = loadComm();
 
 /* ======= UTIL ======= */
 const fmtNum = (n)=> n==null || !isFinite(n) ? '—' : n.toLocaleString('pt-PT');
+const fmtPct = (n)=> n==null || !isFinite(n) ? '—' : (Math.round(n*100)/100)+'%';
 const fmtMoney = (n)=> n==null || !isFinite(n) ? '—' : n.toLocaleString('pt-PT',{style:'currency',currency:'EUR'});
 function daysAgoISO(n){ const d=new Date(); d.setDate(d.getDate()-n); d.setHours(0,0,0,0); return d.toISOString().slice(0,10); }
 function inRangeISO(iso, d1, d2){
@@ -226,6 +247,8 @@ function inRangeISO(iso, d1, d2){
   if(d2){ const e = Date.parse(d2+'T23:59:59'); if(t > e) return false; }
   return true;
 }
+function addDaysISO(iso, n){ const d = new Date(iso+'T00:00:00'); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
+function diffDaysISO(a,b){ const t1 = Date.parse(a+'T00:00:00'); const t2 = Date.parse(b+'T00:00:00'); return Math.max(0, Math.round((t2-t1)/(1000*60*60*24))+1); }
 
 /* ======= LOAD/SAVE ======= */
 function loadLeads(){ try{ return JSON.parse(localStorage.getItem(LS_LEADS)||'[]'); }catch(e){ return []; } }
@@ -234,16 +257,16 @@ function loadComm(){  const v = localStorage.getItem(LS_COMM); return v ? Number
 function saveComm(v){ localStorage.setItem(LS_COMM, String(v)); }
 
 /* ======= FILTRO DE LEADS ======= */
-function filterLeads(leads){
+function filterLeads(leads, cons, orig, d1, d2){
   return leads.filter(l=>{
-    const byCons = !F_CONS || (l.consultor===F_CONS);
-    const byDate = (!F_DE && !F_ATE) || inRangeISO(l.createdAt, F_DE, F_ATE);
-    const byOrig = !F_ORIG || (String(l.origem||'Indefinido') === F_ORIG);
+    const byCons = !cons || (l.consultor===cons);
+    const byDate = (!d1 && !d2) || inRangeISO(l.createdAt, d1, d2);
+    const byOrig = !orig || (String(l.origem||'Indefinido') === orig);
     return byCons && byDate && byOrig;
   });
 }
 
-/* ======= KPI LEADS ======= */
+/* ======= KPIs LEADS ======= */
 function calcKPILeads(leadsFiltered){
   const total = leadsFiltered.length;
 
@@ -280,7 +303,7 @@ function calcKPILeads(leadsFiltered){
   return { total, novas7, fechos, taxaFecho, tempoMed, valMed, commEst, visitas, convVP, byStage };
 }
 
-/* ======= KPI ANGARIAÇÕES ======= */
+/* ======= KPIs ANGARIAÇÕES ======= */
 function calcKPIAng(ang){
   const tot = ang.length;
   const ativas = ang.filter(a => (a.estado||'').toLowerCase()!=='fechado' && (a.estado||'').toLowerCase()!=='perdido').length;
@@ -309,7 +332,7 @@ function calcKPIAng(ang){
   return {tot, ativas, novas30, pctCmi, pctDocs, gapMed, estados};
 }
 
-/* ======= BARRAS SVG ======= */
+/* ======= GRÁFICOS (SVG) ======= */
 function drawBars(svgId, dataMap){
   const svg = document.getElementById(svgId);
   svg.innerHTML='';
@@ -353,7 +376,6 @@ function drawBars(svgId, dataMap){
   svg.appendChild(g);
 }
 
-/* ======= FUNIL SVG ======= */
 function drawFunnel(svgId, byStage){
   const svg = document.getElementById(svgId);
   svg.innerHTML='';
@@ -366,7 +388,7 @@ function drawFunnel(svgId, byStage){
     {k:'fecho', c:'#4CAF50', w:230, y:220, h:32, t:'Fecho'}
   ];
   const W=420, cx=W/2;
-  order.forEach((s,i)=>{
+  order.forEach((s)=>{
     const g = document.createElementNS('http://www.w3.org/2000/svg','g');
     const x = cx - s.w/2;
     const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
@@ -383,177 +405,6 @@ function drawFunnel(svgId, byStage){
   });
 }
 
-/* ======= DONUT SVG ======= */
-function drawDonut(svgId, legendId, dataMap){
-  const svg = document.getElementById(svgId);
-  const leg = document.getElementById(legendId);
-  svg.innerHTML=''; leg.innerHTML='';
-  const entries = Object.entries(dataMap).filter(([,v])=>v>0);
-  const total = entries.reduce((a,[,v])=>a+v,0);
-  if(!total){
-    const t=document.createElement('div'); t.className='muted'; t.textContent='Sem dados no filtro';
-    leg.appendChild(t); return;
-  }
-  const colors = ['#A38B63','#2ecc71','#4285F4','#FFC107','#EF5350','#AB47BC','#26C6DA','#8D6E63'];
-  const cx=130, cy=130, r=80, w=26;
-  let start=0, i=0;
-  entries.forEach(([k,v])=>{
-    const frac = v/total;
-    const ang = frac*2*Math.PI;
-    const end = start + ang;
-    const x1 = cx + r*Math.cos(start), y1=cy + r*Math.sin(start);
-    const x2 = cx + r*Math.cos(end),   y2=cy + r*Math.sin(end);
-    const x3 = cx + (r-w)*Math.cos(end), y3=cy + (r-w)*Math.sin(end);
-    const x4 = cx + (r-w)*Math.cos(start), y4=cy + (r-w)*Math.sin(start);
-    const large = ang>Math.PI ? 1:0;
-    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-    const d = [
-      `M ${x1} ${y1}`,
-      `A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`,
-      `L ${x3} ${y3}`,
-      `A ${r-w} ${r-w} 0 ${large} 0 ${x4} ${y4}`,
-      'Z'
-    ].join(' ');
-    path.setAttribute('d', d);
-    path.setAttribute('fill', colors[i%colors.length]); path.setAttribute('opacity','.95');
-    svg.appendChild(path);
-    const pct = Math.round(frac*100);
-    const span = document.createElement('span');
-    span.innerHTML = `<span class="dot" style="background:${colors[i%colors.length]}"></span>${k} (${v} • ${pct}%)`;
-    leg.appendChild(span);
-    i++; start=end;
-  });
-}
-
-/* ======= RANKING 7d ======= */
-function renderRanking(containerId, leads, sinceISO){
-  const ul = document.getElementById(containerId); ul.innerHTML='';
-  const sinceT = Date.parse(sinceISO+'T00:00:00');
-  const map = {};
-  leads.forEach(l=>{
-    const t = l.createdAt ? Date.parse(l.createdAt) : null;
-    if (t && t>=sinceT){
-      const c = l.consultor||'—'; map[c]=(map[c]||0)+1;
-    }
-  });
-  const arr = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  if(!arr.length){ ul.innerHTML = '<li class="muted">Sem registos nos últimos 7 dias.</li>'; return; }
-  arr.forEach(([c,n],idx)=>{
-    const li = document.createElement('li');
-    li.innerHTML = `<span>${idx+1}. ${c}</span><span>${n}</span>`;
-    ul.appendChild(li);
-  });
-}
-
-/* ======= ANGARIAÇÕES TABELA ======= */
-function renderAngTable(tbodyId, aggr){
-  const tb = document.querySelector('#'+tbodyId+' tbody');
-  tb.innerHTML='';
-  const estados = Object.keys(aggr.estados).sort();
-  if(!estados.length){
-    const tr=document.createElement('tr'); tr.innerHTML='<td colspan="4" class="muted">Sem dados</td>'; tb.appendChild(tr); return;
-  }
-  estados.forEach(e=>{
-    const n = aggr.estados[e];
-    const tr=document.createElement('tr');
-    tr.innerHTML = `<td>${e}</td><td>${n}</td><td>${aggr.pctDocs}%</td><td>${aggr.gapMed==null?'—':(Math.round(aggr.gapMed*10)/10)+'%'}</td>`;
-    tb.appendChild(tr);
-  });
-}
-
-/* ======= EXPORTAÇÕES ======= */
-function exportCSV(leadsFiltered){
-  const headers = ["ID","Cliente","Contacto","Email","Imóvel","Zona","Origem","Valor (€)","Consultor","Estado","Criado em"];
-  const rows = leadsFiltered.map(l=>[
-    l.id, l.cliente||'', l.tel||'', l.email||'', l.imovel||'', l.zona||'', l.origem||'Indefinido', l.val??'', l.consultor||'', l.stage||'', l.createdAt||''
-  ]);
-  const lines = [headers, ...rows].map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n');
-  const blob = new Blob([lines], {type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob); const a = document.createElement('a');
-  a.href=url; a.download='dashboard_leads_filtradas.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-}
-
-async function exportPNG(){
-  const area = document.getElementById('captureArea');
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${area.clientWidth}" height="${area.clientHeight}">
-    <foreignObject width="100%" height="100%">${new XMLSerializer().serializeToString(area.cloneNode(true))}</foreignObject>
-  </svg>`;
-  const blob = new Blob([svg], {type:'image/svg+xml;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  const img = new Image();
-  img.onload = ()=>{
-    const c = document.createElement('canvas');
-    c.width = img.width; c.height = img.height;
-    const ctx = c.getContext('2d');
-    ctx.drawImage(img,0,0);
-    URL.revokeObjectURL(url);
-    c.toBlob(b=>{
-      const dl = document.createElement('a');
-      dl.href = URL.createObjectURL(b);
-      dl.download = 'garvetur_dashboard.png';
-      document.body.appendChild(dl); dl.click(); dl.remove();
-    });
-  };
-  img.src = url;
-}
-
-function exportPDF(){
-  // Usa o diálogo nativo do navegador com layout A4 via @media print
-  window.print();
-}
-
-/* ======= APLICA CORES/ALERTAS A KPI ======= */
-function setKpiState(elId, state){ // 'ok' | 'warn' | 'bad' | ''
-  const el = document.getElementById(elId);
-  el.classList.remove('ok','warn','bad');
-  if (state) el.classList.add(state);
-}
-
-/* ======= BARRAS ======= */
-function drawBars(svgId, dataMap){
-  const svg = document.getElementById(svgId);
-  svg.innerHTML='';
-  const labels = Object.keys(dataMap);
-  const vals = labels.map(k=>dataMap[k]);
-  const W=800,H=240, pad=40;
-  const max = Math.max(1, ...vals);
-  const bw = (W - pad*2)/Math.max(1, labels.length);
-
-  const g = document.createElementNS('http://www.w3.org/2000/svg','g');
-  const axis = document.createElementNS('http://www.w3.org/2000/svg','line');
-  axis.setAttribute('x1', pad); axis.setAttribute('x2', W-pad);
-  axis.setAttribute('y1', H-pad); axis.setAttribute('y2', H-pad);
-  axis.setAttribute('stroke', '#666'); axis.setAttribute('stroke-width','1');
-  g.appendChild(axis);
-
-  labels.forEach((lab,i)=>{
-    const v = dataMap[lab]||0;
-    const bh = ( (H-pad*1.6) * v / max );
-    const x = pad + i*bw + 6;
-    const y = (H-pad) - bh;
-    const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
-    rect.setAttribute('x', x); rect.setAttribute('y', y);
-    rect.setAttribute('width', Math.max(10,bw-12)); rect.setAttribute('height', Math.max(0,bh));
-    rect.setAttribute('fill', '#A38B63'); rect.setAttribute('opacity','.9');
-    g.appendChild(rect);
-
-    const tx = document.createElementNS('http://www.w3.org/2000/svg','text');
-    tx.setAttribute('x', x + (Math.max(10,bw-12)/2)); tx.setAttribute('y', H-pad+14);
-    tx.setAttribute('fill', '#ddd'); tx.setAttribute('font-size','11'); tx.setAttribute('text-anchor','middle');
-    tx.textContent = lab;
-    g.appendChild(tx);
-
-    const tv = document.createElementNS('http://www.w3.org/2000/svg','text');
-    tv.setAttribute('x', x + (Math.max(10,bw-12)/2)); tv.setAttribute('y', y-4);
-    tv.setAttribute('fill', '#fff'); tv.setAttribute('font-size','11'); tv.setAttribute('text-anchor','middle');
-    tv.textContent = v;
-    g.appendChild(tv);
-  });
-
-  svg.appendChild(g);
-}
-
-/* ======= DONUT ======= */
 function drawDonut(svgId, legendId, dataMap){
   const svg = document.getElementById(svgId);
   const leg = document.getElementById(legendId);
@@ -595,73 +446,114 @@ function drawDonut(svgId, legendId, dataMap){
   });
 }
 
-/* ======= RENDER PRINCIPAL ======= */
-function renderAll(){
-  const leadsAll = loadLeads();
-  const angAll = loadAng();
-
-  // aplicar filtros às leads
-  const leads = filterLeads(leadsAll);
-
-  // KPIs Leads
-  const k = calcKPILeads(leads);
-  document.getElementById('k_leads').textContent = fmtNum(k.total);
-  document.getElementById('k_leads7').textContent = fmtNum(k.novas7);
-  document.getElementById('k_fechos').textContent = fmtNum(k.fechos);
-  document.getElementById('k_taxa').textContent = k.total ? (k.taxaFecho+'%') : '—';
-  document.getElementById('k_tempo').textContent = k.tempoMed==null ? '—' : (k.tempoMed+' d');
-  document.getElementById('k_vmed').textContent = fmtMoney(k.valMed);
-  document.getElementById('k_comm').textContent = fmtMoney(k.commEst);
-  document.getElementById('k_visitas').textContent = fmtNum(k.visitas);
-  document.getElementById('k_conv_vp').textContent = k.convVP==null ? '—' : (k.convVP+'%');
-
-  // ALERTAS (cores nos KPI)
-  // Taxa de Fecho
-  if (k.taxaFecho==null || k.total===0) setKpiState('kpi_fechos','');
-  else if (k.taxaFecho < 10) setKpiState('kpi_fechos','bad');
-  else if (k.taxaFecho < 20) setKpiState('kpi_fechos','warn');
-  else setKpiState('kpi_fechos','ok');
-
-  // Tempo médio
-  if (k.tempoMed==null) setKpiState('kpi_tempo','');
-  else if (k.tempoMed > 60) setKpiState('kpi_tempo','bad');
-  else if (k.tempoMed > 45) setKpiState('kpi_tempo','warn');
-  else setKpiState('kpi_tempo','ok');
-
-  // Conversão Visita->Proposta
-  if (k.convVP==null) setKpiState('kpi_conv','');
-  else if (k.convVP < 15) setKpiState('kpi_conv','bad');
-  else if (k.convVP < 30) setKpiState('kpi_conv','warn');
-  else setKpiState('kpi_conv','ok');
-
-  // Barras por consultor
-  const porCons = {};
-  leads.forEach(l=>{ const c=l.consultor||'—'; porCons[c]=(porCons[c]||0)+1; });
-  drawBars('bar_cons', porCons);
-
-  // Funil
-  drawFunnel('funnel', k.byStage);
-
-  // Donut por Origem (fallback CV)
-  const mapDonut = {};
-  leads.forEach(l=>{
-    const key = l.origem ? String(l.origem) : (l.cv ? String(l.cv) : 'Indefinido');
-    mapDonut[key] = (mapDonut[key]||0)+1;
-  });
-  drawDonut('donut','donut_leg', mapDonut);
-
-  // Angariações
-  const a = calcKPIAng(angAll);
-  document.getElementById('a_ativas').textContent = fmtNum(a.ativas);
-  document.getElementById('a_novas30').textContent = fmtNum(a.novas30);
-  document.getElementById('a_cmi').textContent = a.pctCmi + '%';
-  renderAngTable('a_tab', a);
-
-  // Ranking
-  renderRanking('rank', leadsAll, daysAgoISO(7));
+/* ======= ALERTAS KPI ======= */
+function setKpiState(elId, state){ // 'ok' | 'warn' | 'bad' | ''
+  const el = document.getElementById(elId);
+  el.classList.remove('ok','warn','bad');
+  if (state) el.classList.add(state);
 }
 
-/* ======= POPULAR “ORIGEM” DINÂMICO ======= */
+/* ======= TENDÊNCIAS ======= */
+function trendArrow(curr, prev, invert=false){ // invert=true: valores menores são melhores (tempo)
+  if (prev==null || !isFinite(prev)) return '';
+  if (curr==null || !isFinite(curr)) return '';
+  const delta = curr - prev;
+  const pct = prev===0 ? 0 : (delta/prev)*100;
+  const sgn = invert ? -delta : delta;
+  const arrow = sgn>0 ? '↑' : (sgn<0 ? '↓' : '→');
+  const cls = sgn>0 ? (invert?'ok':'bad') : (sgn<0 ? (invert?'bad':'ok') : 'warn');
+  return `<span style="color:${cls==='ok'?'#4CAF50':cls==='bad'?'#EF5350':'#FFC107'}">${arrow} ${Math.abs(Math.round(pct))}%</span>`;
+}
+
+/* ======= SUMÁRIO EXECUTIVO ======= */
+function genInsights(kCurr, kPrev, porCons){
+  const out = [];
+  // 1) evolução de leads
+  if (kPrev && isFinite(kPrev.total) && isFinite(kCurr.total)){
+    const d = kCurr.total - kPrev.total;
+    const pct = kPrev.total? Math.round(d/kPrev.total*100):0;
+    out.push(`Leads no período: ${kCurr.total} (${d>=0?'+':''}${d}, ${pct>=0?'+':''}${pct}%).`);
+  }
+  // 2) taxa de fecho
+  if (kCurr.taxaFecho!=null){
+    const t = kCurr.taxaFecho;
+    const note = t<10?'— melhoria prioritária necessária': t<20?'— potencial de melhoria':'— desempenho saudável';
+    out.push(`Taxa de fecho: ${t}% ${note}.`);
+  }
+  // 3) tempo médio até fecho
+  if (kCurr.tempoMed!=null){
+    out.push(`Tempo médio até fecho: ${kCurr.tempoMed} dias${kCurr.tempoMed>60?' — otimizar ciclo comercial (pré-qualificação/urgência)':''}.`);
+  }
+  // 4) origem dominante
+  const leads = filterLeads(loadLeads(), F_CONS, F_ORIG, F_DE, F_ATE);
+  const byOrig = {};
+  leads.forEach(l=>{ const o=l.origem?String(l.origem):'Indefinido'; byOrig[o]=(byOrig[o]||0)+1; });
+  const topOrig = Object.entries(byOrig).sort((a,b)=>b[1]-a[1])[0];
+  if (topOrig) out.push(`Origem dominante: ${topOrig[0]} (${topOrig[1]} leads) — reforçar investimento neste canal.`);
+  // 5) consultor destaque
+  const topCons = Object.entries(porCons).sort((a,b)=>b[1]-a[1])[0];
+  if (topCons) out.push(`Maior captação no período: ${topCons[0]} (${topCons[1]} leads).`);
+  return out.slice(0,5);
+}
+
+/* ======= EXPORTAÇÕES ======= */
+function exportCSV(leadsFiltered){
+  const headers = ["ID","Cliente","Contacto","Email","Imóvel","Zona","Origem","Valor (€)","Consultor","Estado","Criado em"];
+  const rows = leadsFiltered.map(l=>[
+    l.id, l.cliente||'', l.tel||'', l.email||'', l.imovel||'', l.zona||'', l.origem||'Indefinido', l.val??'', l.consultor||'', l.stage||'', l.createdAt||''
+  ]);
+  const lines = [headers, ...rows].map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n');
+  const blob = new Blob([lines], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob); const a = document.createElement('a');
+  a.href=url; a.download='dashboard_leads_filtradas.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+async function exportPNG(){
+  const area = document.getElementById('captureArea');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${area.clientWidth}" height="${area.clientHeight}">
+    <foreignObject width="100%" height="100%">${new XMLSerializer().serializeToString(area.cloneNode(true))}</foreignObject>
+  </svg>`;
+  const blob = new Blob([svg], {type:'image/svg+xml;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const img = new Image();
+  img.onload = ()=>{
+    const c = document.createElement('canvas');
+    c.width = img.width; c.height = img.height;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(img,0,0);
+    URL.revokeObjectURL(url);
+    c.toBlob(b=>{
+      const dl = document.createElement('a');
+      dl.href = URL.createObjectURL(b);
+      dl.download = 'garvetur_dashboard.png';
+      document.body.appendChild(dl); dl.click(); dl.remove();
+    });
+  };
+  img.src = url;
+}
+function exportPDF(){
+  // Preenche capa + sumário antes de abrir o diálogo de impressão
+  const de = document.getElementById('f_de').value || '—';
+  const ate = document.getElementById('f_ate').value || '—';
+  const cons = document.getElementById('f_consultor').value || '(Todos)';
+  const orig = document.getElementById('f_origem').value || '(Todas)';
+  const rate = Number(document.getElementById('f_comm').value||'0.05');
+
+  document.getElementById('cov_periodo').textContent = `${de} a ${ate}`;
+  document.getElementById('cov_filtros').textContent = `Consultor: ${cons} | Origem: ${orig}`;
+  document.getElementById('cov_comm').textContent = (Math.round(rate*100))+'%';
+  document.getElementById('cov_dt').textContent = new Date().toLocaleString('pt-PT');
+
+  // Sumário executivo
+  const curr = lastKpis.curr;
+  const prev = lastKpis.prev;
+  const insights = genInsights(curr, prev, lastKpis.porCons);
+  const ul = document.getElementById('insights_ul'); ul.innerHTML='';
+  insights.forEach(t=>{ const li=document.createElement('li'); li.textContent=t; ul.appendChild(li); });
+
+  window.print();
+}
+
+/* ======= POPULAR “ORIGEM” ======= */
 function populateOrigemSelect(){
   const sel = document.getElementById('f_origem');
   const leads = loadLeads();
@@ -673,6 +565,140 @@ function populateOrigemSelect(){
   const options = Array.from(set).sort((a,b)=>a.localeCompare(b,'pt-PT'));
   sel.innerHTML = `<option value="">(Todas)</option>` + options.map(o=>`<option value="${o}">${o}</option>`).join('');
 }
+
+/* ======= RANKING ======= */
+function renderRanking(containerId, leads, sinceISO){
+  const ul = document.getElementById(containerId); ul.innerHTML='';
+  const sinceT = Date.parse(sinceISO+'T00:00:00');
+  const map = {};
+  leads.forEach(l=>{
+    const t = l.createdAt ? Date.parse(l.createdAt) : null;
+    if (t && t>=sinceT){
+      const c = l.consultor||'—'; map[c]=(map[c]||0)+1;
+    }
+  });
+  const arr = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if(!arr.length){ ul.innerHTML = '<li class="muted">Sem registos nos últimos 7 dias.</li>'; return; }
+  arr.forEach(([c,n],idx)=>{
+    const li = document.createElement('li');
+    li.innerHTML = `<span>${idx+1}. ${c}</span><span>${n}</span>`;
+    ul.appendChild(li);
+  });
+}
+
+/* ======= ANGARIAÇÕES ======= */
+function renderAngTable(tbodyId, aggr){
+  const tb = document.querySelector('#'+tbodyId+' tbody');
+  tb.innerHTML='';
+  const estados = Object.keys(aggr.estados).sort();
+  if(!estados.length){
+    const tr=document.createElement('tr'); tr.innerHTML='<td colspan="4" class="muted">Sem dados</td>'; tb.appendChild(tr); return;
+  }
+  estados.forEach(e=>{
+    const n = aggr.estados[e];
+    const tr=document.createElement('tr');
+    tr.innerHTML = `<td>${e}</td><td>${n}</td><td>${aggr.pctDocs}%</td><td>${aggr.gapMed==null?'—':(Math.round(aggr.gapMed*10)/10)+'%'}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+/* ======= ESTADO GLOBAL P/ PDF (KPIs atuais vs. anteriores) ======= */
+const lastKpis = { curr:null, prev:null, porCons:{} };
+
+/* ======= RENDER PRINCIPAL ======= */
+function renderAll(){
+  const leadsAll = loadLeads();
+  const angAll = loadAng();
+
+  // Filtros atuais
+  const cons = F_CONS;
+  const orig = F_ORIG;
+  const d1 = F_DE; const d2 = F_ATE;
+
+  // Período anterior equivalente (mesmo nº de dias imediatamente anterior ao início)
+  let prev_d1='', prev_d2='';
+  if (d1 && d2){
+    const nDays = diffDaysISO(d1, d2);
+    prev_d2 = addDaysISO(d1, -1);
+    prev_d1 = addDaysISO(prev_d2, -(nDays-1));
+  }
+
+  // Leads filtradas (atuais e período anterior)
+  const leadsCurr = filterLeads(leadsAll, cons, orig, d1, d2);
+  const leadsPrev = (prev_d1 && prev_d2) ? filterLeads(leadsAll, cons, orig, prev_d1, prev_d2) : [];
+
+  // KPIs
+  const k = calcKPILeads(leadsCurr);
+  const kPrev = calcKPILeads(leadsPrev);
+
+  // Guarda para PDF
+  lastKpis.curr = k; lastKpis.prev = kPrev;
+
+  // KPIs numéricos
+  setText('k_leads', fmtNum(k.total));
+  setText('k_leads7', fmtNum(k.novas7));
+  setText('k_fechos', fmtNum(k.fechos));
+  setText('k_taxa', k.total ? (k.taxaFecho+'%') : '—');
+  setText('k_tempo', k.tempoMed==null ? '—' : (k.tempoMed+' d'));
+  setText('k_vmed', fmtMoney(k.valMed));
+  setText('k_comm', fmtMoney(k.commEst));
+  setText('k_visitas', fmtNum(k.visitas));
+  setText('k_conv_vp', k.convVP==null ? '—' : (k.convVP+'%'));
+
+  // Tendências (vs. período anterior)
+  setHTML('t_leads', trendArrow(k.total, kPrev.total, false));
+  setHTML('t_taxa',  trendArrow(k.taxaFecho, kPrev.taxaFecho, false));
+  setHTML('t_tempo', trendArrow(k.tempoMed, kPrev.tempoMed, true));
+  setHTML('t_vmed',  trendArrow(k.valMed, kPrev.valMed, false));
+  setHTML('t_comm',  trendArrow(k.commEst, kPrev.commEst, false));
+  setHTML('t_conv',  trendArrow(k.convVP, kPrev.convVP, false));
+
+  // ALERTAS (cores nos KPI)
+  if (k.taxaFecho==null || k.total===0) setKpiState('kpi_fechos','');
+  else if (k.taxaFecho < 10) setKpiState('kpi_fechos','bad');
+  else if (k.taxaFecho < 20) setKpiState('kpi_fechos','warn');
+  else setKpiState('kpi_fechos','ok');
+
+  if (k.tempoMed==null) setKpiState('kpi_tempo','');
+  else if (k.tempoMed > 60) setKpiState('kpi_tempo','bad');
+  else if (k.tempoMed > 45) setKpiState('kpi_tempo','warn');
+  else setKpiState('kpi_tempo','ok');
+
+  if (k.convVP==null) setKpiState('kpi_conv','');
+  else if (k.convVP < 15) setKpiState('kpi_conv','bad');
+  else if (k.convVP < 30) setKpiState('kpi_conv','warn');
+  else setKpiState('kpi_conv','ok');
+
+  // Barras por consultor
+  const porCons = {};
+  leadsCurr.forEach(l=>{ const c=l.consultor||'—'; porCons[c]=(porCons[c]||0)+1; });
+  drawBars('bar_cons', porCons);
+  lastKpis.porCons = porCons;
+
+  // Funil
+  drawFunnel('funnel', k.byStage);
+
+  // Donut por Origem (fallback CV)
+  const mapDonut = {};
+  leadsCurr.forEach(l=>{
+    const key = l.origem ? String(l.origem) : (l.cv ? String(l.cv) : 'Indefinido');
+    mapDonut[key] = (mapDonut[key]||0)+1;
+  });
+  drawDonut('donut','donut_leg', mapDonut);
+
+  // Angariações
+  const a = calcKPIAng(angAll);
+  setText('a_ativas', fmtNum(a.ativas));
+  setText('a_novas30', fmtNum(a.novas30));
+  setText('a_cmi', a.pctCmi + '%');
+  renderAngTable('a_tab', a);
+
+  // Ranking
+  renderRanking('rank', loadLeads(), daysAgoISO(7));
+}
+
+function setText(id, txt){ const el=document.getElementById(id); if(el) el.textContent = txt; }
+function setHTML(id, html){ const el=document.getElementById(id); if(el) el.innerHTML = html||''; }
 
 /* ======= EVENTOS ======= */
 document.querySelectorAll('.qbtn').forEach(b=>{
@@ -697,7 +723,7 @@ document.getElementById('apply').addEventListener('click', ()=>{
   renderAll();
 });
 document.getElementById('exportCsv').addEventListener('click', ()=>{
-  const leads = filterLeads(loadLeads());
+  const leads = filterLeads(loadLeads(), F_CONS, F_ORIG, F_DE, F_ATE);
   exportCSV(leads);
 });
 document.getElementById('exportPng').addEventListener('click', exportPNG);
