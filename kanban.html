@@ -1,705 +1,563 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Garvetur Porto Pro — Leads</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Garvetur Porto Pro — Leads (Kanban)</title>
+
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+<!-- SheetJS para exportar Excel -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
+
 <style>
-  :root{--gold:#A38B63;--bg:#0E0E0E;--panel:#131313;--text:#fff;--muted:#A9AFB7;--ok:#2ecc71;--warn:#FFC107;--bad:#EF5350;--line:rgba(255,255,255,.08)}
-  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-  header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line);background:#0F0F0F;position:sticky;top:0;z-index:10}
-  nav a{margin-right:6px;text-decoration:none;color:#ddd;border:1px solid var(--line);padding:6px 10px;border-radius:8px}
-  nav a.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:600}
-  .btn{background:transparent;border:1px solid rgba(163,139,99,.5);color:#fff;padding:6px 10px;border-radius:10px;cursor:pointer;font-size:12px}
-  .btn.primary{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
-  .btn.ghost{border-color:var(--line);color:#ddd}
-  .layout{display:grid;grid-template-columns:320px 1fr;gap:0;height:calc(100vh - 52px)}
-  .quick{display:flex;align-items:center;gap:10px;margin-right:4px}
-  .switch{position:relative;display:inline-block;width:44px;height:22px;vertical-align:middle}
-  .switch input{opacity:0;width:0;height:0}
-  .slider{position:absolute;cursor:pointer;inset:0;background:#3a3a3a;transition:.2s;border-radius:999px;border:1px solid var(--line)}
-  .slider:before{position:absolute;content:"";height:18px;width:18px;left:2px;top:1.5px;background:#d9d9d9;transition:.2s;border-radius:50%}
-  input:checked + .slider{background:var(--gold)}
-  input:checked + .slider:before{transform:translateX(22px);background:#111}
-  .sidebar{background:var(--panel);border-right:1px solid var(--line);position:relative;display:flex;flex-direction:column}
-  .side-scroll{padding:12px;overflow:auto;flex:1}
-  .side-title{font-size:12px;color:#cfcfcf;text-transform:uppercase;letter-spacing:.05em;margin:8px 0 6px}
-  .group{border:1px solid var(--line);border-radius:12px;padding:10px;background:#0F0F0F;margin-bottom:10px}
-  .label{font-size:12px;color:#d6d6d6;margin:0 0 6px}
-  .field{display:flex;gap:8px}
-  .field input,.field select,.field textarea{flex:1;background:#0E0E0E;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:8px 10px;color:#fff;outline:none}
-  .chips{display:flex;flex-wrap:wrap;gap:8px}
-  .chip{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:#0E0E0E;color:#ddd;cursor:pointer}
-  .chip.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
-  .filters-dock{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(19,19,19,.85) 0%,rgba(19,19,19,1) 24%);border-top:1px solid var(--line);padding:10px;display:grid;gap:8px;z-index:5}
-  .dock-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .dock-actions{display:flex;gap:8px}
-  .badge{display:inline-flex;align-items:center;gap:6px;background:#0E0E0E;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px;color:#ddd}
-  .badge .dot{width:10px;height:10px;border-radius:50%;border:1px solid var(--line);display:inline-block}
-  .board{overflow:auto;padding:12px}
-  .cols{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;min-width:1100px}
-  .col{background:var(--panel);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;max-height:100%}
-  .col-head{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
-  .col-title{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:#eee}
-  .count{font-size:11px;color:#bbb}
-  .col-body{padding:10px;overflow:auto;display:grid;gap:10px}
-  .card{background:#0D0D0D;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px}
-  .card .name{font-weight:800;margin:0 0 6px 0;font-size:13px}
-  .meta{font-size:12px;color:#cfcfcf;margin-bottom:6px}
-  .meta .pill{display:inline-block;border:1px solid rgba(255,255,255,.14);padding:2px 6px;border-radius:999px;font-size:11px;margin-right:6px}
-  .contact{display:grid;grid-template-columns:1fr;gap:4px;margin-top:6px;font-size:12px}
-  .contact a{color:#e9e9e9;text-decoration:none;border-bottom:1px dotted rgba(255,255,255,.2)}
-  .contact a:hover{color:#fff;border-bottom-color:var(--gold)}
-  .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-  .tag{font-size:10px;padding:4px 6px;border-radius:999px;border:1px solid rgba(255,255,255,.14);color:#ddd}
-  .actions{display:flex;gap:6px;margin-top:8px}
-  .iconbtn{border:1px solid rgba(255,255,255,.18);background:#101010;border-radius:8px;padding:6px 8px;cursor:pointer;font-size:12px;color:#e0e0e0}
-  .iconbtn:hover{border-color:var(--gold);color:#fff}
-  .icon-danger{border-color:#5f1e1e;color:#ffbbbb}
-  .icon-danger:hover{border-color:#EF5350;color:#fff}
-  .hidden-flag{opacity:.6}
-  /* Toast */
-  .toast{position:fixed;bottom:16px;right:16px;background:#111;border:1px solid rgba(255,255,255,.15);color:#fff;padding:10px 12px;border-radius:10px;opacity:0;transform:translateY(8px);transition:.2s;z-index:9999}
-  .toast.show{opacity:1;transform:translateY(0)}
-  /* MODAL centrado */
-  .modal-backdrop{
-    display:none; position:fixed; inset:0;
-    background:rgba(0,0,0,.55); backdrop-filter:saturate(1.15) blur(2px);
-    z-index:9998; align-items:center; justify-content:center; padding:16px;
-  }
-  .modal-backdrop.show{ display:flex; }
-  .modal{
-    width:min(900px, 94vw); max-height:88vh;
-    background:#0F0F0F; border:1px solid rgba(255,255,255,.12); border-radius:14px;
-    overflow:auto; box-shadow:0 12px 48px rgba(0,0,0,.55);
-  }
-  .modal header{
-    position:sticky; top:0; z-index:1;
-    background:#0F0F0F; border-bottom:1px solid rgba(255,255,255,.08); padding:10px 12px;
-  }
-  .modal .body{ padding:12px; }
-  .modal .actions{
-    position:sticky; bottom:0; z-index:1;
-    background:linear-gradient(180deg, rgba(15,15,15,.9), #0F0F0F 24%);
-    border-top:1px solid rgba(255,255,255,.08);
-    padding:10px 12px; display:flex; align-items:center; justify-content:space-between; gap:10px;
-  }
-  .grid{display:grid;gap:10px}
-  .g-2{grid-template-columns:1fr 1fr}
-  .g-3{grid-template-columns:1fr 1fr 1fr}
-  .error{background:#3b1f1f;border:1px solid #5f2b2b;color:#ffc9c9;padding:8px 10px;border-radius:8px}
-  /* Modal de confirmação (compatível Atlas) */
-  .confirm-backdrop{
-    display:none; position:fixed; inset:0; z-index:9999;
-    background:rgba(0,0,0,.55); backdrop-filter:saturate(1.05) blur(2px);
-    align-items:center; justify-content:center; padding:16px;
-  }
-  .confirm-backdrop.show{ display:flex; }
-  .confirm-card{
-    width:min(520px,92vw); background:#0F0F0F; color:#fff;
-    border:1px solid rgba(255,255,255,.15); border-radius:12px;
-    box-shadow:0 10px 36px rgba(0,0,0,.5); overflow:hidden;
-  }
-  .confirm-card header{ padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.08); font-weight:700 }
-  .confirm-card .body{ padding:12px; color:#e3e3e3; }
-  .confirm-card .actions{ padding:10px 12px; display:flex; gap:8px; justify-content:flex-end; border-top:1px solid rgba(255,255,255,.08) }
-  .confirm-btn{ border:1px solid rgba(255,255,255,.18); background:#101010; color:#eaeaea; padding:6px 10px; border-radius:8px; cursor:pointer }
-  .confirm-btn.primary{ background:var(--gold); color:#111; border-color:var(--gold); font-weight:700 }
-  .confirm-btn.danger{ border-color:#5f1e1e; color:#ffcccc }
-  @media(max-width:1200px){.layout{grid-template-columns:1fr}.cols{min-width:900px}.g-2,.g-3{grid-template-columns:1fr}}
+:root{ --gold:#A38B63; --bg:#0E0E0E; --panel:#131313; --text:#fff; --muted:#9AA0A6; --border:rgba(255,255,255,.12)}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+a{color:#eaeaea;text-decoration:none}
+.app{display:grid;grid-template-rows:56px auto 1fr;height:100%}
+header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--border);background:#0F0F0F}
+.brand{display:flex;align-items:center;gap:10px}
+.brand h1{font-size:16px;margin:0;color:var(--gold)}
+.nav{display:flex;gap:8px}
+.nav a{border:1px solid var(--border);padding:6px 10px;border-radius:8px;color:#ddd}
+.nav a.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
+
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;padding:8px 12px;border-bottom:1px solid var(--border);background:#0F0F0F}
+.btn{background:transparent;border:1px solid rgba(163,139,99,.5);color:#fff;padding:6px 10px;border-radius:10px;cursor:pointer;font-size:12px}
+.btn.primary{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
+.btn.ghost{border-color:var(--border);color:#ddd}
+
+.board{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;padding:10px;height:100%;overflow:auto}
+.col{background:var(--panel);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;min-width:240px}
+.col header{padding:10px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between}
+.col header .title{font-weight:700}
+.counter{font-size:12px;color:#cfcfcf}
+.col .list{padding:10px;display:flex;flex-direction:column;gap:10px}
+
+.card{background:#0E0E0E;border:1px solid rgba(163,139,99,.25);border-radius:12px;padding:10px}
+.card .top{display:flex;justify-content:space-between;gap:8px}
+.card .name{font-weight:800}
+.card .meta{font-size:12px;color:#bbb}
+.card .row{margin-top:6px;font-size:12px;color:#ddd}
+.card .actions{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--border);font-size:11px}
+.badge.light{border-color:#444;color:#ccc}
+.label{font-size:12px;color:#cfcfcf;margin:6px 0 4px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.filters select,.filters input{background:#0E0E0E;border:1px solid rgba(255,255,255,.16);border-radius:8px;color:#fff;padding:6px 8px;outline:none;font-size:12px}
+
+.modal-backdrop{display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.6);backdrop-filter:blur(2px);align-items:center;justify-content:center;padding:16px}
+.modal-backdrop.show{display:flex}
+.modal{width:min(920px,96vw);background:#0F0F0F;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.modal header{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal .content{padding:12px;max-height:72vh;overflow:auto}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.form-field{display:flex;flex-direction:column;gap:6px}
+.form-field input,.form-field select,.form-field textarea{background:#0E0E0E;border:1px solid rgba(255,255,255,.16);border-radius:8px;color:#fff;padding:8px 10px;outline:none}
+.form-field small{color:#9AA0A6}
+.help{font-size:12px;color:#bdbdbd}
+
+.state-pills{display:flex;gap:8px;flex-wrap:wrap}
+.state-pill{display:flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:6px 10px;font-size:12px;background:#0E0E0E;cursor:pointer}
+.state-pill input{accent-color:#A38B63; width:14px; height:14px}
+.state-pill.active{background:#1c1c1c;border-color:#A38B63}
+
+@media (max-width:1200px){ .board{grid-template-columns:repeat(3,1fr)} }
+@media (max-width:800px){ .board{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
-<header>
-  <div style="display:flex;align-items:center;gap:10px">
-    <strong style="color:#FFD166">Garvetur Porto Pro</strong>
-    <nav>
-      <a href="./index.html">Mapa</a>
-      <a class="active" href="./kanban.html">Leads</a>
-      <a href="./angariacoes.html">Angariações</a>
-      <a href="./dashboard.html">Dashboard</a>
-    </nav>
-  </div>
-  <div style="display:flex;align-items:center;gap:10px">
-    <div class="quick" title="Alterna entre só visíveis e visíveis + invisíveis">
-      <label for="q_showHidden">Mostrar invisíveis</label>
-      <label class="switch">
-        <input type="checkbox" id="q_showHidden">
-        <span class="slider"></span>
-      </label>
-    </div>
-    <button id="addLead" class="btn primary" type="button">+ Nova lead</button>
-    <button id="exportLeads" class="btn" type="button">Exportar CSV</button>
-  </div>
-</header>
-
-<div class="layout">
-  <aside class="sidebar">
-    <div class="side-scroll" id="sideScroll">
-      <div class="side-title">Pesquisa</div>
-      <div class="group">
-        <div class="label">Texto livre</div>
-        <div class="field"><input id="q_text" placeholder="Cliente, imóvel, zona, notas..."></div>
-        <div class="help">Filtra por múltiplos campos (cliente, zona, imóvel, notas).</div>
-      </div>
-
-      <div class="side-title">Filtros principais</div>
-      <div class="group">
-        <div class="label">Consultor</div>
-        <div class="field">
-          <select id="f_consultor">
-            <option value="">(Todos)</option>
-            <option>Rui Quelhas</option><option>Manuel Oliveira</option><option>João Sousa</option>
-            <option>Francisco dos Santos</option><option>Rosário Vasconcelos</option><option>Armanda Meireles</option><option>Audrey Lucas</option>
-          </select>
-        </div>
-
-        <div class="label" style="margin-top:8px">Visibilidade</div>
-        <div class="field">
-          <select id="f_vis">
-            <option value="visiveis">Só visíveis</option>
-            <option value="invisiveis">Só invisíveis</option>
-            <option value="todos">Visíveis + invisíveis</option>
-          </select>
-        </div>
-
-        <div class="label" style="margin-top:8px">Origem</div>
-        <div class="field">
-          <select id="f_origem">
-            <option value="">(Todas)</option>
-            <option>Promotor</option><option>Referência</option><option>Digital</option><option>Walk-in</option><option>Outro</option><option>Indefinido</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="side-title">Rápidos</div>
-      <div class="group">
-        <div class="chips" id="chips_quick">
-          <div class="chip" data-q="7">Últimos 7d</div><div class="chip" data-q="30">Últimos 30d</div><div class="chip" data-q="90">Últimos 90d</div><div class="chip" data-q="ytd">YTD</div>
-        </div>
-        <div class="dock-grid" style="margin-top:8px">
-          <div><div class="label">De</div><input type="date" id="f_de"></div>
-          <div><div class="label">Até</div><input type="date" id="f_ate"></div>
-        </div>
-      </div>
-
-      <div class="side-title">Estado & sinalizações</div>
-      <div class="group">
-        <div class="chips" id="chips_estado">
-          <div class="chip active" data-stage="">Todos</div>
-          <div class="chip" data-stage="novo">Novo</div>
-          <div class="chip" data-stage="em_contacto">Em Contacto</div>
-          <div class="chip" data-stage="qualificado">Qualificado</div>
-          <div class="chip" data-stage="visita">Visita</div>
-          <div class="chip" data-stage="proposta">Proposta</div>
-          <div class="chip" data-stage="fecho">Fecho</div>
-        </div>
-        <div class="help">Use para destacar apenas uma etapa, mantendo o quadro intacto.</div>
-      </div>
-
-      <div class="side-title">Resumo</div>
-      <div class="group" id="summaryBox">
-        <div class="badge"><span class="dot" style="background:#9E9E9E"></span>Novo: <b id="s_n">0</b></div>
-        <div class="badge"><span class="dot" style="background:#A38B63"></span>Em Contacto: <b id="s_c">0</b></div>
-        <div class="badge"><span class="dot" style="background:#2ecc71"></span>Qualificado: <b id="s_q">0</b></div>
-        <div class="badge"><span class="dot" style="background:#4285F4"></span>Visita: <b id="s_v">0</b></div>
-        <div class="badge"><span class="dot" style="background:#FFC107"></span>Proposta: <b id="s_p">0</b></div>
-        <div class="badge"><span class="dot" style="background:#4CAF50"></span>Fecho: <b id="s_f">0</b></div>
-        <div class="badge"><span class="dot" style="background:#555"></span>Invisíveis (filtrados): <b id="s_hidden">0</b></div>
-      </div>
-    </div>
-
-    <div class="filters-dock">
-      <div class="dock-grid">
-        <div><div class="label">Zona</div><input id="f_zona" placeholder="Ex.: Boavista, Foz, Gaia…"></div>
-        <div><div class="label">Imóvel</div><input id="f_imovel" placeholder="Ex.: T2, Moradia, Lote…"></div>
-      </div>
-      <div class="dock-actions">
-        <button id="applyFilters" class="btn primary" type="button">Aplicar</button>
-        <button id="clearFilters" class="btn ghost" type="button">Limpar</button>
-      </div>
-    </div>
-  </aside>
-
-  <main class="board">
-    <div class="cols">
-      <section class="col c-novo" data-col="novo"><div class="col-head"><div class="col-title">Novo</div><div class="count" id="cnt_n">0</div></div><div class="col-body" id="col_n"></div></section>
-      <section class="col c-cont" data-col="em_contacto"><div class="col-head"><div class="col-title">Em Contacto</div><div class="count" id="cnt_c">0</div></div><div class="col-body" id="col_c"></div></section>
-      <section class="col c-qual" data-col="qualificado"><div class="col-head"><div class="col-title">Qualificado</div><div class="count" id="cnt_q">0</div></div><div class="col-body" id="col_q"></div></section>
-      <section class="col c-vis" data-col="visita"><div class="col-head"><div class="col-title">Visita</div><div class="count" id="cnt_v">0</div></div><div class="col-body" id="col_v"></div></section>
-      <section class="col c-prop" data-col="proposta"><div class="col-head"><div class="col-title">Proposta</div><div class="count" id="cnt_p">0</div></div><div class="col-body" id="col_p"></div></section>
-      <section class="col c-fecho" data-col="fecho"><div class="col-head"><div class="col-title">Fecho</div><div class="count" id="cnt_f">0</div></div><div class="col-body" id="col_f"></div></section>
-    </div>
-  </main>
-</div>
-
-<!-- MODAL: NOVA LEAD (centrado) -->
-<div id="modalNew" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Nova lead">
-  <div class="modal" role="document">
+  <div class="app">
     <header>
-      <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
-        <strong style="color:#FFD166">Nova lead</strong>
-        <button id="mNewClose" class="btn" type="button">Fechar</button>
+      <div class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--gold)"><circle cx="12" cy="12" r="10" stroke-width="1.5"/><path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/></svg>
+        <h1>Garvetur Porto Pro — Leads</h1>
+      </div>
+      <div class="nav">
+        <a href="./index.html">Mapa</a>
+        <a class="active" href="./kanban.html">Leads</a>
+        <a href="./angariacoes.html">Angariações</a>
+        <a href="./dashboard.html">Dashboard</a>
       </div>
     </header>
-    <div class="body">
-      <div class="error" id="mNewErr" style="display:none"></div>
 
-      <div class="grid g-2">
-        <div><div class="label">Nome cliente</div><input id="m_nome" placeholder="Ex.: João Almeida"></div>
-        <div class="grid g-2">
-          <div><div class="label">Contacto</div><input id="m_tel" placeholder="+351 9xx xxx xxx"></div>
-          <div><div class="label">Email</div><input id="m_email" placeholder="nome@exemplo.pt"></div>
-        </div>
+    <div class="toolbar">
+      <button class="btn primary" id="btnNew">+ Nova Lead</button>
+      <div class="filters">
+        <span class="label">Consultor</span>
+        <select id="f_consultor"><option value="">(Todos)</option></select>
+        <span class="label">Estado</span>
+        <select id="f_estado">
+          <option value="">(Todos)</option>
+          <option>Novo</option>
+          <option>Em Contacto</option>
+          <option>Qualificado</option>
+          <option>Visita</option>
+          <option>Proposta</option>
+          <option>Fecho</option>
+        </select>
+        <span class="label">Período</span>
+        <input id="f_ini" type="date"> <input id="f_fim" type="date">
+        <button class="btn" id="applyFilters">Aplicar</button>
+        <button class="btn ghost" id="clearFilters">Limpar</button>
       </div>
-
-      <div class="grid g-3" style="margin-top:10px">
-        <div><div class="label">Comprador ou Vendedor</div>
-          <select id="m_tipo_cli"><option value="comprador">Comprador</option><option value="vendedor">Vendedor</option></select>
-        </div>
-        <div><div class="label">Perfil</div>
-          <select id="m_perfil"><option value="cliente_final">Cliente final</option><option value="investidor">Investidor</option></select>
-        </div>
-        <div>
-          <div class="label">Tipo de negócio</div>
-          <select id="m_tipo_negocio">
-            <option>Venda</option><option>Compra</option><option>Arrendamento</option><option>Permuta</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="grid g-3" style="margin-top:10px">
-        <div><div class="label">Zona preferencial</div><input id="m_zona" placeholder="Boavista, Foz, Gaia…"></div>
-        <div><div class="label">Imóvel</div>
-          <select id="m_imovel_tipo"><option>Moradia</option><option>Apartamento</option><option>Loja</option><option>Armazém</option><option>Escritório</option><option>Terreno</option><option>Outro</option></select>
-        </div>
-        <div><div class="label">Tipologia</div>
-          <select id="m_tipologia"><option>T0</option><option>T1</option><option>T2</option><option>T3</option><option>T4</option><option>T5</option><option>>T5</option></select>
-        </div>
-      </div>
-
-      <div class="grid g-3" style="margin-top:10px">
-        <div><div class="label">Valor (€)</div><input id="m_val" type="number" inputmode="decimal" placeholder="Ex.: 350000"></div>
-        <div><div class="label">Urgente</div><select id="m_urgente"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
-        <div><div class="label">Pode comprar em planta</div><select id="m_planta"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
-      </div>
-
-      <div class="grid g-3" style="margin-top:10px">
-        <div><div class="label">Habitação</div><select id="m_habitacao"><option>Habitação própria</option><option>Habitação secundária</option></select></div>
-        <div><div class="label">Vai recorrer a financiamento</div><select id="m_fin"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
-        <div><div class="label">Já fez simulação</div><select id="m_simulacao"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
-      </div>
-
-      <div class="grid g-3" style="margin-top:10px">
-        <div><div class="label">Se sim, instituição</div><input id="m_banco" placeholder="Ex.: CGD, BPI, Novo Banco…"></div>
-        <div><div class="label">Tem imóvel para vender</div><select id="m_tem_vender"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
-        <div><div class="label">Já colocou à venda</div><select id="m_ja_venda"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
-      </div>
-
-      <div class="grid g-2" style="margin-top:10px">
-        <div><div class="label">Origem</div>
-          <select id="m_origem"><option>Indefinido</option><option>Promotor</option><option>Referência</option><option>Digital</option><option>Walk-in</option><option>Outro</option></select>
-        </div>
-        <div><div class="label">Consultor</div>
-          <select id="m_consultor">
-            <option>Rui Quelhas</option><option>Manuel Oliveira</option><option>João Sousa</option>
-            <option>Francisco dos Santos</option><option>Rosário Vasconcelos</option><option>Armanda Meireles</option><option>Audrey Lucas</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="grid g-2" style="margin-top:10px">
-        <div><div class="label">Data</div><input id="m_data" type="date"></div>
-        <div><div class="label">Notas</div>
-          <textarea id="m_notas" rows="3" style="width:100%;background:#0E0E0E;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:8px 10px;color:#fff;resize:vertical" placeholder="Observações relevantes, expectativas, condicionantes…"></textarea>
-        </div>
+      <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="exportCsv">Exportar CSV</button>
+        <button class="btn" id="exportXlsx">Exportar Excel</button>
       </div>
     </div>
-    <div class="actions">
-      <button id="mNewDelete" class="btn danger" type="button" style="display:none">Eliminar</button>
-      <div>
-        <button id="mNewReset" class="btn ghost" type="button">Limpar</button>
-        <button id="mNewSave" class="btn primary" type="button">Guardar lead</button>
-      </div>
+
+    <div class="board" id="board">
+      <!-- colunas -->
     </div>
   </div>
-</div>
 
-<!-- MODAL: EDITAR CONTACTO (centrado) -->
-<div id="modalQuick" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Editar contacto">
-  <div class="modal" role="document">
+<!-- Modal Nova/Editar Lead -->
+<div id="leadModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Lead">
+  <div class="modal">
     <header>
-      <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
-        <strong style="color:#FFD166">Editar contacto</strong>
-        <button id="mQClose" class="btn" type="button">Fechar</button>
+      <div><strong id="modalTitle">Nova Lead</strong></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" id="cancelLead">Cancelar</button>
+        <button class="btn primary" id="saveLead">Guardar</button>
       </div>
     </header>
-    <div class="body">
-      <input type="hidden" id="mQ_id">
-      <div class="grid g-2">
-        <div><div class="label">Nome cliente</div><input id="mQ_nome"></div>
-        <div class="grid g-2">
-          <div><div class="label">Contacto</div><input id="mQ_tel" placeholder="+351…"></div>
-          <div><div class="label">Email</div><input id="mQ_email" placeholder="nome@exemplo.pt"></div>
+    <div class="content">
+      <div class="grid2">
+        <div class="form-field"><label>Nome Cliente *</label><input id="ld_nome"></div>
+        <div class="form-field"><label>Consultor *</label>
+          <select id="ld_consultor">
+            <option value="">—</option>
+            <option>Rui Quelhas</option>
+            <option>Manuel Oliveira</option>
+            <option>João Sousa</option>
+            <option>Francisco dos Santos</option>
+            <option>Rosário Vasconcelos</option>
+            <option>Armanda Meireles</option>
+            <option>Audrey Lucas</option>
+          </select>
         </div>
+
+        <div class="form-field"><label>Contacto *</label><input id="ld_contacto" placeholder="+351 … ou 9 dígitos"></div>
+        <div class="form-field"><label>Email</label><input id="ld_email" type="email"></div>
+
+        <div class="form-field"><label>Tipo de negócio</label>
+          <select id="ld_tipo_negocio">
+            <option value="">—</option><option>Venda</option><option>Compra</option><option>Arrendamento</option><option>Permuta</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Imóvel</label>
+          <select id="ld_imovel">
+            <option value="">—</option><option>Moradia</option><option>Apartamento</option><option>Loja</option><option>Armazém</option><option>Escritório</option><option>Terreno</option><option>Outro</option>
+          </select>
+        </div>
+
+        <div class="form-field"><label>Tipologia</label>
+          <select id="ld_tipologia">
+            <option value="">—</option><option>T0</option><option>T1</option><option>T2</option><option>T3</option><option>T4</option><option>T5</option><option>&gt;T5</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Zona preferencial</label><input id="ld_zona"></div>
+
+        <div class="form-field"><label>Capitais próprios (€)</label><input id="ld_capitais" type="number" min="0" step="1000"></div>
+        <div class="form-field"><label>Valor alvo (€)</label><input id="ld_valor" type="number" min="0" step="1000"></div>
+
+        <div class="form-field"><label>Financiamento bancário?</label>
+          <select id="ld_financiamento"><option>Não</option><option>Sim</option></select>
+        </div>
+        <div class="form-field"><label>Simulação bancária?</label>
+          <select id="ld_simulacao"><option>Não</option><option>Sim</option></select>
+        </div>
+
+        <div class="form-field"><label>Instituição bancária (se aplicável)</label><input id="ld_banco"></div>
+        <div class="form-field"><label>Tem imóvel para vender?</label>
+          <select id="ld_tem_imovel"><option>Não</option><option>Sim</option></select>
+        </div>
+
+        <div class="form-field"><label>Já está à venda?</label>
+          <select id="ld_ja_venda"><option>Não</option><option>Sim</option></select>
+        </div>
+        <div class="form-field"><label>Urgente?</label>
+          <select id="ld_urgente"><option>Não</option><option>Sim</option></select>
+        </div>
+
+        <div class="form-field"><label>Pode comprar em planta?</label>
+          <select id="ld_planta"><option>Não</option><option>Sim</option></select>
+        </div>
+        <div class="form-field"><label>1ª habitação?</label>
+          <select id="ld_primeira_hab"><option>Não</option><option>Sim</option></select>
+        </div>
+
+        <div class="form-field"><label>Comprador/Vendedor</label>
+          <select id="ld_papel"><option value="">—</option><option>Comprador</option><option>Vendedor</option></select>
+        </div>
+        <div class="form-field"><label>Investidor/Cliente final</label>
+          <select id="ld_perfil"><option value="">—</option><option>Investidor</option><option>Cliente final</option></select>
+        </div>
+
+        <div class="form-field"><label>Classificação (1–5)</label>
+          <select id="ld_classificacao"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+        </div>
+        <div class="form-field"><label>Ref. Interna</label><input id="ld_ref"></div>
+
+        <div class="form-field"><label>URL anexo</label>
+          <input id="ld_url" placeholder="https://…"><small>Ex.: link de documento ou pasta (Drive/Dropbox/OneDrive).</small>
+        </div>
+        <div class="form-field"><label>Data</label><input id="ld_data" type="date"></div>
+
+        <div class="form-field" style="grid-column:1 / span 2"><label>Notas</label><textarea id="ld_notas" rows="3"></textarea></div>
+      </div>
+
+      <!-- ESTADO (seleção rápida) -->
+      <div class="form-field" style="margin-top:6px">
+        <label>Estado (seleção rápida)</label>
+        <div class="state-pills" id="ld_estado_picker">
+          <label class="state-pill"><input type="checkbox" class="cb_estado" value="Em Contacto"> Em Contacto</label>
+          <label class="state-pill"><input type="checkbox" class="cb_estado" value="Qualificado"> Qualificado</label>
+          <label class="state-pill"><input type="checkbox" class="cb_estado" value="Visita"> Visita</label>
+          <label class="state-pill"><input type="checkbox" class="cb_estado" value="Proposta"> Proposta</label>
+          <label class="state-pill"><input type="checkbox" class="cb_estado" value="Fecho"> Fecho</label>
+        </div>
+        <div class="help">Se selecionar um estado, o cartão será gravado diretamente nessa coluna. Se nada selecionar, fica em <b>Novo</b>.</div>
+      </div>
+
+      <!-- Campos adicionais para FECHO -->
+      <div id="fechoBox" class="grid2" style="margin-top:8px; display:none">
+        <div class="form-field"><label>Data do CPCV</label><input id="ld_fecho_cpcv_date" type="date"></div>
+        <div class="form-field"><label>Data da Escritura</label><input id="ld_fecho_escritura_date" type="date"></div>
+        <div class="form-field"><label>Valor a Dar no CPCV (€)</label><input id="ld_fecho_valor_cpcv" type="number" min="0" step="1000"></div>
+        <div class="form-field"><label>Valor de Sinal/Reserva (€)</label><input id="ld_fecho_sinal_reserva" type="number" min="0" step="500"></div>
+        <div class="form-field" style="grid-column:1 / span 2"><label>Observações</label><textarea id="ld_fecho_obs" rows="3"></textarea></div>
       </div>
     </div>
-    <div class="actions">
-      <button id="mQDelete" class="btn danger" type="button">Eliminar</button>
-      <button id="mQSave" class="btn primary" type="button">Guardar</button>
-    </div>
   </div>
 </div>
-
-<!-- Modal de confirmação -->
-<div id="confirmModal" class="confirm-backdrop" role="dialog" aria-modal="true" aria-label="Confirmação">
-  <div class="confirm-card" role="document">
-    <header>Confirmar ação</header>
-    <div class="body" id="confirmMsg">Tem a certeza?</div>
-    <div class="actions">
-      <button type="button" class="confirm-btn" id="confirmCancel">Cancelar</button>
-      <button type="button" class="confirm-btn primary" id="confirmOk">Confirmar</button>
-    </div>
-  </div>
-</div>
-
-<!-- Toast -->
-<div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <script>
-/* ====== Estado & utilitários ====== */
-const LS_LEADS='gpp_leads_v3';
-let F={ q:'',consultor:'',vis:'visiveis',origem:'',de:'',ate:'',stage:'',tipo:'',perfil:'',capMin:'',fb:'',zona:'',imovel:'' };
+/* ===== Estado ===== */
+const LS_KEY='gpp_leads_v3';
+const COLS=["Novo","Em Contacto","Qualificado","Visita","Proposta","Fecho"];
+const CONSULT_RESOLVE=["Rui Quelhas","Manuel Oliveira","João Sousa","Francisco dos Santos","Rosário Vasconcelos","Armanda Meireles","Audrey Lucas"];
 
-const $=sel=>document.querySelector(sel);
-const el=id=>document.getElementById(id);
-const txt=v=>(v==null||v==='')?'':String(v).toLowerCase();
-const money=n=>isFinite(n)?Number(n).toLocaleString('pt-PT',{style:'currency',currency:'EUR'}):'—';
-function loadLeads(){ try{return JSON.parse(localStorage.getItem(LS_LEADS)||'[]')}catch(e){return[]} }
-function saveLeads(a){ localStorage.setItem(LS_LEADS, JSON.stringify(a)) }
-function dateIn(iso,d1,d2){ if(!iso)return true; const t=Date.parse(iso); const ok1=!d1||t>=Date.parse(d1+'T00:00:00'); const ok2=!d2||t<=Date.parse(d2+'T23:59:59'); return ok1&&ok2 }
-function normalizePhone(p){ return String(p||'').replace(/\s+/g,'') }
-function safeMail(m){ return String(m||'').trim() }
-function toast(msg){ const t=el('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1400); }
+let LEADS=[]; // {id, estado, ..., fecho_*}
+let FILTER={ consultor:'', estado:'', ini:'', fim:'' };
+let PICKED_STATE=''; // estado escolhido nos “piscos”
 
-/* ====== Modal de confirmação (compatível Atlas) ====== */
-function customConfirm(mensagem="Confirmar?"){
-  return new Promise(resolve=>{
-    const bd = el('confirmModal');
-    const msg = el('confirmMsg');
-    const ok  = el('confirmOk');
-    const cc  = el('confirmCancel');
-    msg.textContent = mensagem;
-    const close = (val)=>{ 
-      bd.classList.remove('show'); 
-      ok.onclick=null; cc.onclick=null; 
-      bd.onclick=null; 
-      resolve(val); 
-    };
-    ok.onclick = ()=>close(true);
-    cc.onclick = ()=>close(false);
-    bd.onclick = (e)=>{ if(e.target===bd) close(false); };
-    bd.classList.add('show');
-  });
+const $=id=>document.getElementById(id);
+const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+
+/* ===== Persistência ===== */
+function loadLS(){ try{ const x=localStorage.getItem(LS_KEY); return x? JSON.parse(x):[];}catch{return[];} }
+function saveLS(){ localStorage.setItem(LS_KEY, JSON.stringify(LEADS)); }
+
+/* ===== UI Helpers ===== */
+function badge(txt){ return `<span class="badge light">${txt||'—'}</span>`; }
+function fmtDate(d){ if(!d) return '—'; try{ const z=new Date(d); return z.toLocaleDateString('pt-PT'); }catch{return d;} }
+function isEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e||'')); }
+function isTel(t){ const s=String(t||'').replace(/\s+/g,''); return /^\+?\d{9,15}$/.test(s); }
+function isHttp(u){ return /^https?:\/\//i.test(String(u||'')); }
+function uid(){ return 'L'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4); }
+
+/* ===== Filtros barra ===== */
+function buildFilters(){
+  const sel=$('f_consultor'); sel.innerHTML='<option value="">(Todos)</option>'+CONSULT_RESOLVE.map(c=>`<option>${c}</option>`).join('');
 }
-
-/* ====== Pré-definições ====== */
-(function initDefaultDates(){
-  const today=new Date().toISOString().slice(0,10);
-  el('m_data').value=today;
-  const d30=new Date(); d30.setDate(d30.getDate()-30);
-  const de=d30.toISOString().slice(0,10);
-  const ate=today;
-  const f_de=document.getElementById('f_de'); if(f_de) f_de.value=de;
-  const f_ate=document.getElementById('f_ate'); if(f_ate) f_ate.value=ate;
-})();
-
-/* ====== UI — filtros rápidos ====== */
-document.querySelectorAll('#chips_quick .chip').forEach(ch=>{
-  ch.addEventListener('click', ()=>{
-    document.querySelectorAll('#chips_quick .chip').forEach(c=>c.classList.remove('active'));
-    ch.classList.add('active');
-    const mode=ch.dataset.q, today=new Date(), y=today.getFullYear();
-    if(mode==='ytd'){ el('f_de').value=`${y}-01-01`; el('f_ate').value='' }
-    else{ const n=parseInt(mode,10); const d=new Date(); d.setDate(d.getDate()-n); el('f_de').value=d.toISOString().slice(0,10); el('f_ate').value=today.toISOString().slice(0,10) }
-  });
+$('applyFilters').addEventListener('click',()=>{
+  FILTER.consultor=$('f_consultor').value; FILTER.estado=$('f_estado').value;
+  FILTER.ini=$('f_ini').value; FILTER.fim=$('f_fim').value;
+  renderBoard();
 });
-document.querySelectorAll('#chips_estado .chip').forEach(ch=>{
-  ch.addEventListener('click', ()=>{
-    document.querySelectorAll('#chips_estado .chip').forEach(c=>c.classList.remove('active'));
-    ch.classList.add('active'); F.stage=ch.dataset.stage||''; render();
-  });
+$('clearFilters').addEventListener('click',()=>{
+  FILTER={consultor:'',estado:'',ini:'',fim:''};
+  ['f_consultor','f_estado','f_ini','f_fim'].forEach(id=>$(id).value='');
+  renderBoard();
 });
 
-/* ====== Aplicar/Limpar filtros ====== */
-const applyFiltersBtn=document.getElementById('applyFilters');
-if(applyFiltersBtn){
-  applyFiltersBtn.addEventListener('click', ()=>{
-    F.q=el('q_text').value.trim(); F.consultor=el('f_consultor').value; F.vis=el('f_vis').value; F.origem=el('f_origem').value;
-    F.de=el('f_de').value; F.ate=el('f_ate').value;
-    F.zona=el('f_zona').value.trim(); F.imovel=el('f_imovel').value.trim();
-    render();
-  });
-}
-const clearFiltersBtn=document.getElementById('clearFilters');
-if(clearFiltersBtn){
-  clearFiltersBtn.addEventListener('click', ()=>{
-    document.querySelectorAll('.sidebar input, .sidebar select').forEach(i=>{ i.value=''; });
-    document.querySelectorAll('#chips_estado .chip').forEach(c=>c.classList.remove('active'));
-    document.querySelector('#chips_estado .chip[data-stage=""]').classList.add('active');
-    document.querySelectorAll('#chips_quick .chip').forEach(c=>c.classList.remove('active'));
-    F={ q:'',consultor:'',vis:'visiveis',origem:'',de:'',ate:'',stage:'',tipo:'',perfil:'',capMin:'',fb:'',zona:'',imovel:'' };
-    el('f_vis').value='visiveis'; $('#q_showHidden').checked=false; render();
-  });
-}
-el('q_showHidden').addEventListener('change', (e)=>{ F.vis = e.target.checked ? 'todos' : 'visiveis'; el('f_vis').value=F.vis; render(); });
+/* ===== Modal Nova Lead ===== */
+function resetFechoBox(){ $('ld_fecho_cpcv_date').value=''; $('ld_fecho_escritura_date').value=''; $('ld_fecho_valor_cpcv').value=''; $('ld_fecho_sinal_reserva').value=''; $('ld_fecho_obs').value=''; }
+function setFechoBox(show){ $('fechoBox').style.display = show? 'grid':'none'; }
 
-/* ====== Cartões ====== */
-function cardHTML(l){
-  const tel=normalizePhone(l.tel||l.contacto||l.contact||l.telefone);
-  const email=safeMail(l.email);
-  const v=isFinite(l.val)?money(l.val):'—';
-  const tags=[];
-  if(l.tipo_negocio) tags.push(l.tipo_negocio);
-  if(l.origem) tags.push(l.origem);
-  if(l.tipo_cli) tags.push(l.tipo_cli);
-  if(l.perfil) tags.push(l.perfil);
-  if(l.imovel_tipo) tags.push(l.imovel_tipo);
-  if(l.tipologia) tags.push(l.tipologia);
-  const eyeLabel=(l.hidden===true)?'Tornar visível':'Tornar invisível';
-  const eyeIcon=(l.hidden===true)?'👁️':'🚫';
-  return `
-    <div class="card ${l.hidden===true?'hidden-flag':''}" draggable="true" data-id="${l.id}" data-dbl="1">
-      <div class="name">${l.cliente||'—'}</div>
-      <div class="meta">
-        <span class="pill">${l.zona||'—'}</span>
-        <span class="pill">${l.consultor||'Rui Quelhas'}</span>
-        <span class="pill">${v}</span>
-        <span class="pill">${l.createdAt?new Date(l.createdAt).toLocaleDateString('pt-PT'):''}</span>
-      </div>
-      <div class="contact">
-        <div><strong>Contacto:</strong> ${tel?`<a href="tel:${tel}">${tel}</a>`:'—'}</div>
-        <div><strong>Email:</strong> ${email?`<a href="mailto:${email}">${email}</a>`:'—'}</div>
-      </div>
-      <div class="tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
-      <div class="actions">
-        <button class="iconbtn" type="button" data-act="toggle" draggable="false" title="${eyeLabel}">${eyeIcon}</button>
-        <button class="iconbtn icon-danger" type="button" data-act="del" draggable="false" title="Eliminar">🗑️</button>
-      </div>
-    </div>`;
-}
-
-/* ====== Filtro & Render ====== */
-function applyFilter(l){
-  const q=txt(F.q);
-  if(q){ const blob=[l.cliente,l.imovel,l.zona,l.notas,l.tel,l.email].map(x=>txt(x)).join(' '); if(!blob.includes(q)) return false; }
-  if(F.consultor && l.consultor!==F.consultor) return false;
-  if(F.origem && String(l.origem||'')!==F.origem) return false;
-  if(F.stage && (l.stage||'')!==F.stage) return false;
-  if(F.zona && !String(l.zona||'').toLowerCase().includes(F.zona.toLowerCase())) return false;
-  if(F.imovel && !String(l.imovel||l.imovel_tipo||'').toLowerCase().includes(F.imovel.toLowerCase())) return false;
-  if(!dateIn(l.createdAt,F.de,F.ate)) return false;
-  return true;
-}
-function render(){
-  const all=loadLeads();
-  const counts={novo:0,em_contacto:0,qualificado:0,visita:0,proposta:0,fecho:0};
-  let hiddenCountFiltered=0;
-  const buckets={novo:[],em_contacto:[],qualificado:[],visita:[],proposta:[],fecho:[]};
-
-  all.forEach(l=>{
-    if(!applyFilter(l)) return;
-    const s=(l.stage||'novo');
-    counts[s]=(counts[s]||0)+1;
-    if(l.hidden===true) hiddenCountFiltered++;
-    const showHidden=(F.vis==='invisiveis'||F.vis==='todos');
-    const showVisible=(F.vis==='visiveis'||F.vis==='todos');
-    const isHidden=(l.hidden===true);
-    if(!((isHidden&&showHidden)||(!isHidden&&showVisible))) return;
-    buckets[s].push(l);
-  });
-
-  el('col_n').innerHTML=buckets.novo.map(cardHTML).join('')||'<div class="ghost-drop">Sem registos…</div>';
-  el('col_c').innerHTML=buckets.em_contacto.map(cardHTML).join('')||'<div class="ghost-drop">Sem registos…</div>';
-  el('col_q').innerHTML=buckets.qualificado.map(cardHTML).join('')||'<div class="ghost-drop">Sem registos…</div>';
-  el('col_v').innerHTML=buckets.visita.map(cardHTML).join('')||'<div class="ghost-drop">Sem registos…</div>';
-  el('col_p').innerHTML=buckets.proposta.map(cardHTML).join('')||'<div class="ghost-drop">Sem registos…</div>';
-  el('col_f').innerHTML=buckets.fecho.map(cardHTML).join('')||'<div class="ghost-drop">Sem registos…</div>';
-
-  el('cnt_n').textContent=counts.novo||0;
-  el('cnt_c').textContent=counts.em_contacto||0;
-  el('cnt_q').textContent=counts.qualificado||0;
-  el('cnt_v').textContent=counts.visita||0;
-  el('cnt_p').textContent=counts.proposta||0;
-  el('cnt_f').textContent=counts.fecho||0;
-  el('s_hidden').textContent=hiddenCountFiltered;
-
-  attachDnD();
-}
-
-/* ====== Drag & Drop ====== */
-function attachDnD(){
-  document.querySelectorAll('.card').forEach(card=>{
-    card.addEventListener('dragstart', e=>{ e.dataTransfer.setData('text/plain', card.dataset.id); e.dataTransfer.effectAllowed='move'; });
-  });
-  document.querySelectorAll('.col-body').forEach(zone=>{
-    zone.addEventListener('dragover', e=>{ e.preventDefault(); e.dataTransfer.dropEffect='move'; });
-    zone.addEventListener('drop', e=>{
-      e.preventDefault();
-      const id=e.dataTransfer.getData('text/plain');
-      moveLeadToColumn(id, zone.closest('.col').dataset.col);
+function initStatePicker(){
+  PICKED_STATE='';
+  document.querySelectorAll('.cb_estado').forEach(cb=>{
+    cb.checked=false;
+    cb.closest('.state-pill')?.classList.remove('active');
+    cb.addEventListener('change', e=>{
+      // Exclusivo: desmarca os outros
+      document.querySelectorAll('.cb_estado').forEach(x=>{
+        if(x!==cb){ x.checked=false; x.closest('.state-pill')?.classList.remove('active'); }
+      });
+      if(cb.checked){
+        PICKED_STATE=cb.value;
+        cb.closest('.state-pill')?.classList.add('active');
+      }else{
+        PICKED_STATE='';
+      }
+      setFechoBox(PICKED_STATE==='Fecho');
     });
   });
 }
-function moveLeadToColumn(id, stage){
-  const arr=loadLeads(); const i=arr.findIndex(l=>String(l.id)===String(id));
-  if(i>=0){ arr[i].stage=stage; arr[i].updatedAt=new Date().toISOString(); saveLeads(arr); render(); }
-}
 
-/* ====== Ações delegadas nos cartões (inclui eliminar) ====== */
-document.addEventListener('pointerdown', (ev)=>{
-  const btn = ev.target && (ev.target.closest?.('.iconbtn'));
-  if(btn){ ev.stopPropagation(); } // evita iniciar drag ao clicar no botão
-}, {capture:true});
+function openModal(edit=null){
+  $('modalTitle').textContent = edit? 'Editar Lead' : 'Nova Lead';
+  const f = (id,val='') => $(id).value = (val??'');
+  const v = edit||{};
+  f('ld_nome', v.nome);
+  f('ld_consultor', v.consultor||'');
+  f('ld_contacto', v.contacto);
+  f('ld_email', v.email);
+  f('ld_tipo_negocio', v.tipo_negocio);
+  f('ld_imovel', v.imovel);
+  f('ld_tipologia', v.tipologia);
+  f('ld_zona', v.zona);
+  f('ld_capitais', v.capitais);
+  f('ld_valor', v.valor);
+  f('ld_financiamento', v.financiamento||'Não');
+  f('ld_simulacao', v.simulacao||'Não');
+  f('ld_banco', v.banco);
+  f('ld_tem_imovel', v.tem_imovel||'Não');
+  f('ld_ja_venda', v.ja_venda||'Não');
+  f('ld_urgente', v.urgente||'Não');
+  f('ld_planta', v.planta||'Não');
+  f('ld_primeira_hab', v.primeira_hab||'Não');
+  f('ld_papel', v.papel||'');
+  f('ld_perfil', v.perfil||'');
+  f('ld_classificacao', v.classificacao||'');
+  f('ld_ref', v.ref_interna||'');
+  f('ld_url', v.url||'');
+  f('ld_data', v.data||new Date().toISOString().slice(0,10));
+  f('ld_notas', v.notas||'');
 
-document.addEventListener('click', (ev)=>{
-  const btn = ev.target && (ev.target.closest?.('.iconbtn'));
-  if(!btn) return;
-  ev.preventDefault(); ev.stopPropagation();
-  const act = btn.dataset.act;
-  const card = btn.closest('.card');
-  const id   = card?.dataset.id;
-  if(!id) return;
-
-  if(act==='toggle'){
-    const arr=loadLeads(); const i=arr.findIndex(x=>String(x.id)===String(id));
-    if(i<0) return;
-    arr[i].hidden = !(arr[i].hidden===true);
-    arr[i].updatedAt=new Date().toISOString();
-    saveLeads(arr); render();
-    toast(arr[i].hidden ? 'Lead marcada como invisível' : 'Lead marcada como visível');
-    return;
-  }
-
-  if(act==='del'){
-    customConfirm('Eliminar esta lead? Esta ação é irreversível.')
-      .then(doIt=>{
-        if(!doIt) return;
-        const arr=loadLeads().filter(x=>String(x.id)!==String(id));
-        saveLeads(arr); render(); toast('Lead eliminada');
-      });
-    return;
-  }
-});
-
-/* ====== Duplico-clique para editar contacto ====== */
-document.addEventListener('dblclick', (ev)=>{
-  const card = ev.target && (ev.target.closest?.('.card'));
-  if(!card) return;
-  const id=card.dataset.id; const arr=loadLeads(); const l=arr.find(x=>String(x.id)===String(id)); if(!l) return;
-  el('mQ_id').value=id; el('mQ_nome').value=l.cliente||''; el('mQ_tel').value=l.tel||l.contacto||''; el('mQ_email').value=l.email||'';
-  openQuick(true);
-});
-
-/* ====== Modal: Nova Lead (centrado) ====== */
-function openNew(show){
-  const bd = document.getElementById('modalNew');
-  if(!bd) return;
-  if(show){
-    bd.classList.add('show');
-    const first = document.getElementById('m_nome'); if(first) setTimeout(()=>first.focus(), 50);
+  // picker de estado (reset + marcar se estiver a editar)
+  initStatePicker();
+  if(edit && COLS.includes(edit.estado) && edit.estado!=='Novo'){
+    const sel = Array.from(document.querySelectorAll('.cb_estado')).find(x=>x.value===edit.estado);
+    if(sel){ sel.checked=true; sel.dispatchEvent(new Event('change')); }
   } else {
-    bd.classList.remove('show');
+    setFechoBox(false);
   }
-}
-document.getElementById('modalNew')?.addEventListener('click', (e)=>{ if(e.target?.id === 'modalNew') openNew(false); });
-document.getElementById('mNewClose')?.addEventListener('click', ()=>openNew(false));
-document.getElementById('mNewReset')?.addEventListener('click', ()=>resetNewForm());
-document.getElementById('addLead')?.addEventListener('click', ()=>{ resetNewForm(); openNew(true); });
 
-/* ====== Modal: Editar contacto (centrado) ====== */
-function openQuick(v){ document.getElementById('modalQuick').classList.toggle('show', !!v); }
-document.getElementById('mQClose')?.addEventListener('click', ()=>openQuick(false));
-document.getElementById('mQSave')?.addEventListener('click', ()=>{
-  const id=el('mQ_id').value; const arr=loadLeads(); const i=arr.findIndex(x=>String(x.id)===String(id)); if(i<0) return;
-  arr[i].cliente=el('mQ_nome').value.trim()||arr[i].cliente;
-  arr[i].tel=el('mQ_tel').value.trim();
-  arr[i].email=el('mQ_email').value.trim();
-  arr[i].updatedAt=new Date().toISOString();
-  saveLeads(arr); openQuick(false); render();
-});
-document.getElementById('mQDelete')?.addEventListener('click', async ()=>{
-  const id=el('mQ_id').value; openQuick(false);
-  const ok = await customConfirm('Eliminar esta lead? Esta ação é irreversível.');
-  if(!ok) return;
-  const arr=loadLeads().filter(x=>String(x.id)!==String(id));
-  saveLeads(arr); render(); toast('Lead eliminada');
-});
+  // preencher fecho se existir
+  resetFechoBox();
+  if(edit && edit.estado==='Fecho'){
+    $('ld_fecho_cpcv_date').value = edit.fecho_cpcv_date || '';
+    $('ld_fecho_escritura_date').value = edit.fecho_escritura_date || '';
+    $('ld_fecho_valor_cpcv').value = edit.fecho_valor_cpcv || '';
+    $('ld_fecho_sinal_reserva').value = edit.fecho_sinal_reserva || '';
+    $('ld_fecho_obs').value = edit.fecho_obs || '';
+  }
 
-/* ====== Nova Lead — guardar ====== */
-function resetNewForm(){
-  ['m_nome','m_tel','m_email','m_zona','m_val','m_banco','m_notas'].forEach(id=>el(id).value='');
-  el('m_tipo_cli').value='comprador'; el('m_perfil').value='cliente_final';
-  el('m_tipo_negocio').value='Venda';
-  el('m_imovel_tipo').value='Moradia'; el('m_tipologia').value='T2';
-  el('m_urgente').value='nao'; el('m_planta').value='nao'; el('m_habitacao').value='Habitação própria';
-  el('m_fin').value='nao'; el('m_simulacao').value='nao'; el('m_tem_vender').value='nao'; el('m_ja_venda').value='nao';
-  el('m_origem').value='Indefinido'; el('m_consultor').value='Rui Quelhas';
-  el('m_data').value=new Date().toISOString().slice(0,10); el('mNewErr').style.display='none';
+  $('leadModal').classList.add('show');
 }
-document.getElementById('mNewSave')?.addEventListener('click', ()=>{
-  const nome=el('m_nome').value.trim(); if(!nome){ el('mNewErr').textContent='Por favor preencha o Nome do cliente.'; el('mNewErr').style.display='block'; return; }
-  const tel=el('m_tel').value.trim(); const email=el('m_email').value.trim();
+$('cancelLead').addEventListener('click',()=> $('leadModal').classList.remove('show'));
+$('btnNew').addEventListener('click',()=> openModal());
+
+$('saveLead').addEventListener('click',()=>{
+  const get=id=>$(id).value.trim();
+  // estado final (pelo picker) — se vazio, fica "Novo"
+  const estadoFinal = PICKED_STATE || $('saveLead').dataset.editEstado || 'Novo';
+
   const lead={
-    id:Date.now(), cliente:nome, tel, email,
-    tipo_cli:el('m_tipo_cli').value, perfil:el('m_perfil').value,
-    tipo_negocio: el('m_tipo_negocio').value,
-    imovel_tipo:el('m_imovel_tipo').value, tipologia:el('m_tipologia').value,
-    zona:el('m_zona').value.trim(), val:Number(el('m_val').value||''),
-    urgente:el('m_urgente').value, planta:el('m_planta').value, habitacao:el('m_habitacao').value,
-    fin_banc:el('m_fin').value, simulacao:el('m_simulacao').value, banco:el('m_banco').value.trim(),
-    tem_imovel_vender:el('m_tem_vender').value, ja_venda:el('m_ja_venda').value,
-    origem:el('m_origem').value, consultor:el('m_consultor').value,
-    createdAt:(el('m_data').value?new Date(el('m_data').value+'T12:00:00Z').toISOString():new Date().toISOString()),
-    updatedAt:new Date().toISOString(), stage:'novo', hidden:false, notas:el('m_notas').value.trim()
+    id: $('saveLead').dataset.editId || uid(),
+    estado: estadoFinal,
+    nome: get('ld_nome'),
+    consultor: get('ld_consultor'),
+    contacto: get('ld_contacto'),
+    email: get('ld_email'),
+    tipo_negocio: get('ld_tipo_negocio'),
+    imovel: get('ld_imovel'),
+    tipologia: get('ld_tipologia'),
+    zona: get('ld_zona'),
+    capitais: get('ld_capitais'),
+    valor: get('ld_valor'),
+    financiamento: get('ld_financiamento'),
+    simulacao: get('ld_simulacao'),
+    banco: get('ld_banco'),
+    tem_imovel: get('ld_tem_imovel'),
+    ja_venda: get('ld_ja_venda'),
+    urgente: get('ld_urgente'),
+    planta: get('ld_planta'),
+    primeira_hab: get('ld_primeira_hab'),
+    papel: get('ld_papel'),
+    perfil: get('ld_perfil'),
+    classificacao: get('ld_classificacao'),
+    ref_interna: get('ld_ref'),
+    url: get('ld_url'),
+    data: get('ld_data'),
+    notas: get('ld_notas'),
+    visivel: true,
+
+    // campos de FECHO (só guardamos se estado for Fecho)
+    fecho_cpcv_date: estadoFinal==='Fecho' ? get('ld_fecho_cpcv_date') : '',
+    fecho_escritura_date: estadoFinal==='Fecho' ? get('ld_fecho_escritura_date') : '',
+    fecho_valor_cpcv: estadoFinal==='Fecho' ? get('ld_fecho_valor_cpcv') : '',
+    fecho_sinal_reserva: estadoFinal==='Fecho' ? get('ld_fecho_sinal_reserva') : '',
+    fecho_obs: estadoFinal==='Fecho' ? get('ld_fecho_obs') : ''
   };
-  const arr=loadLeads(); arr.push(lead); saveLeads(arr); openNew(false); render(); toast('Lead criada');
+
+  // Validações mínimas
+  if(!lead.nome){ alert('Indique o Nome do Cliente.'); return; }
+  if(!lead.contacto && !lead.email){ alert('Indique pelo menos Contacto ou Email.'); return; }
+  if(lead.email && !isEmail(lead.email)){ alert('Email inválido.'); return; }
+  if(lead.contacto && !isTel(lead.contacto)){ alert('Contacto inválido.'); return; }
+  if(lead.url && !isHttp(lead.url)){ alert('URL anexo inválido (deve começar por http/https).'); return; }
+
+  const idx=LEADS.findIndex(l=>l.id===lead.id);
+  if(idx>=0) LEADS[idx]=Object.assign(LEADS[idx], lead);
+  else LEADS.push(lead);
+
+  saveLS();
+  $('leadModal').classList.remove('show');
+  $('saveLead').dataset.editId=''; $('saveLead').dataset.editEstado='';
+  renderBoard();
 });
 
-/* ====== Exportar CSV ====== */
-document.getElementById('exportLeads')?.addEventListener('click', ()=>{
-  const arr=loadLeads().filter(applyFilter);
-  const headers=["ID","Visível","Nome Cliente","Contacto","Email","Consultor","Origem","Tipo","Perfil","Negócio","Imóvel","Tipologia","Zona","Valor","Urgente","Planta","Habitação","Fin.B.","Simulação","Banco","Tem p/ vender","Já à venda","Estado","Data","Atualizado em","Notas"];
-  const rows=arr.map(l=>[
-    l.id,(l.hidden===true?'Não':'Sim'),l.cliente||'',l.tel||l.contacto||'',l.email||'',
-    l.consultor||'',l.origem||'',l.tipo_cli||'',l.perfil||'',l.tipo_negocio||'',
-    l.imovel_tipo||'',l.tipologia||'',l.zona||'',
-    isFinite(l.val)? l.val : '',
-    l.urgente||'',l.planta||'',l.habitacao||'',
-    l.fin_banc||'',l.simulacao||'',l.banco||'',
-    l.tem_imovel_vender||'',l.ja_venda||'',
-    l.stage||'',l.createdAt||'',l.updatedAt||'',
-    (l.notas||'').replace(/\n/g,' ')
+/* ===== Render Board ===== */
+function colTemplate(name,count){
+  return `<div class="col" data-col="${name}">
+    <header><span class="title">${name}</span><span class="counter">${count}</span></header>
+    <div class="list" id="col_${name.replace(/\s/g,'_')}"></div>
+  </div>`;
+}
+function fechoLine(l){
+  const a = [];
+  if(l.fecho_cpcv_date) a.push(`CPCV: ${fmtDate(l.fecho_cpcv_date)}`);
+  if(l.fecho_escritura_date) a.push(`Escritura: ${fmtDate(l.fecho_escritura_date)}`);
+  if(l.fecho_valor_cpcv) a.push(`Valor CPCV: ${Number(l.fecho_valor_cpcv).toLocaleString('pt-PT')}`);
+  if(l.fecho_sinal_reserva) a.push(`Sinal/Reserva: ${Number(l.fecho_sinal_reserva).toLocaleString('pt-PT')}`);
+  return a.join(' · ');
+}
+function renderBoard(){
+  const board=$('board'); board.innerHTML='';
+  const byEstado = COLS.map(col=>{
+    let arr=LEADS.filter(l=>l.estado===col);
+    // filtros
+    if(FILTER.consultor) arr=arr.filter(l=>l.consultor===FILTER.consultor);
+    if(FILTER.estado) arr=arr.filter(l=>l.estado===FILTER.estado);
+    if(FILTER.ini) arr=arr.filter(l=>!l.data || l.data>=FILTER.ini);
+    if(FILTER.fim) arr=arr.filter(l=>!l.data || l.data<=FILTER.fim);
+    return {estado:col, items:arr};
+  });
+
+  byEstado.forEach(b=>{
+    board.insertAdjacentHTML('beforeend', colTemplate(b.estado,b.items.length));
+    const list=$('col_'+b.estado.replace(/\s/g,'_'));
+    b.items.forEach(lead=>{
+      const card=document.createElement('div'); card.className='card';
+      card.innerHTML=`
+        <div class="top">
+          <div>
+            <div class="name">${lead.nome||'—'}</div>
+            <div class="meta">${lead.consultor||'—'} ${lead.ref_interna? ' · '+badge('Ref: '+lead.ref_interna):''}</div>
+          </div>
+          <div>${lead.classificacao? badge('★ '+lead.classificacao): ''}</div>
+        </div>
+        <div class="row"><b>Contacto:</b> ${lead.contacto||'—'}</div>
+        <div class="row"><b>Email:</b> ${lead.email||'—'}</div>
+        <div class="row"><b>Tipo:</b> ${lead.tipo_negocio||'—'} · <b>Imóvel:</b> ${lead.imovel||'—'} · <b>Tipologia:</b> ${lead.tipologia||'—'}</div>
+        <div class="row"><b>Zona:</b> ${lead.zona||'—'} · <b>Valor:</b> ${lead.valor? Number(lead.valor).toLocaleString('pt-PT'): '—'}</div>
+        <div class="row"><b>Data:</b> ${fmtDate(lead.data)} ${lead.url? ' · <a href="'+lead.url+'" target="_blank" rel="noreferrer">URL</a>':''}</div>
+        ${lead.estado==='Fecho' ? `<div class="row">${fechoLine(lead) || ''}</div>` : ''}
+        <div class="actions">
+          <button class="btn" data-act="edit">Editar</button>
+          <button class="btn" data-act="dup">Duplicar</button>
+          <button class="btn ghost" data-act="move">Mover…</button>
+          <button class="btn" style="border-color:#cc4b4b;color:#ffdddd" data-act="del">Apagar</button>
+          <button class="btn" data-act="toggle">${lead.visivel!==false?'Tornar invisível':'Tornar visível'}</button>
+        </div>
+      `;
+      // Ações
+      card.querySelector('[data-act="edit"]').addEventListener('click',()=>{
+        $('saveLead').dataset.editId = lead.id;
+        $('saveLead').dataset.editEstado = lead.estado;
+        openModal(lead);
+      });
+      card.querySelector('[data-act="dup"]').addEventListener('click',()=>{
+        const copy=Object.assign({},lead,{ id:uid(), ref_interna:(lead.ref_interna? lead.ref_interna+'-copy':''), data:new Date().toISOString().slice(0,10) });
+        LEADS.push(copy); saveLS(); renderBoard();
+      });
+      card.querySelector('[data-act="move"]').addEventListener('click',()=>{
+        const nxt = prompt('Mover para (Novo | Em Contacto | Qualificado | Visita | Proposta | Fecho):', lead.estado);
+        if(!nxt || !COLS.includes(nxt)) return;
+        lead.estado=nxt; saveLS(); renderBoard();
+      });
+      card.querySelector('[data-act="del"]').addEventListener('click',()=>{
+        if(!confirm('Eliminar esta lead?')) return;
+        LEADS=LEADS.filter(x=>x.id!==lead.id); saveLS(); renderBoard();
+      });
+      card.querySelector('[data-act="toggle"]').addEventListener('click',()=>{
+        lead.visivel = lead.visivel===false ? true : false;
+        saveLS(); renderBoard();
+      });
+
+      if(lead.visivel===false) card.style.opacity=.45;
+      list.appendChild(card);
+    });
+  });
+
+  // atualizar contadores
+  Array.from(document.querySelectorAll('.col')).forEach(col=>{
+    const name=col.getAttribute('data-col');
+    const count=byEstado.find(x=>x.estado===name)?.items.length||0;
+    col.querySelector('.counter').textContent=count;
+  });
+}
+
+/* ===== Exportação ===== */
+function filterForExport(arr){
+  let out=[...arr];
+  if(FILTER.consultor) out=out.filter(l=>l.consultor===FILTER.consultor);
+  if(FILTER.estado) out=out.filter(l=>l.estado===FILTER.estado);
+  if(FILTER.ini) out=out.filter(l=>!l.data || l.data>=FILTER.ini);
+  if(FILTER.fim) out=out.filter(l=>!l.data || l.data<=FILTER.fim);
+  return out;
+}
+function toCSV(rows){ return rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n'); }
+
+$('exportCsv').addEventListener('click',()=>{
+  const headers=["ID","Estado","Data","Consultor","Nome","Contacto","Email","TipoNegócio","Imóvel","Tipologia","Zona","Capitais","Valor","Financiamento","Simulação","Banco","Comprador/Vend.","Perfil","Classificação","RefInterna","URL","Urgente","Planta","1ªHab","TemImóvel","JáVenda","Notas","Visível","Fecho_CPCV","Fecho_Escritura","Fecho_ValorCPCV","Fecho_SinalReserva","Fecho_Obs"];
+  const rows = filterForExport(LEADS).map(l=>[
+    l.id,l.estado,l.data||'',l.consultor||'',l.nome||'',l.contacto||'',l.email||'',
+    l.tipo_negocio||'',l.imovel||'',l.tipologia||'',l.zona||'',l.capitais||'',l.valor||'',
+    l.financiamento||'',l.simulacao||'',l.banco||'',l.papel||'',l.perfil||'',
+    l.classificacao||'',l.ref_interna||'',l.url||'',l.urgente||'',l.planta||'',l.primeira_hab||'',
+    l.tem_imovel||'',l.ja_venda||'',l.notas||'', (l.visivel!==false?'Sim':'Não'),
+    l.fecho_cpcv_date||'', l.fecho_escritura_date||'', l.fecho_valor_cpcv||'', l.fecho_sinal_reserva||'', l.fecho_obs||''
   ]);
-  const csv=[headers,...rows].map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n');
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob); const a=document.createElement('a');
-  a.href=url; a.download='leads_filtradas.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  const csv=toCSV([headers,...rows]);
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='leads.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 });
 
-/* ====== Tecla ESC fecha modais ====== */
-window.addEventListener('keydown', (e)=>{
-  if(e.key==='Escape'){
-    const m1=document.getElementById('modalNew'); const m2=document.getElementById('modalQuick');
-    if(m1?.classList.contains('show')) openNew(false);
-    if(m2?.classList.contains('show')) openQuick(false);
-  }
+$('exportXlsx').addEventListener('click',()=>{
+  const data = filterForExport(LEADS).map(l=>({
+    ID:l.id, Estado:l.estado, Data:l.data||'', Consultor:l.consultor||'', Nome:l.nome||'',
+    Contacto:l.contacto||'', Email:l.email||'', TipoNegócio:l.tipo_negocio||'',
+    Imóvel:l.imovel||'', Tipologia:l.tipologia||'', Zona:l.zona||'',
+    Capitais:+(l.capitais||0), Valor:+(l.valor||0), Financiamento:l.financiamento||'',
+    Simulação:l.simulacao||'', Banco:l.banco||'', "Comprador/Vend.":l.papel||'',
+    Perfil:l.perfil||'', Classificação:l.classificacao||'', "Ref. Interna":l.ref_interna||'',
+    URL:l.url||'', Urgente:l.urgente||'', Planta:l.planta||'', "1ª Hab.":l.primeira_hab||'',
+    "Tem Imóvel":l.tem_imovel||'', "Já à venda":l.ja_venda||'', Notas:l.notas||'',
+    Visível:(l.visivel!==false?'Sim':'Não'),
+    Fecho_CPCV:l.fecho_cpcv_date||'',
+    Fecho_Escritura:l.fecho_escritura_date||'',
+    Fecho_ValorCPCV:+(l.fecho_valor_cpcv||0),
+    Fecho_SinalReserva:+(l.fecho_sinal_reserva||0),
+    Fecho_Obs:l.fecho_obs||''
+  }));
+  const ws=XLSX.utils.json_to_sheet(data);
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Leads');
+  XLSX.writeFile(wb, 'leads.xlsx');
 });
 
-/* ====== Init ====== */
+/* ===== Boot ===== */
 (function init(){
-  if(!Array.isArray(loadLeads())) saveLeads([]);
-  document.getElementById('f_vis').value=F.vis;
-  render();
+  LEADS = loadLS();
+  buildFilters();
+  renderBoard();
 })();
 </script>
 </body>
