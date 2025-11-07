@@ -5,10 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Garvetur Porto Pro — Leads</title>
 <style>
-  :root{
-    --gold:#A38B63; --bg:#0E0E0E; --panel:#131313; --text:#fff; --muted:#A9AFB7;
-    --ok:#2ecc71; --warn:#FFC107; --bad:#EF5350; --line:rgba(255,255,255,.08);
-  }
+  :root{--gold:#A38B63;--bg:#0E0E0E;--panel:#131313;--text:#fff;--muted:#A9AFB7;--ok:#2ecc71;--warn:#FFC107;--bad:#EF5350;--line:rgba(255,255,255,.08)}
   html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
   header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line);background:#0F0F0F;position:sticky;top:0;z-index:10}
   nav a{margin-right:6px;text-decoration:none;color:#ddd;border:1px solid var(--line);padding:6px 10px;border-radius:8px}
@@ -18,7 +15,6 @@
   .btn.ghost{border-color:var(--line);color:#ddd}
   .layout{display:grid;grid-template-columns:320px 1fr;gap:0;height:calc(100vh - 52px)}
 
-  /* ====== Toggle rápido ====== */
   .quick{display:flex;align-items:center;gap:10px;margin-right:4px}
   .switch{position:relative;display:inline-block;width:44px;height:22px;vertical-align:middle}
   .switch input{opacity:0;width:0;height:0}
@@ -26,9 +22,7 @@
   .slider:before{position:absolute;content:"";height:18px;width:18px;left:2px;top:1.5px;background:#d9d9d9;transition:.2s;border-radius:50%}
   input:checked + .slider{background:var(--gold)}
   input:checked + .slider:before{transform:translateX(22px);background:#111}
-  .quick label{font-size:12px;color:#ddd;display:flex;align-items:center;gap:6px}
 
-  /* ====== SIDEBAR ====== */
   .sidebar{background:var(--panel);border-right:1px solid var(--line);position:relative;display:flex;flex-direction:column}
   .side-scroll{padding:12px;overflow:auto;flex:1}
   .side-title{font-size:12px;color:#cfcfcf;text-transform:uppercase;letter-spacing:.05em;margin:8px 0 6px}
@@ -39,16 +33,12 @@
   .chips{display:flex;flex-wrap:wrap;gap:8px}
   .chip{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:#0E0E0E;color:#ddd;cursor:pointer}
   .chip.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
-  .help{font-size:11px;color:var(--muted);margin-top:6px}
-
-  /* ====== DOCK DE FILTROS ====== */
-  .filters-dock{position:sticky; bottom:0; background:linear-gradient(180deg, rgba(19,19,19,.85) 0%, rgba(19,19,19,1) 24%); border-top:1px solid var(--line); padding:10px; display:grid; gap:8px; z-index:5}
-  .dock-grid{display:grid;grid-template-columns:1fr 1fr; gap:8px}
+  .filters-dock{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(19,19,19,.85) 0%,rgba(19,19,19,1) 24%);border-top:1px solid var(--line);padding:10px;display:grid;gap:8px;z-index:5}
+  .dock-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .dock-actions{display:flex;gap:8px}
   .badge{display:inline-flex;align-items:center;gap:6px;background:#0E0E0E;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px;color:#ddd}
   .badge .dot{width:10px;height:10px;border-radius:50%;border:1px solid var(--line);display:inline-block}
 
-  /* ====== BOARD ====== */
   .board{overflow:auto;padding:12px}
   .cols{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;min-width:1100px}
   .col{background:var(--panel);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;max-height:100%}
@@ -57,7 +47,6 @@
   .count{font-size:11px;color:#bbb}
   .col-body{padding:10px;overflow:auto;display:grid;gap:10px}
 
-  /* ====== CARD ====== */
   .card{background:#0D0D0D;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px}
   .card .name{font-weight:800;margin:0 0 6px 0;font-size:13px}
   .meta{font-size:12px;color:#cfcfcf;margin-bottom:6px}
@@ -74,27 +63,12 @@
   .icon-danger:hover{border-color:#EF5350;color:#fff}
   .hidden-flag{opacity:.6}
 
-  /* ====== MODALS ====== */
-  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:50}
-  .modal{width:min(780px,95vw);background:#0F0F0F;border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
-  .modal header{position:sticky;top:0;background:#111;border-bottom:1px solid var(--line);border-top-left-radius:16px;border-top-right-radius:16px}
-  .modal .body{padding:12px}
-  .grid{display:grid;gap:10px}
-  .g-2{grid-template-columns:1fr 1fr}
-  .g-3{grid-template-columns:1fr 1fr 1fr}
-  .row{display:grid;gap:10px}
-  .modal .actions{display:flex;justify-content:space-between;gap:8px;padding:10px;border-top:1px solid var(--line);background:#0F0F0F;border-bottom-left-radius:16px;border-bottom-right-radius:16px}
-  .danger{border-color:#EF5350;color:#fff}
-  .req::after{content:" *";color:#FFC107}
-  .error{color:#FFC107;font-size:12px}
-
-  /* responsivo */
-  @media(max-width:1200px){ .layout{grid-template-columns:1fr} .cols{min-width:900px} }
+  @media(max-width:1200px){.layout{grid-template-columns:1fr}.cols{min-width:900px}}
 </style>
 </head>
 <body>
 <header>
-  <div style="display:flex;align-items:center;gap:10px;">
+  <div style="display:flex;align-items:center;gap:10px">
     <strong style="color:#FFD166">Garvetur Porto Pro</strong>
     <nav>
       <a href="./index.html">Mapa</a>
@@ -111,19 +85,18 @@
         <span class="slider"></span>
       </label>
     </div>
-    <button id="addLead" class="btn primary">+ Nova lead</button>
-    <button id="exportLeads" class="btn">Exportar CSV</button>
+    <button id="addLead" class="btn primary" type="button">+ Nova lead</button>
+    <button id="exportLeads" class="btn" type="button">Exportar CSV</button>
   </div>
 </header>
 
 <div class="layout">
-  <!-- ================= Sidebar ================ -->
   <aside class="sidebar">
     <div class="side-scroll" id="sideScroll">
       <div class="side-title">Pesquisa</div>
       <div class="group">
         <div class="label">Texto livre</div>
-        <div class="field"><input id="q_text" placeholder="Cliente, imóvel, zona, notas..." /></div>
+        <div class="field"><input id="q_text" placeholder="Cliente, imóvel, zona, notas..."></div>
         <div class="help">Filtra por múltiplos campos (cliente, zona, imóvel, notas).</div>
       </div>
 
@@ -133,17 +106,11 @@
         <div class="field">
           <select id="f_consultor">
             <option value="">(Todos)</option>
-            <option>Rui Quelhas</option>
-            <option>Manuel Oliveira</option>
-            <option>João Sousa</option>
-            <option>Francisco dos Santos</option>
-            <option>Rosário Vasconcelos</option>
-            <option>Armanda Meireles</option>
-            <option>Audrey Lucas</option>
+            <option>Rui Quelhas</option><option>Manuel Oliveira</option><option>João Sousa</option>
+            <option>Francisco dos Santos</option><option>Rosário Vasconcelos</option><option>Armanda Meireles</option><option>Audrey Lucas</option>
           </select>
         </div>
 
-        <!-- Visibilidade -->
         <div class="label" style="margin-top:8px">Visibilidade</div>
         <div class="field">
           <select id="f_vis">
@@ -157,12 +124,7 @@
         <div class="field">
           <select id="f_origem">
             <option value="">(Todas)</option>
-            <option>Promotor</option>
-            <option>Referência</option>
-            <option>Digital</option>
-            <option>Walk-in</option>
-            <option>Outro</option>
-            <option>Indefinido</option>
+            <option>Promotor</option><option>Referência</option><option>Digital</option><option>Walk-in</option><option>Outro</option><option>Indefinido</option>
           </select>
         </div>
       </div>
@@ -170,20 +132,11 @@
       <div class="side-title">Rápidos</div>
       <div class="group">
         <div class="chips" id="chips_quick">
-          <div class="chip" data-q="7">Últimos 7d</div>
-          <div class="chip" data-q="30">Últimos 30d</div>
-          <div class="chip" data-q="90">Últimos 90d</div>
-          <div class="chip" data-q="ytd">YTD</div>
+          <div class="chip" data-q="7">Últimos 7d</div><div class="chip" data-q="30">Últimos 30d</div><div class="chip" data-q="90">Últimos 90d</div><div class="chip" data-q="ytd">YTD</div>
         </div>
         <div class="dock-grid" style="margin-top:8px">
-          <div>
-            <div class="label">De</div>
-            <input type="date" id="f_de">
-          </div>
-          <div>
-            <div class="label">Até</div>
-            <input type="date" id="f_ate">
-          </div>
+          <div><div class="label">De</div><input type="date" id="f_de"></div>
+          <div><div class="label">Até</div><input type="date" id="f_ate"></div>
         </div>
       </div>
 
@@ -201,42 +154,6 @@
         <div class="help">Use para destacar apenas uma etapa, mantendo o quadro intacto.</div>
       </div>
 
-      <div class="side-title">Perfil & capacidade</div>
-      <div class="group">
-        <div class="dock-grid">
-          <div>
-            <div class="label">Tipo de cliente</div>
-            <select id="f_tipo">
-              <option value="">(Todos)</option>
-              <option value="comprador">Comprador</option>
-              <option value="vendedor">Vendedor</option>
-            </select>
-          </div>
-          <div>
-            <div class="label">Perfil</div>
-            <select id="f_perfil">
-              <option value="">(Todos)</option>
-              <option value="investidor">Investidor</option>
-              <option value="cliente_final">Cliente final</option>
-            </select>
-          </div>
-        </div>
-        <div class="dock-grid" style="margin-top:8px">
-          <div>
-            <div class="label">Capitais próprios (mín.)</div>
-            <input id="f_cap_min" type="number" inputmode="decimal" placeholder="€">
-          </div>
-          <div>
-            <div class="label">Financiamento bancário</div>
-            <select id="f_fb">
-              <option value="">(Todos)</option>
-              <option value="sim">Sim</option>
-              <option value="nao">Não</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
       <div class="side-title">Resumo</div>
       <div class="group" id="summaryBox">
         <div class="badge"><span class="dot" style="background:#9E9E9E"></span>Novo: <b id="s_n">0</b></div>
@@ -249,653 +166,399 @@
       </div>
     </div>
 
-    <!-- ===== DOCK FIXO AO FUNDO ===== -->
     <div class="filters-dock">
       <div class="dock-grid">
-        <div>
-          <div class="label">Zona</div>
-          <input id="f_zona" placeholder="Ex.: Boavista, Foz, Gaia…">
-        </div>
-        <div>
-          <div class="label">Imóvel</div>
-          <input id="f_imovel" placeholder="Ex.: T2, Moradia, Lote…">
-        </div>
+        <div><div class="label">Zona</div><input id="f_zona" placeholder="Ex.: Boavista, Foz, Gaia…"></div>
+        <div><div class="label">Imóvel</div><input id="f_imovel" placeholder="Ex.: T2, Moradia, Lote…"></div>
       </div>
       <div class="dock-actions">
-        <button id="applyFilters" class="btn primary" title="Aplicar filtros">Aplicar</button>
-        <button id="clearFilters" class="btn ghost" title="Limpar filtros">Limpar</button>
+        <button id="applyFilters" class="btn primary" type="button">Aplicar</button>
+        <button id="clearFilters" class="btn ghost" type="button">Limpar</button>
       </div>
     </div>
   </aside>
 
-  <!-- ================= Board ================ -->
   <main class="board">
     <div class="cols">
-      <section class="col c-novo" data-col="novo">
-        <div class="col-head"><div class="col-title">Novo</div><div class="count" id="cnt_n">0</div></div>
-        <div class="col-body" id="col_n"></div>
-      </section>
-      <section class="col c-cont" data-col="em_contacto">
-        <div class="col-head"><div class="col-title">Em Contacto</div><div class="count" id="cnt_c">0</div></div>
-        <div class="col-body" id="col_c"></div>
-      </section>
-      <section class="col c-qual" data-col="qualificado">
-        <div class="col-head"><div class="col-title">Qualificado</div><div class="count" id="cnt_q">0</div></div>
-        <div class="col-body" id="col_q"></div>
-      </section>
-      <section class="col c-vis" data-col="visita">
-        <div class="col-head"><div class="col-title">Visita</div><div class="count" id="cnt_v">0</div></div>
-        <div class="col-body" id="col_v"></div>
-      </section>
-      <section class="col c-prop" data-col="proposta">
-        <div class="col-head"><div class="col-title">Proposta</div><div class="count" id="cnt_p">0</div></div>
-        <div class="col-body" id="col_p"></div>
-      </section>
-      <section class="col c-fecho" data-col="fecho">
-        <div class="col-head"><div class="col-title">Fecho</div><div class="count" id="cnt_f">0</div></div>
-        <div class="col-body" id="col_f"></div>
-      </section>
+      <section class="col c-novo" data-col="novo"><div class="col-head"><div class="col-title">Novo</div><div class="count" id="cnt_n">0</div></div><div class="col-body" id="col_n"></div></section>
+      <section class="col c-cont" data-col="em_contacto"><div class="col-head"><div class="col-title">Em Contacto</div><div class="count" id="cnt_c">0</div></div><div class="col-body" id="col_c"></div></section>
+      <section class="col c-qual" data-col="qualificado"><div class="col-head"><div class="col-title">Qualificado</div><div class="count" id="cnt_q">0</div></div><div class="col-body" id="col_q"></div></section>
+      <section class="col c-vis" data-col="visita"><div class="col-head"><div class="col-title">Visita</div><div class="count" id="cnt_v">0</div></div><div class="col-body" id="col_v"></div></section>
+      <section class="col c-prop" data-col="proposta"><div class="col-head"><div class="col-title">Proposta</div><div class="count" id="cnt_p">0</div></div><div class="col-body" id="col_p"></div></section>
+      <section class="col c-fecho" data-col="fecho"><div class="col-head"><div class="col-title">Fecho</div><div class="count" id="cnt_f">0</div></div><div class="col-body" id="col_f"></div></section>
     </div>
   </main>
 </div>
 
-<!-- ================= MODAL: NOVA LEAD ================= -->
+<!-- MODAL: NOVA LEAD -->
 <div id="modalNew" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Nova lead">
   <div class="modal">
     <header>
       <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
-        <div style="display:flex;align-items:center;gap:10px">
-          <strong style="color:#FFD166">Nova lead</strong>
-        </div>
-        <div style="display:flex;gap:8px">
-          <button id="mNewClose" class="btn">Fechar</button>
-        </div>
+        <div style="display:flex;align-items:center;gap:10px"><strong style="color:#FFD166">Nova lead</strong></div>
+        <div style="display:flex;gap:8px"><button id="mNewClose" class="btn" type="button">Fechar</button></div>
       </div>
     </header>
     <div class="body">
       <div class="error" id="mNewErr" style="display:none"></div>
 
       <div class="grid g-2">
-        <div>
-          <div class="label req">Nome cliente</div>
-          <input id="m_nome" placeholder="Ex.: João Almeida">
-        </div>
+        <div><div class="label req">Nome cliente</div><input id="m_nome" placeholder="Ex.: João Almeida"></div>
         <div class="grid g-2">
-          <div>
-            <div class="label">Contacto</div>
-            <input id="m_tel" placeholder="+351 9xx xxx xxx">
-          </div>
-          <div>
-            <div class="label">Email</div>
-            <input id="m_email" placeholder="nome@exemplo.pt">
-          </div>
+          <div><div class="label">Contacto</div><input id="m_tel" placeholder="+351 9xx xxx xxx"></div>
+          <div><div class="label">Email</div><input id="m_email" placeholder="nome@exemplo.pt"></div>
         </div>
       </div>
 
       <div class="grid g-3" style="margin-top:10px">
-        <div>
-          <div class="label req">Comprador ou Vendedor</div>
-          <select id="m_tipo_cli">
-            <option value="comprador">Comprador</option>
-            <option value="vendedor">Vendedor</option>
-          </select>
+        <div><div class="label req">Comprador ou Vendedor</div>
+          <select id="m_tipo_cli"><option value="comprador">Comprador</option><option value="vendedor">Vendedor</option></select>
         </div>
-        <div>
-          <div class="label req">Perfil</div>
-          <select id="m_perfil">
-            <option value="cliente_final">Cliente final</option>
-            <option value="investidor">Investidor</option>
-          </select>
+        <div><div class="label req">Perfil</div>
+          <select id="m_perfil"><option value="cliente_final">Cliente final</option><option value="investidor">Investidor</option></select>
         </div>
-        <div>
-          <div class="label">Zona preferencial</div>
-          <input id="m_zona" placeholder="Boavista, Foz, Gaia…">
-        </div>
+        <div><div class="label">Zona preferencial</div><input id="m_zona" placeholder="Boavista, Foz, Gaia…"></div>
       </div>
 
       <div class="grid g-3" style="margin-top:10px">
-        <div>
-          <div class="label">Imóvel</div>
-          <select id="m_imovel_tipo">
-            <option>Moradia</option>
-            <option>Apartamento</option>
-            <option>Loja</option>
-            <option>Armazém</option>
-            <option>Escritório</option>
-            <option>Terreno</option>
-            <option>Outro</option>
-          </select>
+        <div><div class="label">Imóvel</div>
+          <select id="m_imovel_tipo"><option>Moradia</option><option>Apartamento</option><option>Loja</option><option>Armazém</option><option>Escritório</option><option>Terreno</option><option>Outro</option></select>
         </div>
-        <div>
-          <div class="label">Tipologia</div>
-          <select id="m_tipologia">
-            <option>T0</option><option>T1</option><option>T2</option><option>T3</option><option>T4</option><option>T5</option><option>>T5</option>
-          </select>
+        <div><div class="label">Tipologia</div>
+          <select id="m_tipologia"><option>T0</option><option>T1</option><option>T2</option><option>T3</option><option>T4</option><option>T5</option><option>>T5</option></select>
         </div>
-        <div>
-          <div class="label">Valor (€)</div>
-          <input id="m_val" type="number" inputmode="decimal" placeholder="Ex.: 350000">
-        </div>
+        <div><div class="label">Valor (€)</div><input id="m_val" type="number" inputmode="decimal" placeholder="Ex.: 350000"></div>
       </div>
 
       <div class="grid g-3" style="margin-top:10px">
-        <div>
-          <div class="label">Urgente</div>
-          <select id="m_urgente"><option value="nao">Não</option><option value="sim">Sim</option></select>
-        </div>
-        <div>
-          <div class="label">Pode comprar em planta</div>
-          <select id="m_planta"><option value="nao">Não</option><option value="sim">Sim</option></select>
-        </div>
-        <div>
-          <div class="label">Habitação</div>
-          <select id="m_habitacao"><option>Habitação própria</option><option>Habitação secundária</option></select>
-        </div>
+        <div><div class="label">Urgente</div><select id="m_urgente"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
+        <div><div class="label">Pode comprar em planta</div><select id="m_planta"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
+        <div><div class="label">Habitação</div><select id="m_habitacao"><option>Habitação própria</option><option>Habitação secundária</option></select></div>
       </div>
 
       <div class="grid g-3" style="margin-top:10px">
-        <div>
-          <div class="label">Vai recorrer a financiamento</div>
-          <select id="m_fin"><option value="nao">Não</option><option value="sim">Sim</option></select>
-        </div>
-        <div>
-          <div class="label">Já fez simulação</div>
-          <select id="m_simulacao"><option value="nao">Não</option><option value="sim">Sim</option></select>
-        </div>
-        <div>
-          <div class="label">Se sim, instituição</div>
-          <input id="m_banco" placeholder="Ex.: CGD, BPI, Novo Banco…">
-        </div>
+        <div><div class="label">Vai recorrer a financiamento</div><select id="m_fin"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
+        <div><div class="label">Já fez simulação</div><select id="m_simulacao"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
+        <div><div class="label">Se sim, instituição</div><input id="m_banco" placeholder="Ex.: CGD, BPI, Novo Banco…"></div>
       </div>
 
       <div class="grid g-3" style="margin-top:10px">
-        <div>
-          <div class="label">Tem imóvel para vender</div>
-          <select id="m_tem_vender"><option value="nao">Não</option><option value="sim">Sim</option></select>
-        </div>
-        <div>
-          <div class="label">Já colocou à venda</div>
-          <select id="m_ja_venda"><option value="nao">Não</option><option value="sim">Sim</option></select>
-        </div>
-        <div>
-          <div class="label">Origem</div>
-          <select id="m_origem">
-            <option>Indefinido</option>
-            <option>Promotor</option>
-            <option>Referência</option>
-            <option>Digital</option>
-            <option>Walk-in</option>
-            <option>Outro</option>
-          </select>
+        <div><div class="label">Tem imóvel para vender</div><select id="m_tem_vender"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
+        <div><div class="label">Já colocou à venda</div><select id="m_ja_venda"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
+        <div><div class="label">Origem</div>
+          <select id="m_origem"><option>Indefinido</option><option>Promotor</option><option>Referência</option><option>Digital</option><option>Walk-in</option><option>Outro</option></select>
         </div>
       </div>
 
       <div class="grid g-2" style="margin-top:10px">
-        <div>
-          <div class="label req">Consultor</div>
+        <div><div class="label req">Consultor</div>
           <select id="m_consultor">
-            <option>Rui Quelhas</option>
-            <option>Manuel Oliveira</option>
-            <option>João Sousa</option>
-            <option>Francisco dos Santos</option>
-            <option>Rosário Vasconcelos</option>
-            <option>Armanda Meireles</option>
-            <option>Audrey Lucas</option>
+            <option>Rui Quelhas</option><option>Manuel Oliveira</option><option>João Sousa</option>
+            <option>Francisco dos Santos</option><option>Rosário Vasconcelos</option><option>Armanda Meireles</option><option>Audrey Lucas</option>
           </select>
         </div>
-        <div>
-          <div class="label req">Data</div>
-          <input id="m_data" type="date">
-        </div>
+        <div><div class="label req">Data</div><input id="m_data" type="date"></div>
       </div>
 
       <div class="row" style="margin-top:10px">
-        <div>
-          <div class="label">Notas</div>
+        <div><div class="label">Notas</div>
           <textarea id="m_notas" rows="3" style="width:100%;background:#0E0E0E;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:8px 10px;color:#fff;resize:vertical" placeholder="Observações relevantes, expectativas, condicionantes…"></textarea>
         </div>
       </div>
     </div>
     <div class="actions">
-      <button id="mNewDelete" class="btn danger" title="Eliminar esta lead" style="display:none">Eliminar</button>
+      <button id="mNewDelete" class="btn danger" type="button" style="display:none">Eliminar</button>
       <div>
-        <button id="mNewReset" class="btn ghost">Limpar</button>
-        <button id="mNewSave" class="btn primary">Guardar lead</button>
+        <button id="mNewReset" class="btn ghost" type="button">Limpar</button>
+        <button id="mNewSave" class="btn primary" type="button">Guardar lead</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ============ MODAL RÁPIDO: EDITAR NOME/CONTACTO/EMAIL ============ -->
+<!-- MODAL: EDITAR CONTACTO -->
 <div id="modalQuick" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Editar contacto">
   <div class="modal">
     <header>
       <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
         <div><strong style="color:#FFD166">Editar contacto</strong></div>
-        <div><button id="mQClose" class="btn">Fechar</button></div>
+        <div><button id="mQClose" class="btn" type="button">Fechar</button></div>
       </div>
     </header>
     <div class="body">
       <input type="hidden" id="mQ_id">
       <div class="grid g-2">
-        <div>
-          <div class="label req">Nome cliente</div>
-          <input id="mQ_nome">
-        </div>
+        <div><div class="label req">Nome cliente</div><input id="mQ_nome"></div>
         <div class="grid g-2">
-          <div>
-            <div class="label">Contacto</div>
-            <input id="mQ_tel" placeholder="+351…">
-          </div>
-          <div>
-            <div class="label">Email</div>
-            <input id="mQ_email" placeholder="nome@exemplo.pt">
-          </div>
+          <div><div class="label">Contacto</div><input id="mQ_tel" placeholder="+351…"></div>
+          <div><div class="label">Email</div><input id="mQ_email" placeholder="nome@exemplo.pt"></div>
         </div>
       </div>
     </div>
     <div class="actions">
-      <button id="mQDelete" class="btn danger">Eliminar</button>
-      <button id="mQSave" class="btn primary">Guardar</button>
+      <button id="mQDelete" class="btn danger" type="button">Eliminar</button>
+      <button id="mQSave" class="btn primary" type="button">Guardar</button>
     </div>
   </div>
 </div>
 
 <script>
-/* ======= STORAGE KEYS ======= */
 const LS_LEADS='gpp_leads_v3';
+let F={ q:'',consultor:'',vis:'visiveis',origem:'',de:'',ate:'',stage:'',tipo:'',perfil:'',capMin:'',fb:'',zona:'',imovel:'' };
 
-/* ======= ESTADO DE FILTRO ======= */
-let F = {
-  q:'', consultor:'', vis:'visiveis', origem:'', de:'', ate:'',
-  stage:'', tipo:'', perfil:'', capMin:'', fb:'',
-  zona:'', imovel:''
-};
+const $=sel=>document.querySelector(sel);
+const el=id=>document.getElementById(id);
+const txt=v=>(v==null||v==='')?'':String(v).toLowerCase();
+const money=n=>isFinite(n)?Number(n).toLocaleString('pt-PT',{style:'currency',currency:'EUR'}):'—';
+function loadLeads(){ try{return JSON.parse(localStorage.getItem(LS_LEADS)||'[]')}catch(e){return[]} }
+function saveLeads(a){ localStorage.setItem(LS_LEADS, JSON.stringify(a)) }
+function dateIn(iso,d1,d2){ if(!iso)return true; const t=Date.parse(iso); const ok1=!d1||t>=Date.parse(d1+'T00:00:00'); const ok2=!d2||t<=Date.parse(d2+'T23:59:59'); return ok1&&ok2 }
+function normalizePhone(p){ return String(p||'').replace(/\s+/g,'') }
+function safeMail(m){ return String(m||'').trim() }
 
-/* ======= UTIL ======= */
-const $ = sel => document.querySelector(sel);
-const el = id => document.getElementById(id);
-const txt = v => (v==null || v==='') ? '' : String(v).toLowerCase();
-const money = n => isFinite(n) ? Number(n).toLocaleString('pt-PT',{style:'currency',currency:'EUR'}) : '—';
-function loadLeads(){ try{ return JSON.parse(localStorage.getItem(LS_LEADS)||'[]'); }catch(e){ return []; } }
-function saveLeads(arr){ localStorage.setItem(LS_LEADS, JSON.stringify(arr)); }
-function dateIn(iso,d1,d2){
-  if(!iso) return true;
-  const t=Date.parse(iso);
-  const ok1 = !d1 || t >= Date.parse(d1+'T00:00:00');
-  const ok2 = !d2 || t <= Date.parse(d2+'T23:59:59');
-  return ok1 && ok2;
-}
-function normalizePhone(p){ return String(p||'').replace(/\s+/g,''); }
-function safeMail(m){ return String(m||'').trim(); }
-
-/* ======= UI: datas default ======= */
 (function initDefaultDates(){
-  const today = new Date().toISOString().slice(0,10);
-  el('m_data').value = today;
-  const d30 = new Date(); d30.setDate(d30.getDate()-30);
-  el('f_de').value = d30.toISOString().slice(0,10);
-  el('f_ate').value = today;
+  const today=new Date().toISOString().slice(0,10);
+  el('m_data').value=today;
+  const d30=new Date(); d30.setDate(d30.getDate()-30);
+  el('f_de').value=d30.toISOString().slice(0,10);
+  el('f_ate').value=today;
 })();
 
-/* ======= EVENTOS: chips rápidos ======= */
 document.querySelectorAll('#chips_quick .chip').forEach(ch=>{
   ch.addEventListener('click', ()=>{
     document.querySelectorAll('#chips_quick .chip').forEach(c=>c.classList.remove('active'));
     ch.classList.add('active');
-    const mode = ch.dataset.q;
-    const today = new Date(); const y=today.getFullYear();
-    if(mode==='ytd'){ el('f_de').value = `${y}-01-01`; el('f_ate').value = ''; }
-    else{
-      const n = parseInt(mode,10);
-      const d = new Date(); d.setDate(d.getDate()-n);
-      el('f_de').value = d.toISOString().slice(0,10);
-      el('f_ate').value = today.toISOString().slice(0,10);
-    }
+    const mode=ch.dataset.q, today=new Date(), y=today.getFullYear();
+    if(mode==='ytd'){ el('f_de').value=`${y}-01-01`; el('f_ate').value='' }
+    else{ const n=parseInt(mode,10); const d=new Date(); d.setDate(d.getDate()-n); el('f_de').value=d.toISOString().slice(0,10); el('f_ate').value=today.toISOString().slice(0,10) }
   });
 });
 
-/* ======= EVENTOS: chips de estado ======= */
 document.querySelectorAll('#chips_estado .chip').forEach(ch=>{
   ch.addEventListener('click', ()=>{
     document.querySelectorAll('#chips_estado .chip').forEach(c=>c.classList.remove('active'));
-    ch.classList.add('active');
-    F.stage = ch.dataset.stage || '';
-    render();
+    ch.classList.add('active'); F.stage=ch.dataset.stage||''; render();
   });
 });
 
-/* ======= DOCK: aplicar / limpar ======= */
 el('applyFilters').addEventListener('click', ()=>{
-  F.q = el('q_text').value.trim();
-  F.consultor = el('f_consultor').value;
-  F.vis = el('f_vis').value;
-  F.origem = el('f_origem').value;
-  F.de = el('f_de').value; F.ate = el('f_ate').value;
-  F.tipo = el('f_tipo')?.value || '';
-  F.perfil = el('f_perfil')?.value || '';
-  F.capMin = el('f_cap_min')?.value || '';
-  F.fb = el('f_fb')?.value || '';
-  F.zona = el('f_zona').value.trim();
-  F.imovel = el('f_imovel').value.trim();
+  F.q=el('q_text').value.trim(); F.consultor=el('f_consultor').value; F.vis=el('f_vis').value; F.origem=el('f_origem').value;
+  F.de=el('f_de').value; F.ate=el('f_ate').value;
+  F.zona=el('f_zona').value.trim(); F.imovel=el('f_imovel').value.trim();
   render();
 });
 el('clearFilters').addEventListener('click', ()=>{
-  document.querySelectorAll('.sidebar input, .sidebar select').forEach(i=>{ if(i.type==='date'){ i.value=''; } else { i.value=''; } });
+  document.querySelectorAll('.sidebar input, .sidebar select').forEach(i=>{ if(i.type==='date'){i.value=''} else {i.value=''} });
   document.querySelectorAll('#chips_estado .chip').forEach(c=>c.classList.remove('active'));
   document.querySelector('#chips_estado .chip[data-stage=""]').classList.add('active');
   document.querySelectorAll('#chips_quick .chip').forEach(c=>c.classList.remove('active'));
-  F = { q:'', consultor:'', vis:'visiveis', origem:'', de:'', ate:'', stage:'', tipo:'', perfil:'', capMin:'', fb:'', zona:'', imovel:'' };
-  el('f_vis').value='visiveis';
-  $('#q_showHidden').checked = false;
-  render();
+  F={ q:'',consultor:'',vis:'visiveis',origem:'',de:'',ate:'',stage:'',tipo:'',perfil:'',capMin:'',fb:'',zona:'',imovel:'' };
+  el('f_vis').value='visiveis'; $('#q_showHidden').checked=false; render();
 });
 
-/* ======= Toggle rápido (Mostrar invisíveis) ======= */
-el('q_showHidden').addEventListener('change', (e)=>{
-  const on = e.target.checked;
-  F.vis = on ? 'todos' : 'visiveis';
-  // sincroniza o seletor da barra lateral
-  el('f_vis').value = F.vis;
-  render();
-});
+el('q_showHidden').addEventListener('change', (e)=>{ F.vis = e.target.checked ? 'todos' : 'visiveis'; el('f_vis').value=F.vis; render(); });
 
-/* ======= CARTÃO ======= */
 function cardHTML(l){
-  const tel = normalizePhone(l.tel || l.contacto || l.contact || l.telefone);
-  const email = safeMail(l.email);
-  const v = isFinite(l.val) ? money(l.val) : '—';
-  const tags = [];
-  if(l.origem) tags.push(l.origem);
-  if(l.tipo_cli) tags.push(l.tipo_cli);
-  if(l.perfil) tags.push(l.perfil);
-  if(l.imovel_tipo) tags.push(l.imovel_tipo);
-  if(l.tipologia) tags.push(l.tipologia);
-
-  const eyeLabel = (l.hidden===true) ? 'Tornar visível' : 'Tornar invisível';
-  const eyeIcon  = (l.hidden===true) ? '👁️' : '🚫';
-
+  const tel=normalizePhone(l.tel||l.contacto||l.contact||l.telefone);
+  const email=safeMail(l.email);
+  const v=isFinite(l.val)?money(l.val):'—';
+  const tags=[]; if(l.origem)tags.push(l.origem); if(l.tipo_cli)tags.push(l.tipo_cli); if(l.perfil)tags.push(l.perfil); if(l.imovel_tipo)tags.push(l.imovel_tipo); if(l.tipologia)tags.push(l.tipologia);
+  const eyeLabel=(l.hidden===true)?'Tornar visível':'Tornar invisível';
+  const eyeIcon=(l.hidden===true)?'👁️':'🚫';
   return `
     <div class="card ${l.hidden===true?'hidden-flag':''}" draggable="true" data-id="${l.id}" data-dbl="1">
-      <div class="name">${l.cliente || '—'}</div>
+      <div class="name">${l.cliente||'—'}</div>
       <div class="meta">
-        <span class="pill">${l.zona || '—'}</span>
-        <span class="pill">${l.consultor || 'Rui Quelhas'}</span>
+        <span class="pill">${l.zona||'—'}</span>
+        <span class="pill">${l.consultor||'Rui Quelhas'}</span>
         <span class="pill">${v}</span>
-        <span class="pill">${l.createdAt ? new Date(l.createdAt).toLocaleDateString('pt-PT') : ''}</span>
+        <span class="pill">${l.createdAt?new Date(l.createdAt).toLocaleDateString('pt-PT'):''}</span>
       </div>
       <div class="contact">
-        <div><strong>Contacto:</strong> ${tel ? `<a href="tel:${tel}">${tel}</a>` : '—'}</div>
-        <div><strong>Email:</strong> ${email ? `<a href="mailto:${email}">${email}</a>` : '—'}</div>
+        <div><strong>Contacto:</strong> ${tel?`<a href="tel:${tel}">${tel}</a>`:'—'}</div>
+        <div><strong>Email:</strong> ${email?`<a href="mailto:${email}">${email}</a>`:'—'}</div>
       </div>
       <div class="tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
       <div class="actions">
-        <button class="iconbtn" data-act="toggle" title="${eyeLabel}">${eyeIcon}</button>
-        <button class="iconbtn icon-danger" data-act="del" title="Eliminar">🗑️</button>
+        <button class="iconbtn" type="button" data-act="toggle" draggable="false" title="${eyeLabel}">${eyeIcon}</button>
+        <button class="iconbtn icon-danger" type="button" data-act="del" draggable="false" title="Eliminar">🗑️</button>
       </div>
-    </div>
-  `;
+    </div>`;
 }
 
-/* ======= FILTRO (sem tratar visibilidade aqui) ======= */
 function applyFilter(l){
-  const q = txt(F.q);
-  if(q){
-    const blob = [l.cliente,l.imovel,l.zona,l.notas,l.tel,l.email].map(x=>txt(x)).join(' ');
-    if(!blob.includes(q)) return false;
-  }
+  const q=txt(F.q);
+  if(q){ const blob=[l.cliente,l.imovel,l.zona,l.notas,l.tel,l.email].map(x=>txt(x)).join(' '); if(!blob.includes(q)) return false; }
   if(F.consultor && l.consultor!==F.consultor) return false;
   if(F.origem && String(l.origem||'')!==F.origem) return false;
   if(F.stage && (l.stage||'')!==F.stage) return false;
-  if(F.tipo && String(l.tipo_cli||'')!==F.tipo) return false;
-  if(F.perfil && String(l.perfil||'')!==F.perfil) return false;
-  if(F.fb && String(l.fin_banc||'')!==F.fb) return false;
-  if(F.capMin){
-    const cap = Number(l.capitais||l.capitais_proprios);
-    if(isFinite(cap) && cap < Number(F.capMin)) return false;
-  }
   if(F.zona && !String(l.zona||'').toLowerCase().includes(F.zona.toLowerCase())) return false;
   if(F.imovel && !String(l.imovel||l.imovel_tipo||'').toLowerCase().includes(F.imovel.toLowerCase())) return false;
-  if(!dateIn(l.createdAt, F.de, F.ate)) return false;
+  if(!dateIn(l.createdAt,F.de,F.ate)) return false;
   return true;
 }
 
-/* ======= RENDER ======= */
 function render(){
-  const all = loadLeads();
-
-  // contagens (incluem invisíveis — respeitam filtros)
-  const countsAll = {novo:0, em_contacto:0, qualificado:0, visita:0, proposta:0, fecho:0};
-  let hiddenCountFiltered = 0;
-
-  // buckets para render conforme visibilidade escolhida
-  const buckets = {novo:[], em_contacto:[], qualificado:[], visita:[], proposta:[], fecho:[]};
+  const all=loadLeads();
+  const countsAll={novo:0,em_contacto:0,qualificado:0,visita:0,proposta:0,fecho:0};
+  let hiddenCountFiltered=0;
+  const buckets={novo:[],em_contacto:[],qualificado:[],visita:[],proposta:[],fecho:[]};
 
   all.forEach(l=>{
     if(!applyFilter(l)) return;
-
-    const s = (l.stage||'novo');
-    if(countsAll[s]===undefined) countsAll[s]=0;
-    countsAll[s]++;
-
+    const s=(l.stage||'novo'); if(countsAll[s]===undefined) countsAll[s]=0; countsAll[s]++;
     if(l.hidden===true) hiddenCountFiltered++;
-
-    const showHidden = (F.vis==='invisiveis' || F.vis==='todos');
-    const showVisible = (F.vis==='visiveis' || F.vis==='todos');
-    const isHidden = (l.hidden===true);
-    const canRender = ( (isHidden && showHidden) || (!isHidden && showVisible) );
+    const showHidden=(F.vis==='invisiveis'||F.vis==='todos');
+    const showVisible=(F.vis==='visiveis'||F.vis==='todos');
+    const isHidden=(l.hidden===true);
+    const canRender=((isHidden&&showHidden)||(!isHidden&&showVisible));
     if(!canRender) return;
-
-    if(!buckets[s]) buckets[s]=[];
     buckets[s].push(l);
   });
 
-  // render por coluna
-  el('col_n').innerHTML = buckets.novo.map(cardHTML).join('') || '<div class="ghost-drop">Sem registos…</div>';
-  el('col_c').innerHTML = buckets.em_contacto.map(cardHTML).join('') || '<div class="ghost-drop">Sem registos…</div>';
-  el('col_q').innerHTML = buckets.qualificado.map(cardHTML).join('') || '<div class="ghost-drop">Sem registos…</div>';
-  el('col_v').innerHTML = buckets.visita.map(cardHTML).join('') || '<div class="ghost-drop">Sem registos…</div>';
-  el('col_p').innerHTML = buckets.proposta.map(cardHTML).join('') || '<div class="ghost-drop">Sem registos…</div>';
-  el('col_f').innerHTML = buckets.fecho.map(cardHTML).join('') || '<div class="ghost-drop">Sem registos…</div>';
+  el('col_n').innerHTML=buckets.novo.map(cardHTML).join('')||'<div class="ghost-drop">Sem registos…</div>';
+  el('col_c').innerHTML=buckets.em_contacto.map(cardHTML).join('')||'<div class="ghost-drop">Sem registos…</div>';
+  el('col_q').innerHTML=buckets.qualificado.map(cardHTML).join('')||'<div class="ghost-drop">Sem registos…</div>';
+  el('col_v').innerHTML=buckets.visita.map(cardHTML).join('')||'<div class="ghost-drop">Sem registos…</div>';
+  el('col_p').innerHTML=buckets.proposta.map(cardHTML).join('')||'<div class="ghost-drop">Sem registos…</div>';
+  el('col_f').innerHTML=buckets.fecho.map(cardHTML).join('')||'<div class="ghost-drop">Sem registos…</div>';
 
-  // contagens topo das colunas (INCLUEM invisíveis)
-  el('cnt_n').textContent = countsAll.novo || 0;
-  el('cnt_c').textContent = countsAll.em_contacto || 0;
-  el('cnt_q').textContent = countsAll.qualificado || 0;
-  el('cnt_v').textContent = countsAll.visita || 0;
-  el('cnt_p').textContent = countsAll.proposta || 0;
-  el('cnt_f').textContent = countsAll.fecho || 0;
+  el('cnt_n').textContent=countsAll.novo||0;
+  el('cnt_c').textContent=countsAll.em_contacto||0;
+  el('cnt_q').textContent=countsAll.qualificado||0;
+  el('cnt_v').textContent=countsAll.visita||0;
+  el('cnt_p').textContent=countsAll.proposta||0;
+  el('cnt_f').textContent=countsAll.fecho||0;
+  el('s_hidden').textContent=hiddenCountFiltered;
 
-  // badge de invisíveis
-  el('s_hidden').textContent = hiddenCountFiltered;
+  attachAll();
 }
 
-/* ======= DRAG & DROP ======= */
 function attachDnD(){
   document.querySelectorAll('.card').forEach(card=>{
-    card.addEventListener('dragstart', e=>{
-      e.dataTransfer.setData('text/plain', card.dataset.id);
-      e.dataTransfer.effectAllowed='move';
-    });
+    card.addEventListener('dragstart', e=>{ e.dataTransfer.setData('text/plain', card.dataset.id); e.dataTransfer.effectAllowed='move'; });
   });
   document.querySelectorAll('.col-body').forEach(zone=>{
     zone.addEventListener('dragover', e=>{ e.preventDefault(); e.dataTransfer.dropEffect='move'; });
     zone.addEventListener('drop', e=>{
       e.preventDefault();
-      const id = e.dataTransfer.getData('text/plain');
+      const id=e.dataTransfer.getData('text/plain');
       moveLeadToColumn(id, zone.closest('.col').dataset.col);
     });
   });
 }
 function moveLeadToColumn(id, stage){
-  const arr = loadLeads();
-  const i = arr.findIndex(l=>String(l.id)===String(id));
-  if(i>=0){ arr[i].stage = stage; arr[i].updatedAt = new Date().toISOString(); saveLeads(arr); render(); attachAll(); }
+  const arr=loadLeads(); const i=arr.findIndex(l=>String(l.id)===String(id));
+  if(i>=0){ arr[i].stage=stage; arr[i].updatedAt=new Date().toISOString(); saveLeads(arr); render(); }
 }
 
-/* ======= AÇÕES NO CARTÃO ======= */
 function attachCardActions(){
+  // garantir que os botões não iniciam drag do cartão
   document.querySelectorAll('.card .actions .iconbtn').forEach(btn=>{
-    btn.onclick = ()=>{
-      const act = btn.dataset.act;
-      const id = btn.closest('.card').dataset.id;
+    btn.setAttribute('draggable','false');
+    btn.addEventListener('dragstart', e=>e.preventDefault());
+    btn.addEventListener('mousedown', e=>e.stopPropagation());
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      const act=btn.dataset.act;
+      const card=btn.closest('.card');
+      const id=card?.dataset.id;
+      if(!id) return;
       if(act==='toggle') toggleVisibility(id);
       if(act==='del') deleteLead(id);
-    };
+    });
   });
 }
+
 function toggleVisibility(id){
-  const arr = loadLeads();
-  const i = arr.findIndex(x=>String(x.id)===String(id));
+  const arr=loadLeads(); const i=arr.findIndex(x=>String(x.id)===String(id));
   if(i<0) return;
-  arr[i].hidden = !(arr[i].hidden===true);
-  arr[i].updatedAt = new Date().toISOString();
-  saveLeads(arr); render(); attachAll();
-}
-function deleteLead(id){
-  if(!confirm('Eliminar esta lead? Esta ação é irreversível.')) return;
-  const arr = loadLeads().filter(x=>String(x.id)!==String(id));
-  saveLeads(arr); render(); attachAll();
+  arr[i].hidden=!(arr[i].hidden===true);
+  arr[i].updatedAt=new Date().toISOString();
+  saveLeads(arr); render();
 }
 
-/* ======= DBLCLICK: editar Nome/Contacto/Email ======= */
+function deleteLead(id){
+  if(!confirm('Eliminar esta lead? Esta ação é irreversível.')) return;
+  const arr=loadLeads().filter(x=>String(x.id)!==String(id));
+  saveLeads(arr); render();
+}
+
 function attachDblClick(){
   document.querySelectorAll('.card[data-dbl="1"]').forEach(card=>{
-    card.ondblclick = ()=>{
-      const id = card.dataset.id;
-      const arr = loadLeads();
-      const l = arr.find(x=>String(x.id)===String(id));
-      if(!l) return;
-      el('mQ_id').value = id;
-      el('mQ_nome').value = l.cliente || '';
-      el('mQ_tel').value = l.tel || l.contacto || '';
-      el('mQ_email').value = l.email || '';
+    card.ondblclick=()=>{
+      const id=card.dataset.id; const arr=loadLeads(); const l=arr.find(x=>String(x.id)===String(id)); if(!l) return;
+      el('mQ_id').value=id; el('mQ_nome').value=l.cliente||''; el('mQ_tel').value=l.tel||l.contacto||''; el('mQ_email').value=l.email||'';
       openQuick(true);
     };
   });
 }
+
 el('mQClose').addEventListener('click', ()=>openQuick(false));
 el('mQSave').addEventListener('click', ()=>{
-  const id = el('mQ_id').value;
-  const arr = loadLeads();
-  const i = arr.findIndex(x=>String(x.id)===String(id));
-  if(i<0) return;
-  arr[i].cliente = el('mQ_nome').value.trim() || arr[i].cliente;
-  arr[i].tel = el('mQ_tel').value.trim();
-  arr[i].email = el('mQ_email').value.trim();
-  arr[i].updatedAt = new Date().toISOString();
-  saveLeads(arr); openQuick(false); render(); attachAll();
+  const id=el('mQ_id').value; const arr=loadLeads(); const i=arr.findIndex(x=>String(x.id)===String(id)); if(i<0) return;
+  arr[i].cliente=el('mQ_nome').value.trim()||arr[i].cliente;
+  arr[i].tel=el('mQ_tel').value.trim();
+  arr[i].email=el('mQ_email').value.trim();
+  arr[i].updatedAt=new Date().toISOString();
+  saveLeads(arr); openQuick(false); render();
 });
 el('mQDelete').addEventListener('click', ()=>{
-  const id = el('mQ_id').value;
-  openQuick(false); deleteLead(id);
+  const id=el('mQ_id').value; openQuick(false); deleteLead(id);
 });
-function openQuick(v){ $('#modalQuick').style.display = v?'flex':'none'; }
+function openQuick(v){ $('#modalQuick').style.display=v?'flex':'none' }
 
-/* ======= NOVA LEAD ======= */
 el('addLead').addEventListener('click', ()=>{ resetNewForm(); openNew(true); });
 el('mNewClose').addEventListener('click', ()=>openNew(false));
 el('mNewReset').addEventListener('click', ()=>resetNewForm());
 
-function openNew(v){
-  $('#modalNew').style.display = v?'flex':'none';
-  $('#mNewDelete').style.display = 'none';
-}
+function openNew(v){ $('#modalNew').style.display=v?'flex':'none'; $('#mNewDelete').style.display='none' }
 function resetNewForm(){
   ['m_nome','m_tel','m_email','m_zona','m_val','m_banco','m_notas'].forEach(id=>el(id).value='');
-  el('m_tipo_cli').value = 'comprador';
-  el('m_perfil').value = 'cliente_final';
-  el('m_imovel_tipo').value = 'Moradia';
-  el('m_tipologia').value = 'T2';
-  el('m_urgente').value = 'nao';
-  el('m_planta').value = 'nao';
-  el('m_habitacao').value = 'Habitação própria';
-  el('m_fin').value = 'nao';
-  el('m_simulacao').value = 'nao';
-  el('m_tem_vender').value = 'nao';
-  el('m_ja_venda').value = 'nao';
-  el('m_origem').value = 'Indefinido';
-  el('m_consultor').value = 'Rui Quelhas';
-  el('m_data').value = new Date().toISOString().slice(0,10);
-  el('mNewErr').style.display='none';
+  el('m_tipo_cli').value='comprador'; el('m_perfil').value='cliente_final';
+  el('m_imovel_tipo').value='Moradia'; el('m_tipologia').value='T2';
+  el('m_urgente').value='nao'; el('m_planta').value='nao'; el('m_habitacao').value='Habitação própria';
+  el('m_fin').value='nao'; el('m_simulacao').value='nao'; el('m_tem_vender').value='nao'; el('m_ja_venda').value='nao';
+  el('m_origem').value='Indefinido'; el('m_consultor').value='Rui Quelhas';
+  el('m_data').value=new Date().toISOString().slice(0,10); el('mNewErr').style.display='none';
 }
 
 el('mNewSave').addEventListener('click', ()=>{
-  const nome = el('m_nome').value.trim();
-  if(!nome){
-    el('mNewErr').textContent = 'Por favor preencha o Nome do cliente.'; el('mNewErr').style.display='block'; return;
-  }
-  const tel = el('m_tel').value.trim();
-  const email = el('m_email').value.trim();
-
-  const lead = {
-    id: Date.now(),
-    cliente: nome,
-    tel, email,
-    tipo_cli: el('m_tipo_cli').value,
-    perfil: el('m_perfil').value,
-    imovel_tipo: el('m_imovel_tipo').value,
-    tipologia: el('m_tipologia').value,
-    zona: el('m_zona').value.trim(),
-    val: Number(el('m_val').value||''),
-    urgente: el('m_urgente').value,
-    planta: el('m_planta').value,
-    habitacao: el('m_habitacao').value,
-    fin_banc: el('m_fin').value,
-    simulacao: el('m_simulacao').value,
-    banco: el('m_banco').value.trim(),
-    tem_imovel_vender: el('m_tem_vender').value,
-    ja_venda: el('m_ja_venda').value,
-    origem: el('m_origem').value,
-    consultor: el('m_consultor').value,
-    createdAt: (el('m_data').value ? new Date(el('m_data').value+'T12:00:00Z').toISOString() : new Date().toISOString()),
-    updatedAt: new Date().toISOString(),
-    stage: 'novo',
-    hidden: false,
-    notas: el('m_notas').value.trim()
+  const nome=el('m_nome').value.trim(); if(!nome){ el('mNewErr').textContent='Por favor preencha o Nome do cliente.'; el('mNewErr').style.display='block'; return; }
+  const tel=el('m_tel').value.trim(); const email=el('m_email').value.trim();
+  const lead={
+    id:Date.now(), cliente:nome, tel, email,
+    tipo_cli:el('m_tipo_cli').value, perfil:el('m_perfil').value,
+    imovel_tipo:el('m_imovel_tipo').value, tipologia:el('m_tipologia').value,
+    zona:el('m_zona').value.trim(), val:Number(el('m_val').value||''),
+    urgente:el('m_urgente').value, planta:el('m_planta').value, habitacao:el('m_habitacao').value,
+    fin_banc:el('m_fin').value, simulacao:el('m_simulacao').value, banco:el('m_banco').value.trim(),
+    tem_imovel_vender:el('m_tem_vender').value, ja_venda:el('m_ja_venda').value,
+    origem:el('m_origem').value, consultor:el('m_consultor').value,
+    createdAt:(el('m_data').value?new Date(el('m_data').value+'T12:00:00Z').toISOString():new Date().toISOString()),
+    updatedAt:new Date().toISOString(), stage:'novo', hidden:false, notas:el('m_notas').value.trim()
   };
-
-  const arr = loadLeads(); arr.push(lead); saveLeads(arr);
-  openNew(false); render(); attachAll();
+  const arr=loadLeads(); arr.push(lead); saveLeads(arr); openNew(false); render();
 });
 
-/* ======= EXPORT CSV (inclui visibilidade) ======= */
 el('exportLeads').addEventListener('click', ()=>{
-  const arr = loadLeads().filter(applyFilter); // inclui invisíveis
-  const headers = ["ID","Visível","Nome Cliente","Contacto","Email","Consultor","Origem","Tipo","Perfil","Imóvel","Tipologia","Zona","Valor","Urgente","Planta","Habitação","Fin.B.","Simulação","Banco","Tem p/ vender","Já à venda","Estado","Data","Atualizado em","Notas"];
-  const rows = arr.map(l=>[
-    l.id, (l.hidden===true?'Não':'Sim'), l.cliente||'', l.tel||l.contacto||'', l.email||'',
-    l.consultor||'', l.origem||'', l.tipo_cli||'', l.perfil||'',
-    l.imovel_tipo||'', l.tipologia||'', l.zona||'',
-    isFinite(l.val)? l.val : '',
-    l.urgente||'', l.planta||'', l.habitacao||'',
-    l.fin_banc||'', l.simulacao||'', l.banco||'',
-    l.tem_imovel_vender||'', l.ja_venda||'',
-    l.stage||'', l.createdAt||'', l.updatedAt||'', (l.notas||'').replace(/\n/g,' ')
-  ]);
-  const csv = [headers, ...rows].map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n');
-  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob); const a = document.createElement('a');
+  const arr=loadLeads().filter(applyFilter);
+  const headers=["ID","Visível","Nome Cliente","Contacto","Email","Consultor","Origem","Tipo","Perfil","Imóvel","Tipologia","Zona","Valor","Urgente","Planta","Habitação","Fin.B.","Simulação","Banco","Tem p/ vender","Já à venda","Estado","Data","Atualizado em","Notas"];
+  const rows=arr.map(l=>[l.id,(l.hidden===true?'Não':'Sim'),l.cliente||'',l.tel||l.contacto||'',l.email||'',l.consultor||'',l.origem||'',l.tipo_cli||'',l.perfil||'',l.imovel_tipo||'',l.tipologia||'',l.zona||'',isFinite(l.val)?l.val:'',l.urgente||'',l.planta||'',l.habitacao||'',l.fin_banc||'',l.simulacao||'',l.banco||'',l.tem_imovel_vender||'',l.ja_venda||'',l.stage||'',l.createdAt||'',l.updatedAt||'',(l.notas||'').replace(/\n/g,' ')]);
+  const csv=[headers,...rows].map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob); const a=document.createElement('a');
   a.href=url; a.download='leads_filtradas.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 });
 
-/* ======= AFFIX ATTACHERS ======= */
 function attachAll(){ attachDnD(); attachCardActions(); attachDblClick(); }
 
-/* ======= INIT ======= */
 (function init(){
   if(!Array.isArray(loadLeads())) saveLeads([]);
-  // sincroniza estado inicial do toggle com F.vis
-  $('#q_showHidden').checked = (F.vis==='todos');
-  el('f_vis').value = F.vis;
-
-  render(); attachAll();
-
-  // Fechar modais com ESC
+  $('#q_showHidden').checked=(F.vis==='todos'); el('f_vis').value=F.vis;
+  render();
   window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ openNew(false); openQuick(false); } });
-  // Click fora do modal fecha
-  $('#modalNew').addEventListener('click', (e)=>{ if(e.target===e.currentTarget) openNew(false); });
-  $('#modalQuick').addEventListener('click', (e)=>{ if(e.target===e.currentTarget) openQuick(false); });
+  $('#modalNew').addEventListener('click', (e)=>{ if(e.target===e.currentTarget) openNew(false) });
+  $('#modalQuick').addEventListener('click', (e)=>{ if(e.target===e.currentTarget) openQuick(false) });
 })();
 </script>
 </body>
