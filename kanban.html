@@ -29,13 +29,9 @@
   .chip{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:#0E0E0E;color:#ddd;cursor:pointer}
   .chip.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
   .help{font-size:11px;color:var(--muted);margin-top:6px}
-  /* ====== DOCK DE FILTROS (FIXO AO FUNDO) ====== */
-  .filters-dock{
-    position:sticky; bottom:0; background:linear-gradient(180deg, rgba(19,19,19,.85) 0%, rgba(19,19,19,1) 24%);
-    border-top:1px solid var(--line); padding:10px; display:grid; gap:8px; z-index:5
-  }
+  /* ====== DOCK DE FILTROS ====== */
+  .filters-dock{position:sticky; bottom:0; background:linear-gradient(180deg, rgba(19,19,19,.85) 0%, rgba(19,19,19,1) 24%); border-top:1px solid var(--line); padding:10px; display:grid; gap:8px; z-index:5}
   .dock-grid{display:grid;grid-template-columns:1fr 1fr; gap:8px}
-  .dock-row{display:grid;grid-template-columns:1fr 1fr 1fr; gap:8px}
   .dock-actions{display:flex;gap:8px}
   .badge{display:inline-flex;align-items:center;gap:6px;background:#0E0E0E;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px;color:#ddd}
   .badge .dot{width:10px;height:10px;border-radius:50%;border:1px solid var(--line);display:inline-block}
@@ -47,10 +43,15 @@
   .col-title{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:#eee}
   .count{font-size:11px;color:#bbb}
   .col-body{padding:10px;overflow:auto;display:grid;gap:10px}
+  /* ====== CARD ====== */
   .card{background:#0D0D0D;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px}
-  .card .name{font-weight:700;margin-bottom:4px}
-  .card .meta{font-size:12px;color:#cfcfcf}
-  .card .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .card .name{font-weight:800;margin:0 0 6px 0;font-size:13px}
+  .meta{font-size:12px;color:#cfcfcf;margin-bottom:6px}
+  .meta .pill{display:inline-block;border:1px solid rgba(255,255,255,.14);padding:2px 6px;border-radius:999px;font-size:11px;margin-right:6px}
+  .contact{display:grid;grid-template-columns:1fr;gap:4px;margin-top:6px;font-size:12px}
+  .contact a{color:#e9e9e9;text-decoration:none;border-bottom:1px dotted rgba(255,255,255,.2)}
+  .contact a:hover{color:#fff;border-bottom-color:var(--gold)}
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
   .tag{font-size:10px;padding:4px 6px;border-radius:999px;border:1px solid rgba(255,255,255,.14);color:#ddd}
   .ghost-drop{border:1px dashed rgba(255,255,255,.18);border-radius:10px;padding:12px;text-align:center;color:#9aa0a6}
   /* cores colunas */
@@ -175,7 +176,7 @@
             </select>
           </div>
         </div>
-        <div class="dock-row" style="margin-top:8px">
+        <div class="dock-grid" style="margin-top:8px">
           <div>
             <div class="label">Capitais próprios (mín.)</div>
             <input id="f_cap_min" type="number" inputmode="decimal" placeholder="€">
@@ -184,14 +185,6 @@
             <div class="label">Financiamento bancário</div>
             <select id="f_fb">
               <option value="">(Todos)</option>
-              <option value="sim">Sim</option>
-              <option value="nao">Não</option>
-            </select>
-          </div>
-          <div>
-            <div class="label">Com visitas</div>
-            <select id="f_visitas">
-              <option value="">(Todas)</option>
               <option value="sim">Sim</option>
               <option value="nao">Não</option>
             </select>
@@ -267,7 +260,7 @@ const LS_LEADS='gpp_leads_v3';
 /* ======= ESTADO DE FILTRO ======= */
 let F = {
   q:'', consultor:'', origem:'', de:'', ate:'',
-  stage:'', tipo:'', perfil:'', capMin:'', fb:'', visitas:'',
+  stage:'', tipo:'', perfil:'', capMin:'', fb:'',
   zona:'', imovel:''
 };
 
@@ -286,7 +279,7 @@ function dateIn(iso,d1,d2){
   return ok1 && ok2;
 }
 
-/* ======= UI: popular campos rápidos ======= */
+/* ======= UI: popular datas ======= */
 (function initDefaultDates(){
   const today = new Date().toISOString().slice(0,10);
   const d30 = new Date(); d30.setDate(d30.getDate()-30);
@@ -327,11 +320,10 @@ el('applyFilters').addEventListener('click', ()=>{
   F.consultor = el('f_consultor').value;
   F.origem = el('f_origem').value;
   F.de = el('f_de').value; F.ate = el('f_ate').value;
-  F.tipo = el('f_tipo').value;
-  F.perfil = el('f_perfil').value;
-  F.capMin = el('f_cap_min').value;
-  F.fb = el('f_fb').value;
-  F.visitas = el('f_visitas').value;
+  F.tipo = el('f_tipo')?.value || '';
+  F.perfil = el('f_perfil')?.value || '';
+  F.capMin = el('f_cap_min')?.value || '';
+  F.fb = el('f_fb')?.value || '';
   F.zona = el('f_zona').value.trim();
   F.imovel = el('f_imovel').value.trim();
   render();
@@ -341,62 +333,66 @@ el('clearFilters').addEventListener('click', ()=>{
   document.querySelectorAll('#chips_estado .chip').forEach(c=>c.classList.remove('active'));
   document.querySelector('#chips_estado .chip[data-stage=""]').classList.add('active');
   document.querySelectorAll('#chips_quick .chip').forEach(c=>c.classList.remove('active'));
-  F = { q:'', consultor:'', origem:'', de:'', ate:'', stage:'', tipo:'', perfil:'', capMin:'', fb:'', visitas:'', zona:'', imovel:'' };
+  F = { q:'', consultor:'', origem:'', de:'', ate:'', stage:'', tipo:'', perfil:'', capMin:'', fb:'', zona:'', imovel:'' };
   render();
 });
 
-/* ======= CRIAR CARTÃO ======= */
+/* ======= CARTÃO (com Nome Cliente / Contacto / Email visíveis) ======= */
+function normalizePhone(p){ return String(p||'').replace(/\s+/g,''); }
+function safeMail(m){ return String(m||'').trim(); }
+
 function cardHTML(l){
-  const tg = [];
-  if(l.origem) tg.push(l.origem);
-  if(l.tipo_cli) tg.push(l.tipo_cli);
-  if(l.perfil) tg.push(l.perfil);
   const v = isFinite(l.val) ? money(l.val) : '—';
+  const tel = normalizePhone(l.tel || l.contacto || l.contact || l.telefone);
+  const email = safeMail(l.email);
+  const tags = [];
+  if(l.origem) tags.push(l.origem);
+  if(l.tipo_cli) tags.push(l.tipo_cli);
+  if(l.perfil) tags.push(l.perfil);
+
   return `
     <div class="card" draggable="true" data-id="${l.id}">
       <div class="name">${l.cliente || '—'}</div>
-      <div class="meta">${l.zona || '—'} • ${l.consultor || '—'} • ${v}</div>
-      <div class="tags">${tg.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+      <div class="meta">
+        <span class="pill">${l.zona || '—'}</span>
+        <span class="pill">${l.consultor || '—'}</span>
+        <span class="pill">${v}</span>
+      </div>
+      <div class="contact">
+        <div><strong>Contacto:</strong> ${tel ? `<a href="tel:${tel}" title="Ligar">${tel}</a>` : '—'}</div>
+        <div><strong>Email:</strong> ${email ? `<a href="mailto:${email}" title="Enviar email">${email}</a>` : '—'}</div>
+      </div>
+      <div class="tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
     </div>
   `;
 }
 
-/* ======= RENDER ======= */
+/* ======= FILTRO ======= */
 function applyFilter(l){
-  // texto livre
   const q = txt(F.q);
   if(q){
-    const blob = [l.cliente,l.imovel,l.zona,l.notas].map(x=>txt(x)).join(' ');
+    const blob = [l.cliente,l.imovel,l.zona,l.notas,l.tel,l.email].map(x=>txt(x)).join(' ');
     if(!blob.includes(q)) return false;
   }
-  // simples
   if(F.consultor && l.consultor!==F.consultor) return false;
   if(F.origem && String(l.origem||'')!==F.origem) return false;
   if(F.stage && (l.stage||'')!==F.stage) return false;
   if(F.tipo && String(l.tipo_cli||'')!==F.tipo) return false;
   if(F.perfil && String(l.perfil||'')!==F.perfil) return false;
   if(F.fb && String(l.fin_banc||'')!==F.fb) return false;
-  if(F.visitas){
-    const yes = (String(F.visitas)==='sim');
-    const ok = String(l.visitas||'').toLowerCase()==='sim';
-    if(yes && !ok) return false;
-    if(!yes && ok) return false;
-  }
   if(F.capMin){
     const cap = Number(l.capitais||l.capitais_proprios);
     if(isFinite(cap) && cap < Number(F.capMin)) return false;
   }
   if(F.zona && !String(l.zona||'').toLowerCase().includes(F.zona.toLowerCase())) return false;
   if(F.imovel && !String(l.imovel||'').toLowerCase().includes(F.imovel.toLowerCase())) return false;
-  // datas
   if(!dateIn(l.createdAt, F.de, F.ate)) return false;
   return true;
 }
 
+/* ======= RENDER ======= */
 function render(){
   const all = loadLeads();
-
-  // distribuir por colunas com filtro aplicado
   const buckets = {novo:[], em_contacto:[], qualificado:[], visita:[], proposta:[], fecho:[]};
   const counts = {n:0,c:0,q:0,v:0,p:0,f:0};
 
@@ -407,7 +403,6 @@ function render(){
     buckets[s].push(l);
   });
 
-  // render por coluna
   el('col_n').innerHTML = buckets.novo.map(cardHTML).join('') || '<div class="ghost-drop">Sem registos…</div>';
   el('col_c').innerHTML = buckets.em_contacto.map(cardHTML).join('') || '<div class="ghost-drop">Sem registos…</div>';
   el('col_q').innerHTML = buckets.qualificado.map(cardHTML).join('') || '<div class="ghost-drop">Sem registos…</div>';
@@ -415,17 +410,13 @@ function render(){
   el('col_p').innerHTML = buckets.proposta.map(cardHTML).join('') || '<div class="ghost-drop">Sem registos…</div>';
   el('col_f').innerHTML = buckets.fecho.map(cardHTML).join('') || '<div class="ghost-drop">Sem registos…</div>';
 
-  // contagens topo das colunas
-  counts.n = buckets.novo.length; counts.c = buckets.em_contacto.length; counts.q = buckets.qualificado.length;
-  counts.v = buckets.visita.length; counts.p = buckets.proposta.length; counts.f = buckets.fecho.length;
-  el('cnt_n').textContent = counts.n; el('cnt_c').textContent = counts.c; el('cnt_q').textContent = counts.q;
-  el('cnt_v').textContent = counts.v; el('cnt_p').textContent = counts.p; el('cnt_f').textContent = counts.f;
+  el('cnt_n').textContent = buckets.novo.length;
+  el('cnt_c').textContent = buckets.em_contacto.length;
+  el('cnt_q').textContent = buckets.qualificado.length;
+  el('cnt_v').textContent = buckets.visita.length;
+  el('cnt_p').textContent = buckets.proposta.length;
+  el('cnt_f').textContent = buckets.fecho.length;
 
-  // resumo (badges)
-  el('s_n').textContent = counts.n; el('s_c').textContent = counts.c; el('s_q').textContent = counts.q;
-  el('s_v').textContent = counts.v; el('s_p').textContent = counts.p; el('s_f').textContent = counts.f;
-
-  // reativar drag
   attachDrag();
 }
 
@@ -457,10 +448,22 @@ el('addLead').addEventListener('click', ()=>{
   const arr = loadLeads();
   const id = Date.now();
   arr.push({
-    id, cliente:'Novo Cliente', consultor:'Rui Quelhas', origem:'Indefinido',
-    zona:'Porto', imovel:'T2', val:250000, tipo_cli:'comprador', perfil:'cliente_final',
-    capitais:50000, fin_banc:'sim', visitas:'nao',
-    stage:'novo', createdAt:new Date().toISOString(), updatedAt:new Date().toISOString()
+    id,
+    cliente:'Novo Cliente',
+    tel:'+351 9xx xxx xxx',
+    email:'cliente@example.com',
+    consultor:'Rui Quelhas',
+    origem:'Indefinido',
+    zona:'Porto',
+    imovel:'T2',
+    val:250000,
+    tipo_cli:'comprador',
+    perfil:'cliente_final',
+    capitais:50000,
+    fin_banc:'sim',
+    stage:'novo',
+    createdAt:new Date().toISOString(),
+    updatedAt:new Date().toISOString()
   });
   saveLeads(arr); render();
 });
@@ -468,11 +471,12 @@ el('addLead').addEventListener('click', ()=>{
 /* ======= EXPORT CSV ======= */
 el('exportLeads').addEventListener('click', ()=>{
   const arr = loadLeads().filter(applyFilter);
-  const headers = ["ID","Cliente","Consultor","Origem","Zona","Imóvel","Valor","Tipo","Perfil","Capitais","Fin.B.","Visitas","Estado","Criado em"];
+  const headers = ["ID","Nome Cliente","Contacto","Email","Consultor","Origem","Zona","Imóvel","Valor","Tipo","Perfil","Capitais","Fin.B.","Estado","Criado em"];
   const rows = arr.map(l=>[
-    l.id, l.cliente||'', l.consultor||'', l.origem||'', l.zona||'', l.imovel||'',
+    l.id, l.cliente||'', l.tel||l.contacto||'', l.email||'',
+    l.consultor||'', l.origem||'', l.zona||'', l.imovel||'',
     isFinite(l.val)? l.val : '', l.tipo_cli||'', l.perfil||'',
-    l.capitais||'', l.fin_banc||'', l.visitas||'', l.stage||'', l.createdAt||''
+    l.capitais||'', l.fin_banc||'', l.stage||'', l.createdAt||''
   ]);
   const csv = [headers, ...rows].map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
@@ -482,7 +486,6 @@ el('exportLeads').addEventListener('click', ()=>{
 
 /* ======= INIT ======= */
 (function init(){
-  // garantir estrutura mínima no LS
   if(!Array.isArray(loadLeads())) saveLeads([]);
   render();
 })();
