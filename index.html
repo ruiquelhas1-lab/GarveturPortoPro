@@ -3,38 +3,44 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Garvetur Porto Pro — Mapa</title>
+<title>Garvetur Porto Pro — Mapa (com Edição & Importar CSV)</title>
 
-<!-- Leaflet + MarkerCluster -->
+<!-- Leaflet + MarkerCluster + PapaParse (CSV) -->
 <link rel="preconnect" href="https://unpkg.com" crossorigin>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin="anonymous">
+<script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js" crossorigin="anonymous"></script>
 
 <style>
 :root{
   --gold:#A38B63; --bg:#0E0E0E; --panel:#131313; --text:#fff; --muted:#9AA0A6;
-  --ok:#43A047; --info:#1E88E5; --warn:#E53935;
+  --ok:#43A047; --info:#1E88E5; --warn:#E53935; --border:rgba(255,255,255,.12);
 }
 html,body{height:100%;margin:0;background:#0E0E0E;color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-a{color:#e6e6e6}
-.app{display:grid;grid-template-columns:360px 1fr;grid-template-rows:56px 40px 1fr;height:100%}
-header{grid-column:1 / span 2;display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.08);background:#0F0F0F}
+a{color:#e6e6e6;text-decoration:none}
+.app{display:grid;grid-template-columns:380px 1fr;grid-template-rows:56px 40px 1fr;height:100%}
+header{grid-column:1 / span 2;display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--border);background:#0F0F0F}
 .brand{display:flex;align-items:center;gap:10px}
 .brand h1{font-size:16px;margin:0;color:var(--gold)}
 .nav{display:flex;gap:8px}
-.nav a{border:1px solid rgba(255,255,255,.12);padding:6px 10px;border-radius:8px;color:#ddd;text-decoration:none}
+.nav a{border:1px solid var(--border);padding:6px 10px;border-radius:8px;color:#ddd}
 .nav a.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
 
-.kpis{grid-column:1 / span 2;display:flex;gap:8px;align-items:center;padding:6px 12px;background:#0F0F0F;border-bottom:1px solid rgba(255,255,255,.08)}
-.kpi{display:flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:6px 10px;font-size:12px}
+.kpis{grid-column:1 / span 2;display:flex;gap:8px;align-items:center;padding:6px 12px;background:#0F0F0F;border-bottom:1px solid var(--border)}
+.kpi{display:flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:10px;padding:6px 10px;font-size:12px}
 .dot{width:10px;height:10px;border-radius:50%;background:#999;display:inline-block;border:1px solid rgba(0,0,0,.2)}
 .dot.c{background:var(--warn)}
 .dot.l{background:var(--info)}
 .dot.f{background:var(--ok)}
+.toolbar{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.btn{background:transparent;border:1px solid rgba(163,139,99,.5);color:#fff;padding:6px 10px;border-radius:10px;cursor:pointer;font-size:12px}
+.btn.primary{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
+.btn.ghost{border-color:var(--border);color:#ddd}
+input[type="file"]{display:none}
 
-.sidebar{background:var(--panel);border-right:1px solid rgba(255,255,255,.08);overflow:auto}
-.section{padding:10px;border-bottom:1px solid rgba(255,255,255,.06)}
+.sidebar{background:var(--panel);border-right:1px solid var(--border);overflow:auto}
+.section{padding:10px;border-bottom:1px solid rgba(255,255,255,.08)}
 .hint{font-size:11px;color:#bdbdbd}
 .label{font-size:12px;color:#cfcfcf;margin:6px 0 4px}
 .field{display:flex;gap:6px}
@@ -42,63 +48,71 @@ header{grid-column:1 / span 2;display:flex;align-items:center;justify-content:sp
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .chip{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:#0E0E0E;color:#ddd;cursor:pointer}
 .chip.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
-.actions{display:flex;gap:6px;margin-top:8px}
-.btn{background:transparent;border:1px solid rgba(163,139,99,.5);color:#fff;padding:6px 10px;border-radius:10px;cursor:pointer;font-size:12px}
-.btn.primary{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
-.btn.ghost{border-color:rgba(255,255,255,.18);color:#ddd}
-
-#map{width:100%;height:100%}
-.leaflet-container{background:#eaeaea} /* mapa claro */
-.legend{
-  position:absolute;left:12px;bottom:12px;z-index:5000;
-  background:#111;border:1px solid rgba(255,255,255,.15);border-radius:10px;
-  padding:8px 10px;font-size:12px;color:#fff
-}
-.legend .row{display:flex;gap:8px;align-items:center}
-.legend .c{background:var(--warn)}
-.legend .l{background:var(--info)}
-.legend .f{background:var(--ok)}
-.legend .swatch{width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.3)}
-
-#side-panel{position:absolute;right:12px;top:80px;bottom:12px;width:min(420px,92vw);z-index:5001;
-  background:#0F0F0F;border:1px solid rgba(255,255,255,.12);border-radius:12px;overflow:auto;display:none}
-#side-panel.show{display:block}
-.panel-inner{padding:12px}
-.meta-line{font-size:13px;margin:4px 0;color:#ddd}
-.badge{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.15);font-size:11px}
-.btn-sm{font-size:12px;background:transparent;border:1px solid rgba(163,139,99,.4);color:#ddd;padding:6px 8px;border-radius:8px;cursor:pointer}
-.btn-sm.primary{background:var(--gold);color:#111;border-color:var(--gold)}
-.doc-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
-.doc-list li{cursor:pointer;padding:6px 8px;border:1px solid rgba(255,255,255,.12);border-radius:8px}
-.muted{color:#bdbdbd}
 .list{padding:8px 12px}
 .card{border:1px solid rgba(163,139,99,.25);border-radius:12px;padding:10px;margin-bottom:10px;background:#0E0E0E}
 .card .row{display:flex;justify-content:space-between;gap:8px}
 .card .name{font-weight:700}
 .card .meta{font-size:11px;color:#bbb;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
 .card .state{font-size:12px;color:#bbb;margin-top:4px}
+.card .actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--border);font-size:11px}
 .empty{padding:10px;color:#bbb;font-size:13px}
 
-/* Pins SVG (DivIcon) */
-.pin{
-  width:24px;height:24px;border-radius:50%;border:2px solid #111;box-shadow:0 2px 6px rgba(0,0,0,.35);
-  display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:11px;
+#map{width:100%;height:100%}
+.leaflet-container{background:#eaeaea} /* mapa claro */
+.legend{
+  position:absolute;left:12px;bottom:12px;z-index:5000;
+  background:#111;border:1px solid var(--border);border-radius:10px;
+  padding:8px 10px;font-size:12px;color:#fff
 }
+.legend .row{display:flex;gap:8px;align-items:center}
+.legend .swatch{width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.3)}
+.legend .c{background:var(--warn)}
+.legend .l{background:var(--info)}
+.legend .f{background:var(--ok)}
+
+#side-panel{position:absolute;right:12px;top:80px;bottom:12px;width:min(470px,92vw);z-index:5001;
+  background:#0F0F0F;border:1px solid var(--border);border-radius:12px;overflow:auto;display:none}
+#side-panel.show{display:block}
+.panel-head{position:sticky;top:0;background:#0F0F0F;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:10px 12px}
+.panel-inner{padding:12px}
+.meta-line{font-size:13px;margin:4px 0;color:#ddd}
+
+.pin{width:28px;height:28px;border-radius:50%;border:2px solid #111;box-shadow:0 2px 6px rgba(0,0,0,.35);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:12px;position:relative;}
 .pin.c{ background:var(--warn); }
 .pin.l{ background:var(--info); }
 .pin.f{ background:var(--ok); }
-/* animação pulse só para "em construção" */
-.pin.c::after{
-  content:""; position:absolute; width:24px;height:24px;border-radius:50%; box-shadow:0 0 0 0 rgba(229,57,53,.55);
-  animation:pulse 1.8s ease-out infinite;
-}
-@keyframes pulse{
-  0%{ box-shadow:0 0 0 0 rgba(229,57,53,.55) }
-  70%{ box-shadow:0 0 0 14px rgba(229,57,53,0) }
-  100%{ box-shadow:0 0 0 0 rgba(229,57,53,0) }
-}
+.pin.c::after{content:""; position:absolute; width:28px;height:28px;border-radius:50%; box-shadow:0 0 0 0 rgba(229,57,53,.55);
+  animation:pulse 1.8s ease-out infinite;}
+@keyframes pulse{0%{ box-shadow:0 0 0 0 rgba(229,57,53,.55)}70%{ box-shadow:0 0 0 18px rgba(229,57,53,0)}100%{ box-shadow:0 0 0 0 rgba(229,57,53,0)}}
 
-@media (max-width: 980px){
+.modal-backdrop{
+  display:none; position:fixed; inset:0; z-index:10000;
+  background:rgba(0,0,0,.6); backdrop-filter:blur(2px);
+  align-items:center; justify-content:center; padding:16px;
+}
+.modal-backdrop.show{display:flex}
+.modal{
+  width:min(880px,96vw); background:#0F0F0F; border:1px solid var(--border); border-radius:12px; overflow:hidden;
+}
+.modal header{padding:10px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.modal .content{padding:12px;max-height:72vh;overflow:auto}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.form-field{display:flex;flex-direction:column;gap:6px}
+.form-field input,.form-field select,.form-field textarea{background:#0E0E0E;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:8px 10px;color:#fff;outline:none}
+.doc-row{display:grid;grid-template-columns:1fr 120px 1fr auto;gap:6px;align-items:center}
+.doc-row .del{border-color:#cc4b4b;color:#ffdddd}
+
+.pdf-backdrop{display:none; position:fixed; inset:0; z-index:11000; background:rgba(0,0,0,.6); backdrop-filter:blur(2px); align-items:center; justify-content:center; padding:16px;}
+.pdf-backdrop.show{display:flex}
+.pdf-card{width:min(1100px,96vw); height:min(88vh,900px); background:#0F0F0F; border:1px solid var(--border); border-radius:12px; overflow:hidden; display:flex; flex-direction:column;}
+.pdf-card header{padding:8px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.pdf-card .frame{flex:1}
+.pdf-card iframe{width:100%;height:100%;border:0}
+
+@media (max-width: 1000px){
   .app{grid-template-columns:1fr;grid-template-rows:56px 40px 280px 1fr}
   .sidebar{grid-row:3}
   #map{grid-row:4}
@@ -121,15 +135,22 @@ header{grid-column:1 / span 2;display:flex;align-items:center;justify-content:sp
       </div>
     </header>
 
-    <div class="kpis" id="kpis">
+    <div class="kpis">
       <div class="kpi"><span class="dot"></span>Total: <b id="k_total">0</b></div>
       <div class="kpi"><span class="dot c"></span>Em construção: <b id="k_c">0</b></div>
       <div class="kpi"><span class="dot l"></span>Licenciado: <b id="k_l">0</b></div>
       <div class="kpi"><span class="dot f"></span>Concluído: <b id="k_f">0</b></div>
-      <div style="margin-left:auto;display:flex;gap:6px">
+      <div class="toolbar">
         <button class="btn" id="focusAmp">Focar AMP/Porto</button>
         <button class="btn" id="exportCsv">Exportar CSV</button>
-        <a class="btn" id="openGeoJson" href="#" target="_blank" rel="noreferrer">Abrir GeoJSON</a>
+        <button class="btn" id="exportGeo">Exportar GeoJSON</button>
+        <button class="btn ghost" id="toggleEdit" title="Modo Edição">🔒 Editar</button>
+
+        <label class="btn" for="csvFile" id="btnImport" style="display:none">Importar CSV</label>
+        <input id="csvFile" type="file" accept=".csv" />
+        <button class="btn primary" id="btnNew" style="display:none">+ Novo</button>
+        <button class="btn ghost" id="btnSave" style="display:none">Guardar</button>
+        <button class="btn ghost" id="btnClearAll" style="display:none">Limpar Tudo</button>
       </div>
     </div>
 
@@ -154,7 +175,7 @@ header{grid-column:1 / span 2;display:flex;align-items:center;justify-content:sp
         <div class="label">Conclusão (ano)</div>
         <div class="field">
           <input id="f_cmin" type="number" placeholder="Mín. ex.: 2025">
-          <input id="f_cmax" type="number" placeholder="Máx. ex.: 2028">
+          <input id="f_cmax" type="number" placeholder="Máx. ex.: 2029">
         </div>
         <div class="label" style="margin-top:6px">Preço €/m²</div>
         <div class="field">
@@ -187,26 +208,92 @@ header{grid-column:1 / span 2;display:flex;align-items:center;justify-content:sp
         <div class="row"><span class="swatch l"></span> Licenciado</div>
         <div class="row"><span class="swatch f"></span> Concluído</div>
       </div>
-      <div id="side-panel"><div class="panel-inner" id="panelInner"></div></div>
+
+      <div id="side-panel">
+        <div class="panel-head">
+          <div style="font-weight:700">Detalhes</div>
+          <button class="btn" id="closePanel">Fechar ✕</button>
+        </div>
+        <div class="panel-inner" id="panelInner"></div>
+      </div>
     </div>
   </div>
+
+<!-- Modal Empreendimento (CRUD) -->
+<div id="editModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Empreendimento">
+  <div class="modal">
+    <header>
+      <div><strong id="editTitle">Novo Empreendimento</strong></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn ghost" id="pickCoord">Definir no mapa</button>
+        <button class="btn" id="cancelEdit">Cancelar</button>
+        <button class="btn primary" id="saveEdit">Guardar</button>
+      </div>
+    </header>
+    <div class="content">
+      <div class="grid2">
+        <div class="form-field"><label>Nome</label><input id="f_nome"></div>
+        <div class="form-field"><label>Concelho</label><input id="f_concelho_e"></div>
+        <div class="form-field"><label>Estado</label>
+          <select id="f_estado">
+            <option value="">—</option>
+            <option value="em_construcao">Em construção</option>
+            <option value="licenciado">Licenciado</option>
+            <option value="concluido">Concluído</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Promotor</label><input id="f_promotor_e"></div>
+        <div class="form-field"><label>Tipologias</label><input id="f_tipologias"></div>
+        <div class="form-field"><label>Conclusão (ano)</label><input id="f_conclusao" type="number" min="1900" max="2100"></div>
+        <div class="form-field"><label>€/m²</label><input id="f_preco" type="number" min="0" step="1"></div>
+        <div class="form-field"><label>Link</label><input id="f_link"></div>
+        <div class="form-field"><label>Latitude</label><input id="f_lat" type="number" step="0.000001"></div>
+        <div class="form-field"><label>Longitude</label><input id="f_lng" type="number" step="0.000001"></div>
+        <div class="form-field" style="grid-column:1 / span 2"><label>Notas</label><textarea id="f_notas" rows="3"></textarea></div>
+      </div>
+
+      <div style="margin-top:10px">
+        <div class="label">Documentos & Media</div>
+        <div id="docsBox"></div>
+        <div style="margin-top:8px"><button class="btn" id="addDoc">+ Adicionar documento</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal PDF fullscreen -->
+<div id="pdfModal" class="pdf-backdrop" role="dialog" aria-modal="true" aria-label="Documento">
+  <div class="pdf-card">
+    <header>
+      <div><strong>Documento</strong></div>
+      <div style="display:flex;gap:8px">
+        <a id="pdfOpenNew" class="btn" target="_blank" rel="noreferrer">Abrir em nova aba</a>
+        <button class="btn" id="pdfClose">Fechar ✕</button>
+      </div>
+    </header>
+    <div class="frame"><iframe id="pdfFrame"></iframe></div>
+  </div>
+</div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" crossorigin="anonymous"></script>
 <script>
 /* ================== CONFIG ================== */
-const DEFAULT_URL="https://ruiquelhas1-lab.github.io/Mapa-Porto/data/empreendimentos.geojson"; // pode mudar se quiser apontar para o seu repositório
 const AMP_CENTER=[41.15,-8.61], AMP_ZOOM=12;
+const LS_KEY='gpp_dataset_v1'; // onde persistimos localmente
 
 /* ================== ESTADO ================== */
-let MAP, CLUSTER, LAYER;      // Leaflet
-let RAW=[], FILT=[];          // dados
-let ACTIVE=null;              // item ativo (para painel)
+let MAP, CLUSTER, LAYER;
+let RAW=[], FILT=[];
+let ACTIVE=null;          // item ativo (ficha)
+let EDIT_MODE=false;      // modo edição ativo?
+let EDIT_INDEX = -1;      // índice a editar (RAW) ou -1 para novo
+let PICKING=false;        // a aguardar clique no mapa para coordenadas?
 let UI={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'' };
 
 /* ================== HELPERS ================== */
-const $=s=>document.querySelector(s);
 const el=id=>document.getElementById(id);
+const qs=s=>document.querySelector(s);
 function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
 function stateKey(s){
   const x=norm(s); if(x.includes('constr'))return 'em_construcao';
@@ -214,96 +301,36 @@ function stateKey(s){
 }
 function colorByState(k){ if(k==='em_construcao')return '#E53935'; if(k==='licenciado')return '#1E88E5'; if(k==='concluido')return '#43A047'; return '#A38B63'; }
 function pinClass(k){ if(k==='em_construcao')return 'pin c'; if(k==='licenciado')return 'pin l'; if(k==='concluido')return 'pin f'; return 'pin'; }
+function toCSV(rows){ return rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n'); }
+function slugify(s){ return norm(s).replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,''); }
 function asNum(v){ const n=Number(v); return Number.isFinite(n)?n:null; }
-function toCSV(rows){
-  return rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n');
-}
-function getParam(name){ const u=new URL(location.href); return u.searchParams.get(name); }
-function setDeepLink(obj){ const u=new URL(location.href); Object.entries(obj).forEach(([k,v])=>{ if(v==null||v==='')u.searchParams.delete(k); else u.searchParams.set(k,v); }); history.replaceState({},'',u.toString()); }
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
 
-/* ================== SAMPLE (fallback) ================== */
-const SAMPLE={
-  "type":"FeatureCollection",
-  "features":[
-    {
-      "type":"Feature",
-      "geometry":{"type":"Point","coordinates":[-8.6291,41.1579]},
-      "properties":{
-        "slug":"essence-porto","nome":"Essence","concelho":"Porto","estado":"em_construcao",
-        "promotor":"XPTO Capital","tipologias":"T1 a T3","conclusao":2027,"preco_m2":5200,
-        "notas":"Boavista/Foco. Condomínio com piscina e ginásio.",
-        "link":"https://exemplo-promotor.com/essence",
-        "docs":[
-          {"title":"Brochura","type":"pdf","url":"./docs/essence-porto/brochura.pdf"},
-          {"title":"Plantas T2","type":"pdf","url":"./docs/essence-porto/plantas-t2.pdf"}
-        ]
-      }
-    },
-    {
-      "type":"Feature",
-      "geometry":{"type":"Point","coordinates":[-8.6455,41.1202]},
-      "properties":{
-        "slug":"madalena-vista-mar","nome":"Madalena Vista Mar","concelho":"Vila Nova de Gaia","estado":"licenciado",
-        "promotor":"GaiaInvest","tipologias":"T2 a T4","conclusao":2026,"preco_m2":4300,
-        "notas":"Vista mar, proximidade praias.","link":"https://exemplo-promotor.com/madalena"
-      }
-    }
-  ]
-};
+/* ================== PERSISTÊNCIA ================== */
+function saveLS(){ localStorage.setItem(LS_KEY, JSON.stringify(RAW)); }
+function loadLS(){ try{ const x=localStorage.getItem(LS_KEY); return x? JSON.parse(x): null; }catch{ return null; } }
 
 /* ================== MAPA ================== */
 function initMap(){
   MAP = L.map('map',{ zoomControl:true, scrollWheelZoom:true }).setView(AMP_CENTER, AMP_ZOOM);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-    maxZoom:19, attribution:'&copy; OpenStreetMap'
-  }).addTo(MAP);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(MAP);
   CLUSTER = L.markerClusterGroup({ spiderfyOnEveryZoom:false, showCoverageOnHover:false, maxClusterRadius:48 });
   LAYER = L.layerGroup().addTo(CLUSTER);
   MAP.addLayer(CLUSTER);
 
-  // Botões topo
   el('focusAmp').addEventListener('click', ()=>MAP.setView(AMP_CENTER, AMP_ZOOM, {animate:true}));
-  el('exportCsv').addEventListener('click', exportCSV);
+
+  MAP.on('click', (e)=>{
+    if(!PICKING) return;
+    el('f_lat').value = e.latlng.lat.toFixed(6);
+    el('f_lng').value = e.latlng.lng.toFixed(6);
+    PICKING=false;
+    el('pickCoord').textContent='Definir no mapa';
+    el('pickCoord').classList.remove('primary');
+  });
 }
 
-/* ================== DADOS ================== */
-async function loadData(){
-  const srcOverride = getParam('src');
-  const url = srcOverride || DEFAULT_URL;
-  el('openGeoJson').href = url;
-
-  try{
-    const r = await fetch(url, {cache:'no-store'});
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    const gj = await r.json();
-    RAW = (gj.features||[]).map(f=>{
-      const p=f.properties||{}, g=f.geometry||{};
-      const coords = (g.type==='Point' && Array.isArray(g.coordinates))? g.coordinates : [null,null];
-      const lng=Number(coords[0]), lat=Number(coords[1]);
-      return {
-        slug: p.slug || norm(p.nome||'').replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,''),
-        nome: p.nome||'', concelho: p.concelho||p.municipio||'',
-        estado: stateKey(p.estado||p.status||''), promotor: p.promotor||'',
-        tipologias: p.tipologias||'', conclusao: p.conclusao||'', preco_m2: p.preco_m2||'',
-        notas: p.notas||'', link: p.link||p.url||'',
-        docs: Array.isArray(p.docs)? p.docs : [],
-        _lat: Number.isFinite(lat)? lat : null, _lng: Number.isFinite(lng)? lng : null
-      };
-    });
-  }catch(e){
-    console.warn('Falha a ler GeoJSON remoto; a carregar SAMPLE.', e);
-    RAW = SAMPLE.features.map(f=>{
-      const p=f.properties, c=f.geometry.coordinates;
-      return {
-        slug:p.slug, nome:p.nome, concelho:p.concelho, estado:p.estado, promotor:p.promotor,
-        tipologias:p.tipologias, conclusao:p.conclusao, preco_m2:p.preco_m2, notas:p.notas, link:p.link, docs:p.docs||[],
-        _lat:c[1], _lng:c[0]
-      };
-    });
-  }
-}
-
-/* ================== FILTROS & PESQUISA ================== */
+/* ================== KPI, FILTROS, LISTA ================== */
 function buildFacetOptions(){
   const concelhos=[...new Set(RAW.map(x=>x.concelho).filter(Boolean))].sort();
   const promotores=[...new Set(RAW.map(x=>x.promotor).filter(Boolean))].sort();
@@ -317,7 +344,7 @@ function matchTokens(obj, tokens){
 }
 function applyFilters(){
   const tokens = norm(UI.q).split(/\s+/).filter(Boolean);
-  const tiposTokens = norm(UI.tipos).split(/[,\s]+/).filter(Boolean);
+  const tiposTokens = norm(UI.tipos||'').split(/[,\s]+/).filter(Boolean);
   FILT = RAW.filter(p=>{
     if(!matchTokens(p, tokens)) return false;
     if(UI.concelho && p.concelho!==UI.concelho) return false;
@@ -337,8 +364,13 @@ function applyFilters(){
     return true;
   });
 }
-
-/* ================== UI LISTA & KPI ================== */
+function renderKPIs(){
+  const total = FILT.length;
+  const c=FILT.filter(x=>x.estado==='em_construcao').length;
+  const l=FILT.filter(x=>x.estado==='licenciado').length;
+  const f=FILT.filter(x=>x.estado==='concluido').length;
+  el('k_total').textContent=total; el('k_c').textContent=c; el('k_l').textContent=l; el('k_f').textContent=f;
+}
 function renderList(){
   const box=el('list'); box.innerHTML='';
   if(!FILT.length){ box.innerHTML='<div class="empty">Sem resultados com os filtros atuais.</div>'; return; }
@@ -353,30 +385,26 @@ function renderList(){
         <span class="badge" style="border-color:${colorByState(p.estado)};color:${colorByState(p.estado)}">${p.estado||'—'}</span>
       </div>
       <div class="state">Conclusão: ${p.conclusao||'—'} · €/m²: ${p.preco_m2? Number(p.preco_m2).toLocaleString('pt-PT'): '—'}</div>
-      <div class="actions" style="margin-top:8px">
+      <div class="actions">
         <button class="btn" data-act="zoom">Abrir no mapa</button>
         ${p.link? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>` : ''}
         <button class="btn" data-act="open">Detalhes</button>
+        ${EDIT_MODE ? `<button class="btn ghost" data-act="edit">Editar</button>
+        <button class="btn" style="border-color:#cc4b4b;color:#ffdddd" data-act="del">Apagar</button>`:''}
       </div>`;
     div.querySelector('[data-act="zoom"]').addEventListener('click', ()=>{ if(p._lat&&p._lng) MAP.setView([p._lat,p._lng], 16, {animate:true}); });
     div.querySelector('[data-act="open"]').addEventListener('click', ()=>openFicha(p,true));
+    if(EDIT_MODE){
+      div.querySelector('[data-act="edit"]').addEventListener('click', ()=>openEditBySlug(p.slug));
+      div.querySelector('[data-act="del"]').addEventListener('click', ()=>deleteBySlug(p.slug));
+    }
     box.appendChild(div);
   });
-}
-function renderKPIs(){
-  const total = FILT.length;
-  const c=FILT.filter(x=>x.estado==='em_construcao').length;
-  const l=FILT.filter(x=>x.estado==='licenciado').length;
-  const f=FILT.filter(x=>x.estado==='concluido').length;
-  el('k_total').textContent=total; el('k_c').textContent=c; el('k_l').textContent=l; el('k_f').textContent=f;
 }
 
 /* ================== MARCADORES ================== */
 function makeDivIcon(state){
-  return L.divIcon({
-    className: pinClass(state),
-    html:'', iconSize:[24,24], iconAnchor:[12,12], popupAnchor:[0,-12]
-  });
+  return L.divIcon({ className: pinClass(state), html:'', iconSize:[28,28], iconAnchor:[14,14], popupAnchor:[0,-12] });
 }
 function renderMarkers(){
   CLUSTER.clearLayers(); LAYER.clearLayers();
@@ -389,27 +417,24 @@ function renderMarkers(){
   });
 }
 
-/* ================== PAINEL (Ficha) ================== */
+/* ================== FICHA (drawer) ================== */
 function stateLabel(s){
   const c=colorByState(s);
   return `<span class="badge" style="border-color:${c};color:${c}">${s||'—'}</span>`;
 }
 function buildDocsHTML(docs){
-  if(!Array.isArray(docs)||!docs.length) return '<div class="muted">Sem documentos anexados.</div>';
+  if(!Array.isArray(docs)||!docs.length) return '<div class="hint">Sem documentos anexados.</div>';
   const items = docs.map(d=>{
     const icon = d.type==='pdf'?'📄':(d.type==='img'?'🖼️':'🔗');
-    return `<li class="doc" data-url="${d.url}" data-type="${d.type}">${icon} ${d.title||d.url}</li>`;
+    const more = d.type==='pdf' ? ` <button class="btn" data-act="expand" data-url="${d.url}">Expandir</button>` : '';
+    return `<li style="margin-bottom:6px;border:1px solid var(--border);padding:6px 8px;border-radius:8px">
+      ${icon} <a href="${d.url}" target="_blank" rel="noreferrer">${d.title||d.url}</a>${more}
+    </li>`;
   }).join('');
-  return `
-    <ul class="doc-list">${items}</ul>
-    <div id="docView" style="margin-top:8px;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:8px;min-height:140px">
-      <div class="muted">Selecione um documento para visualizar.</div>
-    </div>
-  `;
+  return `<ul style="list-style:none;margin:0;padding:0">${items}</ul>`;
 }
 function openFicha(p, focus=false){
   ACTIVE=p;
-  const c=colorByState(p.estado);
   const html=`
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
       <div>
@@ -417,11 +442,12 @@ function openFicha(p, focus=false){
         <div style="font-size:12px;color:#bbb">${p.concelho||'—'} · ${stateLabel(p.estado)}</div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn-sm" data-act="center">Centrar</button>
-        <a class="btn-sm" href="https://www.google.com/maps?q=${p._lat},${p._lng}" target="_blank" rel="noreferrer">Google Maps</a>
-        ${p.link? `<a class="btn-sm" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>`:''}
-        <button class="btn-sm" data-act="copy">Copiar resumo</button>
-        <button class="btn-sm" data-act="share">Partilhar</button>
+        <button class="btn" data-act="center">Centrar</button>
+        <a class="btn" href="https://www.google.com/maps?q=${p._lat},${p._lng}" target="_blank" rel="noreferrer">Google Maps</a>
+        ${p.link? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>`:''}
+        <button class="btn" data-act="copy">Copiar resumo</button>
+        <button class="btn" data-act="share">Partilhar</button>
+        ${EDIT_MODE? `<button class="btn ghost" data-act="edit">Editar</button>`:''}
       </div>
     </div>
 
@@ -435,7 +461,7 @@ function openFicha(p, focus=false){
         <div class="meta-line"><b>Coordenadas:</b> ${Number.isFinite(p._lat)?p._lat.toFixed(6):'—'}, ${Number.isFinite(p._lng)?p._lng.toFixed(6):'—'}</div>
       </div>
       <div>
-        <div style="font-size:12px;color:#bbb;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Documentos & Media</div>
+        <div class="label">Documentos & Media</div>
         ${buildDocsHTML(p.docs||[])}
       </div>
     </div>
@@ -444,37 +470,25 @@ function openFicha(p, focus=false){
   el('side-panel').classList.add('show');
   if(focus && p._lat && p._lng) MAP.setView([p._lat,p._lng], 16, {animate:true});
 
-  // ações
   el('panelInner').querySelector('[data-act="center"]')?.addEventListener('click',()=>{ if(p._lat&&p._lng) MAP.setView([p._lat,p._lng], 16,{animate:true}); });
   el('panelInner').querySelector('[data-act="copy"]')?.addEventListener('click',async ()=>{
     const resumo = `${p.nome||''} — ${p.concelho||''} (${p.estado||''}); Conclusão ${p.conclusao||'—'}; ${p.link||''}`.trim();
     try{ await navigator.clipboard.writeText(resumo); }catch{}
   });
   el('panelInner').querySelector('[data-act="share"]')?.addEventListener('click',async ()=>{
-    const shareData={ title:p.nome||'Empreendimento', text:`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${p.conclusao||'—'}`, url: withIdDeepLink(p) };
+    const shareData={ title:p.nome||'Empreendimento', text:`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${p.conclusao||'—'}`, url: location.href };
     if(navigator.share){ try{ await navigator.share(shareData); }catch{} }
-    else{ try{ await navigator.clipboard.writeText(shareData.url); }catch{} }
+    else{ try{ await navigator.clipboard.writeText(shareData.text + ' ' + (p.link||location.href)); }catch{} }
   });
-
-  // docs preview
-  el('panelInner').querySelectorAll('.doc-list .doc').forEach(li=>{
-    li.addEventListener('click', ()=>{
-      const url=li.getAttribute('data-url'), tp=li.getAttribute('data-type');
-      const view=el('docView');
-      if(tp==='img') view.innerHTML=`<img src="${url}" alt="" style="max-width:100%;border-radius:8px">`;
-      else if(tp==='pdf') view.innerHTML=`<iframe src="${url}" style="width:100%;height:360px;border:0;border-radius:8px"></iframe><div style="margin-top:6px"><a class="btn-sm" href="${url}" target="_blank" rel="noreferrer">Abrir PDF</a></div>`;
-      else view.innerHTML=`<a class="btn-sm" href="${url}" target="_blank" rel="noreferrer">Abrir ligação</a>`;
-    });
+  if(EDIT_MODE){
+    el('panelInner').querySelector('[data-act="edit"]')?.addEventListener('click', ()=>openEditBySlug(p.slug));
+  }
+  // Expandir PDFs (modal)
+  el('panelInner').querySelectorAll('[data-act="expand"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>openPDF(btn.dataset.url));
   });
-
-  // deep-link do id
-  setDeepLink({id:p.slug||p.nome||''});
 }
-function withIdDeepLink(p){
-  const u=new URL(location.href);
-  u.searchParams.set('id', p.slug||p.nome||'');
-  return u.toString();
-}
+el('closePanel').addEventListener('click', ()=>{ el('side-panel').classList.remove('show'); });
 
 /* ================== EXPORTAÇÃO ================== */
 function exportCSV(){
@@ -482,61 +496,239 @@ function exportCSV(){
   const rows=FILT.map(p=>[p.nome,p.concelho,p.estado,p.promotor,p.tipologias,p.conclusao,p.preco_m2||'',p.notas||'',p.link||'',p._lat||'',p._lng||'']);
   const csv=toCSV([headers,...rows]);
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download='empreendimentos_filtrados.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  const a=document.createElement('a'); a.href=url; a.download='empreendimentos.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
+function exportGeo(){
+  const fc = {
+    type:"FeatureCollection",
+    features: RAW.filter(p=>p._lat!=null && p._lng!=null).map(p=>({
+      type:"Feature",
+      geometry:{type:"Point", coordinates:[p._lng, p._lat]},
+      properties:{
+        slug:p.slug,nome:p.nome,concelho:p.concelho,estado:p.estado,promotor:p.promotor,
+        tipologias:p.tipologias,conclusao:p.conclusao,preco_m2:p.preco_m2,notas:p.notas,link:p.link,docs:p.docs||[]
+      }
+    }))
+  };
+  const blob=new Blob([JSON.stringify(fc,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='empreendimentos.geojson'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+el('exportGeo').addEventListener('click', exportGeo);
+
+/* ================== MODO EDIÇÃO ================== */
+function setEditMode(on){
+  EDIT_MODE=on;
+  el('toggleEdit').textContent = on? '🔓 Edição ON' : '🔒 Editar';
+  [ 'btnImport','btnNew','btnSave','btnClearAll' ].forEach(id=>{
+    const b = (id==='btnImport') ? el(id) : el(id);
+    if(id==='btnImport'){ b.style.display = on? 'inline-block':'none'; }
+    else { b.style.display = on? 'inline-block':'none'; }
+  });
+  renderList(); // para injectar botões Editar/Apagar nos cartões
+}
+el('toggleEdit').addEventListener('click', ()=> setEditMode(!EDIT_MODE));
+el('btnClearAll').addEventListener('click', ()=>{
+  if(confirm('Tem a certeza que pretende limpar todos os empreendimentos?')){ RAW=[]; saveLS(); run(); }
+});
+el('btnSave').addEventListener('click', ()=>{ saveLS(); alert('Dados guardados localmente.'); });
+
+/* ===== CSV Import ===== */
+el('csvFile').addEventListener('change', async (ev)=>{
+  const file = ev.target.files?.[0]; if(!file) return;
+  const text = await file.text();
+  Papa.parse(text,{
+    header:true, dynamicTyping:true, skipEmptyLines:true,
+    complete:res=>{
+      const incoming = (res.data||[]).map(row=>{
+        // Espera colunas: nome, concelho, estado, promotor, tipologias, conclusao, preco_m2, notas, latitude, longitude, link
+        const p = {
+          slug: slugify(row.nome||row.Nome||''),
+          nome: row.nome||row.Nome||'',
+          concelho: row.concelho||row.Concelho||row.municipio||'',
+          estado: stateKey(row.estado||row.status||''),
+          promotor: row.promotor||'',
+          tipologias: row.tipologias||'',
+          conclusao: row.conclusao||row["Ano de Conclusão"]||'',
+          preco_m2: row.preco_m2||row["preco_m2"]||row["Preço_m2"]||'',
+          notas: row.notas||row.Observacoes||row["Observações"]||'',
+          link: row.link||row.url||'',
+          _lat: asNum(row.latitude||row.Lat||row.lat),
+          _lng: asNum(row.longitude||row.Lng||row.lng),
+          docs:[]
+        };
+        return p;
+      }).filter(p=>p.nome);
+      if(!incoming.length){ alert('Nenhuma linha válida encontrada no CSV.'); return; }
+
+      // Mesclar por slug (ou nome)
+      const bySlug = new Map(RAW.map(p=>[p.slug||slugify(p.nome), p]));
+      incoming.forEach(n=>{
+        const key = n.slug || slugify(n.nome);
+        if(bySlug.has(key)){
+          const cur = bySlug.get(key);
+          Object.assign(cur, n); // update
+        }else{
+          RAW.push(n);
+        }
+      });
+      saveLS(); run();
+      alert(`Importação concluída: ${incoming.length} registos processados.`);
+      ev.target.value=''; // reset input
+    },
+    error:()=> alert('Falha a ler CSV.')
+  });
+});
+
+/* ===== Modal de Edição ===== */
+function openEditBySlug(slug){
+  const idx = RAW.findIndex(p=>p.slug===slug);
+  if(idx<0) return;
+  EDIT_INDEX = idx;
+  const p = RAW[idx];
+  fillEditForm(p);
+  el('editTitle').textContent='Editar Empreendimento';
+  el('editModal').classList.add('show');
+}
+el('btnNew').addEventListener('click', ()=>{
+  EDIT_INDEX = -1;
+  fillEditForm({nome:'',concelho:'',estado:'',promotor:'',tipologias:'',conclusao:'',preco_m2:'',notas:'',link:'',_lat:'',_lng:'',docs:[]});
+  el('editTitle').textContent='Novo Empreendimento';
+  el('editModal').classList.add('show');
+});
+el('cancelEdit').addEventListener('click', ()=>{ el('editModal').classList.remove('show'); PICKING=false; });
+
+el('pickCoord').addEventListener('click', ()=>{
+  PICKING = !PICKING;
+  el('pickCoord').textContent = PICKING? 'Clique no mapa…' : 'Definir no mapa';
+  el('pickCoord').classList.toggle('primary', PICKING);
+});
+
+el('addDoc').addEventListener('click', ()=>{
+  addDocRow({title:'', type:'pdf', url:''});
+});
+
+function fillEditForm(p){
+  el('f_nome').value = p.nome||'';
+  el('f_concelho_e').value = p.concelho||'';
+  el('f_estado').value = p.estado||'';
+  el('f_promotor_e').value = p.promotor||'';
+  el('f_tipologias').value = p.tipologias||'';
+  el('f_conclusao').value = p.conclusao||'';
+  el('f_preco').value = p.preco_m2||'';
+  el('f_link').value = p.link||'';
+  el('f_lat').value = p._lat!=null? p._lat : '';
+  el('f_lng').value = p._lng!=null? p._lng : '';
+  el('f_notas').value = p.notas||'';
+  const box = el('docsBox'); box.innerHTML='';
+  (p.docs||[]).forEach(d=> addDocRow(d));
+}
+
+function addDocRow(d){
+  const row = document.createElement('div');
+  row.className='doc-row';
+  row.innerHTML = `
+    <input placeholder="Título (ex.: Brochura)" value="${d.title||''}">
+    <select>
+      <option value="pdf" ${d.type==='pdf'?'selected':''}>pdf</option>
+      <option value="img" ${d.type==='img'?'selected':''}>img</option>
+      <option value="link" ${d.type==='link'?'selected':''}>link</option>
+    </select>
+    <input placeholder="URL (https://…)" value="${d.url||''}">
+    <button class="btn del">Apagar</button>
+  `;
+  row.querySelector('.del').addEventListener('click', ()=> row.remove());
+  el('docsBox').appendChild(row);
+}
+
+el('saveEdit').addEventListener('click', ()=>{
+  const p = {
+    nome: el('f_nome').value.trim(),
+    concelho: el('f_concelho_e').value.trim(),
+    estado: el('f_estado').value,
+    promotor: el('f_promotor_e').value.trim(),
+    tipologias: el('f_tipologias').value.trim(),
+    conclusao: el('f_conclusao').value? Number(el('f_conclusao').value): '',
+    preco_m2: el('f_preco').value? Number(el('f_preco').value): '',
+    notas: el('f_notas').value.trim(),
+    link: el('f_link').value.trim(),
+    _lat: el('f_lat').value? Number(el('f_lat').value): null,
+    _lng: el('f_lng').value? Number(el('f_lng').value): null,
+    docs: []
+  };
+  // docs
+  el('docsBox').querySelectorAll('.doc-row').forEach(r=>{
+    const inputs = r.querySelectorAll('input,select');
+    const d = { title: inputs[0].value.trim(), type: inputs[1].value, url: inputs[2].value.trim() };
+    if(d.url) p.docs.push(d);
+  });
+  if(!p.nome){ alert('O nome é obrigatório.'); return; }
+  p.slug = slugify(p.nome);
+
+  if(EDIT_INDEX>=0){
+    RAW[EDIT_INDEX] = Object.assign(RAW[EDIT_INDEX], p);
+  }else{
+    // evitar duplicado por slug
+    const exist = RAW.find(x=>x.slug===p.slug);
+    if(exist){ if(!confirm('Já existe um empreendimento com este nome. Substituir?')) return;
+      Object.assign(exist, p);
+    }else{
+      RAW.push(p);
+    }
+  }
+  saveLS();
+  el('editModal').classList.remove('show'); PICKING=false;
+  run();
+});
+
+function deleteBySlug(slug){
+  if(!confirm('Apagar este empreendimento?')) return;
+  const idx = RAW.findIndex(p=>p.slug===slug);
+  if(idx>=0){ RAW.splice(idx,1); saveLS(); run(); }
+}
+
+/* ================== PDF MODAL ================== */
+function openPDF(url){
+  el('pdfFrame').src=url; el('pdfOpenNew').href=url; document.getElementById('pdfModal').classList.add('show');
+}
+el('pdfClose').addEventListener('click', ()=>{ document.getElementById('pdfModal').classList.remove('show'); el('pdfFrame').src='about:blank'; });
+document.getElementById('pdfModal').addEventListener('click', (e)=>{ if(e.target.id==='pdfModal') el('pdfClose').click(); });
 
 /* ================== EVENTOS UI ================== */
-function bindUI(){
-  // chips estado
-  document.querySelectorAll('#estadoChips .chip').forEach(ch=>{
-    ch.addEventListener('click', ()=>{
-      document.querySelectorAll('#estadoChips .chip').forEach(c=>c.classList.remove('active'));
-      ch.classList.add('active'); UI.estado=ch.dataset.v||''; run();
-    });
-  });
-  // filtros
-  el('apply').addEventListener('click', ()=>{
-    UI.q=el('q').value.trim(); UI.concelho=el('f_concelho').value; UI.cmin=el('f_cmin').value; UI.cmax=el('f_cmax').value;
-    UI.pmin=el('f_pmin').value; UI.pmax=el('f_pmax').value; UI.promotor=el('f_promotor').value; UI.tipos=el('f_tipos').value.trim();
-    run();
-  });
-  el('clear').addEventListener('click', ()=>{
-    ['q','f_concelho','f_cmin','f_cmax','f_pmin','f_pmax','f_promotor','f_tipos'].forEach(id=>el(id).value='');
+document.querySelectorAll('#estadoChips .chip').forEach(ch=>{
+  ch.addEventListener('click', ()=>{
     document.querySelectorAll('#estadoChips .chip').forEach(c=>c.classList.remove('active'));
-    document.querySelector('#estadoChips .chip[data-v=""]').classList.add('active');
-    UI={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'' };
-    run();
+    ch.classList.add('active'); UI.estado=ch.dataset.v||''; run();
   });
+});
+el('apply').addEventListener('click', ()=>{
+  UI.q=el('q').value.trim(); UI.concelho=el('f_concelho').value; UI.cmin=el('f_cmin').value; UI.cmax=el('f_cmax').value;
+  UI.pmin=el('f_pmin').value; UI.pmax=el('f_pmax').value; UI.promotor=el('f_promotor').value; UI.tipos=el('f_tipos').value.trim();
+  run();
+});
+el('clear').addEventListener('click', ()=>{
+  ['q','f_concelho','f_cmin','f_cmax','f_pmin','f_pmax','f_promotor','f_tipos'].forEach(id=>el(id).value='');
+  document.querySelectorAll('#estadoChips .chip').forEach(c=>c.classList.remove('active'));
+  document.querySelector('#estadoChips .chip[data-v=""]').classList.add('active');
+  UI={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'' };
+  run();
+});
 
-  // deep-link ?q= e ?id=
-  const q0=getParam('q'); if(q0){ el('q').value=q0; UI.q=q0; }
-}
-
-/* ================== RUN (ciclo de render) ================== */
+/* ================== CICLO RENDER ================== */
 function run(){
   applyFilters();
   renderKPIs();
   renderList();
   renderMarkers();
-
-  // ?id= abrir ficha
-  const wantId=getParam('id');
-  if(wantId){
-    const hit = FILT.find(p=> (p.slug && String(p.slug)===String(wantId)) || (p.nome && norm(p.nome)===norm(wantId)) );
-    if(hit) openFicha(hit,false);
-  } else {
-    el('side-panel').classList.remove('show');
-  }
 }
 
 /* ================== BOOT ================== */
-(async function init(){
+(function init(){
   initMap();
-  await loadData();
+  // 1) Tentar carregar dados do LocalStorage
+  const mem = loadLS();
+  if(Array.isArray(mem) && mem.length){ RAW = mem; }
+  else { RAW = []; } // começa vazio; poderá importar CSV ou criar manualmente
   buildFacetOptions();
-  bindUI();
-  // foco padrão AMP/Porto
-  MAP.setView(AMP_CENTER, AMP_ZOOM, {animate:false});
   run();
 })();
 </script>
