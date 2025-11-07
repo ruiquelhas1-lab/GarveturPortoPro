@@ -53,14 +53,12 @@
   .contact a:hover{color:#fff;border-bottom-color:var(--gold)}
   .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
   .tag{font-size:10px;padding:4px 6px;border-radius:999px;border:1px solid rgba(255,255,255,.14);color:#ddd}
-  .ghost-drop{border:1px dashed rgba(255,255,255,.18);border-radius:10px;padding:12px;text-align:center;color:#9aa0a6}
-  /* cores colunas */
-  .c-novo .col-head{background:#101010}
-  .c-cont .col-head{background:#17130d}
-  .c-qual .col-head{background:#0f1410}
-  .c-vis .col-head{background:#0f1218}
-  .c-prop .col-head{background:#171309}
-  .c-fecho .col-head{background:#0f140f}
+  .actions{display:flex;gap:6px;margin-top:8px}
+  .iconbtn{border:1px solid rgba(255,255,255,.18);background:#101010;border-radius:8px;padding:6px 8px;cursor:pointer;font-size:12px;color:#e0e0e0}
+  .iconbtn:hover{border-color:var(--gold);color:#fff}
+  .icon-danger{border-color:#5f1e1e;color:#ffbbbb}
+  .icon-danger:hover{border-color:#EF5350;color:#fff}
+  .hidden-flag{opacity:.6}
   /* ====== MODALS ====== */
   .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:50}
   .modal{width:min(780px,95vw);background:#0F0F0F;border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
@@ -70,7 +68,7 @@
   .g-2{grid-template-columns:1fr 1fr}
   .g-3{grid-template-columns:1fr 1fr 1fr}
   .row{display:grid;gap:10px}
-  .modal .actions{display:flex;justify-content:flex-end;gap:8px;padding:10px;border-top:1px solid var(--line);background:#0F0F0F;border-bottom-left-radius:16px;border-bottom-right-radius:16px}
+  .modal .actions{display:flex;justify-content:space-between;gap:8px;padding:10px;border-top:1px solid var(--line);background:#0F0F0F;border-bottom-left-radius:16px;border-bottom-right-radius:16px}
   .danger{border-color:#EF5350;color:#fff}
   .req::after{content:" *";color:#FFC107}
   .error{color:#FFC107;font-size:12px}
@@ -281,6 +279,7 @@
     </header>
     <div class="body">
       <div class="error" id="mNewErr" style="display:none"></div>
+
       <div class="grid g-2">
         <div>
           <div class="label req">Nome cliente</div>
@@ -396,6 +395,26 @@
         </div>
       </div>
 
+      <!-- NOVO: Consultor + Data -->
+      <div class="grid g-2" style="margin-top:10px">
+        <div>
+          <div class="label req">Consultor</div>
+          <select id="m_consultor">
+            <option>Rui Quelhas</option>
+            <option>Manuel Oliveira</option>
+            <option>João Sousa</option>
+            <option>Francisco dos Santos</option>
+            <option>Rosário Vasconcelos</option>
+            <option>Armanda Meireles</option>
+            <option>Audrey Lucas</option>
+          </select>
+        </div>
+        <div>
+          <div class="label req">Data</div>
+          <input id="m_data" type="date">
+        </div>
+      </div>
+
       <div class="row" style="margin-top:10px">
         <div>
           <div class="label">Notas</div>
@@ -404,8 +423,11 @@
       </div>
     </div>
     <div class="actions">
-      <button id="mNewReset" class="btn ghost">Limpar</button>
-      <button id="mNewSave" class="btn primary">Guardar lead</button>
+      <button id="mNewDelete" class="btn danger" title="Eliminar esta lead" style="display:none">Eliminar</button>
+      <div>
+        <button id="mNewReset" class="btn ghost">Limpar</button>
+        <button id="mNewSave" class="btn primary">Guardar lead</button>
+      </div>
     </div>
   </div>
 </div>
@@ -439,6 +461,7 @@
       </div>
     </div>
     <div class="actions">
+      <button id="mQDelete" class="btn danger">Eliminar</button>
       <button id="mQSave" class="btn primary">Guardar</button>
     </div>
   </div>
@@ -474,7 +497,10 @@ function safeMail(m){ return String(m||'').trim(); }
 
 /* ======= UI: datas default ======= */
 (function initDefaultDates(){
+  // Data default no modal "Nova Lead"
   const today = new Date().toISOString().slice(0,10);
+  el('m_data').value = today;
+
   const d30 = new Date(); d30.setDate(d30.getDate()-30);
   el('f_de').value = d30.toISOString().slice(0,10);
   el('f_ate').value = today;
@@ -530,7 +556,7 @@ el('clearFilters').addEventListener('click', ()=>{
   render();
 });
 
-/* ======= CARTÃO ======= */
+/* ======= CARTÃO (com ações: visível/invisível, eliminar) ======= */
 function cardHTML(l){
   const tel = normalizePhone(l.tel || l.contacto || l.contact || l.telefone);
   const email = safeMail(l.email);
@@ -542,19 +568,27 @@ function cardHTML(l){
   if(l.imovel_tipo) tags.push(l.imovel_tipo);
   if(l.tipologia) tags.push(l.tipologia);
 
+  const eyeLabel = (l.hidden===true) ? 'Tornar visível' : 'Tornar invisível';
+  const eyeIcon  = (l.hidden===true) ? '👁️' : '🚫';
+
   return `
-    <div class="card" draggable="true" data-id="${l.id}" data-dbl="1">
+    <div class="card ${l.hidden===true?'hidden-flag':''}" draggable="true" data-id="${l.id}" data-dbl="1">
       <div class="name">${l.cliente || '—'}</div>
       <div class="meta">
         <span class="pill">${l.zona || '—'}</span>
         <span class="pill">${l.consultor || 'Rui Quelhas'}</span>
         <span class="pill">${v}</span>
+        <span class="pill">${l.createdAt ? new Date(l.createdAt).toLocaleDateString('pt-PT') : ''}</span>
       </div>
       <div class="contact">
         <div><strong>Contacto:</strong> ${tel ? `<a href="tel:${tel}">${tel}</a>` : '—'}</div>
         <div><strong>Email:</strong> ${email ? `<a href="mailto:${email}">${email}</a>` : '—'}</div>
       </div>
       <div class="tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+      <div class="actions">
+        <button class="iconbtn" data-act="toggle" title="${eyeLabel}">${eyeIcon}</button>
+        <button class="iconbtn icon-danger" data-act="del" title="Eliminar">🗑️</button>
+      </div>
     </div>
   `;
 }
@@ -585,15 +619,26 @@ function applyFilter(l){
 /* ======= RENDER ======= */
 function render(){
   const all = loadLeads();
+
+  // buckets para render (exclui invisíveis)
   const buckets = {novo:[], em_contacto:[], qualificado:[], visita:[], proposta:[], fecho:[]};
+
+  // contagens devem considerar também as invisíveis (desde que passem nos filtros)
+  const countsAll = {novo:0, em_contacto:0, qualificado:0, visita:0, proposta:0, fecho:0};
 
   all.forEach(l=>{
     if(!applyFilter(l)) return;
+
     const s = (l.stage||'novo');
+    if(countsAll[s]===undefined) countsAll[s]=0;
+    countsAll[s]++;
+
+    if(l.hidden===true) return; // invisíveis não se desenham
     if(!buckets[s]) buckets[s]=[];
     buckets[s].push(l);
   });
 
+  // render por coluna
   el('col_n').innerHTML = buckets.novo.map(cardHTML).join('') || '<div class="ghost-drop">Sem registos…</div>';
   el('col_c').innerHTML = buckets.em_contacto.map(cardHTML).join('') || '<div class="ghost-drop">Sem registos…</div>';
   el('col_q').innerHTML = buckets.qualificado.map(cardHTML).join('') || '<div class="ghost-drop">Sem registos…</div>';
@@ -601,15 +646,16 @@ function render(){
   el('col_p').innerHTML = buckets.proposta.map(cardHTML).join('') || '<div class="ghost-drop">Sem registos…</div>';
   el('col_f').innerHTML = buckets.fecho.map(cardHTML).join('') || '<div class="ghost-drop">Sem registos…</div>';
 
-  // contagens topo
-  el('cnt_n').textContent = buckets.novo.length;
-  el('cnt_c').textContent = buckets.em_contacto.length;
-  el('cnt_q').textContent = buckets.qualificado.length;
-  el('cnt_v').textContent = buckets.visita.length;
-  el('cnt_p').textContent = buckets.proposta.length;
-  el('cnt_f').textContent = buckets.fecho.length;
+  // contagens topo das colunas (INCLUEM invisíveis)
+  el('cnt_n').textContent = countsAll.novo || 0;
+  el('cnt_c').textContent = countsAll.em_contacto || 0;
+  el('cnt_q').textContent = countsAll.qualificado || 0;
+  el('cnt_v').textContent = countsAll.visita || 0;
+  el('cnt_p').textContent = countsAll.proposta || 0;
+  el('cnt_f').textContent = countsAll.fecho || 0;
 
   attachDrag();
+  attachCardActions();
   attachDblClick();
 }
 
@@ -634,6 +680,31 @@ function moveLeadToColumn(id, stage){
   const arr = loadLeads();
   const i = arr.findIndex(l=>String(l.id)===String(id));
   if(i>=0){ arr[i].stage = stage; arr[i].updatedAt = new Date().toISOString(); saveLeads(arr); render(); }
+}
+
+/* ======= AÇÕES NO CARTÃO (visível/invisível, eliminar) ======= */
+function attachCardActions(){
+  document.querySelectorAll('.card .actions .iconbtn').forEach(btn=>{
+    btn.onclick = ()=>{
+      const act = btn.dataset.act;
+      const id = btn.closest('.card').dataset.id;
+      if(act==='toggle') toggleVisibility(id);
+      if(act==='del') deleteLead(id);
+    };
+  });
+}
+function toggleVisibility(id){
+  const arr = loadLeads();
+  const i = arr.findIndex(x=>String(x.id)===String(id));
+  if(i<0) return;
+  arr[i].hidden = !(arr[i].hidden===true);
+  arr[i].updatedAt = new Date().toISOString();
+  saveLeads(arr); render();
+}
+function deleteLead(id){
+  if(!confirm('Eliminar esta lead? Esta ação é irreversível.')) return;
+  const arr = loadLeads().filter(x=>String(x.id)!==String(id));
+  saveLeads(arr); render();
 }
 
 /* ======= DBLCLICK: editar Nome/Contacto/Email ======= */
@@ -664,14 +735,22 @@ el('mQSave').addEventListener('click', ()=>{
   arr[i].updatedAt = new Date().toISOString();
   saveLeads(arr); openQuick(false); render();
 });
+el('mQDelete').addEventListener('click', ()=>{
+  const id = el('mQ_id').value;
+  openQuick(false); deleteLead(id);
+});
 function openQuick(v){ $('#modalQuick').style.display = v?'flex':'none'; }
 
-/* ======= NOVA LEAD: abrir modal ======= */
+/* ======= NOVA LEAD ======= */
 el('addLead').addEventListener('click', ()=>{ resetNewForm(); openNew(true); });
 el('mNewClose').addEventListener('click', ()=>openNew(false));
 el('mNewReset').addEventListener('click', ()=>resetNewForm());
 
-function openNew(v){ $('#modalNew').style.display = v?'flex':'none'; }
+function openNew(v){
+  $('#modalNew').style.display = v?'flex':'none';
+  // botão eliminar só visível em modo edição futura (não usado aqui)
+  $('#mNewDelete').style.display = 'none';
+}
 function resetNewForm(){
   ['m_nome','m_tel','m_email','m_zona','m_val','m_banco','m_notas'].forEach(id=>el(id).value='');
   el('m_tipo_cli').value = 'comprador';
@@ -686,10 +765,11 @@ function resetNewForm(){
   el('m_tem_vender').value = 'nao';
   el('m_ja_venda').value = 'nao';
   el('m_origem').value = 'Indefinido';
+  el('m_consultor').value = 'Rui Quelhas';
+  el('m_data').value = new Date().toISOString().slice(0,10);
   el('mNewErr').style.display='none';
 }
 
-/* ======= NOVA LEAD: guardar ======= */
 el('mNewSave').addEventListener('click', ()=>{
   const nome = el('m_nome').value.trim();
   if(!nome){
@@ -708,39 +788,40 @@ el('mNewSave').addEventListener('click', ()=>{
     tipologia: el('m_tipologia').value,
     zona: el('m_zona').value.trim(),
     val: Number(el('m_val').value||''),
-    urgente: el('m_urgente').value,                 // sim|nao
-    planta: el('m_planta').value,                   // sim|nao
-    habitacao: el('m_habitacao').value,             // própria|secundária
-    fin_banc: el('m_fin').value,                    // sim|nao
-    simulacao: el('m_simulacao').value,             // sim|nao
+    urgente: el('m_urgente').value,
+    planta: el('m_planta').value,
+    habitacao: el('m_habitacao').value,
+    fin_banc: el('m_fin').value,
+    simulacao: el('m_simulacao').value,
     banco: el('m_banco').value.trim(),
-    tem_imovel_vender: el('m_tem_vender').value,    // sim|nao
-    ja_venda: el('m_ja_venda').value,               // sim|nao
+    tem_imovel_vender: el('m_tem_vender').value,
+    ja_venda: el('m_ja_venda').value,
     origem: el('m_origem').value,
-    notas: el('m_notas').value.trim(),
-    consultor: 'Rui Quelhas',
+    consultor: el('m_consultor').value,
+    createdAt: (el('m_data').value ? new Date(el('m_data').value+'T12:00:00Z').toISOString() : new Date().toISOString()),
+    updatedAt: new Date().toISOString(),
     stage: 'novo',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    hidden: false,           // por defeito, visível
+    notas: el('m_notas').value.trim()
   };
 
   const arr = loadLeads(); arr.push(lead); saveLeads(arr);
   openNew(false); render();
 });
 
-/* ======= EXPORT CSV ======= */
+/* ======= EXPORT CSV (inclui visibilidade) ======= */
 el('exportLeads').addEventListener('click', ()=>{
-  const arr = loadLeads().filter(applyFilter);
-  const headers = ["ID","Nome Cliente","Contacto","Email","Consultor","Origem","Tipo","Perfil","Imóvel","Tipologia","Zona","Valor","Urgente","Planta","Habitação","Fin.B.","Simulação","Banco","Tem p/ vender","Já à venda","Estado","Criado em","Notas"];
+  const arr = loadLeads().filter(applyFilter); // inclui invisíveis
+  const headers = ["ID","Visível","Nome Cliente","Contacto","Email","Consultor","Origem","Tipo","Perfil","Imóvel","Tipologia","Zona","Valor","Urgente","Planta","Habitação","Fin.B.","Simulação","Banco","Tem p/ vender","Já à venda","Estado","Data","Atualizado em","Notas"];
   const rows = arr.map(l=>[
-    l.id, l.cliente||'', l.tel||l.contacto||'', l.email||'',
+    l.id, (l.hidden===true?'Não':'Sim'), l.cliente||'', l.tel||l.contacto||'', l.email||'',
     l.consultor||'', l.origem||'', l.tipo_cli||'', l.perfil||'',
     l.imovel_tipo||'', l.tipologia||'', l.zona||'',
     isFinite(l.val)? l.val : '',
     l.urgente||'', l.planta||'', l.habitacao||'',
     l.fin_banc||'', l.simulacao||'', l.banco||'',
     l.tem_imovel_vender||'', l.ja_venda||'',
-    l.stage||'', l.createdAt||'', (l.notas||'').replace(/\n/g,' ')
+    l.stage||'', l.createdAt||'', l.updatedAt||'', (l.notas||'').replace(/\n/g,' ')
   ]);
   const csv = [headers, ...rows].map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
