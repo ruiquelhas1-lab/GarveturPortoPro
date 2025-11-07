@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Garvetur Porto Pro — Mapa (Edição + CSV + Anexos Locais)</title>
+<title>Garvetur Porto Pro — Mapa (Edição + CSV + Anexos Locais c/ Fallback)</title>
 
 <!-- CDNs -->
 <link rel="preconnect" href="https://unpkg.com" crossorigin>
@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin="anonymous">
 <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js" crossorigin="anonymous"></script>
-<!-- IndexedDB helper (para anexos locais) -->
+<!-- IndexedDB helper -->
 <script src="https://unpkg.com/idb-keyval@6/dist/idb-keyval.iife.min.js" crossorigin="anonymous"></script>
 
 <style>
@@ -62,7 +62,7 @@ input[type="file"]{display:none}
 .empty{padding:10px;color:#bbb;font-size:13px}
 
 #map{width:100%;height:100%}
-.leaflet-container{background:#eaeaea} /* mapa claro */
+.leaflet-container{background:#eaeaea}
 .legend{
   position:absolute;left:12px;bottom:12px;z-index:5000;
   background:#111;border:1px solid var(--border);border-radius:10px;
@@ -102,7 +102,6 @@ input[type="file"]{display:none}
 .modal header{padding:10px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
 .modal .content{padding:12px;max-height:72vh;overflow:auto}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 .form-field{display:flex;flex-direction:column;gap:6px}
 .form-field input,.form-field select,.form-field textarea{background:#0E0E0E;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:8px 10px;color:#fff;outline:none}
 .doc-row{display:grid;grid-template-columns:1fr 120px 1fr auto;gap:6px;align-items:center}
@@ -222,7 +221,7 @@ input[type="file"]{display:none}
     </div>
   </div>
 
-<!-- Modal Empreendimento (CRUD) -->
+<!-- Modal Empreendimento -->
 <div id="editModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Empreendimento">
   <div class="modal">
     <header>
@@ -262,7 +261,7 @@ input[type="file"]{display:none}
         <div id="docsBox"></div>
         <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap">
           <button class="btn" id="addDoc">+ Adicionar documento (URL)</button>
-          <!-- attachLocalLabel/input já no header para agrupar com ações -->
+          <!-- o botão de anexo local está no header -->
         </div>
       </div>
     </div>
@@ -288,20 +287,19 @@ input[type="file"]{display:none}
 <script>
 /* ================== CONFIG ================== */
 const AMP_CENTER=[41.15,-8.61], AMP_ZOOM=12;
-const LS_KEY='gpp_dataset_v1'; // armazenamento local
+const LS_KEY='gpp_dataset_v1';
 
 /* ================== ESTADO ================== */
 let MAP, CLUSTER, LAYER;
 let RAW=[], FILT=[];
-let ACTIVE=null;          // item ativo
-let EDIT_MODE=false;      // modo edição?
-let EDIT_INDEX = -1;      // índice em edição
-let PICKING=false;        // a recolher coordenadas no mapa?
+let ACTIVE=null;
+let EDIT_MODE=false;
+let EDIT_INDEX=-1;
+let PICKING=false;
 let UI={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'' };
 
 /* ================== HELPERS ================== */
 const el=id=>document.getElementById(id);
-const qs=s=>document.querySelector(s);
 function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
 function stateKey(s){
   const x=norm(s); if(x.includes('constr'))return 'em_construcao';
@@ -312,16 +310,44 @@ function pinClass(k){ if(k==='em_construcao')return 'pin c'; if(k==='licenciado'
 function toCSV(rows){ return rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n'); }
 function slugify(s){ return norm(s).replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,''); }
 function asNum(v){ const n=Number(v); return Number.isFinite(n)?n:null; }
-function clone(o){ return JSON.parse(JSON.stringify(o)); }
 
-/* ====== Anexos locais (IndexedDB) ====== */
+/* ====== Deteção de capacidade de armazenamento ====== */
+let STORAGE_MODE = 'idb'; // 'idb' ou 'dataurl'
+async function detectStorageMode(){
+  try{
+    if(!window.indexedDB || !window.idbKeyval) throw new Error('IDB indisponível');
+    const testKey='__gpp_test__', testVal=new Blob(['ok'],{type:'text/plain'});
+    await idbKeyval.set(testKey, testVal);
+    const v = await idbKeyval.get(testKey);
+    await idbKeyval.del(testKey);
+    if(!v) throw new Error('IDB sem leitura');
+    STORAGE_MODE = 'idb';
+  }catch(e){
+    console.warn('IndexedDB indisponível, fallback para dataURL:', e.message || e);
+    STORAGE_MODE = 'dataurl';
+  }
+}
+
+/* ====== Anexos locais (IDB + fallback DataURL) ====== */
 const DB_PREFIX = 'gpp_docs_';
 async function saveLocalBlob(blob, slug, filename){
-  const key = DB_PREFIX + (slug || 'sem-slug') + '_' + (filename || ('file_' + Date.now()));
-  await idbKeyval.set(key, blob);
-  return 'idb://' + key;
+  if(STORAGE_MODE==='idb'){
+    const key = DB_PREFIX + (slug || 'sem-slug') + '_' + (filename || ('file_' + Date.now()));
+    await idbKeyval.set(key, blob);
+    return 'idb://' + key;
+  }else{
+    const b64 = await new Promise((res,rej)=>{
+      const fr = new FileReader();
+      fr.onerror = ()=>rej(new Error('Falha FileReader'));
+      fr.onload = ()=>res(fr.result);
+      fr.readAsDataURL(blob);
+    });
+    return b64; // data:...
+  }
 }
 async function getLocalBlobUrl(idbUrl){
+  if(!idbUrl) return null;
+  if(idbUrl.startsWith('data:')) return idbUrl;
   try{
     const key = idbUrl.replace('idb://','');
     const blob = await idbKeyval.get(key);
@@ -330,7 +356,11 @@ async function getLocalBlobUrl(idbUrl){
   }catch{return null;}
 }
 async function deleteLocalBlob(idbUrl){
-  try{ const key = idbUrl.replace('idb://',''); await idbKeyval.del(key);}catch{}
+  try{
+    if(!idbUrl || idbUrl.startsWith('data:')) return;
+    const key = idbUrl.replace('idb://','');
+    await idbKeyval.del(key);
+  }catch{}
 }
 function isIdbUrl(u){ return typeof u==='string' && u.startsWith('idb://'); }
 
@@ -342,20 +372,11 @@ function loadLS(){ try{ const x=localStorage.getItem(LS_KEY); return x? JSON.par
 function initMap(){
   MAP = L.map('map',{ zoomControl:true, scrollWheelZoom:true }).setView(AMP_CENTER, AMP_ZOOM);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(MAP);
-  CLUSTER = L.markerClusterGroup({ spiderfyOnEveryZoom:false, showCoverageOnHover:false, maxClusterRadius:48 });
+  const clusterOpts={ spiderfyOnEveryZoom:false, showCoverageOnHover:false, maxClusterRadius:48 };
+  CLUSTER = L.markerClusterGroup(clusterOpts);
   LAYER = L.layerGroup().addTo(CLUSTER);
   MAP.addLayer(CLUSTER);
-
   el('focusAmp').addEventListener('click', ()=>MAP.setView(AMP_CENTER, AMP_ZOOM, {animate:true}));
-
-  MAP.on('click', (e)=>{
-    if(!PICKING) return;
-    el('f_lat').value = e.latlng.lat.toFixed(6);
-    el('f_lng').value = e.latlng.lng.toFixed(6);
-    PICKING=false;
-    el('pickCoord').textContent='Definir no mapa';
-    el('pickCoord').classList.remove('primary');
-  });
 }
 
 /* ================== KPI, FILTROS, LISTA ================== */
@@ -370,20 +391,21 @@ function matchTokens(obj, tokens){
   const hay = norm([obj.nome,obj.concelho,obj.promotor,obj.tipologias,obj.estado,obj.notas,obj.conclusao,obj.preco_m2].join(' '));
   return tokens.every(tok => hay.includes(tok));
 }
+let UIState={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'' };
 function applyFilters(){
-  const tokens = norm(UI.q).split(/\s+/).filter(Boolean);
-  const tiposTokens = norm(UI.tipos||'').split(/[,\s]+/).filter(Boolean);
+  const tokens = norm(UIState.q).split(/\s+/).filter(Boolean);
+  const tiposTokens = norm(UIState.tipos||'').split(/[,\s]+/).filter(Boolean);
   FILT = RAW.filter(p=>{
     if(!matchTokens(p, tokens)) return false;
-    if(UI.concelho && p.concelho!==UI.concelho) return false;
-    if(UI.estado && p.estado!==UI.estado) return false;
+    if(UIState.concelho && p.concelho!==UIState.concelho) return false;
+    if(UIState.estado && p.estado!==UIState.estado) return false;
     const c = Number(p.conclusao||'');
-    if(UI.cmin && Number.isFinite(c) && c < Number(UI.cmin)) return false;
-    if(UI.cmax && Number.isFinite(c) && c > Number(UI.cmax)) return false;
+    if(UIState.cmin && Number.isFinite(c) && c < Number(UIState.cmin)) return false;
+    if(UIState.cmax && Number.isFinite(c) && c > Number(UIState.cmax)) return false;
     const m2 = Number(p.preco_m2||'');
-    if(UI.pmin && Number.isFinite(m2) && m2 < Number(UI.pmin)) return false;
-    if(UI.pmax && Number.isFinite(m2) && m2 > Number(UI.pmax)) return false;
-    if(UI.promotor && p.promotor!==UI.promotor) return false;
+    if(UIState.pmin && Number.isFinite(m2) && m2 < Number(UIState.pmin)) return false;
+    if(UIState.pmax && Number.isFinite(m2) && m2 > Number(UIState.pmax)) return false;
+    if(UIState.promotor && p.promotor!==UIState.promotor) return false;
     if(tiposTokens.length){
       const base=norm(p.tipologias||'');
       const hit = tiposTokens.some(t=>base.includes(t));
@@ -431,9 +453,7 @@ function renderList(){
 }
 
 /* ================== MARCADORES ================== */
-function makeDivIcon(state){
-  return L.divIcon({ className: pinClass(state), html:'', iconSize:[28,28], iconAnchor:[14,14], popupAnchor:[0,-12] });
-}
+function makeDivIcon(state){ return L.divIcon({ className: pinClass(state), html:'', iconSize:[28,28], iconAnchor:[14,14], popupAnchor:[0,-12] }); }
 function renderMarkers(){
   CLUSTER.clearLayers(); LAYER.clearLayers();
   FILT.forEach(p=>{
@@ -446,10 +466,7 @@ function renderMarkers(){
 }
 
 /* ================== FICHA (drawer) ================== */
-function stateLabel(s){
-  const c=colorByState(s);
-  return `<span class="badge" style="border-color:${c};color:${c}">${s||'—'}</span>`;
-}
+function stateLabel(s){ const c=colorByState(s); return `<span class="badge" style="border-color:${c};color:${c}">${s||'—'}</span>`; }
 function buildDocsHTML(docs){
   if(!Array.isArray(docs)||!docs.length) return '<div class="hint">Sem documentos anexados.</div>';
   const items = docs.map(d=>{
@@ -513,7 +530,7 @@ function openFicha(p, focus=false){
     el('panelInner').querySelector('[data-act="edit"]')?.addEventListener('click', ()=>openEditBySlug(p.slug));
   }
 
-  // interacção com a lista de docs: preview + expand
+  // docs: preview + expandir (resolvendo idb:// -> blob:, e data: direto)
   const ul = el('panelInner').querySelector('#docList');
   if(ul){
     ul.querySelectorAll('li').forEach(li=>{
@@ -521,7 +538,7 @@ function openFicha(p, focus=false){
         const rawUrl = li.getAttribute('data-url');
         const tp = li.getAttribute('data-type');
         const view = el('panelInner').querySelector('#docView');
-        const url = isIdbUrl(rawUrl) ? (await getLocalBlobUrl(rawUrl)) : rawUrl;
+        const url = rawUrl.startsWith('idb://') ? (await getLocalBlobUrl(rawUrl)) : rawUrl;
 
         if(tp==='img') view.innerHTML=`<img src="${url}" alt="" style="max-width:100%;border-radius:8px">`;
         else if(tp==='pdf') view.innerHTML=`<iframe src="${url}" style="width:100%;height:360px;border:0;border-radius:8px"></iframe>
@@ -534,7 +551,7 @@ function openFicha(p, focus=false){
       li.querySelector('[data-act="expand"]')?.addEventListener('click', async (e)=>{
         e.stopPropagation();
         const rawUrl = e.target.getAttribute('data-url');
-        const url = isIdbUrl(rawUrl) ? (await getLocalBlobUrl(rawUrl)) : rawUrl;
+        const url = rawUrl.startsWith('idb://') ? (await getLocalBlobUrl(rawUrl)) : rawUrl;
         openPDF(url);
       });
     });
@@ -565,27 +582,27 @@ function exportGeo(){
   const blob=new Blob([JSON.stringify(fc,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob);
   const a=document.createElement('a'); a.href=url; a.download='empreendimentos.geojson'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
-el('exportCsv').addEventListener('click', exportCSV);
-el('exportGeo').addEventListener('click', exportGeo);
+document.getElementById('exportCsv').addEventListener('click', exportCSV);
+document.getElementById('exportGeo').addEventListener('click', exportGeo);
 
 /* ================== MODO EDIÇÃO ================== */
 function setEditMode(on){
   EDIT_MODE=on;
-  el('toggleEdit').textContent = on? '🔓 Edição ON' : '🔒 Editar';
+  document.getElementById('toggleEdit').textContent = on? '🔓 Edição ON' : '🔒 Editar';
   ['btnImport','btnNew','btnSave','btnClearAll','attachLocalLabel'].forEach(id=>{
-    const b = el(id); if(!b) return;
-    b.style.display = on? (id==='attachLocalLabel'?'inline-block':'inline-block') : 'none';
+    const b = document.getElementById(id); if(!b) return;
+    b.style.display = on? 'inline-block' : 'none';
   });
   renderList();
 }
-el('toggleEdit').addEventListener('click', ()=> setEditMode(!EDIT_MODE));
-el('btnClearAll').addEventListener('click', ()=>{
+document.getElementById('toggleEdit').addEventListener('click', ()=> setEditMode(!EDIT_MODE));
+document.getElementById('btnClearAll').addEventListener('click', ()=>{
   if(confirm('Tem a certeza que pretende limpar todos os empreendimentos?')){ RAW=[]; saveLS(); run(); }
 });
-el('btnSave').addEventListener('click', ()=>{ saveLS(); alert('Dados guardados localmente.'); });
+document.getElementById('btnSave').addEventListener('click', ()=>{ saveLS(); alert('Dados guardados localmente.'); });
 
 /* ===== CSV Import ===== */
-el('csvFile').addEventListener('change', async (ev)=>{
+document.getElementById('csvFile').addEventListener('change', async (ev)=>{
   const file = ev.target.files?.[0]; if(!file) return;
   const text = await file.text();
   Papa.parse(text,{
@@ -632,60 +649,64 @@ function openEditBySlug(slug){
   EDIT_INDEX = idx;
   const p = RAW[idx];
   fillEditForm(p);
-  el('editTitle').textContent='Editar Empreendimento';
-  el('editModal').classList.add('show');
+  document.getElementById('editTitle').textContent='Editar Empreendimento';
+  document.getElementById('editModal').classList.add('show');
 }
-el('btnNew').addEventListener('click', ()=>{
+document.getElementById('btnNew').addEventListener('click', ()=>{
   EDIT_INDEX = -1;
   fillEditForm({nome:'',concelho:'',estado:'',promotor:'',tipologias:'',conclusao:'',preco_m2:'',notas:'',link:'',_lat:'',_lng:'',docs:[]});
-  el('editTitle').textContent='Novo Empreendimento';
-  el('editModal').classList.add('show');
+  document.getElementById('editTitle').textContent='Novo Empreendimento';
+  document.getElementById('editModal').classList.add('show');
 });
-el('cancelEdit').addEventListener('click', ()=>{ el('editModal').classList.remove('show'); PICKING=false; });
+document.getElementById('cancelEdit').addEventListener('click', ()=>{ document.getElementById('editModal').classList.remove('show'); PICKING=false; });
 
-el('pickCoord').addEventListener('click', ()=>{
+document.getElementById('pickCoord').addEventListener('click', ()=>{
   PICKING = !PICKING;
-  el('pickCoord').textContent = PICKING? 'Clique no mapa…' : 'Definir no mapa';
-  el('pickCoord').classList.toggle('primary', PICKING);
+  const b=document.getElementById('pickCoord');
+  b.textContent = PICKING? 'Clique no mapa…' : 'Definir no mapa';
+  b.classList.toggle('primary', PICKING);
 });
 
-/* anexar ficheiro local (IndexedDB) */
+/* anexar ficheiro local (com fallback) */
 function updateLocalAttachVisibility(){
-  const lab = el('attachLocalLabel');
+  const lab = document.getElementById('attachLocalLabel');
   if(lab) lab.style.display = EDIT_MODE ? 'inline-block' : 'none';
 }
 updateLocalAttachVisibility();
-el('toggleEdit').addEventListener('click', ()=>{ setTimeout(updateLocalAttachVisibility, 0); });
+document.getElementById('toggleEdit').addEventListener('click', ()=>{ setTimeout(updateLocalAttachVisibility, 0); });
 
-el('attachLocalInput').addEventListener('change', async (ev)=>{
+document.getElementById('attachLocalInput').addEventListener('change', async (ev)=>{
   const file = ev.target.files?.[0];
   if(!file) return;
-  const slugCurrent = slugify(el('f_nome').value || (EDIT_INDEX>=0 ? RAW[EDIT_INDEX].nome : 'novo'));
-  const url = await saveLocalBlob(file, slugCurrent, file.name);
-  const ext = (file.name.split('.').pop()||'').toLowerCase();
-  const type = (ext==='pdf') ? 'pdf' : (['png','jpg','jpeg','webp','gif'].includes(ext) ? 'img' : 'link');
-  addDocRow({ title: file.name, type, url });
+  const slugCurrent = slugify(document.getElementById('f_nome').value || (EDIT_INDEX>=0 ? RAW[EDIT_INDEX].nome : 'novo'));
+  try{
+    const url = await saveLocalBlob(file, slugCurrent, file.name);
+    const ext = (file.name.split('.').pop()||'').toLowerCase();
+    const type = (ext==='pdf') ? 'pdf' : (['png','jpg','jpeg','webp','gif'].includes(ext) ? 'img' : 'link');
+    addDocRow({ title: file.name, type, url });
+  }catch(e){
+    alert('Não foi possível anexar o ficheiro. ('+(e.message||e)+')');
+  }
   ev.target.value='';
 });
 
-el('addDoc').addEventListener('click', ()=> addDocRow({title:'', type:'pdf', url:''}));
+document.getElementById('addDoc').addEventListener('click', ()=> addDocRow({title:'', type:'pdf', url:''}));
 
 function fillEditForm(p){
-  el('f_nome').value = p.nome||'';
-  el('f_concelho_e').value = p.concelho||'';
-  el('f_estado').value = p.estado||'';
-  el('f_promotor_e').value = p.promotor||'';
-  el('f_tipologias').value = p.tipologias||'';
-  el('f_conclusao').value = p.conclusao||'';
-  el('f_preco').value = p.preco_m2||'';
-  el('f_link').value = p.link||'';
-  el('f_lat').value = p._lat!=null? p._lat : '';
-  el('f_lng').value = p._lng!=null? p._lng : '';
-  el('f_notas').value = p.notas||'';
-  const box = el('docsBox'); box.innerHTML='';
+  document.getElementById('f_nome').value = p.nome||'';
+  document.getElementById('f_concelho_e').value = p.concelho||'';
+  document.getElementById('f_estado').value = p.estado||'';
+  document.getElementById('f_promotor_e').value = p.promotor||'';
+  document.getElementById('f_tipologias').value = p.tipologias||'';
+  document.getElementById('f_conclusao').value = p.conclusao||'';
+  document.getElementById('f_preco').value = p.preco_m2||'';
+  document.getElementById('f_link').value = p.link||'';
+  document.getElementById('f_lat').value = p._lat!=null? p._lat : '';
+  document.getElementById('f_lng').value = p._lng!=null? p._lng : '';
+  document.getElementById('f_notas').value = p.notas||'';
+  const box = document.getElementById('docsBox'); box.innerHTML='';
   (p.docs||[]).forEach(d=> addDocRow(d));
 }
-
 function addDocRow(d){
   const row = document.createElement('div');
   row.className='doc-row';
@@ -696,7 +717,7 @@ function addDocRow(d){
       <option value="img" ${d.type==='img'?'selected':''}>img</option>
       <option value="link" ${d.type==='link'?'selected':''}>link</option>
     </select>
-    <input placeholder="URL (https://… ou idb://…)" value="${d.url||''}">
+    <input placeholder="URL (https://… ou idb://… ou data:…)" value="${d.url||''}">
     <button class="btn del">Apagar</button>
   `;
   row.querySelector('.del').addEventListener('click', async ()=>{
@@ -705,26 +726,25 @@ function addDocRow(d){
     if(isIdbUrl(u)) await deleteLocalBlob(u);
     row.remove();
   });
-  el('docsBox').appendChild(row);
+  document.getElementById('docsBox').appendChild(row);
 }
 
-el('saveEdit').addEventListener('click', ()=>{
+document.getElementById('saveEdit').addEventListener('click', ()=>{
   const p = {
-    nome: el('f_nome').value.trim(),
-    concelho: el('f_concelho_e').value.trim(),
-    estado: el('f_estado').value,
-    promotor: el('f_promotor_e').value.trim(),
-    tipologias: el('f_tipologias').value.trim(),
-    conclusao: el('f_conclusao').value? Number(el('f_conclusao').value): '',
-    preco_m2: el('f_preco').value? Number(el('f_preco').value): '',
-    notas: el('f_notas').value.trim(),
-    link: el('f_link').value.trim(),
-    _lat: el('f_lat').value? Number(el('f_lat').value): null,
-    _lng: el('f_lng').value? Number(el('f_lng').value): null,
+    nome: document.getElementById('f_nome').value.trim(),
+    concelho: document.getElementById('f_concelho_e').value.trim(),
+    estado: document.getElementById('f_estado').value,
+    promotor: document.getElementById('f_promotor_e').value.trim(),
+    tipologias: document.getElementById('f_tipologias').value.trim(),
+    conclusao: document.getElementById('f_conclusao').value? Number(document.getElementById('f_conclusao').value): '',
+    preco_m2: document.getElementById('f_preco').value? Number(document.getElementById('f_preco').value): '',
+    notas: document.getElementById('f_notas').value.trim(),
+    link: document.getElementById('f_link').value.trim(),
+    _lat: document.getElementById('f_lat').value? Number(document.getElementById('f_lat').value): null,
+    _lng: document.getElementById('f_lng').value? Number(document.getElementById('f_lng').value): null,
     docs: []
   };
-  // docs
-  el('docsBox').querySelectorAll('.doc-row').forEach(r=>{
+  document.getElementById('docsBox').querySelectorAll('.doc-row').forEach(r=>{
     const inputs = r.querySelectorAll('input,select');
     const d = { title: inputs[0].value.trim(), type: inputs[1].value, url: inputs[2].value.trim() };
     if(d.url) p.docs.push(d);
@@ -743,11 +763,10 @@ el('saveEdit').addEventListener('click', ()=>{
     }
   }
   saveLS();
-  el('editModal').classList.remove('show'); PICKING=false;
+  document.getElementById('editModal').classList.remove('show'); PICKING=false;
   buildFacetOptions();
   run();
 });
-
 function deleteBySlug(slug){
   if(!confirm('Apagar este empreendimento?')) return;
   const idx = RAW.findIndex(p=>p.slug===slug);
@@ -756,44 +775,56 @@ function deleteBySlug(slug){
 
 /* ================== PDF MODAL ================== */
 function openPDF(url){
-  el('pdfFrame').src=url; el('pdfOpenNew').href=url; document.getElementById('pdfModal').classList.add('show');
+  document.getElementById('pdfFrame').src=url;
+  document.getElementById('pdfOpenNew').href=url;
+  document.getElementById('pdfModal').classList.add('show');
 }
-el('pdfClose').addEventListener('click', ()=>{ document.getElementById('pdfModal').classList.remove('show'); el('pdfFrame').src='about:blank'; });
-document.getElementById('pdfModal').addEventListener('click', (e)=>{ if(e.target.id==='pdfModal') el('pdfClose').click(); });
+document.getElementById('pdfClose').addEventListener('click', ()=>{ document.getElementById('pdfModal').classList.remove('show'); document.getElementById('pdfFrame').src='about:blank'; });
+document.getElementById('pdfModal').addEventListener('click', (e)=>{ if(e.target.id==='pdfModal') document.getElementById('pdfClose').click(); });
 
 /* ================== EVENTOS UI ================== */
 document.querySelectorAll('#estadoChips .chip').forEach(ch=>{
   ch.addEventListener('click', ()=>{
     document.querySelectorAll('#estadoChips .chip').forEach(c=>c.classList.remove('active'));
-    ch.classList.add('active'); UI.estado=ch.dataset.v||''; run();
+    ch.classList.add('active'); UIState.estado=ch.dataset.v||''; run();
   });
 });
-el('apply').addEventListener('click', ()=>{
-  UI.q=el('q').value.trim(); UI.concelho=el('f_concelho').value; UI.cmin=el('f_cmin').value; UI.cmax=el('f_cmax').value;
-  UI.pmin=el('f_pmin').value; UI.pmax=el('f_pmax').value; UI.promotor=el('f_promotor').value; UI.tipos=el('f_tipos').value.trim();
+document.getElementById('apply').addEventListener('click', ()=>{
+  UIState.q=document.getElementById('q').value.trim();
+  UIState.concelho=document.getElementById('f_concelho').value;
+  UIState.cmin=document.getElementById('f_cmin').value;
+  UIState.cmax=document.getElementById('f_cmax').value;
+  UIState.pmin=document.getElementById('f_pmin').value;
+  UIState.pmax=document.getElementById('f_pmax').value;
+  UIState.promotor=document.getElementById('f_promotor').value;
+  UIState.tipos=document.getElementById('f_tipos').value.trim();
   run();
 });
-el('clear').addEventListener('click', ()=>{
-  ['q','f_concelho','f_cmin','f_cmax','f_pmin','f_pmax','f_promotor','f_tipos'].forEach(id=>el(id).value='');
+document.getElementById('clear').addEventListener('click', ()=>{
+  ['q','f_concelho','f_cmin','f_cmax','f_pmin','f_pmax','f_promotor','f_tipos'].forEach(id=>document.getElementById(id).value='');
   document.querySelectorAll('#estadoChips .chip').forEach(c=>c.classList.remove('active'));
   document.querySelector('#estadoChips .chip[data-v=""]').classList.add('active');
-  UI={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'' };
+  UIState={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'' };
   run();
 });
 
 /* ================== CICLO RENDER ================== */
-function run(){
-  applyFilters();
-  renderKPIs();
-  renderList();
-  renderMarkers();
-}
+function run(){ applyFilters(); renderKPIs(); renderList(); renderMarkers(); }
 
 /* ================== BOOT ================== */
-(function init(){
+(async function init(){
   initMap();
+  await detectStorageMode();
   const mem = loadLS();
   RAW = Array.isArray(mem) ? mem : [];
+  // Aviso visual se estiver em fallback
+  if(STORAGE_MODE==='dataurl'){
+    const warn = document.createElement('div');
+    warn.className='hint';
+    warn.style.cssText='margin-left:8px;color:#ffcc99';
+    warn.textContent='Aviso: anexos gravados como Data URL (fallback). Para melhor desempenho, use Chrome/normal com IndexedDB.';
+    document.querySelector('.toolbar')?.appendChild(warn);
+  }
   buildFacetOptions();
   run();
 })();
