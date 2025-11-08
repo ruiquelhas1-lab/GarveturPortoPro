@@ -1,677 +1,1129 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Garvetur Porto Pro — Angariações</title>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<style>
-  :root{--gold:#A38B63;--bg:#0E0E0E;--panel:#131313;--text:#fff;--muted:#bdbdbd;}
-  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;}
-  header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.1);background:#0F0F0F;}
-  nav a{margin-right:6px;text-decoration:none;color:#ddd;border:1px solid rgba(255,255,255,.12);padding:6px 10px;border-radius:8px;}
-  nav a.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:600;}
-  .actions{display:flex;gap:8px;}
-  .btn{background:transparent;border:1px solid rgba(163,139,99,.5);color:#fff;padding:6px 9px;border-radius:8px;cursor:pointer;font-size:12px;}
-  .wrap{display:grid;grid-template-columns:380px 1fr;gap:12px;padding:12px;}
-  .panel{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px;}
-  .panel h3{margin:0 0 8px 0;font-size:13px;color:#eaeaea;border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:6px;}
-  label{font-size:12px;color:#ddd;display:block;margin:7px 0 2px;}
-  input,select,textarea{width:100%;background:#0E0E0E;color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:8px 10px;}
-  .filters{display:grid;grid-template-columns:200px 160px 160px 200px auto; gap:8px; align-items:end; padding:0 12px 12px 12px;}
-  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 12px 8px 12px;}
-  .kpi{background:#0E0E0E;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px}
-  .kpi .h{font-size:11px;color:#cfcfcf;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
-  .kpi .v{font-size:18px;font-weight:700}
-  .kpi .s{font-size:12px;color:#bdbdbd;margin-top:2px}
-  .kpi-table{grid-column:span 3;background:#0E0E0E;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:6px 8px}
-  table{width:100%;border-collapse:collapse;font-size:12px}
-  th,td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.06)}
-  th{text-align:left;color:#cfcfcf;font-weight:600}
-  tr.highlight td{background:rgba(163,139,99,.10)}
-  .list{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 12px 12px 12px;}
-  .card{background:#0E0E0E;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px;}
-  .t{font-weight:600;margin-bottom:4px;}
-  .m{font-size:12px;color:#cfcfcf;}
-  .chk{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
-  .chk label{display:flex;gap:6px;align-items:center;background:#0E0E0E;border:1px solid rgba(255,255,255,.18);padding:6px 8px;border-radius:8px;}
-  .semaforo{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:8px;background:#888;}
-  .muted{color:#c9c9c9;font-size:12px}
-  .tools{display:flex;gap:8px;align-items:center;padding:0 12px 8px 12px}
 
-  /* Mini-bar chart */
-  .chart{background:#0E0E0E;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px 10px;margin:6px 12px 12px 12px}
-  .chart .title{font-size:12px;color:#cfcfcf;margin-bottom:8px}
-  .barrow{display:flex;align-items:center;gap:10px;margin:6px 0}
-  .barrow .name{width:180px;font-size:12px;color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .barrow .barwrap{flex:1;background:#151515;border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,.08)}
-  .barrow .bar{height:14px;background:linear-gradient(90deg,#A38B63,#d6c4a1)}
-  .barrow .val{width:36px;text-align:right;font-size:12px;color:#bdbdbd}
-  .barrow.highlight .bar{background:linear-gradient(90deg,#ffd166,#f9b24e)}
-  @media(max-width:900px){
-    .wrap{grid-template-columns:1fr}
-    .filters{grid-template-columns:1fr 1fr;}
-    .kpis{grid-template-columns:1fr}
-    .kpi-table{grid-column:span 1}
-    .barrow .name{width:120px}
-  }
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+<style>
+:root{
+  --gold:#A38B63;
+  --bg:#0E0E0E;
+  --panel:#131313;
+  --text:#FFFFFF;
+  --muted:#9AA0A6;
+  --border:rgba(255,255,255,.12);
+}
+html,body{
+  height:100%;
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;
+}
+a{color:#eaeaea;text-decoration:none}
+
+/* Layout base */
+.app{display:grid;grid-template-rows:56px auto auto 1fr;height:100%}
+
+/* Header */
+header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 12px;
+  border-bottom:1px solid var(--border);
+  background:#0F0F0F;
+}
+.brand{display:flex;align-items:center;gap:10px}
+.brand h1{font-size:16px;margin:0;color:var(--gold)}
+.nav{display:flex;gap:8px}
+.nav a{
+  border:1px solid var(--border);
+  padding:6px 10px;
+  border-radius:8px;
+  color:#ddd;
+}
+.nav a.active{
+  background:var(--gold);
+  color:#111;
+  border-color:var(--gold);
+  font-weight:700;
+}
+
+/* Toolbar */
+.toolbar{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  padding:8px 12px;
+  border-bottom:1px solid var(--border);
+  background:#0F0F0F;
+}
+.btn{
+  background:transparent;
+  border:1px solid rgba(163,139,99,.5);
+  color:#fff;
+  padding:6px 10px;
+  border-radius:10px;
+  cursor:pointer;
+  font-size:12px;
+}
+.btn.primary{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
+.btn.ghost{border-color:var(--border);color:#ddd}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+
+/* KPI Bar */
+.kpi-bar{
+  padding:6px 12px;
+  border-bottom:1px solid var(--border);
+  font-size:12px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+  background:#101010;
+}
+.kpi-badge{
+  padding:2px 8px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.18);
+}
+.kpi-badge.highlight{
+  border-color:var(--gold);
+  color:var(--gold);
+  font-weight:600;
+}
+
+/* Main */
+.main{
+  display:grid;
+  grid-template-columns:300px 1fr;
+  height:calc(100vh - 56px - 48px - 32px);
+}
+.sidebar{
+  background:var(--panel);
+  border-right:1px solid var(--border);
+  padding:12px;
+  overflow:auto;
+}
+.sidebar h3{
+  margin:0 0 8px 0;
+  font-size:13px;
+  color:#d7d7d7;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  margin-bottom:10px;
+}
+.field label{font-size:12px;color:#ccc}
+.field input,.field select{
+  background:#0E0E0E;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:8px;
+  color:#fff;
+  padding:8px 10px;
+  outline:none;
+  font-size:12px;
+}
+.checks{display:flex;flex-direction:column;gap:8px}
+.checks label{
+  display:flex;
+  gap:6px;
+  align-items:center;
+  font-size:13px;
+  color:#ddd;
+}
+.checks input{accent-color:var(--gold)}
+
+/* Board */
+.board{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  padding:10px;
+  height:100%;
+  overflow:auto;
+}
+.col{
+  background:var(--panel);
+  border-radius:12px;
+  border:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  min-width:260px;
+}
+.col header{
+  padding:10px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.col header .title{font-weight:700}
+.col header .counter{font-size:12px;color:#cfcfcf}
+.col .list{
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+/* Cards */
+.card{
+  background:#0E0E0E;
+  border-radius:12px;
+  border:1px solid rgba(163,139,99,.35);
+  padding:10px;
+}
+.card .top{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+}
+.card .name{font-weight:700}
+.card .meta{font-size:11px;color:#bbb;text-transform:uppercase;letter-spacing:.04em}
+.card .row{margin-top:5px;font-size:12px;color:#ddd}
+.card .row small{color:#aaa}
+.badge{
+  display:inline-block;
+  padding:2px 8px;
+  font-size:11px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.18);
+}
+.badge.red{border-color:#ff6b6b;color:#ffb4b4}
+.badge.green{border-color:#5ac48f;color:#bdf7d3}
+.badge.yellow{border-color:#ffdd7a;color:#ffdd7a}
+.actions{
+  margin-top:8px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.btn-sm{
+  font-size:11px;
+  padding:4px 7px;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,.18);
+  background:transparent;
+  color:#eee;
+  cursor:pointer;
+}
+.btn-sm.danger{border-color:#cc4b4b;color:#ffdddd}
+.btn-sm[disabled]{opacity:.45;cursor:not-allowed}
+.select-move{
+  background:#0E0E0E;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,.25);
+  color:#ddd;
+  font-size:11px;
+  padding:3px 6px;
+}
+.select-move[disabled]{opacity:.45;cursor:not-allowed}
+
+/* Mini gráfico por consultor */
+.chart{
+  margin-top:12px;
+  border-top:1px dashed rgba(255,255,255,.2);
+  padding-top:10px;
+}
+.chart h4{
+  margin:0 0 6px 0;
+  font-size:12px;
+  color:#ccc;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.chart-row{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-bottom:4px;
+}
+.chart-label{
+  width:120px;
+  font-size:11px;
+  color:#ddd;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.chart-bar-wrap{
+  flex:1;
+  background:#222;
+  border-radius:999px;
+  overflow:hidden;
+}
+.chart-bar{
+  height:6px;
+  background:linear-gradient(90deg,#A38B63,#F4D188);
+}
+
+/* Modal */
+.modal-backdrop{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,.6);
+  backdrop-filter:blur(2px);
+  z-index:10000;
+  padding:16px;
+}
+.modal-backdrop.show{display:flex}
+.modal{
+  width:min(900px,96vw);
+  background:#0F0F0F;
+  border-radius:12px;
+  border:1px solid var(--border);
+  overflow:hidden;
+}
+.modal header{
+  padding:10px 12px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.modal .content{
+  padding:12px;
+  max-height:72vh;
+  overflow:auto;
+}
+.form-grid2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.form-field{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.form-field label{font-size:12px;color:#ccc}
+.form-field input,.form-field select,.form-field textarea{
+  background:#0E0E0E;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,.16);
+  color:#fff;
+  padding:8px 10px;
+  outline:none;
+  font-size:12px;
+}
+.docs-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
+}
+.docs-grid label{
+  font-size:12px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  color:#ddd;
+}
+.docs-grid input{accent-color:var(--gold)}
+textarea{resize:vertical}
+
+/* Responsive */
+@media (max-width:1400px){ .board{grid-template-columns:repeat(3,1fr)} }
+@media (max-width:1024px){ .board{grid-template-columns:repeat(2,1fr)} }
+@media (max-width:768px){
+  .main{grid-template-columns:1fr}
+  .sidebar{order:2;height:280px}
+  .board{order:1}
+  .docs-grid{grid-template-columns:repeat(2,1fr)}
+}
 </style>
 </head>
 <body>
 <header>
-  <div style="display:flex;align-items:center;gap:10px;">
-    <strong style="color:#FFD166">Garvetur Porto Pro</strong>
-    <nav>
-      <a href="./index.html">Mapa</a>
-      <a href="./kanban.html">Leads</a>
-      <a class="active" href="./angariacoes.html">Angariações</a>
-      <a href="./dashboard.html">Dashboard</a>
-    </nav>
+  <div class="brand">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--gold)">
+      <circle cx="12" cy="12" r="10" stroke-width="1.5"/>
+      <path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/>
+    </svg>
+    <h1>Garvetur Porto Pro — Angariações</h1>
   </div>
-  <div class="actions">
-    <button id="seed" class="btn">Carregar dados de exemplo (5)</button>
-    <button id="clear" class="btn">Limpar tudo</button>
-  </div>
+  <nav class="nav">
+    <a href="./index.html">Mapa</a>
+    <a href="./kanban.html">Leads</a>
+    <a class="active" href="./angariacoes.html">Angariações</a>
+    <a href="./dashboard.html">Dashboard</a>
+  </nav>
 </header>
 
-<div class="wrap">
-  <div class="panel">
-    <h3>Nova Angariação</h3>
-    <label>Propriedade</label><input id="p" placeholder="Ex.: T3 Boavista | Porto">
-
-    <!-- Fallback HTML: lista garantida mesmo sem JS -->
-    <label>Consultor</label>
-    <select id="c">
-      <option>Rui Quelhas</option>
-      <option>Manuel Oliveira</option>
-      <option>João Sousa</option>
-      <option>Francisco dos Santos</option>
-      <option>Rosário Vasconcelos</option>
-      <option>Armanda Meireles</option>
-      <option>Audrey Lucas</option>
-      <option>Outro…</option>
-    </select>
-
-    <label>Proprietário</label><input id="propNome" placeholder="Ex.: Sr. António Silva">
-    <label>Data</label><input id="dataAng" type="date">
-    <label>Origem</label><input id="o" placeholder="Ex.: Referral / Porta-a-porta / Online">
-
-    <label>Comissão</label>
-    <select id="com">
-      <option value="6">6%</option>
-      <option value="5">5%</option>
-      <option value="4">4%</option>
-      <option value="3">3%</option>
-    </select>
-
-    <label>Preço pedido (€)</label><input id="pp" type="number" step="0.01" placeholder="Ex.: 650000">
-    <label>Preço sugerido (€)</label><input id="ps" type="number" step="0.01" placeholder="Ex.: 620000">
-    <div style="margin-top:8px;font-size:12px;">% Ajustamento: <span id="aj">—</span> <span class="semaforo" id="sf"></span></div>
-
-    <div class="chk">
-      <label><input type="checkbox" id="doc_cc"> CC</label>
-      <label><input type="checkbox" id="doc_caderneta"> Caderneta</label>
-      <label><input type="checkbox" id="doc_cert_ener"> Cert. Energético</label>
-      <label><input type="checkbox" id="doc_planta"> Planta</label>
-      <label><input type="checkbox" id="doc_cmi"> CMI assinado</label>
-      <label><input type="checkbox" id="doc_crp"> CRP</label>
-    </div>
-
-    <label>Notas</label><textarea id="n" rows="3" placeholder="Observações relevantes"></textarea>
-    <div style="margin-top:8px;display:flex;gap:8px;">
-      <button class="btn" id="add">Guardar angariação</button>
-    </div>
+<div class="toolbar">
+  <button class="btn primary" id="btnNew" disabled>+ Nova Angariação</button>
+  <button class="btn" id="toggleEdit">🔒 Edição bloqueada</button>
+  <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn" id="exportCsv">Exportar CSV</button>
   </div>
+</div>
 
-  <div class="panel">
-    <h3>Lista</h3>
+<div class="kpi-bar" id="kpiBar"></div>
 
-    <!-- Filtros e ordenação -->
-    <div class="filters">
-      <div>
-        <label>Consultor</label>
-        <select id="f_consultor"><option value="">(todos)</option></select>
-      </div>
-      <div>
-        <label>Data — De</label>
-        <input type="date" id="f_de">
-      </div>
-      <div>
-        <label>Data — Até</label>
-        <input type="date" id="f_ate">
-      </div>
-      <div>
-        <label>Ordenar por</label>
-        <select id="f_sort">
-          <option value="data_desc">Data (mais recente)</option>
-          <option value="data_asc">Data (mais antiga)</option>
-          <option value="aj_desc">% Ajustamento (↓)</option>
-          <option value="aj_asc">% Ajustamento (↑)</option>
-        </select>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn" id="f_apply">Aplicar</button>
-        <button class="btn" id="f_clear">Limpar filtros</button>
-      </div>
+<div class="main">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h3>Pesquisa</h3>
+    <div class="field">
+      <input id="f_q" placeholder="Imóvel, proprietário, consultor, ref., notas">
     </div>
 
-    <!-- KPIs + Tabela por consultor -->
-    <div class="kpis" id="kpiArea">
-      <div class="kpi">
-        <div class="h">Total de Angariações</div>
-        <div class="v" id="k_total">—</div>
-        <div class="s">Conjunto filtrado</div>
-      </div>
-      <div class="kpi">
-        <div class="h">% Ajustamento Médio</div>
-        <div class="v" id="k_media">—</div>
-        <div class="s">Conjunto filtrado</div>
-      </div>
-      <div class="kpi">
-        <div class="h">Consultor em Filtro</div>
-        <div class="v" id="k_focus">—</div>
-        <div class="s" id="k_focus_aux">—</div>
-      </div>
-      <div class="kpi-table">
-        <table id="tbl_cons">
-          <thead><tr><th>Consultor</th><th>#</th><th>% Ajust. médio</th></tr></thead>
-          <tbody></tbody>
-        </table>
+    <h3>Filtros</h3>
+    <div class="field">
+      <label>Consultor</label>
+      <select id="f_consultor">
+        <option value="">(Todos)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Estado</label>
+      <select id="f_estado">
+        <option value="">(Todos)</option>
+        <option>Novo</option>
+        <option>Em Negociação</option>
+        <option>Aprovado</option>
+        <option>Perdido</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Período (Data)</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <input id="f_ini" type="date">
+        <input id="f_fim" type="date">
       </div>
     </div>
-
-    <!-- Mini-bar chart -->
-    <div class="chart">
-      <div class="title">Nº de angariações por consultor (filtro aplicado)</div>
-      <div id="mini_chart"></div>
+    <div class="field">
+      <label>% Ajustamento (min-máx)</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <input id="f_aj_min" type="number" step="1" placeholder="min">
+        <input id="f_aj_max" type="number" step="1" placeholder="máx">
+      </div>
+    </div>
+    <div class="checks">
+      <label><input type="checkbox" id="f_show_hidden"> Mostrar invisíveis</label>
+      <label><input type="checkbox" id="f_only_hidden"> Só invisíveis</label>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn" id="applyFilters">Aplicar</button>
+      <button class="btn ghost" id="clearFilters">Limpar</button>
     </div>
 
-    <div class="tools">
-      <button class="btn" id="btn_export_csv">Exportar CSV (filtro)</button>
-      <button class="btn" id="btn_export_xls">Exportar Excel (filtro)</button>
-      <div class="muted" id="resumo">—</div>
+    <!-- Mini gráfico -->
+    <div class="chart" id="chartBox">
+      <h4>Angariações por consultor</h4>
+      <div id="chartRows"></div>
     </div>
+  </aside>
 
-    <div class="list" id="list"></div>
+  <!-- Board -->
+  <section class="board" id="board"></section>
+</div>
+
+<!-- Modal Angariação -->
+<div class="modal-backdrop" id="angModal">
+  <div class="modal">
+    <header>
+      <div><strong id="modalTitle">Nova Angariação</strong></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" id="btnCancel">Cancelar</button>
+        <button class="btn primary" id="btnSave">Guardar</button>
+      </div>
+    </header>
+    <div class="content">
+      <div class="form-grid2">
+        <div class="form-field">
+          <label>Imóvel *</label>
+          <input id="a_imovel" placeholder="Ex.: T3 Boavista, Moradia Fânzeres">
+        </div>
+        <div class="form-field">
+          <label>Consultor *</label>
+          <select id="a_consultor">
+            <option value="">—</option>
+            <option>Rui Quelhas</option>
+            <option>Manuel Oliveira</option>
+            <option>João Sousa</option>
+            <option>Francisco dos Santos</option>
+            <option>Rosário Vasconcelos</option>
+            <option>Armanda Meireles</option>
+            <option>Audrey Lucas</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label>Proprietário *</label>
+          <input id="a_proprietario" placeholder="Nome do proprietário">
+        </div>
+        <div class="form-field">
+          <label>Contacto proprietário</label>
+          <input id="a_contacto" placeholder="+351 …">
+        </div>
+
+        <div class="form-field">
+          <label>Data</label>
+          <input id="a_data" type="date">
+        </div>
+        <div class="form-field">
+          <label>Ref. Interna</label>
+          <input id="a_ref">
+        </div>
+
+        <div class="form-field">
+          <label>Preço pedido (€)</label>
+          <input id="a_preco_pedido" type="number" min="0" step="1000">
+        </div>
+        <div class="form-field">
+          <label>Preço sugerido (€)</label>
+          <input id="a_preco_sugerido" type="number" min="0" step="1000">
+        </div>
+
+        <div class="form-field">
+          <label>Comissão</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            <select id="a_comissao">
+              <option value="">—</option>
+              <option value="6">6%</option>
+              <option value="5">5%</option>
+              <option value="4">4%</option>
+              <option value="3">3%</option>
+              <option value="outro">Outro</option>
+            </select>
+            <input id="a_comissao_outro" placeholder="Ex.: 4.5%" style="display:none">
+          </div>
+        </div>
+        <div class="form-field">
+          <label>% Ajustamento (dif. pedido vs sugerido)</label>
+          <input id="a_ajustamento" type="number" step="0.1" placeholder="Ex.: -8">
+        </div>
+
+        <div class="form-field">
+          <label>Origem</label>
+          <select id="a_origem">
+            <option value="">—</option>
+            <option>Prospecção ativa</option>
+            <option>Recomendação</option>
+            <option>Portal</option>
+            <option>Walk-in</option>
+            <option>Lead digital</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Estado</label>
+          <select id="a_estado">
+            <option>Novo</option>
+            <option>Em Negociação</option>
+            <option>Aprovado</option>
+            <option>Perdido</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label>Notas internas</label>
+          <textarea id="a_notas" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div class="form-field" style="margin-top:10px">
+        <label>Documentação</label>
+        <div class="docs-grid">
+          <label><input type="checkbox" id="d_cc"> CC</label>
+          <label><input type="checkbox" id="d_crp"> CRP</label>
+          <label><input type="checkbox" id="d_caderneta"> Caderneta</label>
+          <label><input type="checkbox" id="d_cmi"> CMI assinado</label>
+          <label><input type="checkbox" id="d_cert_energetico"> Cert. Energético</label>
+          <label><input type="checkbox" id="d_planta"> Plantas</label>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
-/* =========================
-   CONFIG / STORAGE
-========================= */
-const LS_KEY = 'gpp_ang_v4';
-const CONSULTORS = [
+/* ===== Estado global ===== */
+const LS_KEY = 'gpp_angariações_v1';
+const EDIT_KEY = 'gpp_ang_edit_mode';
+const COLS = ["Novo","Em Negociação","Aprovado","Perdido"];
+const CONSULT = [
   "Rui Quelhas",
   "Manuel Oliveira",
   "João Sousa",
   "Francisco dos Santos",
   "Rosário Vasconcelos",
   "Armanda Meireles",
-  "Audrey Lucas",
-  "Outro…"
+  "Audrey Lucas"
 ];
 
-function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch(e){ return []; } }
-function save(d){ localStorage.setItem(LS_KEY, JSON.stringify(d)); }
+let ANG = [];
+let FILTER = {
+  q:'',
+  consultor:'',
+  estado:'',
+  ini:'',
+  fim:'',
+  ajMin:'',
+  ajMax:'',
+  showHidden:false,
+  onlyHidden:false
+};
+let EDIT_MODE = false;
+let EDIT_ID = null;
 
-/* =========================
-   HELPERS
-========================= */
-function pct(pp,ps){ if(!pp||!ps) return null; const v=(ps-pp)/pp*100; return Math.round(v*10)/10; }
-function semaforo(el, val){
-  let c='#888';
-  if(val!=null){
-    if(val>=-3 && val<=3) c='#22c55e';
-    else if(val>-7) c='#f59e0b';
-    else c='#ef4444';
+const $ = id => document.getElementById(id);
+const norm = s => String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+
+/* ===== Storage helpers ===== */
+function loadLS(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    return raw? JSON.parse(raw):[];
+  }catch{return [];}
+}
+function saveLS(){
+  localStorage.setItem(LS_KEY, JSON.stringify(ANG));
+}
+
+/* ===== Edit mode lock ===== */
+function applyEditUI(){
+  const btnNew = $('btnNew');
+  const toggle = $('toggleEdit');
+
+  if(EDIT_MODE){
+    toggle.classList.add('primary');
+    toggle.textContent = '🔓 Edição ativa';
+    btnNew.disabled = false;
+  } else {
+    toggle.classList.remove('primary');
+    toggle.textContent = '🔒 Edição bloqueada';
+    btnNew.disabled = true;
   }
-  el.style.background=c;
 }
-function parseDate(s){ if(!s) return null; const t=Date.parse(s); return Number.isFinite(t)? new Date(t): null; }
-function fmtDate(s){ const d=parseDate(s); if(!d) return '—'; return d.toISOString().slice(0,10); }
-function sanitizeFile(s){ return String(s||'proposta').replace(/[^a-z0-9\-_. ]/gi,'_'); }
-function toCSVRow(arr){ return arr.map(v=> `"${String(v??'').replaceAll('"','""')}"`).join(','); }
+function setEditMode(on){
+  EDIT_MODE = !!on;
+  localStorage.setItem(EDIT_KEY, EDIT_MODE?'1':'0');
+  applyEditUI();
+  renderBoard(); // recria botões disabled/enabled
+}
 
-/* =========================
-   UI BASE (consultores)
-========================= */
-function fillConsultorSelects(){
-  const sel = document.getElementById('c');
-  if (sel && sel.options.length === 0) {
-    sel.innerHTML = CONSULTORS.map(n=>`<option value="${n}">${n}</option>`).join('');
+/* ===== Filtros ===== */
+function loadFilters(){
+  // preencher consultores
+  const sel = $('f_consultor');
+  sel.innerHTML = '<option value="">(Todos)</option>'+CONSULT.map(c=>`<option>${c}</option>`).join('');
+}
+function applyFilterStateFromUI(){
+  FILTER.q = $('f_q').value.trim();
+  FILTER.consultor = $('f_consultor').value;
+  FILTER.estado = $('f_estado').value;
+  FILTER.ini = $('f_ini').value;
+  FILTER.fim = $('f_fim').value;
+  FILTER.ajMin = $('f_aj_min').value;
+  FILTER.ajMax = $('f_aj_max').value;
+  FILTER.showHidden = $('f_show_hidden').checked;
+  FILTER.onlyHidden = $('f_only_hidden').checked;
+}
+function clearFilterUI(){
+  $('f_q').value = '';
+  $('f_consultor').value = '';
+  $('f_estado').value = '';
+  $('f_ini').value = '';
+  $('f_fim').value = '';
+  $('f_aj_min').value = '';
+  $('f_aj_max').value = '';
+  $('f_show_hidden').checked = false;
+  $('f_only_hidden').checked = false;
+  FILTER = {q:'',consultor:'',estado:'',ini:'',fim:'',ajMin:'',ajMax:'',showHidden:false,onlyHidden:false};
+}
+
+$('applyFilters').addEventListener('click',()=>{
+  applyFilterStateFromUI();
+  renderBoard();
+});
+$('clearFilters').addEventListener('click',()=>{
+  clearFilterUI();
+  renderBoard();
+});
+let qTimer=null;
+$('f_q').addEventListener('input',()=>{
+  clearTimeout(qTimer);
+  qTimer = setTimeout(()=>{ applyFilterStateFromUI(); renderBoard(); },200);
+});
+
+/* ===== Modal ===== */
+function openModal(edit=null){
+  if(!EDIT_MODE){
+    alert('Modo de edição bloqueado. Clique em "🔓 Edição ativa" para criar ou editar angariações.');
+    return;
   }
-  populateConsultoresFilter();
+  EDIT_ID = edit? edit.id : null;
+  $('modalTitle').textContent = edit? 'Editar Angariação' : 'Nova Angariação';
+
+  const set = (id,val='') => $(id).value = (val ?? '');
+
+  const a = edit || {};
+  set('a_imovel', a.imovel);
+  set('a_consultor', a.consultor);
+  set('a_proprietario', a.proprietario);
+  set('a_contacto', a.contacto);
+  set('a_data', a.data || new Date().toISOString().slice(0,10));
+  set('a_ref', a.ref || '');
+  set('a_preco_pedido', a.preco_pedido || '');
+  set('a_preco_sugerido', a.preco_sugerido || '');
+  // comissão
+  if(a.comissao_pct && ['6','5','4','3'].includes(String(a.comissao_pct))){
+    $('a_comissao').value = String(a.comissao_pct);
+    $('a_comissao_outro').style.display='none';
+    $('a_comissao_outro').value='';
+  } else if(a.comissao_pct){
+    $('a_comissao').value = 'outro';
+    $('a_comissao_outro').style.display='block';
+    $('a_comissao_outro').value = a.comissao_pct+'%';
+  } else {
+    $('a_comissao').value = '';
+    $('a_comissao_outro').style.display='none';
+    $('a_comissao_outro').value='';
+  }
+  set('a_ajustamento', a.ajustamento || '');
+  set('a_origem', a.origem || '');
+  set('a_estado', a.estado || 'Novo');
+  set('a_notas', a.notas || '');
+
+  $('d_cc').checked = !!a.d_cc;
+  $('d_crp').checked = !!a.d_crp;
+  $('d_caderneta').checked = !!a.d_caderneta;
+  $('d_cmi').checked = !!a.d_cmi;
+  $('d_cert_energetico').checked = !!a.d_cert_energetico;
+  $('d_planta').checked = !!a.d_planta;
+
+  $('angModal').classList.add('show');
 }
+$('btnCancel').addEventListener('click',()=> $('angModal').classList.remove('show'));
+$('btnNew').addEventListener('click',()=> openModal(null));
+$('a_comissao').addEventListener('change', e=>{
+  if(e.target.value === 'outro'){
+    $('a_comissao_outro').style.display='block';
+  } else {
+    $('a_comissao_outro').style.display='none';
+    $('a_comissao_outro').value='';
+  }
+});
 
-/* =========================
-   RENDER LISTA / CARDS
-========================= */
-function cardEl(a, idx){
-  const d = document.createElement('div');
-  d.className='card';
-  d.innerHTML = `
-    <div class="t">${a.prop}</div>
-    <div class="m">${a.consultor || ''} · ${a.origem || ''}</div>
-    <div class="m">Proprietário: ${a.proprietario || '—'} · Data: ${fmtDate(a.data)}</div>
-    <div class="m">Comissão: ${a.comissao!=null ? a.comissao+'%' : '—'}</div>
-    <div class="m">Pedido: ${a.pp||'-'}€ · Sugerido: ${a.ps||'-'}€ · Ajuste: ${a.aj!=null?a.aj+'%':'—'}</div>
-    <div class="m">Docs: ${a.docs?.join(', ')||'—'}</div>
-    ${a.notas? `<div class="m"><em>${a.notas}</em></div>`:''}
-    <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
-      <button class="btn" data-a="edit">Editar</button>
-      <button class="btn" data-a="del">Remover</button>
-      <button class="btn" data-a="pdf">Proposta (PDF)</button>
-      <button class="btn" data-a="doc">Proposta (Word)</button>
-    </div>`;
-  d.querySelector('[data-a="edit"]').onclick=()=> edit(idx);
-  d.querySelector('[data-a="del"]').onclick=()=> del(idx);
-  d.querySelector('[data-a="pdf"]').onclick=()=> exportPDF(load()[idx]);
-  d.querySelector('[data-a="doc"]').onclick=()=> exportWord(load()[idx]);
-  return d;
-}
-
-function render(list=null){
-  const data = (list ?? view());
-  const listEl = document.getElementById('list');
-  listEl.innerHTML='';
-  data.forEach((a,i)=> listEl.appendChild(cardEl(a,i)));
-
-  // Resumo simples
-  const total = data.length;
-  const mediaAj = (()=>{
-    const vals = data.map(x=>x.aj).filter(v=>v!=null);
-    if(!vals.length) return null;
-    const m = Math.round(vals.reduce((s,v)=>s+v,0)/vals.length*10)/10;
-    return m;
-  })();
-  document.getElementById('resumo').textContent = `Total: ${total} · Média de ajustamento: ${mediaAj!=null? mediaAj+'%' : '—'}`;
-
-  // KPIs + tabela + gráfico
-  renderKPIs(data);
-  renderMiniChart(data);
-}
-
-/* =========================
-   CRUD
-========================= */
-function collectDocs(){
-  const docs = [];
-  if(document.getElementById('doc_cc').checked) docs.push('CC');
-  if(document.getElementById('doc_caderneta').checked) docs.push('Caderneta');
-  if(document.getElementById('doc_cert_ener').checked) docs.push('Cert. Energético');
-  if(document.getElementById('doc_planta').checked) docs.push('Planta');
-  if(document.getElementById('doc_cmi').checked) docs.push('CMI assinado');
-  if(document.getElementById('doc_crp').checked) docs.push('CRP');
-  return docs;
-}
-
-function add(){
-  const prop = document.getElementById('p').value.trim();
-  if(!prop) return alert('Indique a propriedade.');
-
-  let consultor = document.getElementById('c').value;
-  if(consultor === 'Outro…'){
-    const alt = prompt('Nome do consultor:','');
-    if(!alt) return alert('Indique o nome do consultor.');
-    consultor = alt.trim();
+$('btnSave').addEventListener('click',()=>{
+  if(!EDIT_MODE){
+    alert('Modo de edição bloqueado. Clique em "🔓 Edição ativa" para guardar alterações.');
+    return;
   }
 
-  const proprietario = document.getElementById('propNome').value.trim();
-  const data = document.getElementById('dataAng').value;
-  const origem = document.getElementById('o').value.trim();
-  const comissao = Number(document.getElementById('com').value);
-  const pp = Number(document.getElementById('pp').value) || null;
-  const ps = Number(document.getElementById('ps').value) || null;
-  const aj = pct(pp, ps);
-  const docs = collectDocs();
-  const notas = document.getElementById('n').value.trim();
+  const get = id => $(id).value.trim();
+  const imovel = get('a_imovel');
+  const consultor = get('a_consultor');
+  const proprietario = get('a_proprietario');
 
-  const arr = load();
-  arr.unshift({prop, consultor, proprietario, data, origem, comissao, pp, ps, aj, docs, notas});
-  save(arr);
-  populateConsultoresFilter();
-  clearForm();
-  render();
+  if(!imovel){ alert('Indique o imóvel.'); return; }
+  if(!consultor){ alert('Selecione o consultor.'); return; }
+  if(!proprietario){ alert('Indique o proprietário.'); return; }
+
+  const preco_pedido = get('a_preco_pedido');
+  const preco_sugerido = get('a_preco_sugerido');
+  let ajust = get('a_ajustamento');
+
+  if(preco_pedido && preco_sugerido && !ajust){
+    const pp = Number(preco_pedido);
+    const ps = Number(preco_sugerido);
+    if(pp>0 && ps>0){
+      ajust = (((ps-pp)/pp)*100).toFixed(1);
+    }
+  }
+
+  let comissao_pct = '';
+  const comSel = get('a_comissao');
+  if(comSel === 'outro'){
+    const raw = get('a_comissao_outro').replace('%','').replace(',','.');
+    const n = Number(raw);
+    if(Number.isFinite(n)) comissao_pct = n;
+  } else if(comSel){
+    comissao_pct = Number(comSel);
+  }
+
+  const rec = {
+    id: EDIT_ID || ('A'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4)),
+    imovel,
+    consultor,
+    proprietario,
+    contacto: get('a_contacto'),
+    data: get('a_data'),
+    ref: get('a_ref'),
+    preco_pedido,
+    preco_sugerido,
+    comissao_pct,
+    ajustamento: ajust,
+    origem: get('a_origem'),
+    estado: get('a_estado') || 'Novo',
+    notas: get('a_notas'),
+    d_cc: $('d_cc').checked,
+    d_crp: $('d_crp').checked,
+    d_caderneta: $('d_caderneta').checked,
+    d_cmi: $('d_cmi').checked,
+    d_cert_energetico: $('d_cert_energetico').checked,
+    d_planta: $('d_planta').checked,
+    visivel: true
+  };
+
+  const idx = ANG.findIndex(a=>a.id===rec.id);
+  if(idx>=0) ANG[idx] = Object.assign(ANG[idx], rec);
+  else ANG.push(rec);
+
+  saveLS();
+  $('angModal').classList.remove('show');
+  EDIT_ID = null;
+  renderBoard();
+});
+
+/* ===== Renderização ===== */
+function fmtDate(d){
+  if(!d) return '—';
+  try{ return new Date(d).toLocaleDateString('pt-PT'); }catch{return d;}
+}
+function fmtNum(v){
+  if(!v) return '—';
+  const n=Number(v);
+  if(!Number.isFinite(n)) return v;
+  return n.toLocaleString('pt-PT');
+}
+function fmtPct(v){
+  if(v===undefined || v===null || v==='') return '—';
+  const n=Number(v);
+  if(!Number.isFinite(n)) return v;
+  return n.toFixed(1)+'%';
 }
 
-function clearForm(){
-  ['p','propNome','o','pp','ps','n','dataAng'].forEach(id=> document.getElementById(id).value='');
-  document.getElementById('c').value = CONSULTORS[0];
-  ['doc_cc','doc_caderneta','doc_cert_ener','doc_planta','doc_cmi','doc_crp'].forEach(id=> document.getElementById(id).checked=false);
-  document.getElementById('com').value='6';
-  document.getElementById('aj').textContent='—'; semaforo(document.getElementById('sf'), null);
-}
+function filterDataset(){
+  let out = [...ANG];
+  const t = norm(FILTER.q||'');
 
-function edit(idx){
-  const dataAll = load(); const a = dataAll[idx];
-  const prop = prompt('Propriedade:', a.prop)||a.prop;
-  let consultor = prompt('Consultor:', a.consultor||'') ?? a.consultor;
-  if(!consultor) consultor = a.consultor;
-
-  const proprietario = prompt('Proprietário:', a.proprietario||'')??a.proprietario;
-  const data = prompt('Data (AAAA-MM-DD):', a.data||'')??a.data;
-  const origem = prompt('Origem:', a.origem||'')??a.origem;
-  const comissao = Number(prompt('Comissão (%):', a.comissao ?? '6')) || a.comissao || 6;
-  const pp = Number(prompt('Preço pedido (€):', a.pp ?? '')) || null;
-  const ps = Number(prompt('Preço sugerido (€):', a.ps ?? '')) || null;
-  const aj = pct(pp, ps);
-  const notas = prompt('Notas:', a.notas||'')??a.notas;
-
-  dataAll[idx] = {prop, consultor, proprietario, data, origem, comissao, pp, ps, aj, docs:a.docs||[], notas};
-  save(dataAll);
-  populateConsultoresFilter();
-  render();
-}
-
-function del(idx){
-  if(!confirm('Remover esta angariação?')) return;
-  const arr = load();
-  arr.splice(idx,1);
-  save(arr);
-  populateConsultoresFilter();
-  render();
-}
-
-/* =========================
-   FILTROS / ORDENAÇÃO
-========================= */
-const f_consultor = document.getElementById('f_consultor');
-const f_de = document.getElementById('f_de');
-const f_ate = document.getElementById('f_ate');
-const f_sort = document.getElementById('f_sort');
-
-function populateConsultoresFilter(){
-  const data = load();
-  const set = new Set([
-    ...CONSULTORS.filter(n=>n!=='Outro…'),
-    ...data.map(x=>x.consultor).filter(Boolean)
-  ]);
-  const vals = Array.from(set).sort((a,b)=>a.localeCompare(b,'pt'));
-  const cur = f_consultor.value;
-  f_consultor.innerHTML = '<option value="">(todos)</option>' + vals.map(v=>`<option value="${v}">${v}</option>`).join('');
-  if(vals.includes(cur)) f_consultor.value = cur;
-}
-
-function view(){
-  const data = load().slice();
-
-  // filtro consultor
-  let out = data.filter(x=> !f_consultor.value || x.consultor === f_consultor.value);
-
-  // filtro datas
-  const d1 = parseDate(f_de.value), d2 = parseDate(f_ate.value);
-  if(d1) out = out.filter(x=> { const dx=parseDate(x.data); return dx ? dx>=d1 : false; });
-  if(d2) out = out.filter(x=> { const dx=parseDate(x.data); return dx ? dx<=d2 : false; });
-
-  // ordenação
-  const sort = f_sort.value;
-  out.sort((a,b)=>{
-    if(sort==='aj_desc'){ const A=(a.aj==null?-Infinity:a.aj), B=(b.aj==null?-Infinity:b.aj); return B-A; }
-    if(sort==='aj_asc'){  const A=(a.aj==null? Infinity:a.aj), B=(b.aj==null? Infinity:b.aj); return A-B; }
-    if(sort==='data_asc'){const A=parseDate(a.data)?.getTime()??0, B=parseDate(b.data)?.getTime()??0; return A-B; }
-    const A=parseDate(a.data)?.getTime()??0, B=parseDate(b.data)?.getTime()??0; return B-A; // data_desc
-  });
-
+  if(t){
+    out = out.filter(a=>{
+      const blob = [
+        a.imovel,a.proprietario,a.consultor,a.ref,a.notas
+      ].map(norm).join(' ');
+      return blob.includes(t);
+    });
+  }
+  if(FILTER.consultor) out = out.filter(a=>a.consultor===FILTER.consultor);
+  if(FILTER.estado) out = out.filter(a=>a.estado===FILTER.estado);
+  if(FILTER.ini) out = out.filter(a=>!a.data || a.data>=FILTER.ini);
+  if(FILTER.fim) out = out.filter(a=>!a.data || a.data<=FILTER.fim);
+  if(FILTER.ajMin){
+    const m = Number(FILTER.ajMin);
+    out = out.filter(a=>a.ajustamento==='' || a.ajustamento===undefined || Number(a.ajustamento)>=m);
+  }
+  if(FILTER.ajMax){
+    const M = Number(FILTER.ajMax);
+    out = out.filter(a=>a.ajustamento==='' || a.ajustamento===undefined || Number(a.ajustamento)<=M);
+  }
+  if(FILTER.onlyHidden) out = out.filter(a=>a.visivel===false);
+  if(!FILTER.showHidden && !FILTER.onlyHidden) out = out.filter(a=>a.visivel!==false);
   return out;
 }
 
-/* =========================
-   KPIs + MINI-CHART
-========================= */
-function renderKPIs(data){
-  // KPIs gerais
-  const total = data.length;
-  const vals = data.map(x=>x.aj).filter(v=>v!=null);
-  const media = vals.length ? Math.round(vals.reduce((s,v)=>s+v,0)/vals.length*10)/10 : null;
-  document.getElementById('k_total').textContent = total;
-  document.getElementById('k_media').textContent = media!=null? (media+'%') : '—';
-
-  // Agregação por consultor
-  const agg = {};
-  data.forEach(x=>{
-    const k = x.consultor || '(sem consultor)';
-    if(!agg[k]) agg[k] = {n:0, soma:0, cont:0};
-    agg[k].n++;
-    if(x.aj!=null){ agg[k].soma += x.aj; agg[k].cont++; }
-  });
-  const rows = Object.entries(agg).map(([k,v])=>{
-    const m = v.cont ? Math.round(v.soma/v.cont*10)/10 : null;
-    return {k, n:v.n, m};
-  }).sort((a,b)=> b.n - a.n || (b.m??-999)-(a.m??-999));
-
-  // Desenhar tabela
-  const tb = document.querySelector('#tbl_cons tbody');
-  tb.innerHTML = '';
-  const focus = f_consultor.value || '';
-  rows.forEach(r=>{
-    const tr = document.createElement('tr');
-    if (focus && r.k === focus) tr.classList.add('highlight');
-    tr.innerHTML = `<td>${r.k}</td><td>${r.n}</td><td>${r.m!=null? r.m+'%' : '—'}</td>`;
-    tb.appendChild(tr);
-  });
-
-  // Cartão “consultor em filtro”
-  document.getElementById('k_focus').textContent = focus || '(todos)';
-  if(focus){
-    const found = rows.find(x=>x.k===focus);
-    document.getElementById('k_focus_aux').textContent = found ? (`${found.n} reg. · média ${found.m!=null? found.m+'%':'—'}`) : '—';
-  } else {
-    document.getElementById('k_focus_aux').textContent = 'Sem filtro de consultor';
+function renderKpi(filtered){
+  const el = $('kpiBar');
+  if(!filtered.length){
+    el.textContent = 'Sem angariações nos filtros atuais.';
+    return;
   }
+  const total = filtered.length;
+  const aprov = filtered.filter(a=>a.estado==='Aprovado').length;
+  const perdido = filtered.filter(a=>a.estado==='Perdido').length;
+  const somaPedido = filtered.reduce((s,a)=>s+(Number(a.preco_pedido)||0),0);
+  const somaSugerido = filtered.reduce((s,a)=>s+(Number(a.preco_sugerido)||0),0);
+  const mediaAj = (()=>{
+    const arr = filtered.map(a=>Number(a.ajustamento)).filter(Number.isFinite);
+    if(!arr.length) return '—';
+    const m = arr.reduce((s,x)=>s+x,0)/arr.length;
+    return m.toFixed(1)+'%';
+  })();
+
+  el.innerHTML = `
+    <span class="kpi-badge">Total: ${total}</span>
+    <span class="kpi-badge">Aprovadas: ${aprov}</span>
+    <span class="kpi-badge">Perdidas: ${perdido}</span>
+    <span class="kpi-badge">Volume pedido: ${somaPedido.toLocaleString('pt-PT')} €</span>
+    <span class="kpi-badge">Volume sugerido: ${somaSugerido.toLocaleString('pt-PT')} €</span>
+    <span class="kpi-badge highlight">Média ajustamento: ${mediaAj}</span>
+  `;
 }
 
-function renderMiniChart(data){
-  // Agregação simples
-  const counts = {};
-  data.forEach(x=>{
-    const k = x.consultor || '(sem consultor)';
-    counts[k] = (counts[k]||0)+1;
+function renderChart(filtered){
+  const box = $('chartRows');
+  box.innerHTML = '';
+  if(!filtered.length) return;
+  const map = {};
+  filtered.forEach(a=>{
+    if(!a.consultor) return;
+    map[a.consultor] = (map[a.consultor] || 0) + 1;
   });
-  const entries = Object.entries(counts).sort((a,b)=> b[1]-a[1]);
-  const max = entries.length ? entries[0][1] : 0;
+  const entries = Object.entries(map).sort((a,b)=>b[1]-a[1]);
+  if(!entries.length) return;
+  const max = entries[0][1];
 
-  const focus = f_consultor.value || '';
-  const wrap = document.getElementById('mini_chart');
-  wrap.innerHTML = '';
-  entries.forEach(([name, val])=>{
+  entries.forEach(([name,val])=>{
     const row = document.createElement('div');
-    row.className = 'barrow' + (focus && name===focus ? ' highlight':'');
-    const pct = max>0 ? Math.max(5, Math.round(val/max*100)) : 0; // barra mínima 5%
+    row.className = 'chart-row';
     row.innerHTML = `
-      <div class="name">${name}</div>
-      <div class="barwrap"><div class="bar" style="width:${pct}%"></div></div>
-      <div class="val">${val}</div>`;
-    wrap.appendChild(row);
+      <div class="chart-label">${name}</div>
+      <div class="chart-bar-wrap">
+        <div class="chart-bar" style="width:${(val/max*100).toFixed(0)}%"></div>
+      </div>
+      <div style="font-size:11px;color:#ccc">${val}</div>
+    `;
+    box.appendChild(row);
   });
 }
 
-/* =========================
-   EXPORTAÇÃO CSV (filtro)
-========================= */
-function exportCSVFiltered(){
-  const data = view(); // respeita filtros + ordenação
-  const headers = ["Propriedade","Consultor","Proprietário","Data","Origem","Comissão","Preço pedido","Preço sugerido","% Ajustamento","Documentos","Notas"];
-  const lines = [toCSVRow(headers)];
-  data.forEach(a=>{
-    lines.push(toCSVRow([
-      a.prop||'',
-      a.consultor||'',
-      a.proprietario||'',
-      fmtDate(a.data),
-      a.origem||'',
-      a.comissao!=null? a.comissao+'%' : '',
-      a.pp!=null? a.pp : '',
-      a.ps!=null? a.ps : '',
-      a.aj!=null? a.aj+'%' : '',
-      (a.docs&&a.docs.length? a.docs.join('; ') : ''),
-      a.notas||''
-    ]));
+function renderBoard(){
+  const board = $('board');
+  board.innerHTML = '';
+
+  const filtered = filterDataset();
+  renderKpi(filtered);
+  renderChart(filtered);
+
+  const byState = COLS.map(col=>({
+    estado: col,
+    items: filtered.filter(a=>a.estado===col)
+  }));
+
+  byState.forEach(col=>{
+    const cEl = document.createElement('div');
+    cEl.className='col';
+    cEl.innerHTML = `
+      <header>
+        <span class="title">${col.estado}</span>
+        <span class="counter">${col.items.length}</span>
+      </header>
+      <div class="list" id="list_${col.estado.replace(/\s/g,'_')}"></div>
+    `;
+    board.appendChild(cEl);
+
+    const listEl = cEl.querySelector('.list');
+    col.items.forEach(a=>{
+      const card = document.createElement('div');
+      card.className = 'card';
+      const docsOk = (a.d_cc && a.d_crp && a.d_caderneta && a.d_cmi) ? 'Completa' : 'Incompleta';
+      const badgeDocs = docsOk==='Completa' ? '<span class="badge green">Doc. completa</span>' : '<span class="badge yellow">Doc. incompleta</span>';
+      let badgeAj='';
+      if(a.ajustamento!=='' && a.ajustamento!==undefined){
+        const n = Number(a.ajustamento);
+        if(Number.isFinite(n)){
+          if(n<=-10) badgeAj = '<span class="badge green">'+fmtPct(n)+'</span>';
+          else if(n<0) badgeAj = '<span class="badge yellow">'+fmtPct(n)+'</span>';
+          else badgeAj = '<span class="badge red">'+fmtPct(n)+'</span>';
+        }
+      }
+
+      const disabledAttr = EDIT_MODE ? '' : 'disabled';
+
+      card.innerHTML = `
+        <div class="top">
+          <div>
+            <div class="name">${a.imovel||'—'}</div>
+            <div class="meta">${a.consultor||'—'} ${a.ref? '· '+a.ref:''}</div>
+          </div>
+          <div>${badgeAj}</div>
+        </div>
+        <div class="row"><b>Proprietário:</b> ${a.proprietario||'—'}</div>
+        <div class="row"><b>Data:</b> ${fmtDate(a.data)}</div>
+        <div class="row">
+          <b>Preço pedido:</b> ${fmtNum(a.preco_pedido)} €
+          &nbsp;·&nbsp;
+          <b>Sugerido:</b> ${fmtNum(a.preco_sugerido)} €
+        </div>
+        <div class="row">
+          <b>Comissão:</b> ${a.comissao_pct? a.comissao_pct+'%' : '—'}
+          &nbsp;·&nbsp;
+          <b>Origem:</b> ${a.origem||'—'}
+        </div>
+        <div class="row">${badgeDocs}</div>
+        ${a.notas? `<div class="row"><small>${a.notas}</small></div>`:''}
+        <div class="row"><small>${[
+          a.d_cc?'CC':'',
+          a.d_crp?'CRP':'',
+          a.d_caderneta?'Caderneta':'',
+          a.d_cmi?'CMI assinado':'',
+          a.d_cert_energetico?'Cert. Energético':'',
+          a.d_planta?'Plantas':''
+        ].filter(Boolean).join(' · ')}</small></div>
+        <div class="actions">
+          <button class="btn-sm" data-act="edit" ${disabledAttr}>Editar</button>
+          <button class="btn-sm" data-act="prop" ${disabledAttr}>Proposta Angariação</button>
+          <select class="select-move" data-id="${a.id}" ${disabledAttr}>
+            <option value="">Mover…</option>
+            ${COLS.map(c=>`<option value="${c}" ${c===a.estado?'disabled':''}>${c}</option>`).join('')}
+          </select>
+          <button class="btn-sm danger" data-act="del" ${disabledAttr}>Apagar</button>
+          <button class="btn-sm" data-act="toggle" ${disabledAttr}>${a.visivel===false?'Tornar visível':'Tornar invisível'}</button>
+        </div>
+      `;
+      if(a.visivel===false) card.style.opacity = .45;
+
+      // eventos
+      card.querySelector('[data-act="edit"]').addEventListener('click',()=>{
+        if(!EDIT_MODE){ alert('Modo de edição bloqueado. Ative "🔓 Edição ativa" para editar.'); return; }
+        openModal(a);
+      });
+      card.querySelector('[data-act="prop"]').addEventListener('click',()=>{
+        if(!EDIT_MODE){ alert('Modo de edição bloqueado. Ative "🔓 Edição ativa" para gerar proposta.'); return; }
+        gerarProposta(a);
+      });
+      card.querySelector('[data-act="del"]').addEventListener('click',()=>{
+        if(!EDIT_MODE){ alert('Modo de edição bloqueado. Ative "🔓 Edição ativa" para apagar.'); return; }
+        if(!confirm('Eliminar esta angariação?')) return;
+        ANG = ANG.filter(x=>x.id!==a.id);
+        saveLS();
+        renderBoard();
+      });
+      card.querySelector('[data-act="toggle"]').addEventListener('click',()=>{
+        if(!EDIT_MODE){ alert('Modo de edição bloqueado. Ative "🔓 Edição ativa" para alterar visibilidade.'); return; }
+        a.visivel = a.visivel===false ? true : false;
+        saveLS();
+        renderBoard();
+      });
+      card.querySelector('.select-move').addEventListener('change',e=>{
+        if(!EDIT_MODE){
+          e.target.value='';
+          alert('Modo de edição bloqueado. Ative "🔓 Edição ativa" para mover.');
+          return;
+        }
+        const destino = e.target.value;
+        if(!destino || !COLS.includes(destino)) return;
+        a.estado = destino;
+        saveLS();
+        renderBoard();
+      });
+
+      listEl.appendChild(card);
+    });
   });
-  const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+}
+
+/* ===== Proposta Angariação (Word simples) ===== */
+function gerarProposta(a){
+  const texto = `
+Proposta de Angariação
+
+Imóvel: ${a.imovel||''}
+Proprietário: ${a.proprietario||''}
+Consultor: ${a.consultor||''}
+Referência interna: ${a.ref||''}
+Data: ${fmtDate(a.data)||''}
+
+Preço pedido: ${fmtNum(a.preco_pedido)} €
+Preço sugerido: ${fmtNum(a.preco_sugerido)} €
+% Ajustamento: ${fmtPct(a.ajustamento)}
+
+Comissão: ${a.comissao_pct? a.comissao_pct+'%' : '—'}
+Origem: ${a.origem||''}
+
+Documentação:
+  - CC: ${a.d_cc?'Sim':'Não'}
+  - CRP: ${a.d_crp?'Sim':'Não'}
+  - Caderneta: ${a.d_caderneta?'Sim':'Não'}
+  - CMI assinado: ${a.d_cmi?'Sim':'Não'}
+  - Cert. Energético: ${a.d_cert_energetico?'Sim':'Não'}
+  - Plantas: ${a.d_planta?'Sim':'Não'}
+
+Notas:
+${a.notas||''}
+`;
+  const blob = new Blob([texto],{type:'application/msword'});
   const url = URL.createObjectURL(blob);
-  const aEl = document.createElement('a');
-  aEl.href = url;
-  aEl.download = 'angariacoes_filtradas.csv';
-  document.body.appendChild(aEl);
-  aEl.click();
-  aEl.remove();
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `Proposta_Angariacao_${(a.ref||a.imovel||'angariacao').replace(/\s+/g,'_')}.doc`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
   URL.revokeObjectURL(url);
 }
 
-/* =========================
-   EXPORTAÇÃO EXCEL (compatível, .xls)
-========================= */
-function exportExcelFiltered(){
-  const data = view(); // respeita filtros + ordenação
-  // Tabela HTML simples que o Excel abre nativamente (sem libs)
-  const headers = ["Propriedade","Consultor","Proprietário","Data","Origem","Comissão","Preço pedido","Preço sugerido","% Ajustamento","Documentos","Notas"];
-  let html = '<table border="1"><thead><tr>' + headers.map(h=>`<th>${h}</th>`).join('') + '</tr></thead><tbody>';
-  data.forEach(a=>{
-    html += '<tr>' + [
-      a.prop||'',
-      a.consultor||'',
-      a.proprietario||'',
-      fmtDate(a.data),
-      a.origem||'',
-      (a.comissao!=null? a.comissao+'%':''),
-      (a.pp!=null? a.pp:''),
-      (a.ps!=null? a.ps:''),
-      (a.aj!=null? a.aj+'%':''),
-      (a.docs&&a.docs.length? a.docs.join('; '):''),
-      (a.notas||'')
-    ].map(v=>`<td>${String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;')}</td>`).join('') + '</tr>';
-  });
-  html += '</tbody></table>';
-
-  const blob = new Blob([`\ufeff<html><head><meta charset="utf-8"></head><body>${html}</body></html>`],
-                        {type: 'application/vnd.ms-excel'});
-  const url = URL.createObjectURL(blob);
-  const aEl = document.createElement('a');
-  aEl.href = url;
-  aEl.download = 'angariacoes_filtradas.xls'; // Excel abre diretamente
-  document.body.appendChild(aEl);
-  aEl.click();
-  aEl.remove();
-  URL.revokeObjectURL(url);
-}
-
-/* =========================
-   EXPORTAÇÕES: PDF / Word
-========================= */
-function buildProposalHTML(a){
-  const css = `
-    <style>
-      body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:28px;}
-      h1{font-size:20px;margin:0 0 12px 0;color:#333;}
-      .brand{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #A38B63;}
-      .brand .name{font-weight:700;color:#A38B63;font-size:18px;}
-      table{width:100%;border-collapse:collapse;margin-top:10px;}
-      th,td{padding:8px;border:1px solid #ddd;font-size:13px;text-align:left;}
-      th{background:#f6f6f6;}
-      .muted{color:#555}
-      .foot{margin-top:18px;font-size:12px;color:#666;}
-      @media print { .no-print{display:none} }
-    </style>`;
-  const docs = (a.docs&&a.docs.length)? a.docs.join(', ') : '—';
-  const aj   = (a.aj!=null? (a.aj+'%') : '—');
-  const data = a.data ? fmtDate(a.data) : '—';
-
-  return `<!DOCTYPE html><html><head><meta charset="utf-8">${css}<title>Proposta de Angariação</title></head>
-  <body>
-    <div class="brand">
-      <div class="name">Garvetur Luxury Porto</div>
-      <div class="muted">Proposta de Angariação</div>
-    </div>
-    <h1>${a.prop || '(Sem título)'}</h1>
-    <table>
-      <tr><th>Consultor</th><td>${a.consultor||'—'}</td><th>Origem</th><td>${a.origem||'—'}</td></tr>
-      <tr><th>Proprietário</th><td>${a.proprietario||'—'}</td><th>Data</th><td>${data}</td></tr>
-      <tr><th>Comissão</th><td>${a.comissao!=null? a.comissao+'%':'—'}</td><th>Documentação</th><td>${docs}</td></tr>
-      <tr><th>Preço pedido</th><td>${a.pp!=null? a.pp+'€':'—'}</td><th>Preço sugerido</th><td>${a.ps!=null? a.ps+'€':'—'}</td></tr>
-      <tr><th>% Ajustamento</th><td>${aj}</td><th>Notas</th><td>${a.notas||'—'}</td></tr>
-    </table>
-    <div class="foot">Gerado por Garvetur Porto Pro — ${new Date().toLocaleString('pt-PT')}</div>
-  </body></html>`;
-}
-
-function exportPDF(a){
-  const w = window.open('', '_blank');
-  w.document.open();
-  w.document.write(buildProposalHTML(a));
-  w.document.close();
-  w.onload = ()=> { try{ w.focus(); w.print(); }catch(e){} };
-}
-
-function exportWord(a){
-  const html = buildProposalHTML(a);
-  const blob = new Blob(['\ufeff', html], {type: 'application/msword'});
-  const url = URL.createObjectURL(blob);
-  const aEl = document.createElement('a');
-  aEl.href = url;
-  aEl.download = sanitizeFile((a.prop||'proposta')) + '.doc';
-  document.body.appendChild(aEl);
-  aEl.click();
-  aEl.remove();
-  URL.revokeObjectURL(url);
-}
-
-/* =========================
-   SEED DEMO
-========================= */
-function seedDemo(){
-  if(!confirm('Carregar 5 angariações de exemplo? (substitui as atuais)')) return;
-  const ex = [
-    {prop:"T3 Boavista | Porto", consultor:"Manuel Oliveira", proprietario:"António Silva", data:"2025-11-06", origem:"Referral", comissao:6, pp:650000, ps:620000, aj:-4.6, docs:["CC","Caderneta","Cert. Energético","CMI assinado"], notas:"Avaliação agendada"},
-    {prop:"T2 Madalena | V.N. Gaia", consultor:"Armanda Meireles", proprietario:"Maria Lopes", data:"2025-11-01", origem:"Porta-a-porta", comissao:5, pp:320000, ps:315000, aj:-1.6, docs:["CC","Caderneta","CRP"], notas:"Vendedor disponível negociar"},
-    {prop:"Loja Foz | Porto", consultor:"João Sousa", proprietario:"ImoFoz Lda.", data:"2025-10-28", origem:"Online", comissao:4, pp:480000, ps:450000, aj:-6.3, docs:["CC","Caderneta","Planta"], notas:"Objetivo yield 6%"},
-    {prop:"Terreno Gondomar", consultor:"Rui Quelhas", proprietario:"Joaquim Rocha", data:"2025-11-03", origem:"Investidor", comissao:3, pp:900000, ps:870000, aj:-3.3, docs:["CC","CRP"], notas:"Pedido de CMI assinado"},
-    {prop:"Prédio Baixa | Porto", consultor:"Audrey Lucas", proprietario:"Gestora Norte, SA", data:"2025-11-05", origem:"Gestor de ativos", comissao:5, pp:2200000, ps:2100000, aj:-4.5, docs:["CC","Caderneta","Cert. Energético","Planta","CMI assinado","CRP"], notas:"Visita técnica 5ª feira"}
+/* ===== Exportação CSV ===== */
+function exportCsv(){
+  const rows = [];
+  const headers = [
+    "ID","Imóvel","Proprietário","Consultor","Data","Ref","Estado",
+    "PreçoPedido","PreçoSugerido","Comissão(%)","Ajustamento(%)",
+    "Origem","Visível","Notas",
+    "CC","CRP","Caderneta","CMI","CertEnergético","Plantas"
   ];
-  save(ex);
-  populateConsultoresFilter();
-  render();
-}
+  rows.push(headers);
 
-/* =========================
-   LIGAÇÕES UI
-========================= */
-document.getElementById('add').onclick=add;
-document.getElementById('seed').onclick=seedDemo;
-document.getElementById('clear').onclick=()=>{ if(confirm('Apagar todas as angariações?')){ localStorage.removeItem(LS_KEY); populateConsultoresFilter(); render(); } };
-
-['pp','ps'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', ()=>{
-    const pp = Number(document.getElementById('pp').value)||null;
-    const ps = Number(document.getElementById('ps').value)||null;
-    const val = pct(pp, ps);
-    document.getElementById('aj').textContent = (val!=null ? val+'%' : '—');
-    semaforo(document.getElementById('sf'), val);
+  const data = filterDataset();
+  data.forEach(a=>{
+    rows.push([
+      a.id,
+      a.imovel||'',
+      a.proprietario||'',
+      a.consultor||'',
+      a.data||'',
+      a.ref||'',
+      a.estado||'',
+      a.preco_pedido||'',
+      a.preco_sugerido||'',
+      (a.comissao_pct!==undefined && a.comissao_pct!==''? a.comissao_pct:''),
+      (a.ajustamento!==undefined && a.ajustamento!==''? a.ajustamento:''),
+      a.origem||'',
+      (a.visivel===false?'Não':'Sim'),
+      (a.notas||'').replace(/\r?\n/g,' '),
+      a.d_cc?'Sim':'Não',
+      a.d_crp?'Sim':'Não',
+      a.d_caderneta?'Sim':'Não',
+      a.d_cmi?'Sim':'Não',
+      a.d_cert_energetico?'Sim':'Não',
+      a.d_planta?'Sim':'Não'
+    ]);
   });
-});
 
-// Filtros
-document.getElementById('f_apply').onclick = ()=> render(view());
-document.getElementById('f_clear').onclick = ()=>{
-  document.getElementById('f_consultor').value=''; 
-  document.getElementById('f_de').value=''; 
-  document.getElementById('f_ate').value=''; 
-  document.getElementById('f_sort').value='data_desc';
-  render();
-};
-
-// Exportação CSV / Excel
-document.getElementById('btn_export_csv').onclick = exportCSVFiltered;
-document.getElementById('btn_export_xls').onclick = exportExcelFiltered;
-
-// Garantir dropdown de consultores SEMPRE visível
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', fillConsultorSelects);
-} else {
-  fillConsultorSelects();
+  const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const aEl = document.createElement('a');
+  aEl.href = url;
+  aEl.download = 'angariacoes.csv';
+  document.body.appendChild(aEl);
+  aEl.click();
+  aEl.remove();
+  URL.revokeObjectURL(url);
 }
 
-// Primeira renderização
-render();
+/* ===== Init ===== */
+(function init(){
+  ANG = loadLS();
+  loadFilters();
+
+  // estado do lock
+  const stored = localStorage.getItem(EDIT_KEY);
+  EDIT_MODE = stored==='1';
+  applyEditUI();
+
+  $('toggleEdit').addEventListener('click',()=>{
+    setEditMode(!EDIT_MODE);
+  });
+
+  $('exportCsv').addEventListener('click', exportCsv);
+
+  renderBoard();
+})();
 </script>
 </body>
 </html>
