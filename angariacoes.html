@@ -192,6 +192,11 @@ header{
 .card .meta{font-size:11px;color:#bbb;text-transform:uppercase;letter-spacing:.04em}
 .card .row{margin-top:5px;font-size:12px;color:#ddd}
 .card .row small{color:#aaa}
+.section-sep{
+  margin-top:6px;
+  padding-top:6px;
+  border-top:1px solid rgba(163,139,99,.4);
+}
 .badge{
   display:inline-block;
   padding:2px 8px;
@@ -334,27 +339,20 @@ header{
 textarea{resize:vertical}
 .small-hint{font-size:11px;color:#9AA0A6}
 
-/* Checkbox grids */
+/* Checkbox grids (simplificado) */
 .check-grid-3{
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:6px;
 }
-.check-grid-2{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:6px;
-}
-.check-grid-3 label,
-.check-grid-2 label{
+.check-grid-3 label{
   font-size:12px;
   display:flex;
   align-items:center;
   gap:6px;
   color:#ddd;
 }
-.check-grid-3 input,
-.check-grid-2 input{accent-color:var(--gold)}
+.check-grid-3 input{accent-color:var(--gold)}
 
 /* Responsive */
 @media (max-width:1400px){ .board{grid-template-columns:repeat(3,1fr)} }
@@ -363,7 +361,6 @@ textarea{resize:vertical}
   .main{grid-template-columns:1fr}
   .sidebar{order:2;height:280px}
   .board{order:1}
-  .check-grid-3{grid-template-columns:repeat(2,1fr)}
 }
 </style>
 </head>
@@ -371,8 +368,8 @@ textarea{resize:vertical}
 <header>
   <div class="brand">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--gold)">
-      <circle cx="12" cy="12" r="10" stroke-width="1.5"/>
-      <path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/>
+      <circle cx="12" cy="12" r="10" stroke-width="1.5"></circle>
+      <path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"></path>
     </svg>
     <h1>Garvetur Porto Pro — Angariações</h1>
   </div>
@@ -468,7 +465,7 @@ textarea{resize:vertical}
       <div class="section-title">Cabeçalho</div>
       <div class="form-grid3">
         <div class="form-field">
-          <label>Consultor *</label>
+          <label>Consultor</label>
           <select id="a_consultor">
             <option value="">—</option>
             <option>Rui Quelhas</option>
@@ -558,7 +555,7 @@ textarea{resize:vertical}
       <div class="section-title">Proprietário</div>
       <div class="form-grid3">
         <div class="form-field">
-          <label>Nome *</label>
+          <label>Nome</label>
           <input id="a_proprietario" placeholder="Nome do proprietário">
         </div>
         <div class="form-field">
@@ -700,29 +697,21 @@ textarea{resize:vertical}
       <div class="section-title">Áreas (m²)</div>
       <div class="form-grid3">
         <div class="form-field">
-          <label>Área útil</label>
-          <input id="a_area_util" type="number" min="0" step="1">
-        </div>
-        <div class="form-field">
-          <label>Área bruta</label>
-          <input id="a_area_bruta" type="number" min="0" step="1">
-        </div>
-        <div class="form-field">
-          <label>Área terreno</label>
-          <input id="a_area_terreno" type="number" min="0" step="1">
-        </div>
-        <div class="form-field">
-          <label>Área Bruta Privativa (ABP)</label>
+          <label>ABP (Área Bruta Privativa)</label>
           <input id="a_abp" type="number" min="0" step="1">
         </div>
         <div class="form-field">
-          <label>Área Bruta Dependente (ABD)</label>
+          <label>ABD (Área Bruta Dependente)</label>
           <input id="a_abd" type="number" min="0" step="1">
         </div>
-      </div>
-      <div class="form-field">
-        <label>Observações das áreas</label>
-        <textarea id="a_obs_areas" rows="2"></textarea>
+        <div class="form-field">
+          <label>Área Terreno</label>
+          <input id="a_area_terreno" type="number" min="0" step="1">
+        </div>
+        <div class="form-field">
+          <label>Área Implantação</label>
+          <input id="a_area_implantacao" type="number" min="0" step="1">
+        </div>
       </div>
 
       <!-- Preço / Comissão / Ajustamento -->
@@ -776,7 +765,7 @@ textarea{resize:vertical}
         </div>
       </div>
 
-      <!-- Destaques -->
+      <!-- Destaques (simplificado) -->
       <div class="section-title">Destaques</div>
       <div class="check-grid-3">
         <label><input type="checkbox" id="d_exclusivo"> Exclusivo</label>
@@ -804,151 +793,15 @@ textarea{resize:vertical}
         </div>
       </div>
 
-      <!-- Documentação -->
-      <div class="section-title">Documentação entregue</div>
+      <!-- Documentação (resumo) -->
+      <div class="section-title">Documentação entregue (resumo)</div>
       <div class="check-grid-3">
-        <label><input type="checkbox" id="d_cc"> Identificação dos Proprietários</label>
-        <label><input type="checkbox" id="d_contrato_med"> Contrato de Mediação</label>
+        <label><input type="checkbox" id="d_cc"> Identificação Proprietários</label>
+        <label><input type="checkbox" id="d_contrato_med"> Contrato Mediação</label>
         <label><input type="checkbox" id="d_caderneta"> Caderneta Predial</label>
-        <label><input type="checkbox" id="d_crp"> Certidão Conservatória Reg. Predial</label>
+        <label><input type="checkbox" id="d_crp"> Certidão Registo Predial</label>
         <label><input type="checkbox" id="d_cert_energetico"> Certificado Energético</label>
-        <label><input type="checkbox" id="d_planta_loc"> Planta de Localização / Plantas</label>
-        <label><input type="checkbox" id="d_licenca"> Licença Utilização/Construção/Dispensa</label>
-        <label><input type="checkbox" id="d_fotos"> Fotografias / Vídeo</label>
-        <label><input type="checkbox" id="d_ficha_tec"> Ficha Técnica da Habitação</label>
-        <label><input type="checkbox" id="d_mapa_acab"> Mapa de Acabamentos</label>
-        <label><input type="checkbox" id="d_titulo_ph"> Título Constitutivo Propriedade Horizontal</label>
-        <label><input type="checkbox" id="d_cert_comercial"> Certidão Comercial de Empresa</label>
-        <label><input type="checkbox" id="d_id_socios"> Identificação do(s) Sócio(s)</label>
-        <label><input type="checkbox" id="d_tabela_preco"> Tabela de Preços do Empreendimento</label>
-        <label><input type="checkbox" id="d_desc_projeto"> Descrição do Projeto</label>
-        <label><input type="checkbox" id="d_minuta_cpcv"> CMI / Minuta CPCV / Plano Pagamentos</label>
-        <label><input type="checkbox" id="d_pedido_info"> Pedido de Informação Prévio</label>
-        <label><input type="checkbox" id="d_proj_arq"> Projeto Arquitetura / Especialidades</label>
-        <label><input type="checkbox" id="d_texto_1500"> Texto com 1500 caracteres</label>
         <label><input type="checkbox" id="d_bupi"> Registado no BUPI</label>
-      </div>
-
-      <!-- Zona envolvente -->
-      <div class="section-title">Zona envolvente</div>
-      <div class="check-grid-3">
-        <label><input type="checkbox" id="z_aeroporto"> Aeroporto</label>
-        <label><input type="checkbox" id="z_banco"> Banco</label>
-        <label><input type="checkbox" id="z_areas_lazer"> Áreas de Lazer Infantil</label>
-        <label><input type="checkbox" id="z_autoestrada"> Auto-Estrada</label>
-        <label><input type="checkbox" id="z_biblioteca"> Biblioteca</label>
-        <label><input type="checkbox" id="z_centro_comercial"> Centro Comercial</label>
-        <label><input type="checkbox" id="z_centro_cidade"> Centro da Cidade</label>
-        <label><input type="checkbox" id="z_bombeiros"> Bombeiros</label>
-        <label><input type="checkbox" id="z_campo"> Campo</label>
-        <label><input type="checkbox" id="z_campo_golfe"> Campo de Golfe</label>
-        <label><input type="checkbox" id="z_est_rodoviaria"> Estação Rodoviária</label>
-        <label><input type="checkbox" id="z_farmacia"> Farmácia</label>
-        <label><input type="checkbox" id="z_escola"> Escola</label>
-        <label><input type="checkbox" id="z_espacos_verdes"> Espaços Verdes</label>
-        <label><input type="checkbox" id="z_est_ferroviaria"> Estação Ferroviária</label>
-        <label><input type="checkbox" id="z_ginasio"> Ginásio</label>
-        <label><input type="checkbox" id="z_metro"> Metro</label>
-        <label><input type="checkbox" id="z_hiper"> Hipermercado</label>
-        <label><input type="checkbox" id="z_hospital"> Hospital</label>
-        <label><input type="checkbox" id="z_mercado"> Mercado</label>
-        <label><input type="checkbox" id="z_perto_praia"> Perto da praia</label>
-        <label><input type="checkbox" id="z_praca_taxis"> Praça Táxis</label>
-        <label><input type="checkbox" id="z_piscinas"> Piscinas</label>
-        <label><input type="checkbox" id="z_policia"> Polícia</label>
-        <label><input type="checkbox" id="z_posto_combustivel"> Posto de Combustível</label>
-        <label><input type="checkbox" id="z_transportes"> Transportes Públicos</label>
-        <label><input type="checkbox" id="z_zona_hist"> Zona Histórica</label>
-        <label><input type="checkbox" id="z_zona_comercial"> Zona Comercial</label>
-      </div>
-
-      <!-- Infraestruturas -->
-      <div class="section-title">Infraestruturas</div>
-      <div class="check-grid-3">
-        <label><input type="checkbox" id="i_acesso_def"> Acesso para Deficientes</label>
-        <label><input type="checkbox" id="i_campo_tenis"> Campo de Ténis</label>
-        <label><input type="checkbox" id="i_adega"> Adega</label>
-        <label><input type="checkbox" id="i_anexos"> Anexos</label>
-        <label><input type="checkbox" id="i_arrecadacao"> Arrecadação</label>
-        <label><input type="checkbox" id="i_complexo_desportivo"> Complexo Desportivo</label>
-        <label><input type="checkbox" id="i_ginasio"> Ginásio</label>
-        <label><input type="checkbox" id="i_piscina"> Piscina</label>
-        <label><input type="checkbox" id="i_jardim"> Jardim</label>
-        <label><input type="checkbox" id="i_parque_infantil"> Parque infantil</label>
-        <label><input type="checkbox" id="i_terraco"> Terraço</label>
-        <label><input type="checkbox" id="i_sala_festas"> Salão de Festas</label>
-        <label><input type="checkbox" id="i_sala_jogos"> Salão de Jogos</label>
-        <label><input type="checkbox" id="i_telheiro"> Telheiro</label>
-        <label><input type="checkbox" id="i_est_ar_livre"> Estacionamento Ar-Livre</label>
-        <label><input type="checkbox" id="i_est_coberto"> Estacionamento Coberto</label>
-        <label><input type="checkbox" id="i_garagem"> Garagem</label>
-        <label><input type="checkbox" id="i_portaria"> Portaria</label>
-        <label><input type="checkbox" id="i_seg_24h"> Segurança 24 horas</label>
-        <label><input type="checkbox" id="i_video_vigilancia"> Vídeo vigilância</label>
-      </div>
-
-      <!-- Equipamentos -->
-      <div class="section-title">Equipamentos</div>
-      <div class="check-grid-3">
-        <label><input type="checkbox" id="e_ar_cond"> Ar Condicionado</label>
-        <label><input type="checkbox" id="e_alarme"> Alarme</label>
-        <label><input type="checkbox" id="e_antena"> Antena Parabólica</label>
-        <label><input type="checkbox" id="e_aquec_central"> Aquecimento Central</label>
-        <label><input type="checkbox" id="e_barbecue"> Barbecue</label>
-        <label><input type="checkbox" id="e_banheira_hidromassagem"> Banheira com Hidromassagem</label>
-        <label><input type="checkbox" id="e_caldeira"> Caldeira</label>
-        <label><input type="checkbox" id="e_det_gas"> Detector de Gás</label>
-        <label><input type="checkbox" id="e_det_incendio"> Detector de Incêndio</label>
-        <label><input type="checkbox" id="e_cofre"> Cofre</label>
-        <label><input type="checkbox" id="e_det_intrusao"> Detector de Intrusão</label>
-        <label><input type="checkbox" id="e_elevador"> Elevador</label>
-        <label><input type="checkbox" id="e_esquentador"> Esquentador</label>
-        <label><input type="checkbox" id="e_det_inundacao"> Detector de Inundação</label>
-        <label><input type="checkbox" id="e_estores"> Estores Eléctricos</label>
-        <label><input type="checkbox" id="e_fogao_electrico"> Fogão Eléctrico</label>
-        <label><input type="checkbox" id="e_forno"> Forno</label>
-        <label><input type="checkbox" id="e_exaustor"> Exaustor</label>
-        <label><input type="checkbox" id="e_frigorifico"> Frigorífico</label>
-        <label><input type="checkbox" id="e_gerador"> Gerador</label>
-        <label><input type="checkbox" id="e_isol_acustico"> Isolamento Acústico</label>
-        <label><input type="checkbox" id="e_gas_botija"> Gás Botija</label>
-        <label><input type="checkbox" id="e_gas_natural"> Gás Natural</label>
-        <label><input type="checkbox" id="e_isol_termico"> Isolamento Térmico</label>
-        <label><input type="checkbox" id="e_maq_louca"> Máquina Lavar Louça</label>
-        <label><input type="checkbox" id="e_lareira"> Lareira</label>
-        <label><input type="checkbox" id="e_maq_roupa"> Máquina Lavar Roupa</label>
-        <label><input type="checkbox" id="e_mobilado"> Mobilado</label>
-        <label><input type="checkbox" id="e_musica_amb"> Música ambiente</label>
-        <label><input type="checkbox" id="e_maq_secar"> Máquina Secar Roupa</label>
-        <label><input type="checkbox" id="e_microondas"> Microondas</label>
-        <label><input type="checkbox" id="e_piso_radiante"> Piso Radiante</label>
-        <label><input type="checkbox" id="e_bomba_calor"> Bomba de Calor</label>
-        <label><input type="checkbox" id="e_porta_seg"> Porta Alta Segurança</label>
-        <label><input type="checkbox" id="e_agua_quente_solar"> Água Quente Solar</label>
-        <label><input type="checkbox" id="e_asp_central"> Aspiração Central</label>
-        <label><input type="checkbox" id="e_det_fumos"> Detector de Fumos</label>
-        <label><input type="checkbox" id="e_domotica"> Domótica</label>
-        <label><input type="checkbox" id="e_fogao"> Fogão</label>
-        <label><input type="checkbox" id="e_gas_canalizado"> Gás Canalizado</label>
-        <label><input type="checkbox" id="e_jacuzzi"> Jacuzzi</label>
-        <label><input type="checkbox" id="e_microgeracao"> Microgeração Solar</label>
-        <label><input type="checkbox" id="e_placa_gas"> Placa a gás</label>
-        <label><input type="checkbox" id="e_placa_inducao"> Placa de Indução</label>
-        <label><input type="checkbox" id="e_placa_vitro"> Placa Vitrocerâmica</label>
-        <label><input type="checkbox" id="e_pre_alarme"> Pré-instalação alarme</label>
-        <label><input type="checkbox" id="e_pre_internet"> Pré-instalação Internet</label>
-        <label><input type="checkbox" id="e_pre_tv_cabo"> Pré-instalação TV por Cabo</label>
-        <label><input type="checkbox" id="e_pre_ar_cond"> Pré-instalação ar condicionado</label>
-        <label><input type="checkbox" id="e_pre_asp_central"> Pré-instalação aspiração central</label>
-        <label><input type="checkbox" id="e_pre_aq_central"> Pré-instalação Aquecimento Central</label>
-        <label><input type="checkbox" id="e_pre_musica"> Pré-instalação música ambiente</label>
-        <label><input type="checkbox" id="e_pre_paineis"> Pré-instalação painéis solares</label>
-        <label><input type="checkbox" id="e_recuperador"> Recuperador de calor</label>
-        <label><input type="checkbox" id="e_roupeiros"> Roupeiros</label>
-        <label><input type="checkbox" id="e_video_porteiro"> Video Porteiro</label>
-        <label><input type="checkbox" id="e_vidros_duplos"> Vidros Duplos</label>
-        <label><input type="checkbox" id="e_termoacumulador"> Termoacumulador</label>
-        <label><input type="checkbox" id="e_toalheiros_aquecidos"> Toalheiros Aquecidos</label>
       </div>
 
       <!-- Observações principais -->
@@ -959,7 +812,7 @@ textarea{resize:vertical}
         <div id="obsCounter" class="small-hint">0/1500 caracteres</div>
       </div>
 
-      <!-- Notas por interveniente -->
+      <!-- Notas internas -->
       <div class="section-title">Notas internas</div>
       <div class="form-grid3">
         <div class="form-field">
@@ -967,7 +820,7 @@ textarea{resize:vertical}
           <textarea id="a_notas_consultor" rows="2"></textarea>
         </div>
         <div class="form-field">
-          <label>Notas do Coordenador de Zona</label>
+          <label>Notas do Coordenador</label>
           <textarea id="a_notas_coordenador" rows="2"></textarea>
         </div>
         <div class="form-field">
@@ -981,7 +834,7 @@ textarea{resize:vertical}
 
 <script>
 /* ===== Estado global ===== */
-const LS_KEY = 'gpp_angariações_v4';
+const LS_KEY = 'gpp_angariacoes_v5';
 const EDIT_KEY = 'gpp_ang_edit_mode';
 const COLS = ["Novo","Em Negociação","Aprovado","Perdido"];
 const CONSULT = [
@@ -1027,7 +880,6 @@ function saveLS(){
 function applyEditUI(){
   const btnNew = $('btnNew');
   const toggle = $('toggleEdit');
-
   if(EDIT_MODE){
     toggle.classList.add('primary');
     toggle.textContent = '🔓 Edição ativa';
@@ -1073,15 +925,8 @@ function clearFilterUI(){
   $('f_only_hidden').checked = false;
   FILTER = {q:'',consultor:'',estado:'',ini:'',fim:'',ajMin:'',ajMax:'',showHidden:false,onlyHidden:false};
 }
-
-$('applyFilters').addEventListener('click',()=>{
-  applyFilterStateFromUI();
-  renderBoard();
-});
-$('clearFilters').addEventListener('click',()=>{
-  clearFilterUI();
-  renderBoard();
-});
+$('applyFilters').addEventListener('click',()=>{ applyFilterStateFromUI(); renderBoard(); });
+$('clearFilters').addEventListener('click',()=>{ clearFilterUI(); renderBoard(); });
 let qTimer=null;
 $('f_q').addEventListener('input',()=>{
   clearTimeout(qTimer);
@@ -1172,12 +1017,10 @@ function openModal(edit=null){
   set('a_data', a.data || new Date().toISOString().slice(0,10));
 
   // Áreas
-  set('a_area_util', a.area_util);
-  set('a_area_bruta', a.area_bruta);
-  set('a_area_terreno', a.area_terreno);
   set('a_abp', a.abp);
   set('a_abd', a.abd);
-  set('a_obs_areas', a.obs_areas);
+  set('a_area_terreno', a.area_terreno);
+  set('a_area_implantacao', a.area_implantacao);
 
   // preço / comissão / ajustamento
   set('a_preco_pedido', a.preco_pedido);
@@ -1216,40 +1059,13 @@ function openModal(edit=null){
     $('d_duracao_outro').value='';
   }
 
-  // docs
-  const boolIds = [
-    'd_cc','d_contrato_med','d_caderneta','d_crp','d_cert_energetico','d_planta_loc','d_licenca','d_fotos',
-    'd_ficha_tec','d_mapa_acab','d_titulo_ph','d_cert_comercial','d_id_socios','d_tabela_preco','d_desc_projeto',
-    'd_minuta_cpcv','d_pedido_info','d_proj_arq','d_texto_1500','d_bupi'
-  ];
-  boolIds.forEach(id=>chk(id, a[id]));
-
-  // zona
-  const zKeys = ['aeroporto','banco','areas_lazer','autoestrada','biblioteca','centro_comercial','centro_cidade',
-    'bombeiros','campo','campo_golfe','est_rodoviaria','farmacia','escola','espacos_verdes',
-    'est_ferroviaria','ginasio','metro','hiper','hospital','mercado','perto_praia','praca_taxis',
-    'piscinas','policia','posto_combustivel','transportes','zona_hist','zona_comercial'];
-  zKeys.forEach(k=>chk('z_'+k, a['z_'+k]));
-
-  // infra
-  const iKeys = ['acesso_def','campo_tenis','adega','anexos','arrecadacao','complexo_desportivo','ginasio',
-    'piscina','jardim','parque_infantil','terraco','sala_festas','sala_jogos','telheiro',
-    'est_ar_livre','est_coberto','garagem','portaria','seg_24h','video_vigilancia'];
-  iKeys.forEach(k=>chk('i_'+k, a['i_'+k]));
-
-  // equipamentos
-  const eKeys = [
-    'ar_cond','alarme','antena','aquec_central','barbecue','banheira_hidromassagem','caldeira','det_gas',
-    'det_incendio','cofre','det_intrusao','elevador','esquentador','det_inundacao','estores',
-    'fogao_electrico','forno','exaustor','frigorifico','gerador','isol_acustico','gas_botija','gas_natural',
-    'isol_termico','maq_louca','lareira','maq_roupa','mobilado','musica_amb','maq_secar','microondas',
-    'piso_radiante','bomba_calor','porta_seg','agua_quente_solar','asp_central','det_fumos','domotica',
-    'fogao','gas_canalizado','jacuzzi','microgeracao','placa_gas','placa_inducao','placa_vitro',
-    'pre_alarme','pre_internet','pre_tv_cabo','pre_ar_cond','pre_asp_central','pre_aq_central',
-    'pre_musica','pre_paineis','recuperador','roupeiros','video_porteiro','vidros_duplos','termoacumulador',
-    'toalheiros_aquecidos'
-  ];
-  eKeys.forEach(k=>chk('e_'+k, a['e_'+k]));
+  // docs resumo
+  chk('d_cc', a.d_cc);
+  chk('d_contrato_med', a.d_contrato_med);
+  chk('d_caderneta', a.d_caderneta);
+  chk('d_crp', a.d_crp);
+  chk('d_cert_energetico', a.d_cert_energetico);
+  chk('d_bupi', a.d_bupi);
 
   // observações e notas
   set('a_notas', a.notas);
@@ -1287,7 +1103,7 @@ $('d_duracao').addEventListener('change', e=>{
   }
 });
 
-/* ===== Guardar ===== */
+/* ===== Guardar (sem obrigatórios) ===== */
 $('btnSave').addEventListener('click',()=>{
   if(!EDIT_MODE){
     alert('Modo de edição bloqueado. Clique em "🔓 Edição ativa" para guardar alterações.');
@@ -1297,12 +1113,28 @@ $('btnSave').addEventListener('click',()=>{
   const get = id => { const el=$(id); return el? el.value.trim():''; };
   const chk = id => { const el=$(id); return el? !!el.checked:false; };
 
+  // recolher principais campos
   const consultor = get('a_consultor');
-  const proprietario = get('a_proprietario');
-  const imovelTitulo = get('a_titulo') || get('a_nome_empreendimento') || get('a_imovel');
+  const gestorSel = get('a_gestor');
+  const gestorOutro = get('a_gestor_outro');
+  let gestor = '';
+  if(gestorSel === 'outro'){ gestor = gestorOutro || ''; }
+  else { gestor = gestorSel || ''; }
 
-  if(!consultor){ alert('Selecione o consultor.'); return; }
-  if(!proprietario){ alert('Indique o proprietário.'); return; }
+  const proprietario = get('a_proprietario');
+  const nomeEmp = get('a_nome_empreendimento');
+  const tituloImovel = get('a_titulo');
+
+  // validação mínima: tem de haver algum conteúdo relevante
+  const concatMain = [
+    consultor, gestor, proprietario, nomeEmp, tituloImovel,
+    get('a_preco_pedido'),
+    get('a_preco_sugerido')
+  ].join('').trim();
+  if(!concatMain){
+    alert('Preencha pelo menos um dos campos principais (consultor, proprietário, empreendimento, imóvel ou preço) antes de guardar.');
+    return;
+  }
 
   const preco_pedido = get('a_preco_pedido');
   const preco_sugerido = get('a_preco_sugerido');
@@ -1327,15 +1159,6 @@ $('btnSave').addEventListener('click',()=>{
     comissao_pct = Number(comSel);
   }
 
-  // gestor
-  let gestor = '';
-  const gSel = get('a_gestor');
-  if(gSel === 'outro'){
-    gestor = get('a_gestor_outro') || '';
-  } else {
-    gestor = gSel;
-  }
-
   // duração contrato
   let duracao = get('d_duracao');
   if(duracao === 'outro'){
@@ -1343,25 +1166,6 @@ $('btnSave').addEventListener('click',()=>{
     if(outro) duracao = outro;
     else duracao = '';
   }
-
-  const zKeys = ['aeroporto','banco','areas_lazer','autoestrada','biblioteca','centro_comercial','centro_cidade',
-    'bombeiros','campo','campo_golfe','est_rodoviaria','farmacia','escola','espacos_verdes',
-    'est_ferroviaria','ginasio','metro','hiper','hospital','mercado','perto_praia','praca_taxis',
-    'piscinas','policia','posto_combustivel','transportes','zona_hist','zona_comercial'];
-  const iKeys = ['acesso_def','campo_tenis','adega','anexos','arrecadacao','complexo_desportivo','ginasio',
-    'piscina','jardim','parque_infantil','terraco','sala_festas','sala_jogos','telheiro',
-    'est_ar_livre','est_coberto','garagem','portaria','seg_24h','video_vigilancia'];
-  const eKeys = [
-    'ar_cond','alarme','antena','aquec_central','barbecue','banheira_hidromassagem','caldeira','det_gas',
-    'det_incendio','cofre','det_intrusao','elevador','esquentador','det_inundacao','estores',
-    'fogao_electrico','forno','exaustor','frigorifico','gerador','isol_acustico','gas_botija','gas_natural',
-    'isol_termico','maq_louca','lareira','maq_roupa','mobilado','musica_amb','maq_secar','microondas',
-    'piso_radiante','bomba_calor','porta_seg','agua_quente_solar','asp_central','det_fumos','domotica',
-    'fogao','gas_canalizado','jacuzzi','microgeracao','placa_gas','placa_inducao','placa_vitro',
-    'pre_alarme','pre_internet','pre_tv_cabo','pre_ar_cond','pre_asp_central','pre_aq_central',
-    'pre_musica','pre_paineis','recuperador','roupeiros','video_porteiro','vidros_duplos','termoacumulador',
-    'toalheiros_aquecidos'
-  ];
 
   const rec = {
     id: EDIT_ID || ('A'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4)),
@@ -1375,7 +1179,7 @@ $('btnSave').addEventListener('click',()=>{
     link_url: get('a_link_url'),
 
     // Empreendimento
-    nome_empreendimento: get('a_nome_empreendimento'),
+    nome_empreendimento: nomeEmp,
     total_fracoes: get('a_total_fracoes'),
     tipologias: get('a_tipologias'),
     ano_construcao: get('a_ano_construcao'),
@@ -1393,7 +1197,7 @@ $('btnSave').addEventListener('click',()=>{
     regime: get('a_regime'),
 
     // Imóvel
-    titulo: imovelTitulo,
+    titulo: tituloImovel,
     loc_zona: get('loc_zona'),
     cert_energetico_classe: get('a_cert_energetico_classe'),
     loc_distrito: get('loc_distrito'),
@@ -1410,12 +1214,10 @@ $('btnSave').addEventListener('click',()=>{
     data: get('a_data'),
 
     // áreas
-    area_util: get('a_area_util'),
-    area_bruta: get('a_area_bruta'),
-    area_terreno: get('a_area_terreno'),
     abp: get('a_abp'),
     abd: get('a_abd'),
-    obs_areas: get('a_obs_areas'),
+    area_terreno: get('a_area_terreno'),
+    area_implantacao: get('a_area_implantacao'),
 
     // preço / comissão / ajustamento
     preco_pedido,
@@ -1434,39 +1236,21 @@ $('btnSave').addEventListener('click',()=>{
     d_rentab: chk('d_rentab'),
     duracao_contrato: duracao,
 
-    // docs
+    // docs resumo
     d_cc: chk('d_cc'),
     d_contrato_med: chk('d_contrato_med'),
     d_caderneta: chk('d_caderneta'),
     d_crp: chk('d_crp'),
     d_cert_energetico: chk('d_cert_energetico'),
-    d_planta_loc: chk('d_planta_loc'),
-    d_licenca: chk('d_licenca'),
-    d_fotos: chk('d_fotos'),
-    d_ficha_tec: chk('d_ficha_tec'),
-    d_mapa_acab: chk('d_mapa_acab'),
-    d_titulo_ph: chk('d_titulo_ph'),
-    d_cert_comercial: chk('d_cert_comercial'),
-    d_id_socios: chk('d_id_socios'),
-    d_tabela_preco: chk('d_tabela_preco'),
-    d_desc_projeto: chk('d_desc_projeto'),
-    d_minuta_cpcv: chk('d_minuta_cpcv'),
-    d_pedido_info: chk('d_pedido_info'),
-    d_proj_arq: chk('d_proj_arq'),
-    d_texto_1500: chk('d_texto_1500'),
     d_bupi: chk('d_bupi'),
 
     // observações e notas
-    visivel: (edit && edit.visivel===false)? false : true,
+    visivel: (EDIT_ID && ANG.find(x=>x.id===EDIT_ID) && ANG.find(x=>x.id===EDIT_ID).visivel===false)? false : true,
     notas: get('a_notas'),
     notas_consultor: get('a_notas_consultor'),
     notas_coordenador: get('a_notas_coordenador'),
     notas_assistente: get('a_notas_assistente')
   };
-
-  zKeys.forEach(k=> rec['z_'+k] = chk('z_'+k));
-  iKeys.forEach(k=> rec['i_'+k] = chk('i_'+k));
-  eKeys.forEach(k=> rec['e_'+k] = chk('e_'+k));
 
   const idx = ANG.findIndex(a=>a.id===rec.id);
   if(idx>=0) ANG[idx] = Object.assign(ANG[idx], rec);
@@ -1478,7 +1262,7 @@ $('btnSave').addEventListener('click',()=>{
   renderBoard();
 });
 
-/* ===== Renderização ===== */
+/* ===== Helpers de formatação ===== */
 function fmtDate(d){
   if(!d) return '—';
   try{ return new Date(d).toLocaleDateString('pt-PT'); }catch{return d;}
@@ -1496,6 +1280,7 @@ function fmtPct(v){
   return n.toFixed(1)+'%';
 }
 
+/* ===== Filtragem ===== */
 function filterDataset(){
   let out = [...ANG];
   const t = norm(FILTER.q||'');
@@ -1503,7 +1288,8 @@ function filterDataset(){
   if(t){
     out = out.filter(a=>{
       const blob = [
-        a.nome_empreendimento,a.titulo,a.proprietario,a.consultor,a.ref,a.notas,a.loc_concelho,a.loc_zona
+        a.nome_empreendimento,a.titulo,a.proprietario,a.consultor,a.ref,a.notas,
+        a.loc_concelho,a.loc_zona
       ].map(norm).join(' ');
       return blob.includes(t);
     });
@@ -1525,6 +1311,7 @@ function filterDataset(){
   return out;
 }
 
+/* ===== KPI + gráfico ===== */
 function renderKpi(filtered){
   const el = $('kpiBar');
   if(!filtered.length){
@@ -1552,7 +1339,6 @@ function renderKpi(filtered){
     <span class="kpi-badge highlight">Média ajustamento: ${mediaAj}</span>
   `;
 }
-
 function renderChart(filtered){
   const box = $('chartRows');
   box.innerHTML = '';
@@ -1578,6 +1364,11 @@ function renderChart(filtered){
     `;
     box.appendChild(row);
   });
+}
+
+/* ===== Card ===== */
+function isEmpreendimento(a){
+  return norm(a.natureza).includes('empreendimento');
 }
 
 function renderBoard(){
@@ -1625,51 +1416,104 @@ function renderBoard(){
 
       const disabledAttr = EDIT_MODE ? '' : 'disabled';
 
+      const emp = isEmpreendimento(a);
+
+      // Linha 2 – Empreendimento vs Proprietário
+      let linha2 = '';
+      if(emp){
+        const parts = [];
+        if(a.nome_empreendimento) parts.push('<b>Empreendimento:</b> '+a.nome_empreendimento);
+        const sub = [];
+        if(a.total_fracoes) sub.push(`Frações: ${a.total_fracoes}`);
+        if(a.tipologias) sub.push(`Tipologias: ${a.tipologias}`);
+        if(a.ano_construcao) sub.push(`Ano constr.: ${a.ano_construcao}`);
+        if(a.ano_conclusao) sub.push(`Ano concl.: ${a.ano_conclusao}`);
+        if(sub.length) parts.push(sub.join(' · '));
+        if(a.nome_promotor) parts.push('<b>Promotor:</b> '+a.nome_promotor);
+        if(a.contacto_promotor) parts.push('Tel. promotor: '+a.contacto_promotor);
+        if(a.email_promotor) parts.push('Email promotor: '+a.email_promotor);
+        linha2 = parts.length ? `<div class="row section-sep">${parts.join('<br>')}</div>` : '';
+      } else {
+        const ownerParts = [];
+        if(a.proprietario) ownerParts.push('<b>Proprietário:</b> '+a.proprietario);
+        if(a.contacto) ownerParts.push('Contacto: '+a.contacto);
+        if(a.email_proprietario) ownerParts.push('Email: '+a.email_proprietario);
+        if(ownerParts.length) linha2 = `<div class="row section-sep">${ownerParts.join(' · ')}</div>`;
+      }
+
+      // Linha 3 – Imóvel
+      const imovParts = [];
+      if(a.titulo) imovParts.push('<b>Imóvel:</b> '+a.titulo);
+      const locBits = [];
+      if(a.loc_zona) locBits.push(a.loc_zona);
+      if(a.loc_concelho) locBits.push(a.loc_concelho);
+      if(a.loc_freguesia) locBits.push(a.loc_freguesia);
+      if(locBits.length) imovParts.push('Localização: '+locBits.join(' · '));
+      if(a.cert_energetico_classe) imovParts.push('Cert. Energético: '+a.cert_energetico_classe);
+      const linha3 = imovParts.length ? `<div class="row section-sep">${imovParts.join('<br>')}</div>` : '';
+
+      // Linha 4 – Natureza / Estado / Negócio
+      const natBits = [];
+      if(a.negocio) natBits.push(a.negocio);
+      if(a.natureza) natBits.push(a.natureza);
+      if(a.estado_imovel) natBits.push(a.estado_imovel);
+      const linha4 = natBits.length ? `<div class="row section-sep"><b>Natureza / Negócio:</b> ${natBits.join(' — ')}</div>` : '';
+
+      // Linha 5 – Áreas
+      const areaBits = [];
+      if(a.abp) areaBits.push(`ABP: ${fmtNum(a.abp)} m²`);
+      if(a.abd) areaBits.push(`ABD: ${fmtNum(a.abd)} m²`);
+      if(a.area_terreno) areaBits.push(`Terreno: ${fmtNum(a.area_terreno)} m²`);
+      if(a.area_implantacao) areaBits.push(`Implantação: ${fmtNum(a.area_implantacao)} m²`);
+      const linha5 = areaBits.length ? `<div class="row section-sep"><b>Áreas:</b> ${areaBits.join(' · ')}</div>` : '';
+
+      // Linha 6 – Preço / Comissão / Ajustamento
+      const precoBits = [];
+      if(a.preco_pedido) precoBits.push('Pedido: '+fmtNum(a.preco_pedido)+' €');
+      if(a.preco_sugerido) precoBits.push('Sugerido: '+fmtNum(a.preco_sugerido)+' €');
+      if(a.comissao_pct!=='' && a.comissao_pct!==undefined) precoBits.push('Comissão: '+a.comissao_pct+'%');
+      if(a.ajustamento!=='' && a.ajustamento!==undefined) precoBits.push('Ajust.: '+fmtPct(a.ajustamento));
+      const linha6 = precoBits.length ? `<div class="row section-sep"><b>Preço / Comissão / Ajustamento:</b> ${precoBits.join(' · ')}</div>` : '';
+
+      const tooltip = [
+        a.nome_empreendimento || a.titulo || '',
+        emp ? (a.nome_promotor||'') : (a.proprietario||''),
+        a.loc_concelho || a.loc_zona || ''
+      ].filter(Boolean).join(' — ');
+
       card.innerHTML = `
         <div class="top">
           <div>
             <div class="name">${a.nome_empreendimento || a.titulo || '—'}</div>
             <div class="meta">
-              ${a.consultor||'—'}
-              ${a.ref? ' · '+a.ref:''}
+              ${a.consultor ? 'Angariador: '+a.consultor : ''}
+              ${a.consultor && a.gestor ? ' · ' : ''}
+              ${a.gestor ? 'Gestor: '+a.gestor : ''}
+              ${a.ref ? ' · Ref: '+a.ref : ''}
             </div>
           </div>
           <div>${badgeAj}</div>
         </div>
-        ${a.titulo ? `<div class="row"><b>Imóvel:</b> ${a.titulo}</div>`:''}
-        ${a.nome_promotor ? `<div class="row"><b>Promotor:</b> ${a.nome_promotor}</div>`:''}
-        <div class="row"><b>Proprietário:</b> ${a.proprietario||'—'}</div>
-        <div class="row"><b>Localização:</b> ${a.loc_concelho||'—'} ${a.loc_zona? ' · '+a.loc_zona:''}</div>
-        <div class="row"><b>Data:</b> ${fmtDate(a.data)}</div>
-        <div class="row">
-          <b>Preço pedido:</b> ${fmtNum(a.preco_pedido)} €
-          &nbsp;·&nbsp;
-          <b>Sugerido:</b> ${fmtNum(a.preco_sugerido)} €
+
+        ${linha2}
+        ${linha3}
+        ${linha4}
+        ${linha5}
+        ${linha6}
+
+        <div class="row section-sep">
+          <b>Data:</b> ${fmtDate(a.data)}
+          ${a.duracao_contrato ? ' · <b>Contrato:</b> '+a.duracao_contrato : ''}
+          ${a.d_exclusivo ? ' · Exclusivo' : ''}
+          ${a.d_nao_exclusivo ? ' · Não exclusivo' : ''}
         </div>
-        <div class="row">
-          <b>Comissão:</b> ${a.comissao_pct? a.comissao_pct+'%' : '—'}
-          &nbsp;·&nbsp;
-          <b>Origem:</b> ${a.origem||'—'}
-        </div>
-        <div class="row">
-          <b>Contrato:</b> ${a.duracao_contrato||'—'}
-          ${a.d_exclusivo?' · Exclusivo':''}
-          ${a.d_nao_exclusivo?' · Não exclusivo':''}
-        </div>
+
         <div class="row">
           ${badgeDocs} ${a.d_bupi ? ' · <span class="badge">BUPI</span>' : ''}
         </div>
-        ${a.notas? `<div class="row"><small>${a.notas}</small></div>`:''}
-        <div class="row">
-          <small>${
-            [
-              a.d_luxo?'Luxo':'',
-              a.d_banca?'Banca':'',
-              a.d_golden_visa?'Golden Visa':'',
-              a.d_rentab?'Rentabilidade':''
-            ].filter(Boolean).join(' · ')
-          }</small>
-        </div>
+
+        ${a.notas ? `<div class="row"><small>${a.notas}</small></div>`:''}
+
         <div class="actions">
           <button class="btn-sm" data-act="edit" ${disabledAttr}>Editar</button>
           <button class="btn-sm" data-act="pdf" ${disabledAttr}>Ficha PDF</button>
@@ -1681,6 +1525,7 @@ function renderBoard(){
           <button class="btn-sm" data-act="toggle" ${disabledAttr}>${a.visivel===false?'Tornar visível':'Tornar invisível'}</button>
         </div>
       `;
+      card.title = tooltip;
       if(a.visivel===false) card.style.opacity = .45;
 
       card.querySelector('[data-act="edit"]').addEventListener('click',()=>{
@@ -1722,7 +1567,7 @@ function renderBoard(){
   });
 }
 
-/* ===== Ficha PDF (print) ===== */
+/* ===== PDF ===== */
 function escapeHtml(str){
   return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
@@ -1732,7 +1577,7 @@ function abrirFichaPdf(a){
     alert('O navegador bloqueou a janela de impressão. Autorize pop-ups para gerar o PDF.');
     return;
   }
-  const logoUrl = 'logo-garvetur.png'; // coloque este ficheiro na raiz do projeto
+  const logoUrl = 'logo-garvetur.png'; // coloque aqui o logo da Garvetur
 
   const html = `
 <!doctype html>
@@ -1888,13 +1733,11 @@ hr{
 <div class="section">
   <h2>Áreas</h2>
   <div class="grid-3">
-    <div><label>Área útil:</label> ${fmtNum(a.area_util)} m²</div>
-    <div><label>Área bruta:</label> ${fmtNum(a.area_bruta)} m²</div>
-    <div><label>Área terreno:</label> ${fmtNum(a.area_terreno)} m²</div>
     <div><label>ABP:</label> ${fmtNum(a.abp)} m²</div>
     <div><label>ABD:</label> ${fmtNum(a.abd)} m²</div>
+    <div><label>Terreno:</label> ${fmtNum(a.area_terreno)} m²</div>
+    <div><label>Implantação:</label> ${fmtNum(a.area_implantacao)} m²</div>
   </div>
-  <div class="row"><label>Observações:</label> ${escapeHtml(a.obs_areas||'')}</div>
 </div>
 
 <div class="section">
@@ -1910,17 +1753,13 @@ hr{
 </div>
 
 <div class="section">
-  <h2>Destaques</h2>
+  <h2>Destaques & Documentação</h2>
   <div class="row">
-    <label>Exclusividade:</label>
-    ${a.d_exclusivo?'Exclusivo':''}
-    ${a.d_nao_exclusivo?'Não exclusivo':''}
-  </div>
-  <div class="row"><label>Duração do contrato:</label> ${escapeHtml(a.duracao_contrato||'')}</div>
-  <div class="row">
-    <label>Outros destaques:</label>
+    <label>Destaques:</label>
     ${
       [
+        a.d_exclusivo?'Exclusivo':'',
+        a.d_nao_exclusivo?'Não exclusivo':'',
         a.d_luxo?'Luxo':'',
         a.d_banca?'Banca':'',
         a.d_golden_visa?'Golden Visa':'',
@@ -1928,10 +1767,7 @@ hr{
       ].filter(Boolean).join(' · ')
     }
   </div>
-</div>
-
-<div class="section">
-  <h2>Documentação entregue</h2>
+  <div class="row"><label>Duração do contrato:</label> ${escapeHtml(a.duracao_contrato||'')}</div>
   <div class="small">
     Ident. Proprietários: ${a.d_cc?'Sim':'Não'} ·
     Contrato Mediação: ${a.d_contrato_med?'Sim':'Não'} ·
@@ -1971,14 +1807,15 @@ hr{
 function exportCsv(){
   const rows = [];
   const headers = [
-    "ID","Empreendimento","TítuloImóvel","Tipologias",
-    "Natureza","Negócio","EstadoImóvel",
-    "Proprietário","EmailProprietário","Consultor","Gestor","Coordenador","Interveniente",
-    "Data","Ref","Link","EstadoAngariação",
+    "ID","Empreendimento","TituloImovel","Tipologias",
+    "Natureza","Negocio","EstadoImovel",
+    "Proprietario","EmailProprietario","Consultor","Gestor","Coordenador","Interveniente",
+    "Data","Ref","Link","EstadoAngariacao",
     "Morada","Zona","Concelho","Freguesia",
-    "AnoConstrução","AnoConclusão","CertEnergético","TotalFrações",
-    "PreçoPedido","PreçoSugerido","Comissão(%)","Ajustamento(%)",
-    "Origem","Visível","Notas","BUPI","DocCompleta","DuracaoContrato"
+    "AnoConstrucao","AnoConclusao","CertEnerg","TotalFracoes",
+    "ABP","ABD","AreaTerreno","AreaImplantacao",
+    "PrecoPedido","PrecoSugerido","Comissao","Ajustamento",
+    "Origem","Visivel","Notas","BUPI","DocsOK","DuracaoContrato"
   ];
   rows.push(headers);
 
@@ -2011,6 +1848,10 @@ function exportCsv(){
       a.ano_conclusao||'',
       a.cert_energetico_classe||'',
       a.total_fracoes||'',
+      a.abp||'',
+      a.abd||'',
+      a.area_terreno||'',
+      a.area_implantacao||'',
       a.preco_pedido||'',
       a.preco_sugerido||'',
       (a.comissao_pct!==undefined && a.comissao_pct!==''? a.comissao_pct:''),
