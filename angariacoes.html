@@ -1,1898 +1,2200 @@
 <!doctype html>
-<html lang="pt">
+<html lang="pt-PT">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Garvetur Porto Pro — Angariações</title>
+  <meta charset="utf-8" />
+  <title>Garvetur Porto Pro — Angariações</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
+  <style>
+    :root {
+      --gold:#A38B63;
+      --gold-soft:rgba(163,139,99,.35);
+      --bg:#0B0B0B;
+      --panel:#121212;
+      --panel-soft:#181818;
+      --text:#FFFFFF;
+      --muted:#A0A0A0;
+      --danger:#F25F5C;
+      --success:#4CAF50;
+      --warning:#FFC857;
+      --card-border:rgba(163,139,99,.3);
+      --chip-bg:#1E1E1E;
+      --radius-lg:18px;
+      --radius-md:12px;
+      --shadow-soft:0 14px 25px rgba(0,0,0,.4);
+    }
 
-<link rel="preconnect" href="https://unpkg.com" crossorigin>
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    *{box-sizing:border-box;}
+    html,body{
+      margin:0;
+      height:100%;
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      background:radial-gradient(circle at top,#1c1c1c 0,#050505 55%,#000 100%);
+      color:var(--text);
+    }
 
-<style>
-:root{
-  --gold:#A38B63;
-  --bg:#0E0E0E;
-  --panel:#131313;
-  --text:#FFFFFF;
-  --muted:#9AA0A6;
-  --border:rgba(255,255,255,.12);
-}
-html,body{
-  height:100%;
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;
-}
-a{color:#eaeaea;text-decoration:none}
+    body{
+      display:flex;
+      flex-direction:column;
+    }
 
-/* Layout base */
-.app{display:grid;grid-template-rows:56px auto auto 1fr;height:100%}
+    .app-shell{
+      display:grid;
+      grid-template-rows:64px auto;
+      height:100%;
+    }
 
-/* Header */
-header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:10px 12px;
-  border-bottom:1px solid var(--border);
-  background:#0F0F0F;
-}
-.brand{display:flex;align-items:center;gap:10px}
-.brand h1{font-size:16px;margin:0;color:var(--gold)}
-.nav{display:flex;gap:8px}
-.nav a{
-  border:1px solid var(--border);
-  padding:6px 10px;
-  border-radius:8px;
-  color:#ddd;
-}
-.nav a.active{
-  background:var(--gold);
-  color:#111;
-  border-color:var(--gold);
-  font-weight:700;
-}
+    header.app-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:10px 18px;
+      border-bottom:1px solid rgba(163,139,99,.35);
+      background:linear-gradient(90deg,#050505,#111,#050505);
+      position:sticky;
+      top:0;
+      z-index:20;
+    }
 
-/* Toolbar */
-.toolbar{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  padding:8px 12px;
-  border-bottom:1px solid var(--border);
-  background:#0F0F0F;
-}
-.btn{
-  background:transparent;
-  border:1px solid rgba(163,139,99,.5);
-  color:#fff;
-  padding:6px 10px;
-  border-radius:10px;
-  cursor:pointer;
-  font-size:12px;
-}
-.btn.primary{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
-.btn.ghost{border-color:var(--border);color:#ddd}
-.btn[disabled]{opacity:.45;cursor:not-allowed}
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .brand-icon{
+      width:26px;
+      height:26px;
+      border-radius:999px;
+      border:1px solid var(--gold);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 0 0 1px rgba(163,139,99,.3);
+    }
+    .brand h1{
+      margin:0;
+      font-size:17px;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      color:var(--gold);
+    }
+    .brand span.sub{
+      display:block;
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
 
-/* KPI Bar */
-.kpi-bar{
-  padding:6px 12px;
-  border-bottom:1px solid var(--border);
-  font-size:12px;
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  align-items:center;
-  background:#101010;
-}
-.kpi-badge{
-  padding:2px 8px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.18);
-}
-.kpi-badge.highlight{
-  border-color:var(--gold);
-  color:var(--gold);
-  font-weight:600;
-}
+    .header-actions{
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
 
-/* Main */
-.main{
-  display:grid;
-  grid-template-columns:300px 1fr;
-  height:calc(100vh - 56px - 48px - 32px);
-}
-.sidebar{
-  background:var(--panel);
-  border-right:1px solid var(--border);
-  padding:12px;
-  overflow:auto;
-}
-.sidebar h3{
-  margin:0 0 8px 0;
-  font-size:13px;
-  color:#d7d7d7;
-  text-transform:uppercase;
-  letter-spacing:.06em;
-}
-.field{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-  margin-bottom:10px;
-}
-.field label{font-size:12px;color:#ccc}
-.field input,.field select{
-  background:#0E0E0E;
-  border:1px solid rgba(255,255,255,.16);
-  border-radius:8px;
-  color:#fff;
-  padding:8px 10px;
-  outline:none;
-  font-size:12px;
-}
-.checks{display:flex;flex-direction:column;gap:8px}
-.checks label{
-  display:flex;
-  gap:6px;
-  align-items:center;
-  font-size:13px;
-  color:#ddd;
-}
-.checks input{accent-color:var(--gold)}
+    .btn{
+      border-radius:999px;
+      border:1px solid var(--gold-soft);
+      background:rgba(12,12,12,.9);
+      color:var(--text);
+      padding:7px 12px;
+      font-size:13px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      cursor:pointer;
+      transition:.18s border-color,.18s background,.18s transform;
+    }
+    .btn-primary{
+      background:var(--gold);
+      color:#0A0A0A;
+      border-color:var(--gold);
+      font-weight:500;
+    }
+    .btn-ghost{
+      background:transparent;
+    }
+    .btn-icon{
+      width:32px;
+      height:32px;
+      padding:0;
+      border-radius:999px;
+      justify-content:center;
+    }
+    .btn:hover{
+      border-color:var(--gold);
+      transform:translateY(-1px);
+    }
+    .btn:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+      transform:none;
+    }
 
-/* Board */
-.board{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:10px;
-  padding:10px;
-  height:100%;
-  overflow:auto;
-}
-.col{
-  background:var(--panel);
-  border-radius:12px;
-  border:1px solid var(--border);
-  display:flex;
-  flex-direction:column;
-  min-width:260px;
-}
-.col header{
-  padding:10px;
-  border-bottom:1px solid rgba(255,255,255,.08);
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
-.col header .title{font-weight:700}
-.col header .counter{font-size:12px;color:#cfcfcf}
-.col .list{
-  padding:10px;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
+    .pill-lock{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-size:12px;
+      padding:4px 9px;
+      border-radius:999px;
+      background:rgba(0,0,0,.45);
+      border:1px solid rgba(255,255,255,.14);
+      color:var(--muted);
+    }
+    .pill-lock span.state{
+      font-weight:500;
+      color:var(--gold);
+    }
+    .pill-lock button{
+      all:unset;
+      cursor:pointer;
+      padding:2px 6px;
+      border-radius:999px;
+      background:rgba(255,255,255,.05);
+    }
 
-/* Cards */
-.card{
-  background:#0E0E0E;
-  border-radius:12px;
-  border:1px solid rgba(163,139,99,.35);
-  padding:10px;
-}
-.card .top{
-  display:flex;
-  justify-content:space-between;
-  gap:8px;
-}
-.card .name{font-weight:700}
-.card .meta{font-size:11px;color:#bbb;text-transform:uppercase;letter-spacing:.04em}
-.card .row{margin-top:5px;font-size:12px;color:#ddd}
-.card .row small{color:#aaa}
-.section-sep{
-  margin-top:6px;
-  padding-top:6px;
-  border-top:1px solid rgba(163,139,99,.4);
-}
-.badge{
-  display:inline-block;
-  padding:2px 8px;
-  font-size:11px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.18);
-}
-.badge.red{border-color:#ff6b6b;color:#ffb4b4}
-.badge.green{border-color:#5ac48f;color:#bdf7d3}
-.badge.yellow{border-color:#ffdd7a;color:#ffdd7a}
-.actions{
-  margin-top:8px;
-  display:flex;
-  flex-wrap:wrap;
-  gap:6px;
-}
-.btn-sm{
-  font-size:11px;
-  padding:4px 7px;
-  border-radius:8px;
-  border:1px solid rgba(255,255,255,.18);
-  background:transparent;
-  color:#eee;
-  cursor:pointer;
-}
-.btn-sm.danger{border-color:#cc4b4b;color:#ffdddd}
-.btn-sm[disabled]{opacity:.45;cursor:not-allowed}
-.select-move{
-  background:#0E0E0E;
-  border-radius:8px;
-  border:1px solid rgba(255,255,255,.25);
-  color:#ddd;
-  font-size:11px;
-  padding:3px 6px;
-}
-.select-move[disabled]{opacity:.45;cursor:not-allowed}
+    /* Layout principal */
+    .layout{
+      display:grid;
+      grid-template-columns:320px minmax(0,1fr);
+      height:calc(100vh - 64px);
+      max-height:calc(100vh - 64px);
+      overflow:hidden;
+    }
+    @media (max-width: 960px){
+      .layout{
+        grid-template-columns:1fr;
+        grid-template-rows:auto auto;
+        height:auto;
+        max-height:none;
+      }
+      .sidebar{
+        max-height:none;
+      }
+    }
 
-/* Mini gráfico por consultor */
-.chart{
-  margin-top:12px;
-  border-top:1px dashed rgba(255,255,255,.2);
-  padding-top:10px;
-}
-.chart h4{
-  margin:0 0 6px 0;
-  font-size:12px;
-  color:#ccc;
-  text-transform:uppercase;
-  letter-spacing:.06em;
-}
-.chart-row{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  margin-bottom:4px;
-}
-.chart-label{
-  width:120px;
-  font-size:11px;
-  color:#ddd;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.chart-bar-wrap{
-  flex:1;
-  background:#222;
-  border-radius:999px;
-  overflow:hidden;
-}
-.chart-bar{
-  height:6px;
-  background:linear-gradient(90deg,#A38B63,#F4D188);
-}
+    .sidebar{
+      border-right:1px solid rgba(163,139,99,.24);
+      background:radial-gradient(circle at top left,#141414,#060606);
+      padding:12px 14px;
+      overflow-y:auto;
+    }
+    .sidebar-section{
+      border-radius:var(--radius-md);
+      padding:10px 11px;
+      background:rgba(0,0,0,.45);
+      border:1px solid rgba(163,139,99,.18);
+      margin-bottom:10px;
+    }
+    .sidebar-section h3{
+      margin:0 0 6px;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      color:var(--muted);
+    }
+    .sidebar-section p{
+      margin:2px 0 6px;
+      font-size:12px;
+      color:var(--muted);
+    }
 
-/* Modal */
-.modal-backdrop{
-  position:fixed;
-  inset:0;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  background:rgba(0,0,0,.6);
-  backdrop-filter:blur(2px);
-  z-index:10000;
-  padding:16px;
-}
-.modal-backdrop.show{display:flex}
-.modal{
-  width:min(1080px,96vw);
-  background:#0F0F0F;
-  border-radius:12px;
-  border:1px solid var(--border);
-  overflow:hidden;
-}
-.modal header{
-  padding:10px 12px;
-  border-bottom:1px solid var(--border);
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-.modal .content{
-  padding:12px;
-  max-height:72vh;
-  overflow:auto;
-}
-.section-title{
-  margin:12px 0 6px 0;
-  font-size:12px;
-  color:#ccc;
-  text-transform:uppercase;
-  letter-spacing:.06em;
-}
-.form-grid2{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-}
-.form-grid3{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:10px;
-}
-.form-field{
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-}
-.form-field label{font-size:12px;color:#ccc}
-.form-field input,.form-field select,.form-field textarea{
-  background:#0E0E0E;
-  border-radius:8px;
-  border:1px solid rgba(255,255,255,.16);
-  color:#fff;
-  padding:8px 10px;
-  outline:none;
-  font-size:12px;
-}
-textarea{resize:vertical}
-.small-hint{font-size:11px;color:#9AA0A6}
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      margin-bottom:8px;
+    }
+    .field-row{
+      display:flex;
+      gap:6px;
+    }
+    label.field-label{
+      font-size:11px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.12em;
+    }
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    input[type="email"],
+    select,
+    textarea{
+      background:rgba(0,0,0,.7);
+      color:var(--text);
+      border-radius:10px;
+      border:1px solid rgba(163,139,99,.22);
+      padding:6px 8px;
+      font-size:13px;
+      outline:none;
+      width:100%;
+    }
+    input:focus, select:focus, textarea:focus{
+      border-color:var(--gold);
+      box-shadow:0 0 0 1px rgba(163,139,99,.35);
+    }
+    textarea{
+      resize:vertical;
+      min-height:60px;
+    }
 
-/* Checkbox grids (simplificado) */
-.check-grid-3{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:6px;
-}
-.check-grid-3 label{
-  font-size:12px;
-  display:flex;
-  align-items:center;
-  gap:6px;
-  color:#ddd;
-}
-.check-grid-3 input{accent-color:var(--gold)}
+    .filters-badges{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:4px;
+    }
+    .badge{
+      font-size:11px;
+      border-radius:999px;
+      padding:3px 7px;
+      border:1px solid rgba(163,139,99,.35);
+      background:rgba(8,8,8,.8);
+      color:var(--muted);
+    }
+    .badge strong{color:var(--gold);}
 
-/* Responsive */
-@media (max-width:1400px){ .board{grid-template-columns:repeat(3,1fr)} }
-@media (max-width:1024px){ .board{grid-template-columns:repeat(2,1fr)} }
-@media (max-width:768px){
-  .main{grid-template-columns:1fr}
-  .sidebar{order:2;height:280px}
-  .board{order:1}
-}
-</style>
+    .toggle-line{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      font-size:12px;
+      margin-top:4px;
+    }
+    .toggle-line span{
+      color:var(--muted);
+    }
+
+    .cards-area{
+      padding:14px 16px 18px;
+      overflow-y:auto;
+      background:radial-gradient(circle at top,#1a1a1a,#050505 55%,#000 100%);
+    }
+
+    .cards-header{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      margin-bottom:8px;
+      gap:10px;
+    }
+    .cards-header-left h2{
+      margin:0;
+      font-size:15px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+    .cards-header-left p{
+      margin:2px 0 0;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .pipeline-kpis{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:4px;
+    }
+    .kpi-chip{
+      border-radius:999px;
+      padding:4px 9px;
+      border:1px solid rgba(163,139,99,.32);
+      font-size:11px;
+      color:var(--muted);
+      background:rgba(8,8,8,.9);
+    }
+    .kpi-chip span.value{
+      color:var(--gold);
+      font-weight:600;
+      margin-left:4px;
+    }
+
+    .cards-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+      gap:10px;
+    }
+
+    .card{
+      border-radius:var(--radius-lg);
+      border:1px solid var(--card-border);
+      padding:10px 11px 9px;
+      background:radial-gradient(circle at top left,#181818,#070707);
+      box-shadow:var(--shadow-soft);
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      position:relative;
+    }
+    .card.hidden-card{
+      opacity:.45;
+      border-style:dashed;
+    }
+
+    .card-top-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:8px;
+    }
+    .card-title-block{
+      flex:1;
+      min-width:0;
+    }
+    .card-title{
+      margin:0;
+      font-size:14px;
+      font-weight:600;
+      color:#fff;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      overflow:hidden;
+    }
+    .card-subtitle{
+      margin:1px 0 0;
+      font-size:11px;
+      color:var(--muted);
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      overflow:hidden;
+    }
+
+    .chip-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
+      margin-top:4px;
+    }
+    .chip{
+      border-radius:999px;
+      padding:2px 7px;
+      font-size:10px;
+      border:1px solid rgba(163,139,99,.4);
+      background:var(--chip-bg);
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+    .chip-primary{
+      border-color:var(--gold);
+      color:var(--gold);
+    }
+    .chip-green{
+      border-color:rgba(76,175,80,.7);
+      color:#A5D6A7;
+    }
+    .chip-red{
+      border-color:rgba(242,95,92,.8);
+      color:#FFABAB;
+    }
+    .chip-yellow{
+      border-color:rgba(255,200,87,.8);
+      color:#FFE082;
+    }
+
+    .card-section{
+      border-top:1px solid rgba(163,139,99,.18);
+      padding-top:4px;
+      margin-top:2px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .card-section strong{
+      color:#f5f5f5;
+      font-weight:500;
+    }
+    .card-section-line{
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      margin-top:2px;
+    }
+    .card-section-line span{
+      font-size:11px;
+      white-space:nowrap;
+      text-overflow:ellipsis;
+      overflow:hidden;
+    }
+
+    .card-footer{
+      margin-top:6px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:6px;
+      font-size:11px;
+      color:var(--muted);
+    }
+    .card-footer-left{
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
+      align-items:center;
+    }
+    .card-footer-right{
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
+      justify-content:flex-end;
+    }
+
+    .btn-xs{
+      border-radius:999px;
+      padding:3px 7px;
+      border:1px solid rgba(163,139,99,.35);
+      background:rgba(5,5,5,.9);
+      color:var(--muted);
+      font-size:10px;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+    }
+    .btn-xs.primary{
+      border-color:var(--gold);
+      color:var(--gold);
+    }
+    .btn-xs.danger{
+      border-color:var(--danger);
+      color:#FFB3B0;
+    }
+
+    .empty{
+      font-size:12px;
+      color:var(--muted);
+      padding:16px 4px;
+    }
+
+    /* Modal */
+    .modal-backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.7);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:40;
+    }
+    .modal-backdrop.open{
+      display:flex;
+    }
+    .modal{
+      width:min(980px,96vw);
+      max-height:90vh;
+      background:radial-gradient(circle at top,#151515,#050505);
+      border-radius:22px;
+      border:1px solid rgba(163,139,99,.5);
+      box-shadow:0 24px 45px rgba(0,0,0,.8);
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+    }
+    .modal-header{
+      padding:10px 16px 8px;
+      border-bottom:1px solid rgba(163,139,99,.25);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      background:linear-gradient(90deg,#050505,#111,#050505);
+    }
+    .modal-header h2{
+      margin:0;
+      font-size:15px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--gold);
+    }
+    .modal-body{
+      padding:10px 14px 12px;
+      overflow-y:auto;
+    }
+    .form-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+    }
+    @media (max-width: 900px){
+      .form-grid{
+        grid-template-columns:1fr;
+      }
+    }
+    .form-section{
+      border-radius:var(--radius-md);
+      border:1px solid rgba(163,139,99,.22);
+      background:rgba(0,0,0,.55);
+      padding:8px 9px;
+    }
+    .form-section h3{
+      margin:0 0 6px;
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:var(--muted);
+    }
+    .form-section small{
+      font-size:11px;
+      color:var(--muted);
+    }
+
+    .checkbox-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:4px 10px;
+      margin-top:4px;
+    }
+    @media (max-width: 720px){
+      .checkbox-grid{
+        grid-template-columns:repeat(1,minmax(0,1fr));
+      }
+    }
+    .chk{
+      display:flex;
+      align-items:center;
+      gap:5px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .chk input{
+      width:auto;
+      accent-color:var(--gold);
+    }
+
+    .modal-footer{
+      padding:8px 14px 10px;
+      border-top:1px solid rgba(163,139,99,.25);
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      background:#050505;
+    }
+    .modal-footer-left{
+      font-size:11px;
+      color:var(--muted);
+    }
+
+    .switch{
+      position:relative;
+      display:inline-block;
+      width:34px;
+      height:18px;
+    }
+    .switch input{
+      opacity:0;
+      width:0;
+      height:0;
+    }
+    .slider{
+      position:absolute;
+      cursor:pointer;
+      inset:0;
+      background-color:#444;
+      transition:.2s;
+      border-radius:34px;
+    }
+    .slider:before{
+      position:absolute;
+      content:"";
+      height:14px;
+      width:14px;
+      left:3px;
+      bottom:2px;
+      background-color:white;
+      transition:.2s;
+      border-radius:50%;
+    }
+    .switch input:checked + .slider{
+      background-color:var(--gold);
+    }
+    .switch input:checked + .slider:before{
+      transform:translateX(14px);
+    }
+
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-VgS5HGFqkWf46qR0iAfDdc0AGJi/7luWGINuD/7++UZ5EONosFVJeFt3PcTJS3BM4tiTn8NzfcIu05wGDE5F8g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
-<header>
-  <div class="brand">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--gold)">
-      <circle cx="12" cy="12" r="10" stroke-width="1.5"></circle>
-      <path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"></path>
-    </svg>
-    <h1>Garvetur Porto Pro — Angariações</h1>
-  </div>
-  <nav class="nav">
-    <a href="./index.html">Mapa</a>
-    <a href="./kanban.html">Leads</a>
-    <a class="active" href="./angariacoes.html">Angariações</a>
-    <a href="./dashboard.html">Dashboard</a>
-  </nav>
-</header>
+<div class="app-shell">
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M8 12.5l2.5 2.5L16 9"></path>
+        </svg>
+      </div>
+      <div>
+        <h1>Garvetur Porto Pro — Angariações</h1>
+        <span class="sub">Gestão avançada de produto | Garvetur Luxury Porto</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="pill-lock" id="lockPill">
+        <span>Modo</span>
+        <span class="state" id="lockStateLabel">Bloqueado</span>
+        <button id="toggleLockBtn" title="Alternar entre edição bloqueada e ativa">
+          🔒
+        </button>
+      </div>
+      <button class="btn btn-ghost" id="exportCsvBtn" title="Exportar angariações para CSV">⤓ CSV</button>
+      <button class="btn btn-ghost" id="exportPdfBtn" title="Exportar ficha(s) para PDF">⤓ PDF</button>
+      <button class="btn btn-primary" id="newDealBtn">+ Nova Angariação</button>
+    </div>
+  </header>
 
-<div class="toolbar">
-  <button class="btn primary" id="btnNew" disabled>+ Nova Angariação</button>
-  <button class="btn" id="toggleEdit">🔒 Edição bloqueada</button>
-  <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
-    <button class="btn" id="exportCsv">Exportar CSV</button>
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <h3>Filtros</h3>
+        <div class="field">
+          <label class="field-label" for="filterConsultor">Consultor</label>
+          <select id="filterConsultor">
+            <option value="">Todos</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label" for="filterDataDe">De</label>
+            <input type="date" id="filterDataDe" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="filterDataAte">Até</label>
+            <input type="date" id="filterDataAte" />
+          </div>
+        </div>
+        <div class="toggle-line">
+          <span>Mostrar angariações invisíveis</span>
+          <label class="switch">
+            <input type="checkbox" id="filterShowHidden">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <p style="margin-top:6px;">Use estes filtros para preparar reuniões, análises semanais ou focar num consultor.</p>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Resumo rápido</h3>
+        <div class="filters-badges" id="summaryBadges">
+          <!-- preenchido por JS -->
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Notas</h3>
+        <p>Quando o cadeado está em <strong>Aberto</strong>, pode criar, editar e apagar angariações.</p>
+        <p>Quando está <strong>Bloqueado</strong>, apenas consulta e exporta, sem risco de alterar dados.</p>
+      </div>
+    </aside>
+
+    <!-- CARDS -->
+    <main class="cards-area">
+      <div class="cards-header">
+        <div class="cards-header-left">
+          <h2>Angariações</h2>
+          <p>Visão consolidada de produto em carteira — focada na leitura rápida.</p>
+          <div class="pipeline-kpis" id="pipelineKpis">
+            <!-- preenchido por JS -->
+          </div>
+        </div>
+      </div>
+      <div id="cardsGrid" class="cards-grid">
+        <!-- cards -->
+      </div>
+      <div id="emptyState" class="empty" style="display:none;">
+        Ainda não existem angariações registadas com os filtros atuais.
+      </div>
+    </main>
   </div>
 </div>
 
-<div class="kpi-bar" id="kpiBar"></div>
-
-<div class="main">
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <h3>Pesquisa</h3>
-    <div class="field">
-      <input id="f_q" placeholder="Empreendimento, proprietário, consultor, ref., notas">
-    </div>
-
-    <h3>Filtros</h3>
-    <div class="field">
-      <label>Consultor</label>
-      <select id="f_consultor">
-        <option value="">(Todos)</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>Estado</label>
-      <select id="f_estado">
-        <option value="">(Todos)</option>
-        <option>Novo</option>
-        <option>Em Negociação</option>
-        <option>Aprovado</option>
-        <option>Perdido</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>Período (Data)</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        <input id="f_ini" type="date">
-        <input id="f_fim" type="date">
-      </div>
-    </div>
-    <div class="field">
-      <label>% Ajustamento (min–máx)</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        <input id="f_aj_min" type="number" step="1" placeholder="min">
-        <input id="f_aj_max" type="number" step="1" placeholder="máx">
-      </div>
-    </div>
-    <div class="checks">
-      <label><input type="checkbox" id="f_show_hidden"> Mostrar invisíveis</label>
-      <label><input type="checkbox" id="f_only_hidden"> Só invisíveis</label>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="btn" id="applyFilters">Aplicar</button>
-      <button class="btn ghost" id="clearFilters">Limpar</button>
-    </div>
-
-    <!-- Mini gráfico -->
-    <div class="chart">
-      <h4>Angariações por consultor</h4>
-      <div id="chartRows"></div>
-    </div>
-  </aside>
-
-  <!-- Board -->
-  <section class="board" id="board"></section>
-</div>
-
-<!-- Modal Angariação -->
-<div class="modal-backdrop" id="angModal">
+<!-- MODAL -->
+<div class="modal-backdrop" id="modalBackdrop">
   <div class="modal">
-    <header>
-      <div><strong id="modalTitle">Nova Angariação</strong></div>
-      <div style="display:flex;gap:8px">
-        <button class="btn" id="btnCancel">Cancelar</button>
-        <button class="btn primary" id="btnSave">Guardar</button>
-      </div>
-    </header>
-    <div class="content">
-      <!-- Cabeçalho -->
-      <div class="section-title">Cabeçalho</div>
-      <div class="form-grid3">
-        <div class="form-field">
-          <label>Consultor</label>
-          <select id="a_consultor">
-            <option value="">—</option>
-            <option>Rui Quelhas</option>
-            <option>Manuel Oliveira</option>
-            <option>João Sousa</option>
-            <option>Francisco dos Santos</option>
-            <option>Rosário Vasconcelos</option>
-            <option>Armanda Meireles</option>
-            <option>Audrey Lucas</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label>Gestor</label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-            <select id="a_gestor">
-              <option value="">—</option>
-              <option>Rui Quelhas</option>
-              <option>Manuel Oliveira</option>
-              <option>João Sousa</option>
-              <option>Francisco dos Santos</option>
-              <option>Rosário Vasconcelos</option>
-              <option>Armanda Meireles</option>
-              <option>Audrey Lucas</option>
-              <option value="outro">Outro</option>
-            </select>
-            <input id="a_gestor_outro" placeholder="Outro gestor" style="display:none">
+    <div class="modal-header">
+      <h2 id="modalTitle">Nova Angariação</h2>
+      <button class="btn btn-icon btn-ghost" id="closeModalBtn" title="Fechar">
+        ✕
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="dealForm">
+        <input type="hidden" id="dealId" />
+        <div class="form-grid">
+
+          <!-- COLUNA 1 -->
+          <div class="form-section">
+            <h3>Envolvidos & Referência</h3>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="consultor">Consultor</label>
+                <select id="consultor"></select>
+              </div>
+              <div class="field">
+                <label class="field-label" for="gestor">Gestor</label>
+                <select id="gestor"></select>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="coordenador">Coordenador</label>
+                <input type="text" id="coordenador" value="Rui Quelhas" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="interveniente">Interveniente</label>
+                <input type="text" id="interveniente" />
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="refInterna">Ref. interna</label>
+                <input type="text" id="refInterna" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="linkUrl">Link URL</label>
+                <input type="text" id="linkUrl" placeholder="https://…" />
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="dataAngariacao">Data angariação</label>
+                <input type="date" id="dataAngariacao" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="estadoAng">Estado angariação</label>
+                <select id="estadoAng">
+                  <option value="novo">Novo</option>
+                  <option value="negociacao">Em negociação</option>
+                  <option value="aprovado">Aprovado</option>
+                  <option value="perdido">Perdido</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label">Duração contrato</label>
+              <div class="field-row">
+                <select id="duracaoContrato">
+                  <option value="">—</option>
+                  <option value="3m">3 meses</option>
+                  <option value="4m">4 meses</option>
+                  <option value="5m">5 meses</option>
+                  <option value="6m">6 meses</option>
+                  <option value="outro">Outro</option>
+                </select>
+                <input type="text" id="duracaoOutro" placeholder="Se outro, indique" />
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label">Exclusividade</label>
+                <div class="field-row">
+                  <label class="chk"><input type="checkbox" id="exclusivo"> <span>Exclusivo</span></label>
+                  <label class="chk"><input type="checkbox" id="naoExclusivo"> <span>Não exclusivo</span></label>
+                </div>
+              </div>
+            </div>
+
           </div>
-        </div>
-        <div class="form-field">
-          <label>Coordenador</label>
-          <input id="a_coordenador" value="Rui Quelhas">
-        </div>
-        <div class="form-field">
-          <label>Interveniente</label>
-          <input id="a_interveniente" placeholder="Nome do interveniente">
-        </div>
-        <div class="form-field">
-          <label>Ref. Interna</label>
-          <input id="a_ref">
-        </div>
-        <div class="form-field">
-          <label>Link URL</label>
-          <input id="a_link_url" placeholder="https://…">
-        </div>
-      </div>
 
-      <!-- Empreendimento -->
-      <div class="section-title">Empreendimento</div>
-      <div class="form-grid3">
-        <div class="form-field">
-          <label>Nome do empreendimento</label>
-          <input id="a_nome_empreendimento" placeholder="Ex.: Essence, Madalena Vista Mar">
-        </div>
-        <div class="form-field">
-          <label>Total de Frações</label>
-          <input id="a_total_fracoes" type="number" min="0" step="1">
-        </div>
-        <div class="form-field">
-          <label>Tipologias</label>
-          <input id="a_tipologias" placeholder="Ex.: T1–T4, T2 e T3">
-        </div>
-        <div class="form-field">
-          <label>Ano de construção</label>
-          <input id="a_ano_construcao" placeholder="Ex.: 2002">
-        </div>
-        <div class="form-field">
-          <label>Ano de conclusão</label>
-          <input id="a_ano_conclusao" placeholder="Ex.: 2025">
-        </div>
-      </div>
-      <div class="form-grid3">
-        <div class="form-field">
-          <label>Promotor</label>
-          <input id="a_nome_promotor">
-        </div>
-        <div class="form-field">
-          <label>Contacto telefónico (Promotor)</label>
-          <input id="a_contacto_promotor">
-        </div>
-        <div class="form-field">
-          <label>Email do Promotor</label>
-          <input id="a_email_promotor" type="email">
-        </div>
-      </div>
+          <!-- COLUNA 2 -->
+          <div class="form-section">
+            <h3>Empreendimento & Proprietário</h3>
 
-      <!-- Proprietário -->
-      <div class="section-title">Proprietário</div>
-      <div class="form-grid3">
-        <div class="form-field">
-          <label>Nome</label>
-          <input id="a_proprietario" placeholder="Nome do proprietário">
-        </div>
-        <div class="form-field">
-          <label>Contacto telefónico</label>
-          <input id="a_contacto" placeholder="+351 …">
-        </div>
-        <div class="form-field">
-          <label>Email</label>
-          <input id="a_email_proprietario" type="email" placeholder="email@exemplo.pt">
-        </div>
-      </div>
-      <div class="form-field">
-        <label>Morada</label>
-        <input id="loc_morada">
-      </div>
-      <div class="form-grid2">
-        <div class="form-field">
-          <label>Estado civil</label>
-          <select id="a_estado_civil">
-            <option value="">—</option>
-            <option>Solteiro</option>
-            <option>Casado</option>
-            <option>Divorciado</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label>Regime de casamento</label>
-          <select id="a_regime">
-            <option value="">—</option>
-            <option>Comunhão de adquiridos</option>
-            <option>Comunhão geral de bens</option>
-            <option>Separação de bens</option>
-          </select>
-        </div>
-      </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label">É empreendimento?</label>
+                <label class="chk"><input type="checkbox" id="isEmpreendimento"><span>Sim, trata-se de um empreendimento</span></label>
+              </div>
+            </div>
 
-      <!-- Imóvel -->
-      <div class="section-title">Imóvel</div>
-      <div class="form-grid3">
-        <div class="form-field">
-          <label>Título / Designação</label>
-          <input id="a_titulo" placeholder="Ex.: Apartamento T3 com vista mar">
-        </div>
-        <div class="form-field">
-          <label>Localização</label>
-          <input id="loc_zona" placeholder="Zona / localização">
-        </div>
-        <div class="form-field">
-          <label>Certificado Energético</label>
-          <select id="a_cert_energetico_classe">
-            <option value="">—</option>
-            <option>A+</option>
-            <option>A</option>
-            <option>B</option>
-            <option>B-</option>
-            <option>C</option>
-            <option>D</option>
-            <option>E</option>
-            <option>F</option>
-            <option>G</option>
-            <option>Isento</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-grid3">
-        <div class="form-field">
-          <label>Distrito</label>
-          <input id="loc_distrito">
-        </div>
-        <div class="form-field">
-          <label>Concelho</label>
-          <input id="loc_concelho">
-        </div>
-        <div class="form-field">
-          <label>Freguesia</label>
-          <input id="loc_freguesia">
-        </div>
-      </div>
-      <div class="form-field">
-        <label>Coordenadas GPS</label>
-        <input id="loc_gps" placeholder="Ex.: 41.15, -8.61">
-      </div>
+            <div id="empBlock">
+              <div class="field-row">
+                <div class="field">
+                  <label class="field-label" for="nomeEmp">Nome empreendimento</label>
+                  <input type="text" id="nomeEmp" />
+                </div>
+                <div class="field">
+                  <label class="field-label" for="totalFracoes">Total de frações</label>
+                  <input type="number" id="totalFracoes" min="0" />
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label class="field-label" for="tipologiasEmp">Tipologias</label>
+                  <input type="text" id="tipologiasEmp" placeholder="Ex.: T1–T4" />
+                </div>
+                <div class="field">
+                  <label class="field-label" for="anoConstrEmp">Ano construção</label>
+                  <input type="number" id="anoConstrEmp" min="1800" max="2100" />
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label class="field-label" for="anoConclEmp">Ano conclusão</label>
+                  <input type="number" id="anoConclEmp" min="1800" max="2100" />
+                </div>
+                <div class="field">
+                  <label class="field-label" for="promotor">Promotor</label>
+                  <input type="text" id="promotor" />
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label class="field-label" for="telPromotor">Contacto promotor</label>
+                  <input type="text" id="telPromotor" />
+                </div>
+                <div class="field">
+                  <label class="field-label" for="emailPromotor">Email promotor</label>
+                  <input type="email" id="emailPromotor" />
+                </div>
+              </div>
+            </div>
 
-      <!-- Natureza / Estado / Negócio -->
-      <div class="section-title">Natureza, estado e negócio</div>
-      <div class="form-grid3">
-        <div class="form-field">
-          <label>Natureza</label>
-          <select id="a_natureza">
-            <option value="">—</option>
-            <option>Apartamento</option>
-            <option>Moradia</option>
-            <option>Terreno</option>
-            <option>Loja</option>
-            <option>Escritório</option>
-            <option>Empreendimento</option>
-            <option>Outro</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label>Natureza (Outro)</label>
-          <input id="a_natureza_outro">
-        </div>
-        <div class="form-field">
-          <label>Estado do imóvel</label>
-          <select id="a_estado_imovel">
-            <option value="">—</option>
-            <option>Novo</option>
-            <option>Usado</option>
-            <option>Recuperado</option>
-            <option>Em construção</option>
-            <option>Em Projeto</option>
-            <option>Outro</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label>Negócio</label>
-          <select id="a_negocio">
-            <option value="">—</option>
-            <option>Venda</option>
-            <option>Arrendamento</option>
-            <option>Arrendamento para Férias</option>
-            <option>Trespasse</option>
-            <option>Permuta</option>
-            <option>Outro</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label>Negócio (Outro)</label>
-          <input id="a_negocio_outro">
-        </div>
-        <div class="form-field">
-          <label>Data</label>
-          <input id="a_data" type="date">
-        </div>
-      </div>
+            <hr style="border:none;border-top:1px solid rgba(163,139,99,.25);margin:6px 0 8px;">
 
-      <!-- Áreas -->
-      <div class="section-title">Áreas (m²)</div>
-      <div class="form-grid3">
-        <div class="form-field">
-          <label>ABP (Área Bruta Privativa)</label>
-          <input id="a_abp" type="number" min="0" step="1">
-        </div>
-        <div class="form-field">
-          <label>ABD (Área Bruta Dependente)</label>
-          <input id="a_abd" type="number" min="0" step="1">
-        </div>
-        <div class="form-field">
-          <label>Área Terreno</label>
-          <input id="a_area_terreno" type="number" min="0" step="1">
-        </div>
-        <div class="form-field">
-          <label>Área Implantação</label>
-          <input id="a_area_implantacao" type="number" min="0" step="1">
-        </div>
-      </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="nomeProp">Nome proprietário</label>
+                <input type="text" id="nomeProp" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="telProp">Contacto telefónico</label>
+                <input type="text" id="telProp" />
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="emailProp">Email proprietário</label>
+                <input type="email" id="emailProp" />
+              </div>
+            </div>
+            <div class="field">
+              <label class="field-label" for="moradaProp">Morada</label>
+              <input type="text" id="moradaProp" />
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="estadoCivil">Estado civil</label>
+                <select id="estadoCivil">
+                  <option value="">—</option>
+                  <option value="solteiro">Solteiro(a)</option>
+                  <option value="casado">Casado(a)</option>
+                  <option value="divorciado">Divorciado(a)</option>
+                  <option value="viuvo">Viúvo(a)</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="field-label" for="regimeCasamento">Regime casamento</label>
+                <select id="regimeCasamento">
+                  <option value="">—</option>
+                  <option value="comunhaoAdquiridos">Comunhão de adquiridos</option>
+                  <option value="comunhaoGeral">Comunhão geral de bens</option>
+                  <option value="separacao">Separação de bens</option>
+                </select>
+              </div>
+            </div>
 
-      <!-- Preço / Comissão / Ajustamento -->
-      <div class="section-title">Preço, comissão e ajustamento</div>
-      <div class="form-grid3">
-        <div class="form-field">
-          <label>Preço pedido (€)</label>
-          <input id="a_preco_pedido" type="number" min="0" step="1000">
-        </div>
-        <div class="form-field">
-          <label>Preço sugerido (€)</label>
-          <input id="a_preco_sugerido" type="number" min="0" step="1000">
-        </div>
-        <div class="form-field">
-          <label>% Ajustamento</label>
-          <input id="a_ajustamento" type="number" step="0.1" placeholder="Ex.: -8">
-        </div>
-        <div class="form-field">
-          <label>Comissão</label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-            <select id="a_comissao">
-              <option value="">—</option>
-              <option value="6">6%</option>
-              <option value="5">5%</option>
-              <option value="4">4%</option>
-              <option value="3">3%</option>
-              <option value="outro">Outro</option>
-            </select>
-            <input id="a_comissao_outro" placeholder="Ex.: 4.5%" style="display:none">
           </div>
-        </div>
-        <div class="form-field">
-          <label>Origem do cliente</label>
-          <select id="a_origem">
-            <option value="">—</option>
-            <option>Prospecção ativa</option>
-            <option>Recomendação</option>
-            <option>Portal</option>
-            <option>Walk-in</option>
-            <option>Lead digital</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label>Estado da angariação</label>
-          <select id="a_estado">
-            <option>Novo</option>
-            <option>Em Negociação</option>
-            <option>Aprovado</option>
-            <option>Perdido</option>
-          </select>
-        </div>
-      </div>
 
-      <!-- Destaques (simplificado) -->
-      <div class="section-title">Destaques</div>
-      <div class="check-grid-3">
-        <label><input type="checkbox" id="d_exclusivo"> Exclusivo</label>
-        <label><input type="checkbox" id="d_nao_exclusivo"> Não exclusivo</label>
-        <label><input type="checkbox" id="d_luxo"> Luxo</label>
-        <label><input type="checkbox" id="d_banca"> Imóveis da Banca</label>
-        <label><input type="checkbox" id="d_golden_visa"> Golden Visa</label>
-        <label><input type="checkbox" id="d_rentab"> Rentabilidade Garantida</label>
-      </div>
-      <div class="form-grid3">
-        <div class="form-field">
-          <label>Duração do Contrato</label>
-          <select id="d_duracao">
-            <option value="">—</option>
-            <option>3 meses</option>
-            <option>4 meses</option>
-            <option>5 meses</option>
-            <option>6 meses</option>
-            <option value="outro">Outro</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label>Duração (Outro)</label>
-          <input id="d_duracao_outro" placeholder="Ex.: 9 meses" style="display:none">
-        </div>
-      </div>
+          <!-- COLUNA 3 -->
+          <div class="form-section">
+            <h3>Imóvel & Localização</h3>
 
-      <!-- Documentação (resumo) -->
-      <div class="section-title">Documentação entregue (resumo)</div>
-      <div class="check-grid-3">
-        <label><input type="checkbox" id="d_cc"> Identificação Proprietários</label>
-        <label><input type="checkbox" id="d_contrato_med"> Contrato Mediação</label>
-        <label><input type="checkbox" id="d_caderneta"> Caderneta Predial</label>
-        <label><input type="checkbox" id="d_crp"> Certidão Registo Predial</label>
-        <label><input type="checkbox" id="d_cert_energetico"> Certificado Energético</label>
-        <label><input type="checkbox" id="d_bupi"> Registado no BUPI</label>
-      </div>
+            <div class="field">
+              <label class="field-label" for="tituloImovel">Título / Designação</label>
+              <input type="text" id="tituloImovel" placeholder="Ex.: Apartamento T3 com vista mar" />
+            </div>
 
-      <!-- Observações principais -->
-      <div class="section-title">Observações (quantitativo)</div>
-      <div class="form-field">
-        <label>Observações gerais</label>
-        <textarea id="a_notas" rows="3"></textarea>
-        <div id="obsCounter" class="small-hint">0/1500 caracteres</div>
-      </div>
+            <div class="field">
+              <label class="field-label" for="localizacao">Localização (zona/morada)</label>
+              <input type="text" id="localizacao" />
+            </div>
 
-      <!-- Notas internas -->
-      <div class="section-title">Notas internas</div>
-      <div class="form-grid3">
-        <div class="form-field">
-          <label>Notas do Consultor</label>
-          <textarea id="a_notas_consultor" rows="2"></textarea>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="distrito">Distrito</label>
+                <input type="text" id="distrito" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="concelho">Concelho</label>
+                <input type="text" id="concelho" />
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="freguesia">Freguesia</label>
+                <input type="text" id="freguesia" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="zona">Zona</label>
+                <input type="text" id="zona" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="gps">Coordenadas GPS</label>
+              <input type="text" id="gps" placeholder="Ex.: 41.147, -8.61" />
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="anoConstrucao">Ano construção</label>
+                <input type="number" id="anoConstrucao" min="1800" max="2100" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="anoConclusao">Ano conclusão</label>
+                <input type="number" id="anoConclusao" min="1800" max="2100" />
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="certEnerg">Cert. energético</label>
+                <input type="text" id="certEnerg" placeholder="Ex.: A+, B, C…" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="condominioValor">Condomínio (€)</label>
+                <input type="number" id="condominioValor" min="0" step="1" />
+              </div>
+            </div>
+
+          </div>
+
+          <!-- COLUNA 4 -->
+          <div class="form-section">
+            <h3>Natureza, Áreas, Preço & Ajustamento</h3>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="natureza">Natureza</label>
+                <select id="natureza">
+                  <option value="">—</option>
+                  <option value="apartamento">Apartamento</option>
+                  <option value="moradia">Moradia</option>
+                  <option value="terreno">Terreno</option>
+                  <option value="loja">Loja</option>
+                  <option value="escritorio">Escritório</option>
+                  <option value="empreendimento">Empreendimento</option>
+                  <option value="outro">Outro</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="field-label" for="estadoImovel">Estado imóvel</label>
+                <select id="estadoImovel">
+                  <option value="">—</option>
+                  <option value="novo">Novo</option>
+                  <option value="usado">Usado</option>
+                  <option value="recuperado">Recuperado</option>
+                  <option value="construcao">Em construção</option>
+                  <option value="projeto">Em projeto</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="tipoNegocio">Tipo de negócio</label>
+                <select id="tipoNegocio">
+                  <option value="">—</option>
+                  <option value="venda">Venda</option>
+                  <option value="compra">Compra</option>
+                  <option value="arrendamento">Arrendamento</option>
+                  <option value="permuta">Permuta</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="field-label" for="origemCliente">Origem cliente</label>
+                <input type="text" id="origemCliente" />
+              </div>
+            </div>
+
+            <hr style="border:none;border-top:1px solid rgba(163,139,99,.25);margin:6px 0;">
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="areaUtil">Área útil (m²)</label>
+                <input type="number" id="areaUtil" min="0" step="1" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="areaBruta">Área bruta (m²)</label>
+                <input type="number" id="areaBruta" min="0" step="1" />
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="areaABP">ABP (m²)</label>
+                <input type="number" id="areaABP" min="0" step="1" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="areaABD">ABD (m²)</label>
+                <input type="number" id="areaABD" min="0" step="1" />
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="areaTerreno">Terreno (m²)</label>
+                <input type="number" id="areaTerreno" min="0" step="1" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="areaImplantacao">Implantação (m²)</label>
+                <input type="number" id="areaImplantacao" min="0" step="1" />
+              </div>
+            </div>
+
+            <hr style="border:none;border-top:1px solid rgba(163,139,99,.25);margin:6px 0;">
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="precoPedido">Preço pedido (€)</label>
+                <input type="number" id="precoPedido" min="0" step="1000" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="precoSugerido">Preço sugerido (€)</label>
+                <input type="number" id="precoSugerido" min="0" step="1000" />
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="comissao">Comissão</label>
+                <select id="comissao">
+                  <option value="">—</option>
+                  <option value="6">6%</option>
+                  <option value="5">5%</option>
+                  <option value="4">4%</option>
+                  <option value="3">3%</option>
+                  <option value="outro">Outro</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="field-label" for="comissaoOutro">Se outro (%)</label>
+                <input type="number" id="comissaoOutro" min="0" max="100" step="0.1" />
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="percentAjust">Ajustamento (%)</label>
+                <input type="number" id="percentAjust" step="0.1" />
+              </div>
+              <div class="field">
+                <label class="field-label">&nbsp;</label>
+                <small>Se deixar vazio, é calculado com base nos preços (se ambos preenchidos).</small>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- COLUNA 5: Secção 10 -->
+          <div class="form-section">
+            <h3>10.1 Características (numéricas)</h3>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="numSalas">Sala(s)</label>
+                <input type="number" id="numSalas" min="0" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="numSalasJantar">Sala(s) jantar</label>
+                <input type="number" id="numSalasJantar" min="0" />
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="numSuites">Suite(s)</label>
+                <input type="number" id="numSuites" min="0" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="numClosets">Closet(s)</label>
+                <input type="number" id="numClosets" min="0" />
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="numCozinhas">Cozinha(s)</label>
+                <input type="number" id="numCozinhas" min="0" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="numDespensas">Despensa(s)</label>
+                <input type="number" id="numDespensas" min="0" />
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="numMarquises">Marquise(s)</label>
+                <input type="number" id="numMarquises" min="0" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="numLavandarias">Lavandaria(s)</label>
+                <input type="number" id="numLavandarias" min="0" />
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="numSotaos">Sótão(s)</label>
+                <input type="number" id="numSotaos" min="0" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="numVarandas">Varanda(s)</label>
+                <input type="number" id="numVarandas" min="0" />
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="numPisos">Nº pisos</label>
+                <input type="number" id="numPisos" min="0" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="numQuartos">Total quartos</label>
+                <input type="number" id="numQuartos" min="0" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>10.2 Zona envolvente</h3>
+            <div id="zonaEnvolventeGroup" class="checkbox-grid"></div>
+            <h3 style="margin-top:8px;">10.3 Infraestruturas</h3>
+            <div id="infraGroup" class="checkbox-grid"></div>
+          </div>
+
+          <div class="form-section">
+            <h3>10.4 Equipamentos</h3>
+            <div id="equipGroup" class="checkbox-grid"></div>
+            <h3 style="margin-top:8px;">10.5 Segurança</h3>
+            <div id="segGroup" class="checkbox-grid"></div>
+          </div>
+
+          <div class="form-section">
+            <h3>Documentação & Notas</h3>
+            <small>Marque o que já foi recebido e use as notas para alinhamento interno.</small>
+            <div class="checkbox-grid" id="docsGroup"></div>
+
+            <div class="field" style="margin-top:6px;">
+              <label class="field-label" for="observacoes">Observações</label>
+              <textarea id="observacoes"></textarea>
+            </div>
+            <div class="field">
+              <label class="field-label" for="notasInternas">Notas internas</label>
+              <textarea id="notasInternas"></textarea>
+            </div>
+          </div>
+
         </div>
-        <div class="form-field">
-          <label>Notas do Coordenador</label>
-          <textarea id="a_notas_coordenador" rows="2"></textarea>
-        </div>
-        <div class="form-field">
-          <label>Notas da Assistente</label>
-          <textarea id="a_notas_assistente" rows="2"></textarea>
-        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-footer-left">
+        Dados guardados apenas neste navegador (localStorage). Use exportações para backup/partilha.
+      </div>
+      <div>
+        <button class="btn btn-ghost" id="cancelModalBtn">Cancelar</button>
+        <button class="btn btn-primary" id="saveDealBtn">Guardar</button>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-/* ===== Estado global ===== */
-const LS_KEY = 'gpp_angariacoes_v5';
-const EDIT_KEY = 'gpp_ang_edit_mode';
-const COLS = ["Novo","Em Negociação","Aprovado","Perdido"];
-const CONSULT = [
-  "Rui Quelhas",
-  "Manuel Oliveira",
-  "João Sousa",
-  "Francisco dos Santos",
-  "Rosário Vasconcelos",
-  "Armanda Meireles",
-  "Audrey Lucas"
-];
+(function(){
+  const STORAGE_KEY = 'gpp_angariacoes_v2';
 
-let ANG = [];
-let FILTER = {
-  q:'',
-  consultor:'',
-  estado:'',
-  ini:'',
-  fim:'',
-  ajMin:'',
-  ajMax:'',
-  showHidden:false,
-  onlyHidden:false
-};
-let EDIT_MODE = false;
-let EDIT_ID = null;
+  const CONSULTOR_OPTIONS = [
+    "Rui Quelhas",
+    "Manuel Oliveira",
+    "João Sousa",
+    "Francisco dos Santos",
+    "Rosário Vasconcelos",
+    "Armanda Meireles",
+    "Audrey Lucas",
+    "Outro"
+  ];
 
-const $ = id => document.getElementById(id);
-const norm = s => String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const ZONA_ENVOLVENTE = [
+    "Aeroporto","Banco","Áreas de Lazer Infantil","Auto-estrada","Biblioteca","Centro Comercial",
+    "Centro da Cidade","Bombeiros","Campo","Campo de Golfe","Estação Rodoviária","Farmácia","Escola",
+    "Espaços Verdes","Estação Ferroviária","Ginásio","Metro","Hipermercado","Hospital","Mercado",
+    "Perto da praia","Praça de Táxis","Piscinas","Polícia","Posto de Combustível",
+    "Transportes Públicos","Zona Histórica","Zona Comercial"
+  ];
 
-/* ===== Storage helpers ===== */
-function loadLS(){
-  try{
-    const raw = localStorage.getItem(LS_KEY);
-    return raw? JSON.parse(raw):[];
-  }catch{return [];}
-}
-function saveLS(){
-  localStorage.setItem(LS_KEY, JSON.stringify(ANG));
-}
+  const INFRAESTRUTURAS = [
+    "Acesso para Deficientes","Campo de ténis","Adega","Anexos","Arrecadação","Complexo Desportivo",
+    "Ginásio","Piscina","Jardim","Parque infantil","Terraço","Salão de Festas","Salão de Jogos",
+    "Telheiro","Estacionamento ao ar livre","Estacionamento coberto","Garagem"
+  ];
 
-/* ===== Edit mode lock ===== */
-function applyEditUI(){
-  const btnNew = $('btnNew');
-  const toggle = $('toggleEdit');
-  if(EDIT_MODE){
-    toggle.classList.add('primary');
-    toggle.textContent = '🔓 Edição ativa';
-    btnNew.disabled = false;
-  } else {
-    toggle.classList.remove('primary');
-    toggle.textContent = '🔒 Edição bloqueada';
-    btnNew.disabled = true;
-  }
-}
-function setEditMode(on){
-  EDIT_MODE = !!on;
-  localStorage.setItem(EDIT_KEY, EDIT_MODE?'1':'0');
-  applyEditUI();
-  renderBoard();
-}
+  const EQUIPAMENTOS = [
+    "Ar Condicionado","Aquecimento Central","Lareira","Recuperador de calor","Estores eléctricos",
+    "Vidros duplos","Porta Alta Segurança","Roupeiros","Aspiração Central","Piso radiante",
+    "Termoacumulador","Toalheiros aquecidos","Domótica","Sistema solar / Água quente solar",
+    "Pré-instalações","Gás canalizado","Gás natural","Gás botija","Jacuzzi","Microgeração solar",
+    "Placa a gás","Placa indução","Placa vitrocerâmica",
+    "Máquina lavar loiça","Máquina lavar roupa","Máquina secar","Frigorífico","Exaustor",
+    "Forno","Fogão","Fogão elétrico","Alarme","Detector de fumos","Detector de gás",
+    "Detector de inundação","Detector de incêndio","Elevador","Cofre","Isolamento térmico",
+    "Isolamento acústico","Música ambiente","Mobilado","Bomba de Calor"
+  ];
 
-/* ===== Filtros ===== */
-function loadFilters(){
-  const sel = $('f_consultor');
-  sel.innerHTML = '<option value="">(Todos)</option>'+CONSULT.map(c=>`<option>${c}</option>`).join('');
-}
-function applyFilterStateFromUI(){
-  FILTER.q = $('f_q').value.trim();
-  FILTER.consultor = $('f_consultor').value;
-  FILTER.estado = $('f_estado').value;
-  FILTER.ini = $('f_ini').value;
-  FILTER.fim = $('f_fim').value;
-  FILTER.ajMin = $('f_aj_min').value;
-  FILTER.ajMax = $('f_aj_max').value;
-  FILTER.showHidden = $('f_show_hidden').checked;
-  FILTER.onlyHidden = $('f_only_hidden').checked;
-}
-function clearFilterUI(){
-  $('f_q').value = '';
-  $('f_consultor').value = '';
-  $('f_estado').value = '';
-  $('f_ini').value = '';
-  $('f_fim').value = '';
-  $('f_aj_min').value = '';
-  $('f_aj_max').value = '';
-  $('f_show_hidden').checked = false;
-  $('f_only_hidden').checked = false;
-  FILTER = {q:'',consultor:'',estado:'',ini:'',fim:'',ajMin:'',ajMax:'',showHidden:false,onlyHidden:false};
-}
-$('applyFilters').addEventListener('click',()=>{ applyFilterStateFromUI(); renderBoard(); });
-$('clearFilters').addEventListener('click',()=>{ clearFilterUI(); renderBoard(); });
-let qTimer=null;
-$('f_q').addEventListener('input',()=>{
-  clearTimeout(qTimer);
-  qTimer = setTimeout(()=>{ applyFilterStateFromUI(); renderBoard(); },200);
-});
+  const SEGURANCA = [
+    "Portaria","Vídeo vigilância","Segurança 24h"
+  ];
 
-/* ===== Observações contador ===== */
-function updateObsCounter(){
-  const ta = $('a_notas');
-  const c = $('obsCounter');
-  if(!ta || !c) return;
-  let txt = ta.value || '';
-  if(txt.length > 1500){
-    txt = txt.slice(0,1500);
-    ta.value = txt;
-  }
-  c.textContent = txt.length + '/1500 caracteres';
-  c.style.color = txt.length > 1400 ? '#ff8080' : '#9AA0A6';
-}
-$('a_notas').addEventListener('input', updateObsCounter);
+  const DOCUMENTACAO = [
+    "Contrato de Mediação","Identificação Proprietários","Caderneta Predial",
+    "Certidão Registo Predial","Certificado Energético","Planta de Localização",
+    "Planta do Imóvel","Licença de Utilização","Licença de Construção",
+    "Dispensa Licença (pré-1951)","Fotografias","Vídeo","Ficha Técnica Habitação",
+    "Mapa de Acabamentos","Título Constitutivo PH","Certidão Comercial Empresa",
+    "Identificação Sócios","Tabela Preços Empreendimento","Descrição Projeto",
+    "Minuta CPCV","Plano Pagamentos","Pedido Informação Prévia","Projeto Arquitetura",
+    "Projeto Especialidades","Registado no BUPI","Outros"
+  ];
 
-/* ===== Modal ===== */
-function openModal(edit=null){
-  if(!EDIT_MODE){
-    alert('Modo de edição bloqueado. Clique em "🔓 Edição ativa" para criar ou editar angariações.');
-    return;
-  }
-  EDIT_ID = edit? edit.id : null;
-  $('modalTitle').textContent = edit? 'Editar Angariação' : 'Nova Angariação';
+  function $(id){ return document.getElementById(id); }
 
-  const set = (id,val='') => { const el=$(id); if(el) el.value = (val ?? ''); };
-  const chk = (id,val)=>{ const el=$(id); if(el) el.checked = !!val; };
+  const lockStateLabel = $('lockStateLabel');
+  const toggleLockBtn = $('toggleLockBtn');
+  const newDealBtn = $('newDealBtn');
+  const exportCsvBtn = $('exportCsvBtn');
+  const exportPdfBtn = $('exportPdfBtn');
+  const cardsGrid = $('cardsGrid');
+  const emptyState = $('emptyState');
+  const pipelineKpis = $('pipelineKpis');
+  const summaryBadges = $('summaryBadges');
 
-  const a = edit || {};
-  // Cabeçalho
-  set('a_consultor', a.consultor);
-  if(a.gestor && CONSULT.includes(a.gestor)){
-    set('a_gestor', a.gestor);
-    $('a_gestor_outro').style.display='none';
-    $('a_gestor_outro').value='';
-  } else if(a.gestor){
-    set('a_gestor','outro');
-    $('a_gestor_outro').style.display='block';
-    $('a_gestor_outro').value = a.gestor;
-  } else {
-    set('a_gestor','');
-    $('a_gestor_outro').style.display='none';
-    $('a_gestor_outro').value='';
-  }
-  set('a_coordenador', a.coordenador || 'Rui Quelhas');
-  set('a_interveniente', a.interveniente);
-  set('a_ref', a.ref);
-  set('a_link_url', a.link_url);
+  const filterConsultor = $('filterConsultor');
+  const filterDataDe = $('filterDataDe');
+  const filterDataAte = $('filterDataAte');
+  const filterShowHidden = $('filterShowHidden');
 
-  // Empreendimento
-  set('a_nome_empreendimento', a.nome_empreendimento);
-  set('a_total_fracoes', a.total_fracoes);
-  set('a_tipologias', a.tipologias);
-  set('a_ano_construcao', a.ano_construcao);
-  set('a_ano_conclusao', a.ano_conclusao);
-  set('a_nome_promotor', a.nome_promotor);
-  set('a_contacto_promotor', a.contacto_promotor);
-  set('a_email_promotor', a.email_promotor);
+  const modalBackdrop = $('modalBackdrop');
+  const modalTitle = $('modalTitle');
+  const closeModalBtn = $('closeModalBtn');
+  const cancelModalBtn = $('cancelModalBtn');
+  const saveDealBtn = $('saveDealBtn');
+  const dealForm = $('dealForm');
 
-  // Proprietário
-  set('a_proprietario', a.proprietario);
-  set('a_contacto', a.contacto);
-  set('a_email_proprietario', a.email_proprietario);
-  set('loc_morada', a.loc_morada);
-  set('a_estado_civil', a.estado_civil);
-  set('a_regime', a.regime);
+  const consultorSelect = $('consultor');
+  const gestorSelect = $('gestor');
 
-  // Imóvel
-  set('a_titulo', a.titulo);
-  set('loc_zona', a.loc_zona);
-  set('a_cert_energetico_classe', a.cert_energetico_classe);
-  set('loc_distrito', a.loc_distrito);
-  set('loc_concelho', a.loc_concelho);
-  set('loc_freguesia', a.loc_freguesia);
-  set('loc_gps', a.loc_gps);
+  const isEmpreendimento = $('isEmpreendimento');
+  const empBlock = $('empBlock');
 
-  // Natureza / negócio / data
-  set('a_natureza', a.natureza);
-  set('a_natureza_outro', a.natureza_outro);
-  set('a_estado_imovel', a.estado_imovel);
-  set('a_negocio', a.negocio);
-  set('a_negocio_outro', a.negocio_outro);
-  set('a_data', a.data || new Date().toISOString().slice(0,10));
-
-  // Áreas
-  set('a_abp', a.abp);
-  set('a_abd', a.abd);
-  set('a_area_terreno', a.area_terreno);
-  set('a_area_implantacao', a.area_implantacao);
-
-  // preço / comissão / ajustamento
-  set('a_preco_pedido', a.preco_pedido);
-  set('a_preco_sugerido', a.preco_sugerido);
-  set('a_ajustamento', a.ajustamento);
-  if(a.comissao_pct && ['6','5','4','3'].includes(String(a.comissao_pct))){
-    set('a_comissao', String(a.comissao_pct));
-    $('a_comissao_outro').style.display='none';
-    $('a_comissao_outro').value='';
-  } else if(a.comissao_pct){
-    set('a_comissao','outro');
-    $('a_comissao_outro').style.display='block';
-    $('a_comissao_outro').value = a.comissao_pct+'%';
-  } else {
-    set('a_comissao','');
-    $('a_comissao_outro').style.display='none';
-    $('a_comissao_outro').value='';
-  }
-  set('a_origem', a.origem);
-  set('a_estado', a.estado || 'Novo');
-
-  // destaques
-  chk('d_exclusivo', a.d_exclusivo);
-  chk('d_nao_exclusivo', a.d_nao_exclusivo);
-  chk('d_luxo', a.d_luxo);
-  chk('d_banca', a.d_banca);
-  chk('d_golden_visa', a.d_golden_visa);
-  chk('d_rentab', a.d_rentab);
-  set('d_duracao', a.duracao_contrato);
-  if(a.duracao_contrato && !['3 meses','4 meses','5 meses','6 meses'].includes(a.duracao_contrato)){
-    $('d_duracao').value = 'outro';
-    $('d_duracao_outro').style.display='block';
-    $('d_duracao_outro').value = a.duracao_contrato;
-  } else {
-    $('d_duracao_outro').style.display='none';
-    $('d_duracao_outro').value='';
-  }
-
-  // docs resumo
-  chk('d_cc', a.d_cc);
-  chk('d_contrato_med', a.d_contrato_med);
-  chk('d_caderneta', a.d_caderneta);
-  chk('d_crp', a.d_crp);
-  chk('d_cert_energetico', a.d_cert_energetico);
-  chk('d_bupi', a.d_bupi);
-
-  // observações e notas
-  set('a_notas', a.notas);
-  set('a_notas_consultor', a.notas_consultor);
-  set('a_notas_coordenador', a.notas_coordenador);
-  set('a_notas_assistente', a.notas_assistente);
-  updateObsCounter();
-
-  $('angModal').classList.add('show');
-}
-$('btnCancel').addEventListener('click',()=> $('angModal').classList.remove('show'));
-$('btnNew').addEventListener('click',()=> openModal(null));
-$('a_comissao').addEventListener('change', e=>{
-  if(e.target.value === 'outro'){
-    $('a_comissao_outro').style.display='block';
-  } else {
-    $('a_comissao_outro').style.display='none';
-    $('a_comissao_outro').value='';
-  }
-});
-$('a_gestor').addEventListener('change', e=>{
-  if(e.target.value === 'outro'){
-    $('a_gestor_outro').style.display='block';
-  } else {
-    $('a_gestor_outro').style.display='none';
-    $('a_gestor_outro').value='';
-  }
-});
-$('d_duracao').addEventListener('change', e=>{
-  if(e.target.value === 'outro'){
-    $('d_duracao_outro').style.display='block';
-  } else {
-    $('d_duracao_outro').style.display='none';
-    $('d_duracao_outro').value='';
-  }
-});
-
-/* ===== Guardar (sem obrigatórios) ===== */
-$('btnSave').addEventListener('click',()=>{
-  if(!EDIT_MODE){
-    alert('Modo de edição bloqueado. Clique em "🔓 Edição ativa" para guardar alterações.');
-    return;
-  }
-
-  const get = id => { const el=$(id); return el? el.value.trim():''; };
-  const chk = id => { const el=$(id); return el? !!el.checked:false; };
-
-  // recolher principais campos
-  const consultor = get('a_consultor');
-  const gestorSel = get('a_gestor');
-  const gestorOutro = get('a_gestor_outro');
-  let gestor = '';
-  if(gestorSel === 'outro'){ gestor = gestorOutro || ''; }
-  else { gestor = gestorSel || ''; }
-
-  const proprietario = get('a_proprietario');
-  const nomeEmp = get('a_nome_empreendimento');
-  const tituloImovel = get('a_titulo');
-
-  // validação mínima: tem de haver algum conteúdo relevante
-  const concatMain = [
-    consultor, gestor, proprietario, nomeEmp, tituloImovel,
-    get('a_preco_pedido'),
-    get('a_preco_sugerido')
-  ].join('').trim();
-  if(!concatMain){
-    alert('Preencha pelo menos um dos campos principais (consultor, proprietário, empreendimento, imóvel ou preço) antes de guardar.');
-    return;
-  }
-
-  const preco_pedido = get('a_preco_pedido');
-  const preco_sugerido = get('a_preco_sugerido');
-  let ajust = get('a_ajustamento');
-
-  if(preco_pedido && preco_sugerido && !ajust){
-    const pp = Number(preco_pedido);
-    const ps = Number(preco_sugerido);
-    if(pp>0 && ps>0){
-      ajust = (((ps-pp)/pp)*100).toFixed(1);
-    }
-  }
-
-  // comissão
-  let comissao_pct = '';
-  const comSel = get('a_comissao');
-  if(comSel === 'outro'){
-    const raw = get('a_comissao_outro').replace('%','').replace(',','.');
-    const n = Number(raw);
-    if(Number.isFinite(n)) comissao_pct = n;
-  } else if(comSel){
-    comissao_pct = Number(comSel);
-  }
-
-  // duração contrato
-  let duracao = get('d_duracao');
-  if(duracao === 'outro'){
-    const outro = get('d_duracao_outro');
-    if(outro) duracao = outro;
-    else duracao = '';
-  }
-
-  const rec = {
-    id: EDIT_ID || ('A'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4)),
-
-    // Cabeçalho
-    consultor,
-    gestor,
-    coordenador: get('a_coordenador') || 'Rui Quelhas',
-    interveniente: get('a_interveniente'),
-    ref: get('a_ref'),
-    link_url: get('a_link_url'),
-
-    // Empreendimento
-    nome_empreendimento: nomeEmp,
-    total_fracoes: get('a_total_fracoes'),
-    tipologias: get('a_tipologias'),
-    ano_construcao: get('a_ano_construcao'),
-    ano_conclusao: get('a_ano_conclusao'),
-    nome_promotor: get('a_nome_promotor'),
-    contacto_promotor: get('a_contacto_promotor'),
-    email_promotor: get('a_email_promotor'),
-
-    // Proprietário
-    proprietario,
-    contacto: get('a_contacto'),
-    email_proprietario: get('a_email_proprietario'),
-    loc_morada: get('loc_morada'),
-    estado_civil: get('a_estado_civil'),
-    regime: get('a_regime'),
-
-    // Imóvel
-    titulo: tituloImovel,
-    loc_zona: get('loc_zona'),
-    cert_energetico_classe: get('a_cert_energetico_classe'),
-    loc_distrito: get('loc_distrito'),
-    loc_concelho: get('loc_concelho'),
-    loc_freguesia: get('loc_freguesia'),
-    loc_gps: get('loc_gps'),
-
-    // natureza / negócio / data
-    natureza: get('a_natureza'),
-    natureza_outro: get('a_natureza_outro'),
-    estado_imovel: get('a_estado_imovel'),
-    negocio: get('a_negocio'),
-    negocio_outro: get('a_negocio_outro'),
-    data: get('a_data'),
-
-    // áreas
-    abp: get('a_abp'),
-    abd: get('a_abd'),
-    area_terreno: get('a_area_terreno'),
-    area_implantacao: get('a_area_implantacao'),
-
-    // preço / comissão / ajustamento
-    preco_pedido,
-    preco_sugerido,
-    comissao_pct,
-    ajustamento: ajust,
-    origem: get('a_origem'),
-    estado: get('a_estado') || 'Novo',
-
-    // destaques
-    d_exclusivo: chk('d_exclusivo'),
-    d_nao_exclusivo: chk('d_nao_exclusivo'),
-    d_luxo: chk('d_luxo'),
-    d_banca: chk('d_banca'),
-    d_golden_visa: chk('d_golden_visa'),
-    d_rentab: chk('d_rentab'),
-    duracao_contrato: duracao,
-
-    // docs resumo
-    d_cc: chk('d_cc'),
-    d_contrato_med: chk('d_contrato_med'),
-    d_caderneta: chk('d_caderneta'),
-    d_crp: chk('d_crp'),
-    d_cert_energetico: chk('d_cert_energetico'),
-    d_bupi: chk('d_bupi'),
-
-    // observações e notas
-    visivel: (EDIT_ID && ANG.find(x=>x.id===EDIT_ID) && ANG.find(x=>x.id===EDIT_ID).visivel===false)? false : true,
-    notas: get('a_notas'),
-    notas_consultor: get('a_notas_consultor'),
-    notas_coordenador: get('a_notas_coordenador'),
-    notas_assistente: get('a_notas_assistente')
+  const camposNumericos = {
+    numSalas: $('numSalas'),
+    numSalasJantar: $('numSalasJantar'),
+    numSuites: $('numSuites'),
+    numClosets: $('numClosets'),
+    numCozinhas: $('numCozinhas'),
+    numDespensas: $('numDespensas'),
+    numMarquises: $('numMarquises'),
+    numLavandarias: $('numLavandarias'),
+    numSotaos: $('numSotaos'),
+    numVarandas: $('numVarandas'),
+    numPisos: $('numPisos'),
+    numQuartos: $('numQuartos')
   };
 
-  const idx = ANG.findIndex(a=>a.id===rec.id);
-  if(idx>=0) ANG[idx] = Object.assign(ANG[idx], rec);
-  else ANG.push(rec);
+  let state = {
+    locked:true,
+    deals:[]
+  };
 
-  saveLS();
-  $('angModal').classList.remove('show');
-  EDIT_ID = null;
-  renderBoard();
-});
-
-/* ===== Helpers de formatação ===== */
-function fmtDate(d){
-  if(!d) return '—';
-  try{ return new Date(d).toLocaleDateString('pt-PT'); }catch{return d;}
-}
-function fmtNum(v){
-  if(!v) return '—';
-  const n=Number(v);
-  if(!Number.isFinite(n)) return v;
-  return n.toLocaleString('pt-PT');
-}
-function fmtPct(v){
-  if(v===undefined || v===null || v==='') return '—';
-  const n=Number(v);
-  if(!Number.isFinite(n)) return v;
-  return n.toFixed(1)+'%';
-}
-
-/* ===== Filtragem ===== */
-function filterDataset(){
-  let out = [...ANG];
-  const t = norm(FILTER.q||'');
-
-  if(t){
-    out = out.filter(a=>{
-      const blob = [
-        a.nome_empreendimento,a.titulo,a.proprietario,a.consultor,a.ref,a.notas,
-        a.loc_concelho,a.loc_zona
-      ].map(norm).join(' ');
-      return blob.includes(t);
-    });
-  }
-  if(FILTER.consultor) out = out.filter(a=>a.consultor===FILTER.consultor);
-  if(FILTER.estado) out = out.filter(a=>a.estado===FILTER.estado);
-  if(FILTER.ini) out = out.filter(a=>!a.data || a.data>=FILTER.ini);
-  if(FILTER.fim) out = out.filter(a=>!a.data || a.data<=FILTER.fim);
-  if(FILTER.ajMin){
-    const m = Number(FILTER.ajMin);
-    out = out.filter(a=>a.ajustamento==='' || a.ajustamento===undefined || Number(a.ajustamento)>=m);
-  }
-  if(FILTER.ajMax){
-    const M = Number(FILTER.ajMax);
-    out = out.filter(a=>a.ajustamento==='' || a.ajustamento===undefined || Number(a.ajustamento)<=M);
-  }
-  if(FILTER.onlyHidden) out = out.filter(a=>a.visivel===false);
-  if(!FILTER.showHidden && !FILTER.onlyHidden) out = out.filter(a=>a.visivel!==false);
-  return out;
-}
-
-/* ===== KPI + gráfico ===== */
-function renderKpi(filtered){
-  const el = $('kpiBar');
-  if(!filtered.length){
-    el.textContent = 'Sem angariações nos filtros atuais.';
-    return;
-  }
-  const total = filtered.length;
-  const aprov = filtered.filter(a=>a.estado==='Aprovado').length;
-  const perdido = filtered.filter(a=>a.estado==='Perdido').length;
-  const somaPedido = filtered.reduce((s,a)=>s+(Number(a.preco_pedido)||0),0);
-  const somaSugerido = filtered.reduce((s,a)=>s+(Number(a.preco_sugerido)||0),0);
-  const mediaAj = (()=>{
-    const arr = filtered.map(a=>Number(a.ajustamento)).filter(Number.isFinite);
-    if(!arr.length) return '—';
-    const m = arr.reduce((s,x)=>s+x,0)/arr.length;
-    return m.toFixed(1)+'%';
-  })();
-
-  el.innerHTML = `
-    <span class="kpi-badge">Total: ${total}</span>
-    <span class="kpi-badge">Aprovadas: ${aprov}</span>
-    <span class="kpi-badge">Perdidas: ${perdido}</span>
-    <span class="kpi-badge">Volume pedido: ${somaPedido.toLocaleString('pt-PT')} €</span>
-    <span class="kpi-badge">Volume sugerido: ${somaSugerido.toLocaleString('pt-PT')} €</span>
-    <span class="kpi-badge highlight">Média ajustamento: ${mediaAj}</span>
-  `;
-}
-function renderChart(filtered){
-  const box = $('chartRows');
-  box.innerHTML = '';
-  if(!filtered.length) return;
-  const map = {};
-  filtered.forEach(a=>{
-    if(!a.consultor) return;
-    map[a.consultor] = (map[a.consultor] || 0) + 1;
-  });
-  const entries = Object.entries(map).sort((a,b)=>b[1]-a[1]);
-  if(!entries.length) return;
-  const max = entries[0][1];
-
-  entries.forEach(([name,val])=>{
-    const row = document.createElement('div');
-    row.className = 'chart-row';
-    row.innerHTML = `
-      <div class="chart-label">${name}</div>
-      <div class="chart-bar-wrap">
-        <div class="chart-bar" style="width:${(val/max*100).toFixed(0)}%"></div>
-      </div>
-      <div style="font-size:11px;color:#ccc">${val}</div>
-    `;
-    box.appendChild(row);
-  });
-}
-
-/* ===== Card ===== */
-function isEmpreendimento(a){
-  return norm(a.natureza).includes('empreendimento');
-}
-
-function renderBoard(){
-  const board = $('board');
-  board.innerHTML = '';
-
-  const filtered = filterDataset();
-  renderKpi(filtered);
-  renderChart(filtered);
-
-  const byState = COLS.map(col=>({
-    estado: col,
-    items: filtered.filter(a=>a.estado===col)
-  }));
-
-  byState.forEach(col=>{
-    const cEl = document.createElement('div');
-    cEl.className='col';
-    cEl.innerHTML = `
-      <header>
-        <span class="title">${col.estado}</span>
-        <span class="counter">${col.items.length}</span>
-      </header>
-      <div class="list" id="list_${col.estado.replace(/\s/g,'_')}"></div>
-    `;
-    board.appendChild(cEl);
-
-    const listEl = cEl.querySelector('.list');
-    col.items.forEach(a=>{
-      const card = document.createElement('div');
-      card.className = 'card';
-
-      const docsOk = (a.d_cc && a.d_contrato_med && a.d_caderneta && a.d_crp && a.d_cert_energetico) ? 'Completa' : 'Incompleta';
-      const badgeDocs = docsOk==='Completa' ? '<span class="badge green">Doc. completa</span>' : '<span class="badge yellow">Doc. incompleta</span>';
-
-      let badgeAj='';
-      if(a.ajustamento!=='' && a.ajustamento!==undefined){
-        const n = Number(a.ajustamento);
-        if(Number.isFinite(n)){
-          if(n<=-10) badgeAj = '<span class="badge green">'+fmtPct(n)+'</span>';
-          else if(n<0) badgeAj = '<span class="badge yellow">'+fmtPct(n)+'</span>';
-          else badgeAj = '<span class="badge red">'+fmtPct(n)+'</span>';
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        const parsed = JSON.parse(raw);
+        if(Array.isArray(parsed.deals)){
+          state.deals = parsed.deals;
         }
+        state.locked = parsed.locked !== false;
       }
-
-      const disabledAttr = EDIT_MODE ? '' : 'disabled';
-
-      const emp = isEmpreendimento(a);
-
-      // Linha 2 – Empreendimento vs Proprietário
-      let linha2 = '';
-      if(emp){
-        const parts = [];
-        if(a.nome_empreendimento) parts.push('<b>Empreendimento:</b> '+a.nome_empreendimento);
-        const sub = [];
-        if(a.total_fracoes) sub.push(`Frações: ${a.total_fracoes}`);
-        if(a.tipologias) sub.push(`Tipologias: ${a.tipologias}`);
-        if(a.ano_construcao) sub.push(`Ano constr.: ${a.ano_construcao}`);
-        if(a.ano_conclusao) sub.push(`Ano concl.: ${a.ano_conclusao}`);
-        if(sub.length) parts.push(sub.join(' · '));
-        if(a.nome_promotor) parts.push('<b>Promotor:</b> '+a.nome_promotor);
-        if(a.contacto_promotor) parts.push('Tel. promotor: '+a.contacto_promotor);
-        if(a.email_promotor) parts.push('Email promotor: '+a.email_promotor);
-        linha2 = parts.length ? `<div class="row section-sep">${parts.join('<br>')}</div>` : '';
-      } else {
-        const ownerParts = [];
-        if(a.proprietario) ownerParts.push('<b>Proprietário:</b> '+a.proprietario);
-        if(a.contacto) ownerParts.push('Contacto: '+a.contacto);
-        if(a.email_proprietario) ownerParts.push('Email: '+a.email_proprietario);
-        if(ownerParts.length) linha2 = `<div class="row section-sep">${ownerParts.join(' · ')}</div>`;
-      }
-
-      // Linha 3 – Imóvel
-      const imovParts = [];
-      if(a.titulo) imovParts.push('<b>Imóvel:</b> '+a.titulo);
-      const locBits = [];
-      if(a.loc_zona) locBits.push(a.loc_zona);
-      if(a.loc_concelho) locBits.push(a.loc_concelho);
-      if(a.loc_freguesia) locBits.push(a.loc_freguesia);
-      if(locBits.length) imovParts.push('Localização: '+locBits.join(' · '));
-      if(a.cert_energetico_classe) imovParts.push('Cert. Energético: '+a.cert_energetico_classe);
-      const linha3 = imovParts.length ? `<div class="row section-sep">${imovParts.join('<br>')}</div>` : '';
-
-      // Linha 4 – Natureza / Estado / Negócio
-      const natBits = [];
-      if(a.negocio) natBits.push(a.negocio);
-      if(a.natureza) natBits.push(a.natureza);
-      if(a.estado_imovel) natBits.push(a.estado_imovel);
-      const linha4 = natBits.length ? `<div class="row section-sep"><b>Natureza / Negócio:</b> ${natBits.join(' — ')}</div>` : '';
-
-      // Linha 5 – Áreas
-      const areaBits = [];
-      if(a.abp) areaBits.push(`ABP: ${fmtNum(a.abp)} m²`);
-      if(a.abd) areaBits.push(`ABD: ${fmtNum(a.abd)} m²`);
-      if(a.area_terreno) areaBits.push(`Terreno: ${fmtNum(a.area_terreno)} m²`);
-      if(a.area_implantacao) areaBits.push(`Implantação: ${fmtNum(a.area_implantacao)} m²`);
-      const linha5 = areaBits.length ? `<div class="row section-sep"><b>Áreas:</b> ${areaBits.join(' · ')}</div>` : '';
-
-      // Linha 6 – Preço / Comissão / Ajustamento
-      const precoBits = [];
-      if(a.preco_pedido) precoBits.push('Pedido: '+fmtNum(a.preco_pedido)+' €');
-      if(a.preco_sugerido) precoBits.push('Sugerido: '+fmtNum(a.preco_sugerido)+' €');
-      if(a.comissao_pct!=='' && a.comissao_pct!==undefined) precoBits.push('Comissão: '+a.comissao_pct+'%');
-      if(a.ajustamento!=='' && a.ajustamento!==undefined) precoBits.push('Ajust.: '+fmtPct(a.ajustamento));
-      const linha6 = precoBits.length ? `<div class="row section-sep"><b>Preço / Comissão / Ajustamento:</b> ${precoBits.join(' · ')}</div>` : '';
-
-      const tooltip = [
-        a.nome_empreendimento || a.titulo || '',
-        emp ? (a.nome_promotor||'') : (a.proprietario||''),
-        a.loc_concelho || a.loc_zona || ''
-      ].filter(Boolean).join(' — ');
-
-      card.innerHTML = `
-        <div class="top">
-          <div>
-            <div class="name">${a.nome_empreendimento || a.titulo || '—'}</div>
-            <div class="meta">
-              ${a.consultor ? 'Angariador: '+a.consultor : ''}
-              ${a.consultor && a.gestor ? ' · ' : ''}
-              ${a.gestor ? 'Gestor: '+a.gestor : ''}
-              ${a.ref ? ' · Ref: '+a.ref : ''}
-            </div>
-          </div>
-          <div>${badgeAj}</div>
-        </div>
-
-        ${linha2}
-        ${linha3}
-        ${linha4}
-        ${linha5}
-        ${linha6}
-
-        <div class="row section-sep">
-          <b>Data:</b> ${fmtDate(a.data)}
-          ${a.duracao_contrato ? ' · <b>Contrato:</b> '+a.duracao_contrato : ''}
-          ${a.d_exclusivo ? ' · Exclusivo' : ''}
-          ${a.d_nao_exclusivo ? ' · Não exclusivo' : ''}
-        </div>
-
-        <div class="row">
-          ${badgeDocs} ${a.d_bupi ? ' · <span class="badge">BUPI</span>' : ''}
-        </div>
-
-        ${a.notas ? `<div class="row"><small>${a.notas}</small></div>`:''}
-
-        <div class="actions">
-          <button class="btn-sm" data-act="edit" ${disabledAttr}>Editar</button>
-          <button class="btn-sm" data-act="pdf" ${disabledAttr}>Ficha PDF</button>
-          <select class="select-move" data-id="${a.id}" ${disabledAttr}>
-            <option value="">Mover…</option>
-            ${COLS.map(c=>`<option value="${c}" ${c===a.estado?'disabled':''}>${c}</option>`).join('')}
-          </select>
-          <button class="btn-sm danger" data-act="del" ${disabledAttr}>Apagar</button>
-          <button class="btn-sm" data-act="toggle" ${disabledAttr}>${a.visivel===false?'Tornar visível':'Tornar invisível'}</button>
-        </div>
-      `;
-      card.title = tooltip;
-      if(a.visivel===false) card.style.opacity = .45;
-
-      card.querySelector('[data-act="edit"]').addEventListener('click',()=>{
-        if(!EDIT_MODE){ alert('Modo de edição bloqueado. Ative "🔓 Edição ativa" para editar.'); return; }
-        openModal(a);
-      });
-      card.querySelector('[data-act="pdf"]').addEventListener('click',()=>{
-        if(!EDIT_MODE){ alert('Modo de edição bloqueado. Ative "🔓 Edição ativa" para gerar a ficha.'); return; }
-        abrirFichaPdf(a);
-      });
-      card.querySelector('[data-act="del"]').addEventListener('click',()=>{
-        if(!EDIT_MODE){ alert('Modo de edição bloqueado. Ative "🔓 Edição ativa" para apagar.'); return; }
-        if(!confirm('Eliminar esta angariação?')) return;
-        ANG = ANG.filter(x=>x.id!==a.id);
-        saveLS();
-        renderBoard();
-      });
-      card.querySelector('[data-act="toggle"]').addEventListener('click',()=>{
-        if(!EDIT_MODE){ alert('Modo de edição bloqueado. Ative "🔓 Edição ativa" para alterar visibilidade.'); return; }
-        a.visivel = a.visivel===false ? true : false;
-        saveLS();
-        renderBoard();
-      });
-      card.querySelector('.select-move').addEventListener('change',e=>{
-        if(!EDIT_MODE){
-          e.target.value='';
-          alert('Modo de edição bloqueado. Ative "🔓 Edição ativa" para mover.');
-          return;
-        }
-        const destino = e.target.value;
-        if(!destino || !COLS.includes(destino)) return;
-        a.estado = destino;
-        saveLS();
-        renderBoard();
-      });
-
-      listEl.appendChild(card);
-    });
-  });
-}
-
-/* ===== PDF ===== */
-function escapeHtml(str){
-  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-function abrirFichaPdf(a){
-  const w = window.open('', '_blank');
-  if(!w){
-    alert('O navegador bloqueou a janela de impressão. Autorize pop-ups para gerar o PDF.');
-    return;
-  }
-  const logoUrl = 'logo-garvetur.png'; // coloque aqui o logo da Garvetur
-
-  const html = `
-<!doctype html>
-<html lang="pt">
-<head>
-<meta charset="utf-8">
-<title>Ficha de Angariação</title>
-<style>
-@page { margin:20mm; }
-body{
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-  color:#222;
-  font-size:11pt;
-}
-header{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  border-bottom:2px solid #A38B63;
-  padding-bottom:8px;
-  margin-bottom:12px;
-}
-header img{
-  height:40px;
-}
-header .title-block{
-  display:flex;
-  flex-direction:column;
-}
-header .title-block h1{
-  margin:0;
-  font-size:15pt;
-  letter-spacing:.06em;
-  text-transform:uppercase;
-}
-header .title-block span{
-  font-size:9pt;
-  color:#555;
-}
-h2{
-  font-size:11pt;
-  margin:14px 0 4px 0;
-  color:#6A5530;
-  border-bottom:1px solid #D0C2A2;
-  padding-bottom:2px;
-}
-.section{
-  margin-bottom:6px;
-}
-.grid-2{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:4px 12px;
-}
-.grid-3{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:4px 12px;
-}
-.row{
-  margin:2px 0;
-}
-label{
-  font-weight:600;
-}
-.small{
-  font-size:9pt;
-  color:#666;
-}
-hr{
-  border:0;
-  border-top:1px dashed #ccc;
-  margin:8px 0;
-}
-</style>
-</head>
-<body>
-<header>
-  <img src="${logoUrl}" alt="Garvetur Luxury Porto" onerror="this.style.display='none'">
-  <div class="title-block">
-    <h1>Garvetur Luxury Porto</h1>
-    <span>Ficha de Angariação</span>
-  </div>
-</header>
-
-<div class="section">
-  <h2>Cabeçalho</h2>
-  <div class="grid-3">
-    <div><label>Consultor:</label> ${escapeHtml(a.consultor||'')}</div>
-    <div><label>Gestor:</label> ${escapeHtml(a.gestor||'')}</div>
-    <div><label>Coordenador:</label> ${escapeHtml(a.coordenador||'')}</div>
-    <div><label>Interveniente:</label> ${escapeHtml(a.interveniente||'')}</div>
-    <div><label>Ref. Interna:</label> ${escapeHtml(a.ref||'')}</div>
-    <div><label>Link:</label> ${escapeHtml(a.link_url||'')}</div>
-  </div>
-</div>
-
-<div class="section">
-  <h2>Empreendimento</h2>
-  <div class="grid-3">
-    <div><label>Nome:</label> ${escapeHtml(a.nome_empreendimento||'')}</div>
-    <div><label>Total Frações:</label> ${escapeHtml(a.total_fracoes||'')}</div>
-    <div><label>Tipologias:</label> ${escapeHtml(a.tipologias||'')}</div>
-    <div><label>Ano construção:</label> ${escapeHtml(a.ano_construcao||'')}</div>
-    <div><label>Ano conclusão:</label> ${escapeHtml(a.ano_conclusao||'')}</div>
-  </div>
-  <div class="grid-3">
-    <div><label>Promotor:</label> ${escapeHtml(a.nome_promotor||'')}</div>
-    <div><label>Contacto Promotor:</label> ${escapeHtml(a.contacto_promotor||'')}</div>
-    <div><label>Email Promotor:</label> ${escapeHtml(a.email_promotor||'')}</div>
-  </div>
-</div>
-
-<div class="section">
-  <h2>Proprietário</h2>
-  <div class="grid-3">
-    <div><label>Nome:</label> ${escapeHtml(a.proprietario||'')}</div>
-    <div><label>Contacto:</label> ${escapeHtml(a.contacto||'')}</div>
-    <div><label>Email:</label> ${escapeHtml(a.email_proprietario||'')}</div>
-  </div>
-  <div class="row"><label>Morada:</label> ${escapeHtml(a.loc_morada||'')}</div>
-  <div class="grid-2">
-    <div><label>Estado civil:</label> ${escapeHtml(a.estado_civil||'')}</div>
-    <div><label>Regime casamento:</label> ${escapeHtml(a.regime||'')}</div>
-  </div>
-</div>
-
-<div class="section">
-  <h2>Imóvel</h2>
-  <div class="grid-3">
-    <div><label>Título / Designação:</label> ${escapeHtml(a.titulo||'')}</div>
-    <div><label>Localização:</label> ${escapeHtml(a.loc_zona||'')}</div>
-    <div><label>Certificado Energético:</label> ${escapeHtml(a.cert_energetico_classe||'')}</div>
-  </div>
-  <div class="grid-3">
-    <div><label>Distrito:</label> ${escapeHtml(a.loc_distrito||'')}</div>
-    <div><label>Concelho:</label> ${escapeHtml(a.loc_concelho||'')}</div>
-    <div><label>Freguesia:</label> ${escapeHtml(a.loc_freguesia||'')}</div>
-  </div>
-  <div class="row"><label>Coordenadas GPS:</label> ${escapeHtml(a.loc_gps||'')}</div>
-</div>
-
-<div class="section">
-  <h2>Natureza, estado e negócio</h2>
-  <div class="grid-3">
-    <div><label>Natureza:</label> ${escapeHtml(a.natureza||'')} ${a.natureza_outro? ' ('+escapeHtml(a.natureza_outro)+')':''}</div>
-    <div><label>Estado do imóvel:</label> ${escapeHtml(a.estado_imovel||'')}</div>
-    <div><label>Negócio:</label> ${escapeHtml(a.negocio||'')} ${a.negocio_outro? ' ('+escapeHtml(a.negocio_outro)+')':''}</div>
-    <div><label>Data:</label> ${escapeHtml(a.data? new Date(a.data).toLocaleDateString('pt-PT'): '')}</div>
-  </div>
-</div>
-
-<div class="section">
-  <h2>Áreas</h2>
-  <div class="grid-3">
-    <div><label>ABP:</label> ${fmtNum(a.abp)} m²</div>
-    <div><label>ABD:</label> ${fmtNum(a.abd)} m²</div>
-    <div><label>Terreno:</label> ${fmtNum(a.area_terreno)} m²</div>
-    <div><label>Implantação:</label> ${fmtNum(a.area_implantacao)} m²</div>
-  </div>
-</div>
-
-<div class="section">
-  <h2>Preço, comissão e ajustamento</h2>
-  <div class="grid-3">
-    <div><label>Preço pedido:</label> ${fmtNum(a.preco_pedido)} €</div>
-    <div><label>Preço sugerido:</label> ${fmtNum(a.preco_sugerido)} €</div>
-    <div><label>% Ajustamento:</label> ${fmtPct(a.ajustamento)}</div>
-    <div><label>Comissão:</label> ${a.comissao_pct? a.comissao_pct+'%' : '—'}</div>
-    <div><label>Origem do cliente:</label> ${escapeHtml(a.origem||'')}</div>
-    <div><label>Estado da angariação:</label> ${escapeHtml(a.estado||'')}</div>
-  </div>
-</div>
-
-<div class="section">
-  <h2>Destaques & Documentação</h2>
-  <div class="row">
-    <label>Destaques:</label>
-    ${
-      [
-        a.d_exclusivo?'Exclusivo':'',
-        a.d_nao_exclusivo?'Não exclusivo':'',
-        a.d_luxo?'Luxo':'',
-        a.d_banca?'Banca':'',
-        a.d_golden_visa?'Golden Visa':'',
-        a.d_rentab?'Rentabilidade Garantida':''
-      ].filter(Boolean).join(' · ')
+    }catch(e){
+      console.error('Erro ao carregar storage', e);
     }
-  </div>
-  <div class="row"><label>Duração do contrato:</label> ${escapeHtml(a.duracao_contrato||'')}</div>
-  <div class="small">
-    Ident. Proprietários: ${a.d_cc?'Sim':'Não'} ·
-    Contrato Mediação: ${a.d_contrato_med?'Sim':'Não'} ·
-    Caderneta: ${a.d_caderneta?'Sim':'Não'} ·
-    CRP: ${a.d_crp?'Sim':'Não'} ·
-    Cert. Energético: ${a.d_cert_energetico?'Sim':'Não'} ·
-    BUPI: ${a.d_bupi?'Sim':'Não'}
-  </div>
-</div>
+    updateLockUI();
+  }
+  function saveState(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }catch(e){
+      console.error('Erro ao guardar storage', e);
+    }
+  }
+  function updateLockUI(){
+    if(state.locked){
+      lockStateLabel.textContent = 'Bloqueado';
+      toggleLockBtn.textContent = '🔒';
+      newDealBtn.disabled = true;
+    }else{
+      lockStateLabel.textContent = 'Edição ativa';
+      toggleLockBtn.textContent = '🔓';
+      newDealBtn.disabled = false;
+    }
+  }
 
-<div class="section">
-  <h2>Observações</h2>
-  <div class="row">${escapeHtml(a.notas||'')}</div>
-</div>
+  function initConsultores(){
+    CONSULTOR_OPTIONS.forEach(name=>{
+      const opt1 = document.createElement('option');
+      opt1.value = name;
+      opt1.textContent = name;
+      consultorSelect.appendChild(opt1);
 
-<div class="section">
-  <h2>Notas internas</h2>
-  <div class="row"><label>Consultor:</label> ${escapeHtml(a.notas_consultor||'')}</div>
-  <div class="row"><label>Coordenador:</label> ${escapeHtml(a.notas_coordenador||'')}</div>
-  <div class="row"><label>Assistente:</label> ${escapeHtml(a.notas_assistente||'')}</div>
-</div>
+      const opt2 = document.createElement('option');
+      opt2.value = name;
+      opt2.textContent = name;
+      gestorSelect.appendChild(opt2);
 
-<hr>
-<div class="small">Gerado por Garvetur Porto Pro — ${new Date().toLocaleString('pt-PT')}</div>
+      const opt3 = document.createElement('option');
+      opt3.value = name;
+      opt3.textContent = name;
+      filterConsultor.appendChild(opt3);
+    });
+  }
 
-</body>
-</html>
-`;
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
-  w.focus();
-  w.print();
-}
+  function renderCheckboxGroup(containerId, groupKey, labels){
+    const container = $(containerId);
+    container.innerHTML = '';
+    labels.forEach(label=>{
+      const id = groupKey + '_' + label.replace(/[^a-z0-9]+/gi,'_').toLowerCase();
+      const wrapper = document.createElement('label');
+      wrapper.className = 'chk';
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.dataset.group = groupKey;
+      input.value = label;
+      input.id = id;
+      const span = document.createElement('span');
+      span.textContent = label;
+      wrapper.appendChild(input);
+      wrapper.appendChild(span);
+      container.appendChild(wrapper);
+    });
+  }
 
-/* ===== Exportação CSV ===== */
-function exportCsv(){
-  const rows = [];
-  const headers = [
-    "ID","Empreendimento","TituloImovel","Tipologias",
-    "Natureza","Negocio","EstadoImovel",
-    "Proprietario","EmailProprietario","Consultor","Gestor","Coordenador","Interveniente",
-    "Data","Ref","Link","EstadoAngariacao",
-    "Morada","Zona","Concelho","Freguesia",
-    "AnoConstrucao","AnoConclusao","CertEnerg","TotalFracoes",
-    "ABP","ABD","AreaTerreno","AreaImplantacao",
-    "PrecoPedido","PrecoSugerido","Comissao","Ajustamento",
-    "Origem","Visivel","Notas","BUPI","DocsOK","DuracaoContrato"
-  ];
-  rows.push(headers);
+  function getGroupedCheckboxValues(){
+    const groups = {};
+    document.querySelectorAll('input[type="checkbox"][data-group]').forEach(chk=>{
+      const key = chk.dataset.group;
+      if(!groups[key]) groups[key] = [];
+      if(chk.checked) groups[key].push(chk.value);
+    });
+    return groups;
+  }
 
-  const data = filterDataset();
-  data.forEach(a=>{
-    const docsOk = (a.d_cc && a.d_contrato_med && a.d_caderneta && a.d_crp && a.d_cert_energetico) ? 'Sim':'Não';
-    rows.push([
-      a.id,
-      a.nome_empreendimento||'',
-      a.titulo||'',
-      a.tipologias||'',
-      a.natureza||'',
-      a.negocio||'',
-      a.estado_imovel||'',
-      a.proprietario||'',
-      a.email_proprietario||'',
-      a.consultor||'',
-      a.gestor||'',
-      a.coordenador||'',
-      a.interveniente||'',
-      a.data||'',
-      a.ref||'',
-      a.link_url||'',
-      a.estado||'',
-      a.loc_morada||'',
-      a.loc_zona||'',
-      a.loc_concelho||'',
-      a.loc_freguesia||'',
-      a.ano_construcao||'',
-      a.ano_conclusao||'',
-      a.cert_energetico_classe||'',
-      a.total_fracoes||'',
-      a.abp||'',
-      a.abd||'',
-      a.area_terreno||'',
-      a.area_implantacao||'',
-      a.preco_pedido||'',
-      a.preco_sugerido||'',
-      (a.comissao_pct!==undefined && a.comissao_pct!==''? a.comissao_pct:''),
-      (a.ajustamento!==undefined && a.ajustamento!==''? a.ajustamento:''),
-      a.origem||'',
-      (a.visivel===false?'Não':'Sim'),
-      (a.notas||'').replace(/\r?\n/g,' '),
-      a.d_bupi?'Sim':'Não',
-      docsOk,
-      a.duracao_contrato||''
-    ]);
+  function setGroupedCheckboxValues(deal){
+    document.querySelectorAll('input[type="checkbox"][data-group]').forEach(chk=>{
+      const key = chk.dataset.group;
+      const list = deal[key];
+      if(Array.isArray(list)){
+        chk.checked = list.includes(chk.value);
+      }else{
+        chk.checked = false;
+      }
+    });
+  }
+
+  function openModal(deal){
+    modalBackdrop.classList.add('open');
+    if(deal){
+      modalTitle.textContent = 'Editar Angariação';
+      $('dealId').value = deal.id || '';
+      consultorSelect.value = deal.consultor || '';
+      gestorSelect.value = deal.gestor || '';
+      $('coordenador').value = deal.coordenador || 'Rui Quelhas';
+      $('interveniente').value = deal.interveniente || '';
+      $('refInterna').value = deal.refInterna || '';
+      $('linkUrl').value = deal.linkUrl || '';
+      $('dataAngariacao').value = deal.dataAngariacao || '';
+      $('estadoAng').value = deal.estadoAng || 'novo';
+      $('duracaoContrato').value = deal.duracaoContrato || '';
+      $('duracaoOutro').value = deal.duracaoOutro || '';
+      $('exclusivo').checked = !!deal.exclusivo;
+      $('naoExclusivo').checked = !!deal.naoExclusivo;
+
+      $('isEmpreendimento').checked = !!deal.isEmpreendimento;
+
+      $('nomeEmp').value = deal.nomeEmp || '';
+      $('totalFracoes').value = deal.totalFracoes || '';
+      $('tipologiasEmp').value = deal.tipologiasEmp || '';
+      $('anoConstrEmp').value = deal.anoConstrEmp || '';
+      $('anoConclEmp').value = deal.anoConclEmp || '';
+      $('promotor').value = deal.promotor || '';
+      $('telPromotor').value = deal.telPromotor || '';
+      $('emailPromotor').value = deal.emailPromotor || '';
+
+      $('nomeProp').value = deal.nomeProp || '';
+      $('telProp').value = deal.telProp || '';
+      $('emailProp').value = deal.emailProp || '';
+      $('moradaProp').value = deal.moradaProp || '';
+      $('estadoCivil').value = deal.estadoCivil || '';
+      $('regimeCasamento').value = deal.regimeCasamento || '';
+
+      $('tituloImovel').value = deal.tituloImovel || '';
+      $('localizacao').value = deal.localizacao || '';
+      $('distrito').value = deal.distrito || '';
+      $('concelho').value = deal.concelho || '';
+      $('freguesia').value = deal.freguesia || '';
+      $('zona').value = deal.zona || '';
+      $('gps').value = deal.gps || '';
+      $('anoConstrucao').value = deal.anoConstrucao || '';
+      $('anoConclusao').value = deal.anoConclusao || '';
+      $('certEnerg').value = deal.certEnerg || '';
+      $('condominioValor').value = deal.condominioValor || '';
+
+      $('natureza').value = deal.natureza || '';
+      $('estadoImovel').value = deal.estadoImovel || '';
+      $('tipoNegocio').value = deal.tipoNegocio || '';
+      $('origemCliente').value = deal.origemCliente || '';
+
+      $('areaUtil').value = deal.areaUtil || '';
+      $('areaBruta').value = deal.areaBruta || '';
+      $('areaABP').value = deal.areaABP || '';
+      $('areaABD').value = deal.areaABD || '';
+      $('areaTerreno').value = deal.areaTerreno || '';
+      $('areaImplantacao').value = deal.areaImplantacao || '';
+
+      $('precoPedido').value = deal.precoPedido || '';
+      $('precoSugerido').value = deal.precoSugerido || '';
+      $('comissao').value = deal.comissao || '';
+      $('comissaoOutro').value = deal.comissaoOutro || '';
+      $('percentAjust').value = deal.percentAjust || '';
+
+      Object.keys(camposNumericos).forEach(k=>{
+        camposNumericos[k].value = deal[k] || '';
+      });
+
+      $('observacoes').value = deal.observacoes || '';
+      $('notasInternas').value = deal.notasInternas || '';
+
+      setGroupedCheckboxValues(deal);
+    }else{
+      modalTitle.textContent = 'Nova Angariação';
+      dealForm.reset();
+      $('dealId').value = '';
+      Object.keys(camposNumericos).forEach(k=>camposNumericos[k].value='');
+      document.querySelectorAll('input[type="checkbox"][data-group]').forEach(chk=>{ chk.checked=false; });
+    }
+    updateEmpBlockVisibility();
+  }
+
+  function closeModal(){
+    modalBackdrop.classList.remove('open');
+  }
+
+  function updateEmpBlockVisibility(){
+    empBlock.style.opacity = isEmpreendimento.checked ? '1' : '.4';
+  }
+
+  function collectFormData(){
+    const id = $('dealId').value || 'ang_' + Date.now();
+    const groups = getGroupedCheckboxValues();
+
+    let comPerc = $('comissao').value;
+    if(comPerc === 'outro'){
+      comPerc = $('comissaoOutro').value || '';
+    }
+    let percentAjust = $('percentAjust').value;
+    const precoP = parseFloat($('precoPedido').value.replace(',', '.'));
+    const precoS = parseFloat($('precoSugerido').value.replace(',', '.'));
+    if((percentAjust==='' || isNaN(parseFloat(percentAjust))) && isFinite(precoP) && isFinite(precoS) && precoP>0){
+      percentAjust = (((precoS - precoP)/precoP)*100).toFixed(1);
+    }
+
+    const data = {
+      id,
+      consultor: consultorSelect.value || '',
+      gestor: gestorSelect.value || '',
+      coordenador: $('coordenador').value || '',
+      interveniente: $('interveniente').value || '',
+      refInterna: $('refInterna').value || '',
+      linkUrl: $('linkUrl').value || '',
+      dataAngariacao: $('dataAngariacao').value || '',
+      estadoAng: $('estadoAng').value || 'novo',
+      duracaoContrato: $('duracaoContrato').value || '',
+      duracaoOutro: $('duracaoOutro').value || '',
+      exclusivo: $('exclusivo').checked,
+      naoExclusivo: $('naoExclusivo').checked,
+
+      isEmpreendimento: isEmpreendimento.checked,
+      nomeEmp: $('nomeEmp').value || '',
+      totalFracoes: $('totalFracoes').value || '',
+      tipologiasEmp: $('tipologiasEmp').value || '',
+      anoConstrEmp: $('anoConstrEmp').value || '',
+      anoConclEmp: $('anoConclEmp').value || '',
+      promotor: $('promotor').value || '',
+      telPromotor: $('telPromotor').value || '',
+      emailPromotor: $('emailPromotor').value || '',
+
+      nomeProp: $('nomeProp').value || '',
+      telProp: $('telProp').value || '',
+      emailProp: $('emailProp').value || '',
+      moradaProp: $('moradaProp').value || '',
+      estadoCivil: $('estadoCivil').value || '',
+      regimeCasamento: $('regimeCasamento').value || '',
+
+      tituloImovel: $('tituloImovel').value || '',
+      localizacao: $('localizacao').value || '',
+      distrito: $('distrito').value || '',
+      concelho: $('concelho').value || '',
+      freguesia: $('freguesia').value || '',
+      zona: $('zona').value || '',
+      gps: $('gps').value || '',
+      anoConstrucao: $('anoConstrucao').value || '',
+      anoConclusao: $('anoConclusao').value || '',
+      certEnerg: $('certEnerg').value || '',
+      condominioValor: $('condominioValor').value || '',
+
+      natureza: $('natureza').value || '',
+      estadoImovel: $('estadoImovel').value || '',
+      tipoNegocio: $('tipoNegocio').value || '',
+      origemCliente: $('origemCliente').value || '',
+
+      areaUtil: $('areaUtil').value || '',
+      areaBruta: $('areaBruta').value || '',
+      areaABP: $('areaABP').value || '',
+      areaABD: $('areaABD').value || '',
+      areaTerreno: $('areaTerreno').value || '',
+      areaImplantacao: $('areaImplantacao').value || '',
+
+      precoPedido: $('precoPedido').value || '',
+      precoSugerido: $('precoSugerido').value || '',
+      comissao: $('comissao').value || '',
+      comissaoOutro: $('comissaoOutro').value || '',
+      percentAjust: percentAjust || '',
+
+      observacoes: $('observacoes').value || '',
+      notasInternas: $('notasInternas').value || '',
+
+      visible: (typeof groups.visible === 'undefined') ? true : !!groups.visible,
+
+      zonaEnvolvente: groups.zonaEnvolvente || [],
+      infraestruturas: groups.infraestruturas || [],
+      equipamentos: groups.equipamentos || [],
+      seguranca: groups.seguranca || [],
+      documentacao: groups.documentacao || []
+    };
+
+    Object.keys(camposNumericos).forEach(k=>{
+      data[k] = camposNumericos[k].value || '';
+    });
+
+    return data;
+  }
+
+  function applyFilters(deals){
+    const cons = filterConsultor.value;
+    const from = filterDataDe.value;
+    const to = filterDataAte.value;
+    const showHidden = filterShowHidden.checked;
+
+    return deals.filter(d=>{
+      if(cons && d.consultor !== cons) return false;
+      if(!showHidden && d.visible === false) return false;
+      if(from && d.dataAngariacao && d.dataAngariacao < from) return false;
+      if(to && d.dataAngariacao && d.dataAngariacao > to) return false;
+      return true;
+    });
+  }
+
+  function formatMoney(v){
+    const n = parseFloat(String(v).replace(',', '.'));
+    if(!isFinite(n)) return '';
+    return n.toLocaleString('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+  }
+  function formatPercent(v){
+    const n = parseFloat(String(v).replace(',', '.'));
+    if(!isFinite(n)) return '';
+    return n.toFixed(1).replace('.',',') + '%';
+  }
+
+  function classForAjust(p){
+    const n = parseFloat(String(p).replace(',', '.'));
+    if(!isFinite(n)) return '';
+    if(n < -5) return 'chip-green';
+    if(n >= -5 && n <= 0) return 'chip-yellow';
+    return 'chip-red';
+  }
+
+  function renderCards(){
+    const deals = state.deals.slice().sort((a,b)=>{
+      const da = a.dataAngariacao || '';
+      const db = b.dataAngariacao || '';
+      return (db || '').localeCompare(da || '');
+    });
+    const filtered = applyFilters(deals);
+    cardsGrid.innerHTML = '';
+    if(!filtered.length){
+      emptyState.style.display = 'block';
+    }else{
+      emptyState.style.display = 'none';
+    }
+
+    let total = deals.length;
+    let visiveis = deals.filter(d=>d.visible!==false).length;
+    let porEstado = {novo:0,negociacao:0,aprovado:0,perdido:0};
+    deals.forEach(d=>{
+      if(porEstado[d.estadoAng] !== undefined) porEstado[d.estadoAng]++;
+    });
+
+    summaryBadges.innerHTML = '';
+    const badge1 = document.createElement('div');
+    badge1.className = 'badge';
+    badge1.innerHTML = 'Total <strong>' + total + '</strong>';
+    summaryBadges.appendChild(badge1);
+    const badge2 = document.createElement('div');
+    badge2.className = 'badge';
+    badge2.innerHTML = 'Visíveis <strong>' + visiveis + '</strong>';
+    summaryBadges.appendChild(badge2);
+
+    const fil = applyFilters(deals);
+    const porCons = {};
+    fil.forEach(d=>{
+      if(!d.consultor) return;
+      porCons[d.consultor] = (porCons[d.consultor]||0)+1;
+    });
+    Object.keys(porCons).sort().forEach(n=>{
+      const b = document.createElement('div');
+      b.className = 'badge';
+      b.innerHTML = '<strong>'+n+':</strong> ' + porCons[n];
+      summaryBadges.appendChild(b);
+    });
+
+    pipelineKpis.innerHTML = '';
+    const estadosLabels = {
+      novo:'Novo',
+      negociacao:'Em negociação',
+      aprovado:'Aprovado',
+      perdido:'Perdido'
+    };
+    Object.keys(porEstado).forEach(k=>{
+      const chip = document.createElement('div');
+      chip.className = 'kpi-chip';
+      chip.innerHTML = estadosLabels[k] + '<span class="value">'+porEstado[k]+'</span>';
+      pipelineKpis.appendChild(chip);
+    });
+
+    filtered.forEach(d=>{
+      const card = document.createElement('div');
+      card.className = 'card' + (d.visible===false ? ' hidden-card':'');
+      card.dataset.id = d.id;
+
+      const title = d.isEmpreendimento && d.nomeEmp ? d.nomeEmp
+                   : d.tituloImovel || d.nomeProp || 'Angariação';
+
+      const sub = d.isEmpreendimento
+        ? [d.totalFracoes ? (d.totalFracoes+' frações') : '',
+           d.tipologiasEmp || '',
+           d.concelho || '',
+           d.zona || ''
+          ].filter(Boolean).join(' · ')
+        : [d.nomeProp || '',
+           d.concelho || '',
+           d.zona || ''
+          ].filter(Boolean).join(' · ');
+
+      const cert = d.certEnerg ? d.certEnerg : '';
+
+      const tipoLinha = [d.tipoNegocio, d.natureza, d.estadoImovel]
+        .filter(Boolean)
+        .join(' · ');
+
+      const areas = [];
+      if(d.areaABP) areas.push('ABP ' + d.areaABP + ' m²');
+      if(d.areaABD) areas.push('ABD ' + d.areaABD + ' m²');
+      if(d.areaTerreno) areas.push('Terreno ' + d.areaTerreno + ' m²');
+      if(d.areaImplantacao) areas.push('Implantação ' + d.areaImplantacao + ' m²');
+
+      let comPerc = '';
+      if(d.comissao === 'outro' && d.comissaoOutro){
+        comPerc = d.comissaoOutro + '%';
+      }else if(d.comissao){
+        comPerc = d.comissao + '%';
+      }
+
+      const ajustCls = classForAjust(d.percentAjust);
+      const ajustTxt = formatPercent(d.percentAjust);
+
+      const linhaPreco = [
+        d.precoPedido ? formatMoney(d.precoPedido) : '',
+        comPerc ? ('Comissão ' + comPerc) : '',
+        ajustTxt ? ('Ajust. ' + ajustTxt) : ''
+      ].filter(Boolean).join(' · ');
+
+      const linhaCaract = [];
+      if(d.numQuartos) linhaCaract.push(d.numQuartos + ' quarto(s)');
+      if(d.numSuites) linhaCaract.push(d.numSuites + ' suite(s)');
+      if(d.numPisos) linhaCaract.push(d.numPisos + ' piso(s)');
+      if(d.numVarandas) linhaCaract.push(d.numVarandas + ' varanda(s)');
+
+      const temPiscina = Array.isArray(d.infraestruturas) && d.infraestruturas.includes('Piscina');
+      const temGaragem = Array.isArray(d.infraestruturas) && d.infraestruturas.includes('Garagem');
+      const chipsExtras = [];
+      if(temPiscina) chipsExtras.push('Piscina');
+      if(temGaragem) chipsExtras.push('Garagem');
+      if(Array.isArray(d.zonaEnvolvente) && d.zonaEnvolvente.includes('Perto da praia')){
+        chipsExtras.push('Perto da praia');
+      }
+
+      const estLabel = {
+        novo:'Novo',
+        negociacao:'Em negociação',
+        aprovado:'Aprovado',
+        perdido:'Perdido'
+      }[d.estadoAng] || '—';
+
+      const estClass = d.estadoAng==='aprovado'
+        ? 'chip-green'
+        : d.estadoAng==='negociacao'
+          ? 'chip-yellow'
+          : d.estadoAng==='perdido'
+            ? 'chip-red'
+            : 'chip-primary';
+
+      const topRow = document.createElement('div');
+      topRow.className = 'card-top-row';
+
+      const titleBlock = document.createElement('div');
+      titleBlock.className = 'card-title-block';
+
+      const h3 = document.createElement('h3');
+      h3.className = 'card-title';
+      h3.textContent = title;
+      titleBlock.appendChild(h3);
+
+      const subtitle = document.createElement('div');
+      subtitle.className = 'card-subtitle';
+      subtitle.textContent = sub;
+      titleBlock.appendChild(subtitle);
+
+      const chipsRow = document.createElement('div');
+      chipsRow.className = 'chip-row';
+
+      const chipEstado = document.createElement('span');
+      chipEstado.className = 'chip ' + estClass;
+      chipEstado.textContent = estLabel;
+      chipsRow.appendChild(chipEstado);
+
+      if(d.consultor){
+        const ch = document.createElement('span');
+        ch.className = 'chip';
+        ch.textContent = d.consultor;
+        chipsRow.appendChild(ch);
+      }
+      if(d.gestor && d.gestor !== d.consultor){
+        const ch = document.createElement('span');
+        ch.className = 'chip';
+        ch.textContent = 'Gestor: ' + d.gestor;
+        chipsRow.appendChild(ch);
+      }
+      if(d.isEmpreendimento){
+        const ch = document.createElement('span');
+        ch.className = 'chip';
+        ch.textContent = 'Empreendimento';
+        chipsRow.appendChild(ch);
+      }
+      if(d.exclusivo){
+        const ch = document.createElement('span');
+        ch.className = 'chip chip-primary';
+        ch.textContent = 'Exclusivo';
+        chipsRow.appendChild(ch);
+      }else if(d.naoExclusivo){
+        const ch = document.createElement('span');
+        ch.className = 'chip';
+        ch.textContent = 'Não exclusivo';
+        chipsRow.appendChild(ch);
+      }
+      if(chipsExtras.length){
+        chipsExtras.forEach(t=>{
+          const ch = document.createElement('span');
+          ch.className = 'chip';
+          ch.textContent = t;
+          chipsRow.appendChild(ch);
+        });
+      }
+      if(cert){
+        const ch = document.createElement('span');
+        ch.className = 'chip';
+        ch.textContent = 'CE ' + cert;
+        chipsRow.appendChild(ch);
+      }
+
+      titleBlock.appendChild(chipsRow);
+      topRow.appendChild(titleBlock);
+      card.appendChild(topRow);
+
+      if(tipoLinha){
+        const sec = document.createElement('div');
+        sec.className = 'card-section';
+        const span = document.createElement('span');
+        span.textContent = tipoLinha;
+        sec.appendChild(span);
+        card.appendChild(sec);
+      }
+
+      if(linhaCaract.length){
+        const sec = document.createElement('div');
+        sec.className = 'card-section';
+        const span = document.createElement('span');
+        span.textContent = linhaCaract.join(' · ');
+        sec.appendChild(span);
+        card.appendChild(sec);
+      }
+
+      if(areas.length){
+        const sec = document.createElement('div');
+        sec.className = 'card-section';
+        const span = document.createElement('span');
+        span.textContent = areas.join(' · ');
+        sec.appendChild(span);
+        card.appendChild(sec);
+      }
+
+      if(linhaPreco){
+        const sec = document.createElement('div');
+        sec.className = 'card-section';
+        const span = document.createElement('span');
+        span.textContent = linhaPreco;
+        if(ajustTxt){
+          const chipA = document.createElement('span');
+          chipA.className = 'chip ' + ajustCls;
+          chipA.style.marginLeft = '6px';
+          chipA.textContent = ajustTxt;
+          sec.appendChild(chipA);
+        }
+        sec.appendChild(span);
+        card.appendChild(sec);
+      }
+
+      const foot = document.createElement('div');
+      foot.className = 'card-footer';
+      const left = document.createElement('div');
+      left.className = 'card-footer-left';
+      const partes = [];
+      if(d.dataAngariacao) partes.push(d.dataAngariacao);
+      if(d.duracaoContrato){
+        partes.push('Contrato ' + d.duracaoContrato);
+      }
+      left.textContent = partes.join(' · ');
+      foot.appendChild(left);
+
+      const right = document.createElement('div');
+      right.className = 'card-footer-right';
+
+      const btnEdit = document.createElement('button');
+      btnEdit.className = 'btn-xs primary';
+      btnEdit.textContent = 'Editar';
+      btnEdit.addEventListener('click',()=>{
+        if(state.locked) return;
+        openModal(d);
+      });
+      right.appendChild(btnEdit);
+
+      const btnPdf = document.createElement('button');
+      btnPdf.className = 'btn-xs';
+      btnPdf.textContent = 'PDF';
+      btnPdf.addEventListener('click',()=>{
+        exportOnePdf(d);
+      });
+      right.appendChild(btnPdf);
+
+      const btnVis = document.createElement('button');
+      btnVis.className = 'btn-xs';
+      btnVis.textContent = d.visible===false ? 'Tornar visível' : 'Tornar invisível';
+      btnVis.addEventListener('click',()=>{
+        if(state.locked) return;
+        d.visible = d.visible===false ? true : false;
+        saveState();
+        renderCards();
+      });
+      right.appendChild(btnVis);
+
+      const btnDel = document.createElement('button');
+      btnDel.className = 'btn-xs danger';
+      btnDel.textContent = 'Apagar';
+      btnDel.addEventListener('click',()=>{
+        if(state.locked) return;
+        if(confirm('Tem a certeza que pretende apagar esta angariação?')){
+          state.deals = state.deals.filter(x=>x.id !== d.id);
+          saveState();
+          renderCards();
+        }
+      });
+      right.appendChild(btnDel);
+
+      foot.appendChild(right);
+      card.appendChild(foot);
+
+      cardsGrid.appendChild(card);
+    });
+  }
+
+  function exportCsv(){
+    if(!state.deals.length){
+      alert('Não existem angariações para exportar.');
+      return;
+    }
+    const cols = [
+      'id','consultor','gestor','coordenador','interveniente','refInterna','linkUrl',
+      'dataAngariacao','estadoAng','duracaoContrato','duracaoOutro',
+      'isEmpreendimento','nomeEmp','totalFracoes','tipologiasEmp','anoConstrEmp','anoConclEmp',
+      'promotor','telPromotor','emailPromotor',
+      'nomeProp','telProp','emailProp','moradaProp','estadoCivil','regimeCasamento',
+      'tituloImovel','localizacao','distrito','concelho','freguesia','zona','gps',
+      'anoConstrucao','anoConclusao','certEnerg','condominioValor',
+      'natureza','estadoImovel','tipoNegocio','origemCliente',
+      'areaUtil','areaBruta','areaABP','areaABD','areaTerreno','areaImplantacao',
+      'precoPedido','precoSugerido','comissao','comissaoOutro','percentAjust',
+      'numSalas','numSalasJantar','numSuites','numClosets','numCozinhas','numDespensas',
+      'numMarquises','numLavandarias','numSotaos','numVarandas','numPisos','numQuartos',
+      'exclusivo','naoExclusivo','visible'
+    ];
+
+    function esc(v){
+      if(v==null) return '';
+      const s = String(v).replace(/"/g,'""');
+      return '"' + s + '"';
+    }
+
+    let csv = cols.map(esc).join(';') + '\n';
+    state.deals.forEach(d=>{
+      const row = cols.map(c=>esc(d[c]));
+      csv += row.join(';') + '\n';
+    });
+
+    const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'angariacoes_garvetur_porto_pro.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function exportOnePdf(deal){
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({unit:'pt',format:'a4'});
+
+    const marginX = 40;
+    let y = 40;
+
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(12);
+    doc.setTextColor(163,139,99);
+    doc.text('Garvetur Luxury Porto', marginX, y);
+    y += 16;
+    doc.setFontSize(10);
+    doc.setFont('helvetica','normal');
+    doc.setTextColor(120,120,120);
+    doc.text('Ficha de Angariação — Garvetur Porto Pro', marginX, y);
+    y += 20;
+
+    doc.setDrawColor(163,139,99);
+    doc.line(marginX, y, 555, y);
+    y += 14;
+
+    function addSection(title){
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(10);
+      doc.setTextColor(200,200,200);
+      doc.text(title.toUpperCase(), marginX, y);
+      y += 12;
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(9);
+      doc.setTextColor(230,230,230);
+    }
+    function addLine(text){
+      const maxWidth = 515;
+      const lines = doc.splitTextToSize(text, maxWidth);
+      lines.forEach(line=>{
+        if(y > 780){
+          doc.addPage();
+          y = 40;
+        }
+        doc.text(line, marginX, y);
+        y += 12;
+      });
+    }
+
+    const titulo = deal.isEmpreendimento && deal.nomeEmp
+      ? deal.nomeEmp
+      : (deal.tituloImovel || deal.nomeProp || 'Angariação');
+    addLine('Título: ' + titulo);
+    addLine('Consultor: ' + (deal.consultor || '') + ' | Gestor: ' + (deal.gestor || '') + ' | Coordenador: ' + (deal.coordenador || ''));
+    addLine('Ref. interna: ' + (deal.refInterna || '') + ' | Data angariação: ' + (deal.dataAngariacao || '') + ' | Estado: ' + (deal.estadoAng || ''));
+
+    y += 6;
+    addSection('Empreendimento');
+    if(deal.isEmpreendimento){
+      addLine('Nome empreendimento: ' + (deal.nomeEmp || ''));
+      addLine('Frações: ' + (deal.totalFracoes || '') + ' | Tipologias: ' + (deal.tipologiasEmp || ''));
+      addLine('Ano constr.: ' + (deal.anoConstrEmp || '') + ' | Ano conclusão: ' + (deal.anoConclEmp || ''));
+      addLine('Promotor: ' + (deal.promotor || '') + ' | Contacto: ' + (deal.telPromotor || '') + ' | Email: ' + (deal.emailPromotor || ''));
+    }else{
+      addLine('Não se encontra marcado como empreendimento.');
+    }
+
+    y += 6;
+    addSection('Proprietário');
+    addLine('Nome: ' + (deal.nomeProp || '') + ' | Contacto: ' + (deal.telProp || '') + ' | Email: ' + (deal.emailProp || ''));
+    addLine('Morada: ' + (deal.moradaProp || ''));
+    addLine('Estado civil: ' + (deal.estadoCivil || '') + ' | Regime casamento: ' + (deal.regimeCasamento || ''));
+
+    y += 6;
+    addSection('Imóvel & localização');
+    addLine('Título/designação: ' + (deal.tituloImovel || ''));
+    addLine('Localização: ' + (deal.localizacao || ''));
+    addLine('Distrito: ' + (deal.distrito || '') + ' | Concelho: ' + (deal.concelho || '') + ' | Freguesia: ' + (deal.freguesia || '') + ' | Zona: ' + (deal.zona || ''));
+    addLine('GPS: ' + (deal.gps || ''));
+    addLine('Ano construção: ' + (deal.anoConstrucao || '') + ' | Ano conclusão: ' + (deal.anoConclusao || '') + ' | Cert. energético: ' + (deal.certEnerg || ''));
+
+    y += 6;
+    addSection('Natureza, áreas, preço');
+    addLine('Natureza: ' + (deal.natureza || '') + ' | Estado imóvel: ' + (deal.estadoImovel || '') + ' | Negócio: ' + (deal.tipoNegocio || ''));
+    addLine('Origem cliente: ' + (deal.origemCliente || ''));
+    addLine('Áreas: útil ' + (deal.areaUtil || '-') + ' m² | bruta ' + (deal.areaBruta || '-') + ' m² | ABP ' + (deal.areaABP || '-') + ' m² | ABD ' + (deal.areaABD || '-') + ' m² | terreno ' + (deal.areaTerreno || '-') + ' m² | implantação ' + (deal.areaImplantacao || '-') + ' m²');
+    addLine('Preço pedido: ' + (deal.precoPedido ? formatMoney(deal.precoPedido) : '-') + ' | sugerido: ' + (deal.precoSugerido ? formatMoney(deal.precoSugerido) : '-'));
+    addLine('Comissão: ' + (deal.comissao === 'outro' ? (deal.comissaoOutro || '') + '%' : (deal.comissao ? deal.comissao + '%' : '-')) + ' | Ajustamento: ' + (deal.percentAjust ? formatPercent(deal.percentAjust) : '-'));
+
+    y += 6;
+    addSection('Características numéricas (10.1)');
+    const car = [];
+    if(deal.numQuartos) car.push(deal.numQuartos + ' quarto(s)');
+    if(deal.numSuites) car.push(deal.numSuites + ' suite(s)');
+    if(deal.numPisos) car.push(deal.numPisos + ' piso(s)');
+    if(deal.numVarandas) car.push(deal.numVarandas + ' varanda(s)');
+    if(deal.numSalas) car.push(deal.numSalas + ' sala(s)');
+    if(deal.numSalasJantar) car.push(deal.numSalasJantar + ' sala(s) jantar');
+    if(deal.numCozinhas) car.push(deal.numCozinhas + ' cozinha(s)');
+    if(car.length){
+      addLine(car.join(' · '));
+    }else{
+      addLine('—');
+    }
+
+    y += 6;
+    addSection('Zona envolvente (10.2)');
+    addLine(Array.isArray(deal.zonaEnvolvente) && deal.zonaEnvolvente.length ? deal.zonaEnvolvente.join(', ') : '—');
+
+    y += 6;
+    addSection('Infraestruturas (10.3)');
+    addLine(Array.isArray(deal.infraestruturas) && deal.infraestruturas.length ? deal.infraestruturas.join(', ') : '—');
+
+    y += 6;
+    addSection('Equipamentos (10.4)');
+    addLine(Array.isArray(deal.equipamentos) && deal.equipamentos.length ? deal.equipamentos.join(', ') : '—');
+
+    y += 6;
+    addSection('Segurança (10.5)');
+    addLine(Array.isArray(deal.seguranca) && deal.seguranca.length ? deal.seguranca.join(', ') : '—');
+
+    y += 6;
+    addSection('Documentação & notas');
+    addLine('Documentação: ' + (Array.isArray(deal.documentacao) && deal.documentacao.length ? deal.documentacao.join(', ') : '—'));
+    if(deal.observacoes){
+      addLine('Observações: ' + deal.observacoes);
+    }
+    if(deal.notasInternas){
+      addLine('Notas internas: ' + deal.notasInternas);
+    }
+
+    const pages = doc.internal.getNumberOfPages();
+    for(let i=1;i<=pages;i++){
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150,150,150);
+      doc.text('Garvetur Porto Pro · ' + new Date().toLocaleDateString('pt-PT'), marginX, 820);
+      doc.text('Página ' + i + ' / ' + pages, 520, 820);
+    }
+
+    doc.save((deal.refInterna || 'angariacao') + '_garvetur_porto_pro.pdf');
+  }
+
+  function exportPdfAll(){
+    const filtered = applyFilters(state.deals);
+    if(!filtered.length){
+      alert('Não existem angariações com os filtros atuais para exportar.');
+      return;
+    }
+    exportOnePdf(filtered[0]);
+    if(filtered.length>1){
+      alert('Neste momento a exportação em lote gera um PDF por vez. Para exportar outra angariação, clique no botão PDF do cartão respetivo.');
+    }
+  }
+
+  toggleLockBtn.addEventListener('click',()=>{
+    state.locked = !state.locked;
+    updateLockUI();
+    saveState();
   });
 
-  const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob);
-  const aEl = document.createElement('a');
-  aEl.href = url;
-  aEl.download = 'angariacoes.csv';
-  document.body.appendChild(aEl);
-  aEl.click();
-  aEl.remove();
-  URL.revokeObjectURL(url);
-}
-
-/* ===== Init ===== */
-(function init(){
-  ANG = loadLS();
-  loadFilters();
-
-  const stored = localStorage.getItem(EDIT_KEY);
-  EDIT_MODE = stored==='1';
-  applyEditUI();
-
-  $('toggleEdit').addEventListener('click',()=>{
-    setEditMode(!EDIT_MODE);
+  newDealBtn.addEventListener('click',()=>{
+    if(state.locked) return;
+    openModal(null);
   });
 
-  $('exportCsv').addEventListener('click', exportCsv);
+  closeModalBtn.addEventListener('click', closeModal);
+  cancelModalBtn.addEventListener('click', closeModal);
 
-  renderBoard();
+  isEmpreendimento.addEventListener('change', updateEmpBlockVisibility);
+
+  filterConsultor.addEventListener('change', renderCards);
+  filterDataDe.addEventListener('change', renderCards);
+  filterDataAte.addEventListener('change', renderCards);
+  filterShowHidden.addEventListener('change', renderCards);
+
+  saveDealBtn.addEventListener('click', (e)=>{
+    e.preventDefault();
+    if(state.locked){
+      alert('O modo de edição está bloqueado. Desbloqueie o cadeado no topo para guardar alterações.');
+      return;
+    }
+    const data = collectFormData();
+    const idx = state.deals.findIndex(d=>d.id === data.id);
+    if(idx>=0){
+      state.deals[idx] = data;
+    }else{
+      state.deals.push(data);
+    }
+    saveState();
+    renderCards();
+    closeModal();
+  });
+
+  exportCsvBtn.addEventListener('click', exportCsv);
+  exportPdfBtn.addEventListener('click', exportPdfAll);
+
+  window.addEventListener('keydown', (e)=>{
+    if(e.key==='Escape' && modalBackdrop.classList.contains('open')){
+      closeModal();
+    }
+  });
+
+  renderCheckboxGroup('zonaEnvolventeGroup','zonaEnvolvente',ZONA_ENVOLVENTE);
+  renderCheckboxGroup('infraGroup','infraestruturas',INFRAESTRUTURAS);
+  renderCheckboxGroup('equipGroup','equipamentos',EQUIPAMENTOS);
+  renderCheckboxGroup('segGroup','seguranca',SEGURANCA);
+  renderCheckboxGroup('docsGroup','documentacao',DOCUMENTACAO);
+
+  initConsultores();
+  loadState();
+  renderCards();
+
 })();
 </script>
 </body>
