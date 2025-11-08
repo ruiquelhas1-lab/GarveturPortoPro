@@ -281,7 +281,7 @@ header{
 }
 .modal-backdrop.show{display:flex}
 .modal{
-  width:min(1040px,96vw);
+  width:min(1080px,96vw);
   background:#0F0F0F;
   border-radius:12px;
   border:1px solid var(--border);
@@ -466,11 +466,20 @@ textarea{resize:vertical}
     <div class="content">
       <!-- Dados principais -->
       <div class="section-title">Dados principais</div>
-      <div class="form-grid2">
+      <div class="form-grid3">
+        <div class="form-field">
+          <label>Nome do empreendimento</label>
+          <input id="a_nome_empreendimento" placeholder="Ex.: Essence, Madalena Vista Mar">
+        </div>
         <div class="form-field">
           <label>Imóvel *</label>
           <input id="a_imovel" placeholder="Ex.: T3 Boavista, Moradia Fânzeres">
         </div>
+        <div class="form-field">
+          <label>Tipologias do empreendimento</label>
+          <input id="a_tipologias" placeholder="Ex.: T1–T4, T2 e T3">
+        </div>
+
         <div class="form-field">
           <label>Consultor *</label>
           <select id="a_consultor">
@@ -484,16 +493,45 @@ textarea{resize:vertical}
             <option>Audrey Lucas</option>
           </select>
         </div>
+        <div class="form-field">
+          <label>Gestor</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            <select id="a_gestor">
+              <option value="">—</option>
+              <option>Rui Quelhas</option>
+              <option>Manuel Oliveira</option>
+              <option>João Sousa</option>
+              <option>Francisco dos Santos</option>
+              <option>Rosário Vasconcelos</option>
+              <option>Armanda Meireles</option>
+              <option>Audrey Lucas</option>
+              <option value="outro">Outro</option>
+            </select>
+            <input id="a_gestor_outro" placeholder="Outro gestor" style="display:none">
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Coordenador</label>
+          <input id="a_coordenador" value="Rui Quelhas">
+        </div>
 
+        <div class="form-field">
+          <label>Interveniente</label>
+          <input id="a_interveniente" placeholder="Nome do interveniente">
+        </div>
         <div class="form-field">
           <label>Proprietário *</label>
           <input id="a_proprietario" placeholder="Nome do proprietário">
         </div>
         <div class="form-field">
+          <label>Email do proprietário</label>
+          <input id="a_email_proprietario" type="email" placeholder="email@exemplo.pt">
+        </div>
+
+        <div class="form-field">
           <label>Contacto proprietário</label>
           <input id="a_contacto" placeholder="+351 …">
         </div>
-
         <div class="form-field">
           <label>Data</label>
           <input id="a_data" type="date">
@@ -502,11 +540,54 @@ textarea{resize:vertical}
           <label>Ref. Interna</label>
           <input id="a_ref">
         </div>
+
+        <div class="form-field">
+          <label>Nome do Promotor</label>
+          <input id="a_nome_promotor">
+        </div>
+        <div class="form-field">
+          <label>Contacto do Promotor</label>
+          <input id="a_contacto_promotor">
+        </div>
+        <div class="form-field">
+          <label>Email do Promotor</label>
+          <input id="a_email_promotor" type="email">
+        </div>
+
+        <div class="form-field">
+          <label>Ano de construção</label>
+          <input id="a_ano_construcao" placeholder="Ex.: 2002">
+        </div>
+        <div class="form-field">
+          <label>Ano de conclusão</label>
+          <input id="a_ano_conclusao" placeholder="Ex.: 2025">
+        </div>
+        <div class="form-field">
+          <label>Certificado energético</label>
+          <select id="a_cert_energetico_classe">
+            <option value="">—</option>
+            <option>A+</option>
+            <option>A</option>
+            <option>B</option>
+            <option>B-</option>
+            <option>C</option>
+            <option>D</option>
+            <option>E</option>
+            <option>F</option>
+            <option>G</option>
+            <option>Isento</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label>Total de Frações</label>
+          <input id="a_total_fracoes" type="number" min="0" step="1">
+        </div>
       </div>
 
       <!-- Localização -->
       <div class="section-title">Localização</div>
-      <div class="form-grid2">
+      <div class="form-grid3">
         <div class="form-field">
           <label>Morada</label>
           <input id="loc_morada">
@@ -533,7 +614,7 @@ textarea{resize:vertical}
         </div>
       </div>
 
-      <!-- Natureza / Estado / Negócio / Áreas -->
+      <!-- Natureza / Estado / Negócio -->
       <div class="section-title">Natureza, estado e negócio</div>
       <div class="form-grid3">
         <div class="form-field">
@@ -545,6 +626,7 @@ textarea{resize:vertical}
             <option>Terreno</option>
             <option>Loja</option>
             <option>Escritório</option>
+            <option>Empreendimento</option>
             <option>Outro</option>
           </select>
         </div>
@@ -583,6 +665,7 @@ textarea{resize:vertical}
         </div>
       </div>
 
+      <!-- Áreas -->
       <div class="section-title">Áreas (m²)</div>
       <div class="form-grid3">
         <div class="form-field">
@@ -596,6 +679,14 @@ textarea{resize:vertical}
         <div class="form-field">
           <label>Área terreno</label>
           <input id="a_area_terreno" type="number" min="0" step="1">
+        </div>
+        <div class="form-field">
+          <label>Área Bruta Privativa (ABP)</label>
+          <input id="a_abp" type="number" min="0" step="1">
+        </div>
+        <div class="form-field">
+          <label>Área Bruta Dependente (ABD)</label>
+          <input id="a_abd" type="number" min="0" step="1">
         </div>
       </div>
       <div class="form-field">
@@ -841,7 +932,7 @@ textarea{resize:vertical}
 
 <script>
 /* ===== Estado global ===== */
-const LS_KEY = 'gpp_angariações_v2';
+const LS_KEY = 'gpp_angariações_v3';
 const EDIT_KEY = 'gpp_ang_edit_mode';
 const COLS = ["Novo","Em Negociação","Aprovado","Perdido"];
 const CONSULT = [
@@ -977,12 +1068,41 @@ function openModal(edit=null){
 
   const a = edit || {};
   // principais
+  set('a_nome_empreendimento', a.nome_empreendimento);
   set('a_imovel', a.imovel);
+  set('a_tipologias', a.tipologias);
   set('a_consultor', a.consultor);
+
+  // gestor
+  if(a.gestor && CONSULT.includes(a.gestor)){
+    set('a_gestor', a.gestor);
+    $('a_gestor_outro').style.display='none';
+    $('a_gestor_outro').value='';
+  } else if(a.gestor){
+    set('a_gestor','outro');
+    $('a_gestor_outro').style.display='block';
+    $('a_gestor_outro').value = a.gestor;
+  } else {
+    set('a_gestor','');
+    $('a_gestor_outro').style.display='none';
+    $('a_gestor_outro').value='';
+  }
+
+  set('a_coordenador', a.coordenador || 'Rui Quelhas');
+  set('a_interveniente', a.interveniente);
   set('a_proprietario', a.proprietario);
+  set('a_email_proprietario', a.email_proprietario);
   set('a_contacto', a.contacto);
   set('a_data', a.data || new Date().toISOString().slice(0,10));
   set('a_ref', a.ref);
+
+  set('a_nome_promotor', a.nome_promotor);
+  set('a_contacto_promotor', a.contacto_promotor);
+  set('a_email_promotor', a.email_promotor);
+  set('a_ano_construcao', a.ano_construcao);
+  set('a_ano_conclusao', a.ano_conclusao);
+  set('a_cert_energetico_classe', a.cert_energetico_classe);
+  set('a_total_fracoes', a.total_fracoes);
 
   // localização
   set('loc_morada', a.loc_morada);
@@ -1003,6 +1123,8 @@ function openModal(edit=null){
   set('a_area_util', a.area_util);
   set('a_area_bruta', a.area_bruta);
   set('a_area_terreno', a.area_terreno);
+  set('a_abp', a.abp);
+  set('a_abd', a.abd);
   set('a_obs_areas', a.obs_areas);
 
   // preço / comissão / ajustamento
@@ -1100,6 +1222,14 @@ $('a_comissao').addEventListener('change', e=>{
     $('a_comissao_outro').value='';
   }
 });
+$('a_gestor').addEventListener('change', e=>{
+  if(e.target.value === 'outro'){
+    $('a_gestor_outro').style.display='block';
+  } else {
+    $('a_gestor_outro').style.display='none';
+    $('a_gestor_outro').value='';
+  }
+});
 
 /* ===== Guardar ===== */
 $('btnSave').addEventListener('click',()=>{
@@ -1131,6 +1261,7 @@ $('btnSave').addEventListener('click',()=>{
     }
   }
 
+  // comissão
   let comissao_pct = '';
   const comSel = get('a_comissao');
   if(comSel === 'outro'){
@@ -1139,6 +1270,15 @@ $('btnSave').addEventListener('click',()=>{
     if(Number.isFinite(n)) comissao_pct = n;
   } else if(comSel){
     comissao_pct = Number(comSel);
+  }
+
+  // gestor
+  let gestor = '';
+  const gSel = get('a_gestor');
+  if(gSel === 'outro'){
+    gestor = get('a_gestor_outro') || '';
+  } else {
+    gestor = gSel;
   }
 
   const zKeys = ['aeroporto','banco','areas_lazer','autoestrada','biblioteca','centro_comercial','centro_cidade',
@@ -1162,12 +1302,26 @@ $('btnSave').addEventListener('click',()=>{
 
   const rec = {
     id: EDIT_ID || ('A'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4)),
+    // principais
+    nome_empreendimento: get('a_nome_empreendimento'),
     imovel,
+    tipologias: get('a_tipologias'),
     consultor,
+    gestor,
+    coordenador: get('a_coordenador') || 'Rui Quelhas',
+    interveniente: get('a_interveniente'),
     proprietario,
+    email_proprietario: get('a_email_proprietario'),
     contacto: get('a_contacto'),
     data: get('a_data'),
     ref: get('a_ref'),
+    nome_promotor: get('a_nome_promotor'),
+    contacto_promotor: get('a_contacto_promotor'),
+    email_promotor: get('a_email_promotor'),
+    ano_construcao: get('a_ano_construcao'),
+    ano_conclusao: get('a_ano_conclusao'),
+    cert_energetico_classe: get('a_cert_energetico_classe'),
+    total_fracoes: get('a_total_fracoes'),
 
     // localização
     loc_morada: get('loc_morada'),
@@ -1188,6 +1342,8 @@ $('btnSave').addEventListener('click',()=>{
     area_util: get('a_area_util'),
     area_bruta: get('a_area_bruta'),
     area_terreno: get('a_area_terreno'),
+    abp: get('a_abp'),
+    abd: get('a_abd'),
     obs_areas: get('a_obs_areas'),
 
     // preço / comissão / ajustamento
@@ -1227,7 +1383,7 @@ $('btnSave').addEventListener('click',()=>{
     d_texto_1500: chk('d_texto_1500'),
     d_bupi: chk('d_bupi'),
 
-    // zona
+    // observações e notas
     visivel: true,
     notas: get('a_notas'),
     notas_consultor: get('a_notas_consultor'),
@@ -1274,7 +1430,7 @@ function filterDataset(){
   if(t){
     out = out.filter(a=>{
       const blob = [
-        a.imovel,a.proprietario,a.consultor,a.ref,a.notas
+        a.nome_empreendimento,a.imovel,a.proprietario,a.consultor,a.ref,a.notas
       ].map(norm).join(' ');
       return blob.includes(t);
     });
@@ -1381,7 +1537,7 @@ function renderBoard(){
       const card = document.createElement('div');
       card.className = 'card';
 
-      const docsOk = (a.d_cc && a.d_caderneta && a.d_crp && a.d_cert_energetico && a.d_cmi) ? 'Completa' : 'Incompleta';
+      const docsOk = (a.d_cc && a.d_contrato_med && a.d_caderneta && a.d_crp && a.d_cert_energetico) ? 'Completa' : 'Incompleta';
       const badgeDocs = docsOk==='Completa' ? '<span class="badge green">Doc. completa</span>' : '<span class="badge yellow">Doc. incompleta</span>';
 
       let badgeAj='';
@@ -1399,11 +1555,16 @@ function renderBoard(){
       card.innerHTML = `
         <div class="top">
           <div>
-            <div class="name">${a.imovel||'—'}</div>
-            <div class="meta">${a.consultor||'—'} ${a.ref? '· '+a.ref:''}</div>
+            <div class="name">${a.nome_empreendimento || a.imovel || '—'}</div>
+            <div class="meta">
+              ${a.consultor||'—'}
+              ${a.ref? ' · '+a.ref:''}
+            </div>
           </div>
           <div>${badgeAj}</div>
         </div>
+        ${a.imovel ? `<div class="row"><b>Imóvel:</b> ${a.imovel}</div>`:''}
+        ${a.nome_promotor ? `<div class="row"><b>Promotor:</b> ${a.nome_promotor}</div>`:''}
         <div class="row"><b>Proprietário:</b> ${a.proprietario||'—'}</div>
         <div class="row"><b>Localização:</b> ${a.loc_concelho||'—'} ${a.loc_freguesia? ' · '+a.loc_freguesia:''}</div>
         <div class="row"><b>Data:</b> ${fmtDate(a.data)}</div>
@@ -1487,9 +1648,13 @@ function gerarProposta(a){
   const texto = `
 Proposta de Angariação
 
+Empreendimento: ${a.nome_empreendimento||''}
 Imóvel: ${a.imovel||''}
+Tipologias: ${a.tipologias||''}
+
 Natureza: ${a.natureza||''} ${a.natureza_outro? ' ('+a.natureza_outro+')':''}
 Negócio: ${a.negocio||''} ${a.negocio_outro? ' ('+a.negocio_outro+')':''}
+Estado do imóvel: ${a.estado_imovel||''}
 
 Localização:
   Morada: ${a.loc_morada||''}
@@ -1500,14 +1665,30 @@ Localização:
   Coordenadas: ${a.loc_gps||''}
 
 Proprietário: ${a.proprietario||''}
+Email proprietário: ${a.email_proprietario||''}
 Consultor: ${a.consultor||''}
+Gestor: ${a.gestor||''}
+Coordenador: ${a.coordenador||''}
+Interveniente: ${a.interveniente||''}
 Referência interna: ${a.ref||''}
 Data: ${fmtDate(a.data)||''}
+
+Promotor:
+  Nome: ${a.nome_promotor||''}
+  Contacto: ${a.contacto_promotor||''}
+  Email: ${a.email_promotor||''}
+
+Ano de construção: ${a.ano_construcao||''}
+Ano de conclusão: ${a.ano_conclusao||''}
+Certificado energético: ${a.cert_energetico_classe||''}
+Total de frações: ${a.total_fracoes||''}
 
 Áreas:
   Útil: ${fmtNum(a.area_util)} m²
   Bruta: ${fmtNum(a.area_bruta)} m²
   Terreno: ${fmtNum(a.area_terreno)} m²
+  ABP: ${fmtNum(a.abp)} m²
+  ABD: ${fmtNum(a.abd)} m²
   Observações: ${a.obs_areas||''}
 
 Preço pedido: ${fmtNum(a.preco_pedido)} €
@@ -1516,13 +1697,14 @@ Preço sugerido: ${fmtNum(a.preco_sugerido)} €
 
 Comissão: ${a.comissao_pct? a.comissao_pct+'%' : '—'}
 Origem do cliente: ${a.origem||''}
+Estado da angariação: ${a.estado||''}
 
 Documentação (resumo):
-  CC: ${a.d_cc?'Sim':'Não'}
-  Caderneta: ${a.d_caderneta?'Sim':'Não'}
+  Ident. Proprietários: ${a.d_cc?'Sim':'Não'}
+  Contrato de Mediação: ${a.d_contrato_med?'Sim':'Não'}
+  Caderneta Predial: ${a.d_caderneta?'Sim':'Não'}
   CRP: ${a.d_crp?'Sim':'Não'}
   Cert. Energético: ${a.d_cert_energetico?'Sim':'Não'}
-  CMI/CPCV/Plano: ${a.d_minuta_cpcv?'Sim':'Não'}
   Registado no BUPI: ${a.d_bupi?'Sim':'Não'}
 
 Observações gerais:
@@ -1552,24 +1734,34 @@ ${a.notas_assistente||''}
 function exportCsv(){
   const rows = [];
   const headers = [
-    "ID","Imóvel","Natureza","Negócio","Proprietário","Consultor","Data","Ref","Estado",
+    "ID","Empreendimento","Imóvel","Tipologias",
+    "Natureza","Negócio","EstadoImóvel",
+    "Proprietário","EmailProprietário","Consultor","Gestor","Coordenador","Interveniente",
+    "Data","Ref","EstadoAngariação",
     "Morada","Zona","Concelho","Freguesia",
+    "AnoConstrução","AnoConclusão","CertEnergético","TotalFrações",
     "PreçoPedido","PreçoSugerido","Comissão(%)","Ajustamento(%)",
-    "Origem","Visível","Notas",
-    "BUPI","DocCompleta"
+    "Origem","Visível","Notas","BUPI","DocCompleta"
   ];
   rows.push(headers);
 
   const data = filterDataset();
   data.forEach(a=>{
-    const docsOk = (a.d_cc && a.d_caderneta && a.d_crp && a.d_cert_energetico && a.d_cmi) ? 'Sim':'Não';
+    const docsOk = (a.d_cc && a.d_contrato_med && a.d_caderneta && a.d_crp && a.d_cert_energetico) ? 'Sim':'Não';
     rows.push([
       a.id,
+      a.nome_empreendimento||'',
       a.imovel||'',
+      a.tipologias||'',
       a.natureza||'',
       a.negocio||'',
+      a.estado_imovel||'',
       a.proprietario||'',
+      a.email_proprietario||'',
       a.consultor||'',
+      a.gestor||'',
+      a.coordenador||'',
+      a.interveniente||'',
       a.data||'',
       a.ref||'',
       a.estado||'',
@@ -1577,6 +1769,10 @@ function exportCsv(){
       a.loc_zona||'',
       a.loc_concelho||'',
       a.loc_freguesia||'',
+      a.ano_construcao||'',
+      a.ano_conclusao||'',
+      a.cert_energetico_classe||'',
+      a.total_fracoes||'',
       a.preco_pedido||'',
       a.preco_sugerido||'',
       (a.comissao_pct!==undefined && a.comissao_pct!==''? a.comissao_pct:''),
