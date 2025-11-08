@@ -399,7 +399,7 @@ textarea{resize:vertical}
   <aside class="sidebar">
     <h3>Pesquisa</h3>
     <div class="field">
-      <input id="f_q" placeholder="Imóvel, proprietário, consultor, ref., notas">
+      <input id="f_q" placeholder="Empreendimento, proprietário, consultor, ref., notas">
     </div>
 
     <h3>Filtros</h3>
@@ -464,22 +464,9 @@ textarea{resize:vertical}
       </div>
     </header>
     <div class="content">
-      <!-- Dados principais -->
-      <div class="section-title">Dados principais</div>
+      <!-- Cabeçalho -->
+      <div class="section-title">Cabeçalho</div>
       <div class="form-grid3">
-        <div class="form-field">
-          <label>Nome do empreendimento</label>
-          <input id="a_nome_empreendimento" placeholder="Ex.: Essence, Madalena Vista Mar">
-        </div>
-        <div class="form-field">
-          <label>Imóvel *</label>
-          <input id="a_imovel" placeholder="Ex.: T3 Boavista, Moradia Fânzeres">
-        </div>
-        <div class="form-field">
-          <label>Tipologias do empreendimento</label>
-          <input id="a_tipologias" placeholder="Ex.: T1–T4, T2 e T3">
-        </div>
-
         <div class="form-field">
           <label>Consultor *</label>
           <select id="a_consultor">
@@ -514,46 +501,35 @@ textarea{resize:vertical}
           <label>Coordenador</label>
           <input id="a_coordenador" value="Rui Quelhas">
         </div>
-
         <div class="form-field">
           <label>Interveniente</label>
           <input id="a_interveniente" placeholder="Nome do interveniente">
         </div>
         <div class="form-field">
-          <label>Proprietário *</label>
-          <input id="a_proprietario" placeholder="Nome do proprietário">
-        </div>
-        <div class="form-field">
-          <label>Email do proprietário</label>
-          <input id="a_email_proprietario" type="email" placeholder="email@exemplo.pt">
-        </div>
-
-        <div class="form-field">
-          <label>Contacto proprietário</label>
-          <input id="a_contacto" placeholder="+351 …">
-        </div>
-        <div class="form-field">
-          <label>Data</label>
-          <input id="a_data" type="date">
-        </div>
-        <div class="form-field">
           <label>Ref. Interna</label>
           <input id="a_ref">
         </div>
+        <div class="form-field">
+          <label>Link URL</label>
+          <input id="a_link_url" placeholder="https://…">
+        </div>
+      </div>
 
+      <!-- Empreendimento -->
+      <div class="section-title">Empreendimento</div>
+      <div class="form-grid3">
         <div class="form-field">
-          <label>Nome do Promotor</label>
-          <input id="a_nome_promotor">
+          <label>Nome do empreendimento</label>
+          <input id="a_nome_empreendimento" placeholder="Ex.: Essence, Madalena Vista Mar">
         </div>
         <div class="form-field">
-          <label>Contacto do Promotor</label>
-          <input id="a_contacto_promotor">
+          <label>Total de Frações</label>
+          <input id="a_total_fracoes" type="number" min="0" step="1">
         </div>
         <div class="form-field">
-          <label>Email do Promotor</label>
-          <input id="a_email_promotor" type="email">
+          <label>Tipologias</label>
+          <input id="a_tipologias" placeholder="Ex.: T1–T4, T2 e T3">
         </div>
-
         <div class="form-field">
           <label>Ano de construção</label>
           <input id="a_ano_construcao" placeholder="Ex.: 2002">
@@ -562,8 +538,76 @@ textarea{resize:vertical}
           <label>Ano de conclusão</label>
           <input id="a_ano_conclusao" placeholder="Ex.: 2025">
         </div>
+      </div>
+      <div class="form-grid3">
         <div class="form-field">
-          <label>Certificado energético</label>
+          <label>Promotor</label>
+          <input id="a_nome_promotor">
+        </div>
+        <div class="form-field">
+          <label>Contacto telefónico (Promotor)</label>
+          <input id="a_contacto_promotor">
+        </div>
+        <div class="form-field">
+          <label>Email do Promotor</label>
+          <input id="a_email_promotor" type="email">
+        </div>
+      </div>
+
+      <!-- Proprietário -->
+      <div class="section-title">Proprietário</div>
+      <div class="form-grid3">
+        <div class="form-field">
+          <label>Nome *</label>
+          <input id="a_proprietario" placeholder="Nome do proprietário">
+        </div>
+        <div class="form-field">
+          <label>Contacto telefónico</label>
+          <input id="a_contacto" placeholder="+351 …">
+        </div>
+        <div class="form-field">
+          <label>Email</label>
+          <input id="a_email_proprietario" type="email" placeholder="email@exemplo.pt">
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Morada</label>
+        <input id="loc_morada">
+      </div>
+      <div class="form-grid2">
+        <div class="form-field">
+          <label>Estado civil</label>
+          <select id="a_estado_civil">
+            <option value="">—</option>
+            <option>Solteiro</option>
+            <option>Casado</option>
+            <option>Divorciado</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Regime de casamento</label>
+          <select id="a_regime">
+            <option value="">—</option>
+            <option>Comunhão de adquiridos</option>
+            <option>Comunhão geral de bens</option>
+            <option>Separação de bens</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Imóvel -->
+      <div class="section-title">Imóvel</div>
+      <div class="form-grid3">
+        <div class="form-field">
+          <label>Título / Designação</label>
+          <input id="a_titulo" placeholder="Ex.: Apartamento T3 com vista mar">
+        </div>
+        <div class="form-field">
+          <label>Localização</label>
+          <input id="loc_zona" placeholder="Zona / localização">
+        </div>
+        <div class="form-field">
+          <label>Certificado Energético</label>
           <select id="a_cert_energetico_classe">
             <option value="">—</option>
             <option>A+</option>
@@ -578,24 +622,8 @@ textarea{resize:vertical}
             <option>Isento</option>
           </select>
         </div>
-
-        <div class="form-field">
-          <label>Total de Frações</label>
-          <input id="a_total_fracoes" type="number" min="0" step="1">
-        </div>
       </div>
-
-      <!-- Localização -->
-      <div class="section-title">Localização</div>
       <div class="form-grid3">
-        <div class="form-field">
-          <label>Morada</label>
-          <input id="loc_morada">
-        </div>
-        <div class="form-field">
-          <label>Zona</label>
-          <input id="loc_zona">
-        </div>
         <div class="form-field">
           <label>Distrito</label>
           <input id="loc_distrito">
@@ -608,10 +636,10 @@ textarea{resize:vertical}
           <label>Freguesia</label>
           <input id="loc_freguesia">
         </div>
-        <div class="form-field">
-          <label>Coordenadas GPS</label>
-          <input id="loc_gps" placeholder="Ex.: 41.15, -8.61">
-        </div>
+      </div>
+      <div class="form-field">
+        <label>Coordenadas GPS</label>
+        <input id="loc_gps" placeholder="Ex.: 41.15, -8.61">
       </div>
 
       <!-- Natureza / Estado / Negócio -->
@@ -635,7 +663,7 @@ textarea{resize:vertical}
           <input id="a_natureza_outro">
         </div>
         <div class="form-field">
-          <label>Estado</label>
+          <label>Estado do imóvel</label>
           <select id="a_estado_imovel">
             <option value="">—</option>
             <option>Novo</option>
@@ -646,7 +674,6 @@ textarea{resize:vertical}
             <option>Outro</option>
           </select>
         </div>
-
         <div class="form-field">
           <label>Negócio</label>
           <select id="a_negocio">
@@ -662,6 +689,10 @@ textarea{resize:vertical}
         <div class="form-field">
           <label>Negócio (Outro)</label>
           <input id="a_negocio_outro">
+        </div>
+        <div class="form-field">
+          <label>Data</label>
+          <input id="a_data" type="date">
         </div>
       </div>
 
@@ -749,10 +780,28 @@ textarea{resize:vertical}
       <div class="section-title">Destaques</div>
       <div class="check-grid-3">
         <label><input type="checkbox" id="d_exclusivo"> Exclusivo</label>
+        <label><input type="checkbox" id="d_nao_exclusivo"> Não exclusivo</label>
         <label><input type="checkbox" id="d_luxo"> Luxo</label>
         <label><input type="checkbox" id="d_banca"> Imóveis da Banca</label>
         <label><input type="checkbox" id="d_golden_visa"> Golden Visa</label>
         <label><input type="checkbox" id="d_rentab"> Rentabilidade Garantida</label>
+      </div>
+      <div class="form-grid3">
+        <div class="form-field">
+          <label>Duração do Contrato</label>
+          <select id="d_duracao">
+            <option value="">—</option>
+            <option>3 meses</option>
+            <option>4 meses</option>
+            <option>5 meses</option>
+            <option>6 meses</option>
+            <option value="outro">Outro</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Duração (Outro)</label>
+          <input id="d_duracao_outro" placeholder="Ex.: 9 meses" style="display:none">
+        </div>
       </div>
 
       <!-- Documentação -->
@@ -932,7 +981,7 @@ textarea{resize:vertical}
 
 <script>
 /* ===== Estado global ===== */
-const LS_KEY = 'gpp_angariações_v3';
+const LS_KEY = 'gpp_angariações_v4';
 const EDIT_KEY = 'gpp_ang_edit_mode';
 const COLS = ["Novo","Em Negociação","Aprovado","Perdido"];
 const CONSULT = [
@@ -1067,13 +1116,8 @@ function openModal(edit=null){
   const chk = (id,val)=>{ const el=$(id); if(el) el.checked = !!val; };
 
   const a = edit || {};
-  // principais
-  set('a_nome_empreendimento', a.nome_empreendimento);
-  set('a_imovel', a.imovel);
-  set('a_tipologias', a.tipologias);
+  // Cabeçalho
   set('a_consultor', a.consultor);
-
-  // gestor
   if(a.gestor && CONSULT.includes(a.gestor)){
     set('a_gestor', a.gestor);
     $('a_gestor_outro').style.display='none';
@@ -1087,39 +1131,47 @@ function openModal(edit=null){
     $('a_gestor_outro').style.display='none';
     $('a_gestor_outro').value='';
   }
-
   set('a_coordenador', a.coordenador || 'Rui Quelhas');
   set('a_interveniente', a.interveniente);
-  set('a_proprietario', a.proprietario);
-  set('a_email_proprietario', a.email_proprietario);
-  set('a_contacto', a.contacto);
-  set('a_data', a.data || new Date().toISOString().slice(0,10));
   set('a_ref', a.ref);
+  set('a_link_url', a.link_url);
 
+  // Empreendimento
+  set('a_nome_empreendimento', a.nome_empreendimento);
+  set('a_total_fracoes', a.total_fracoes);
+  set('a_tipologias', a.tipologias);
+  set('a_ano_construcao', a.ano_construcao);
+  set('a_ano_conclusao', a.ano_conclusao);
   set('a_nome_promotor', a.nome_promotor);
   set('a_contacto_promotor', a.contacto_promotor);
   set('a_email_promotor', a.email_promotor);
-  set('a_ano_construcao', a.ano_construcao);
-  set('a_ano_conclusao', a.ano_conclusao);
-  set('a_cert_energetico_classe', a.cert_energetico_classe);
-  set('a_total_fracoes', a.total_fracoes);
 
-  // localização
+  // Proprietário
+  set('a_proprietario', a.proprietario);
+  set('a_contacto', a.contacto);
+  set('a_email_proprietario', a.email_proprietario);
   set('loc_morada', a.loc_morada);
+  set('a_estado_civil', a.estado_civil);
+  set('a_regime', a.regime);
+
+  // Imóvel
+  set('a_titulo', a.titulo);
   set('loc_zona', a.loc_zona);
+  set('a_cert_energetico_classe', a.cert_energetico_classe);
   set('loc_distrito', a.loc_distrito);
   set('loc_concelho', a.loc_concelho);
   set('loc_freguesia', a.loc_freguesia);
   set('loc_gps', a.loc_gps);
 
-  // natureza / estado / negócio
+  // Natureza / negócio / data
   set('a_natureza', a.natureza);
   set('a_natureza_outro', a.natureza_outro);
   set('a_estado_imovel', a.estado_imovel);
   set('a_negocio', a.negocio);
   set('a_negocio_outro', a.negocio_outro);
+  set('a_data', a.data || new Date().toISOString().slice(0,10));
 
-  // áreas
+  // Áreas
   set('a_area_util', a.area_util);
   set('a_area_bruta', a.area_bruta);
   set('a_area_terreno', a.area_terreno);
@@ -1149,32 +1201,28 @@ function openModal(edit=null){
 
   // destaques
   chk('d_exclusivo', a.d_exclusivo);
+  chk('d_nao_exclusivo', a.d_nao_exclusivo);
   chk('d_luxo', a.d_luxo);
   chk('d_banca', a.d_banca);
   chk('d_golden_visa', a.d_golden_visa);
   chk('d_rentab', a.d_rentab);
+  set('d_duracao', a.duracao_contrato);
+  if(a.duracao_contrato && !['3 meses','4 meses','5 meses','6 meses'].includes(a.duracao_contrato)){
+    $('d_duracao').value = 'outro';
+    $('d_duracao_outro').style.display='block';
+    $('d_duracao_outro').value = a.duracao_contrato;
+  } else {
+    $('d_duracao_outro').style.display='none';
+    $('d_duracao_outro').value='';
+  }
 
   // docs
-  chk('d_cc', a.d_cc);
-  chk('d_contrato_med', a.d_contrato_med);
-  chk('d_caderneta', a.d_caderneta);
-  chk('d_crp', a.d_crp);
-  chk('d_cert_energetico', a.d_cert_energetico);
-  chk('d_planta_loc', a.d_planta_loc);
-  chk('d_licenca', a.d_licenca);
-  chk('d_fotos', a.d_fotos);
-  chk('d_ficha_tec', a.d_ficha_tec);
-  chk('d_mapa_acab', a.d_mapa_acab);
-  chk('d_titulo_ph', a.d_titulo_ph);
-  chk('d_cert_comercial', a.d_cert_comercial);
-  chk('d_id_socios', a.d_id_socios);
-  chk('d_tabela_preco', a.d_tabela_preco);
-  chk('d_desc_projeto', a.d_desc_projeto);
-  chk('d_minuta_cpcv', a.d_minuta_cpcv);
-  chk('d_pedido_info', a.d_pedido_info);
-  chk('d_proj_arq', a.d_proj_arq);
-  chk('d_texto_1500', a.d_texto_1500);
-  chk('d_bupi', a.d_bupi);
+  const boolIds = [
+    'd_cc','d_contrato_med','d_caderneta','d_crp','d_cert_energetico','d_planta_loc','d_licenca','d_fotos',
+    'd_ficha_tec','d_mapa_acab','d_titulo_ph','d_cert_comercial','d_id_socios','d_tabela_preco','d_desc_projeto',
+    'd_minuta_cpcv','d_pedido_info','d_proj_arq','d_texto_1500','d_bupi'
+  ];
+  boolIds.forEach(id=>chk(id, a[id]));
 
   // zona
   const zKeys = ['aeroporto','banco','areas_lazer','autoestrada','biblioteca','centro_comercial','centro_cidade',
@@ -1230,6 +1278,14 @@ $('a_gestor').addEventListener('change', e=>{
     $('a_gestor_outro').value='';
   }
 });
+$('d_duracao').addEventListener('change', e=>{
+  if(e.target.value === 'outro'){
+    $('d_duracao_outro').style.display='block';
+  } else {
+    $('d_duracao_outro').style.display='none';
+    $('d_duracao_outro').value='';
+  }
+});
 
 /* ===== Guardar ===== */
 $('btnSave').addEventListener('click',()=>{
@@ -1241,11 +1297,10 @@ $('btnSave').addEventListener('click',()=>{
   const get = id => { const el=$(id); return el? el.value.trim():''; };
   const chk = id => { const el=$(id); return el? !!el.checked:false; };
 
-  const imovel = get('a_imovel');
   const consultor = get('a_consultor');
   const proprietario = get('a_proprietario');
+  const imovelTitulo = get('a_titulo') || get('a_nome_empreendimento') || get('a_imovel');
 
-  if(!imovel){ alert('Indique o imóvel.'); return; }
   if(!consultor){ alert('Selecione o consultor.'); return; }
   if(!proprietario){ alert('Indique o proprietário.'); return; }
 
@@ -1281,6 +1336,14 @@ $('btnSave').addEventListener('click',()=>{
     gestor = gSel;
   }
 
+  // duração contrato
+  let duracao = get('d_duracao');
+  if(duracao === 'outro'){
+    const outro = get('d_duracao_outro');
+    if(outro) duracao = outro;
+    else duracao = '';
+  }
+
   const zKeys = ['aeroporto','banco','areas_lazer','autoestrada','biblioteca','centro_comercial','centro_cidade',
     'bombeiros','campo','campo_golfe','est_rodoviaria','farmacia','escola','espacos_verdes',
     'est_ferroviaria','ginasio','metro','hiper','hospital','mercado','perto_praia','praca_taxis',
@@ -1302,41 +1365,49 @@ $('btnSave').addEventListener('click',()=>{
 
   const rec = {
     id: EDIT_ID || ('A'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4)),
-    // principais
-    nome_empreendimento: get('a_nome_empreendimento'),
-    imovel,
-    tipologias: get('a_tipologias'),
+
+    // Cabeçalho
     consultor,
     gestor,
     coordenador: get('a_coordenador') || 'Rui Quelhas',
     interveniente: get('a_interveniente'),
-    proprietario,
-    email_proprietario: get('a_email_proprietario'),
-    contacto: get('a_contacto'),
-    data: get('a_data'),
     ref: get('a_ref'),
+    link_url: get('a_link_url'),
+
+    // Empreendimento
+    nome_empreendimento: get('a_nome_empreendimento'),
+    total_fracoes: get('a_total_fracoes'),
+    tipologias: get('a_tipologias'),
+    ano_construcao: get('a_ano_construcao'),
+    ano_conclusao: get('a_ano_conclusao'),
     nome_promotor: get('a_nome_promotor'),
     contacto_promotor: get('a_contacto_promotor'),
     email_promotor: get('a_email_promotor'),
-    ano_construcao: get('a_ano_construcao'),
-    ano_conclusao: get('a_ano_conclusao'),
-    cert_energetico_classe: get('a_cert_energetico_classe'),
-    total_fracoes: get('a_total_fracoes'),
 
-    // localização
+    // Proprietário
+    proprietario,
+    contacto: get('a_contacto'),
+    email_proprietario: get('a_email_proprietario'),
     loc_morada: get('loc_morada'),
+    estado_civil: get('a_estado_civil'),
+    regime: get('a_regime'),
+
+    // Imóvel
+    titulo: imovelTitulo,
     loc_zona: get('loc_zona'),
+    cert_energetico_classe: get('a_cert_energetico_classe'),
     loc_distrito: get('loc_distrito'),
     loc_concelho: get('loc_concelho'),
     loc_freguesia: get('loc_freguesia'),
     loc_gps: get('loc_gps'),
 
-    // natureza / estado / negócio
+    // natureza / negócio / data
     natureza: get('a_natureza'),
     natureza_outro: get('a_natureza_outro'),
     estado_imovel: get('a_estado_imovel'),
     negocio: get('a_negocio'),
     negocio_outro: get('a_negocio_outro'),
+    data: get('a_data'),
 
     // áreas
     area_util: get('a_area_util'),
@@ -1356,10 +1427,12 @@ $('btnSave').addEventListener('click',()=>{
 
     // destaques
     d_exclusivo: chk('d_exclusivo'),
+    d_nao_exclusivo: chk('d_nao_exclusivo'),
     d_luxo: chk('d_luxo'),
     d_banca: chk('d_banca'),
     d_golden_visa: chk('d_golden_visa'),
     d_rentab: chk('d_rentab'),
+    duracao_contrato: duracao,
 
     // docs
     d_cc: chk('d_cc'),
@@ -1384,7 +1457,7 @@ $('btnSave').addEventListener('click',()=>{
     d_bupi: chk('d_bupi'),
 
     // observações e notas
-    visivel: true,
+    visivel: (edit && edit.visivel===false)? false : true,
     notas: get('a_notas'),
     notas_consultor: get('a_notas_consultor'),
     notas_coordenador: get('a_notas_coordenador'),
@@ -1430,7 +1503,7 @@ function filterDataset(){
   if(t){
     out = out.filter(a=>{
       const blob = [
-        a.nome_empreendimento,a.imovel,a.proprietario,a.consultor,a.ref,a.notas
+        a.nome_empreendimento,a.titulo,a.proprietario,a.consultor,a.ref,a.notas,a.loc_concelho,a.loc_zona
       ].map(norm).join(' ');
       return blob.includes(t);
     });
@@ -1555,7 +1628,7 @@ function renderBoard(){
       card.innerHTML = `
         <div class="top">
           <div>
-            <div class="name">${a.nome_empreendimento || a.imovel || '—'}</div>
+            <div class="name">${a.nome_empreendimento || a.titulo || '—'}</div>
             <div class="meta">
               ${a.consultor||'—'}
               ${a.ref? ' · '+a.ref:''}
@@ -1563,10 +1636,10 @@ function renderBoard(){
           </div>
           <div>${badgeAj}</div>
         </div>
-        ${a.imovel ? `<div class="row"><b>Imóvel:</b> ${a.imovel}</div>`:''}
+        ${a.titulo ? `<div class="row"><b>Imóvel:</b> ${a.titulo}</div>`:''}
         ${a.nome_promotor ? `<div class="row"><b>Promotor:</b> ${a.nome_promotor}</div>`:''}
         <div class="row"><b>Proprietário:</b> ${a.proprietario||'—'}</div>
-        <div class="row"><b>Localização:</b> ${a.loc_concelho||'—'} ${a.loc_freguesia? ' · '+a.loc_freguesia:''}</div>
+        <div class="row"><b>Localização:</b> ${a.loc_concelho||'—'} ${a.loc_zona? ' · '+a.loc_zona:''}</div>
         <div class="row"><b>Data:</b> ${fmtDate(a.data)}</div>
         <div class="row">
           <b>Preço pedido:</b> ${fmtNum(a.preco_pedido)} €
@@ -1578,12 +1651,18 @@ function renderBoard(){
           &nbsp;·&nbsp;
           <b>Origem:</b> ${a.origem||'—'}
         </div>
-        <div class="row">${badgeDocs} ${a.d_bupi ? ' · <span class="badge">BUPI</span>' : ''}</div>
+        <div class="row">
+          <b>Contrato:</b> ${a.duracao_contrato||'—'}
+          ${a.d_exclusivo?' · Exclusivo':''}
+          ${a.d_nao_exclusivo?' · Não exclusivo':''}
+        </div>
+        <div class="row">
+          ${badgeDocs} ${a.d_bupi ? ' · <span class="badge">BUPI</span>' : ''}
+        </div>
         ${a.notas? `<div class="row"><small>${a.notas}</small></div>`:''}
         <div class="row">
           <small>${
             [
-              a.d_exclusivo?'Exclusivo':'',
               a.d_luxo?'Luxo':'',
               a.d_banca?'Banca':'',
               a.d_golden_visa?'Golden Visa':'',
@@ -1593,7 +1672,7 @@ function renderBoard(){
         </div>
         <div class="actions">
           <button class="btn-sm" data-act="edit" ${disabledAttr}>Editar</button>
-          <button class="btn-sm" data-act="prop" ${disabledAttr}>Proposta Angariação</button>
+          <button class="btn-sm" data-act="pdf" ${disabledAttr}>Ficha PDF</button>
           <select class="select-move" data-id="${a.id}" ${disabledAttr}>
             <option value="">Mover…</option>
             ${COLS.map(c=>`<option value="${c}" ${c===a.estado?'disabled':''}>${c}</option>`).join('')}
@@ -1608,9 +1687,9 @@ function renderBoard(){
         if(!EDIT_MODE){ alert('Modo de edição bloqueado. Ative "🔓 Edição ativa" para editar.'); return; }
         openModal(a);
       });
-      card.querySelector('[data-act="prop"]').addEventListener('click',()=>{
-        if(!EDIT_MODE){ alert('Modo de edição bloqueado. Ative "🔓 Edição ativa" para gerar proposta.'); return; }
-        gerarProposta(a);
+      card.querySelector('[data-act="pdf"]').addEventListener('click',()=>{
+        if(!EDIT_MODE){ alert('Modo de edição bloqueado. Ative "🔓 Edição ativa" para gerar a ficha.'); return; }
+        abrirFichaPdf(a);
       });
       card.querySelector('[data-act="del"]').addEventListener('click',()=>{
         if(!EDIT_MODE){ alert('Modo de edição bloqueado. Ative "🔓 Edição ativa" para apagar.'); return; }
@@ -1643,105 +1722,263 @@ function renderBoard(){
   });
 }
 
-/* ===== Proposta Angariação (Word simples) ===== */
-function gerarProposta(a){
-  const texto = `
-Proposta de Angariação
+/* ===== Ficha PDF (print) ===== */
+function escapeHtml(str){
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function abrirFichaPdf(a){
+  const w = window.open('', '_blank');
+  if(!w){
+    alert('O navegador bloqueou a janela de impressão. Autorize pop-ups para gerar o PDF.');
+    return;
+  }
+  const logoUrl = 'logo-garvetur.png'; // coloque este ficheiro na raiz do projeto
 
-Empreendimento: ${a.nome_empreendimento||''}
-Imóvel: ${a.imovel||''}
-Tipologias: ${a.tipologias||''}
+  const html = `
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<title>Ficha de Angariação</title>
+<style>
+@page { margin:20mm; }
+body{
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  color:#222;
+  font-size:11pt;
+}
+header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  border-bottom:2px solid #A38B63;
+  padding-bottom:8px;
+  margin-bottom:12px;
+}
+header img{
+  height:40px;
+}
+header .title-block{
+  display:flex;
+  flex-direction:column;
+}
+header .title-block h1{
+  margin:0;
+  font-size:15pt;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+header .title-block span{
+  font-size:9pt;
+  color:#555;
+}
+h2{
+  font-size:11pt;
+  margin:14px 0 4px 0;
+  color:#6A5530;
+  border-bottom:1px solid #D0C2A2;
+  padding-bottom:2px;
+}
+.section{
+  margin-bottom:6px;
+}
+.grid-2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:4px 12px;
+}
+.grid-3{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:4px 12px;
+}
+.row{
+  margin:2px 0;
+}
+label{
+  font-weight:600;
+}
+.small{
+  font-size:9pt;
+  color:#666;
+}
+hr{
+  border:0;
+  border-top:1px dashed #ccc;
+  margin:8px 0;
+}
+</style>
+</head>
+<body>
+<header>
+  <img src="${logoUrl}" alt="Garvetur Luxury Porto" onerror="this.style.display='none'">
+  <div class="title-block">
+    <h1>Garvetur Luxury Porto</h1>
+    <span>Ficha de Angariação</span>
+  </div>
+</header>
 
-Natureza: ${a.natureza||''} ${a.natureza_outro? ' ('+a.natureza_outro+')':''}
-Negócio: ${a.negocio||''} ${a.negocio_outro? ' ('+a.negocio_outro+')':''}
-Estado do imóvel: ${a.estado_imovel||''}
+<div class="section">
+  <h2>Cabeçalho</h2>
+  <div class="grid-3">
+    <div><label>Consultor:</label> ${escapeHtml(a.consultor||'')}</div>
+    <div><label>Gestor:</label> ${escapeHtml(a.gestor||'')}</div>
+    <div><label>Coordenador:</label> ${escapeHtml(a.coordenador||'')}</div>
+    <div><label>Interveniente:</label> ${escapeHtml(a.interveniente||'')}</div>
+    <div><label>Ref. Interna:</label> ${escapeHtml(a.ref||'')}</div>
+    <div><label>Link:</label> ${escapeHtml(a.link_url||'')}</div>
+  </div>
+</div>
 
-Localização:
-  Morada: ${a.loc_morada||''}
-  Zona: ${a.loc_zona||''}
-  Distrito: ${a.loc_distrito||''}
-  Concelho: ${a.loc_concelho||''}
-  Freguesia: ${a.loc_freguesia||''}
-  Coordenadas: ${a.loc_gps||''}
+<div class="section">
+  <h2>Empreendimento</h2>
+  <div class="grid-3">
+    <div><label>Nome:</label> ${escapeHtml(a.nome_empreendimento||'')}</div>
+    <div><label>Total Frações:</label> ${escapeHtml(a.total_fracoes||'')}</div>
+    <div><label>Tipologias:</label> ${escapeHtml(a.tipologias||'')}</div>
+    <div><label>Ano construção:</label> ${escapeHtml(a.ano_construcao||'')}</div>
+    <div><label>Ano conclusão:</label> ${escapeHtml(a.ano_conclusao||'')}</div>
+  </div>
+  <div class="grid-3">
+    <div><label>Promotor:</label> ${escapeHtml(a.nome_promotor||'')}</div>
+    <div><label>Contacto Promotor:</label> ${escapeHtml(a.contacto_promotor||'')}</div>
+    <div><label>Email Promotor:</label> ${escapeHtml(a.email_promotor||'')}</div>
+  </div>
+</div>
 
-Proprietário: ${a.proprietario||''}
-Email proprietário: ${a.email_proprietario||''}
-Consultor: ${a.consultor||''}
-Gestor: ${a.gestor||''}
-Coordenador: ${a.coordenador||''}
-Interveniente: ${a.interveniente||''}
-Referência interna: ${a.ref||''}
-Data: ${fmtDate(a.data)||''}
+<div class="section">
+  <h2>Proprietário</h2>
+  <div class="grid-3">
+    <div><label>Nome:</label> ${escapeHtml(a.proprietario||'')}</div>
+    <div><label>Contacto:</label> ${escapeHtml(a.contacto||'')}</div>
+    <div><label>Email:</label> ${escapeHtml(a.email_proprietario||'')}</div>
+  </div>
+  <div class="row"><label>Morada:</label> ${escapeHtml(a.loc_morada||'')}</div>
+  <div class="grid-2">
+    <div><label>Estado civil:</label> ${escapeHtml(a.estado_civil||'')}</div>
+    <div><label>Regime casamento:</label> ${escapeHtml(a.regime||'')}</div>
+  </div>
+</div>
 
-Promotor:
-  Nome: ${a.nome_promotor||''}
-  Contacto: ${a.contacto_promotor||''}
-  Email: ${a.email_promotor||''}
+<div class="section">
+  <h2>Imóvel</h2>
+  <div class="grid-3">
+    <div><label>Título / Designação:</label> ${escapeHtml(a.titulo||'')}</div>
+    <div><label>Localização:</label> ${escapeHtml(a.loc_zona||'')}</div>
+    <div><label>Certificado Energético:</label> ${escapeHtml(a.cert_energetico_classe||'')}</div>
+  </div>
+  <div class="grid-3">
+    <div><label>Distrito:</label> ${escapeHtml(a.loc_distrito||'')}</div>
+    <div><label>Concelho:</label> ${escapeHtml(a.loc_concelho||'')}</div>
+    <div><label>Freguesia:</label> ${escapeHtml(a.loc_freguesia||'')}</div>
+  </div>
+  <div class="row"><label>Coordenadas GPS:</label> ${escapeHtml(a.loc_gps||'')}</div>
+</div>
 
-Ano de construção: ${a.ano_construcao||''}
-Ano de conclusão: ${a.ano_conclusao||''}
-Certificado energético: ${a.cert_energetico_classe||''}
-Total de frações: ${a.total_fracoes||''}
+<div class="section">
+  <h2>Natureza, estado e negócio</h2>
+  <div class="grid-3">
+    <div><label>Natureza:</label> ${escapeHtml(a.natureza||'')} ${a.natureza_outro? ' ('+escapeHtml(a.natureza_outro)+')':''}</div>
+    <div><label>Estado do imóvel:</label> ${escapeHtml(a.estado_imovel||'')}</div>
+    <div><label>Negócio:</label> ${escapeHtml(a.negocio||'')} ${a.negocio_outro? ' ('+escapeHtml(a.negocio_outro)+')':''}</div>
+    <div><label>Data:</label> ${escapeHtml(a.data? new Date(a.data).toLocaleDateString('pt-PT'): '')}</div>
+  </div>
+</div>
 
-Áreas:
-  Útil: ${fmtNum(a.area_util)} m²
-  Bruta: ${fmtNum(a.area_bruta)} m²
-  Terreno: ${fmtNum(a.area_terreno)} m²
-  ABP: ${fmtNum(a.abp)} m²
-  ABD: ${fmtNum(a.abd)} m²
-  Observações: ${a.obs_areas||''}
+<div class="section">
+  <h2>Áreas</h2>
+  <div class="grid-3">
+    <div><label>Área útil:</label> ${fmtNum(a.area_util)} m²</div>
+    <div><label>Área bruta:</label> ${fmtNum(a.area_bruta)} m²</div>
+    <div><label>Área terreno:</label> ${fmtNum(a.area_terreno)} m²</div>
+    <div><label>ABP:</label> ${fmtNum(a.abp)} m²</div>
+    <div><label>ABD:</label> ${fmtNum(a.abd)} m²</div>
+  </div>
+  <div class="row"><label>Observações:</label> ${escapeHtml(a.obs_areas||'')}</div>
+</div>
 
-Preço pedido: ${fmtNum(a.preco_pedido)} €
-Preço sugerido: ${fmtNum(a.preco_sugerido)} €
-% Ajustamento: ${fmtPct(a.ajustamento)}
+<div class="section">
+  <h2>Preço, comissão e ajustamento</h2>
+  <div class="grid-3">
+    <div><label>Preço pedido:</label> ${fmtNum(a.preco_pedido)} €</div>
+    <div><label>Preço sugerido:</label> ${fmtNum(a.preco_sugerido)} €</div>
+    <div><label>% Ajustamento:</label> ${fmtPct(a.ajustamento)}</div>
+    <div><label>Comissão:</label> ${a.comissao_pct? a.comissao_pct+'%' : '—'}</div>
+    <div><label>Origem do cliente:</label> ${escapeHtml(a.origem||'')}</div>
+    <div><label>Estado da angariação:</label> ${escapeHtml(a.estado||'')}</div>
+  </div>
+</div>
 
-Comissão: ${a.comissao_pct? a.comissao_pct+'%' : '—'}
-Origem do cliente: ${a.origem||''}
-Estado da angariação: ${a.estado||''}
+<div class="section">
+  <h2>Destaques</h2>
+  <div class="row">
+    <label>Exclusividade:</label>
+    ${a.d_exclusivo?'Exclusivo':''}
+    ${a.d_nao_exclusivo?'Não exclusivo':''}
+  </div>
+  <div class="row"><label>Duração do contrato:</label> ${escapeHtml(a.duracao_contrato||'')}</div>
+  <div class="row">
+    <label>Outros destaques:</label>
+    ${
+      [
+        a.d_luxo?'Luxo':'',
+        a.d_banca?'Banca':'',
+        a.d_golden_visa?'Golden Visa':'',
+        a.d_rentab?'Rentabilidade Garantida':''
+      ].filter(Boolean).join(' · ')
+    }
+  </div>
+</div>
 
-Documentação (resumo):
-  Ident. Proprietários: ${a.d_cc?'Sim':'Não'}
-  Contrato de Mediação: ${a.d_contrato_med?'Sim':'Não'}
-  Caderneta Predial: ${a.d_caderneta?'Sim':'Não'}
-  CRP: ${a.d_crp?'Sim':'Não'}
-  Cert. Energético: ${a.d_cert_energetico?'Sim':'Não'}
-  Registado no BUPI: ${a.d_bupi?'Sim':'Não'}
+<div class="section">
+  <h2>Documentação entregue</h2>
+  <div class="small">
+    Ident. Proprietários: ${a.d_cc?'Sim':'Não'} ·
+    Contrato Mediação: ${a.d_contrato_med?'Sim':'Não'} ·
+    Caderneta: ${a.d_caderneta?'Sim':'Não'} ·
+    CRP: ${a.d_crp?'Sim':'Não'} ·
+    Cert. Energético: ${a.d_cert_energetico?'Sim':'Não'} ·
+    BUPI: ${a.d_bupi?'Sim':'Não'}
+  </div>
+</div>
 
-Observações gerais:
-${a.notas||''}
+<div class="section">
+  <h2>Observações</h2>
+  <div class="row">${escapeHtml(a.notas||'')}</div>
+</div>
 
-Notas Consultor:
-${a.notas_consultor||''}
+<div class="section">
+  <h2>Notas internas</h2>
+  <div class="row"><label>Consultor:</label> ${escapeHtml(a.notas_consultor||'')}</div>
+  <div class="row"><label>Coordenador:</label> ${escapeHtml(a.notas_coordenador||'')}</div>
+  <div class="row"><label>Assistente:</label> ${escapeHtml(a.notas_assistente||'')}</div>
+</div>
 
-Notas Coordenador:
-${a.notas_coordenador||''}
+<hr>
+<div class="small">Gerado por Garvetur Porto Pro — ${new Date().toLocaleString('pt-PT')}</div>
 
-Notas Assistente:
-${a.notas_assistente||''}
+</body>
+</html>
 `;
-  const blob = new Blob([texto],{type:'application/msword'});
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `Proposta_Angariacao_${(a.ref||a.imovel||'angariacao').replace(/\s+/g,'_')}.doc`;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  w.print();
 }
 
 /* ===== Exportação CSV ===== */
 function exportCsv(){
   const rows = [];
   const headers = [
-    "ID","Empreendimento","Imóvel","Tipologias",
+    "ID","Empreendimento","TítuloImóvel","Tipologias",
     "Natureza","Negócio","EstadoImóvel",
     "Proprietário","EmailProprietário","Consultor","Gestor","Coordenador","Interveniente",
-    "Data","Ref","EstadoAngariação",
+    "Data","Ref","Link","EstadoAngariação",
     "Morada","Zona","Concelho","Freguesia",
     "AnoConstrução","AnoConclusão","CertEnergético","TotalFrações",
     "PreçoPedido","PreçoSugerido","Comissão(%)","Ajustamento(%)",
-    "Origem","Visível","Notas","BUPI","DocCompleta"
+    "Origem","Visível","Notas","BUPI","DocCompleta","DuracaoContrato"
   ];
   rows.push(headers);
 
@@ -1751,7 +1988,7 @@ function exportCsv(){
     rows.push([
       a.id,
       a.nome_empreendimento||'',
-      a.imovel||'',
+      a.titulo||'',
       a.tipologias||'',
       a.natureza||'',
       a.negocio||'',
@@ -1764,6 +2001,7 @@ function exportCsv(){
       a.interveniente||'',
       a.data||'',
       a.ref||'',
+      a.link_url||'',
       a.estado||'',
       a.loc_morada||'',
       a.loc_zona||'',
@@ -1781,7 +2019,8 @@ function exportCsv(){
       (a.visivel===false?'Não':'Sim'),
       (a.notas||'').replace(/\r?\n/g,' '),
       a.d_bupi?'Sim':'Não',
-      docsOk
+      docsOk,
+      a.duracao_contrato||''
     ]);
   });
 
