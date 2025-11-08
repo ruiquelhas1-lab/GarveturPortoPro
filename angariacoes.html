@@ -54,6 +54,7 @@
       position:sticky;
       top:0;
       z-index:20;
+      gap:16px;
     }
 
     .brand{
@@ -154,6 +155,39 @@
       background:rgba(255,255,255,.05);
     }
 
+    /* NAV TABS */
+    .nav-tabs{
+      display:flex;
+      align-items:center;
+      gap:4px;
+      background:rgba(0,0,0,.35);
+      padding:4px;
+      border-radius:999px;
+      border:1px solid rgba(163,139,99,.35);
+    }
+    .nav-tab{
+      padding:5px 10px;
+      border-radius:999px;
+      font-size:11px;
+      text-decoration:none;
+      color:var(--muted);
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      border:1px solid transparent;
+      transition:.16s background,.16s color,.16s border-color,.16s transform;
+    }
+    .nav-tab:hover{
+      color:#fff;
+      border-color:rgba(163,139,99,.6);
+      transform:translateY(-1px);
+    }
+    .nav-tab.active{
+      background:var(--gold);
+      color:#0A0A0A;
+      border-color:var(--gold);
+      font-weight:600;
+    }
+
     .layout{
       display:grid;
       grid-template-columns:320px minmax(0,1fr);
@@ -170,6 +204,13 @@
       }
       .sidebar{
         max-height:none;
+      }
+      header.app-header{
+        flex-wrap:wrap;
+        align-items:flex-start;
+      }
+      .nav-tabs{
+        order:2;
       }
     }
 
@@ -405,18 +446,6 @@
       color:#f5f5f5;
       font-weight:500;
     }
-    .card-section-line{
-      display:flex;
-      justify-content:space-between;
-      gap:8px;
-      margin-top:2px;
-    }
-    .card-section-line span{
-      font-size:11px;
-      white-space:nowrap;
-      text-overflow:ellipsis;
-      overflow:hidden;
-    }
 
     .card-footer{
       margin-top:6px;
@@ -632,6 +661,15 @@
         <span class="sub">Gestão avançada de produto | Garvetur Luxury Porto</span>
       </div>
     </div>
+
+    <!-- NAV TABS -->
+    <nav class="nav-tabs">
+      <a href="index.html" class="nav-tab">Mapa</a>
+      <a href="kanban.html" class="nav-tab">Leads</a>
+      <a href="angariacoes.html" class="nav-tab active">Angariações</a>
+      <a href="dashboard.html" class="nav-tab">Dashboard</a>
+    </nav>
+
     <div class="header-actions">
       <div class="pill-lock" id="lockPill">
         <span>Modo</span>
@@ -704,6 +742,7 @@
   </div>
 </div>
 
+<!-- MODAL -->
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal">
     <div class="modal-header">
@@ -1087,7 +1126,7 @@
 
           </div>
 
-          <!-- COLUNA 5: Secção 10.1 -->
+          <!-- COLUNA 5: 10.1 -->
           <div class="form-section">
             <h3>10.1 Características (numéricas)</h3>
             <div class="field-row">
@@ -1730,6 +1769,8 @@
       if(d.numSuites) linhaCaract.push(d.numSuites + ' suite(s)');
       if(d.numPisos) linhaCaract.push(d.numPisos + ' piso(s)');
       if(d.numVarandas) linhaCaract.push(d.numVarandas + ' varanda(s)');
+      if(d.numSalas) linhaCaract.push(d.numSalas + ' sala(s)');
+      if(d.numSalasJantar) linhaCaract.push(d.numSalasJantar + ' sala(s) jantar');
 
       const temPiscina = Array.isArray(d.infraestruturas) && d.infraestruturas.includes('Piscina');
       const temGaragem = Array.isArray(d.infraestruturas) && d.infraestruturas.includes('Garagem');
@@ -1977,7 +2018,6 @@
     URL.revokeObjectURL(url);
   }
 
-  // 🔧 Exportação de PDF com verificação de jsPDF
   function exportOnePdf(deal){
     if(!window.jspdf || !window.jspdf.jsPDF){
       alert('Não foi possível gerar o PDF porque a biblioteca jsPDF não foi carregada no navegador.\n\nSugestão: verifique a ligação à internet ou teste no Chrome/Safari fora do GPT Atlas.');
@@ -2115,7 +2155,7 @@
       doc.setPage(i);
       doc.setFontSize(8);
       doc.setTextColor(150,150,150);
-      doc.text('Garvetur Porto Pro · ' + new Date().toLocaleDateString('pt-PT'), marginX, 820);
+      doc.text('Garvetur Porto Pro · ' + new Date().toLocaleDateString('pt-PT'), 40, 820);
       doc.text('Página ' + i + ' / ' + pages, 520, 820);
     }
 
