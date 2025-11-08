@@ -28,6 +28,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:10p
 .btn{background:transparent;border:1px solid rgba(163,139,99,.5);color:#fff;padding:6px 10px;border-radius:10px;cursor:pointer;font-size:12px}
 .btn.primary{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
 .btn.ghost{border-color:var(--border);color:#ddd}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.move-select[disabled]{opacity:.45;cursor:not-allowed}
 
 /* Sumário Pipeline */
 .summary-bar{padding:6px 12px;font-size:12px;border-bottom:1px solid var(--border);background:#101010;color:#ddd;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
@@ -112,7 +114,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:10p
   </header>
 
   <div class="toolbar">
-    <button class="btn primary" id="btnNew">+ Nova Lead</button>
+    <button class="btn primary" id="btnNew" disabled>+ Nova Lead</button>
+    <button class="btn" id="toggleEdit"><span id="lockEmoji">🔒</span> Edição bloqueada</button>
     <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn" id="exportCsv">Exportar CSV</button>
       <button class="btn" id="exportXlsx">Exportar Excel</button>
@@ -315,6 +318,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:10p
 <script>
 /* ===== Estado ===== */
 const LS_KEY='gpp_leads_v5';
+const EDIT_LS='gpp_leads_edit_mode';
 const COLS=["Novo","Em Contacto","Qualificado","Visita","Proposta","Fecho"];
 const CONSULT_RESOLVE=["Rui Quelhas","Manuel Oliveira","João Sousa","Francisco dos Santos","Rosário Vasconcelos","Armanda Meireles","Audrey Lucas"];
 
@@ -322,6 +326,7 @@ let LEADS=[];
 let FILTER={ consultor:'', estado:'', ini:'', fim:'', q:'', showHidden:false, onlyHidden:false };
 let PICKED_STATE='';
 let INTERCALAres=[];
+let EDIT_MODE=false;
 
 const $=id=>document.getElementById(id);
 const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
@@ -342,6 +347,32 @@ function loadPersistedFilters(){
   }catch{}
 }
 function persistFilters(){ localStorage.setItem(LS_KEY+'_filters', JSON.stringify(FILTER)); }
+
+/* ===== Edit Mode ===== */
+function updateEditUI(){
+  const btnToggle=$('toggleEdit');
+  const btnNew=$('btnNew');
+  if(!btnToggle || !btnNew) return;
+  if(EDIT_MODE){
+    btnToggle.classList.add('primary');
+    btnToggle.innerHTML='🔓 Edição ativa';
+    btnNew.disabled=false;
+    btnNew.classList.add('primary');
+    btnNew.classList.remove('ghost');
+  }else{
+    btnToggle.classList.remove('primary');
+    btnToggle.innerHTML='🔒 Edição bloqueada';
+    btnNew.disabled=true;
+    btnNew.classList.remove('primary');
+    btnNew.classList.add('ghost');
+  }
+}
+function setEditMode(on){
+  EDIT_MODE=!!on;
+  localStorage.setItem(EDIT_LS, EDIT_MODE?'1':'0');
+  updateEditUI();
+  renderBoard(); // para voltar a desenhar os botões desabilitados ou não
+}
 
 /* ===== Helpers ===== */
 function badge(txt){ return `<span class="badge light">${txt||'—'}</span>`; }
@@ -438,6 +469,10 @@ function initStatePicker(){
 }
 
 function openModal(edit=null){
+  if(!EDIT_MODE){
+    alert('Modo de edição bloqueado. Clique em "🔓 Edição ativa" para poder criar/editar leads.');
+    return;
+  }
   $('modalTitle').textContent = edit? 'Editar Lead' : 'Nova Lead';
   const f = (id,val='') => $(id).value = (val??'');
   const v = edit||{};
@@ -498,6 +533,10 @@ $('cancelLead').addEventListener('click',()=> $('leadModal').classList.remove('s
 $('btnNew').addEventListener('click',()=> openModal());
 
 $('saveLead').addEventListener('click',()=>{
+  if(!EDIT_MODE){
+    alert('Modo de edição bloqueado. Clique em "🔓 Edição ativa" para guardar alterações.');
+    return;
+  }
   const get=id=>$(id).value.trim();
   const estadoFinal = PICKED_STATE || $('saveLead').dataset.editEstado || 'Novo';
 
@@ -644,6 +683,8 @@ function renderBoard(){
 
       const moveOptions = COLS.map(c=>`<option value="${c}" ${c===lead.estado?'disabled':''}>${c}</option>`).join('');
 
+      const disabledAttr = EDIT_MODE ? '' : 'disabled';
+
       card.innerHTML=`
         <div class="top">
           <div>
@@ -659,29 +700,32 @@ function renderBoard(){
         <div class="row"><b>Data:</b> ${fmtDate(lead.data)} ${lead.url? ' · <a href="'+lead.url+'" target="_blank" rel="noreferrer">URL</a>':''}</div>
         ${lead.estado==='Fecho' ? `<div class="row">${fechoSummary(lead)}</div>` : ''}
         <div class="actions">
-          <button class="btn" data-act="edit">Editar</button>
-          <button class="btn" data-act="dup">Duplicar</button>
-          <select class="move-select" data-id="${lead.id}">
+          <button class="btn" data-act="edit" ${disabledAttr}>Editar</button>
+          <button class="btn" data-act="dup" ${disabledAttr}>Duplicar</button>
+          <select class="move-select" data-id="${lead.id}" ${disabledAttr}>
             <option value="">Mover…</option>
             ${moveOptions}
           </select>
-          <button class="btn" style="border-color:#cc4b4b;color:#ffdddd" data-act="del">Apagar</button>
-          <button class="btn" data-act="toggle">${lead.visivel!==false?'Tornar invisível':'Tornar visível'}</button>
+          <button class="btn" style="border-color:#cc4b4b;color:#ffdddd" data-act="del" ${disabledAttr}>Apagar</button>
+          <button class="btn" data-act="toggle" ${disabledAttr}>${lead.visivel!==false?'Tornar invisível':'Tornar visível'}</button>
         </div>
       `;
       // Ações
       card.querySelector('[data-act="edit"]').addEventListener('click',()=>{
+        if(!EDIT_MODE){ alert('Modo de edição bloqueado. Ative "🔓 Edição ativa" para editar.'); return; }
         $('saveLead').dataset.editId = lead.id;
         $('saveLead').dataset.editEstado = lead.estado;
         openModal(lead);
       });
       card.querySelector('[data-act="dup"]').addEventListener('click',()=>{
+        if(!EDIT_MODE){ alert('Modo de edição bloqueado. Ative "🔓 Edição ativa" para duplicar.'); return; }
         const copy=Object.assign({},lead,{ id:uid(), ref_interna:(lead.ref_interna? lead.ref_interna+'-copy':''), data:new Date().toISOString().slice(0,10) });
         LEADS.push(copy); saveLS(); renderBoard();
       });
 
       const selMove = card.querySelector('.move-select');
       selMove.addEventListener('change', e=>{
+        if(!EDIT_MODE){ e.target.value=''; alert('Modo de edição bloqueado. Ative "🔓 Edição ativa" para mover.'); return; }
         const target = e.target.value;
         if(!target || !COLS.includes(target)) return;
         lead.estado = target;
@@ -689,10 +733,12 @@ function renderBoard(){
       });
 
       card.querySelector('[data-act="del"]').addEventListener('click',()=>{
+        if(!EDIT_MODE){ alert('Modo de edição bloqueado. Ative "🔓 Edição ativa" para apagar.'); return; }
         if(!confirm('Eliminar esta lead?')) return;
         LEADS=LEADS.filter(x=>x.id!==lead.id); saveLS(); renderBoard();
       });
       card.querySelector('[data-act="toggle"]').addEventListener('click',()=>{
+        if(!EDIT_MODE){ alert('Modo de edição bloqueado. Ative "🔓 Edição ativa" para alterar visibilidade.'); return; }
         lead.visivel = lead.visivel===false ? true : false;
         saveLS(); renderBoard();
       });
@@ -782,6 +828,17 @@ $('exportXlsx').addEventListener('click',()=>{
   LEADS = loadLS();
   buildFilters();
   loadPersistedFilters();
+
+  // carregar estado de edição (por defeito bloqueado)
+  const stored = localStorage.getItem(EDIT_LS);
+  EDIT_MODE = stored==='1';
+  updateEditUI();
+
+  // botão alternar edição
+  $('toggleEdit').addEventListener('click',()=>{
+    setEditMode(!EDIT_MODE);
+  });
+
   renderBoard();
 })();
 </script>
