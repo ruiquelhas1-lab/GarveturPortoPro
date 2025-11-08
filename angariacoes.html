@@ -154,7 +154,6 @@
       background:rgba(255,255,255,.05);
     }
 
-    /* Layout principal */
     .layout{
       display:grid;
       grid-template-columns:320px minmax(0,1fr);
@@ -468,7 +467,6 @@
       padding:16px 4px;
     }
 
-    /* Modal */
     .modal-backdrop{
       position:fixed;
       inset:0;
@@ -614,7 +612,10 @@
     }
 
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-VgS5HGFqkWf46qR0iAfDdc0AGJi/7luWGINuD/7++UZ5EONosFVJeFt3PcTJS3BM4tiTn8NzfcIu05wGDE5F8g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+          integrity="sha512-VgS5HGFqkWf46qR0iAfDdc0AGJi/7luWGINuD/7++UZ5EONosFVJeFt3PcTJS3BM4tiTn8NzfcIu05wGDE5F8g=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer"></script>
 </head>
 <body>
 <div class="app-shell">
@@ -646,7 +647,6 @@
   </header>
 
   <div class="layout">
-    <!-- SIDEBAR -->
     <aside class="sidebar">
       <div class="sidebar-section">
         <h3>Filtros</h3>
@@ -678,32 +678,25 @@
 
       <div class="sidebar-section">
         <h3>Resumo rápido</h3>
-        <div class="filters-badges" id="summaryBadges">
-          <!-- preenchido por JS -->
-        </div>
+        <div class="filters-badges" id="summaryBadges"></div>
       </div>
 
       <div class="sidebar-section">
         <h3>Notas</h3>
-        <p>Quando o cadeado está em <strong>Aberto</strong>, pode criar, editar e apagar angariações.</p>
-        <p>Quando está <strong>Bloqueado</strong>, apenas consulta e exporta, sem risco de alterar dados.</p>
+        <p>Quando o cadeado está em <strong>Bloqueado</strong>, não há risco de alterar dados por engano.</p>
+        <p>Quando está <strong>Edição ativa</strong>, pode criar, editar e apagar angariações.</p>
       </div>
     </aside>
 
-    <!-- CARDS -->
     <main class="cards-area">
       <div class="cards-header">
         <div class="cards-header-left">
           <h2>Angariações</h2>
           <p>Visão consolidada de produto em carteira — focada na leitura rápida.</p>
-          <div class="pipeline-kpis" id="pipelineKpis">
-            <!-- preenchido por JS -->
-          </div>
+          <div class="pipeline-kpis" id="pipelineKpis"></div>
         </div>
       </div>
-      <div id="cardsGrid" class="cards-grid">
-        <!-- cards -->
-      </div>
+      <div id="cardsGrid" class="cards-grid"></div>
       <div id="emptyState" class="empty" style="display:none;">
         Ainda não existem angariações registadas com os filtros atuais.
       </div>
@@ -711,14 +704,11 @@
   </div>
 </div>
 
-<!-- MODAL -->
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal">
     <div class="modal-header">
       <h2 id="modalTitle">Nova Angariação</h2>
-      <button class="btn btn-icon btn-ghost" id="closeModalBtn" title="Fechar">
-        ✕
-      </button>
+      <button class="btn btn-icon btn-ghost" id="closeModalBtn" title="Fechar">✕</button>
     </div>
     <div class="modal-body">
       <form id="dealForm">
@@ -1097,7 +1087,7 @@
 
           </div>
 
-          <!-- COLUNA 5: Secção 10 -->
+          <!-- COLUNA 5: Secção 10.1 -->
           <div class="form-section">
             <h3>10.1 Características (numéricas)</h3>
             <div class="field-row">
@@ -1162,6 +1152,7 @@
             </div>
           </div>
 
+          <!-- COLUNA 6: 10.2–10.5 + Documentação -->
           <div class="form-section">
             <h3>10.2 Zona envolvente</h3>
             <div id="zonaEnvolventeGroup" class="checkbox-grid"></div>
@@ -1508,8 +1499,8 @@
       comPerc = $('comissaoOutro').value || '';
     }
     let percentAjust = $('percentAjust').value;
-    const precoP = parseFloat($('precoPedido').value.replace(',', '.'));
-    const precoS = parseFloat($('precoSugerido').value.replace(',', '.'));
+    const precoP = parseFloat(($('precoPedido').value || '').replace(',', '.'));
+    const precoS = parseFloat(($('precoSugerido').value || '').replace(',', '.'));
     if((percentAjust==='' || isNaN(parseFloat(percentAjust))) && isFinite(precoP) && isFinite(precoS) && precoP>0){
       percentAjust = (((precoS - precoP)/precoP)*100).toFixed(1);
     }
@@ -1518,7 +1509,7 @@
       id,
       consultor: consultorSelect.value || '',
       gestor: gestorSelect.value || '',
-      coordenador: $('coordenador').value || '',
+      coordenador: $('coordenador').value || 'Rui Quelhas',
       interveniente: $('interveniente').value || '',
       refInterna: $('refInterna').value || '',
       linkUrl: $('linkUrl').value || '',
@@ -1986,7 +1977,13 @@
     URL.revokeObjectURL(url);
   }
 
+  // 🔧 Exportação de PDF com verificação de jsPDF
   function exportOnePdf(deal){
+    if(!window.jspdf || !window.jspdf.jsPDF){
+      alert('Não foi possível gerar o PDF porque a biblioteca jsPDF não foi carregada no navegador.\n\nSugestão: verifique a ligação à internet ou teste no Chrome/Safari fora do GPT Atlas.');
+      return;
+    }
+
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({unit:'pt',format:'a4'});
 
