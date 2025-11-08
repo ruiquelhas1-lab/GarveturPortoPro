@@ -21,8 +21,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:10p
 .nav a{border:1px solid var(--border);padding:6px 10px;border-radius:8px;color:#ddd}
 .nav a.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
 
-.main{display:grid;grid-template-columns:290px 1fr;gap:0;height:calc(100vh - 56px - 48px)}
-.sidebar{background:var(--panel);border-right:1px solid var(--border);padding:10px;overflow:auto}
+.main{display:grid;grid-template-columns:300px 1fr;gap:0;height:calc(100vh - 56px - 48px)}
+.sidebar{background:var(--panel);border-right:1px solid var(--border);padding:12px;overflow:auto}
 .sidebar h3{margin:0 0 8px 0;font-size:13px;color:#d7d7d7;text-transform:uppercase;letter-spacing:.06em}
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
 .field input,.field select{background:#0E0E0E;border:1px solid rgba(255,255,255,.16);border-radius:8px;color:#fff;padding:8px 10px;outline:none;font-size:12px}
@@ -72,6 +72,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:10p
 .intercalares .row{display:flex;gap:8px;align-items:center}
 .intercalares .row input{flex:1}
 .intercalares .row button{white-space:nowrap}
+.total-line{margin-top:6px;font-size:12px;color:#dcdcdc}
 
 @media (max-width:1400px){ .board{grid-template-columns:repeat(3,1fr)} }
 @media (max-width:960px){
@@ -235,7 +236,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:10p
           <div class="form-field"><label>Ref. Interna</label><input id="ld_ref"></div>
 
           <div class="form-field"><label>URL anexo</label>
-            <input id="ld_url" placeholder="https://…"><small>Ex.: link de documento ou pasta (Drive/Dropbox/OneDrive).</small>
+            <input id="ld_url" placeholder="https://…"><small>Ex.: link de documento (Drive/Dropbox/OneDrive).</small>
           </div>
           <div class="form-field"><label>Data</label><input id="ld_data" type="date"></div>
 
@@ -255,7 +256,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:10p
           <div class="help">Se selecionar um estado, o cartão será gravado diretamente nessa coluna. Se nada selecionar, fica em <b>Novo</b>.</div>
         </div>
 
-        <!-- FECHO: ordem pedida + intercalares dinâmicos -->
+        <!-- FECHO (ordem pedida) -->
         <div id="fechoBox" class="grid2" style="margin-top:8px; display:none">
           <div class="form-field"><label>Valor do Negócio (€)</label><input id="ld_fecho_negocio" type="number" min="0" step="1000"></div>
           <div class="form-field">
@@ -279,6 +280,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:10p
           <div class="form-field" style="grid-column:1 / span 2">
             <label>Valores Intercalares (€)</label>
             <div id="intercalaresBox" class="intercalares"></div>
+            <div class="total-line" id="intercalaresTotal">Total intercalares: 0 €</div>
             <button class="btn" type="button" id="addIntercalar">+ Adicionar intercalar</button>
           </div>
 
@@ -294,14 +296,14 @@ header{display:flex;align-items:center;justify-content:space-between;padding:10p
 
 <script>
 /* ===== Estado ===== */
-const LS_KEY='gpp_leads_v4';
+const LS_KEY='gpp_leads_v5';
 const COLS=["Novo","Em Contacto","Qualificado","Visita","Proposta","Fecho"];
 const CONSULT_RESOLVE=["Rui Quelhas","Manuel Oliveira","João Sousa","Francisco dos Santos","Rosário Vasconcelos","Armanda Meireles","Audrey Lucas"];
 
 let LEADS=[]; // {id, estado, …, visivel, fecho_*}
 let FILTER={ consultor:'', estado:'', ini:'', fim:'', q:'', showHidden:false, onlyHidden:false };
-let PICKED_STATE=''; // estado seleccionado no picker
-let INTERCALAres=[]; // valores temporários no modal
+let PICKED_STATE=''; // estado seleccionado
+let INTERCALAres=[];
 
 const $=id=>document.getElementById(id);
 const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
@@ -309,6 +311,19 @@ const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u03
 /* ===== Persistência ===== */
 function loadLS(){ try{ const x=localStorage.getItem(LS_KEY); return x? JSON.parse(x):[];}catch{return[];} }
 function saveLS(){ localStorage.setItem(LS_KEY, JSON.stringify(LEADS)); }
+function loadPersistedFilters(){
+  try{ const raw=localStorage.getItem(LS_KEY+'_filters'); if(!raw) return;
+    const f=JSON.parse(raw); FILTER=Object.assign(FILTER,f);
+    $('f_consultor').value=FILTER.consultor||'';
+    $('f_estado').value=FILTER.estado||'';
+    $('f_ini').value=FILTER.ini||'';
+    $('f_fim').value=FILTER.fim||'';
+    $('q').value=FILTER.q||'';
+    $('f_show_hidden').checked=!!FILTER.showHidden;
+    $('f_only_hidden').checked=!!FILTER.onlyHidden;
+  }catch{}
+}
+function persistFilters(){ localStorage.setItem(LS_KEY+'_filters', JSON.stringify(FILTER)); }
 
 /* ===== Helpers ===== */
 function badge(txt){ return `<span class="badge light">${txt||'—'}</span>`; }
@@ -318,8 +333,9 @@ function isTel(t){ const s=String(t||'').replace(/\s+/g,''); return /^\+?\d{9,15
 function isHttp(u){ return /^https?:\/\//i.test(String(u||'')); }
 function uid(){ return 'L'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4); }
 function parsePercent(v){ if(!v) return ''; const s=String(v).replace('%','').replace(',','.'); const n=Number(s); return Number.isFinite(n)? n: ''; }
+function sumIntercalares(arr){ return (arr||[]).reduce((a,b)=>a+(Number(b)||0),0); }
 
-/* ===== Filtros Lateral ===== */
+/* ===== Lateral ===== */
 function buildFilters(){
   const sel=$('f_consultor'); sel.innerHTML='<option value="">(Todos)</option>'+CONSULT_RESOLVE.map(c=>`<option>${c}</option>`).join('');
 }
@@ -329,14 +345,21 @@ $('applyFilters').addEventListener('click',()=>{
   FILTER.q=$('q').value.trim();
   FILTER.showHidden=$('f_show_hidden').checked;
   FILTER.onlyHidden=$('f_only_hidden').checked;
-  renderBoard();
+  persistFilters(); renderBoard();
 });
 $('clearFilters').addEventListener('click',()=>{
   FILTER={consultor:'',estado:'',ini:'',fim:'',q:'',showHidden:false,onlyHidden:false};
   ['f_consultor','f_estado','f_ini','f_fim','q','f_show_hidden','f_only_hidden'].forEach(id=>{
     const el=$(id); if(el.type==='checkbox'){ el.checked=false; } else { el.value=''; }
   });
-  renderBoard();
+  persistFilters(); renderBoard();
+});
+
+// Pesquisa com debounce
+let qTimer=null;
+$('q').addEventListener('input',()=>{
+  clearTimeout(qTimer);
+  qTimer=setTimeout(()=>{ FILTER.q=$('q').value.trim(); persistFilters(); renderBoard(); }, 200);
 });
 
 /* ===== Modal ===== */
@@ -351,6 +374,7 @@ function resetFechoBox(){
   $('ld_fecho_escritura_date').value='';
   $('ld_fecho_obs').value='';
   INTERCALAres=[]; drawIntercalares();
+  updateIntercalaresTotal();
 }
 function setFechoBox(show){ $('fechoBox').style.display = show? 'grid':'none'; }
 function drawIntercalares(){
@@ -359,13 +383,16 @@ function drawIntercalares(){
     const row=document.createElement('div'); row.className='row';
     row.innerHTML=`<input type="number" min="0" step="500" value="${val||''}" data-idx="${idx}"><button class="btn ghost" data-del="${idx}">Remover</button>`;
     row.querySelector('input').addEventListener('input',e=>{
-      const i=Number(e.target.dataset.idx); INTERCALAres[i]=e.target.value;
+      const i=Number(e.target.dataset.idx); INTERCALAres[i]=e.target.value; updateIntercalaresTotal();
     });
-    row.querySelector('button').addEventListener('click',()=>{ INTERCALAres.splice(idx,1); drawIntercalares(); });
+    row.querySelector('button').addEventListener('click',()=>{ INTERCALAres.splice(idx,1); drawIntercalares(); updateIntercalaresTotal(); });
     box.appendChild(row);
   });
 }
-$('addIntercalar').addEventListener('click',()=>{ INTERCALAres.push(''); drawIntercalares(); });
+function updateIntercalaresTotal(){
+  $('intercalaresTotal').textContent = 'Total intercalares: ' + sumIntercalares(INTERCALAres).toLocaleString('pt-PT') + ' €';
+}
+$('addIntercalar').addEventListener('click',()=>{ INTERCALAres.push(''); drawIntercalares(); updateIntercalaresTotal(); });
 
 $('ld_fecho_comissao').addEventListener('change', (e)=>{
   const isOutro = e.target.value==='outro';
@@ -422,31 +449,25 @@ function openModal(edit=null){
   f('ld_data', v.data||new Date().toISOString().slice(0,10));
   f('ld_notas', v.notas||'');
 
-  // picker estado
   initStatePicker();
   if(edit && COLS.includes(edit.estado) && edit.estado!=='Novo'){
     const sel = Array.from(document.querySelectorAll('.cb_estado')).find(x=>x.value===edit.estado);
     if(sel){ sel.checked=true; sel.dispatchEvent(new Event('change')); }
   } else { setFechoBox(false); }
 
-  // fecho
   resetFechoBox();
   if(edit && edit.estado==='Fecho'){
     $('ld_fecho_negocio').value = edit.fecho_negocio || '';
-    if(edit.fecho_comissao_pct){
+    if(edit.fecho_comissao_pct!=='' && edit.fecho_comissao_pct!=null){
       const known=['6','5','4','3'];
-      if(known.includes(String(edit.fecho_comissao_pct))){
-        $('ld_fecho_comissao').value=String(edit.fecho_comissao_pct);
-      }else{
-        $('ld_fecho_comissao').value='outro';
-        $('ld_fecho_comissao_outro').style.display='block';
-        $('ld_fecho_comissao_outro').value = edit.fecho_comissao_pct + '%';
-      }
+      const s=String(edit.fecho_comissao_pct);
+      if(known.includes(s)){ $('ld_fecho_comissao').value=s; }
+      else{ $('ld_fecho_comissao').value='outro'; $('ld_fecho_comissao_outro').style.display='block'; $('ld_fecho_comissao_outro').value=s+'%'; }
     }
     $('ld_fecho_sinal_reserva').value = edit.fecho_sinal_reserva || '';
     $('ld_fecho_valor_cpcv').value = edit.fecho_valor_cpcv || '';
     INTERCALAres = Array.isArray(edit.fecho_intercalares)? [...edit.fecho_intercalares] : [];
-    drawIntercalares();
+    drawIntercalares(); updateIntercalaresTotal();
     $('ld_fecho_valor_escritura').value = edit.fecho_valor_escritura || '';
     $('ld_fecho_cpcv_date').value = edit.fecho_cpcv_date || '';
     $('ld_fecho_escritura_date').value = edit.fecho_escritura_date || '';
@@ -464,8 +485,8 @@ $('saveLead').addEventListener('click',()=>{
 
   // comissão
   let comissaoPct = '';
-  const cSel = $('ld_fecho_comissao').value;
   if(estadoFinal==='Fecho'){
+    const cSel = $('ld_fecho_comissao').value;
     if(cSel==='outro'){ comissaoPct = parsePercent($('ld_fecho_comissao_outro').value); }
     else if(cSel){ comissaoPct = Number(cSel); }
   }
@@ -498,7 +519,7 @@ $('saveLead').addEventListener('click',()=>{
     url: get('ld_url'),
     data: get('ld_data'),
     notas: get('ld_notas'),
-    visivel: (typeof $('saveLead').dataset.editId==='string') ? undefined : true, // default true em novas leads
+    visivel: (typeof $('saveLead').dataset.editId==='string') ? undefined : true,
 
     // Fecho
     fecho_negocio: estadoFinal==='Fecho' ? get('ld_fecho_negocio') : '',
@@ -512,7 +533,6 @@ $('saveLead').addEventListener('click',()=>{
     fecho_obs: estadoFinal==='Fecho' ? get('ld_fecho_obs') : ''
   };
 
-  // Visível default se não definido
   if(lead.visivel===undefined) lead.visivel=true;
 
   // Validações mínimas
@@ -542,11 +562,11 @@ function colTemplate(name,count){
 function fechoSummary(l){
   const parts=[];
   if(l.fecho_negocio) parts.push(`Negócio: ${Number(l.fecho_negocio).toLocaleString('pt-PT')}€`);
-  if(l.fecho_comissao_pct!==''){ parts.push(`Comissão: ${l.fecho_comissao_pct}%`); }
+  if(l.fecho_comissao_pct!=='' && l.fecho_comissao_pct!=null) parts.push(`Comissão: ${l.fecho_comissao_pct}%`);
   if(l.fecho_sinal_reserva) parts.push(`Sinal: ${Number(l.fecho_sinal_reserva).toLocaleString('pt-PT')}€`);
   if(l.fecho_valor_cpcv) parts.push(`CPCV: ${Number(l.fecho_valor_cpcv).toLocaleString('pt-PT')}€`);
   if(Array.isArray(l.fecho_intercalares) && l.fecho_intercalares.length){
-    const soma = l.fecho_intercalares.reduce((a,b)=>a+(Number(b)||0),0);
+    const soma = sumIntercalares(l.fecho_intercalares);
     parts.push(`Interc.: ${soma.toLocaleString('pt-PT')}€`);
   }
   if(l.fecho_valor_escritura) parts.push(`Escritura: ${Number(l.fecho_valor_escritura).toLocaleString('pt-PT')}€`);
@@ -561,14 +581,12 @@ function renderBoard(){
   const byEstado = COLS.map(col=>{
     let arr=LEADS.filter(l=>l.estado===col);
 
-    // Pesquisa texto
     if(term){
       arr=arr.filter(l=>{
         const blob = [l.nome,l.consultor,l.email,l.ref_interna,l.notas].map(x=>norm(x)).join(' ');
         return blob.includes(term);
       });
     }
-    // filtros
     if(FILTER.consultor) arr=arr.filter(l=>l.consultor===FILTER.consultor);
     if(FILTER.estado) arr=arr.filter(l=>l.estado===FILTER.estado);
     if(FILTER.ini) arr=arr.filter(l=>!l.data || l.data>=FILTER.ini);
@@ -671,7 +689,7 @@ $('exportCsv').addEventListener('click',()=>{
     l.financiamento||'',l.simulacao||'',l.banco||'',l.papel||'',l.perfil||'',
     l.classificacao||'',l.ref_interna||'',l.url||'',l.urgente||'',l.planta||'',l.primeira_hab||'',
     l.tem_imovel||'',l.ja_venda||'',l.notas||'', (l.visivel!==false?'Sim':'Não'),
-    l.fecho_negocio||'', l.fecho_comissao_pct!==''? l.fecho_comissao_pct : '',
+    l.fecho_negocio||'', (l.fecho_comissao_pct!==''&&l.fecho_comissao_pct!=null? l.fecho_comissao_pct : ''),
     l.fecho_sinal_reserva||'', l.fecho_valor_cpcv||'',
     (Array.isArray(l.fecho_intercalares)? l.fecho_intercalares.join(' | ') : ''),
     l.fecho_valor_escritura||'', l.fecho_cpcv_date||'', l.fecho_escritura_date||'', l.fecho_obs||''
@@ -693,7 +711,7 @@ $('exportXlsx').addEventListener('click',()=>{
     "Tem Imóvel":l.tem_imovel||'', "Já à venda":l.ja_venda||'', Notas:l.notas||'',
     Visível:(l.visivel!==false?'Sim':'Não'),
     Negócio:+(l.fecho_negocio||0),
-    "Comissão(%)":(l.fecho_comissao_pct!==''? +l.fecho_comissao_pct : ''),
+    "Comissão(%)":(l.fecho_comissao_pct!==''&&l.fecho_comissao_pct!=null? +l.fecho_comissao_pct : ''),
     SinalReserva:+(l.fecho_sinal_reserva||0),
     ValorCPCV:+(l.fecho_valor_cpcv||0),
     Intercalares:(Array.isArray(l.fecho_intercalares)? l.fecho_intercalares.join(' | ') : ''),
@@ -711,6 +729,7 @@ $('exportXlsx').addEventListener('click',()=>{
 (function init(){
   LEADS = loadLS();
   buildFilters();
+  loadPersistedFilters();
   renderBoard();
 })();
 </script>
