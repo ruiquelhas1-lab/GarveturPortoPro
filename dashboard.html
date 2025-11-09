@@ -1,390 +1,383 @@
 <!doctype html>
-<html lang="pt">
+<html lang="pt-PT">
 <head>
   <meta charset="utf-8" />
   <title>Garvetur Porto Pro — Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
-      --bg: #050608;
-      --bg-elevated: #101217;
-      --panel: #141720;
-      --gold: #A38B63;
-      --gold-soft: rgba(163,139,99,0.35);
-      --gold-strong: rgba(163,139,99,0.85);
-      --text: #FFFFFF;
-      --muted: #9AA0A6;
-      --danger: #F97373;
-      --success: #4ADE80;
-      --border-subtle: rgba(255,255,255,0.06);
-      --shadow-soft: 0 20px 40px rgba(0,0,0,0.35);
-      --radius-lg: 18px;
-      --radius-xl: 22px;
+      --gold:#A38B63;
+      --gold-soft:rgba(163,139,99,.35);
+      --bg:#0B0B0B;
+      --panel:#121212;
+      --panel-soft:#181818;
+      --text:#FFFFFF;
+      --muted:#A0A0A0;
+      --danger:#F25F5C;
+      --success:#4CAF50;
+      --warning:#FFC857;
+      --card-border:rgba(163,139,99,.25);
+      --radius-lg:18px;
+      --radius-md:12px;
+      --shadow-soft:0 14px 28px rgba(0,0,0,.45);
     }
 
-    * { box-sizing: border-box; }
-
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #151826 0, #050608 55%, #020308 100%);
-      color: var(--text);
+    *{box-sizing:border-box;}
+    html,body{
+      margin:0;
+      height:100%;
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      background:radial-gradient(circle at top,#1c1c1c 0,#050505 55%,#000 100%);
+      color:var(--text);
     }
 
-    body {
-      display: flex;
-      flex-direction: column;
+    body{
+      display:flex;
+      flex-direction:column;
     }
 
-    /* TOP BAR */
-    header {
-      height: 64px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 18px;
-      border-bottom: 1px solid rgba(163,139,99,0.45);
-      background: radial-gradient(circle at top left, #181b26 0, #050608 65%);
-      position: sticky;
-      top: 0;
-      z-index: 20;
-      backdrop-filter: blur(16px);
+    .app-shell{
+      display:grid;
+      grid-template-rows:64px auto;
+      height:100%;
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    header.app-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:10px 18px;
+      border-bottom:1px solid rgba(163,139,99,.35);
+      background:linear-gradient(90deg,#050505,#111,#050505);
+      position:sticky;
+      top:0;
+      z-index:20;
+      gap:16px;
     }
 
-    .brand-icon {
-      width: 26px;
-      height: 26px;
-      border-radius: 999px;
-      border: 1px solid rgba(163,139,99,0.9);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--gold);
-      box-shadow: 0 0 18px rgba(163,139,99,0.45);
-      background: radial-gradient(circle at 30% 0, #373020 0, #0e0e0e 65%);
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .brand-icon{
+      width:26px;
+      height:26px;
+      border-radius:999px;
+      border:1px solid var(--gold);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 0 0 1px rgba(163,139,99,.3);
+    }
+    .brand h1{
+      margin:0;
+      font-size:17px;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      color:var(--gold);
+    }
+    .brand span.sub{
+      display:block;
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.12em;
+      text-transform:uppercase;
     }
 
-    .brand h1 {
-      margin: 0;
-      font-size: 17px;
-      font-weight: 600;
-      letter-spacing: 0.03em;
-      color: var(--gold);
+    .header-actions{
+      display:flex;
+      align-items:center;
+      gap:8px;
     }
 
-    .brand-sub {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 2px;
+    .nav-tabs{
+      display:flex;
+      align-items:center;
+      gap:4px;
+      background:rgba(0,0,0,.35);
+      padding:4px;
+      border-radius:999px;
+      border:1px solid rgba(163,139,99,.35);
+    }
+    .nav-tab{
+      padding:5px 10px;
+      border-radius:999px;
+      font-size:11px;
+      text-decoration:none;
+      color:var(--muted);
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      border:1px solid transparent;
+      transition:.16s background,.16s color,.16s border-color,.16s transform;
+    }
+    .nav-tab:hover{
+      color:#fff;
+      border-color:rgba(163,139,99,.6);
+      transform:translateY(-1px);
+    }
+    .nav-tab.active{
+      background:var(--gold);
+      color:#0A0A0A;
+      border-color:var(--gold);
+      font-weight:600;
     }
 
-    .nav-tabs {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-left: 22px;
+    .btn{
+      border-radius:999px;
+      border:1px solid var(--gold-soft);
+      background:rgba(12,12,12,.9);
+      color:var(--text);
+      padding:7px 12px;
+      font-size:13px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      cursor:pointer;
+      transition:.18s border-color,.18s background,.18s transform;
+    }
+    .btn:hover{
+      border-color:var(--gold);
+      transform:translateY(-1px);
+    }
+    .btn-primary{
+      background:var(--gold);
+      color:#0A0A0A;
+      border-color:var(--gold);
+      font-weight:500;
+    }
+    .btn-ghost{
+      background:transparent;
     }
 
-    .nav-tab {
-      font-size: 12px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid transparent;
-      color: var(--muted);
-      text-decoration: none;
-      cursor: pointer;
-      transition: 0.15s ease;
-      background: transparent;
+    .layout{
+      display:grid;
+      grid-template-columns:280px minmax(0,1fr);
+      height:calc(100vh - 64px);
+      max-height:calc(100vh - 64px);
+      overflow:hidden;
     }
-
-    .nav-tab:hover {
-      border-color: var(--gold-soft);
-      color: #e3e3e3;
-      background: rgba(11,14,22,0.8);
-    }
-
-    .nav-tab.active {
-      border-color: var(--gold);
-      background: radial-gradient(circle at top, rgba(163,139,99,0.28), rgba(9,9,10,0.9));
-      color: #f7f3eb;
-    }
-
-    .top-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .btn {
-      border-radius: 999px;
-      border: 1px solid rgba(163,139,99,0.5);
-      padding: 7px 11px;
-      font-size: 12px;
-      cursor: pointer;
-      background: transparent;
-      color: var(--text);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: 0.15s ease;
-    }
-
-    .btn:hover {
-      border-color: var(--gold);
-      background: rgba(163,139,99,0.08);
-    }
-
-    .btn.danger {
-      border-color: rgba(248,113,113,0.7);
-      color: #fecaca;
-    }
-
-    .btn.danger:hover {
-      background: rgba(248,113,113,0.08);
-    }
-
-    .chip-soft {
-      font-size: 11px;
-      padding: 4px 8px;
-      border-radius: 999px;
-      background: rgba(0,0,0,0.4);
-      border: 1px solid rgba(163,139,99,0.4);
-      color: var(--muted);
-    }
-
-    main {
-      flex: 1;
-      display: flex;
-      padding: 14px 18px 18px;
-      gap: 14px;
-    }
-
-    .col-main {
-      flex: 3;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .col-side {
-      flex: 1.4;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .panel {
-      background: radial-gradient(circle at top left, #1b1f2b 0, #090b10 45%, #06070c 100%);
-      border-radius: var(--radius-xl);
-      border: 1px solid rgba(255,255,255,0.06);
-      box-shadow: var(--shadow-soft);
-      padding: 14px 14px 12px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .panel::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at top left, rgba(163,139,99,0.15), transparent 50%);
-      opacity: 0.6;
-      pointer-events: none;
-    }
-
-    .panel-header {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      margin-bottom: 8px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .panel-title {
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      color: var(--muted);
-    }
-
-    .panel-sub {
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .kpi-card {
-      background: linear-gradient(to bottom right, rgba(5,6,11,0.95), rgba(2,3,6,0.98));
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border-subtle);
-      padding: 10px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .kpi-label {
-      font-size: 11px;
-      color: var(--muted);
-      margin-bottom: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.09em;
-    }
-
-    .kpi-value {
-      font-size: 20px;
-      font-weight: 600;
-      color: #f5f5f5;
-      display: flex;
-      align-items: baseline;
-      gap: 6px;
-    }
-
-    .kpi-suffix {
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .kpi-trend {
-      font-size: 11px;
-      margin-top: 4px;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .kpi-trend .up { color: var(--success); }
-    .kpi-trend .down { color: var(--danger); }
-
-    .divider {
-      height: 1px;
-      border-radius: 999px;
-      background: linear-gradient(to right, rgba(163,139,99,0.5), transparent);
-      margin: 8px 0 10px;
-      opacity: 0.8;
-    }
-
-    .list {
-      position: relative;
-      z-index: 1;
-      font-size: 12px;
-    }
-
-    .list-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 6px 4px;
-      border-bottom: 1px dashed rgba(255,255,255,0.08);
-    }
-
-    .list-row:last-child {
-      border-bottom: none;
-    }
-
-    .pill {
-      font-size: 11px;
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.07);
-      color: #e1e1e1;
-      background: rgba(3,3,5,0.9);
-    }
-
-    .pill.soft {
-      border-color: rgba(163,139,99,0.5);
-      background: rgba(163,139,99,0.13);
-      color: #f5f0e6;
-    }
-
-    .pill.danger {
-      border-color: rgba(248,113,113,0.7);
-      background: rgba(248,113,113,0.08);
-      color: #fecaca;
-    }
-
-    .pill.success {
-      border-color: rgba(74,222,128,0.7);
-      background: rgba(34,197,94,0.1);
-      color: #bbf7d0;
-    }
-
-    .muted { color: var(--muted); }
-    .small { font-size: 11px; }
-
-    .footer-note {
-      margin-top: 6px;
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .tag-cloud {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 2px;
-    }
-
-    .tag {
-      font-size: 11px;
-      padding: 3px 7px;
-      border-radius: 999px;
-      border: 1px solid rgba(163,139,99,0.4);
-      background: rgba(7,8,12,0.95);
-      color: #ddd;
-    }
-
-    @media (max-width: 1100px) {
-      main { flex-direction: column; }
-      .col-main, .col-side { flex: none; }
-      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-
-    @media (max-width: 720px) {
-      header {
-        flex-wrap: wrap;
-        height: auto;
-        gap: 10px;
+    @media (max-width: 960px){
+      .layout{
+        grid-template-columns:1fr;
+        grid-template-rows:auto auto;
+        height:auto;
+        max-height:none;
       }
-      .nav-tabs {
-        margin-left: 0;
-        flex-wrap: wrap;
+      header.app-header{
+        flex-wrap:wrap;
+        align-items:flex-start;
       }
-      main { padding: 10px; }
-      .panel { padding: 10px; }
-      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    .sidebar{
+      border-right:1px solid rgba(163,139,99,.24);
+      background:radial-gradient(circle at top left,#141414,#060606);
+      padding:12px 14px;
+      overflow-y:auto;
+    }
+    .sidebar-section{
+      border-radius:var(--radius-md);
+      padding:10px 11px;
+      background:rgba(0,0,0,.45);
+      border:1px solid rgba(163,139,99,.18);
+      margin-bottom:10px;
+    }
+    .sidebar-section h3{
+      margin:0 0 6px;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      color:var(--muted);
+    }
+    .sidebar-section p{
+      margin:2px 0 6px;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      margin-bottom:8px;
+    }
+    .field-row{
+      display:flex;
+      gap:6px;
+    }
+    .field-label{
+      font-size:11px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.12em;
+    }
+    select, input[type="date"]{
+      background:rgba(0,0,0,.7);
+      color:var(--text);
+      border-radius:10px;
+      border:1px solid rgba(163,139,99,.22);
+      padding:6px 8px;
+      font-size:13px;
+      outline:none;
+      width:100%;
+    }
+    select:focus, input[type="date"]:focus{
+      border-color:var(--gold);
+      box-shadow:0 0 0 1px rgba(163,139,99,.35);
+    }
+
+    .filters-badges{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:4px;
+    }
+    .badge{
+      font-size:11px;
+      border-radius:999px;
+      padding:3px 7px;
+      border:1px solid rgba(163,139,99,.35);
+      background:rgba(8,8,8,.9);
+      color:var(--muted);
+    }
+    .badge strong{color:var(--gold);}
+
+    main.dashboard{
+      padding:14px 16px 18px;
+      overflow-y:auto;
+      background:radial-gradient(circle at top,#1a1a1a,#050505 55%,#000 100%);
+    }
+
+    .dash-header{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:14px;
+    }
+    .dash-header h2{
+      margin:0;
+      font-size:15px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+    .dash-header p{
+      margin:2px 0 0;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .kpi-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+      gap:10px;
+      margin-bottom:12px;
+    }
+    .kpi-card{
+      border-radius:var(--radius-lg);
+      border:1px solid var(--card-border);
+      background:radial-gradient(circle at top left,#181818,#070707);
+      padding:10px 11px;
+      box-shadow:var(--shadow-soft);
+    }
+    .kpi-label{
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      color:var(--muted);
+      margin-bottom:2px;
+    }
+    .kpi-value{
+      font-size:22px;
+      font-weight:600;
+      color:#fff;
+    }
+    .kpi-sub{
+      font-size:11px;
+      color:var(--muted);
+      margin-top:2px;
+    }
+    .kpi-pill{
+      display:inline-block;
+      font-size:10px;
+      padding:2px 7px;
+      border-radius:999px;
+      border:1px solid rgba(163,139,99,.4);
+      color:var(--gold);
+      margin-top:4px;
+    }
+
+    .section-title{
+      margin:10px 0 6px;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.18em;
+      color:var(--muted);
+    }
+
+    .table-like{
+      border-radius:var(--radius-md);
+      border:1px solid rgba(163,139,99,.22);
+      background:rgba(0,0,0,.4);
+      overflow:hidden;
+      font-size:12px;
+    }
+    .table-header,
+    .table-row{
+      display:grid;
+      grid-template-columns:2fr 1fr 1fr 1fr;
+      padding:5px 8px;
+      align-items:center;
+    }
+    .table-header{
+      background:rgba(0,0,0,.7);
+      border-bottom:1px solid rgba(163,139,99,.3);
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      color:var(--muted);
+    }
+    .table-row:nth-child(even){
+      background:rgba(255,255,255,.02);
+    }
+    .table-row span{
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .chip-small{
+      display:inline-block;
+      padding:2px 6px;
+      border-radius:999px;
+      border:1px solid rgba(163,139,99,.4);
+      font-size:10px;
+      color:var(--muted);
+    }
+    .chip-small.green{
+      border-color:rgba(76,175,80,.8);
+      color:#A5D6A7;
+    }
+    .chip-small.red{
+      border-color:rgba(242,95,92,.8);
+      color:#FFABAB;
     }
   </style>
 </head>
 <body>
-<header>
-  <div style="display:flex;align-items:center;gap:18px;">
+<div class="app-shell">
+  <header class="app-header">
     <div class="brand">
       <div class="brand-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <circle cx="12" cy="12" r="9" stroke-width="1.5" />
-          <path d="M8 12l2.5 2.5L16 9" stroke-width="1.8" />
+        <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M8 12.5l2.5 2.5L16 9"></path>
         </svg>
       </div>
       <div>
-        <h1>Garvetur Porto Pro</h1>
-        <div class="brand-sub">Dashboard de Leads · Angariações · Mapa</div>
+        <h1>Garvetur Porto Pro — Dashboard</h1>
+        <span class="sub">Visão consolidada | Garvetur Luxury Porto</span>
       </div>
     </div>
 
@@ -392,519 +385,261 @@
       <a href="index.html" class="nav-tab">Mapa</a>
       <a href="kanban.html" class="nav-tab">Leads</a>
       <a href="angariacoes.html" class="nav-tab">Angariações</a>
-      <button class="nav-tab active" type="button">Dashboard</button>
+      <a href="dashboard.html" class="nav-tab active">Dashboard</a>
     </nav>
+
+    <div class="header-actions">
+      <button class="btn btn-ghost" id="refreshBtn">Recarregar</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <h3>Filtro rápido</h3>
+        <div class="field">
+          <label class="field-label" for="filtroConsultor">Consultor</label>
+          <select id="filtroConsultor">
+            <option value="">Todos</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label" for="filtroDataDe">De</label>
+            <input type="date" id="filtroDataDe" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="filtroDataAte">Até</label>
+            <input type="date" id="filtroDataAte" />
+          </div>
+        </div>
+        <p>Estes filtros afetam os KPI e os rankings por consultor.</p>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Resumo atual</h3>
+        <div class="filters-badges" id="resumoBadges"></div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Nota</h3>
+        <p>Os dados são lidos diretamente do navegador (localStorage) das páginas de Leads e Angariações.</p>
+      </div>
+    </aside>
+
+    <main class="dashboard">
+      <div class="dash-header">
+        <div>
+          <h2>Indicadores principais</h2>
+          <p>Pipeline comercial consolidado (Leads + Angariações).</p>
+        </div>
+      </div>
+
+      <section class="kpi-grid" id="kpiGrid">
+        <!-- preenchido via JS -->
+      </section>
+
+      <h3 class="section-title">Ranking por consultor</h3>
+      <div class="table-like" id="tabelaConsultores">
+        <div class="table-header">
+          <span>Consultor</span>
+          <span>Leads ativas</span>
+          <span>Angariações</span>
+          <span>Exclusivos</span>
+        </div>
+        <!-- linhas via JS -->
+      </div>
+    </main>
   </div>
-
-  <div class="top-actions">
-    <span id="lastSync" class="chip-soft">Última leitura: —</span>
-    <button id="refreshBtn" class="btn" type="button">
-      ⟳ Atualizar métricas
-    </button>
-    <button id="resetBtn" class="btn danger" type="button">
-      🗑️ Reiniciar dados locais (leads/angariações)
-    </button>
-  </div>
-</header>
-
-<main>
-  <section class="col-main">
-    <!-- KPIs principais -->
-    <div class="panel">
-      <div class="panel-header">
-        <div>
-          <div class="panel-title">Visão geral</div>
-          <div class="panel-sub">Resumo das leads e angariações registadas no navegador</div>
-        </div>
-      </div>
-
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <div class="kpi-label">Leads ativas</div>
-          <div class="kpi-value">
-            <span id="kpiLeadsTotal">0</span>
-          </div>
-          <div class="kpi-trend">
-            <span id="kpiLeadsResumo" class="muted">—</span>
-          </div>
-        </div>
-
-        <div class="kpi-card">
-          <div class="kpi-label">Angariações ativas</div>
-          <div class="kpi-value">
-            <span id="kpiAngTotal">0</span>
-          </div>
-          <div class="kpi-trend">
-            <span id="kpiAngResumo" class="muted">—</span>
-          </div>
-        </div>
-
-        <div class="kpi-card">
-          <div class="kpi-label">Leads em fecho</div>
-          <div class="kpi-value">
-            <span id="kpiLeadsFecho">0</span>
-            <span class="kpi-suffix" id="kpiLeadsFechoPct">0%</span>
-          </div>
-          <div class="kpi-trend">
-            <span id="kpiLeadsFechoResumo" class="muted">—</span>
-          </div>
-        </div>
-
-        <div class="kpi-card">
-          <div class="kpi-label">Angariações Exclusivas</div>
-          <div class="kpi-value">
-            <span id="kpiAngExclusivas">0</span>
-            <span class="kpi-suffix" id="kpiAngExclusivasPct">0%</span>
-          </div>
-          <div class="kpi-trend">
-            <span id="kpiAngExclusivasResumo" class="muted">—</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="list">
-        <div class="list-row">
-          <div>
-            <div class="small muted">Distribuição pipeline de leads</div>
-            <div id="leadsPipelineText" class="small">Sem leads registadas.</div>
-          </div>
-        </div>
-        <div class="list-row">
-          <div>
-            <div class="small muted">Distribuição de estados de angariação</div>
-            <div id="angEstadosText" class="small">Sem angariações registadas.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Ranking consultores -->
-    <div class="panel">
-      <div class="panel-header">
-        <div>
-          <div class="panel-title">Ranking por consultor</div>
-          <div class="panel-sub">Leads + angariações por consultor (dados locais)</div>
-        </div>
-      </div>
-      <div class="divider"></div>
-      <div class="list" id="rankingConsultores">
-        <div class="list-row">
-          <div class="muted small">Ainda sem dados suficientes para ranking.</div>
-        </div>
-      </div>
-      <div class="footer-note">
-        Para alimentar este painel, utilize as páginas <strong>Leads</strong> e <strong>Angariações</strong> com o campo de consultor preenchido.
-      </div>
-    </div>
-  </section>
-
-  <!-- Lado direito: Insights & filtros resumidos -->
-  <aside class="col-side">
-    <div class="panel">
-      <div class="panel-header">
-        <div>
-          <div class="panel-title">Resumo executivo</div>
-          <div class="panel-sub">Síntese automática com base nos dados atuais</div>
-        </div>
-      </div>
-      <div class="divider"></div>
-      <div id="insightsExec" class="small">
-        Ainda não existem dados suficientes para gerar insights.  
-        Comece por registar leads e angariações.
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-header">
-        <div>
-          <div class="panel-title">Origem e negócio</div>
-          <div class="panel-sub">Tipos de negócio e origens mais frequentes</div>
-        </div>
-      </div>
-      <div class="divider"></div>
-      <div>
-        <div class="small muted">Tipos de negócio (Leads)</div>
-        <div id="tagsTipoNegocio" class="tag-cloud"></div>
-      </div>
-      <div style="margin-top:8px;">
-        <div class="small muted">Origem das leads</div>
-        <div id="tagsOrigem" class="tag-cloud"></div>
-      </div>
-    </div>
-  </aside>
-</main>
+</div>
 
 <script>
-(function() {
-  function nowLabel() {
-    const d = new Date();
-    return d.toLocaleString('pt-PT', {
-      day: '2-digit', month: '2-digit', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
-    });
-  }
-
-  function safeParse(value) {
-    if (!value) return null;
-    try {
-      return JSON.parse(value);
-    } catch (e) {
-      return null;
+(function(){
+  function safeParse(key){
+    try{
+      const raw = localStorage.getItem(key);
+      if(!raw) return {};
+      return JSON.parse(raw);
+    }catch(e){
+      console.warn('Erro a ler', key, e);
+      return {};
     }
   }
 
-  /**
-   * LEADS: qualquer chave que contenha "lead"
-   * Estruturas suportadas:
-   *  - Array simples de objetos
-   *  - { items: [...] }, { registos: [...] }, { data: [...] }
-   */
-  function loadLeads() {
-    const leads = [];
-    if (!window.localStorage) return leads;
+  function lerLeads(){
+    const st = safeParse('gpp_leads_v2');
+    let arr = [];
+    if(Array.isArray(st.cards)) arr = st.cards;
+    else if(Array.isArray(st.leads)) arr = st.leads;
+    else if(Array.isArray(st.deals)) arr = st.deals;
+    return arr.filter(l => l && l.visible !== false && !l.hidden);
+  }
 
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (!/lead/i.test(key)) continue;
+  function lerAngariacoes(){
+    const st = safeParse('gpp_angariacoes_v2');
+    let arr = [];
+    if(Array.isArray(st.deals)) arr = st.deals;
+    else if(Array.isArray(st.cards)) arr = st.cards;
+    return arr.filter(a => a && a.visible !== false);
+  }
 
-      const parsed = safeParse(localStorage.getItem(key));
-      if (!parsed) continue;
-
-      if (Array.isArray(parsed)) {
-        parsed.forEach(x => { if (x && typeof x === 'object') leads.push(x); });
-      } else if (typeof parsed === 'object') {
-        const candidates = [
-          parsed.items,
-          parsed.registos,
-          parsed.data,
-          parsed.lista,
-          parsed.leads
-        ].filter(Array.isArray);
-
-        if (candidates.length) {
-          candidates[0].forEach(x => { if (x && typeof x === 'object') leads.push(x); });
-        } else {
-          // Caso seja um dicionário de id -> objeto
-          const values = Object.values(parsed);
-          if (values.length && values.every(v => typeof v === 'object')) {
-            values.forEach(x => leads.push(x));
-          }
-        }
+  function aplicarFiltros(data, filtro){
+    return data.filter(d=>{
+      if(filtro.consultor && d.consultor !== filtro.consultor) return false;
+      if(filtro.de || filtro.ate){
+        const dt = d.dataAngariacao || d.data || '';
+        if(filtro.de && dt && dt < filtro.de) return false;
+        if(filtro.ate && dt && dt > filtro.ate) return false;
       }
-    }
-    return leads;
-  }
-
-  /**
-   * ANGARIAÇÕES: qualquer chave que contenha "ang" (ex.: gpp_ang_v3, angariacoes, etc.)
-   * Estruturas suportadas:
-   *  - Array simples de objetos
-   *  - { items: [...] }, { registos: [...] }, { data: [...] }, { angariacoes: [...] }
-   *  - Dicionário id -> objeto
-   */
-  function loadAngariacoes() {
-    const ang = [];
-    if (!window.localStorage) return ang;
-
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (!/ang/i.test(key)) continue; // mais abrangente
-
-      const parsed = safeParse(localStorage.getItem(key));
-      if (!parsed) continue;
-
-      if (Array.isArray(parsed)) {
-        parsed.forEach(x => { if (x && typeof x === 'object') ang.push(x); });
-      } else if (typeof parsed === 'object') {
-        const candidates = [
-          parsed.items,
-          parsed.registos,
-          parsed.data,
-          parsed.lista,
-          parsed.angariacoes,
-          parsed.ang,
-          parsed.angariacoesAtivas
-        ].filter(Array.isArray);
-
-        if (candidates.length) {
-          candidates[0].forEach(x => { if (x && typeof x === 'object') ang.push(x); });
-        } else {
-          const values = Object.values(parsed);
-          if (values.length && values.every(v => typeof v === 'object')) {
-            values.forEach(x => ang.push(x));
-          }
-        }
-      }
-    }
-    return ang;
-  }
-
-  function filterVisiveis(arr) {
-    return (arr || []).filter(a => {
-      if (a === null || typeof a !== 'object') return false;
-      if (a.hidden === true) return false;
-      if (a.visivel === false) return false;
-      if (a.visible === false) return false;
       return true;
     });
   }
 
-  function groupBy(arr, getter) {
-    const map = new Map();
-    for (const item of arr) {
-      const key = getter(item) || '—';
-      map.set(key, (map.get(key) || 0) + 1);
+  const filtroConsultor = document.getElementById('filtroConsultor');
+  const filtroDataDe = document.getElementById('filtroDataDe');
+  const filtroDataAte = document.getElementById('filtroDataAte');
+  const resumoBadges = document.getElementById('resumoBadges');
+  const kpiGrid = document.getElementById('kpiGrid');
+  const tabelaConsultores = document.getElementById('tabelaConsultores');
+  const refreshBtn = document.getElementById('refreshBtn');
+
+  function atualizarDashboard(){
+    const leadsAll = lerLeads();
+    const angAll = lerAngariacoes();
+
+    const filtro = {
+      consultor: filtroConsultor.value || '',
+      de: filtroDataDe.value || '',
+      ate: filtroDataAte.value || ''
+    };
+
+    const leads = aplicarFiltros(leadsAll, filtro);
+    const angs = aplicarFiltros(angAll, filtro);
+
+    const leadsAtivas = leads.length;
+    const angAtivas = angs.length;
+    const angExclusivas = angs.filter(a => a.exclusivo).length;
+
+    resumoBadges.innerHTML = '';
+    function addBadge(txt){
+      const b = document.createElement('div');
+      b.className = 'badge';
+      b.innerHTML = txt;
+      resumoBadges.appendChild(b);
     }
-    return map;
-  }
+    addBadge('Leads ativas <strong>'+leadsAtivas+'</strong>');
+    addBadge('Angariações ativas <strong>'+angAtivas+'</strong>');
+    addBadge('Exclusivas <strong>'+angExclusivas+'</strong>');
 
-  function pct(value, total) {
-    if (!total || total <= 0) return 0;
-    return Math.round((value / total) * 100);
-  }
+    kpiGrid.innerHTML = '';
 
-  // DOM
-  const elLastSync = document.getElementById('lastSync');
-  const elKpiLeadsTotal = document.getElementById('kpiLeadsTotal');
-  const elKpiAngTotal = document.getElementById('kpiAngTotal');
-  const elKpiLeadsResumo = document.getElementById('kpiLeadsResumo');
-  const elKpiAngResumo = document.getElementById('kpiAngResumo');
-  const elKpiLeadsFecho = document.getElementById('kpiLeadsFecho');
-  const elKpiLeadsFechoPct = document.getElementById('kpiLeadsFechoPct');
-  const elKpiLeadsFechoResumo = document.getElementById('kpiLeadsFechoResumo');
-  const elKpiAngExclusivas = document.getElementById('kpiAngExclusivas');
-  const elKpiAngExclusivasPct = document.getElementById('kpiAngExclusivasPct');
-  const elKpiAngExclusivasResumo = document.getElementById('kpiAngExclusivasResumo');
-  const elLeadsPipelineText = document.getElementById('leadsPipelineText');
-  const elAngEstadosText = document.getElementById('angEstadosText');
-  const elRanking = document.getElementById('rankingConsultores');
-  const elInsights = document.getElementById('insightsExec');
-  const elTagsTipoNegocio = document.getElementById('tagsTipoNegocio');
-  const elTagsOrigem = document.getElementById('tagsOrigem');
-
-  function refreshDashboard() {
-    const rawLeads = filterVisiveis(loadLeads());
-    const rawAng = filterVisiveis(loadAngariacoes());
-
-    const totalLeads = rawLeads.length;
-    const totalAng = rawAng.length;
-
-    elKpiLeadsTotal.textContent = totalLeads;
-    elKpiAngTotal.textContent = totalAng;
-
-    elKpiLeadsResumo.textContent = totalLeads
-      ? `${totalLeads} lead(s) ativas registadas localmente.`
-      : 'Sem leads registadas no navegador.';
-
-    elKpiAngResumo.textContent = totalAng
-      ? `${totalAng} angariação(ões) ativas registadas localmente.`
-      : 'Sem angariações registadas no navegador.';
-
-    // Leads em "fecho"
-    const leadsFecho = rawLeads.filter(l => {
-      const estado = String(
-        l.estado || l.estadoLead || l.coluna || l.colunaId || ''
-      ).toLowerCase();
-      return estado.includes('fecho') || estado.includes('fechad');
-    });
-    const nFecho = leadsFecho.length;
-    elKpiLeadsFecho.textContent = nFecho;
-    const pctFecho = pct(nFecho, totalLeads);
-    elKpiLeadsFechoPct.textContent = totalLeads ? pctFecho + '%' : '0%';
-    elKpiLeadsFechoResumo.textContent = totalLeads
-      ? `${pctFecho}% das leads encontram-se em fecho.`
-      : 'Sem leads suficientes para calcular taxa de fecho.';
-
-    // Angariações Exclusivas – deteção (“exclus” em vários campos)
-    const angExclusivas = rawAng.filter(a => {
-      const txt = [
-        a.exclusivo,
-        a.exclusividade,
-        a.tipoExclusividade,
-        a.naturezaContrato,
-        a.tipoContrato,
-        a.destaques,
-        a.tipo_exclusividade
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toString()
-        .toLowerCase();
-      return txt.includes('exclus'); // apanha “exclusivo”, “exclusiva”, etc.
-    });
-
-    const nEx = angExclusivas.length;
-    elKpiAngExclusivas.textContent = nEx;
-    const pctEx = pct(nEx, totalAng);
-    elKpiAngExclusivasPct.textContent = totalAng ? pctEx + '%' : '0%';
-    elKpiAngExclusivasResumo.textContent = totalAng
-      ? `${pctEx}% das angariações têm carácter exclusivo.`
-      : 'Sem angariações exclusivas registadas.';
-
-    // Pipeline de leads (por estado)
-    if (!totalLeads) {
-      elLeadsPipelineText.textContent = 'Sem leads registadas.';
-    } else {
-      const map = groupBy(rawLeads, l => {
-        const estado = (l.estado || l.estadoLead || l.coluna || '').toString();
-        return estado || 'Sem estado definido';
-      });
-      const parts = [];
-      for (const [estado, count] of map.entries()) {
-        const p = pct(count, totalLeads);
-        parts.push(`${estado}: ${count} (${p}%)`);
-      }
-      elLeadsPipelineText.textContent = parts.join(' · ');
+    function addKpi(label, value, sub, pill){
+      const card = document.createElement('div');
+      card.className = 'kpi-card';
+      card.innerHTML = `
+        <div class="kpi-label">${label}</div>
+        <div class="kpi-value">${value}</div>
+        ${sub ? `<div class="kpi-sub">${sub}</div>` : ''}
+        ${pill ? `<div class="kpi-pill">${pill}</div>` : ''}
+      `;
+      kpiGrid.appendChild(card);
     }
 
-    // Estados de angariação
-    if (!totalAng) {
-      elAngEstadosText.textContent = 'Sem angariações registadas.';
-    } else {
-      const map = groupBy(rawAng, a => {
-        const estado = (a.estadoAng || a.estado || a.estadoNegocio || '').toString();
-        return estado || 'Sem estado definido';
-      });
-      const parts = [];
-      for (const [estado, count] of map.entries()) {
-        const p = pct(count, totalAng);
-        parts.push(`${estado}: ${count} (${p}%)`);
-      }
-      elAngEstadosText.textContent = parts.join(' · ');
-    }
-
-    // Ranking consultores
-    const mapConsultores = new Map();
-    function acumular(nome, tipo) {
-      if (!nome) return;
-      const key = nome.toString().trim();
-      if (!key) return;
-      const prev = mapConsultores.get(key) || { leads: 0, ang: 0 };
-      prev[tipo]++;
-      mapConsultores.set(key, prev);
-    }
-
-    for (const l of rawLeads) {
-      const c = l.consultor || l.consultorResponsavel || l.gestor || l.gestorNome;
-      acumular(c, 'leads');
-    }
-    for (const a of rawAng) {
-      const c = a.consultor || a.angariador || a.gestor || a.gestorNome;
-      acumular(c, 'ang');
-    }
-
-    elRanking.innerHTML = '';
-    const entries = Array.from(mapConsultores.entries())
-      .map(([nome, v]) => ({ nome, leads: v.leads, ang: v.ang, total: v.leads + v.ang }))
-      .sort((a, b) => b.total - a.total);
-
-    if (!entries.length) {
-      const row = document.createElement('div');
-      row.className = 'list-row';
-      row.innerHTML = '<div class="muted small">Ainda sem dados suficientes para ranking.</div>';
-      elRanking.appendChild(row);
-    } else {
-      for (const e of entries) {
-        const row = document.createElement('div');
-        row.className = 'list-row';
-        row.innerHTML = `
-          <div>
-            <div class="small"><strong>${e.nome}</strong></div>
-            <div class="small muted">Leads: ${e.leads} · Angariações: ${e.ang}</div>
-          </div>
-          <div>
-            <span class="pill soft">${e.total} total</span>
-          </div>
-        `;
-        elRanking.appendChild(row);
-      }
-    }
-
-    // Origem & tipos de negócio (Leads)
-    elTagsTipoNegocio.innerHTML = '';
-    elTagsOrigem.innerHTML = '';
-
-    const mapTipoNeg = groupBy(rawLeads, l => {
-      const t = (l.tipoNegocio || l.tipo_negocio || l.negocio || '').toString();
-      return t || 'Não definido';
-    });
-    for (const [tipo, count] of mapTipoNeg.entries()) {
-      const span = document.createElement('span');
-      span.className = 'tag';
-      span.textContent = `${tipo} (${count})`;
-      elTagsTipoNegocio.appendChild(span);
-    }
-
-    const mapOrigem = groupBy(rawLeads, l => {
-      const o = (l.origem || l.canal || '').toString();
-      return o || 'Não definido';
-    });
-    for (const [origem, count] of mapOrigem.entries()) {
-      const span = document.createElement('span');
-      span.className = 'tag';
-      span.textContent = `${origem} (${count})`;
-      elTagsOrigem.appendChild(span);
-    }
-
-    // Insights
-    const insights = [];
-    if (!totalLeads && !totalAng) {
-      insights.push('Ainda não existem leads nem angariações registadas neste navegador.');
-    } else {
-      if (totalLeads) {
-        insights.push(`Tem atualmente <strong>${totalLeads}</strong> lead(s) ativa(s) no pipeline.`);
-      }
-      if (totalAng) {
-        insights.push(`Existem <strong>${totalAng}</strong> angariação(ões) ativa(s) registadas.`);
-      }
-      if (totalLeads && nFecho) {
-        insights.push(`A taxa de leads em fecho é de <strong>${pctFecho}%</strong>.`);
-      }
-      if (totalAng && nEx) {
-        insights.push(`<strong>${pctEx}%</strong> das angariações são exclusivas, reforçando o controlo de stock da Garvetur Porto Pro.`);
-      }
-      if (!nFecho && totalLeads > 0) {
-        insights.push('Nenhuma lead se encontra ainda em “Fecho”. Pode valer a pena rever as oportunidades em “Proposta”.');
-      }
-      if (!nEx && totalAng > 0) {
-        insights.push('Ainda não existem angariações marcadas como exclusivas. Considere reforçar a negociação de exclusividade em ativos-chave.');
-      }
-    }
-    elInsights.innerHTML = insights.join('<br><br>');
-
-    if (elLastSync) {
-      elLastSync.textContent = 'Última leitura: ' + nowLabel();
-    }
-  }
-
-  function resetLocalData() {
-    if (!window.localStorage) return;
-    const ok = window.confirm(
-      'Esta ação vai limpar todas as leads e angariações guardadas localmente (neste navegador) ' +
-      'e reiniciar o dashboard.\n\n' +
-      'Isto NÃO apaga nada do GitHub, apenas os dados guardados neste dispositivo.\n\n' +
-      'Pretende continuar?'
+    addKpi(
+      'Leads',
+      leadsAtivas,
+      'Leads ativas (todas as colunas)',
+      ''
     );
-    if (!ok) return;
 
-    const keysToRemove = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (/lead/i.test(key) || /ang/i.test(key)) {
-        keysToRemove.push(key);
+    addKpi(
+      'Angariações',
+      angAtivas,
+      'Total de angariações em carteira',
+      angExclusivas > 0 ? ('Exclusivas: ' + angExclusivas) : ''
+    );
+
+    const leadsPorCons = {};
+    leads.forEach(l=>{
+      const c = l.consultor || '—';
+      leadsPorCons[c] = (leadsPorCons[c]||0)+1;
+    });
+
+    const angPorCons = {};
+    const angExPorCons = {};
+    angs.forEach(a=>{
+      const c = a.consultor || '—';
+      angPorCons[c] = (angPorCons[c]||0)+1;
+      if(a.exclusivo){
+        angExPorCons[c] = (angExPorCons[c]||0)+1;
       }
+    });
+
+    const consultores = new Set([
+      ...Object.keys(leadsPorCons),
+      ...Object.keys(angPorCons)
+    ]);
+    const lista = Array.from(consultores).filter(c=>c && c !== '—').sort();
+
+    const bodyRows = tabelaConsultores.querySelectorAll('.table-row');
+    bodyRows.forEach(r=>r.remove());
+
+    if(lista.length === 0){
+      const row = document.createElement('div');
+      row.className = 'table-row';
+      row.innerHTML = `<span>Nenhum consultor com dados nos filtros atuais</span>
+                       <span>—</span><span>—</span><span>—</span>`;
+      tabelaConsultores.appendChild(row);
+      return;
     }
-    keysToRemove.forEach(k => localStorage.removeItem(k));
-    refreshDashboard();
+
+    lista.forEach(c=>{
+      const row = document.createElement('div');
+      row.className = 'table-row';
+      const lCount = leadsPorCons[c] || 0;
+      const aCount = angPorCons[c] || 0;
+      const eCount = angExPorCons[c] || 0;
+
+      row.innerHTML = `
+        <span>${c}</span>
+        <span>${lCount}</span>
+        <span>${aCount}</span>
+        <span>${eCount > 0 ? '<span class="chip-small green">'+eCount+'</span>' : '0'}</span>
+      `;
+      tabelaConsultores.appendChild(row);
+    });
   }
 
-  document.getElementById('refreshBtn').addEventListener('click', refreshDashboard);
-  document.getElementById('resetBtn').addEventListener('click', resetLocalData);
+  function preencherFiltroConsultor(){
+    const leadsAll = lerLeads();
+    const angAll = lerAngariacoes();
+    const nomes = new Set();
+    leadsAll.forEach(l=>{ if(l && l.consultor) nomes.add(l.consultor); });
+    angAll.forEach(a=>{ if(a && a.consultor) nomes.add(a.consultor); });
 
-  // Primeira carga
-  refreshDashboard();
+    const atual = filtroConsultor.value || '';
+    filtroConsultor.innerHTML = '<option value="">Todos</option>';
+    Array.from(nomes).sort().forEach(n=>{
+      const opt = document.createElement('option');
+      opt.value = n;
+      opt.textContent = n;
+      filtroConsultor.appendChild(opt);
+    });
+    if(atual){
+      filtroConsultor.value = atual;
+    }
+  }
+
+  filtroConsultor.addEventListener('change', atualizarDashboard);
+  filtroDataDe.addEventListener('change', atualizarDashboard);
+  filtroDataAte.addEventListener('change', atualizarDashboard);
+  refreshBtn.addEventListener('click', ()=>{
+    preencherFiltroConsultor();
+    atualizarDashboard();
+  });
+
+  preencherFiltroConsultor();
+  atualizarDashboard();
 })();
 </script>
 </body>
