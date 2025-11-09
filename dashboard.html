@@ -1,847 +1,879 @@
 <!doctype html>
 <html lang="pt">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   <title>Garvetur Porto Pro — Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
+      --bg: #050608;
+      --bg-elevated: #101217;
+      --panel: #141720;
       --gold: #A38B63;
-      --bg: #0E0E0E;
-      --panel: #141414;
-      --panel-soft: #181818;
-      --border-subtle: rgba(163,139,99,0.35);
+      --gold-soft: rgba(163,139,99,0.35);
+      --gold-strong: rgba(163,139,99,0.85);
       --text: #FFFFFF;
-      --muted: #A0A0A0;
-      --danger: #F45B5B;
-      --success: #3FBF7F;
-      --info: #4BA3FF;
+      --muted: #9AA0A6;
+      --danger: #F97373;
+      --success: #4ADE80;
+      --border-subtle: rgba(255,255,255,0.06);
+      --shadow-soft: 0 20px 40px rgba(0,0,0,0.35);
+      --radius-lg: 18px;
+      --radius-xl: 22px;
     }
+
+    * { box-sizing: border-box; }
 
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
-      background: radial-gradient(circle at top left, #202020 0, #0E0E0E 55%);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #151826 0, #050608 55%, #020308 100%);
       color: var(--text);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
     }
 
-    body { display: flex; flex-direction: column; }
+    body {
+      display: flex;
+      flex-direction: column;
+    }
 
-    .app-shell { min-height: 100vh; display: flex; flex-direction: column; }
-
-    /* HEADER / NAV */
-
-    .app-header {
-      position: sticky;
-      top: 0;
-      z-index: 20;
+    /* TOP BAR */
+    header {
+      height: 64px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
       padding: 10px 18px;
-      border-bottom: 1px solid rgba(163,139,99,0.6);
-      background: linear-gradient(90deg, #050505, #121212 35%, #050505 100%);
-      box-shadow: 0 10px 28px rgba(0,0,0,0.6);
+      border-bottom: 1px solid rgba(163,139,99,0.45);
+      background: radial-gradient(circle at top left, #181b26 0, #050608 65%);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(16px);
     }
 
-    .app-header-left { display: flex; align-items: center; gap: 12px; }
-
-    .brand-mark {
-      width: 32px; height: 32px; border-radius: 50%;
-      border: 1px solid var(--gold);
-      display: flex; align-items: center; justify-content: center;
-      background: radial-gradient(circle at 30% 0, #f3e4c1 0, #A38B63 40%, #2b2416 100%);
-      color: #121212; font-weight: 700; font-size: 15px;
-    }
-
-    .brand-text { display: flex; flex-direction: column; }
-    .brand-title { font-size: 16px; font-weight: 600; letter-spacing: 0.04em; }
-    .brand-subtitle { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
-
-    .app-header-center { flex: 1; display: flex; justify-content: center; }
-
-    .nav-tabs {
-      display: inline-flex;
-      padding: 3px;
-      border-radius: 999px;
-      background: rgba(20,20,20,0.9);
-      border: 1px solid rgba(163,139,99,0.4);
-      backdrop-filter: blur(10px);
-    }
-
-    .nav-tab {
-      position: relative;
-      padding: 6px 14px;
-      font-size: 12px;
-      color: var(--muted);
-      text-decoration: none;
-      border-radius: 999px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      border: none;
-      background: transparent;
-      transition: all 0.18s ease;
-    }
-
-    .nav-tab span.dot {
-      width: 6px; height: 6px; border-radius: 50%; background: transparent;
-    }
-
-    .nav-tab:hover {
-      color: #f5f5f5;
-      background: rgba(255,255,255,0.04);
-    }
-
-    .nav-tab.active {
-      color: #0D0D0D;
-      background: linear-gradient(135deg, #F5E6C9, #A38B63);
-      box-shadow: 0 0 0 1px rgba(250,244,230,0.4), 0 8px 22px rgba(0,0,0,0.7);
-    }
-
-    .nav-tab.active span.dot { background: #0D0D0D; }
-
-    .app-header-right {
-      display: flex; align-items: center; gap: 8px;
-      font-size: 11px; color: var(--muted);
-    }
-
-    .badge-env {
-      padding: 3px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(163,139,99,0.7);
-      background: rgba(5,5,5,0.9);
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    .btn-ghost-xs {
-      padding: 4px 9px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: transparent;
-      color: var(--muted);
-      font-size: 11px;
-      cursor: pointer;
-    }
-
-    .btn-ghost-xs:hover {
-      border-color: rgba(255,255,255,0.4);
-      color: #fff;
-    }
-
-    /* LAYOUT PRINCIPAL */
-
-    .app-main {
-      flex: 1;
-      display: grid;
-      grid-template-columns: 280px 1fr;
-      gap: 14px;
-      padding: 12px 18px 18px;
-      box-sizing: border-box;
-    }
-
-    @media (max-width: 1024px) {
-      .app-main {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto;
-      }
-    }
-
-    .sidebar {
+    .brand {
       display: flex;
-      flex-direction: column;
+      align-items: center;
       gap: 10px;
     }
 
+    .brand-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      border: 1px solid rgba(163,139,99,0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gold);
+      box-shadow: 0 0 18px rgba(163,139,99,0.45);
+      background: radial-gradient(circle at 30% 0, #373020 0, #0e0e0e 65%);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      color: var(--gold);
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .nav-tabs {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 22px;
+    }
+
+    .nav-tab {
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      color: var(--muted);
+      text-decoration: none;
+      cursor: pointer;
+      transition: 0.15s ease;
+      background: transparent;
+    }
+
+    .nav-tab:hover {
+      border-color: var(--gold-soft);
+      color: #e3e3e3;
+      background: rgba(11,14,22,0.8);
+    }
+
+    .nav-tab.active {
+      border-color: var(--gold);
+      background: radial-gradient(circle at top, rgba(163,139,99,0.28), rgba(9,9,10,0.9));
+      color: #f7f3eb;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: 1px solid rgba(163,139,99,0.5);
+      padding: 7px 11px;
+      font-size: 12px;
+      cursor: pointer;
+      background: transparent;
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.15s ease;
+    }
+
+    .btn:hover {
+      border-color: var(--gold);
+      background: rgba(163,139,99,0.08);
+    }
+
+    .btn.danger {
+      border-color: rgba(248,113,113,0.7);
+      color: #fecaca;
+    }
+
+    .btn.danger:hover {
+      background: rgba(248,113,113,0.08);
+    }
+
+    .chip-soft {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(163,139,99,0.4);
+      color: var(--muted);
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      padding: 14px 18px 18px;
+      gap: 14px;
+    }
+
+    .col-main {
+      flex: 3;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .col-side {
+      flex: 1.4;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
     .panel {
-      background: #141414;
-      border-radius: 14px;
-      border: 1px solid var(--border-subtle);
-      box-shadow: 0 14px 40px rgba(0,0,0,0.7);
-      padding: 10px 12px;
-      box-sizing: border-box;
+      background: radial-gradient(circle at top left, #1b1f2b 0, #090b10 45%, #06070c 100%);
+      border-radius: var(--radius-xl);
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: var(--shadow-soft);
+      padding: 14px 14px 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top left, rgba(163,139,99,0.15), transparent 50%);
+      opacity: 0.6;
+      pointer-events: none;
     }
 
     .panel-header {
       display: flex;
+      align-items: baseline;
       justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
+      position: relative;
+      z-index: 1;
     }
 
     .panel-title {
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
+      font-size: 13px;
       text-transform: uppercase;
+      letter-spacing: 0.16em;
       color: var(--muted);
     }
 
-    .panel-body {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .btn-subtle {
+    .panel-sub {
       font-size: 11px;
-      border-radius: 999px;
-      padding: 4px 9px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.02);
-      color: var(--muted);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .btn-subtle:hover {
-      background: rgba(255,255,255,0.05);
-      border-color: rgba(255,255,255,0.25);
-      color: #fff;
-    }
-
-    .badge-small {
-      font-size: 11px;
-      padding: 2px 7px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.2);
-      background: rgba(0,0,0,0.4);
       color: var(--muted);
     }
-
-    .text-muted { color: var(--muted); font-size: 12px; }
-
-    /* KPIs */
 
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
-      gap: 8px;
-      margin-top: 6px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      position: relative;
+      z-index: 1;
     }
 
     .kpi-card {
-      background: #181818;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.06);
-      padding: 7px 8px;
-      font-size: 12px;
+      background: linear-gradient(to bottom right, rgba(5,6,11,0.95), rgba(2,3,6,0.98));
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-subtle);
+      padding: 10px;
+      position: relative;
+      overflow: hidden;
     }
 
     .kpi-label {
       font-size: 11px;
       color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
       margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
     }
 
     .kpi-value {
-      font-size: 18px;
+      font-size: 20px;
       font-weight: 600;
+      color: #f5f5f5;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .kpi-suffix {
+      font-size: 11px;
+      color: var(--muted);
     }
 
     .kpi-trend {
       font-size: 11px;
+      margin-top: 4px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .kpi-trend .up { color: var(--success); }
+    .kpi-trend .down { color: var(--danger); }
+
+    .divider {
+      height: 1px;
+      border-radius: 999px;
+      background: linear-gradient(to right, rgba(163,139,99,0.5), transparent);
+      margin: 8px 0 10px;
+      opacity: 0.8;
+    }
+
+    .list {
+      position: relative;
+      z-index: 1;
+      font-size: 12px;
+    }
+
+    .list-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 4px;
+      border-bottom: 1px dashed rgba(255,255,255,0.08);
+    }
+
+    .list-row:last-child {
+      border-bottom: none;
+    }
+
+    .pill {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.07);
+      color: #e1e1e1;
+      background: rgba(3,3,5,0.9);
+    }
+
+    .pill.soft {
+      border-color: rgba(163,139,99,0.5);
+      background: rgba(163,139,99,0.13);
+      color: #f5f0e6;
+    }
+
+    .pill.danger {
+      border-color: rgba(248,113,113,0.7);
+      background: rgba(248,113,113,0.08);
+      color: #fecaca;
+    }
+
+    .pill.success {
+      border-color: rgba(74,222,128,0.7);
+      background: rgba(34,197,94,0.1);
+      color: #bbf7d0;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .small {
+      font-size: 11px;
+    }
+
+    .footer-note {
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .tag-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
       margin-top: 2px;
     }
 
-    .kpi-trend.good { color: var(--success); }
-    .kpi-trend.bad { color: var(--danger); }
-
-    /* ÁREA PRINCIPAL */
-
-    .main-content {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .cards-row {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0,1fr));
-      gap: 10px;
-    }
-
-    @media (max-width: 1200px) {
-      .cards-row { grid-template-columns: repeat(2, minmax(0,1fr)); }
-    }
-    @media (max-width: 800px) {
-      .cards-row { grid-template-columns: 1fr; }
-    }
-
-    .metric-card {
-      background: #151515;
-      border-radius: 14px;
-      border: 1px solid rgba(163,139,99,0.45);
-      padding: 10px 12px;
-      box-shadow: 0 14px 40px rgba(0,0,0,0.7);
-      font-size: 12px;
-    }
-
-    .metric-title {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      margin-bottom: 4px;
-    }
-
-    .metric-main {
-      font-size: 20px;
-      font-weight: 600;
-      margin-bottom: 2px;
-    }
-
-    .metric-sub {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .metric-list {
-      margin-top: 6px;
-      font-size: 12px;
-      list-style: none;
-      padding: 0;
-      margin-left: 0;
-    }
-
-    .metric-list li {
-      display: flex;
-      justify-content: space-between;
-      padding: 3px 0;
-      border-bottom: 1px dashed rgba(255,255,255,0.04);
-    }
-
-    .metric-list li:last-child { border-bottom: none; }
-
-    /* TABELA RESUMO CONSULTOR */
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    th, td {
-      padding: 5px 4px;
-      text-align: left;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-    }
-
-    th {
+    .tag {
       font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-    }
-
-    tr.highlight td {
-      background: rgba(163,139,99,0.08);
-      color: #f5f5f5;
-    }
-
-    .chip-tiny {
-      font-size: 10px;
-      padding: 2px 6px;
+      padding: 3px 7px;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.18);
-      background: rgba(0,0,0,0.5);
-      color: var(--muted);
+      border: 1px solid rgba(163,139,99,0.4);
+      background: rgba(7,8,12,0.95);
+      color: #ddd;
     }
 
-    .empty {
-      font-size: 12px;
-      color: var(--muted);
-      padding: 4px 0;
+    @media (max-width: 1100px) {
+      main {
+        flex-direction: column;
+      }
+      .col-main, .col-side {
+        flex: none;
+      }
+      .kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      header {
+        flex-wrap: wrap;
+        height: auto;
+        gap: 10px;
+      }
+      .nav-tabs {
+        margin-left: 0;
+        flex-wrap: wrap;
+      }
+      main {
+        padding: 10px;
+      }
+      .panel {
+        padding: 10px;
+      }
+      .kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
   </style>
 </head>
 <body>
-<div class="app-shell">
-  <header class="app-header">
-    <div class="app-header-left">
-      <div class="brand-mark">G</div>
-      <div class="brand-text">
-        <div class="brand-title">Garvetur Porto Pro</div>
-        <div class="brand-subtitle">Garvetur Luxury Porto · Dashboard</div>
+<header>
+  <div style="display:flex;align-items:center;gap:18px;">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="9" stroke-width="1.5" />
+          <path d="M8 12l2.5 2.5L16 9" stroke-width="1.8" />
+        </svg>
+      </div>
+      <div>
+        <h1>Garvetur Porto Pro</h1>
+        <div class="brand-sub">Dashboard de Leads · Angariações · Mapa</div>
       </div>
     </div>
-    <div class="app-header-center">
-      <nav class="nav-tabs">
-        <a href="index.html" class="nav-tab">
-          <span class="dot"></span>Mapa
-        </a>
-        <a href="kanban.html" class="nav-tab">
-          <span class="dot"></span>Leads
-        </a>
-        <a href="angariacoes.html" class="nav-tab">
-          <span class="dot"></span>Angariações
-        </a>
-        <a href="dashboard.html" class="nav-tab active">
-          <span class="dot"></span>Dashboard
-        </a>
-      </nav>
-    </div>
-    <div class="app-header-right">
-      <div class="badge-env">Visão global</div>
-      <button type="button" class="btn-ghost-xs" id="btnRefresh">Recalcular</button>
-    </div>
-  </header>
 
-  <main class="app-main">
-    <!-- Sidebar esquerda -->
-    <aside class="sidebar">
-      <section class="panel">
-        <div class="panel-header">
-          <div class="panel-title">Estado geral</div>
-          <span id="lblResumoEstado" class="text-muted">—</span>
-        </div>
-        <div class="panel-body">
-          <div class="kpi-grid">
-            <div class="kpi-card">
-              <div class="kpi-label">Leads ativas</div>
-              <div class="kpi-value" id="kpiLeadsAtivas">0</div>
-              <div class="kpi-trend" id="kpiLeadsFecho">Taxa de fecho: —</div>
-            </div>
-            <div class="kpi-card">
-              <div class="kpi-label">Angariações ativas</div>
-              <div class="kpi-value" id="kpiAngAtivas">0</div>
-              <div class="kpi-trend" id="kpiAngExclusivo">Exclusivas: —</div>
-            </div>
-          </div>
-          <p style="margin-top:8px;">
-            Dados consolidados em tempo real a partir das páginas <strong>Leads</strong> e <strong>Angariações</strong>.
-          </p>
-          <div class="badge-small" id="lblFonteDados">Fonte: localStorage</div>
-        </div>
-      </section>
+    <nav class="nav-tabs">
+      <a href="index.html" class="nav-tab">Mapa</a>
+      <a href="kanban.html" class="nav-tab">Leads</a>
+      <a href="angariacoes.html" class="nav-tab">Angariações</a>
+      <button class="nav-tab active" type="button">Dashboard</button>
+    </nav>
+  </div>
 
-      <section class="panel">
-        <div class="panel-header">
-          <div class="panel-title">Filtros de análise</div>
-        </div>
-        <div class="panel-body">
-          <div class="field-group">
-            <label class="field-label">Consultor</label>
-            <select id="fDashConsultor">
-              <option value="todos">Todos</option>
-              <option value="Rui Quelhas">Rui Quelhas</option>
-              <option value="Manuel Oliveira">Manuel Oliveira</option>
-              <option value="João Sousa">João Sousa</option>
-              <option value="Francisco dos Santos">Francisco dos Santos</option>
-              <option value="Rosário Vasconcelos">Rosário Vasconcelos</option>
-              <option value="Armanda Meireles">Armanda Meireles</option>
-              <option value="Audrey Lucas">Audrey Lucas</option>
-            </select>
-          </div>
-          <div class="field-group" style="margin-top:6px;">
-            <label class="field-label">Origem dos dados</label>
-            <div class="text-muted" id="lblDebugKeys" style="font-size:11px;">—</div>
-          </div>
-          <div style="margin-top:8px;">
-            <button type="button" class="btn-subtle" id="btnLimparLS">
-              Limpar caches antigas
-            </button>
-          </div>
-          <p class="text-muted" style="margin-top:6px; font-size:11px;">
-            (apenas remove versões antigas dos dados no navegador; não afeta os registos atuais nas páginas).
-          </p>
-        </div>
-      </section>
-    </aside>
+  <div class="top-actions">
+    <span id="lastSync" class="chip-soft">Última leitura: —</span>
+    <button id="refreshBtn" class="btn" type="button">
+      ⟳ Atualizar métricas
+    </button>
+    <button id="resetBtn" class="btn danger" type="button">
+      🗑️ Reiniciar dados locais (leads/angariações)
+    </button>
+  </div>
+</header>
 
-    <!-- Área principal -->
-    <section class="main-content">
-      <div class="cards-row">
-        <div class="metric-card">
-          <div class="metric-title">Funil de Leads</div>
-          <div class="metric-main" id="mFunilTotalLeads">0</div>
-          <div class="metric-sub" id="mFunilResumo">—</div>
-          <ul class="metric-list" id="listFunil"></ul>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-title">Angariações</div>
-          <div class="metric-main" id="mAngTotal">0</div>
-          <div class="metric-sub" id="mAngResumo">—</div>
-          <ul class="metric-list" id="listAng"></ul>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-title">Performance por estado</div>
-          <div class="metric-main" id="mPerfResumo">—</div>
-          <div class="metric-sub" id="mPerfSub">—</div>
-          <ul class="metric-list" id="listPerf"></ul>
+<main>
+  <section class="col-main">
+    <!-- KPIs principais -->
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Visão geral</div>
+          <div class="panel-sub">Resumo das leads e angariações registadas no navegador</div>
         </div>
       </div>
 
-      <div class="metric-card">
-        <div class="metric-title">Consultores · Resumo</div>
-        <div class="metric-sub" id="mConsultorResumo">Distribuição de leads e angariações por consultor.</div>
-        <div style="margin-top:6px; overflow-x:auto;">
-          <table>
-            <thead>
-              <tr>
-                <th>Consultor</th>
-                <th>Leads</th>
-                <th>Fechos</th>
-                <th>Angariações</th>
-                <th>Exclusivas</th>
-              </tr>
-            </thead>
-            <tbody id="tblConsultores">
-              <tr><td colspan="5" class="empty">Sem dados disponíveis.</td></tr>
-            </tbody>
-          </table>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Leads ativas</div>
+          <div class="kpi-value">
+            <span id="kpiLeadsTotal">0</span>
+          </div>
+          <div class="kpi-trend">
+            <span id="kpiLeadsResumo" class="muted">—</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">Angariações ativas</div>
+          <div class="kpi-value">
+            <span id="kpiAngTotal">0</span>
+          </div>
+          <div class="kpi-trend">
+            <span id="kpiAngResumo" class="muted">—</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">Leads em fecho</div>
+          <div class="kpi-value">
+            <span id="kpiLeadsFecho">0</span>
+            <span class="kpi-suffix" id="kpiLeadsFechoPct">0%</span>
+          </div>
+          <div class="kpi-trend">
+            <span id="kpiLeadsFechoResumo" class="muted">—</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">Angariações Exclusivas</div>
+          <div class="kpi-value">
+            <span id="kpiAngExclusivas">0</span>
+            <span class="kpi-suffix" id="kpiAngExclusivasPct">0%</span>
+          </div>
+          <div class="kpi-trend">
+            <span id="kpiAngExclusivasResumo" class="muted">—</span>
+          </div>
         </div>
       </div>
-    </section>
-  </main>
-</div>
+
+      <div class="divider"></div>
+
+      <div class="list">
+        <div class="list-row">
+          <div>
+            <div class="small muted">Distribuição pipeline de leads</div>
+            <div id="leadsPipelineText" class="small">Sem leads registadas.</div>
+          </div>
+        </div>
+        <div class="list-row">
+          <div>
+            <div class="small muted">Distribuição de estados de angariação</div>
+            <div id="angEstadosText" class="small">Sem angariações registadas.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ranking consultores -->
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Ranking por consultor</div>
+          <div class="panel-sub">Leads + angariações por consultor (dados locais)</div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="list" id="rankingConsultores">
+        <div class="list-row">
+          <div class="muted small">Ainda sem dados suficientes para ranking.</div>
+        </div>
+      </div>
+      <div class="footer-note">
+        Para alimentar este painel, utilize as páginas <strong>Leads</strong> e <strong>Angariações</strong> com o campo de consultor preenchido.
+      </div>
+    </div>
+  </section>
+
+  <!-- Lado direito: Insights & filtros resumidos -->
+  <aside class="col-side">
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Resumo executivo</div>
+          <div class="panel-sub">Síntese automática com base nos dados atuais</div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div id="insightsExec" class="small">
+        Ainda não existem dados suficientes para gerar insights.  
+        Comece por registar leads e angariações.
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Origem e negócio</div>
+          <div class="panel-sub">Tipos de negócio e origens mais frequentes</div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div>
+        <div class="small muted">Tipos de negócio (Leads)</div>
+        <div id="tagsTipoNegocio" class="tag-cloud"></div>
+      </div>
+      <div style="margin-top:8px;">
+        <div class="small muted">Origem das leads</div>
+        <div id="tagsOrigem" class="tag-cloud"></div>
+      </div>
+    </div>
+  </aside>
+</main>
 
 <script>
-  // --- Carregamento robusto das diferentes versões de dados ---
+(function() {
+  function nowLabel() {
+    const d = new Date();
+    return d.toLocaleString('pt-PT', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
 
-  function safeParse(key) {
+  function safeParse(value) {
+    if (!value) return null;
     try {
-      const raw = localStorage.getItem(key);
-      if (!raw) return null;
-      const val = JSON.parse(raw);
-      if (!Array.isArray(val)) return null;
-      return val;
+      return JSON.parse(value);
     } catch (e) {
       return null;
     }
   }
 
-  function chooseFirstNonEmpty(keys) {
-    for (const k of keys) {
-      const arr = safeParse(k);
-      if (arr && arr.length > 0) {
-        return { key: k, data: arr };
-      }
-    }
-    // se nenhuma tem dados, devolve vazio com a primeira key
-    return { key: keys[0] || '—', data: [] };
-  }
-
-  function loadLeadsData() {
-    // ordem de preferência: versões mais recentes para trás
-    const candidateKeys = ['gpp_leads_v3', 'gpp_leads_v2', 'gpp_leads'];
-    return chooseFirstNonEmpty(candidateKeys);
-  }
-
-  function loadAngData() {
-    const candidateKeys = ['gpp_ang_v3', 'gpp_angariacoes_v2', 'gpp_angariacoes'];
-    return chooseFirstNonEmpty(candidateKeys);
-  }
-
-  function limparCachesAntigas() {
-    const oldKeys = [
-      'gpp_leads', 'gpp_leads_v2',
-      'gpp_angariacoes', 'gpp_angariacoes_v2'
-    ];
-    oldKeys.forEach(k => {
-      try { localStorage.removeItem(k); } catch (e) {}
-    });
-  }
-
-  // --- Utilitários de formato ---
-
-  function percent(part, total) {
-    if (!total || total <= 0) return '—';
-    const p = (part / total) * 100;
-    return p.toFixed(1).replace('.', ',') + ' %';
-  }
-
-  function formatMoney(v) {
-    if (!v) return '';
-    const num = Number(String(v).replace(/\./g, '').replace(',', '.'));
-    if (!isFinite(num)) return String(v);
-    return num.toLocaleString('pt-PT', { maximumFractionDigits: 0 }) + ' €';
-  }
-
-  function normalizeEstadoLead(l) {
-    const e = (l && l.estado) ? String(l.estado).toLowerCase() : 'novo';
-    if (e.includes('contact')) return 'em_contacto';
-    if (e.includes('qualif')) return 'qualificado';
-    if (e.includes('visita')) return 'visita';
-    if (e.includes('propost')) return 'proposta';
-    if (e.includes('fech')) return 'fecho';
-    if (e.includes('novo')) return 'novo';
-    return e;
-  }
-
-  function isLeadVisivel(l) {
-    // se nunca foi definido, consideramos visível
-    if (l.visivel === undefined) return true;
-    return l.visivel !== false;
-  }
-
-  function isAngAtiva(a) {
-    const est = (a.estadoNegocio || a.estado || a.status || '').toString().toLowerCase();
-    if (!est) return true; // se não há estado, consideramos ativa
-    if (est.includes('perd') || est.includes('cancel') || est.includes('retir')) return false;
-    return true;
-  }
-
-  function isAngExclusiva(a) {
-    const exc = (a.exclusivo || a.tipoExclusividade || '').toString().toLowerCase();
-    return exc.includes('exclus');
-  }
-
-  function getConsultorFromAng(a) {
-    return a.consultor || a.angariador || a.angariadorPrincipal || '';
-  }
-
-  // --- Renderização do dashboard ---
-
-  function renderDashboard() {
-    const lblResumoEstado = document.getElementById('lblResumoEstado');
-    const lblFonteDados = document.getElementById('lblFonteDados');
-    const lblDebugKeys = document.getElementById('lblDebugKeys');
-    const fConsultor = document.getElementById('fDashConsultor').value;
-
-    const leadsBundle = loadLeadsData();
-    const angBundle = loadAngData();
-
-    const leadsAll = (leadsBundle.data || []).filter(l => typeof l === 'object');
-    const angAll = (angBundle.data || []).filter(a => typeof a === 'object');
-
-    const leads = leadsAll.filter(l => {
-      if (!isLeadVisivel(l)) return false; // só contamos visíveis como "ativas"
-      if (fConsultor !== 'todos' && l.consultor && l.consultor !== fConsultor) return false;
-      return true;
-    });
-
-    const angs = angAll.filter(a => {
-      if (!isAngAtiva(a)) return false;
-      if (fConsultor !== 'todos') {
-        const c = getConsultorFromAng(a);
-        if (c && c !== fConsultor) return false;
-      }
-      return true;
-    });
-
-    const leadsTotal = leads.length;
-    const angTotal = angs.length;
-
-    // LEADS: contagem por estado
-    const countsLeads = { novo:0, em_contacto:0, qualificado:0, visita:0, proposta:0, fecho:0 };
-    leads.forEach(l => {
-      const est = normalizeEstadoLead(l);
-      if (countsLeads[est] === undefined) countsLeads[est] = 0;
-      countsLeads[est]++;
-    });
-
-    const leadsFechadas = countsLeads['fecho'] || 0;
-    const taxaFecho = percent(leadsFechadas, leadsTotal);
-
-    // ANGARIAÇÕES: exclusivas / não exclusivas
-    let angExclusivas = 0;
-    angs.forEach(a => { if (isAngExclusiva(a)) angExclusivas++; });
-
-    const taxaExclusivo = percent(angExclusivas, angTotal);
-
-    // KPI topo
-    document.getElementById('kpiLeadsAtivas').textContent = leadsTotal;
-    document.getElementById('kpiLeadsFecho').textContent =
-      leadsTotal > 0 ? `Taxa de fecho: ${taxaFecho}` : 'Taxa de fecho: —';
-
-    document.getElementById('kpiAngAtivas').textContent = angTotal;
-    document.getElementById('kpiAngExclusivo').textContent =
-      angTotal > 0 ? `Exclusivas: ${taxaExclusivo}` : 'Exclusivas: —';
-
-    // Resumo de estado global
-    if (leadsTotal === 0 && angTotal === 0) {
-      lblResumoEstado.textContent = 'Sem dados registados.';
-    } else if (leadsTotal > 0 && angTotal === 0) {
-      lblResumoEstado.textContent = `Leads ativas: ${leadsTotal} · Sem angariações no filtro atual.`;
-    } else if (leadsTotal === 0 && angTotal > 0) {
-      lblResumoEstado.textContent = `Angariações ativas: ${angTotal} · Sem leads no filtro atual.`;
-    } else {
-      lblResumoEstado.textContent = `Leads: ${leadsTotal} · Angariações: ${angTotal}`;
-    }
-
-    lblFonteDados.textContent = `Leads: ${leadsBundle.key || '—'} · Angariações: ${angBundle.key || '—'}`;
-    lblDebugKeys.textContent = `Leads em: ${leadsBundle.key || '—'} | Angariações em: ${angBundle.key || '—'}`;
-
-    // BLOCO FUNIL
-    document.getElementById('mFunilTotalLeads').textContent = leadsTotal;
-    document.getElementById('mFunilResumo').textContent =
-      leadsTotal === 0 ? 'Sem leads no funil.' : 'Distribuição atual por etapa.';
-
-    const listFunil = document.getElementById('listFunil');
-    listFunil.innerHTML = '';
-    const labelsFunil = [
-      { key:'novo', label:'Novo' },
-      { key:'em_contacto', label:'Em Contacto' },
-      { key:'qualificado', label:'Qualificado' },
-      { key:'visita', label:'Visita' },
-      { key:'proposta', label:'Proposta' },
-      { key:'fecho', label:'Fecho' },
-    ];
-    if (leadsTotal === 0) {
-      listFunil.innerHTML = '<li class="empty">Nenhuma lead registada no filtro atual.</li>';
-    } else {
-      labelsFunil.forEach(item => {
-        const val = countsLeads[item.key] || 0;
-        const li = document.createElement('li');
-        li.innerHTML = `
-          <span>${item.label}</span>
-          <span>${val} · ${percent(val, leadsTotal)}</span>
-        `;
-        listFunil.appendChild(li);
-      });
-    }
-
-    // BLOCO ANGARIAÇÕES
-    document.getElementById('mAngTotal').textContent = angTotal;
-    document.getElementById('mAngResumo').textContent =
-      angTotal === 0 ? 'Sem angariações no filtro atual.' : 'Atividade global de angariações.';
-
-    const listAng = document.getElementById('listAng');
-    listAng.innerHTML = '';
-    if (angTotal === 0) {
-      listAng.innerHTML = '<li class="empty">Nenhuma angariação registada no filtro atual.</li>';
-    } else {
-      // tentamos ver estados típicos
-      let angEmCurso = 0, angConcluidas = 0, angPerdidas = 0;
-      angAll.forEach(a => {
-        const est = (a.estadoNegocio || a.estado || '').toString().toLowerCase();
-        if (est.includes('perd') || est.includes('cancel')) angPerdidas++;
-        else if (est.includes('concl') || est.includes('vend')) angConcluidas++;
-        else angEmCurso++;
-      });
-      listAng.innerHTML = `
-        <li><span>Ativas (filtro) </span><span>${angTotal}</span></li>
-        <li><span>Exclusivas (filtro) </span><span>${angExclusivas} · ${taxaExclusivo}</span></li>
-        <li><span>Em curso (total) </span><span>${angEmCurso}</span></li>
-        <li><span>Concluídas (total) </span><span>${angConcluidas}</span></li>
-        <li><span>Perdidas/Canceladas (total) </span><span>${angPerdidas}</span></li>
-      `;
-    }
-
-    // BLOCO PERFORMANCE
-    const listPerf = document.getElementById('listPerf');
-    const mPerfResumo = document.getElementById('mPerfResumo');
-    const mPerfSub = document.getElementById('mPerfSub');
-
-    if (leadsTotal === 0) {
-      mPerfResumo.textContent = 'Sem histórico';
-      mPerfSub.textContent = 'Não há leads no filtro atual para análise de desempenho.';
-      listPerf.innerHTML = '<li class="empty">Sem dados de funil.</li>';
-    } else {
-      mPerfResumo.textContent = `${taxaFecho} · fecho sobre leads ativas`;
-      mPerfSub.textContent = 'Conversão atual do funil (Fecho / Leads ativas).';
-
-      listPerf.innerHTML = '';
-      const etapasChave = [
-        { from:'em_contacto', to:'qualificado', label:'Contacto → Qualificado' },
-        { from:'qualificado', to:'visita', label:'Qualificado → Visita' },
-        { from:'visita', to:'proposta', label:'Visita → Proposta' },
-        { from:'proposta', to:'fecho', label:'Proposta → Fecho' },
-      ];
-      etapasChave.forEach(e => {
-        const base = countsLeads[e.from] || 0;
-        const alvo = countsLeads[e.to] || 0;
-        const txt = base > 0 ? percent(alvo, base) : '—';
-        const li = document.createElement('li');
-        li.innerHTML = `<span>${e.label}</span><span>${txt}</span>`;
-        listPerf.appendChild(li);
-      });
-    }
-
-    // TABELA CONSULTOR
-    const tbl = document.getElementById('tblConsultores');
-    tbl.innerHTML = '';
-    const consultores = [
-      'Rui Quelhas',
-      'Manuel Oliveira',
-      'João Sousa',
-      'Francisco dos Santos',
-      'Rosário Vasconcelos',
-      'Armanda Meireles',
-      'Audrey Lucas'
-    ];
-
-    if (leadsAll.length === 0 && angAll.length === 0) {
-      tbl.innerHTML = '<tr><td colspan="5" class="empty">Sem dados disponíveis.</td></tr>';
-    } else {
-      let bestRow = null;
-      let bestFechos = -1;
-
-      consultores.forEach(nome => {
-        const leadsC = leadsAll.filter(l => l.consultor === nome && isLeadVisivel(l));
-        const angC = angAll.filter(a => getConsultorFromAng(a) === nome);
-
-        const totalLeads = leadsC.length;
-        const totalFechos = leadsC.filter(l => normalizeEstadoLead(l) === 'fecho').length;
-
-        const angAtivasC = angC.filter(a => isAngAtiva(a)).length;
-        const angExclC = angC.filter(a => isAngExclusiva(a)).length;
-
-        if (totalLeads === 0 && angC.length === 0) {
-          return;
-        }
-
-        if (totalFechos > bestFechos) {
-          bestFechos = totalFechos;
-          bestRow = nome;
-        }
-
-        const tr = document.createElement('tr');
-        tr.dataset.consultor = nome;
-        tr.innerHTML = `
-          <td>${nome}</td>
-          <td>${totalLeads}</td>
-          <td>${totalFechos}</td>
-          <td>${angAtivasC}</td>
-          <td>${angExclC}</td>
-        `;
-        tbl.appendChild(tr);
-      });
-
-      if (!tbl.children.length) {
-        tbl.innerHTML = '<tr><td colspan="5" class="empty">Sem dados disponíveis.</td></tr>';
-      } else if (bestRow) {
-        const rows = tbl.querySelectorAll('tr');
-        rows.forEach(r => {
-          if (r.dataset.consultor === bestRow) {
-            r.classList.add('highlight');
+  // Heurística para detectar leads e angariações nos dados locais:
+  // - Leads: qualquer key em localStorage cujo nome contenha "lead" (case insensitive) e o valor seja um array.
+  // - Angariações: qualquer key cujo nome contenha "angari".
+  function loadLeads() {
+    const leads = [];
+    if (!window.localStorage) return leads;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!/lead/i.test(key)) continue;
+      const parsed = safeParse(localStorage.getItem(key));
+      if (Array.isArray(parsed)) {
+        for (const item of parsed) {
+          if (item && typeof item === 'object') {
+            leads.push(item);
           }
-        });
-        document.getElementById('mConsultorResumo').textContent =
-          `Melhor fecho no período: ${bestRow} (${bestFechos} fecho(s)).`;
+        }
       }
+    }
+    return leads;
+  }
+
+  function loadAngariacoes() {
+    const ang = [];
+    if (!window.localStorage) return ang;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!/angari/i.test(key)) continue;
+      const parsed = safeParse(localStorage.getItem(key));
+      if (Array.isArray(parsed)) {
+        for (const item of parsed) {
+          if (item && typeof item === 'object') {
+            ang.push(item);
+          }
+        }
+      }
+    }
+    return ang;
+  }
+
+  // Aplica filtros genéricos de visibilidade (se existirem flags)
+  function filterVisiveis(arr) {
+    return (arr || []).filter(a => {
+      if (a === null || typeof a !== 'object') return false;
+      if (a.hidden === true) return false;
+      if (a.visivel === false) return false;
+      if (a.visible === false) return false;
+      return true;
+    });
+  }
+
+  // Utilitários simples
+  function toNumber(value) {
+    if (value === null || value === undefined || value === '') return NaN;
+    if (typeof value === 'number') return value;
+    const s = String(value).replace(/\./g,'').replace(',','.');
+    const n = Number(s);
+    return isFinite(n) ? n : NaN;
+  }
+
+  function groupBy(arr, getter) {
+    const map = new Map();
+    for (const item of arr) {
+      const key = getter(item) || '—';
+      map.set(key, (map.get(key) || 0) + 1);
+    }
+    return map;
+  }
+
+  function pct(value, total) {
+    if (!total || total <= 0) return 0;
+    return Math.round((value / total) * 100);
+  }
+
+  // Elementos DOM
+  const elLastSync = document.getElementById('lastSync');
+  const elKpiLeadsTotal = document.getElementById('kpiLeadsTotal');
+  const elKpiAngTotal = document.getElementById('kpiAngTotal');
+  const elKpiLeadsResumo = document.getElementById('kpiLeadsResumo');
+  const elKpiAngResumo = document.getElementById('kpiAngResumo');
+  const elKpiLeadsFecho = document.getElementById('kpiLeadsFecho');
+  const elKpiLeadsFechoPct = document.getElementById('kpiLeadsFechoPct');
+  const elKpiLeadsFechoResumo = document.getElementById('kpiLeadsFechoResumo');
+  const elKpiAngExclusivas = document.getElementById('kpiAngExclusivas');
+  const elKpiAngExclusivasPct = document.getElementById('kpiAngExclusivasPct');
+  const elKpiAngExclusivasResumo = document.getElementById('kpiAngExclusivasResumo');
+  const elLeadsPipelineText = document.getElementById('leadsPipelineText');
+  const elAngEstadosText = document.getElementById('angEstadosText');
+  const elRanking = document.getElementById('rankingConsultores');
+  const elInsights = document.getElementById('insightsExec');
+  const elTagsTipoNegocio = document.getElementById('tagsTipoNegocio');
+  const elTagsOrigem = document.getElementById('tagsOrigem');
+
+  function refreshDashboard() {
+    const rawLeads = filterVisiveis(loadLeads());
+    const rawAng = filterVisiveis(loadAngariacoes());
+
+    const totalLeads = rawLeads.length;
+    const totalAng = rawAng.length;
+
+    elKpiLeadsTotal.textContent = totalLeads;
+    elKpiAngTotal.textContent = totalAng;
+
+    elKpiLeadsResumo.textContent = totalLeads
+      ? `${totalLeads} lead(s) ativas registadas localmente.`
+      : 'Sem leads registadas no navegador.';
+
+    elKpiAngResumo.textContent = totalAng
+      ? `${totalAng} angariação(ões) ativas registadas localmente.`
+      : 'Sem angariações registadas no navegador.';
+
+    // Leads em "fecho"
+    const leadsFecho = rawLeads.filter(l => {
+      const estado = String(
+        l.estado || l.estadoLead || l.coluna || l.colunaId || ''
+      ).toLowerCase();
+      return estado.includes('fecho') || estado.includes('fechad');
+    });
+    const nFecho = leadsFecho.length;
+    elKpiLeadsFecho.textContent = nFecho;
+    const pctFecho = pct(nFecho, totalLeads);
+    elKpiLeadsFechoPct.textContent = totalLeads ? pctFecho + '%' : '0%';
+    elKpiLeadsFechoResumo.textContent = totalLeads
+      ? `${pctFecho}% das leads encontram-se em fecho.`
+      : 'Sem leads suficientes para calcular taxa de fecho.';
+
+    // Angariações Exclusivas
+    const angExclusivas = rawAng.filter(a => {
+      const ex = (a.exclusivo || a.tipoExclusividade || a.naturezaContrato || '').toString().toLowerCase();
+      return ex.includes('exclusivo');
+    });
+    const nEx = angExclusivas.length;
+    elKpiAngExclusivas.textContent = nEx;
+    const pctEx = pct(nEx, totalAng);
+    elKpiAngExclusivasPct.textContent = totalAng ? pctEx + '%' : '0%';
+    elKpiAngExclusivasResumo.textContent = totalAng
+      ? `${pctEx}% das angariações têm carácter exclusivo.`
+      : 'Sem angariações exclusivas registadas.';
+
+    // Pipeline de leads (por estado)
+    if (!totalLeads) {
+      elLeadsPipelineText.textContent = 'Sem leads registadas.';
+    } else {
+      const map = groupBy(rawLeads, l => {
+        const estado = (l.estado || l.estadoLead || l.coluna || '').toString();
+        return estado || 'Sem estado definido';
+      });
+      const parts = [];
+      for (const [estado, count] of map.entries()) {
+        const p = pct(count, totalLeads);
+        parts.push(`${estado}: ${count} (${p}%)`);
+      }
+      elLeadsPipelineText.textContent = parts.join(' · ');
+    }
+
+    // Estados de angariação
+    if (!totalAng) {
+      elAngEstadosText.textContent = 'Sem angariações registadas.';
+    } else {
+      const map = groupBy(rawAng, a => {
+        const estado = (a.estadoAng || a.estado || '').toString();
+        return estado || 'Sem estado definido';
+      });
+      const parts = [];
+      for (const [estado, count] of map.entries()) {
+        const p = pct(count, totalAng);
+        parts.push(`${estado}: ${count} (${p}%)`);
+      }
+      elAngEstadosText.textContent = parts.join(' · ');
+    }
+
+    // Ranking consultores (Leads + Angariações)
+    const mapConsultores = new Map();
+    function acumular(pessoa, tipo) {
+      if (!pessoa) return;
+      const key = pessoa.toString().trim();
+      if (!key) return;
+      const prev = mapConsultores.get(key) || { leads: 0, ang: 0 };
+      prev[tipo]++;
+      mapConsultores.set(key, prev);
+    }
+
+    for (const l of rawLeads) {
+      const c = l.consultor || l.consultorResponsavel || l.gestor || l.gestorNome;
+      acumular(c, 'leads');
+    }
+    for (const a of rawAng) {
+      const c = a.consultor || a.angariador || a.gestor || a.gestorNome;
+      acumular(c, 'ang');
+    }
+
+    elRanking.innerHTML = '';
+    const entries = Array.from(mapConsultores.entries())
+      .map(([nome, v]) => ({ nome, leads: v.leads, ang: v.ang, total: v.leads + v.ang }))
+      .sort((a, b) => b.total - a.total);
+
+    if (!entries.length) {
+      const row = document.createElement('div');
+      row.className = 'list-row';
+      row.innerHTML = '<div class="muted small">Ainda sem dados suficientes para ranking.</div>';
+      elRanking.appendChild(row);
+    } else {
+      for (const e of entries) {
+        const row = document.createElement('div');
+        row.className = 'list-row';
+        row.innerHTML = `
+          <div>
+            <div class="small"><strong>${e.nome}</strong></div>
+            <div class="small muted">Leads: ${e.leads} · Angariações: ${e.ang}</div>
+          </div>
+          <div>
+            <span class="pill soft">${e.total} total</span>
+          </div>
+        `;
+        elRanking.appendChild(row);
+      }
+    }
+
+    // Origem & tipos de negócio (Leads)
+    elTagsTipoNegocio.innerHTML = '';
+    elTagsOrigem.innerHTML = '';
+
+    const mapTipoNeg = groupBy(rawLeads, l => {
+      const t = (l.tipoNegocio || l.tipo_negocio || l.negocio || '').toString();
+      return t || 'Não definido';
+    });
+    for (const [tipo, count] of mapTipoNeg.entries()) {
+      const span = document.createElement('span');
+      span.className = 'tag';
+      span.textContent = `${tipo} (${count})`;
+      elTagsTipoNegocio.appendChild(span);
+    }
+
+    const mapOrigem = groupBy(rawLeads, l => {
+      const o = (l.origem || l.canal || '').toString();
+      return o || 'Não definido';
+    });
+    for (const [origem, count] of mapOrigem.entries()) {
+      const span = document.createElement('span');
+      span.className = 'tag';
+      span.textContent = `${origem} (${count})`;
+      elTagsOrigem.appendChild(span);
+    }
+
+    // Insights simples
+    const insights = [];
+    if (!totalLeads && !totalAng) {
+      insights.push('Ainda não existem leads nem angariações registadas neste navegador.');
+    } else {
+      if (totalLeads) {
+        insights.push(`Tem atualmente <strong>${totalLeads}</strong> lead(s) ativa(s) no pipeline.`);
+      }
+      if (totalAng) {
+        insights.push(`Existem <strong>${totalAng}</strong> angariação(ões) ativa(s) registadas.`);
+      }
+      if (totalLeads && nFecho) {
+        insights.push(`A taxa de leads em fecho é de <strong>${pctFecho}%</strong>.`);
+      }
+      if (totalAng && nEx) {
+        insights.push(`<strong>${pctEx}%</strong> das angariações são exclusivas, reforçando o controlo de stock da Garvetur Porto Pro.`);
+      }
+      if (!nFecho && totalLeads > 0) {
+        insights.push('Nenhuma lead se encontra ainda em “Fecho”. Pode valer a pena rever as oportunidades em “Proposta”.');
+      }
+      if (!nEx && totalAng > 0) {
+        insights.push('Ainda não existem angariações marcadas como exclusivas. Considere reforçar a negociação de exclusividade em ativos-chave.');
+      }
+    }
+    elInsights.innerHTML = insights.join('<br><br>');
+
+    if (elLastSync) {
+      elLastSync.textContent = 'Última leitura: ' + nowLabel();
     }
   }
 
-  // --- Eventos globais ---
+  // Botão de reset: limpa dados antigos de leads/angariações no localStorage
+  function resetLocalData() {
+    if (!window.localStorage) return;
+    const ok = window.confirm(
+      'Esta ação vai limpar todas as leads e angariações guardadas localmente (neste navegador) ' +
+      'e reiniciar o dashboard.\n\n' +
+      'Isto NÃO apaga nada do GitHub, apenas os dados guardados neste dispositivo.\n\n' +
+      'Pretende continuar?'
+    );
+    if (!ok) return;
 
-  document.getElementById('btnRefresh').addEventListener('click', renderDashboard);
-  document.getElementById('fDashConsultor').addEventListener('change', renderDashboard);
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (/lead/i.test(key) || /angari/i.test(key)) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(k => localStorage.removeItem(k));
+    refreshDashboard();
+  }
 
-  document.getElementById('btnLimparLS').addEventListener('click', () => {
-    if (!confirm('Esta ação remove apenas versões antigas de dados (não os registos atuais). Continuar?')) return;
-    limparCachesAntigas();
-    renderDashboard();
-  });
+  document.getElementById('refreshBtn').addEventListener('click', refreshDashboard);
+  document.getElementById('resetBtn').addEventListener('click', resetLocalData);
 
-  document.addEventListener('DOMContentLoaded', () => {
-    renderDashboard();
-  });
+  // Primeira carga
+  refreshDashboard();
+})();
 </script>
 </body>
 </html>
