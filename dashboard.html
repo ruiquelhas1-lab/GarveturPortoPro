@@ -48,6 +48,7 @@
       top:0;
       z-index:20;
       gap:16px;
+      flex-wrap:wrap;
     }
 
     .brand{
@@ -83,6 +84,7 @@
     .nav-tabs{
       display:flex;
       align-items:center;
+      flex-wrap:wrap;
       gap:4px;
       background:rgba(0,0,0,.35);
       padding:4px;
@@ -116,6 +118,7 @@
       display:flex;
       align-items:center;
       gap:8px;
+      flex-wrap:wrap;
     }
     .btn{
       border-radius:999px;
@@ -366,10 +369,13 @@
     </div>
 
     <nav class="nav-tabs">
-      <a href="index.html" class="nav-tab">Mapa</a>
+      <a href="index.html" class="nav-tab">Início</a>
+      <a href="mapa.html" class="nav-tab">Mapa</a>
       <a href="kanban.html" class="nav-tab">Leads</a>
       <a href="angariacoes.html" class="nav-tab">Angariações</a>
       <a href="dashboard.html" class="nav-tab active">Dashboard</a>
+      <a href="vendas.html" class="nav-tab">Vendas</a>
+      <a href="tarefas.html" class="nav-tab">Tarefas</a>
     </nav>
 
     <div class="header-actions">
@@ -535,7 +541,6 @@
     const de = filterDataDe.value || '';
     const ate = filterDataAte.value || '';
 
-    // Aqui NÃO filtramos por visibilidade.
     let leads = allLeads.slice().filter(l => l);
     let deals = allDeals.slice().filter(d => d);
 
@@ -573,7 +578,6 @@
   }
 
   function computeStats(leadsFiltered, dealsFiltered){
-    // Separar visíveis / invisíveis
     const leadsVisible = leadsFiltered.filter(l => l.visivel !== false);
     const leadsHidden = leadsFiltered.filter(l => l.visivel === false);
     const dealsVisible = dealsFiltered.filter(d => d.visible !== false);
