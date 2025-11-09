@@ -91,6 +91,8 @@
       display:flex;
       align-items:center;
       gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
     }
 
     .btn{
@@ -676,6 +678,9 @@
       </div>
       <button class="btn btn-ghost" id="exportCsvBtn" title="Exportar angariações para CSV">⤓ CSV</button>
       <button class="btn btn-ghost" id="exportPdfBtn" title="Imprimir / PDF">⤓ PDF</button>
+      <button class="btn btn-ghost" id="exportJsonBtn" title="Exportar dados (JSON)">⤓ JSON</button>
+      <label class="btn btn-ghost" id="importJsonLabel" for="importJsonInput" title="Importar dados (JSON)">⤒ JSON</label>
+      <input type="file" id="importJsonInput" accept="application/json" style="display:none" />
       <button class="btn btn-primary" id="newDealBtn">+ Nova Angariação</button>
     </div>
   </header>
@@ -1295,6 +1300,8 @@
   const newDealBtn = $('newDealBtn');
   const exportCsvBtn = $('exportCsvBtn');
   const exportPdfBtn = $('exportPdfBtn');
+  const exportJsonBtn = $('exportJsonBtn');
+  const importJsonInput = $('importJsonInput');
   const cardsGrid = $('cardsGrid');
   const emptyState = $('emptyState');
   const pipelineKpis = $('pipelineKpis');
@@ -2014,6 +2021,53 @@
     URL.revokeObjectURL(url);
   }
 
+  function exportJson(){
+    try{
+      const payload = localStorage.getItem(STORAGE_KEY) || JSON.stringify(state);
+      const blob = new Blob([payload], {type:'application/json;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'angariacoes_gpp_backup.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }catch(e){
+      console.error('Erro ao exportar JSON', e);
+      alert('Ocorreu um erro ao exportar o JSON.');
+    }
+  }
+
+  function importJson(file){
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      try{
+        const txt = ev.target.result;
+        const parsed = JSON.parse(txt);
+        // Aceita tanto o objecto completo {deals, locked} como apenas um array de deals
+        if(Array.isArray(parsed)){
+          state.deals = parsed;
+        }else if(parsed && Array.isArray(parsed.deals)){
+          state.deals = parsed.deals;
+          if(typeof parsed.locked === 'boolean') state.locked = parsed.locked;
+        }else{
+          alert('Ficheiro JSON não tem o formato esperado.');
+          return;
+        }
+        saveState();
+        updateLockUI();
+        renderCards();
+        alert('Dados importados com sucesso a partir do JSON.');
+      }catch(e){
+        console.error('Erro ao importar JSON', e);
+        alert('Não foi possível ler o ficheiro JSON.');
+      }
+    };
+    reader.readAsText(file, 'utf-8');
+  }
+
   function exportOnePdf(deal){
     const w = window.open('', '_blank');
     if(!w){
@@ -2167,7 +2221,7 @@
   <div class="line"><span class="strong">Preço pedido:</span> ${deal.precoPedido || '-'} &nbsp; | &nbsp;
     <span class="strong">Sugerido:</span> ${deal.precoSugerido || '-'}</div>
   <div class="line"><span class="strong">Comissão:</span> ${comPerc ? comPerc + '%' : '-'} &nbsp; | &nbsp;
-    <span class="strong">Ajustamento:</span> ${deal.percentAjust ? '${deal.percentAjust}%' : '-'}</div>
+    <span class="strong">Ajustamento:</span> ${deal.percentAjust ? (deal.percentAjust + '%') : '-'}</div>
 
   <h2 class="section">Características (10.1)</h2>
   <div class="line">
@@ -2277,6 +2331,12 @@
 
   exportCsvBtn.addEventListener('click', exportCsv);
   exportPdfBtn.addEventListener('click', exportPdfAll);
+  exportJsonBtn.addEventListener('click', exportJson);
+  importJsonInput.addEventListener('change',(e)=>{
+    const file = e.target.files && e.target.files[0];
+    importJson(file);
+    e.target.value = '';
+  });
 
   window.addEventListener('keydown', (e)=>{
     if(e.key==='Escape' && modalBackdrop.classList.contains('open')){
