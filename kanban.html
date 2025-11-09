@@ -1,322 +1,761 @@
 <!doctype html>
-<html lang="pt">
+<html lang="pt-PT">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Garvetur Porto Pro — Leads (Kanban)</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Garvetur Porto Pro — Leads (Kanban)</title>
 
-<link rel="preconnect" href="https://unpkg.com" crossorigin>
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
 
-<style>
-:root{ --gold:#A38B63; --bg:#0E0E0E; --panel:#131313; --text:#fff; --muted:#9AA0A6; --border:rgba(255,255,255,.12)}
-html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-a{color:#eaeaea;text-decoration:none}
-.app{display:grid;grid-template-rows:56px auto auto 1fr;height:100%}
+  <style>
+    :root{
+      --gold:#A38B63;
+      --bg:#0B0B0B;
+      --panel:#141414;
+      --panel-soft:#181818;
+      --border:rgba(255,255,255,.14);
+      --text:#FFFFFF;
+      --muted:#A0A0A0;
+      --radius-md:14px;
+      --shadow-soft:0 18px 35px rgba(0,0,0,.6);
+    }
+    *{box-sizing:border-box;}
+    html,body{
+      margin:0;
+      height:100%;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      background:radial-gradient(circle at top,#1c1c1c 0,#050505 55%,#000 100%);
+      color:var(--text);
+    }
+    body{
+      display:flex;
+      flex-direction:column;
+    }
 
-/* Header + Navegação */
-header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--border);background:#0F0F0F}
-.brand{display:flex;align-items:center;gap:10px}
-.brand h1{font-size:16px;margin:0;color:var(--gold)}
-.nav{display:flex;gap:8px}
-.nav a{border:1px solid var(--border);padding:6px 10px;border-radius:8px;color:#ddd}
-.nav a.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
+    .app-shell{
+      display:grid;
+      grid-template-rows:64px auto;
+      height:100%;
+    }
 
-/* Toolbar */
-.toolbar{display:flex;gap:8px;flex-wrap:wrap;padding:8px 12px;border-bottom:1px solid var(--border);background:#0F0F0F}
-.btn{background:transparent;border:1px solid rgba(163,139,99,.5);color:#fff;padding:6px 10px;border-radius:10px;cursor:pointer;font-size:12px}
-.btn.primary{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
-.btn.ghost{border-color:var(--border);color:#ddd}
-.btn[disabled]{opacity:.45;cursor:not-allowed}
-.move-select[disabled]{opacity:.45;cursor:not-allowed}
+    /* HEADER / BRAND / NAV TABS (coerente com tarefas/angariações) */
+    header.app-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:10px 18px;
+      border-bottom:1px solid rgba(163,139,99,.35);
+      background:linear-gradient(90deg,#050505,#111,#050505);
+      gap:16px;
+      flex-wrap:wrap;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .brand-icon{
+      width:26px;
+      height:26px;
+      border-radius:999px;
+      border:1px solid var(--gold);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 0 0 1px rgba(163,139,99,.3);
+    }
+    .brand h1{
+      margin:0;
+      font-size:17px;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      color:var(--gold);
+    }
+    .brand span.sub{
+      display:block;
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
 
-/* Sumário Pipeline */
-.summary-bar{padding:6px 12px;font-size:12px;border-bottom:1px solid var(--border);background:#101010;color:#ddd;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.badge-kpi{padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.18);font-size:11px}
-.badge-kpi.highlight{border-color:var(--gold);color:var(--gold);font-weight:600}
+    .nav-tabs{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:4px;
+      background:rgba(0,0,0,.35);
+      padding:4px;
+      border-radius:999px;
+      border:1px solid rgba(163,139,99,.35);
+    }
+    .nav-tab{
+      padding:5px 10px;
+      border-radius:999px;
+      font-size:11px;
+      text-decoration:none;
+      color:var(--muted);
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      border:1px solid transparent;
+      transition:.16s background,.16s color,.16s border-color,.16s transform;
+    }
+    .nav-tab:hover{
+      color:#fff;
+      border-color:rgba(163,139,99,.6);
+      transform:translateY(-1px);
+    }
+    .nav-tab.active{
+      background:var(--gold);
+      color:#0A0A0A;
+      border-color:var(--gold);
+      font-weight:600;
+    }
 
-/* Layout Principal */
-.main{display:grid;grid-template-columns:300px 1fr;gap:0;height:calc(100vh - 56px - 48px - 32px)}
-.sidebar{background:var(--panel);border-right:1px solid var(--border);padding:12px;overflow:auto}
-.sidebar h3{margin:0 0 8px 0;font-size:13px;color:#d7d7d7;text-transform:uppercase;letter-spacing:.06em}
-.field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
-.field input,.field select{background:#0E0E0E;border:1px solid rgba(255,255,255,.16);border-radius:8px;color:#fff;padding:8px 10px;outline:none;font-size:12px}
-.checks{display:flex;flex-direction:column;gap:8px}
-.checks label{display:flex;align-items:center;gap:8px;font-size:13px;color:#dcdcdc}
-.checks input{accent-color:var(--gold)}
+    .header-actions{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
 
-/* Board */
-.board{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;padding:10px;height:100%;overflow:auto}
-.col{background:var(--panel);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;min-width:240px}
-.col header{padding:10px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between}
-.col header .title{font-weight:700}
-.counter{font-size:12px;color:#cfcfcf}
-.col .list{padding:10px;display:flex;flex-direction:column;gap:10px}
+    .btn{
+      border-radius:999px;
+      border:1px solid rgba(163,139,99,.35);
+      background:rgba(12,12,12,.9);
+      color:var(--text);
+      padding:7px 12px;
+      font-size:13px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      cursor:pointer;
+      transition:.18s border-color,.18s background,.18s transform;
+    }
+    .btn:hover{
+      border-color:var(--gold);
+      transform:translateY(-1px);
+    }
+    .btn-primary,
+    .btn.primary{
+      background:var(--gold);
+      color:#0A0A0A;
+      border-color:var(--gold);
+      font-weight:600;
+    }
+    .btn-ghost,
+    .btn.ghost{
+      background:transparent;
+      border-color:rgba(255,255,255,.24);
+      color:var(--muted);
+    }
+    .btn[disabled]{
+      opacity:.45;
+      cursor:not-allowed;
+      transform:none;
+    }
+    .move-select[disabled]{opacity:.45;cursor:not-allowed;}
 
-.card{background:#0E0E0E;border:1px solid rgba(163,139,99,.25);border-radius:12px;padding:10px}
-.card .top{display:flex;justify-content:space-between;gap:8px}
-.card .name{font-weight:800}
-.card .meta{font-size:12px;color:#bbb}
-.card .row{margin-top:6px;font-size:12px;color:#ddd}
-.card .actions{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
-.badge{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--border);font-size:11px}
-.badge.light{border-color:#444;color:#ccc}
-.move-select{background:#0E0E0E;border:1px solid rgba(255,255,255,.25);color:#ddd;border-radius:8px;padding:4px 6px;font-size:11px}
+    /* LAYOUT PRINCIPAL (sidebar + board) */
+    .layout{
+      display:grid;
+      grid-template-columns:320px minmax(0,1fr);
+      height:calc(100vh - 64px);
+      max-height:calc(100vh - 64px);
+      overflow:hidden;
+    }
+    @media (max-width:960px){
+      .layout{
+        grid-template-columns:1fr;
+        grid-template-rows:auto auto;
+        height:auto;
+        max-height:none;
+      }
+    }
 
-/* Modal */
-.modal-backdrop{display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.6);backdrop-filter:blur(2px);align-items:center;justify-content:center;padding:16px}
-.modal-backdrop.show{display:flex}
-.modal{width:min(980px,96vw);background:#0F0F0F;border:1px solid var(--border);border-radius:12px;overflow:hidden}
-.modal header{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.modal .content{padding:12px;max-height:72vh;overflow:auto}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.form-field{display:flex;flex-direction:column;gap:6px}
-.form-field input,.form-field select,.form-field textarea{background:#0E0E0E;border:1px solid rgba(255,255,255,.16);border-radius:8px;color:#fff;padding:8px 10px;outline:none}
-.form-field small{color:#9AA0A6}
-.help{font-size:12px;color:#bdbdbd}
+    .sidebar{
+      background:radial-gradient(circle at top left,#141414,#060606);
+      border-right:1px solid var(--border);
+      padding:12px 14px;
+      overflow-y:auto;
+    }
+    .sidebar-section{
+      border-radius:var(--radius-md);
+      padding:10px 11px;
+      background:rgba(0,0,0,.45);
+      border:1px solid rgba(163,139,99,.18);
+      margin-bottom:10px;
+    }
+    .sidebar-section h3{
+      margin:0 0 8px 0;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      color:var(--muted);
+    }
 
-/* Estado picker */
-.state-pills{display:flex;gap:8px;flex-wrap:wrap}
-.state-pill{display:flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:6px 10px;font-size:12px;background:#0E0E0E;cursor:pointer}
-.state-pill input{accent-color:#A38B63; width:14px; height:14px}
-.state-pill.active{background:#1c1c1c;border-color:#A38B63}
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin-bottom:10px;
+    }
+    .field input,
+    .field select{
+      background:rgba(0,0,0,.7);
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:10px;
+      color:#fff;
+      padding:6px 9px;
+      outline:none;
+      font-size:12px;
+    }
+    .field input:focus,
+    .field select:focus{
+      border-color:var(--gold);
+      box-shadow:0 0 0 1px rgba(163,139,99,.35);
+    }
 
-/* Intercalares */
-.intercalares{display:flex;flex-direction:column;gap:8px}
-.intercalares .row{display:flex;gap:8px;align-items:center}
-.intercalares .row input{flex:1}
-.intercalares .row button{white-space:nowrap}
-.total-line{margin-top:6px;font-size:12px;color:#dcdcdc}
+    .checks{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      font-size:12px;
+      color:#dcdcdc;
+    }
+    .checks label{
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .checks input{accent-color:var(--gold);}
 
-/* Responsive */
-@media (max-width:1400px){ .board{grid-template-columns:repeat(3,1fr)} }
-@media (max-width:960px){
-  .main{grid-template-columns:1fr}
-  .sidebar{order:2;height:300px}
-  .board{order:1}
-}
-</style>
+    .cards-area{
+      padding:14px 16px 18px;
+      overflow-y:auto;
+      background:radial-gradient(circle at top,#1a1a1a,#050505 55%,#000 100%);
+      display:flex;
+      flex-direction:column;
+    }
+
+    .cards-header{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      margin-bottom:6px;
+      gap:10px;
+    }
+    .cards-header-left h2{
+      margin:0;
+      font-size:15px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+    .cards-header-left p{
+      margin:2px 0 0;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    /* SUMÁRIO PIPELINE */
+    .summary-bar{
+      padding:6px 10px;
+      font-size:12px;
+      border-radius:999px;
+      border:1px solid rgba(163,139,99,.35);
+      background:rgba(0,0,0,.55);
+      color:#ddd;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+      margin-bottom:10px;
+    }
+    .badge-kpi{
+      padding:2px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      font-size:11px;
+      color:var(--muted);
+      background:rgba(15,15,15,.9);
+    }
+    .badge-kpi.highlight{
+      border-color:var(--gold);
+      color:var(--gold);
+      font-weight:600;
+    }
+
+    /* BOARD / COLUNAS / CARDS */
+    .board{
+      display:grid;
+      grid-template-columns:repeat(6,minmax(260px,1fr));
+      gap:10px;
+    }
+    @media (max-width:1400px){
+      .board{grid-template-columns:repeat(3,minmax(260px,1fr));}
+    }
+    @media (max-width:960px){
+      .board{grid-template-columns:1fr;}
+    }
+
+    .col{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:12px;
+      display:flex;
+      flex-direction:column;
+      min-width:240px;
+    }
+    .col header{
+      padding:8px 10px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      font-size:12px;
+    }
+    .col header .title{
+      font-weight:700;
+      color:#f3f3f3;
+    }
+    .counter{
+      font-size:11px;
+      color:#cfcfcf;
+    }
+    .col .list{
+      padding:10px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .card{
+      background:#0E0E0E;
+      border:1px solid rgba(163,139,99,.25);
+      border-radius:12px;
+      padding:10px;
+      box-shadow:0 10px 18px rgba(0,0,0,.55);
+    }
+    .card .top{
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+    }
+    .card .name{
+      font-weight:800;
+      font-size:13px;
+      color:#fff;
+    }
+    .card .meta{
+      font-size:11px;
+      color:#bbb;
+    }
+    .card .row{
+      margin-top:6px;
+      font-size:12px;
+      color:#ddd;
+    }
+    .card .actions{
+      margin-top:8px;
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+    }
+    .badge{
+      display:inline-block;
+      padding:2px 8px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      font-size:11px;
+    }
+    .badge.light{
+      border-color:#444;
+      color:#ccc;
+    }
+    .move-select{
+      background:#0E0E0E;
+      border:1px solid rgba(255,255,255,.25);
+      color:#ddd;
+      border-radius:999px;
+      padding:4px 8px;
+      font-size:11px;
+    }
+
+    /* MODAL */
+    .modal-backdrop{
+      display:none;
+      position:fixed;
+      inset:0;
+      z-index:10000;
+      background:rgba(0,0,0,.6);
+      backdrop-filter:blur(2px);
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+    }
+    .modal-backdrop.show{display:flex;}
+    .modal{
+      width:min(980px,96vw);
+      background:#0F0F0F;
+      border:1px solid var(--border);
+      border-radius:18px;
+      overflow:hidden;
+      box-shadow:0 24px 45px rgba(0,0,0,.8);
+    }
+    .modal header{
+      padding:10px 12px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      background:linear-gradient(90deg,#050505,#111,#050505);
+      font-size:13px;
+    }
+    .modal .content{
+      padding:12px;
+      max-height:72vh;
+      overflow:auto;
+    }
+
+    .grid2{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+    .grid3{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+    }
+    @media (max-width:900px){
+      .grid2,.grid3{grid-template-columns:1fr;}
+    }
+
+    .form-field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      font-size:12px;
+    }
+    .form-field input,
+    .form-field select,
+    .form-field textarea{
+      background:#0E0E0E;
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:8px;
+      color:#fff;
+      padding:8px 10px;
+      outline:none;
+      font-size:12px;
+    }
+    .form-field input:focus,
+    .form-field select:focus,
+    .form-field textarea:focus{
+      border-color:var(--gold);
+      box-shadow:0 0 0 1px rgba(163,139,99,.28);
+    }
+    .form-field small{color:#9AA0A6;}
+
+    .help{
+      font-size:12px;
+      color:#bdbdbd;
+      margin-top:4px;
+    }
+
+    /* ESTADO PICKER */
+    .state-pills{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .state-pill{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:12px;
+      background:#0E0E0E;
+      cursor:pointer;
+    }
+    .state-pill input{
+      accent-color:#A38B63;
+      width:14px;
+      height:14px;
+    }
+    .state-pill.active{
+      background:#1c1c1c;
+      border-color:#A38B63;
+    }
+
+    /* INTERCalares */
+    .intercalares{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .intercalares .row{
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .intercalares .row input{flex:1;}
+    .intercalares .row button{white-space:nowrap;}
+    .total-line{
+      margin-top:6px;
+      font-size:12px;
+      color:#dcdcdc;
+    }
+  </style>
 </head>
 <body>
-  <header>
+<div class="app-shell">
+  <header class="app-header">
     <div class="brand">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--gold)"><circle cx="12" cy="12" r="10" stroke-width="1.5"/><path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/></svg>
-      <h1>Garvetur Porto Pro — Leads</h1>
+      <div class="brand-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M8 12.5l2.5 2.5L16 9"></path>
+        </svg>
+      </div>
+      <div>
+        <h1>Garvetur Porto Pro — Leads</h1>
+        <span class="sub">Pipeline comercial e oportunidades</span>
+      </div>
     </div>
-    <div class="nav">
-      <a href="./index.html">Início</a>
-      <a href="./mapa.html">Mapa</a>
-      <a class="active" href="./kanban.html">Leads</a>
-      <a href="./angariacoes.html">Angariações</a>
-      <a href="./dashboard.html">Dashboard</a>
-      <a href="./vendas.html">Vendas</a>
-      <a href="./tarefas.html">Tarefas</a>
+
+    <nav class="nav-tabs">
+      <a href="index.html" class="nav-tab">Início</a>
+      <a href="mapa.html" class="nav-tab">Mapa</a>
+      <a href="kanban.html" class="nav-tab active">Leads</a>
+      <a href="angariacoes.html" class="nav-tab">Angariações</a>
+      <a href="dashboard.html" class="nav-tab">Dashboard</a>
+      <a href="vendas.html" class="nav-tab">Vendas</a>
+      <a href="tarefas.html" class="nav-tab">Tarefas</a>
+    </nav>
+
+    <div class="header-actions">
+      <button class="btn primary" id="btnNew" disabled>+ Nova Lead</button>
+      <button class="btn btn-ghost" id="toggleEdit"><span id="lockEmoji">🔒</span> Edição bloqueada</button>
+      <button class="btn btn-ghost" id="exportCsv">⤓ CSV</button>
+      <button class="btn btn-ghost" id="exportXlsx">⤓ Excel</button>
     </div>
   </header>
 
-  <div class="toolbar">
-    <button class="btn primary" id="btnNew" disabled>+ Nova Lead</button>
-    <button class="btn" id="toggleEdit"><span id="lockEmoji">🔒</span> Edição bloqueada</button>
-    <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn" id="exportCsv">Exportar CSV</button>
-      <button class="btn" id="exportXlsx">Exportar Excel</button>
-    </div>
-  </div>
-
-  <!-- Sumário pipeline -->
-  <div id="pipelineSummary" class="summary-bar"></div>
-
-  <div class="main">
-    <!-- Lateral Esquerda -->
+  <div class="layout">
+    <!-- LADO ESQUERDO: FILTROS -->
     <aside class="sidebar">
-      <h3>Pesquisa</h3>
-      <div class="field"><input id="q" placeholder="Pesquisar: nome, consultor, email, ref., notas"></div>
-
-      <h3>Filtros</h3>
-      <div class="field">
-        <label>Consultor</label>
-        <select id="f_consultor"><option value="">(Todos)</option></select>
-      </div>
-      <div class="field">
-        <label>Estado</label>
-        <select id="f_estado">
-          <option value="">(Todos)</option>
-          <option>Novo</option>
-          <option>Em Contacto</option>
-          <option>Qualificado</option>
-          <option>Visita</option>
-          <option>Proposta</option>
-          <option>Fecho</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Período</label>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <input id="f_ini" type="date"><input id="f_fim" type="date">
+      <div class="sidebar-section">
+        <h3>Pesquisa</h3>
+        <div class="field">
+          <input id="q" placeholder="Pesquisar: nome, consultor, email, ref., notas">
         </div>
       </div>
-      <div class="checks">
-        <label><input type="checkbox" id="f_show_hidden"> Mostrar invisíveis</label>
-        <label><input type="checkbox" id="f_only_hidden"> Só invisíveis</label>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:10px">
-        <button class="btn" id="applyFilters">Aplicar</button>
-        <button class="btn ghost" id="clearFilters">Limpar</button>
+
+      <div class="sidebar-section">
+        <h3>Filtros</h3>
+        <div class="field">
+          <label>Consultor</label>
+          <select id="f_consultor"><option value="">(Todos)</option></select>
+        </div>
+        <div class="field">
+          <label>Estado</label>
+          <select id="f_estado">
+            <option value="">(Todos)</option>
+            <option>Novo</option>
+            <option>Em Contacto</option>
+            <option>Qualificado</option>
+            <option>Visita</option>
+            <option>Proposta</option>
+            <option>Fecho</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Período</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <input id="f_ini" type="date">
+            <input id="f_fim" type="date">
+          </div>
+        </div>
+        <div class="checks">
+          <label><input type="checkbox" id="f_show_hidden"> Mostrar invisíveis</label>
+          <label><input type="checkbox" id="f_only_hidden"> Só invisíveis</label>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn" id="applyFilters">Aplicar</button>
+          <button class="btn btn-ghost" id="clearFilters">Limpar</button>
+        </div>
       </div>
     </aside>
 
-    <!-- Quadro Kanban -->
-    <section class="board" id="board"></section>
+    <!-- DIREITA: SUMÁRIO + BOARD -->
+    <main class="cards-area">
+      <div class="cards-header">
+        <div class="cards-header-left">
+          <h2>Leads</h2>
+          <p>Gestão visual do pipeline comercial — do primeiro contacto ao fecho.</p>
+        </div>
+      </div>
+
+      <!-- Sumário pipeline (mantém o mesmo ID para o JS) -->
+      <div id="pipelineSummary" class="summary-bar"></div>
+
+      <!-- Quadro Kanban -->
+      <section class="board" id="board"></section>
+    </main>
   </div>
+</div>
 
-  <!-- Modal Nova/Editar Lead -->
-  <div id="leadModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Lead">
-    <div class="modal">
-      <header>
-        <div><strong id="modalTitle">Nova Lead</strong></div>
-        <div style="display:flex;gap:8px">
-          <button class="btn" id="cancelLead">Cancelar</button>
-          <button class="btn primary" id="saveLead">Guardar</button>
+<!-- Modal Nova/Editar Lead (inalterado na lógica) -->
+<div id="leadModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Lead">
+  <div class="modal">
+    <header>
+      <div><strong id="modalTitle">Nova Lead</strong></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" id="cancelLead">Cancelar</button>
+        <button class="btn primary" id="saveLead">Guardar</button>
+      </div>
+    </header>
+    <div class="content">
+      <div class="grid2">
+        <div class="form-field"><label>Nome Cliente *</label><input id="ld_nome"></div>
+        <div class="form-field"><label>Consultor *</label>
+          <select id="ld_consultor">
+            <option value="">—</option>
+            <option>Rui Quelhas</option>
+            <option>Manuel Oliveira</option>
+            <option>João Sousa</option>
+            <option>Francisco dos Santos</option>
+            <option>Rosário Vasconcelos</option>
+            <option>Armanda Meireles</option>
+            <option>Audrey Lucas</option>
+          </select>
         </div>
-      </header>
-      <div class="content">
-        <div class="grid2">
-          <div class="form-field"><label>Nome Cliente *</label><input id="ld_nome"></div>
-          <div class="form-field"><label>Consultor *</label>
-            <select id="ld_consultor">
+
+        <div class="form-field"><label>Contacto *</label><input id="ld_contacto" placeholder="+351 … ou 9 dígitos"></div>
+        <div class="form-field"><label>Email</label><input id="ld_email" type="email"></div>
+
+        <div class="form-field"><label>Tipo de negócio</label>
+          <select id="ld_tipo_negocio">
+            <option value="">—</option><option>Venda</option><option>Compra</option><option>Arrendamento</option><option>Permuta</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Imóvel</label>
+          <select id="ld_imovel">
+            <option value="">—</option><option>Moradia</option><option>Apartamento</option><option>Loja</option><option>Armazém</option><option>Escritório</option><option>Terreno</option><option>Outro</option>
+          </select>
+        </div>
+
+        <div class="form-field"><label>Tipologia</label>
+          <select id="ld_tipologia">
+            <option value="">—</option><option>T0</option><option>T1</option><option>T2</option><option>T3</option><option>T4</option><option>T5</option><option>&gt;T5</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Zona preferencial</label><input id="ld_zona"></div>
+
+        <div class="form-field"><label>Capitais próprios (€)</label><input id="ld_capitais" type="number" min="0" step="1000"></div>
+        <div class="form-field"><label>Valor alvo (€)</label><input id="ld_valor" type="number" min="0" step="1000"></div>
+
+        <div class="form-field"><label>Financiamento bancário?</label>
+          <select id="ld_financiamento"><option>Não</option><option>Sim</option></select>
+        </div>
+        <div class="form-field"><label>Simulação bancária?</label>
+          <select id="ld_simulacao"><option>Não</option><option>Sim</option></select>
+        </div>
+
+        <div class="form-field"><label>Instituição bancária (se aplicável)</label><input id="ld_banco"></div>
+        <div class="form-field"><label>Tem imóvel para vender?</label>
+          <select id="ld_tem_imovel"><option>Não</option><option>Sim</option></select>
+        </div>
+
+        <div class="form-field"><label>Já está à venda?</label>
+          <select id="ld_ja_venda"><option>Não</option><option>Sim</option></select>
+        </div>
+        <div class="form-field"><label>Urgente?</label>
+          <select id="ld_urgente"><option>Não</option><option>Sim</option></select>
+        </div>
+
+        <div class="form-field"><label>Pode comprar em planta?</label>
+          <select id="ld_planta"><option>Não</option><option>Sim</option></select>
+        </div>
+        <div class="form-field"><label>1ª habitação?</label>
+          <select id="ld_primeira_hab"><option>Não</option><option>Sim</option></select>
+        </div>
+
+        <div class="form-field"><label>Comprador/Vendedor</label>
+          <select id="ld_papel"><option value="">—</option><option>Comprador</option><option>Vendedor</option></select>
+        </div>
+        <div class="form-field"><label>Investidor/Cliente final</label>
+          <select id="ld_perfil"><option value="">—</option><option>Investidor</option><option>Cliente final</option></select>
+        </div>
+
+        <div class="form-field"><label>Classificação (1–5)</label>
+          <select id="ld_classificacao"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+        </div>
+        <div class="form-field"><label>Ref. Interna</label><input id="ld_ref"></div>
+
+        <div class="form-field"><label>URL anexo</label>
+          <input id="ld_url" placeholder="https://…"><small>Ex.: link de documento (Drive/Dropbox/OneDrive).</small>
+        </div>
+        <div class="form-field"><label>Data</label><input id="ld_data" type="date"></div>
+
+        <div class="form-field" style="grid-column:1 / span 2"><label>Notas</label><textarea id="ld_notas" rows="3"></textarea></div>
+      </div>
+
+      <!-- ESTADO (piscos rápidos) -->
+      <div class="form-field" style="margin-top:6px">
+        <label>Estado (seleção rápida)</label>
+        <div class="state-pills" id="ld_estado_picker">
+          <label class="state-pill"><input type="checkbox" class="cb_estado" value="Em Contacto"> Em Contacto</label>
+          <label class="state-pill"><input type="checkbox" class="cb_estado" value="Qualificado"> Qualificado</label>
+          <label class="state-pill"><input type="checkbox" class="cb_estado" value="Visita"> Visita</label>
+          <label class="state-pill"><input type="checkbox" class="cb_estado" value="Proposta"> Proposta</label>
+          <label class="state-pill"><input type="checkbox" class="cb_estado" value="Fecho"> Fecho</label>
+        </div>
+        <div class="help">Se selecionar um estado, o cartão será gravado diretamente nessa coluna. Se nada selecionar, fica em <b>Novo</b>.</div>
+      </div>
+
+      <!-- FECHO (ordem pedida) -->
+      <div id="fechoBox" class="grid2" style="margin-top:8px; display:none">
+        <div class="form-field"><label>Valor do Negócio (€)</label><input id="ld_fecho_negocio" type="number" min="0" step="1000"></div>
+        <div class="form-field">
+          <label>Comissão</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <select id="ld_fecho_comissao">
               <option value="">—</option>
-              <option>Rui Quelhas</option>
-              <option>Manuel Oliveira</option>
-              <option>João Sousa</option>
-              <option>Francisco dos Santos</option>
-              <option>Rosário Vasconcelos</option>
-              <option>Armanda Meireles</option>
-              <option>Audrey Lucas</option>
+              <option value="6">6%</option>
+              <option value="5">5%</option>
+              <option value="4">4%</option>
+              <option value="3">3%</option>
+              <option value="outro">Outro</option>
             </select>
+            <input id="ld_fecho_comissao_outro" placeholder="Ex.: 4.5%" style="display:none">
           </div>
-
-          <div class="form-field"><label>Contacto *</label><input id="ld_contacto" placeholder="+351 … ou 9 dígitos"></div>
-          <div class="form-field"><label>Email</label><input id="ld_email" type="email"></div>
-
-          <div class="form-field"><label>Tipo de negócio</label>
-            <select id="ld_tipo_negocio">
-              <option value="">—</option><option>Venda</option><option>Compra</option><option>Arrendamento</option><option>Permuta</option>
-            </select>
-          </div>
-          <div class="form-field"><label>Imóvel</label>
-            <select id="ld_imovel">
-              <option value="">—</option><option>Moradia</option><option>Apartamento</option><option>Loja</option><option>Armazém</option><option>Escritório</option><option>Terreno</option><option>Outro</option>
-            </select>
-          </div>
-
-          <div class="form-field"><label>Tipologia</label>
-            <select id="ld_tipologia">
-              <option value="">—</option><option>T0</option><option>T1</option><option>T2</option><option>T3</option><option>T4</option><option>T5</option><option>&gt;T5</option>
-            </select>
-          </div>
-          <div class="form-field"><label>Zona preferencial</label><input id="ld_zona"></div>
-
-          <div class="form-field"><label>Capitais próprios (€)</label><input id="ld_capitais" type="number" min="0" step="1000"></div>
-          <div class="form-field"><label>Valor alvo (€)</label><input id="ld_valor" type="number" min="0" step="1000"></div>
-
-          <div class="form-field"><label>Financiamento bancário?</label>
-            <select id="ld_financiamento"><option>Não</option><option>Sim</option></select>
-          </div>
-          <div class="form-field"><label>Simulação bancária?</label>
-            <select id="ld_simulacao"><option>Não</option><option>Sim</option></select>
-          </div>
-
-          <div class="form-field"><label>Instituição bancária (se aplicável)</label><input id="ld_banco"></div>
-          <div class="form-field"><label>Tem imóvel para vender?</label>
-            <select id="ld_tem_imovel"><option>Não</option><option>Sim</option></select>
-          </div>
-
-          <div class="form-field"><label>Já está à venda?</label>
-            <select id="ld_ja_venda"><option>Não</option><option>Sim</option></select>
-          </div>
-          <div class="form-field"><label>Urgente?</label>
-            <select id="ld_urgente"><option>Não</option><option>Sim</option></select>
-          </div>
-
-          <div class="form-field"><label>Pode comprar em planta?</label>
-            <select id="ld_planta"><option>Não</option><option>Sim</option></select>
-          </div>
-          <div class="form-field"><label>1ª habitação?</label>
-            <select id="ld_primeira_hab"><option>Não</option><option>Sim</option></select>
-          </div>
-
-          <div class="form-field"><label>Comprador/Vendedor</label>
-            <select id="ld_papel"><option value="">—</option><option>Comprador</option><option>Vendedor</option></select>
-          </div>
-          <div class="form-field"><label>Investidor/Cliente final</label>
-            <select id="ld_perfil"><option value="">—</option><option>Investidor</option><option>Cliente final</option></select>
-          </div>
-
-          <div class="form-field"><label>Classificação (1–5)</label>
-            <select id="ld_classificacao"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
-          </div>
-          <div class="form-field"><label>Ref. Interna</label><input id="ld_ref"></div>
-
-          <div class="form-field"><label>URL anexo</label>
-            <input id="ld_url" placeholder="https://…"><small>Ex.: link de documento (Drive/Dropbox/OneDrive).</small>
-          </div>
-          <div class="form-field"><label>Data</label><input id="ld_data" type="date"></div>
-
-          <div class="form-field" style="grid-column:1 / span 2"><label>Notas</label><textarea id="ld_notas" rows="3"></textarea></div>
         </div>
 
-        <!-- ESTADO (piscos rápidos) -->
-        <div class="form-field" style="margin-top:6px">
-          <label>Estado (seleção rápida)</label>
-          <div class="state-pills" id="ld_estado_picker">
-            <label class="state-pill"><input type="checkbox" class="cb_estado" value="Em Contacto"> Em Contacto</label>
-            <label class="state-pill"><input type="checkbox" class="cb_estado" value="Qualificado"> Qualificado</label>
-            <label class="state-pill"><input type="checkbox" class="cb_estado" value="Visita"> Visita</label>
-            <label class="state-pill"><input type="checkbox" class="cb_estado" value="Proposta"> Proposta</label>
-            <label class="state-pill"><input type="checkbox" class="cb_estado" value="Fecho"> Fecho</label>
-          </div>
-          <div class="help">Se selecionar um estado, o cartão será gravado diretamente nessa coluna. Se nada selecionar, fica em <b>Novo</b>.</div>
+        <div class="form-field"><label>Valor Sinal de Reserva (€)</label><input id="ld_fecho_sinal_reserva" type="number" min="0" step="500"></div>
+        <div class="form-field"><label>Valor a dar no CPCV (€)</label><input id="ld_fecho_valor_cpcv" type="number" min="0" step="1000"></div>
+
+        <div class="form-field" style="grid-column:1 / span 2">
+          <label>Valores Intercalares (€)</label>
+          <div id="intercalaresBox" class="intercalares"></div>
+          <div class="total-line" id="intercalaresTotal">Total intercalares: 0 €</div>
+          <button class="btn btn-ghost" type="button" id="addIntercalar">+ Adicionar intercalar</button>
         </div>
 
-        <!-- FECHO (ordem pedida) -->
-        <div id="fechoBox" class="grid2" style="margin-top:8px; display:none">
-          <div class="form-field"><label>Valor do Negócio (€)</label><input id="ld_fecho_negocio" type="number" min="0" step="1000"></div>
-          <div class="form-field">
-            <label>Comissão</label>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-              <select id="ld_fecho_comissao">
-                <option value="">—</option>
-                <option value="6">6%</option>
-                <option value="5">5%</option>
-                <option value="4">4%</option>
-                <option value="3">3%</option>
-                <option value="outro">Outro</option>
-              </select>
-              <input id="ld_fecho_comissao_outro" placeholder="Ex.: 4.5%" style="display:none">
-            </div>
-          </div>
+        <div class="form-field"><label>Valor a dar na Escritura (€)</label><input id="ld_fecho_valor_escritura" type="number" min="0" step="1000"></div>
+        <div class="form-field"><label>Data do CPCV</label><input id="ld_fecho_cpcv_date" type="date"></div>
+        <div class="form-field"><label>Data da Escritura</label><input id="ld_fecho_escritura_date" type="date"></div>
 
-          <div class="form-field"><label>Valor Sinal de Reserva (€)</label><input id="ld_fecho_sinal_reserva" type="number" min="0" step="500"></div>
-          <div class="form-field"><label>Valor a dar no CPCV (€)</label><input id="ld_fecho_valor_cpcv" type="number" min="0" step="1000"></div>
-
-          <div class="form-field" style="grid-column:1 / span 2">
-            <label>Valores Intercalares (€)</label>
-            <div id="intercalaresBox" class="intercalares"></div>
-            <div class="total-line" id="intercalaresTotal">Total intercalares: 0 €</div>
-            <button class="btn" type="button" id="addIntercalar">+ Adicionar intercalar</button>
-          </div>
-
-          <div class="form-field"><label>Valor a dar na Escritura (€)</label><input id="ld_fecho_valor_escritura" type="number" min="0" step="1000"></div>
-          <div class="form-field"><label>Data do CPCV</label><input id="ld_fecho_cpcv_date" type="date"></div>
-          <div class="form-field"><label>Data da Escritura</label><input id="ld_fecho_escritura_date" type="date"></div>
-
-          <div class="form-field" style="grid-column:1 / span 2"><label>Observações</label><textarea id="ld_fecho_obs" rows="3"></textarea></div>
-        </div>
+        <div class="form-field" style="grid-column:1 / span 2"><label>Observações</label><textarea id="ld_fecho_obs" rows="3"></textarea></div>
       </div>
     </div>
   </div>
+</div>
 
 <script>
 /* ===== Estado ===== */
@@ -325,7 +764,7 @@ const EDIT_LS='gpp_leads_edit_mode';
 const COLS=["Novo","Em Contacto","Qualificado","Visita","Proposta","Fecho"];
 const CONSULT_RESOLVE=["Rui Quelhas","Manuel Oliveira","João Sousa","Francisco dos Santos","Rosário Vasconcelos","Armanda Meireles","Audrey Lucas"];
 
-let LEADS=[]; 
+let LEADS=[];
 let FILTER={ consultor:'', estado:'', ini:'', fim:'', q:'', showHidden:false, onlyHidden:false };
 let PICKED_STATE='';
 let INTERCALAres=[];
@@ -374,7 +813,7 @@ function setEditMode(on){
   EDIT_MODE=!!on;
   localStorage.setItem(EDIT_LS, EDIT_MODE?'1':'0');
   updateEditUI();
-  renderBoard(); // para voltar a desenhar os botões desabilitados ou não
+  renderBoard();
 }
 
 /* ===== Helpers ===== */
@@ -433,7 +872,7 @@ function drawIntercalares(){
   const box=$('intercalaresBox'); box.innerHTML='';
   INTERCALAres.forEach((val,idx)=>{
     const row=document.createElement('div'); row.className='row';
-    row.innerHTML=`<input type="number" min="0" step="500" value="${val||''}" data-idx="${idx}"><button class="btn ghost" data-del="${idx}">Remover</button>`;
+    row.innerHTML=`<input type="number" min="0" step="500" value="${val||''}" data-idx="${idx}"><button class="btn btn-ghost" data-del="${idx}">Remover</button>`;
     row.querySelector('input').addEventListener('input',e=>{
       const i=Number(e.target.dataset.idx); INTERCALAres[i]=e.target.value; updateIntercalaresTotal();
     });
@@ -703,14 +1142,14 @@ function renderBoard(){
         <div class="row"><b>Data:</b> ${fmtDate(lead.data)} ${lead.url? ' · <a href="'+lead.url+'" target="_blank" rel="noreferrer">URL</a>':''}</div>
         ${lead.estado==='Fecho' ? `<div class="row">${fechoSummary(lead)}</div>` : ''}
         <div class="actions">
-          <button class="btn" data-act="edit" ${disabledAttr}>Editar</button>
-          <button class="btn" data-act="dup" ${disabledAttr}>Duplicar</button>
+          <button class="btn btn-ghost" data-act="edit" ${disabledAttr}>Editar</button>
+          <button class="btn btn-ghost" data-act="dup" ${disabledAttr}>Duplicar</button>
           <select class="move-select" data-id="${lead.id}" ${disabledAttr}>
             <option value="">Mover…</option>
             ${moveOptions}
           </select>
           <button class="btn" style="border-color:#cc4b4b;color:#ffdddd" data-act="del" ${disabledAttr}>Apagar</button>
-          <button class="btn" data-act="toggle" ${disabledAttr}>${lead.visivel!==false?'Tornar invisível':'Tornar visível'}</button>
+          <button class="btn btn-ghost" data-act="toggle" ${disabledAttr}>${lead.visivel!==false?'Tornar invisível':'Tornar visível'}</button>
         </div>
       `;
       // Ações
@@ -832,12 +1271,10 @@ $('exportXlsx').addEventListener('click',()=>{
   buildFilters();
   loadPersistedFilters();
 
-  // carregar estado de edição (por defeito bloqueado)
   const stored = localStorage.getItem(EDIT_LS);
   EDIT_MODE = stored==='1';
   updateEditUI();
 
-  // botão alternar edição
   $('toggleEdit').addEventListener('click',()=>{
     setEditMode(!EDIT_MODE);
   });
