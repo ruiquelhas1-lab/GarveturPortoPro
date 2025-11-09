@@ -162,7 +162,6 @@
         grid-template-columns:1fr;
         grid-template-rows:auto auto;
         height:auto;
-        max-height:none;
       }
       header.app-header{
         flex-wrap:wrap;
@@ -466,12 +465,28 @@
     }
   }
 
+  // >>> ALTERADO: leitor de LEADS mais robusto <<<
   function lerLeads(){
     const st = safeParse('gpp_leads_v2');
     let arr = [];
-    if(Array.isArray(st.cards)) arr = st.cards;
-    else if(Array.isArray(st.leads)) arr = st.leads;
-    else if(Array.isArray(st.deals)) arr = st.deals;
+
+    // Caso 1: já venha num array directo
+    if (Array.isArray(st.cards)) {
+      arr = st.cards;
+    } else if (Array.isArray(st.leads)) {
+      arr = st.leads;
+    } else if (Array.isArray(st.deals)) {
+      arr = st.deals;
+    } else {
+      // Caso 2: esteja em objectos tipo { id1: {...}, id2: {...} }
+      if (st.cards && typeof st.cards === 'object') {
+        arr = Object.values(st.cards);
+      } else if (st.leads && typeof st.leads === 'object') {
+        arr = Object.values(st.leads);
+      }
+    }
+
+    // Filtro: só leads visíveis / não ocultas
     return arr.filter(l => l && l.visible !== false && !l.hidden);
   }
 
