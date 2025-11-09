@@ -641,10 +641,6 @@
     }
 
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
-          integrity="sha512-VgS5HGFqkWf46qR0iAfDdc0AGJi/7luWGINuD/7++UZ5EONosFVJeFt3PcTJS3BM4tiTn8NzfcIu05wGDE5F8g=="
-          crossorigin="anonymous"
-          referrerpolicy="no-referrer"></script>
 </head>
 <body>
 <div class="app-shell">
@@ -679,7 +675,7 @@
         </button>
       </div>
       <button class="btn btn-ghost" id="exportCsvBtn" title="Exportar angariações para CSV">⤓ CSV</button>
-      <button class="btn btn-ghost" id="exportPdfBtn" title="Exportar ficha(s) para PDF">⤓ PDF</button>
+      <button class="btn btn-ghost" id="exportPdfBtn" title="Imprimir / PDF">⤓ PDF</button>
       <button class="btn btn-primary" id="newDealBtn">+ Nova Angariação</button>
     </div>
   </header>
@@ -2019,147 +2015,213 @@
   }
 
   function exportOnePdf(deal){
-    if(!window.jspdf || !window.jspdf.jsPDF){
-      alert('Não foi possível gerar o PDF porque a biblioteca jsPDF não foi carregada no navegador.\n\nSugestão: verifique a ligação à internet ou teste no Chrome/Safari fora do GPT Atlas.');
+    const w = window.open('', '_blank');
+    if(!w){
+      alert('O navegador bloqueou a abertura da janela de impressão.\n\nPor favor permita pop-ups para este site ou use a opção de imprimir diretamente no browser.');
       return;
-    }
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({unit:'pt',format:'a4'});
-
-    const marginX = 40;
-    let y = 40;
-
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(12);
-    doc.setTextColor(163,139,99);
-    doc.text('Garvetur Luxury Porto', marginX, y);
-    y += 16;
-    doc.setFontSize(10);
-    doc.setFont('helvetica','normal');
-    doc.setTextColor(120,120,120);
-    doc.text('Ficha de Angariação — Garvetur Porto Pro', marginX, y);
-    y += 20;
-
-    doc.setDrawColor(163,139,99);
-    doc.line(marginX, y, 555, y);
-    y += 14;
-
-    function addSection(title){
-      doc.setFont('helvetica','bold');
-      doc.setFontSize(10);
-      doc.setTextColor(200,200,200);
-      doc.text(title.toUpperCase(), marginX, y);
-      y += 12;
-      doc.setFont('helvetica','normal');
-      doc.setFontSize(9);
-      doc.setTextColor(230,230,230);
-    }
-    function addLine(text){
-      const maxWidth = 515;
-      const lines = doc.splitTextToSize(text, maxWidth);
-      lines.forEach(line=>{
-        if(y > 780){
-          doc.addPage();
-          y = 40;
-        }
-        doc.text(line, marginX, y);
-        y += 12;
-      });
     }
 
     const titulo = deal.isEmpreendimento && deal.nomeEmp
       ? deal.nomeEmp
       : (deal.tituloImovel || deal.nomeProp || 'Angariação');
-    addLine('Título: ' + titulo);
-    addLine('Consultor: ' + (deal.consultor || '') + ' | Gestor: ' + (deal.gestor || '') + ' | Coordenador: ' + (deal.coordenador || ''));
-    addLine('Ref. interna: ' + (deal.refInterna || '') + ' | Data angariação: ' + (deal.dataAngariacao || '') + ' | Estado: ' + (deal.estadoAng || ''));
 
-    y += 6;
-    addSection('Empreendimento');
-    if(deal.isEmpreendimento){
-      addLine('Nome empreendimento: ' + (deal.nomeEmp || ''));
-      addLine('Frações: ' + (deal.totalFracoes || '') + ' | Tipologias: ' + (deal.tipologiasEmp || ''));
-      addLine('Ano constr.: ' + (deal.anoConstrEmp || '') + ' | Ano conclusão: ' + (deal.anoConclEmp || ''));
-      addLine('Promotor: ' + (deal.promotor || '') + ' | Contacto: ' + (deal.telPromotor || '') + ' | Email: ' + (deal.emailPromotor || ''));
-    }else{
-      addLine('Não se encontra marcado como empreendimento.');
+    const comPerc = deal.comissao === 'outro'
+      ? (deal.comissaoOutro || '')
+      : (deal.comissao || '');
+
+    const html = `
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8" />
+<title>Ficha de Angariação — ${titulo}</title>
+<style>
+  @page { size: A4; margin: 2cm; }
+  body{
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    margin:0;
+    padding:0;
+    color:#222;
+    background:#fff;
+  }
+  .page{
+    padding:0;
+  }
+  h1{
+    font-size:18px;
+    margin:0 0 4px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:#333;
+  }
+  .sub{
+    font-size:11px;
+    color:#777;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+  }
+  header{
+    border-bottom:2px solid #A38B63;
+    padding-bottom:8px;
+    margin-bottom:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+  }
+  .brand-block{
+    max-width:70%;
+  }
+  .logo-block{
+    font-size:11px;
+    color:#555;
+    text-align:right;
+  }
+  h2.section{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.16em;
+    color:#555;
+    margin:14px 0 4px;
+    border-bottom:1px solid #ddd;
+    padding-bottom:2px;
+  }
+  .line{
+    font-size:10px;
+    margin:2px 0;
+  }
+  .muted{ color:#777; }
+  .strong{ font-weight:600; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="brand-block">
+      <h1>Garvetur Luxury Porto</h1>
+      <div class="sub">Ficha de Angariação — Garvetur Porto Pro</div>
+    </div>
+    <div class="logo-block">
+      <div>Data: ${new Date().toLocaleDateString('pt-PT')}</div>
+      <div>Ref.: ${deal.refInterna || '-'}</div>
+    </div>
+  </header>
+
+  <div class="line"><span class="strong">Título:</span> ${titulo}</div>
+  <div class="line"><span class="strong">Consultor:</span> ${deal.consultor || ''} &nbsp; | &nbsp;
+    <span class="strong">Gestor:</span> ${deal.gestor || ''} &nbsp; | &nbsp;
+    <span class="strong">Coordenador:</span> ${deal.coordenador || ''}</div>
+  <div class="line"><span class="strong">Estado:</span> ${deal.estadoAng || ''} &nbsp; | &nbsp;
+    <span class="strong">Data angariação:</span> ${deal.dataAngariacao || ''}</div>
+  ${deal.linkUrl ? `<div class="line"><span class="strong">Link:</span> ${deal.linkUrl}</div>` : ''}
+
+  <h2 class="section">Empreendimento</h2>
+  ${
+    deal.isEmpreendimento
+      ? `
+      <div class="line"><span class="strong">Nome empreendimento:</span> ${deal.nomeEmp || ''}</div>
+      <div class="line"><span class="strong">Frações:</span> ${deal.totalFracoes || ''} &nbsp; | &nbsp;
+        <span class="strong">Tipologias:</span> ${deal.tipologiasEmp || ''}</div>
+      <div class="line"><span class="strong">Ano construção:</span> ${deal.anoConstrEmp || ''} &nbsp; | &nbsp;
+        <span class="strong">Ano conclusão:</span> ${deal.anoConclEmp || ''}</div>
+      <div class="line"><span class="strong">Promotor:</span> ${deal.promotor || ''}</div>
+      <div class="line"><span class="strong">Contacto promotor:</span> ${deal.telPromotor || ''} &nbsp; | &nbsp;
+        <span class="strong">Email:</span> ${deal.emailPromotor || ''}</div>
+    `
+      : `<div class="line muted">Não assinalado como empreendimento.</div>`
+  }
+
+  <h2 class="section">Proprietário</h2>
+  <div class="line"><span class="strong">Nome:</span> ${deal.nomeProp || ''}</div>
+  <div class="line"><span class="strong">Contacto:</span> ${deal.telProp || ''} &nbsp; | &nbsp;
+    <span class="strong">Email:</span> ${deal.emailProp || ''}</div>
+  <div class="line"><span class="strong">Morada:</span> ${deal.moradaProp || ''}</div>
+  <div class="line"><span class="strong">Estado civil:</span> ${deal.estadoCivil || ''} &nbsp; | &nbsp;
+    <span class="strong">Regime casamento:</span> ${deal.regimeCasamento || ''}</div>
+
+  <h2 class="section">Imóvel & Localização</h2>
+  <div class="line"><span class="strong">Título / Designação:</span> ${deal.tituloImovel || ''}</div>
+  <div class="line"><span class="strong">Localização:</span> ${deal.localizacao || ''}</div>
+  <div class="line"><span class="strong">Distrito:</span> ${deal.distrito || ''} &nbsp; | &nbsp;
+    <span class="strong">Concelho:</span> ${deal.concelho || ''} &nbsp; | &nbsp;
+    <span class="strong">Freguesia:</span> ${deal.freguesia || ''} &nbsp; | &nbsp;
+    <span class="strong">Zona:</span> ${deal.zona || ''}</div>
+  <div class="line"><span class="strong">GPS:</span> ${deal.gps || ''}</div>
+  <div class="line"><span class="strong">Ano construção:</span> ${deal.anoConstrucao || ''} &nbsp; | &nbsp;
+    <span class="strong">Ano conclusão:</span> ${deal.anoConclusao || ''}</div>
+  <div class="line"><span class="strong">Cert. energético:</span> ${deal.certEnerg || ''} &nbsp; | &nbsp;
+    <span class="strong">Condomínio:</span> ${deal.condominioValor || ''}</div>
+
+  <h2 class="section">Natureza, Áreas, Preço</h2>
+  <div class="line"><span class="strong">Natureza:</span> ${deal.natureza || ''} &nbsp; | &nbsp;
+    <span class="strong">Estado imóvel:</span> ${deal.estadoImovel || ''} &nbsp; | &nbsp;
+    <span class="strong">Negócio:</span> ${deal.tipoNegocio || ''}</div>
+  <div class="line"><span class="strong">Origem cliente:</span> ${deal.origemCliente || ''}</div>
+  <div class="line"><span class="strong">Áreas:</span>
+    útil ${deal.areaUtil || '-'} m² ·
+    bruta ${deal.areaBruta || '-'} m² ·
+    ABP ${deal.areaABP || '-'} m² ·
+    ABD ${deal.areaABD || '-'} m² ·
+    terreno ${deal.areaTerreno || '-'} m² ·
+    implantação ${deal.areaImplantacao || '-'} m²
+  </div>
+  <div class="line"><span class="strong">Preço pedido:</span> ${deal.precoPedido || '-'} &nbsp; | &nbsp;
+    <span class="strong">Sugerido:</span> ${deal.precoSugerido || '-'}</div>
+  <div class="line"><span class="strong">Comissão:</span> ${comPerc ? comPerc + '%' : '-'} &nbsp; | &nbsp;
+    <span class="strong">Ajustamento:</span> ${deal.percentAjust ? '${deal.percentAjust}%' : '-'}</div>
+
+  <h2 class="section">Características (10.1)</h2>
+  <div class="line">
+    ${
+      [
+        deal.numQuartos && (deal.numQuartos + ' quarto(s)'),
+        deal.numSuites && (deal.numSuites + ' suite(s)'),
+        deal.numPisos && (deal.numPisos + ' piso(s)'),
+        deal.numVarandas && (deal.numVarandas + ' varanda(s)'),
+        deal.numSalas && (deal.numSalas + ' sala(s)'),
+        deal.numSalasJantar && (deal.numSalasJantar + ' sala(s) jantar'),
+        deal.numCozinhas && (deal.numCozinhas + ' cozinha(s)')
+      ].filter(Boolean).join(' · ') || '—'
     }
+  </div>
 
-    y += 6;
-    addSection('Proprietário');
-    addLine('Nome: ' + (deal.nomeProp || '') + ' | Contacto: ' + (deal.telProp || '') + ' | Email: ' + (deal.emailProp || ''));
-    addLine('Morada: ' + (deal.moradaProp || ''));
-    addLine('Estado civil: ' + (deal.estadoCivil || '') + ' | Regime casamento: ' + (deal.regimeCasamento || ''));
+  <h2 class="section">Zona envolvente (10.2)</h2>
+  <div class="line">
+    ${Array.isArray(deal.zonaEnvolvente) && deal.zonaEnvolvente.length ? deal.zonaEnvolvente.join(', ') : '—'}
+  </div>
 
-    y += 6;
-    addSection('Imóvel & localização');
-    addLine('Título/designação: ' + (deal.tituloImovel || ''));
-    addLine('Localização: ' + (deal.localizacao || ''));
-    addLine('Distrito: ' + (deal.distrito || '') + ' | Concelho: ' + (deal.concelho || '') + ' | Freguesia: ' + (deal.freguesia || '') + ' | Zona: ' + (deal.zona || ''));
-    addLine('GPS: ' + (deal.gps || ''));
-    addLine('Ano construção: ' + (deal.anoConstrucao || '') + ' | Ano conclusão: ' + (deal.anoConclusao || '') + ' | Cert. energético: ' + (deal.certEnerg || ''));
+  <h2 class="section">Infraestruturas (10.3)</h2>
+  <div class="line">
+    ${Array.isArray(deal.infraestruturas) && deal.infraestruturas.length ? deal.infraestruturas.join(', ') : '—'}
+  </div>
 
-    y += 6;
-    addSection('Natureza, áreas, preço');
-    addLine('Natureza: ' + (deal.natureza || '') + ' | Estado imóvel: ' + (deal.estadoImovel || '') + ' | Negócio: ' + (deal.tipoNegocio || ''));
-    addLine('Origem cliente: ' + (deal.origemCliente || ''));
-    addLine('Áreas: útil ' + (deal.areaUtil || '-') + ' m² | bruta ' + (deal.areaBruta || '-') + ' m² | ABP ' + (deal.areaABP || '-') + ' m² | ABD ' + (deal.areaABD || '-') + ' m² | terreno ' + (deal.areaTerreno || '-') + ' m² | implantação ' + (deal.areaImplantacao || '-') + ' m²');
-    addLine('Preço pedido: ' + (deal.precoPedido ? formatMoney(deal.precoPedido) : '-') + ' | sugerido: ' + (deal.precoSugerido ? formatMoney(deal.precoSugerido) : '-'));
-    addLine('Comissão: ' + (deal.comissao === 'outro' ? (deal.comissaoOutro || '') + '%' : (deal.comissao ? deal.comissao + '%' : '-')) + ' | Ajustamento: ' + (deal.percentAjust ? formatPercent(deal.percentAjust) : '-'));
+  <h2 class="section">Equipamentos (10.4)</h2>
+  <div class="line">
+    ${Array.isArray(deal.equipamentos) && deal.equipamentos.length ? deal.equipamentos.join(', ') : '—'}
+  </div>
 
-    y += 6;
-    addSection('Características numéricas (10.1)');
-    const car = [];
-    if(deal.numQuartos) car.push(deal.numQuartos + ' quarto(s)');
-    if(deal.numSuites) car.push(deal.numSuites + ' suite(s)');
-    if(deal.numPisos) car.push(deal.numPisos + ' piso(s)');
-    if(deal.numVarandas) car.push(deal.numVarandas + ' varanda(s)');
-    if(deal.numSalas) car.push(deal.numSalas + ' sala(s)');
-    if(deal.numSalasJantar) car.push(deal.numSalasJantar + ' sala(s) jantar');
-    if(deal.numCozinhas) car.push(deal.numCozinhas + ' cozinha(s)');
-    if(car.length){
-      addLine(car.join(' · '));
-    }else{
-      addLine('—');
-    }
+  <h2 class="section">Segurança (10.5)</h2>
+  <div class="line">
+    ${Array.isArray(deal.seguranca) && deal.seguranca.length ? deal.seguranca.join(', ') : '—'}
+  </div>
 
-    y += 6;
-    addSection('Zona envolvente (10.2)');
-    addLine(Array.isArray(deal.zonaEnvolvente) && deal.zonaEnvolvente.length ? deal.zonaEnvolvente.join(', ') : '—');
+  <h2 class="section">Documentação & Notas</h2>
+  <div class="line"><span class="strong">Documentação recebida:</span> ${
+    Array.isArray(deal.documentacao) && deal.documentacao.length ? deal.documentacao.join(', ') : '—'
+  }</div>
+  ${deal.observacoes ? `<div class="line"><span class="strong">Observações:</span> ${deal.observacoes}</div>` : ''}
+  ${deal.notasInternas ? `<div class="line"><span class="strong">Notas internas:</span> ${deal.notasInternas}</div>` : ''}
 
-    y += 6;
-    addSection('Infraestruturas (10.3)');
-    addLine(Array.isArray(deal.infraestruturas) && deal.infraestruturas.length ? deal.infraestruturas.join(', ') : '—');
+</div>
+<script>
+  window.print();
+<\/script>
+</body>
+</html>
+    `;
 
-    y += 6;
-    addSection('Equipamentos (10.4)');
-    addLine(Array.isArray(deal.equipamentos) && deal.equipamentos.length ? deal.equipamentos.join(', ') : '—');
-
-    y += 6;
-    addSection('Segurança (10.5)');
-    addLine(Array.isArray(deal.seguranca) && deal.seguranca.length ? deal.seguranca.join(', ') : '—');
-
-    y += 6;
-    addSection('Documentação & notas');
-    addLine('Documentação: ' + (Array.isArray(deal.documentacao) && deal.documentacao.length ? deal.documentacao.join(', ') : '—'));
-    if(deal.observacoes){
-      addLine('Observações: ' + deal.observacoes);
-    }
-    if(deal.notasInternas){
-      addLine('Notas internas: ' + deal.notasInternas);
-    }
-
-    const pages = doc.internal.getNumberOfPages();
-    for(let i=1;i<=pages;i++){
-      doc.setPage(i);
-      doc.setFontSize(8);
-      doc.setTextColor(150,150,150);
-      doc.text('Garvetur Porto Pro · ' + new Date().toLocaleDateString('pt-PT'), 40, 820);
-      doc.text('Página ' + i + ' / ' + pages, 520, 820);
-    }
-
-    doc.save((deal.refInterna || 'angariacao') + '_garvetur_porto_pro.pdf');
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
   }
 
   function exportPdfAll(){
@@ -2170,7 +2232,7 @@
     }
     exportOnePdf(filtered[0]);
     if(filtered.length>1){
-      alert('Neste momento a exportação em lote gera um PDF por vez. Para exportar outra angariação, clique no botão PDF do cartão respetivo.');
+      alert('Neste momento a exportação em lote gera um PDF de cada vez. Para outras angariações, use o botão PDF de cada cartão.');
     }
   }
 
