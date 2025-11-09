@@ -29,12 +29,10 @@
       background:radial-gradient(circle at top,#1c1c1c 0,#050505 55%,#000 100%);
       color:var(--text);
     }
-
     body{
       display:flex;
       flex-direction:column;
     }
-
     .app-shell{
       display:grid;
       grid-template-rows:64px auto;
@@ -53,8 +51,8 @@
       top:0;
       z-index:20;
       gap:16px;
+      flex-wrap:wrap;
     }
-
     .brand{
       display:flex;
       align-items:center;
@@ -123,6 +121,7 @@
       display:flex;
       align-items:center;
       gap:8px;
+      flex-wrap:wrap;
     }
     .btn{
       border-radius:999px;
@@ -156,9 +155,6 @@
         grid-template-rows:auto auto;
         height:auto;
         max-height:none;
-      }
-      header.app-header{
-        flex-wrap:wrap;
       }
     }
 
@@ -216,7 +212,6 @@
       border-color:var(--gold);
       box-shadow:0 0 0 1px rgba(163,139,99,.35);
     }
-
     .checks{
       display:flex;
       flex-direction:column;
@@ -240,7 +235,6 @@
       overflow-y:auto;
       background:radial-gradient(circle at top,#1a1a1a,#050505 55%,#000 100%);
     }
-
     .main-header{
       display:flex;
       justify-content:space-between;
@@ -295,8 +289,67 @@
       margin-top:2px;
     }
 
-    .cards-grid{
+    /* CHART */
+    .chart{
       margin-top:12px;
+      border-radius:var(--radius-md);
+      border:1px solid rgba(163,139,99,.22);
+      background:rgba(3,3,3,.9);
+      padding:8px 10px;
+    }
+    .chart-title{
+      font-size:11px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      margin-bottom:6px;
+    }
+    .chart-row{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      margin:3px 0;
+      font-size:11px;
+      color:var(--muted);
+    }
+    .chart-label{
+      width:70px;
+      flex-shrink:0;
+    }
+    .chart-bar-wrap{
+      flex:1;
+      background:#101010;
+      border-radius:999px;
+      overflow:hidden;
+    }
+    .chart-bar{
+      height:8px;
+      border-radius:999px;
+      background:linear-gradient(90deg,var(--gold),#f5e1b5);
+      width:0%;
+      transition:.2s width;
+    }
+    .chart-value{
+      width:80px;
+      text-align:right;
+      flex-shrink:0;
+    }
+    .chart-empty{
+      font-size:11px;
+      color:var(--muted);
+      margin-top:4px;
+    }
+
+    .section-title{
+      margin-top:14px;
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:var(--muted);
+    }
+
+    .cards-grid{
+      margin-top:6px;
       display:grid;
       grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
       gap:10px;
@@ -311,6 +364,7 @@
       display:flex;
       flex-direction:column;
       gap:6px;
+      cursor:pointer;
     }
     .card.hidden{
       opacity:.45;
@@ -420,6 +474,7 @@
     </nav>
 
     <div class="header-actions">
+      <button class="btn" onclick="window.location.href='index.html'">← Início</button>
       <button class="btn" id="exportCsvBtn">Exportar CSV</button>
     </div>
   </header>
@@ -497,7 +552,19 @@
         </div>
       </div>
 
-      <div id="cardsGrid" class="cards-grid"></div>
+      <!-- Chart -->
+      <div class="chart">
+        <div class="chart-title">Volume mensal (todos os consultores)</div>
+        <div id="chartContainer"></div>
+      </div>
+
+      <!-- Secções separadas -->
+      <h3 class="section-title">Negócios fechados (Leads)</h3>
+      <div id="cardsLeadsGrid" class="cards-grid"></div>
+
+      <h3 class="section-title">Carteira aprovada (Angariações)</h3>
+      <div id="cardsAngGrid" class="cards-grid"></div>
+
       <div id="emptyState" class="empty" style="display:none;">
         Não há negócios a apresentar com os filtros atuais.
       </div>
@@ -523,8 +590,11 @@
   const kpiTopConsultorVol = document.getElementById('kpiTopConsultorVol');
   const consultorResumo = document.getElementById('consultorResumo');
 
-  const cardsGrid = document.getElementById('cardsGrid');
+  const cardsLeadsGrid = document.getElementById('cardsLeadsGrid');
+  const cardsAngGrid = document.getElementById('cardsAngGrid');
   const emptyState = document.getElementById('emptyState');
+
+  const chartContainer = document.getElementById('chartContainer');
 
   const exportCsvBtn = document.getElementById('exportCsvBtn');
   const applyFiltersBtn = document.getElementById('applyFiltersBtn');
@@ -551,7 +621,6 @@
       return [];
     }
   }
-
   function loadAngariacoes(){
     try{
       const raw = localStorage.getItem(LS_ANG_KEY);
@@ -571,13 +640,11 @@
     const n = parseFloat(s);
     return isFinite(n) ? n : NaN;
   }
-
   function formatMoney(v){
     const n = Number(v);
     if(!isFinite(n) || n === 0) return '€ 0';
     return n.toLocaleString('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
   }
-
   function formatDate(d){
     if(!d) return '—';
     try{
@@ -661,7 +728,6 @@
       });
     });
 
-    // Ordenar por data desc
     list.sort((a,b)=>{
       const da = a.data || '';
       const db = b.data || '';
@@ -690,10 +756,8 @@
       if(!FILTERS.incluirInvisiveis && !n.visivel) return false;
       if(FILTERS.consultor && n.consultor !== FILTERS.consultor) return false;
       if(FILTERS.origem && n.tipo !== FILTERS.origem) return false;
-
       if(FILTERS.de && n.data && n.data < FILTERS.de) return false;
       if(FILTERS.ate && n.data && n.data > FILTERS.ate) return false;
-
       return true;
     });
   }
@@ -724,7 +788,6 @@
       kpiTopConsultorVol.textContent = formatMoney(vol) + ' em negócios filtrados.';
     }
 
-    // resumo lateral por consultor
     consultorResumo.innerHTML = '';
     if(!entries.length){
       consultorResumo.textContent = 'Sem negócios nos filtros atuais.';
@@ -738,22 +801,71 @@
     }
   }
 
-  function renderCards(lista){
-    cardsGrid.innerHTML = '';
+  function renderChart(lista){
+    chartContainer.innerHTML = '';
     if(!lista.length){
-      emptyState.style.display = 'block';
+      const div = document.createElement('div');
+      div.className = 'chart-empty';
+      div.textContent = 'Sem dados para o gráfico nos filtros atuais.';
+      chartContainer.appendChild(div);
       return;
     }
-    emptyState.style.display = 'none';
-
+    const mapa = {};
     lista.forEach(n=>{
+      if(!n.data) return;
+      const d = new Date(n.data);
+      if(isNaN(d.getTime())) return;
+      const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+      if(!mapa[key]) mapa[key] = {total:0};
+      mapa[key].total += n.valor || 0;
+    });
+    const entries = Object.entries(mapa).sort((a,b)=>a[0].localeCompare(b[0]));
+    if(!entries.length){
+      const div = document.createElement('div');
+      div.className = 'chart-empty';
+      div.textContent = 'Sem dados de data para o gráfico.';
+      chartContainer.appendChild(div);
+      return;
+    }
+    const max = Math.max(...entries.map(e=>e[1].total));
+    entries.forEach(([key,info])=>{
+      const row = document.createElement('div');
+      row.className = 'chart-row';
+      const label = document.createElement('div');
+      label.className = 'chart-label';
+      const [y,m] = key.split('-');
+      label.textContent = m+'/'+y.slice(-2);
+      const barWrap = document.createElement('div');
+      barWrap.className = 'chart-bar-wrap';
+      const bar = document.createElement('div');
+      bar.className = 'chart-bar';
+      const pct = max>0 ? (info.total/max*100) : 0;
+      bar.style.width = pct.toFixed(1)+'%';
+      barWrap.appendChild(bar);
+      const val = document.createElement('div');
+      val.className = 'chart-value';
+      val.textContent = formatMoney(info.total);
+      row.appendChild(label);
+      row.appendChild(barWrap);
+      row.appendChild(val);
+      chartContainer.appendChild(row);
+    });
+  }
+
+  function renderCards(listaLeads, listaAng){
+    cardsLeadsGrid.innerHTML = '';
+    cardsAngGrid.innerHTML = '';
+
+    const temNada = (!listaLeads.length && !listaAng.length);
+    emptyState.style.display = temNada ? 'block' : 'none';
+
+    function buildCard(n, container){
       const card = document.createElement('div');
       card.className = 'card' + (n.visivel ? '' : ' hidden');
 
       const top = document.createElement('div');
       top.className = 'card-top';
       const left = document.createElement('div');
-      const right = document.createElement('div');
 
       const h = document.createElement('h3');
       h.className = 'card-title';
@@ -762,10 +874,7 @@
 
       const sub = document.createElement('div');
       sub.className = 'card-sub';
-      sub.textContent = [
-        n.cliente || '',
-        n.zona || ''
-      ].filter(Boolean).join(' · ');
+      sub.textContent = [n.cliente || '', n.zona || ''].filter(Boolean).join(' · ');
       left.appendChild(sub);
 
       const chips = document.createElement('div');
@@ -782,7 +891,6 @@
         ch.textContent = n.consultor;
         chips.appendChild(ch);
       }
-
       if(n.comissaoPct){
         const ch = document.createElement('span');
         ch.className = 'chip chip-green';
@@ -792,7 +900,6 @@
 
       left.appendChild(chips);
       top.appendChild(left);
-
       card.appendChild(top);
 
       const sec1 = document.createElement('div');
@@ -829,14 +936,30 @@
       foot.appendChild(rightF);
       card.appendChild(foot);
 
-      cardsGrid.appendChild(card);
-    });
+      card.addEventListener('click', (e)=>{
+        if(e.target.tagName === 'BUTTON' || e.target.tagName === 'A') return;
+        if(n.tipo === 'lead'){
+          window.location.href = 'kanban.html';
+        }else{
+          window.location.href = 'angariacoes.html';
+        }
+      });
+
+      container.appendChild(card);
+    }
+
+    listaLeads.forEach(n=>buildCard(n, cardsLeadsGrid));
+    listaAng.forEach(n=>buildCard(n, cardsAngGrid));
   }
 
   function applyAndRender(){
     const lista = applyFilters();
+    const listaLeads = lista.filter(n=>n.tipo==='lead');
+    const listaAng   = lista.filter(n=>n.tipo==='ang');
+
     renderKpis(lista);
-    renderCards(lista);
+    renderChart(lista);
+    renderCards(listaLeads, listaAng);
   }
 
   exportCsvBtn.addEventListener('click', ()=>{
@@ -894,10 +1017,11 @@
     applyAndRender();
   });
 
-  // INIT
-  buildNegocios();
-  populateConsultores();
-  applyAndRender();
+  (function init(){
+    buildNegocios();
+    populateConsultores();
+    applyAndRender();
+  })();
 })();
 </script>
 </body>
