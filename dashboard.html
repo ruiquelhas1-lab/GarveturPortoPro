@@ -423,13 +423,13 @@
       <section class="details-grid">
         <div class="panel">
           <h3>Leads — Detalhe por estado</h3>
-          <small>Baseado em leads visíveis no Kanban.</small>
+          <small>Baseado em leads <strong>visíveis</strong> no Kanban.</small>
           <div id="leadStates"></div>
         </div>
 
         <div class="panel">
           <h3>Angariações — Detalhe por estado</h3>
-          <small>Baseado em angariações visíveis.</small>
+          <small>Baseado em angariações <strong>visíveis</strong>.</small>
           <div id="dealStates"></div>
         </div>
 
@@ -443,6 +443,18 @@
           <h3>Notas rápidas</h3>
           <small>Indicadores úteis para discussão em reunião.</small>
           <div id="notesSummary" class="chips"></div>
+        </div>
+
+        <div class="panel">
+          <h3>Visibilidade Leads</h3>
+          <small>Total de leads filtradas, visíveis e invisíveis.</small>
+          <div id="leadVisibility"></div>
+        </div>
+
+        <div class="panel">
+          <h3>Visibilidade Angariações</h3>
+          <small>Total de angariações filtradas, visíveis e invisíveis.</small>
+          <div id="dealVisibility"></div>
         </div>
       </section>
 
@@ -466,6 +478,8 @@
   const dealStatesEl = document.getElementById('dealStates');
   const profileSummaryEl = document.getElementById('profileSummary');
   const notesSummaryEl = document.getElementById('notesSummary');
+  const leadVisibilityEl = document.getElementById('leadVisibility');
+  const dealVisibilityEl = document.getElementById('dealVisibility');
   const emptyState = document.getElementById('emptyState');
   const contextLabel = document.getElementById('contextLabel');
   const reloadBtn = document.getElementById('reloadBtn');
@@ -498,11 +512,7 @@
     try{
       const raw = localStorage.getItem(STORAGE_LEADS);
       const parsed = raw ? JSON.parse(raw) : [];
-      if(Array.isArray(parsed)){
-        allLeads = parsed;
-      }else{
-        allLeads = [];
-      }
+      allLeads = Array.isArray(parsed) ? parsed : [];
     }catch(e){
       console.error('Erro a ler leads:',e);
       allLeads = [];
@@ -513,11 +523,7 @@
     try{
       const raw = localStorage.getItem(STORAGE_ANG);
       const parsed = raw ? JSON.parse(raw) : {};
-      if(parsed && Array.isArray(parsed.deals)){
-        allDeals = parsed.deals;
-      }else{
-        allDeals = [];
-      }
+      allDeals = (parsed && Array.isArray(parsed.deals)) ? parsed.deals : [];
     }catch(e){
       console.error('Erro a ler angariações:',e);
       allDeals = [];
@@ -529,8 +535,9 @@
     const de = filterDataDe.value || '';
     const ate = filterDataAte.value || '';
 
-    let leads = allLeads.slice().filter(l => l && l.visivel !== false);
-    let deals = allDeals.slice().filter(d => d && d.visible !== false);
+    // Aqui NÃO filtramos por visibilidade.
+    let leads = allLeads.slice().filter(l => l);
+    let deals = allDeals.slice().filter(d => d);
 
     if(cons){
       leads = leads.filter(l => (l.consultor || '') === cons);
@@ -565,23 +572,40 @@
     }
   }
 
-  function computeStats(leads, deals){
+  function computeStats(leadsFiltered, dealsFiltered){
+    // Separar visíveis / invisíveis
+    const leadsVisible = leadsFiltered.filter(l => l.visivel !== false);
+    const leadsHidden = leadsFiltered.filter(l => l.visivel === false);
+    const dealsVisible = dealsFiltered.filter(d => d.visible !== false);
+    const dealsHidden = dealsFiltered.filter(d => d.visible === false);
+
     const estadosLead = ["Novo","Em Contacto","Qualificado","Visita","Proposta","Fecho"];
-    const byEstadoLead = {};
-    estadosLead.forEach(e=>byEstadoLead[e]=0);
-    leads.forEach(l=>{
-      if(byEstadoLead[l.estado] !== undefined){
-        byEstadoLead[l.estado]++;
+    const byEstadoLeadVisible = {};
+    const byEstadoLeadHidden = {};
+    estadosLead.forEach(e=>{ byEstadoLeadVisible[e]=0; byEstadoLeadHidden[e]=0; });
+
+    leadsVisible.forEach(l=>{
+      if(byEstadoLeadVisible[l.estado] !== undefined){
+        byEstadoLeadVisible[l.estado]++;
       }
     });
-    const totalLeads = leads.length;
-    const fechoLeads = leads.filter(l => l.estado === 'Fecho');
-    const totalFecho = fechoLeads.length;
-    const taxaFecho = totalLeads ? (totalFecho / totalLeads * 100) : 0;
+    leadsHidden.forEach(l=>{
+      if(byEstadoLeadHidden[l.estado] !== undefined){
+        byEstadoLeadHidden[l.estado]++;
+      }
+    });
+
+    const totalLeadsVisible = leadsVisible.length;
+    const totalLeadsHidden = leadsHidden.length;
+    const totalLeadsAll = totalLeadsVisible + totalLeadsHidden;
+
+    const fechoLeadsVisiveis = leadsVisible.filter(l => l.estado === 'Fecho');
+    const totalFecho = fechoLeadsVisiveis.length;
+    const taxaFecho = totalLeadsVisible ? (totalFecho / totalLeadsVisible * 100) : 0;
 
     let totalNegocio = 0;
     let totalComissao = 0;
-    fechoLeads.forEach(l=>{
+    fechoLeadsVisiveis.forEach(l=>{
       const negocio = parseNum(l.fecho_negocio);
       const pct = parsePct(l.fecho_comissao_pct);
       totalNegocio += negocio;
@@ -591,8 +615,10 @@
     });
 
     const estadosDeal = ["novo","negociacao","aprovado","perdido"];
-    const byEstadoDeal = {};
-    estadosDeal.forEach(e=>byEstadoDeal[e]=0);
+    const byEstadoDealVisible = {};
+    const byEstadoDealHidden = {};
+    estadosDeal.forEach(e=>{ byEstadoDealVisible[e]=0; byEstadoDealHidden[e]=0; });
+
     let totalExcl = 0;
     let totalNaoExcl = 0;
     let volumePedido = 0;
@@ -600,9 +626,9 @@
     let somaAjust = 0;
     let countAjust = 0;
 
-    deals.forEach(d=>{
-      if(byEstadoDeal[d.estadoAng] !== undefined){
-        byEstadoDeal[d.estadoAng]++;
+    dealsVisible.forEach(d=>{
+      if(byEstadoDealVisible[d.estadoAng] !== undefined){
+        byEstadoDealVisible[d.estadoAng]++;
       }
       if(d.exclusivo) totalExcl++;
       if(d.naoExclusivo) totalNaoExcl++;
@@ -627,6 +653,12 @@
       }
     });
 
+    dealsHidden.forEach(d=>{
+      if(byEstadoDealHidden[d.estadoAng] !== undefined){
+        byEstadoDealHidden[d.estadoAng]++;
+      }
+    });
+
     const mediaAjust = countAjust ? (somaAjust / countAjust) : NaN;
 
     const perfilCounts = {
@@ -635,7 +667,7 @@
       Comprador:0,
       Vendedor:0
     };
-    leads.forEach(l=>{
+    leadsVisible.forEach(l=>{
       if(l.perfil === 'Investidor') perfilCounts.Investidor++;
       if(l.perfil === 'Cliente final') perfilCounts["Cliente final"]++;
       if(l.papel === 'Comprador') perfilCounts.Comprador++;
@@ -643,14 +675,21 @@
     });
 
     return {
-      totalLeads,
-      byEstadoLead,
+      totalLeadsVisible,
+      totalLeadsHidden,
+      totalLeadsAll,
+      byEstadoLeadVisible,
+      byEstadoLeadHidden,
       totalFecho,
       taxaFecho,
       totalNegocio,
       totalComissao,
-      totalDeals: deals.length,
-      byEstadoDeal,
+
+      totalDealsVisible: dealsVisible.length,
+      totalDealsHidden: dealsHidden.length,
+      totalDealsAll: dealsVisible.length + dealsHidden.length,
+      byEstadoDealVisible,
+      byEstadoDealHidden,
       totalExcl,
       totalNaoExcl,
       volumePedido,
@@ -667,15 +706,15 @@
 
     kpiData.push({
       label:'Leads ativas',
-      value:stats.totalLeads,
+      value:stats.totalLeadsVisible,
       sub:'Leads visíveis, após filtros',
       badge: stats.totalFecho > 0 ? `${stats.totalFecho} em Fecho` : ''
     });
 
     kpiData.push({
       label:'Taxa de Fecho (Leads)',
-      value: stats.totalLeads ? stats.taxaFecho.toFixed(1).replace('.',',') + '%' : '—',
-      sub:`${stats.totalFecho} de ${stats.totalLeads} leads`,
+      value: stats.totalLeadsVisible ? stats.taxaFecho.toFixed(1).replace('.',',') + '%' : '—',
+      sub:`${stats.totalFecho} de ${stats.totalLeadsVisible} leads visíveis`,
       badge: stats.taxaFecho >= 20 ? 'Saudável' : (stats.taxaFecho >= 10 ? 'Atenção' : 'Baixa'),
       badgeClass: stats.taxaFecho >= 20 ? 'ok' : (stats.taxaFecho >= 10 ? 'warn' : 'bad')
     });
@@ -683,13 +722,13 @@
     kpiData.push({
       label:'Negócio em Fecho',
       value:formatMoney(stats.totalNegocio),
-      sub:'Somatório de Valor do Negócio',
+      sub:'Somatório de Valor do Negócio (leads visíveis em Fecho)',
       badge: stats.totalComissao ? ('Comissão estimada ' + formatMoney(stats.totalComissao)) : ''
     });
 
     kpiData.push({
       label:'Angariações ativas',
-      value:stats.totalDeals,
+      value:stats.totalDealsVisible,
       sub:'Angariações visíveis, após filtros',
       badge: stats.totalExcl || stats.totalNaoExcl
         ? `Exclusivo: ${stats.totalExcl} · Não exclusivo: ${stats.totalNaoExcl}`
@@ -699,14 +738,14 @@
     kpiData.push({
       label:'Volume de Produto',
       value:formatMoney(stats.volumePedido),
-      sub:'Soma do Preço Pedido',
+      sub:'Soma do Preço Pedido (angariações visíveis)',
       badge: stats.totalComissaoPot ? ('Comissão potencial ' + formatMoney(stats.totalComissaoPot)) : ''
     });
 
     kpiData.push({
       label:'Ajustamento médio',
       value:formatPct(stats.mediaAjust),
-      sub:'Média de % de ajustamento',
+      sub:'Média de % de ajustamento nas angariações visíveis',
       badge:'',
     });
 
@@ -752,7 +791,7 @@
       const l = document.createElement('span');
       l.textContent = mapLabel[key];
       const v = document.createElement('span');
-      v.innerHTML = '<strong>'+ (stats.byEstadoLead[key] || 0) +'</strong>';
+      v.innerHTML = '<strong>'+ (stats.byEstadoLeadVisible[key] || 0) +'</strong>';
       row.appendChild(l);
       row.appendChild(v);
       leadStatesEl.appendChild(row);
@@ -773,7 +812,7 @@
       const l = document.createElement('span');
       l.textContent = mapLabel[key];
       const v = document.createElement('span');
-      v.innerHTML = '<strong>'+ (stats.byEstadoDeal[key] || 0) +'</strong>';
+      v.innerHTML = '<strong>'+ (stats.byEstadoDealVisible[key] || 0) +'</strong>';
       row.appendChild(l);
       row.appendChild(v);
       dealStatesEl.appendChild(row);
@@ -806,24 +845,24 @@
 
     const chips = [];
 
-    if(stats.totalLeads === 0 && stats.totalDeals === 0){
+    if(stats.totalLeadsVisible === 0 && stats.totalDealsVisible === 0){
       const c = document.createElement('span');
       c.className = 'chip';
-      c.textContent = 'Sem dados registados nos módulos';
+      c.textContent = 'Sem dados visíveis nos módulos';
       notesSummaryEl.appendChild(c);
       return;
     }
 
-    if(stats.totalLeads > 0){
-      chips.push(`Pipeline de leads ativo (${stats.totalLeads})`);
-      if(stats.taxaFecho < 10 && stats.totalLeads >= 5){
+    if(stats.totalLeadsVisible > 0){
+      chips.push(`Pipeline de leads ativo (${stats.totalLeadsVisible})`);
+      if(stats.taxaFecho < 10 && stats.totalLeadsVisible >= 5){
         chips.push('Taxa de fecho baixa — rever qualificação');
       }else if(stats.taxaFecho >= 20){
         chips.push('Taxa de fecho saudável');
       }
     }
 
-    if(stats.totalDeals > 0){
+    if(stats.totalDealsVisible > 0){
       if(stats.totalExcl > stats.totalNaoExcl){
         chips.push('Predomínio de angariações em exclusivo');
       }else if(stats.totalNaoExcl > 0){
@@ -846,6 +885,91 @@
     });
   }
 
+  function renderVisibilityLeads(stats){
+    leadVisibilityEl.innerHTML = '';
+
+    const makeRow = (label, value) => {
+      const row = document.createElement('div');
+      row.className = 'stat-row';
+      const l = document.createElement('span');
+      l.textContent = label;
+      const v = document.createElement('span');
+      v.innerHTML = '<strong>'+value+'</strong>';
+      row.appendChild(l);
+      row.appendChild(v);
+      leadVisibilityEl.appendChild(row);
+    };
+
+    makeRow('Total (todas)', stats.totalLeadsAll);
+    makeRow('Visíveis', stats.totalLeadsVisible);
+    makeRow('Invisíveis', stats.totalLeadsHidden);
+
+    const sep = document.createElement('div');
+    sep.className = 'stat-row';
+    sep.innerHTML = '<span><strong>Por estado</strong></span><span></span>';
+    leadVisibilityEl.appendChild(sep);
+
+    const estados = ["Novo","Em Contacto","Qualificado","Visita","Proposta","Fecho"];
+    estados.forEach(e=>{
+      const row = document.createElement('div');
+      row.className = 'stat-row';
+      const l = document.createElement('span');
+      l.textContent = e;
+      const vis = stats.byEstadoLeadVisible[e] || 0;
+      const hid = stats.byEstadoLeadHidden[e] || 0;
+      const v = document.createElement('span');
+      v.innerHTML = `<strong>${vis}</strong> visíveis · <strong>${hid}</strong> invisíveis`;
+      row.appendChild(l);
+      row.appendChild(v);
+      leadVisibilityEl.appendChild(row);
+    });
+  }
+
+  function renderVisibilityDeals(stats){
+    dealVisibilityEl.innerHTML = '';
+
+    const makeRow = (label, value) => {
+      const row = document.createElement('div');
+      row.className = 'stat-row';
+      const l = document.createElement('span');
+      l.textContent = label;
+      const v = document.createElement('span');
+      v.innerHTML = '<strong>'+value+'</strong>';
+      row.appendChild(l);
+      row.appendChild(v);
+      dealVisibilityEl.appendChild(row);
+    };
+
+    makeRow('Total (todas)', stats.totalDealsAll);
+    makeRow('Visíveis', stats.totalDealsVisible);
+    makeRow('Invisíveis', stats.totalDealsHidden);
+
+    const sep = document.createElement('div');
+    sep.className = 'stat-row';
+    sep.innerHTML = '<span><strong>Por estado</strong></span><span></span>';
+    dealVisibilityEl.appendChild(sep);
+
+    const mapLabel = {
+      novo:'Novo',
+      negociacao:'Em negociação',
+      aprovado:'Aprovado',
+      perdido:'Perdido'
+    };
+    Object.keys(mapLabel).forEach(key=>{
+      const row = document.createElement('div');
+      row.className = 'stat-row';
+      const l = document.createElement('span');
+      l.textContent = mapLabel[key];
+      const vis = stats.byEstadoDealVisible[key] || 0;
+      const hid = stats.byEstadoDealHidden[key] || 0;
+      const v = document.createElement('span');
+      v.innerHTML = `<strong>${vis}</strong> visíveis · <strong>${hid}</strong> invisíveis`;
+      row.appendChild(l);
+      row.appendChild(v);
+      dealVisibilityEl.appendChild(row);
+    });
+  }
+
   function updateContextLabel(){
     const cons = filterConsultor.value || '';
     const de = filterDataDe.value || '';
@@ -865,14 +989,16 @@
     const {leads,deals} = applyFilters();
     const stats = computeStats(leads,deals);
 
-    const hasData = (stats.totalLeads > 0) || (stats.totalDeals > 0);
-    emptyState.style.display = hasData ? 'none' : 'block';
+    const hasVisibleData = (stats.totalLeadsVisible > 0) || (stats.totalDealsVisible > 0);
+    emptyState.style.display = hasVisibleData ? 'none' : 'block';
 
     renderKpis(stats);
     renderLeadStates(stats);
     renderDealStates(stats);
     renderProfile(stats);
     renderNotes(stats);
+    renderVisibilityLeads(stats);
+    renderVisibilityDeals(stats);
     updateContextLabel();
   }
 
