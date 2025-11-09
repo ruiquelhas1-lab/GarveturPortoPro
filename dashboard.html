@@ -358,10 +358,6 @@
       border-color:rgba(76,175,80,.8);
       color:#A5D6A7;
     }
-    .chip-small.red{
-      border-color:rgba(242,95,92,.8);
-      color:#FFABAB;
-    }
   </style>
 </head>
 <body>
@@ -434,9 +430,7 @@
         </div>
       </div>
 
-      <section class="kpi-grid" id="kpiGrid">
-        <!-- preenchido via JS -->
-      </section>
+      <section class="kpi-grid" id="kpiGrid"></section>
 
       <h3 class="section-title">Ranking por consultor</h3>
       <div class="table-like" id="tabelaConsultores">
@@ -446,7 +440,6 @@
           <span>Angariações</span>
           <span>Exclusivos</span>
         </div>
-        <!-- linhas via JS -->
       </div>
     </main>
   </div>
@@ -457,44 +450,68 @@
   function safeParse(key){
     try{
       const raw = localStorage.getItem(key);
-      if(!raw) return {};
+      if(!raw) return null;
       return JSON.parse(raw);
     }catch(e){
       console.warn('Erro a ler', key, e);
-      return {};
+      return null;
     }
   }
 
-  // >>> ALTERADO: leitor de LEADS mais robusto <<<
+  // Ajuda a extrair cartões de um objeto qualquer
+  function extrairCardsGeneric(st){
+    if(!st) return [];
+    // array direto
+    if(Array.isArray(st)) return st;
+
+    // array em st.cards / st.leads / st.deals
+    if(Array.isArray(st.cards)) return st.cards;
+    if(Array.isArray(st.leads)) return st.leads;
+    if(Array.isArray(st.deals)) return st.deals;
+
+    // objetos do tipo { id1: {...}, id2: {...} }
+    if(st.cards && typeof st.cards === 'object') return Object.values(st.cards);
+    if(st.leads && typeof st.leads === 'object') return Object.values(st.leads);
+    if(st.deals && typeof st.deals === 'object') return Object.values(st.deals);
+
+    return [];
+  }
+
   function lerLeads(){
-    const st = safeParse('gpp_leads_v2');
-    let arr = [];
+    // Tentar vários storage keys para garantir que apanhamos a versão certa
+    const fontes = [
+      'gpp_leads_v3',
+      'gpp_leads_v2',
+      'gpp_leads'
+    ];
 
-    // Caso 1: já venha num array directo
-    if (Array.isArray(st.cards)) {
-      arr = st.cards;
-    } else if (Array.isArray(st.leads)) {
-      arr = st.leads;
-    } else if (Array.isArray(st.deals)) {
-      arr = st.deals;
-    } else {
-      // Caso 2: esteja em objectos tipo { id1: {...}, id2: {...} }
-      if (st.cards && typeof st.cards === 'object') {
-        arr = Object.values(st.cards);
-      } else if (st.leads && typeof st.leads === 'object') {
-        arr = Object.values(st.leads);
-      }
-    }
+    const todos = [];
 
-    // Filtro: só leads visíveis / não ocultas
-    return arr.filter(l => l && l.visible !== false && !l.hidden);
+    fontes.forEach(key=>{
+      const st = safeParse(key);
+      const arr = extrairCardsGeneric(st);
+      arr.forEach(c=>{
+        if(c) todos.push(c);
+      });
+    });
+
+    // Deduplicar por id quando existir
+    const vistos = new Set();
+    const result = [];
+    todos.forEach(c=>{
+      const id = c.id || c.slug || JSON.stringify(c);
+      if(vistos.has(id)) return;
+      vistos.add(id);
+      if(c.visible === false || c.hidden) return;
+      result.push(c);
+    });
+
+    return result;
   }
 
   function lerAngariacoes(){
     const st = safeParse('gpp_angariacoes_v2');
-    let arr = [];
-    if(Array.isArray(st.deals)) arr = st.deals;
-    else if(Array.isArray(st.cards)) arr = st.cards;
+    const arr = extrairCardsGeneric(st);
     return arr.filter(a => a && a.visible !== false);
   }
 
