@@ -5,7 +5,7 @@
   <title>Garvetur Porto Pro — Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root {
+    :root{
       --gold:#A38B63;
       --gold-soft:rgba(163,139,99,.35);
       --bg:#0B0B0B;
@@ -13,29 +13,23 @@
       --panel-soft:#181818;
       --text:#FFFFFF;
       --muted:#A0A0A0;
+      --border:rgba(255,255,255,.12);
       --danger:#F25F5C;
       --success:#4CAF50;
       --warning:#FFC857;
-      --card-border:rgba(163,139,99,.3);
-      --chip-bg:#1E1E1E;
       --radius-lg:18px;
       --radius-md:12px;
       --shadow-soft:0 14px 25px rgba(0,0,0,.4);
     }
-
     *{box-sizing:border-box;}
     html,body{
       margin:0;
       height:100%;
-      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
       background:radial-gradient(circle at top,#1c1c1c 0,#050505 55%,#000 100%);
       color:var(--text);
     }
-
-    body{
-      display:flex;
-      flex-direction:column;
-    }
+    body{display:flex;flex-direction:column;}
 
     .app-shell{
       display:grid;
@@ -86,7 +80,6 @@
       text-transform:uppercase;
     }
 
-    /* NAV TABS */
     .nav-tabs{
       display:flex;
       align-items:center;
@@ -123,67 +116,128 @@
       display:flex;
       align-items:center;
       gap:8px;
-      font-size:11px;
-      color:var(--muted);
     }
-
-    .badge-soft{
+    .btn{
       border-radius:999px;
-      padding:3px 8px;
-      border:1px solid rgba(163,139,99,.4);
-      background:rgba(0,0,0,.4);
-      color:var(--muted);
+      border:1px solid var(--gold-soft);
+      background:rgba(12,12,12,.9);
+      color:var(--text);
+      padding:7px 12px;
+      font-size:13px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      cursor:pointer;
+      transition:.18s border-color,.18s background,.18s transform;
+    }
+    .btn-primary{
+      background:var(--gold);
+      color:#0A0A0A;
+      border-color:var(--gold);
+      font-weight:500;
+    }
+    .btn-ghost{
+      background:transparent;
+    }
+    .btn:hover{
+      border-color:var(--gold);
+      transform:translateY(-1px);
     }
 
-    /* Layout principal */
     .layout{
       display:grid;
-      grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.3fr);
-      gap:14px;
-      padding:14px 16px 18px;
+      grid-template-columns:280px minmax(0,1fr);
       height:calc(100vh - 64px);
       max-height:calc(100vh - 64px);
       overflow:hidden;
     }
-    @media (max-width: 1024px){
+    @media(max-width:960px){
       .layout{
         grid-template-columns:1fr;
-        grid-auto-rows:auto;
+        grid-template-rows:auto auto;
         height:auto;
         max-height:none;
       }
     }
 
-    .column{
-      display:flex;
-      flex-direction:column;
-      gap:12px;
+    .sidebar{
+      border-right:1px solid rgba(163,139,99,.24);
+      background:radial-gradient(circle at top left,#141414,#060606);
+      padding:12px 14px;
       overflow-y:auto;
     }
-
-    /* Cards */
-    .card{
-      border-radius:var(--radius-lg);
-      border:1px solid var(--card-border);
-      background:radial-gradient(circle at top left,#181818,#070707);
-      box-shadow:var(--shadow-soft);
-      padding:10px 11px 11px;
+    .sidebar-section{
+      border-radius:var(--radius-md);
+      padding:10px 11px;
+      background:rgba(0,0,0,.45);
+      border:1px solid rgba(163,139,99,.18);
+      margin-bottom:10px;
     }
-    .card-header{
+    .sidebar-section h3{
+      margin:0 0 6px;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      color:var(--muted);
+    }
+    .sidebar-section p{
+      margin:2px 0 6px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .field{
       display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:6px;
+      flex-direction:column;
+      gap:4px;
+      margin-bottom:8px;
     }
-    .card-title-block h2{
+    .field-row{
+      display:flex;
+      gap:6px;
+    }
+    label.field-label{
+      font-size:11px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.12em;
+    }
+    input[type="date"],
+    select{
+      background:rgba(0,0,0,.7);
+      color:var(--text);
+      border-radius:10px;
+      border:1px solid rgba(163,139,99,.22);
+      padding:6px 8px;
+      font-size:13px;
+      outline:none;
+      width:100%;
+    }
+    input:focus,select:focus{
+      border-color:var(--gold);
+      box-shadow:0 0 0 1px rgba(163,139,99,.35);
+    }
+
+    .main-area{
+      padding:14px 16px 18px;
+      overflow-y:auto;
+      background:radial-gradient(circle at top,#1a1a1a,#050505 55%,#000 100%);
+    }
+
+    .section-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .section-header h2{
       margin:0;
       font-size:15px;
       letter-spacing:.16em;
       text-transform:uppercase;
       color:var(--muted);
     }
-    .card-title-block p{
+    .section-header p{
       margin:2px 0 0;
       font-size:12px;
       color:var(--muted);
@@ -191,33 +245,28 @@
 
     .kpi-grid{
       display:grid;
-      grid-template-columns:repeat(3, minmax(0,1fr));
-      gap:8px;
-      margin-top:4px;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:10px;
+      margin-bottom:14px;
     }
-    @media (max-width: 680px){
-      .kpi-grid{
-        grid-template-columns:repeat(2,minmax(0,1fr));
-      }
-    }
-
     .kpi-card{
-      border-radius:var(--radius-md);
-      border:1px solid rgba(163,139,99,.28);
-      background:rgba(0,0,0,.55);
-      padding:7px 8px;
+      border-radius:var(--radius-lg);
+      border:1px solid rgba(163,139,99,.35);
+      background:radial-gradient(circle at top left,#181818,#070707);
+      padding:10px 12px;
+      box-shadow:var(--shadow-soft);
       display:flex;
       flex-direction:column;
       gap:2px;
     }
     .kpi-label{
       font-size:11px;
-      color:var(--muted);
       text-transform:uppercase;
-      letter-spacing:.12em;
+      letter-spacing:.14em;
+      color:var(--muted);
     }
     .kpi-value{
-      font-size:18px;
+      font-size:20px;
       font-weight:600;
       color:#fff;
     }
@@ -225,16 +274,57 @@
       font-size:11px;
       color:var(--muted);
     }
-    .kpi-trend-good{
-      color:var(--success);
-      font-size:11px;
+    .kpi-badge{
+      align-self:flex-start;
+      margin-top:4px;
+      padding:2px 7px;
+      border-radius:999px;
+      border:1px solid rgba(163,139,99,.4);
+      font-size:10px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.08em;
     }
-    .kpi-trend-bad{
-      color:var(--danger);
+    .kpi-badge.ok{border-color:rgba(76,175,80,.7);color:#A5D6A7;}
+    .kpi-badge.warn{border-color:rgba(255,200,87,.8);color:#FFE082;}
+    .kpi-badge.bad{border-color:rgba(242,95,92,.8);color:#FFABAB;}
+
+    .details-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:12px;
+      margin-top:4px;
+    }
+    .panel{
+      border-radius:var(--radius-md);
+      border:1px solid rgba(163,139,99,.28);
+      background:rgba(0,0,0,.55);
+      padding:9px 10px;
+    }
+    .panel h3{
+      margin:0 0 6px;
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:var(--muted);
+    }
+    .panel small{
       font-size:11px;
+      color:var(--muted);
+    }
+    .stat-row{
+      display:flex;
+      justify-content:space-between;
+      font-size:12px;
+      margin:2px 0;
+      color:var(--muted);
+    }
+    .stat-row strong{
+      color:#f5f5f5;
+      font-weight:500;
     }
 
-    .chip-row{
+    .chips{
       display:flex;
       flex-wrap:wrap;
       gap:4px;
@@ -245,79 +335,18 @@
       padding:2px 7px;
       font-size:10px;
       border:1px solid rgba(163,139,99,.4);
-      background:var(--chip-bg);
+      background:#1B1B1B;
       color:var(--muted);
       text-transform:uppercase;
-      letter-spacing:.08em;
-    }
-    .chip-highlight{
-      border-color:var(--gold);
-      color:var(--gold);
+      letter-spacing:.06em;
     }
 
-    .list-simple{
-      margin-top:4px;
+    .empty{
       font-size:12px;
       color:var(--muted);
-    }
-    .list-simple-row{
-      display:flex;
-      justify-content:space-between;
-      gap:8px;
-      padding:3px 0;
-      border-bottom:1px dashed rgba(255,255,255,.05);
-    }
-    .list-simple-row:last-child{
-      border-bottom:none;
-    }
-    .list-simple-label{
-      color:#e0e0e0;
-    }
-    .list-simple-value{
-      font-weight:500;
-      color:var(--gold);
+      margin-top:10px;
     }
 
-    .bar-row{
-      margin-top:4px;
-      font-size:11px;
-      color:var(--muted);
-    }
-    .bar-label{
-      display:flex;
-      justify-content:space-between;
-      margin-bottom:2px;
-    }
-    .bar-track{
-      width:100%;
-      height:6px;
-      border-radius:999px;
-      background:rgba(255,255,255,.06);
-      overflow:hidden;
-    }
-    .bar-fill{
-      height:100%;
-      border-radius:999px;
-      background:linear-gradient(90deg, rgba(163,139,99,.2), var(--gold));
-      width:0%;
-      transition:width .25s ease-out;
-    }
-
-    .muted{
-      color:var(--muted);
-      font-size:12px;
-    }
-
-    .pill-pill{
-      display:inline-flex;
-      align-items:center;
-      gap:4px;
-      font-size:11px;
-      border-radius:999px;
-      padding:3px 8px;
-      border:1px solid rgba(163,139,99,.3);
-      background:rgba(0,0,0,.4);
-    }
   </style>
 </head>
 <body>
@@ -344,323 +373,515 @@
     </nav>
 
     <div class="header-actions">
-      <span class="badge-soft" id="headerTotals">Sessão atual</span>
+      <button class="btn btn-ghost" id="reloadBtn">Atualizar dados</button>
     </div>
   </header>
 
   <div class="layout">
-    <!-- Coluna Esquerda: Leads -->
-    <div class="column" id="colLeads">
-      <section class="card">
-        <div class="card-header">
-          <div class="card-title-block">
-            <h2>Leads</h2>
-            <p>Pipeline de clientes — do primeiro contacto até ao fecho.</p>
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <h3>Filtros</h3>
+        <div class="field">
+          <label class="field-label" for="filterConsultor">Consultor</label>
+          <select id="filterConsultor">
+            <option value="">Todos</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label" for="filterDataDe">De</label>
+            <input type="date" id="filterDataDe" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="filterDataAte">Até</label>
+            <input type="date" id="filterDataAte" />
           </div>
         </div>
-        <div class="kpi-grid">
-          <div class="kpi-card">
-            <div class="kpi-label">Total de leads</div>
-            <div class="kpi-value" id="leadsTotal">0</div>
-            <div class="kpi-sub">Leads visíveis (todas as colunas)</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Leads em fecho</div>
-            <div class="kpi-value" id="leadsFecho">0</div>
-            <div class="kpi-sub">Coluna “Fecho”</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Taxa de fecho</div>
-            <div class="kpi-value" id="leadsTaxaFecho">0%</div>
-            <div class="kpi-sub">Fecho / Total</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Em contacto</div>
-            <div class="kpi-value" id="leadsEmContacto">0</div>
-            <div class="kpi-sub">Leads a trabalhar</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Qualificadas</div>
-            <div class="kpi-value" id="leadsQualificado">0</div>
-            <div class="kpi-sub">Com perfil definido</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Em visita / proposta</div>
-            <div class="kpi-value" id="leadsVisitaProposta">0</div>
-            <div class="kpi-sub">Visita + Proposta</div>
-          </div>
+        <p>O período aplica-se à <strong>data da Lead</strong> e à <strong>data da Angariação</strong>.</p>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Dicas</h3>
+        <p>
+          Use o filtro de <strong>Consultor</strong> para preparar reuniões individuais.<br>
+          Combine com o período para ver apenas o mês atual ou um trimestre.
+        </p>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <div class="section-header">
+        <div>
+          <h2>Visão Geral</h2>
+          <p>Resumo consolidado de pipeline comercial — Leads & Produto.</p>
+        </div>
+        <div id="contextLabel" style="font-size:11px;color:var(--muted);text-align:right;"></div>
+      </div>
+
+      <section class="kpi-grid" id="kpiGrid"></section>
+
+      <section class="details-grid">
+        <div class="panel">
+          <h3>Leads — Detalhe por estado</h3>
+          <small>Baseado em leads visíveis no Kanban.</small>
+          <div id="leadStates"></div>
         </div>
 
-        <div class="chip-row" id="leadsEstadoChips"></div>
+        <div class="panel">
+          <h3>Angariações — Detalhe por estado</h3>
+          <small>Baseado em angariações visíveis.</small>
+          <div id="dealStates"></div>
+        </div>
+
+        <div class="panel">
+          <h3>Perfil & Origem</h3>
+          <small>Distribuição simplificada de perfil de leads.</small>
+          <div id="profileSummary"></div>
+        </div>
+
+        <div class="panel">
+          <h3>Notas rápidas</h3>
+          <small>Indicadores úteis para discussão em reunião.</small>
+          <div id="notesSummary" class="chips"></div>
+        </div>
       </section>
 
-      <section class="card">
-        <div class="card-header">
-          <div class="card-title-block">
-            <h2>Leads por consultor</h2>
-            <p>Distribuição de leads ativas por consultor.</p>
-          </div>
-        </div>
-        <div class="list-simple" id="leadsPorConsultor"></div>
-      </section>
-    </div>
-
-    <!-- Coluna Direita: Angariações -->
-    <div class="column" id="colAngs">
-      <section class="card">
-        <div class="card-header">
-          <div class="card-title-block">
-            <h2>Angariações</h2>
-            <p>Carteira de produto — exclusividade, estado e ajustamento.</p>
-          </div>
-        </div>
-        <div class="kpi-grid">
-          <div class="kpi-card">
-            <div class="kpi-label">Total de angariações</div>
-            <div class="kpi-value" id="angTotal">0</div>
-            <div class="kpi-sub">Registos visíveis</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Exclusivas</div>
-            <div class="kpi-value" id="angExclusivo">0</div>
-            <div class="kpi-sub">Contrato em exclusivo</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Não exclusivas</div>
-            <div class="kpi-value" id="angNaoExclusivo">0</div>
-            <div class="kpi-sub">Contrato não exclusivo</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Novo / Negociação</div>
-            <div class="kpi-value" id="angNovoNeg">0</div>
-            <div class="kpi-sub">Novo + Em negociação</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Aprovados</div>
-            <div class="kpi-value" id="angAprovado">0</div>
-            <div class="kpi-sub">Prontos a trabalhar</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Perdidos</div>
-            <div class="kpi-value" id="angPerdido">0</div>
-            <div class="kpi-sub">Historico</div>
-          </div>
-        </div>
-
-        <div class="chip-row" id="angEstadoChips"></div>
-      </section>
-
-      <section class="card">
-        <div class="card-header">
-          <div class="card-title-block">
-            <h2>Resumo por consultor</h2>
-            <p>Proporção de angariações ativas por consultor.</p>
-          </div>
-        </div>
-        <div id="angPorConsultor" class="list-simple"></div>
-      </section>
-    </div>
+      <div id="emptyState" class="empty" style="display:none;">
+        Ainda não existem dados nas Leads e Angariações com os filtros atuais.
+      </div>
+    </main>
   </div>
 </div>
 
 <script>
 (function(){
-  const LEADS_KEY = 'gpp_leads_v5';
-  const ANG_KEY   = 'gpp_angariacoes_v2';
+  const STORAGE_LEADS = 'gpp_leads_v5';
+  const STORAGE_ANG = 'gpp_angariacoes_v2';
 
-  function safeLoadLeads(){
+  const filterConsultor = document.getElementById('filterConsultor');
+  const filterDataDe = document.getElementById('filterDataDe');
+  const filterDataAte = document.getElementById('filterDataAte');
+  const kpiGrid = document.getElementById('kpiGrid');
+  const leadStatesEl = document.getElementById('leadStates');
+  const dealStatesEl = document.getElementById('dealStates');
+  const profileSummaryEl = document.getElementById('profileSummary');
+  const notesSummaryEl = document.getElementById('notesSummary');
+  const emptyState = document.getElementById('emptyState');
+  const contextLabel = document.getElementById('contextLabel');
+  const reloadBtn = document.getElementById('reloadBtn');
+
+  let allLeads = [];
+  let allDeals = [];
+
+  function parseNum(v){
+    if(v===null || v===undefined || v==='') return 0;
+    const n = parseFloat(String(v).replace(',','.'));
+    return isFinite(n) ? n : 0;
+  }
+  function parsePct(v){
+    if(v===null || v===undefined || v==='') return NaN;
+    const n = parseFloat(String(v).replace(',','.'));
+    return isFinite(n) ? n : NaN;
+  }
+  function formatMoney(n){
+    const v = parseNum(n);
+    if(!isFinite(v) || v === 0) return '—';
+    return v.toLocaleString('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+  }
+  function formatPct(n){
+    const v = parsePct(n);
+    if(!isFinite(v)) return '—';
+    return v.toFixed(1).replace('.',',') + '%';
+  }
+
+  function loadLeads(){
     try{
-      const raw = localStorage.getItem(LEADS_KEY);
-      if(!raw) return [];
-      const arr = JSON.parse(raw);
-      return Array.isArray(arr) ? arr : [];
+      const raw = localStorage.getItem(STORAGE_LEADS);
+      const parsed = raw ? JSON.parse(raw) : [];
+      if(Array.isArray(parsed)){
+        allLeads = parsed;
+      }else{
+        allLeads = [];
+      }
     }catch(e){
-      console.error('Erro a ler leads:', e);
-      return [];
+      console.error('Erro a ler leads:',e);
+      allLeads = [];
     }
   }
 
-  function safeLoadAngs(){
+  function loadDeals(){
     try{
-      const raw = localStorage.getItem(ANG_KEY);
-      if(!raw) return [];
-      const parsed = JSON.parse(raw);
-      if(Array.isArray(parsed?.deals)) return parsed.deals;
-      if(Array.isArray(parsed)) return parsed;
-      return [];
+      const raw = localStorage.getItem(STORAGE_ANG);
+      const parsed = raw ? JSON.parse(raw) : {};
+      if(parsed && Array.isArray(parsed.deals)){
+        allDeals = parsed.deals;
+      }else{
+        allDeals = [];
+      }
     }catch(e){
-      console.error('Erro a ler angariações:', e);
-      return [];
+      console.error('Erro a ler angariações:',e);
+      allDeals = [];
     }
   }
 
-  function text(id, value){
-    const el = document.getElementById(id);
-    if(el) el.textContent = value;
+  function applyFilters(){
+    const cons = filterConsultor.value || '';
+    const de = filterDataDe.value || '';
+    const ate = filterDataAte.value || '';
+
+    let leads = allLeads.slice().filter(l => l && l.visivel !== false);
+    let deals = allDeals.slice().filter(d => d && d.visible !== false);
+
+    if(cons){
+      leads = leads.filter(l => (l.consultor || '') === cons);
+      deals = deals.filter(d => (d.consultor || '') === cons);
+    }
+    if(de){
+      leads = leads.filter(l => !l.data || l.data >= de);
+      deals = deals.filter(d => !d.dataAngariacao || d.dataAngariacao >= de);
+    }
+    if(ate){
+      leads = leads.filter(l => !l.data || l.data <= ate);
+      deals = deals.filter(d => !d.dataAngariacao || d.dataAngariacao <= ate);
+    }
+
+    return {leads, deals};
   }
 
-  function pct(num, den){
-    if(!den) return '0%';
-    return (num/den*100).toFixed(1).replace('.',',') + '%';
+  function buildConsultorOptions(){
+    const set = new Set();
+    allLeads.forEach(l => { if(l && l.consultor) set.add(l.consultor); });
+    allDeals.forEach(d => { if(d && d.consultor) set.add(d.consultor); });
+    const current = filterConsultor.value;
+    filterConsultor.innerHTML = '<option value="">Todos</option>';
+    Array.from(set).sort().forEach(name=>{
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      filterConsultor.appendChild(opt);
+    });
+    if(current && set.has(current)){
+      filterConsultor.value = current;
+    }
   }
 
-  function render(){
-    const leadsAll = safeLoadLeads();
-    const leads = leadsAll.filter(l => l.visivel !== false);
-
-    const angAll = safeLoadAngs();
-    const angs = angAll.filter(a => a.visible !== false);
-
-    // Header mini resumo
-    text('headerTotals', `Sessão atual · ${leads.length} leads · ${angs.length} angariações`);
-
-    /* === LEADS === */
+  function computeStats(leads, deals){
+    const estadosLead = ["Novo","Em Contacto","Qualificado","Visita","Proposta","Fecho"];
+    const byEstadoLead = {};
+    estadosLead.forEach(e=>byEstadoLead[e]=0);
+    leads.forEach(l=>{
+      if(byEstadoLead[l.estado] !== undefined){
+        byEstadoLead[l.estado]++;
+      }
+    });
     const totalLeads = leads.length;
-    const byEstado = {
-      'Novo':0,
-      'Em Contacto':0,
-      'Qualificado':0,
-      'Visita':0,
-      'Proposta':0,
-      'Fecho':0
+    const fechoLeads = leads.filter(l => l.estado === 'Fecho');
+    const totalFecho = fechoLeads.length;
+    const taxaFecho = totalLeads ? (totalFecho / totalLeads * 100) : 0;
+
+    let totalNegocio = 0;
+    let totalComissao = 0;
+    fechoLeads.forEach(l=>{
+      const negocio = parseNum(l.fecho_negocio);
+      const pct = parsePct(l.fecho_comissao_pct);
+      totalNegocio += negocio;
+      if(isFinite(pct) && negocio>0){
+        totalComissao += negocio * (pct/100);
+      }
+    });
+
+    const estadosDeal = ["novo","negociacao","aprovado","perdido"];
+    const byEstadoDeal = {};
+    estadosDeal.forEach(e=>byEstadoDeal[e]=0);
+    let totalExcl = 0;
+    let totalNaoExcl = 0;
+    let volumePedido = 0;
+    let totalComissaoPot = 0;
+    let somaAjust = 0;
+    let countAjust = 0;
+
+    deals.forEach(d=>{
+      if(byEstadoDeal[d.estadoAng] !== undefined){
+        byEstadoDeal[d.estadoAng]++;
+      }
+      if(d.exclusivo) totalExcl++;
+      if(d.naoExclusivo) totalNaoExcl++;
+
+      const preco = parseNum(d.precoPedido);
+      volumePedido += preco;
+
+      let pct = NaN;
+      if(d.comissao === 'outro'){
+        pct = parsePct(d.comissaoOutro);
+      }else if(d.comissao){
+        pct = parsePct(d.comissao);
+      }
+      if(isFinite(pct) && preco>0){
+        totalComissaoPot += preco * (pct/100);
+      }
+
+      const aj = parsePct(d.percentAjust);
+      if(isFinite(aj)){
+        somaAjust += aj;
+        countAjust++;
+      }
+    });
+
+    const mediaAjust = countAjust ? (somaAjust / countAjust) : NaN;
+
+    const perfilCounts = {
+      Investidor:0,
+      "Cliente final":0,
+      Comprador:0,
+      Vendedor:0
     };
     leads.forEach(l=>{
-      if(byEstado[l.estado] != null){
-        byEstado[l.estado]++;
-      }
+      if(l.perfil === 'Investidor') perfilCounts.Investidor++;
+      if(l.perfil === 'Cliente final') perfilCounts["Cliente final"]++;
+      if(l.papel === 'Comprador') perfilCounts.Comprador++;
+      if(l.papel === 'Vendedor') perfilCounts.Vendedor++;
     });
 
-    const totalFecho = byEstado['Fecho'] || 0;
-    const emContacto = byEstado['Em Contacto'] || 0;
-    const qualif     = byEstado['Qualificado'] || 0;
-    const visitaProp = (byEstado['Visita'] || 0) + (byEstado['Proposta'] || 0);
-
-    text('leadsTotal', totalLeads);
-    text('leadsFecho', totalFecho);
-    text('leadsTaxaFecho', pct(totalFecho, totalLeads));
-    text('leadsEmContacto', emContacto);
-    text('leadsQualificado', qualif);
-    text('leadsVisitaProposta', visitaProp);
-
-    // Chips por estado
-    const chipsLead = document.getElementById('leadsEstadoChips');
-    if(chipsLead){
-      chipsLead.innerHTML = '';
-      Object.entries(byEstado).forEach(([estado, n])=>{
-        const span = document.createElement('span');
-        span.className = 'chip' + (estado==='Fecho' ? ' chip-highlight' : '');
-        span.textContent = estado + ': ' + n;
-        chipsLead.appendChild(span);
-      });
-    }
-
-    // Leads por consultor
-    const porConsLeads = {};
-    leads.forEach(l=>{
-      if(!l.consultor) return;
-      porConsLeads[l.consultor] = (porConsLeads[l.consultor] || 0) + 1;
-    });
-    const elLpc = document.getElementById('leadsPorConsultor');
-    if(elLpc){
-      elLpc.innerHTML = '';
-      const entries = Object.entries(porConsLeads).sort((a,b)=>b[1]-a[1]);
-      if(!entries.length){
-        elLpc.innerHTML = '<div class="muted">Sem leads registadas neste navegador.</div>';
-      }else{
-        entries.forEach(([nome, n])=>{
-          const row = document.createElement('div');
-          row.className = 'list-simple-row';
-          const label = document.createElement('div');
-          label.className = 'list-simple-label';
-          label.textContent = nome;
-          const value = document.createElement('div');
-          value.className = 'list-simple-value';
-          value.textContent = n;
-          row.appendChild(label);
-          row.appendChild(value);
-          elLpc.appendChild(row);
-        });
-      }
-    }
-
-    /* === ANGARIAÇÕES === */
-    const totalAng = angs.length;
-    const excls = angs.filter(a => !!a.exclusivo).length;
-    const naoExcls = angs.filter(a => !!a.naoExclusivo).length;
-
-    const byEstadoAng = { novo:0, negociacao:0, aprovado:0, perdido:0 };
-    angs.forEach(a=>{
-      if(byEstadoAng[a.estadoAng] != null){
-        byEstadoAng[a.estadoAng]++;
-      }
-    });
-
-    const novoNeg = (byEstadoAng.novo || 0) + (byEstadoAng.negociacao || 0);
-    const aprov   = byEstadoAng.aprovado || 0;
-    const perd    = byEstadoAng.perdido || 0;
-
-    text('angTotal', totalAng);
-    text('angExclusivo', excls);
-    text('angNaoExclusivo', naoExcls);
-    text('angNovoNeg', novoNeg);
-    text('angAprovado', aprov);
-    text('angPerdido', perd);
-
-    const chipsAng = document.getElementById('angEstadoChips');
-    if(chipsAng){
-      chipsAng.innerHTML = '';
-      const mapLabel = {novo:'Novo',negociacao:'Em negociação',aprovado:'Aprovado',perdido:'Perdido'};
-      Object.entries(byEstadoAng).forEach(([k,v])=>{
-        const span = document.createElement('span');
-        span.className = 'chip' + (k==='aprovado' ? ' chip-highlight' : '');
-        span.textContent = (mapLabel[k] || k) + ': ' + v;
-        chipsAng.appendChild(span);
-      });
-    }
-
-    // Angariações por consultor
-    const porConsAng = {};
-    angs.forEach(a=>{
-      if(!a.consultor) return;
-      porConsAng[a.consultor] = (porConsAng[a.consultor] || 0) + 1;
-    });
-    const elApc = document.getElementById('angPorConsultor');
-    if(elApc){
-      elApc.innerHTML = '';
-      const entries = Object.entries(porConsAng).sort((a,b)=>b[1]-a[1]);
-      if(!entries.length){
-        elApc.innerHTML = '<div class="muted">Sem angariações registadas neste navegador.</div>';
-      }else{
-        entries.forEach(([nome,n])=>{
-          const wrap = document.createElement('div');
-          wrap.className = 'bar-row';
-
-          const lbl = document.createElement('div');
-          lbl.className = 'bar-label';
-          const left = document.createElement('span');
-          left.textContent = nome;
-          const right = document.createElement('span');
-          right.textContent = n + ' ang.';
-          lbl.appendChild(left);
-          lbl.appendChild(right);
-
-          const track = document.createElement('div');
-          track.className = 'bar-track';
-          const fill = document.createElement('div');
-          fill.className = 'bar-fill';
-          const percent = totalAng ? Math.max(4, (n/totalAng)*100) : 0;
-          fill.style.width = percent.toFixed(1) + '%';
-          track.appendChild(fill);
-
-          wrap.appendChild(lbl);
-          wrap.appendChild(track);
-          elApc.appendChild(wrap);
-        });
-      }
-    }
+    return {
+      totalLeads,
+      byEstadoLead,
+      totalFecho,
+      taxaFecho,
+      totalNegocio,
+      totalComissao,
+      totalDeals: deals.length,
+      byEstadoDeal,
+      totalExcl,
+      totalNaoExcl,
+      volumePedido,
+      totalComissaoPot,
+      mediaAjust,
+      perfilCounts
+    };
   }
 
-  document.addEventListener('DOMContentLoaded', render);
+  function renderKpis(stats){
+    kpiGrid.innerHTML = '';
+
+    const kpiData = [];
+
+    kpiData.push({
+      label:'Leads ativas',
+      value:stats.totalLeads,
+      sub:'Leads visíveis, após filtros',
+      badge: stats.totalFecho > 0 ? `${stats.totalFecho} em Fecho` : ''
+    });
+
+    kpiData.push({
+      label:'Taxa de Fecho (Leads)',
+      value: stats.totalLeads ? stats.taxaFecho.toFixed(1).replace('.',',') + '%' : '—',
+      sub:`${stats.totalFecho} de ${stats.totalLeads} leads`,
+      badge: stats.taxaFecho >= 20 ? 'Saudável' : (stats.taxaFecho >= 10 ? 'Atenção' : 'Baixa'),
+      badgeClass: stats.taxaFecho >= 20 ? 'ok' : (stats.taxaFecho >= 10 ? 'warn' : 'bad')
+    });
+
+    kpiData.push({
+      label:'Negócio em Fecho',
+      value:formatMoney(stats.totalNegocio),
+      sub:'Somatório de Valor do Negócio',
+      badge: stats.totalComissao ? ('Comissão estimada ' + formatMoney(stats.totalComissao)) : ''
+    });
+
+    kpiData.push({
+      label:'Angariações ativas',
+      value:stats.totalDeals,
+      sub:'Angariações visíveis, após filtros',
+      badge: stats.totalExcl || stats.totalNaoExcl
+        ? `Exclusivo: ${stats.totalExcl} · Não exclusivo: ${stats.totalNaoExcl}`
+        : ''
+    });
+
+    kpiData.push({
+      label:'Volume de Produto',
+      value:formatMoney(stats.volumePedido),
+      sub:'Soma do Preço Pedido',
+      badge: stats.totalComissaoPot ? ('Comissão potencial ' + formatMoney(stats.totalComissaoPot)) : ''
+    });
+
+    kpiData.push({
+      label:'Ajustamento médio',
+      value:formatPct(stats.mediaAjust),
+      sub:'Média de % de ajustamento',
+      badge:'',
+    });
+
+    kpiData.forEach(k=>{
+      const card = document.createElement('div');
+      card.className = 'kpi-card';
+      const lab = document.createElement('div');
+      lab.className = 'kpi-label';
+      lab.textContent = k.label;
+      const val = document.createElement('div');
+      val.className = 'kpi-value';
+      val.textContent = k.value;
+      const sub = document.createElement('div');
+      sub.className = 'kpi-sub';
+      sub.textContent = k.sub || '';
+      card.appendChild(lab);
+      card.appendChild(val);
+      card.appendChild(sub);
+      if(k.badge){
+        const b = document.createElement('div');
+        b.className = 'kpi-badge';
+        if(k.badgeClass) b.classList.add(k.badgeClass);
+        b.textContent = k.badge;
+        card.appendChild(b);
+      }
+      kpiGrid.appendChild(card);
+    });
+  }
+
+  function renderLeadStates(stats){
+    const mapLabel = {
+      "Novo":"Novo",
+      "Em Contacto":"Em Contacto",
+      "Qualificado":"Qualificado",
+      "Visita":"Visita",
+      "Proposta":"Proposta",
+      "Fecho":"Fecho"
+    };
+    leadStatesEl.innerHTML = '';
+    Object.keys(mapLabel).forEach(key=>{
+      const row = document.createElement('div');
+      row.className = 'stat-row';
+      const l = document.createElement('span');
+      l.textContent = mapLabel[key];
+      const v = document.createElement('span');
+      v.innerHTML = '<strong>'+ (stats.byEstadoLead[key] || 0) +'</strong>';
+      row.appendChild(l);
+      row.appendChild(v);
+      leadStatesEl.appendChild(row);
+    });
+  }
+
+  function renderDealStates(stats){
+    const mapLabel = {
+      novo:'Novo',
+      negociacao:'Em negociação',
+      aprovado:'Aprovado',
+      perdido:'Perdido'
+    };
+    dealStatesEl.innerHTML = '';
+    Object.keys(mapLabel).forEach(key=>{
+      const row = document.createElement('div');
+      row.className = 'stat-row';
+      const l = document.createElement('span');
+      l.textContent = mapLabel[key];
+      const v = document.createElement('span');
+      v.innerHTML = '<strong>'+ (stats.byEstadoDeal[key] || 0) +'</strong>';
+      row.appendChild(l);
+      row.appendChild(v);
+      dealStatesEl.appendChild(row);
+    });
+  }
+
+  function renderProfile(stats){
+    profileSummaryEl.innerHTML = '';
+
+    const makeRow = (label, value) => {
+      const row = document.createElement('div');
+      row.className = 'stat-row';
+      const l = document.createElement('span');
+      l.textContent = label;
+      const v = document.createElement('span');
+      v.innerHTML = '<strong>'+value+'</strong>';
+      row.appendChild(l);
+      row.appendChild(v);
+      profileSummaryEl.appendChild(row);
+    };
+
+    makeRow('Investidor', stats.perfilCounts.Investidor || 0);
+    makeRow('Cliente final', stats.perfilCounts["Cliente final"] || 0);
+    makeRow('Comprador', stats.perfilCounts.Comprador || 0);
+    makeRow('Vendedor', stats.perfilCounts.Vendedor || 0);
+  }
+
+  function renderNotes(stats){
+    notesSummaryEl.innerHTML = '';
+
+    const chips = [];
+
+    if(stats.totalLeads === 0 && stats.totalDeals === 0){
+      const c = document.createElement('span');
+      c.className = 'chip';
+      c.textContent = 'Sem dados registados nos módulos';
+      notesSummaryEl.appendChild(c);
+      return;
+    }
+
+    if(stats.totalLeads > 0){
+      chips.push(`Pipeline de leads ativo (${stats.totalLeads})`);
+      if(stats.taxaFecho < 10 && stats.totalLeads >= 5){
+        chips.push('Taxa de fecho baixa — rever qualificação');
+      }else if(stats.taxaFecho >= 20){
+        chips.push('Taxa de fecho saudável');
+      }
+    }
+
+    if(stats.totalDeals > 0){
+      if(stats.totalExcl > stats.totalNaoExcl){
+        chips.push('Predomínio de angariações em exclusivo');
+      }else if(stats.totalNaoExcl > 0){
+        chips.push('Várias angariações não exclusivas — reforçar diferenciação');
+      }
+      if(isFinite(stats.mediaAjust)){
+        if(stats.mediaAjust < -5){
+          chips.push('Ajustamento médio acima de 5% — foco em alinhamento de preço');
+        }else{
+          chips.push('Ajustamento médio controlado');
+        }
+      }
+    }
+
+    chips.forEach(txt=>{
+      const c = document.createElement('span');
+      c.className = 'chip';
+      c.textContent = txt;
+      notesSummaryEl.appendChild(c);
+    });
+  }
+
+  function updateContextLabel(){
+    const cons = filterConsultor.value || '';
+    const de = filterDataDe.value || '';
+    const ate = filterDataAte.value || '';
+    const parts = [];
+    if(cons) parts.push('Consultor: ' + cons);
+    if(de || ate){
+      parts.push('Período: ' + (de || '…') + ' a ' + (ate || '…'));
+    }
+    contextLabel.textContent = parts.length ? parts.join(' | ') : 'Sem filtros — visão global';
+  }
+
+  function refresh(){
+    loadLeads();
+    loadDeals();
+    buildConsultorOptions();
+    const {leads,deals} = applyFilters();
+    const stats = computeStats(leads,deals);
+
+    const hasData = (stats.totalLeads > 0) || (stats.totalDeals > 0);
+    emptyState.style.display = hasData ? 'none' : 'block';
+
+    renderKpis(stats);
+    renderLeadStates(stats);
+    renderDealStates(stats);
+    renderProfile(stats);
+    renderNotes(stats);
+    updateContextLabel();
+  }
+
+  filterConsultor.addEventListener('change', refresh);
+  filterDataDe.addEventListener('change', refresh);
+  filterDataAte.addEventListener('change', refresh);
+  reloadBtn.addEventListener('click', refresh);
+
+  refresh();
 })();
 </script>
 </body>
