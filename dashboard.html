@@ -1,748 +1,847 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Garvetur Porto Pro — Dashboard</title>
-<style>
-  :root{--gold:#A38B63;--bg:#0E0E0E;--panel:#131313;--text:#fff;--muted:#bdbdbd;--ok:#4CAF50;--warn:#FFC107;--bad:#EF5350;}
-  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-  header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.1);background:#0F0F0F;}
-  nav a{margin-right:6px;text-decoration:none;color:#ddd;border:1px solid rgba(255,255,255,.12);padding:6px 10px;border-radius:8px}
-  nav a.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:600}
-  .actions{display:flex;gap:8px;align-items:center}
-  .btn{background:transparent;border:1px solid rgba(163,139,99,.5);color:#fff;padding:6px 9px;border-radius:8px;cursor:pointer;font-size:12px}
-  .wrap{padding:12px;display:grid;gap:12px}
-  .panel{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px}
-  .panel h3{margin:0 0 8px 0;font-size:13px;color:#eaeaea;border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
-  .filters{display:grid;grid-template-columns:200px 160px repeat(4,90px) 120px 120px 160px 120px;gap:8px;align-items:end}
-  label{font-size:12px;color:#ddd;display:block;margin:0 0 3px}
-  select,input{width:100%;background:#0E0E0E;color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:8px 10px}
-  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
-  .kpi{background:#0E0E0E;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;position:relative}
-  .kpi .h{font-size:11px;color:#cfcfcf;text-transform:uppercase;letter-spacing:.05em}
-  .kpi .v{font-size:20px;font-weight:800;margin-top:6px}
-  .kpi .s{font-size:11px;color:#bdbdbd;margin-top:2px}
-  .kpi .trend{position:absolute;right:10px;top:10px;font-size:12px}
-  .kpi.ok   {box-shadow:inset 0 0 0 2px rgba(76,175,80,.24)}
-  .kpi.warn {box-shadow:inset 0 0 0 2px rgba(255,193,7,.24)}
-  .kpi.bad  {box-shadow:inset 0 0 0 2px rgba(239,83,80,.28)}
-  .grid2{display:grid;grid-template-columns:1.2fr 1fr;gap:12px}
-  .charts{display:grid;grid-template-columns:1fr;gap:12px}
-  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .legend{font-size:12px;color:#cfcfcf;display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
-  .dot{width:10px;height:10px;border-radius:999px;display:inline-block;margin-right:6px;border:1px solid rgba(255,255,255,.2)}
-  .table{width:100%;border-collapse:collapse;margin-top:6px;font-size:12px}
-  .table th,.table td{border-bottom:1px solid rgba(255,255,255,.08);padding:6px;text-align:left}
-  .rank li{display:flex;justify-content:space-between;padding:6px 4px;border-bottom:1px dashed rgba(255,255,255,.08)}
-  .muted{color:#9AA0A6}
-  .insights li{margin:6px 0}
+  <meta charset="utf-8">
+  <title>Garvetur Porto Pro — Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  @media(max-width:1200px){.kpis{grid-template-columns:repeat(3,1fr)} .grid2{grid-template-columns:1fr} .row2{grid-template-columns:1fr}}
+  <style>
+    :root {
+      --gold: #A38B63;
+      --bg: #0E0E0E;
+      --panel: #141414;
+      --panel-soft: #181818;
+      --border-subtle: rgba(163,139,99,0.35);
+      --text: #FFFFFF;
+      --muted: #A0A0A0;
+      --danger: #F45B5B;
+      --success: #3FBF7F;
+      --info: #4BA3FF;
+    }
 
-  /* ===== Impressão (PDF A4) ===== */
-  .print-cover,.print-summary{display:none}
-  @media print {
-    @page { size: A4; margin: 12mm; }
-    body { background:#fff; color:#000; }
-    header, .actions { display:none !important; }
-    .wrap { padding:0; }
-    .panel { background:#fff; border:1px solid #ddd; color:#000; }
-    .kpi { border-color:#ddd; }
-    .page-break { break-after: page; }
-    a { color:#000 !important; text-decoration:none }
-    .print-cover,.print-summary{display:block}
-  }
-</style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: radial-gradient(circle at top left, #202020 0, #0E0E0E 55%);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+
+    body { display: flex; flex-direction: column; }
+
+    .app-shell { min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* HEADER / NAV */
+
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 18px;
+      border-bottom: 1px solid rgba(163,139,99,0.6);
+      background: linear-gradient(90deg, #050505, #121212 35%, #050505 100%);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.6);
+    }
+
+    .app-header-left { display: flex; align-items: center; gap: 12px; }
+
+    .brand-mark {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 1px solid var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(circle at 30% 0, #f3e4c1 0, #A38B63 40%, #2b2416 100%);
+      color: #121212; font-weight: 700; font-size: 15px;
+    }
+
+    .brand-text { display: flex; flex-direction: column; }
+    .brand-title { font-size: 16px; font-weight: 600; letter-spacing: 0.04em; }
+    .brand-subtitle { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+
+    .app-header-center { flex: 1; display: flex; justify-content: center; }
+
+    .nav-tabs {
+      display: inline-flex;
+      padding: 3px;
+      border-radius: 999px;
+      background: rgba(20,20,20,0.9);
+      border: 1px solid rgba(163,139,99,0.4);
+      backdrop-filter: blur(10px);
+    }
+
+    .nav-tab {
+      position: relative;
+      padding: 6px 14px;
+      font-size: 12px;
+      color: var(--muted);
+      text-decoration: none;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      transition: all 0.18s ease;
+    }
+
+    .nav-tab span.dot {
+      width: 6px; height: 6px; border-radius: 50%; background: transparent;
+    }
+
+    .nav-tab:hover {
+      color: #f5f5f5;
+      background: rgba(255,255,255,0.04);
+    }
+
+    .nav-tab.active {
+      color: #0D0D0D;
+      background: linear-gradient(135deg, #F5E6C9, #A38B63);
+      box-shadow: 0 0 0 1px rgba(250,244,230,0.4), 0 8px 22px rgba(0,0,0,0.7);
+    }
+
+    .nav-tab.active span.dot { background: #0D0D0D; }
+
+    .app-header-right {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11px; color: var(--muted);
+    }
+
+    .badge-env {
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(163,139,99,0.7);
+      background: rgba(5,5,5,0.9);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .btn-ghost-xs {
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: transparent;
+      color: var(--muted);
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .btn-ghost-xs:hover {
+      border-color: rgba(255,255,255,0.4);
+      color: #fff;
+    }
+
+    /* LAYOUT PRINCIPAL */
+
+    .app-main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 14px;
+      padding: 12px 18px 18px;
+      box-sizing: border-box;
+    }
+
+    @media (max-width: 1024px) {
+      .app-main {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+      }
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .panel {
+      background: #141414;
+      border-radius: 14px;
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 14px 40px rgba(0,0,0,0.7);
+      padding: 10px 12px;
+      box-sizing: border-box;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .panel-title {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .panel-body {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .btn-subtle {
+      font-size: 11px;
+      border-radius: 999px;
+      padding: 4px 9px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.02);
+      color: var(--muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-subtle:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(255,255,255,0.25);
+      color: #fff;
+    }
+
+    .badge-small {
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(0,0,0,0.4);
+      color: var(--muted);
+    }
+
+    .text-muted { color: var(--muted); font-size: 12px; }
+
+    /* KPIs */
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .kpi-card {
+      background: #181818;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 7px 8px;
+      font-size: 12px;
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+
+    .kpi-value {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .kpi-trend {
+      font-size: 11px;
+      margin-top: 2px;
+    }
+
+    .kpi-trend.good { color: var(--success); }
+    .kpi-trend.bad { color: var(--danger); }
+
+    /* ÁREA PRINCIPAL */
+
+    .main-content {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .cards-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 10px;
+    }
+
+    @media (max-width: 1200px) {
+      .cards-row { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+    @media (max-width: 800px) {
+      .cards-row { grid-template-columns: 1fr; }
+    }
+
+    .metric-card {
+      background: #151515;
+      border-radius: 14px;
+      border: 1px solid rgba(163,139,99,0.45);
+      padding: 10px 12px;
+      box-shadow: 0 14px 40px rgba(0,0,0,0.7);
+      font-size: 12px;
+    }
+
+    .metric-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .metric-main {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .metric-sub {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .metric-list {
+      margin-top: 6px;
+      font-size: 12px;
+      list-style: none;
+      padding: 0;
+      margin-left: 0;
+    }
+
+    .metric-list li {
+      display: flex;
+      justify-content: space-between;
+      padding: 3px 0;
+      border-bottom: 1px dashed rgba(255,255,255,0.04);
+    }
+
+    .metric-list li:last-child { border-bottom: none; }
+
+    /* TABELA RESUMO CONSULTOR */
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    th, td {
+      padding: 5px 4px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    th {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    tr.highlight td {
+      background: rgba(163,139,99,0.08);
+      color: #f5f5f5;
+    }
+
+    .chip-tiny {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(0,0,0,0.5);
+      color: var(--muted);
+    }
+
+    .empty {
+      font-size: 12px;
+      color: var(--muted);
+      padding: 4px 0;
+    }
+  </style>
 </head>
 <body>
-<header>
-  <div style="display:flex;align-items:center;gap:10px;">
-    <strong style="color:#FFD166">Garvetur Porto Pro</strong>
-    <nav>
-      <a href="./index.html">Mapa</a>
-      <a href="./kanban.html">Leads</a>
-      <a href="./angariacoes.html">Angariações</a>
-      <a class="active" href="./dashboard.html">Dashboard</a>
-    </nav>
-  </div>
-  <div class="actions">
-    <button id="exportCsv" class="btn">Exportar CSV (filtro)</button>
-    <button id="exportPng" class="btn">Exportar PNG</button>
-    <button id="exportPdf" class="btn">PDF A4 (capa+sumário)</button>
-  </div>
-</header>
-
-<div class="wrap" id="captureArea">
-  <!-- CAPA PARA PDF -->
-  <section class="print-cover panel page-break">
-    <h1 style="margin:0;color:#111;font-size:28px">Garvetur Porto Pro — Dashboard Comercial</h1>
-    <p style="color:#222;margin:6px 0 2px">Período: <span id="cov_periodo"></span></p>
-    <p style="color:#222;margin:0 0 12px">Filtros: <span id="cov_filtros"></span></p>
-    <div style="margin-top:20px;border-top:1px solid #ddd;padding-top:12px;color:#222">
-      <div><strong>Comissão considerada:</strong> <span id="cov_comm"></span></div>
-      <div><strong>Gerado em:</strong> <span id="cov_dt"></span></div>
-    </div>
-  </section>
-
-  <!-- SUMÁRIO EXECUTIVO PARA PDF -->
-  <section class="print-summary panel page-break">
-    <h3>Sumário Executivo</h3>
-    <ul class="insights" id="insights_ul"></ul>
-  </section>
-
-  <!-- FILTROS -->
-  <div class="panel">
-    <h3>Filtros</h3>
-    <div class="filters">
-      <div>
-        <label>Consultor</label>
-        <select id="f_consultor">
-          <option value="">(Todos)</option>
-          <option>Rui Quelhas</option>
-          <option>Manuel Oliveira</option>
-          <option>João Sousa</option>
-          <option>Francisco dos Santos</option>
-          <option>Rosário Vasconcelos</option>
-          <option>Armanda Meireles</option>
-          <option>Audrey Lucas</option>
-        </select>
-      </div>
-
-      <div>
-        <label>Origem</label>
-        <select id="f_origem">
-          <option value="">(Todas)</option>
-        </select>
-      </div>
-
-      <div>
-        <label>&nbsp;</label>
-        <button data-q="7" class="btn qbtn">7 dias</button>
-      </div>
-      <div>
-        <label>&nbsp;</label>
-        <button data-q="30" class="btn qbtn">30 dias</button>
-      </div>
-      <div>
-        <label>&nbsp;</label>
-        <button data-q="90" class="btn qbtn">90 dias</button>
-      </div>
-      <div>
-        <label>&nbsp;</label>
-        <button data-q="ytd" class="btn qbtn">YTD</button>
-      </div>
-      <div>
-        <label>De</label>
-        <input type="date" id="f_de">
-      </div>
-      <div>
-        <label>Até</label>
-        <input type="date" id="f_ate">
-      </div>
-      <div>
-        <label>Comissão (%)</label>
-        <select id="f_comm">
-          <option value="0.03">3%</option>
-          <option value="0.04">4%</option>
-          <option value="0.05">5%</option>
-          <option value="0.06">6%</option>
-        </select>
-      </div>
-      <div>
-        <label>&nbsp;</label>
-        <button id="apply" class="btn">Aplicar</button>
+<div class="app-shell">
+  <header class="app-header">
+    <div class="app-header-left">
+      <div class="brand-mark">G</div>
+      <div class="brand-text">
+        <div class="brand-title">Garvetur Porto Pro</div>
+        <div class="brand-subtitle">Garvetur Luxury Porto · Dashboard</div>
       </div>
     </div>
-  </div>
-
-  <!-- KPIs + TENDÊNCIAS -->
-  <div class="panel">
-    <h3>KPIs Gerais</h3>
-    <div class="kpis">
-      <div class="kpi" id="kpi_leads"><div class="h">Leads (filtro)</div><div class="v" id="k_leads">—</div><div class="s">Novas 7d: <span id="k_leads7">—</span></div><div class="trend" id="t_leads"></div></div>
-      <div class="kpi" id="kpi_fechos"><div class="h">Fechos</div><div class="v" id="k_fechos">—</div><div class="s">Taxa Fecho: <span id="k_taxa">—</span></div><div class="trend" id="t_taxa"></div></div>
-      <div class="kpi" id="kpi_tempo"><div class="h">Tempo médio até Fecho</div><div class="v" id="k_tempo">—</div><div class="s">dias (média)</div><div class="trend" id="t_tempo"></div></div>
-      <div class="kpi" id="kpi_vmed"><div class="h">Valor médio (Fechos)</div><div class="v" id="k_vmed">—</div><div class="s">€</div><div class="trend" id="t_vmed"></div></div>
-      <div class="kpi" id="kpi_comm"><div class="h">Comissão Estimada</div><div class="v" id="k_comm">—</div><div class="s">taxa selecionada</div><div class="trend" id="t_comm"></div></div>
-      <div class="kpi" id="kpi_conv"><div class="h">Leads c/ Visita</div><div class="v" id="k_visitas">—</div><div class="s">→ Proposta: <span id="k_conv_vp">—</span></div><div class="trend" id="t_conv"></div></div>
+    <div class="app-header-center">
+      <nav class="nav-tabs">
+        <a href="index.html" class="nav-tab">
+          <span class="dot"></span>Mapa
+        </a>
+        <a href="kanban.html" class="nav-tab">
+          <span class="dot"></span>Leads
+        </a>
+        <a href="angariacoes.html" class="nav-tab">
+          <span class="dot"></span>Angariações
+        </a>
+        <a href="dashboard.html" class="nav-tab active">
+          <span class="dot"></span>Dashboard
+        </a>
+      </nav>
     </div>
-  </div>
+    <div class="app-header-right">
+      <div class="badge-env">Visão global</div>
+      <button type="button" class="btn-ghost-xs" id="btnRefresh">Recalcular</button>
+    </div>
+  </header>
 
-  <div class="grid2">
-    <!-- CHARTS -->
-    <div class="panel charts">
-      <h3>Gráficos</h3>
-
-      <!-- BARRAS: Leads por consultor -->
-      <div>
-        <div class="muted">Leads por consultor (filtro)</div>
-        <svg id="bar_cons" viewBox="0 0 800 240" width="100%" height="240" aria-label="Barras por consultor"></svg>
-      </div>
-
-      <div class="row2 page-break">
-        <!-- FUNIL -->
-        <div>
-          <div class="muted">Funil de Conversão</div>
-          <svg id="funnel" viewBox="0 0 420 260" width="100%" height="260" aria-label="Funil"></svg>
-          <div class="legend">
-            <span><span class="dot" style="background:#9E9E9E"></span>Novo</span>
-            <span><span class="dot" style="background:#A38B63"></span>Em Contacto</span>
-            <span><span class="dot" style="background:#2ecc71"></span>Qualificado</span>
-            <span><span class="dot" style="background:#4285F4"></span>Visita</span>
-            <span><span class="dot" style="background:#FFC107"></span>Proposta</span>
-            <span><span class="dot" style="background:#4CAF50"></span>Fecho</span>
+  <main class="app-main">
+    <!-- Sidebar esquerda -->
+    <aside class="sidebar">
+      <section class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Estado geral</div>
+          <span id="lblResumoEstado" class="text-muted">—</span>
+        </div>
+        <div class="panel-body">
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-label">Leads ativas</div>
+              <div class="kpi-value" id="kpiLeadsAtivas">0</div>
+              <div class="kpi-trend" id="kpiLeadsFecho">Taxa de fecho: —</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Angariações ativas</div>
+              <div class="kpi-value" id="kpiAngAtivas">0</div>
+              <div class="kpi-trend" id="kpiAngExclusivo">Exclusivas: —</div>
+            </div>
           </div>
+          <p style="margin-top:8px;">
+            Dados consolidados em tempo real a partir das páginas <strong>Leads</strong> e <strong>Angariações</strong>.
+          </p>
+          <div class="badge-small" id="lblFonteDados">Fonte: localStorage</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Filtros de análise</div>
+        </div>
+        <div class="panel-body">
+          <div class="field-group">
+            <label class="field-label">Consultor</label>
+            <select id="fDashConsultor">
+              <option value="todos">Todos</option>
+              <option value="Rui Quelhas">Rui Quelhas</option>
+              <option value="Manuel Oliveira">Manuel Oliveira</option>
+              <option value="João Sousa">João Sousa</option>
+              <option value="Francisco dos Santos">Francisco dos Santos</option>
+              <option value="Rosário Vasconcelos">Rosário Vasconcelos</option>
+              <option value="Armanda Meireles">Armanda Meireles</option>
+              <option value="Audrey Lucas">Audrey Lucas</option>
+            </select>
+          </div>
+          <div class="field-group" style="margin-top:6px;">
+            <label class="field-label">Origem dos dados</label>
+            <div class="text-muted" id="lblDebugKeys" style="font-size:11px;">—</div>
+          </div>
+          <div style="margin-top:8px;">
+            <button type="button" class="btn-subtle" id="btnLimparLS">
+              Limpar caches antigas
+            </button>
+          </div>
+          <p class="text-muted" style="margin-top:6px; font-size:11px;">
+            (apenas remove versões antigas dos dados no navegador; não afeta os registos atuais nas páginas).
+          </p>
+        </div>
+      </section>
+    </aside>
+
+    <!-- Área principal -->
+    <section class="main-content">
+      <div class="cards-row">
+        <div class="metric-card">
+          <div class="metric-title">Funil de Leads</div>
+          <div class="metric-main" id="mFunilTotalLeads">0</div>
+          <div class="metric-sub" id="mFunilResumo">—</div>
+          <ul class="metric-list" id="listFunil"></ul>
         </div>
 
-        <!-- DONUT -->
-        <div>
-          <div class="muted">Distribuição — Origem (fallback: Comprador/Vendedor)</div>
-          <svg id="donut" viewBox="0 0 260 260" width="100%" height="260" aria-label="Donut"></svg>
-          <div id="donut_leg" class="legend"></div>
+        <div class="metric-card">
+          <div class="metric-title">Angariações</div>
+          <div class="metric-main" id="mAngTotal">0</div>
+          <div class="metric-sub" id="mAngResumo">—</div>
+          <ul class="metric-list" id="listAng"></ul>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">Performance por estado</div>
+          <div class="metric-main" id="mPerfResumo">—</div>
+          <div class="metric-sub" id="mPerfSub">—</div>
+          <ul class="metric-list" id="listPerf"></ul>
         </div>
       </div>
-    </div>
 
-    <!-- ANGARIAÇÕES + RANKING -->
-    <div class="panel">
-      <h3>Angariações & Ranking</h3>
-      <div class="kpis" style="grid-template-columns:repeat(3,1fr);margin-bottom:8px">
-        <div class="kpi"><div class="h">Ativas</div><div class="v" id="a_ativas">—</div><div class="s">em carteira</div></div>
-        <div class="kpi"><div class="h">Novas (30d)</div><div class="v" id="a_novas30">—</div><div class="s">últimos 30 dias</div></div>
-        <div class="kpi"><div class="h">CMI Assinado</div><div class="v" id="a_cmi">—</div><div class="s">% de angariações</div></div>
+      <div class="metric-card">
+        <div class="metric-title">Consultores · Resumo</div>
+        <div class="metric-sub" id="mConsultorResumo">Distribuição de leads e angariações por consultor.</div>
+        <div style="margin-top:6px; overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Consultor</th>
+                <th>Leads</th>
+                <th>Fechos</th>
+                <th>Angariações</th>
+                <th>Exclusivas</th>
+              </tr>
+            </thead>
+            <tbody id="tblConsultores">
+              <tr><td colspan="5" class="empty">Sem dados disponíveis.</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-      <table class="table" id="a_tab">
-        <thead><tr><th>Estado</th><th>#</th><th>% Docs Completas</th><th>Ajust. Médio</th></tr></thead>
-        <tbody></tbody>
-      </table>
-
-      <div class="panel" style="margin-top:10px">
-        <h3>Ranking (últimos 7 dias)</h3>
-        <ul id="rank" class="rank" style="list-style:none;margin:0;padding:0"></ul>
-      </div>
-    </div>
-  </div>
+    </section>
+  </main>
 </div>
 
 <script>
-/* ======= STORAGE KEYS ======= */
-const LS_LEADS = 'gpp_leads_v3';
-const LS_ANG   = 'gpp_ang_v2';
-const LS_COMM  = 'gpp_commission_rate';
+  // --- Carregamento robusto das diferentes versões de dados ---
 
-/* ======= ESTADO DE FILTRO ======= */
-let F_CONS = '', F_DE = '', F_ATE = '', F_ORIG = '';
-let COMM_RATE = loadComm();
+  function safeParse(key) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return null;
+      const val = JSON.parse(raw);
+      if (!Array.isArray(val)) return null;
+      return val;
+    } catch (e) {
+      return null;
+    }
+  }
 
-/* ======= UTIL ======= */
-const fmtNum = (n)=> n==null || !isFinite(n) ? '—' : n.toLocaleString('pt-PT');
-const fmtPct = (n)=> n==null || !isFinite(n) ? '—' : (Math.round(n*100)/100)+'%';
-const fmtMoney = (n)=> n==null || !isFinite(n) ? '—' : n.toLocaleString('pt-PT',{style:'currency',currency:'EUR'});
-function daysAgoISO(n){ const d=new Date(); d.setDate(d.getDate()-n); d.setHours(0,0,0,0); return d.toISOString().slice(0,10); }
-function inRangeISO(iso, d1, d2){
-  if(!iso) return false;
-  const t = Date.parse(iso); if(!isFinite(t)) return false;
-  if(d1){ const s = Date.parse(d1+'T00:00:00'); if(t < s) return false; }
-  if(d2){ const e = Date.parse(d2+'T23:59:59'); if(t > e) return false; }
-  return true;
-}
-function addDaysISO(iso, n){ const d = new Date(iso+'T00:00:00'); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
-function diffDaysISO(a,b){ const t1 = Date.parse(a+'T00:00:00'); const t2 = Date.parse(b+'T00:00:00'); return Math.max(0, Math.round((t2-t1)/(1000*60*60*24))+1); }
-
-/* ======= LOAD/SAVE ======= */
-function loadLeads(){ try{ return JSON.parse(localStorage.getItem(LS_LEADS)||'[]'); }catch(e){ return []; } }
-function loadAng(){   try{ return JSON.parse(localStorage.getItem(LS_ANG)||'[]');   }catch(e){ return []; } }
-function loadComm(){  const v = localStorage.getItem(LS_COMM); return v ? Number(v) : 0.05; }
-function saveComm(v){ localStorage.setItem(LS_COMM, String(v)); }
-
-/* ======= FILTRO DE LEADS ======= */
-function filterLeads(leads, cons, orig, d1, d2){
-  return leads.filter(l=>{
-    const byCons = !cons || (l.consultor===cons);
-    const byDate = (!d1 && !d2) || inRangeISO(l.createdAt, d1, d2);
-    const byOrig = !orig || (String(l.origem||'Indefinido') === orig);
-    return byCons && byDate && byOrig;
-  });
-}
-
-/* ======= KPIs LEADS ======= */
-function calcKPILeads(leadsFiltered){
-  const total = leadsFiltered.length;
-
-  const byStage = {novo:0, em_contacto:0, qualificado:0, visita:0, proposta:0, fecho:0};
-  const now = new Date(); const wkStart = new Date(); wkStart.setDate(now.getDate()-7); wkStart.setHours(0,0,0,0);
-  let novas7 = 0, fechos=0, somaValFecho=0, temposFecho=[], visitas=0, propostas=0;
-
-  leadsFiltered.forEach(l=>{
-    const s = (l.stage||'').toLowerCase();
-    if(byStage[s]!=null) byStage[s]++;
-    if (l.createdAt && Date.parse(l.createdAt)>=wkStart.getTime()) novas7++;
-    if (s==='fecho'){
-      fechos++;
-      if (isFinite(l.val)) somaValFecho+= Number(l.val);
-      if (l.createdAt) {
-        const t = Date.parse(l.createdAt);
-        const u = l.updatedAt ? Date.parse(l.updatedAt) : Date.now();
-        if(isFinite(t) && isFinite(u) && u>=t){
-          const dias = Math.round((u - t)/(1000*60*60*24));
-          temposFecho.push(dias);
-        }
+  function chooseFirstNonEmpty(keys) {
+    for (const k of keys) {
+      const arr = safeParse(k);
+      if (arr && arr.length > 0) {
+        return { key: k, data: arr };
       }
     }
-    if (s==='visita')   visitas++;
-    if (s==='proposta') propostas++;
-  });
-
-  const taxaFecho = total ? Math.round((fechos/total)*100) : 0;
-  const tempoMed = temposFecho.length ? Math.round(temposFecho.reduce((a,b)=>a+b,0)/temposFecho.length) : null;
-  const valMed = fechos ? (somaValFecho/fechos) : null;
-  const commEst = somaValFecho * COMM_RATE;
-  const convVP = (visitas+propostas) ? Math.round((propostas/(visitas+propostas))*100) : null;
-
-  return { total, novas7, fechos, taxaFecho, tempoMed, valMed, commEst, visitas, convVP, byStage };
-}
-
-/* ======= KPIs ANGARIAÇÕES ======= */
-function calcKPIAng(ang){
-  const tot = ang.length;
-  const ativas = ang.filter(a => (a.estado||'').toLowerCase()!=='fechado' && (a.estado||'').toLowerCase()!=='perdido').length;
-  const d30 = daysAgoISO(30);
-  const novas30 = ang.filter(a => a.createdAt && a.createdAt.slice(0,10)>=d30).length;
-  const cmi = ang.filter(a => String(a.cmi||a.cmi_assinado||'').toLowerCase()==='sim').length;
-  let completas=0, somaGap=0, gaps=0;
-  ang.forEach(a=>{
-    const ok = ['cc','caderneta','crp','crp_ok','di','cert_energetico','licenca'].map(k=>String(a[k]||'').toLowerCase()).filter(v=>v==='sim' || v==='ok' || v==='true').length;
-    if (ok>=4) completas++;
-    if (isFinite(a.ajust)||isFinite(a.percent_ajust)||isFinite(a.gap)){
-      const g = Number(a.ajust||a.percent_ajust||a.gap);
-      if(isFinite(g)){ somaGap+=g; gaps++; }
-    }
-  });
-  const pctCmi = tot ? Math.round((cmi/tot)*100): 0;
-  const pctDocs = tot ? Math.round((completas/tot)*100): 0;
-  const gapMed = gaps ? (somaGap/gaps) : null;
-
-  const estados = {};
-  ang.forEach(a=>{
-    const e = (a.estado||'Em análise').toString();
-    estados[e] = (estados[e]||0)+1;
-  });
-
-  return {tot, ativas, novas30, pctCmi, pctDocs, gapMed, estados};
-}
-
-/* ======= GRÁFICOS (SVG) ======= */
-function drawBars(svgId, dataMap){
-  const svg = document.getElementById(svgId);
-  svg.innerHTML='';
-  const labels = Object.keys(dataMap);
-  const vals = labels.map(k=>dataMap[k]);
-  const W=800,H=240, pad=40;
-  const max = Math.max(1, ...vals);
-  const bw = (W - pad*2)/Math.max(1, labels.length);
-
-  const g = document.createElementNS('http://www.w3.org/2000/svg','g');
-  const axis = document.createElementNS('http://www.w3.org/2000/svg','line');
-  axis.setAttribute('x1', pad); axis.setAttribute('x2', W-pad);
-  axis.setAttribute('y1', H-pad); axis.setAttribute('y2', H-pad);
-  axis.setAttribute('stroke', '#666'); axis.setAttribute('stroke-width','1');
-  g.appendChild(axis);
-
-  labels.forEach((lab,i)=>{
-    const v = dataMap[lab]||0;
-    const bh = ( (H-pad*1.6) * v / max );
-    const x = pad + i*bw + 6;
-    const y = (H-pad) - bh;
-    const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
-    rect.setAttribute('x', x); rect.setAttribute('y', y);
-    rect.setAttribute('width', Math.max(10,bw-12)); rect.setAttribute('height', Math.max(0,bh));
-    rect.setAttribute('fill', '#A38B63'); rect.setAttribute('opacity','.9');
-    g.appendChild(rect);
-
-    const tx = document.createElementNS('http://www.w3.org/2000/svg','text');
-    tx.setAttribute('x', x + (Math.max(10,bw-12)/2)); tx.setAttribute('y', H-pad+14);
-    tx.setAttribute('fill', '#ddd'); tx.setAttribute('font-size','11'); tx.setAttribute('text-anchor','middle');
-    tx.textContent = lab;
-    g.appendChild(tx);
-
-    const tv = document.createElementNS('http://www.w3.org/2000/svg','text');
-    tv.setAttribute('x', x + (Math.max(10,bw-12)/2)); tv.setAttribute('y', y-4);
-    tv.setAttribute('fill', '#fff'); tv.setAttribute('font-size','11'); tv.setAttribute('text-anchor','middle');
-    tv.textContent = v;
-    g.appendChild(tv);
-  });
-
-  svg.appendChild(g);
-}
-
-function drawFunnel(svgId, byStage){
-  const svg = document.getElementById(svgId);
-  svg.innerHTML='';
-  const order = [
-    {k:'novo', c:'#9E9E9E',  w:380, y:10,  h:32, t:'Novo'},
-    {k:'em_contacto', c:'#A38B63', w:350, y:52, h:32, t:'Em Contacto'},
-    {k:'qualificado', c:'#2ecc71', w:320, y:94, h:32, t:'Qualificado'},
-    {k:'visita', c:'#4285F4', w:290, y:136, h:32, t:'Visita'},
-    {k:'proposta', c:'#FFC107', w:260, y:178, h:32, t:'Proposta'},
-    {k:'fecho', c:'#4CAF50', w:230, y:220, h:32, t:'Fecho'}
-  ];
-  const W=420, cx=W/2;
-  order.forEach((s)=>{
-    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
-    const x = cx - s.w/2;
-    const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
-    rect.setAttribute('x', x); rect.setAttribute('y', s.y);
-    rect.setAttribute('width', s.w); rect.setAttribute('height', s.h);
-    rect.setAttribute('rx','8'); rect.setAttribute('fill', s.c); rect.setAttribute('opacity','.9');
-    g.appendChild(rect);
-    const tx = document.createElementNS('http://www.w3.org/2000/svg','text');
-    tx.setAttribute('x', cx); tx.setAttribute('y', s.y + s.h/2 + 4);
-    tx.setAttribute('fill','#0E0E0E'); tx.setAttribute('font-weight','700'); tx.setAttribute('font-size','12'); tx.setAttribute('text-anchor','middle');
-    tx.textContent = `${s.t}: ${(byStage[s.k]||0)}`;
-    g.appendChild(tx);
-    svg.appendChild(g);
-  });
-}
-
-function drawDonut(svgId, legendId, dataMap){
-  const svg = document.getElementById(svgId);
-  const leg = document.getElementById(legendId);
-  svg.innerHTML=''; leg.innerHTML='';
-  const entries = Object.entries(dataMap).filter(([,v])=>v>0);
-  const total = entries.reduce((a,[,v])=>a+v,0);
-  if(!total){
-    const t=document.createElement('div'); t.className='muted'; t.textContent='Sem dados no filtro';
-    leg.appendChild(t); return;
+    // se nenhuma tem dados, devolve vazio com a primeira key
+    return { key: keys[0] || '—', data: [] };
   }
-  const colors = ['#A38B63','#2ecc71','#4285F4','#FFC107','#EF5350','#AB47BC','#26C6DA','#8D6E63'];
-  const cx=130, cy=130, r=80, w=26;
-  let start=0, i=0;
-  entries.forEach(([k,v])=>{
-    const frac = v/total;
-    const ang = frac*2*Math.PI;
-    const end = start + ang;
-    const x1 = cx + r*Math.cos(start), y1=cy + r*Math.sin(start);
-    const x2 = cx + r*Math.cos(end),   y2=cy + r*Math.sin(end);
-    const x3 = cx + (r-w)*Math.cos(end), y3=cy + (r-w)*Math.sin(end);
-    const x4 = cx + (r-w)*Math.cos(start), y4=cy + (r-w)*Math.sin(start);
-    const large = ang>Math.PI ? 1:0;
-    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-    const d = [
-      `M ${x1} ${y1}`,
-      `A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`,
-      `L ${x3} ${y3}`,
-      `A ${r-w} ${r-w} 0 ${large} 0 ${x4} ${y4}`,
-      'Z'
-    ].join(' ');
-    path.setAttribute('d', d);
-    path.setAttribute('fill', colors[i%colors.length]); path.setAttribute('opacity','.95');
-    svg.appendChild(path);
-    const pct = Math.round((v/total)*100);
-    const span = document.createElement('span');
-    span.innerHTML = `<span class="dot" style="background:${colors[i%colors.length]}"></span>${k} (${v} • ${pct}%)`;
-    leg.appendChild(span);
-    i++; start=end;
-  });
-}
 
-/* ======= ALERTAS KPI ======= */
-function setKpiState(elId, state){ // 'ok' | 'warn' | 'bad' | ''
-  const el = document.getElementById(elId);
-  el.classList.remove('ok','warn','bad');
-  if (state) el.classList.add(state);
-}
-
-/* ======= TENDÊNCIAS ======= */
-function trendArrow(curr, prev, invert=false){ // invert=true: valores menores são melhores (tempo)
-  if (prev==null || !isFinite(prev)) return '';
-  if (curr==null || !isFinite(curr)) return '';
-  const delta = curr - prev;
-  const pct = prev===0 ? 0 : (delta/prev)*100;
-  const sgn = invert ? -delta : delta;
-  const arrow = sgn>0 ? '↑' : (sgn<0 ? '↓' : '→');
-  const cls = sgn>0 ? (invert?'ok':'bad') : (sgn<0 ? (invert?'bad':'ok') : 'warn');
-  return `<span style="color:${cls==='ok'?'#4CAF50':cls==='bad'?'#EF5350':'#FFC107'}">${arrow} ${Math.abs(Math.round(pct))}%</span>`;
-}
-
-/* ======= SUMÁRIO EXECUTIVO ======= */
-function genInsights(kCurr, kPrev, porCons){
-  const out = [];
-  // 1) evolução de leads
-  if (kPrev && isFinite(kPrev.total) && isFinite(kCurr.total)){
-    const d = kCurr.total - kPrev.total;
-    const pct = kPrev.total? Math.round(d/kPrev.total*100):0;
-    out.push(`Leads no período: ${kCurr.total} (${d>=0?'+':''}${d}, ${pct>=0?'+':''}${pct}%).`);
+  function loadLeadsData() {
+    // ordem de preferência: versões mais recentes para trás
+    const candidateKeys = ['gpp_leads_v3', 'gpp_leads_v2', 'gpp_leads'];
+    return chooseFirstNonEmpty(candidateKeys);
   }
-  // 2) taxa de fecho
-  if (kCurr.taxaFecho!=null){
-    const t = kCurr.taxaFecho;
-    const note = t<10?'— melhoria prioritária necessária': t<20?'— potencial de melhoria':'— desempenho saudável';
-    out.push(`Taxa de fecho: ${t}% ${note}.`);
-  }
-  // 3) tempo médio até fecho
-  if (kCurr.tempoMed!=null){
-    out.push(`Tempo médio até fecho: ${kCurr.tempoMed} dias${kCurr.tempoMed>60?' — otimizar ciclo comercial (pré-qualificação/urgência)':''}.`);
-  }
-  // 4) origem dominante
-  const leads = filterLeads(loadLeads(), F_CONS, F_ORIG, F_DE, F_ATE);
-  const byOrig = {};
-  leads.forEach(l=>{ const o=l.origem?String(l.origem):'Indefinido'; byOrig[o]=(byOrig[o]||0)+1; });
-  const topOrig = Object.entries(byOrig).sort((a,b)=>b[1]-a[1])[0];
-  if (topOrig) out.push(`Origem dominante: ${topOrig[0]} (${topOrig[1]} leads) — reforçar investimento neste canal.`);
-  // 5) consultor destaque
-  const topCons = Object.entries(porCons).sort((a,b)=>b[1]-a[1])[0];
-  if (topCons) out.push(`Maior captação no período: ${topCons[0]} (${topCons[1]} leads).`);
-  return out.slice(0,5);
-}
 
-/* ======= EXPORTAÇÕES ======= */
-function exportCSV(leadsFiltered){
-  const headers = ["ID","Cliente","Contacto","Email","Imóvel","Zona","Origem","Valor (€)","Consultor","Estado","Criado em"];
-  const rows = leadsFiltered.map(l=>[
-    l.id, l.cliente||'', l.tel||'', l.email||'', l.imovel||'', l.zona||'', l.origem||'Indefinido', l.val??'', l.consultor||'', l.stage||'', l.createdAt||''
-  ]);
-  const lines = [headers, ...rows].map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n');
-  const blob = new Blob([lines], {type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob); const a = document.createElement('a');
-  a.href=url; a.download='dashboard_leads_filtradas.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-}
-async function exportPNG(){
-  const area = document.getElementById('captureArea');
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${area.clientWidth}" height="${area.clientHeight}">
-    <foreignObject width="100%" height="100%">${new XMLSerializer().serializeToString(area.cloneNode(true))}</foreignObject>
-  </svg>`;
-  const blob = new Blob([svg], {type:'image/svg+xml;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  const img = new Image();
-  img.onload = ()=>{
-    const c = document.createElement('canvas');
-    c.width = img.width; c.height = img.height;
-    const ctx = c.getContext('2d');
-    ctx.drawImage(img,0,0);
-    URL.revokeObjectURL(url);
-    c.toBlob(b=>{
-      const dl = document.createElement('a');
-      dl.href = URL.createObjectURL(b);
-      dl.download = 'garvetur_dashboard.png';
-      document.body.appendChild(dl); dl.click(); dl.remove();
+  function loadAngData() {
+    const candidateKeys = ['gpp_ang_v3', 'gpp_angariacoes_v2', 'gpp_angariacoes'];
+    return chooseFirstNonEmpty(candidateKeys);
+  }
+
+  function limparCachesAntigas() {
+    const oldKeys = [
+      'gpp_leads', 'gpp_leads_v2',
+      'gpp_angariacoes', 'gpp_angariacoes_v2'
+    ];
+    oldKeys.forEach(k => {
+      try { localStorage.removeItem(k); } catch (e) {}
     });
-  };
-  img.src = url;
-}
-function exportPDF(){
-  // Preenche capa + sumário antes de abrir o diálogo de impressão
-  const de = document.getElementById('f_de').value || '—';
-  const ate = document.getElementById('f_ate').value || '—';
-  const cons = document.getElementById('f_consultor').value || '(Todos)';
-  const orig = document.getElementById('f_origem').value || '(Todas)';
-  const rate = Number(document.getElementById('f_comm').value||'0.05');
-
-  document.getElementById('cov_periodo').textContent = `${de} a ${ate}`;
-  document.getElementById('cov_filtros').textContent = `Consultor: ${cons} | Origem: ${orig}`;
-  document.getElementById('cov_comm').textContent = (Math.round(rate*100))+'%';
-  document.getElementById('cov_dt').textContent = new Date().toLocaleString('pt-PT');
-
-  // Sumário executivo
-  const curr = lastKpis.curr;
-  const prev = lastKpis.prev;
-  const insights = genInsights(curr, prev, lastKpis.porCons);
-  const ul = document.getElementById('insights_ul'); ul.innerHTML='';
-  insights.forEach(t=>{ const li=document.createElement('li'); li.textContent=t; ul.appendChild(li); });
-
-  window.print();
-}
-
-/* ======= POPULAR “ORIGEM” ======= */
-function populateOrigemSelect(){
-  const sel = document.getElementById('f_origem');
-  const leads = loadLeads();
-  const set = new Set();
-  leads.forEach(l=>{
-    const o = l.origem ? String(l.origem) : 'Indefinido';
-    set.add(o);
-  });
-  const options = Array.from(set).sort((a,b)=>a.localeCompare(b,'pt-PT'));
-  sel.innerHTML = `<option value="">(Todas)</option>` + options.map(o=>`<option value="${o}">${o}</option>`).join('');
-}
-
-/* ======= RANKING ======= */
-function renderRanking(containerId, leads, sinceISO){
-  const ul = document.getElementById(containerId); ul.innerHTML='';
-  const sinceT = Date.parse(sinceISO+'T00:00:00');
-  const map = {};
-  leads.forEach(l=>{
-    const t = l.createdAt ? Date.parse(l.createdAt) : null;
-    if (t && t>=sinceT){
-      const c = l.consultor||'—'; map[c]=(map[c]||0)+1;
-    }
-  });
-  const arr = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  if(!arr.length){ ul.innerHTML = '<li class="muted">Sem registos nos últimos 7 dias.</li>'; return; }
-  arr.forEach(([c,n],idx)=>{
-    const li = document.createElement('li');
-    li.innerHTML = `<span>${idx+1}. ${c}</span><span>${n}</span>`;
-    ul.appendChild(li);
-  });
-}
-
-/* ======= ANGARIAÇÕES ======= */
-function renderAngTable(tbodyId, aggr){
-  const tb = document.querySelector('#'+tbodyId+' tbody');
-  tb.innerHTML='';
-  const estados = Object.keys(aggr.estados).sort();
-  if(!estados.length){
-    const tr=document.createElement('tr'); tr.innerHTML='<td colspan="4" class="muted">Sem dados</td>'; tb.appendChild(tr); return;
-  }
-  estados.forEach(e=>{
-    const n = aggr.estados[e];
-    const tr=document.createElement('tr');
-    tr.innerHTML = `<td>${e}</td><td>${n}</td><td>${aggr.pctDocs}%</td><td>${aggr.gapMed==null?'—':(Math.round(aggr.gapMed*10)/10)+'%'}</td>`;
-    tb.appendChild(tr);
-  });
-}
-
-/* ======= ESTADO GLOBAL P/ PDF (KPIs atuais vs. anteriores) ======= */
-const lastKpis = { curr:null, prev:null, porCons:{} };
-
-/* ======= RENDER PRINCIPAL ======= */
-function renderAll(){
-  const leadsAll = loadLeads();
-  const angAll = loadAng();
-
-  // Filtros atuais
-  const cons = F_CONS;
-  const orig = F_ORIG;
-  const d1 = F_DE; const d2 = F_ATE;
-
-  // Período anterior equivalente (mesmo nº de dias imediatamente anterior ao início)
-  let prev_d1='', prev_d2='';
-  if (d1 && d2){
-    const nDays = diffDaysISO(d1, d2);
-    prev_d2 = addDaysISO(d1, -1);
-    prev_d1 = addDaysISO(prev_d2, -(nDays-1));
   }
 
-  // Leads filtradas (atuais e período anterior)
-  const leadsCurr = filterLeads(leadsAll, cons, orig, d1, d2);
-  const leadsPrev = (prev_d1 && prev_d2) ? filterLeads(leadsAll, cons, orig, prev_d1, prev_d2) : [];
+  // --- Utilitários de formato ---
 
-  // KPIs
-  const k = calcKPILeads(leadsCurr);
-  const kPrev = calcKPILeads(leadsPrev);
+  function percent(part, total) {
+    if (!total || total <= 0) return '—';
+    const p = (part / total) * 100;
+    return p.toFixed(1).replace('.', ',') + ' %';
+  }
 
-  // Guarda para PDF
-  lastKpis.curr = k; lastKpis.prev = kPrev;
+  function formatMoney(v) {
+    if (!v) return '';
+    const num = Number(String(v).replace(/\./g, '').replace(',', '.'));
+    if (!isFinite(num)) return String(v);
+    return num.toLocaleString('pt-PT', { maximumFractionDigits: 0 }) + ' €';
+  }
 
-  // KPIs numéricos
-  setText('k_leads', fmtNum(k.total));
-  setText('k_leads7', fmtNum(k.novas7));
-  setText('k_fechos', fmtNum(k.fechos));
-  setText('k_taxa', k.total ? (k.taxaFecho+'%') : '—');
-  setText('k_tempo', k.tempoMed==null ? '—' : (k.tempoMed+' d'));
-  setText('k_vmed', fmtMoney(k.valMed));
-  setText('k_comm', fmtMoney(k.commEst));
-  setText('k_visitas', fmtNum(k.visitas));
-  setText('k_conv_vp', k.convVP==null ? '—' : (k.convVP+'%'));
+  function normalizeEstadoLead(l) {
+    const e = (l && l.estado) ? String(l.estado).toLowerCase() : 'novo';
+    if (e.includes('contact')) return 'em_contacto';
+    if (e.includes('qualif')) return 'qualificado';
+    if (e.includes('visita')) return 'visita';
+    if (e.includes('propost')) return 'proposta';
+    if (e.includes('fech')) return 'fecho';
+    if (e.includes('novo')) return 'novo';
+    return e;
+  }
 
-  // Tendências (vs. período anterior)
-  setHTML('t_leads', trendArrow(k.total, kPrev.total, false));
-  setHTML('t_taxa',  trendArrow(k.taxaFecho, kPrev.taxaFecho, false));
-  setHTML('t_tempo', trendArrow(k.tempoMed, kPrev.tempoMed, true));
-  setHTML('t_vmed',  trendArrow(k.valMed, kPrev.valMed, false));
-  setHTML('t_comm',  trendArrow(k.commEst, kPrev.commEst, false));
-  setHTML('t_conv',  trendArrow(k.convVP, kPrev.convVP, false));
+  function isLeadVisivel(l) {
+    // se nunca foi definido, consideramos visível
+    if (l.visivel === undefined) return true;
+    return l.visivel !== false;
+  }
 
-  // ALERTAS (cores nos KPI)
-  if (k.taxaFecho==null || k.total===0) setKpiState('kpi_fechos','');
-  else if (k.taxaFecho < 10) setKpiState('kpi_fechos','bad');
-  else if (k.taxaFecho < 20) setKpiState('kpi_fechos','warn');
-  else setKpiState('kpi_fechos','ok');
+  function isAngAtiva(a) {
+    const est = (a.estadoNegocio || a.estado || a.status || '').toString().toLowerCase();
+    if (!est) return true; // se não há estado, consideramos ativa
+    if (est.includes('perd') || est.includes('cancel') || est.includes('retir')) return false;
+    return true;
+  }
 
-  if (k.tempoMed==null) setKpiState('kpi_tempo','');
-  else if (k.tempoMed > 60) setKpiState('kpi_tempo','bad');
-  else if (k.tempoMed > 45) setKpiState('kpi_tempo','warn');
-  else setKpiState('kpi_tempo','ok');
+  function isAngExclusiva(a) {
+    const exc = (a.exclusivo || a.tipoExclusividade || '').toString().toLowerCase();
+    return exc.includes('exclus');
+  }
 
-  if (k.convVP==null) setKpiState('kpi_conv','');
-  else if (k.convVP < 15) setKpiState('kpi_conv','bad');
-  else if (k.convVP < 30) setKpiState('kpi_conv','warn');
-  else setKpiState('kpi_conv','ok');
+  function getConsultorFromAng(a) {
+    return a.consultor || a.angariador || a.angariadorPrincipal || '';
+  }
 
-  // Barras por consultor
-  const porCons = {};
-  leadsCurr.forEach(l=>{ const c=l.consultor||'—'; porCons[c]=(porCons[c]||0)+1; });
-  drawBars('bar_cons', porCons);
-  lastKpis.porCons = porCons;
+  // --- Renderização do dashboard ---
 
-  // Funil
-  drawFunnel('funnel', k.byStage);
+  function renderDashboard() {
+    const lblResumoEstado = document.getElementById('lblResumoEstado');
+    const lblFonteDados = document.getElementById('lblFonteDados');
+    const lblDebugKeys = document.getElementById('lblDebugKeys');
+    const fConsultor = document.getElementById('fDashConsultor').value;
 
-  // Donut por Origem (fallback CV)
-  const mapDonut = {};
-  leadsCurr.forEach(l=>{
-    const key = l.origem ? String(l.origem) : (l.cv ? String(l.cv) : 'Indefinido');
-    mapDonut[key] = (mapDonut[key]||0)+1;
-  });
-  drawDonut('donut','donut_leg', mapDonut);
+    const leadsBundle = loadLeadsData();
+    const angBundle = loadAngData();
 
-  // Angariações
-  const a = calcKPIAng(angAll);
-  setText('a_ativas', fmtNum(a.ativas));
-  setText('a_novas30', fmtNum(a.novas30));
-  setText('a_cmi', a.pctCmi + '%');
-  renderAngTable('a_tab', a);
+    const leadsAll = (leadsBundle.data || []).filter(l => typeof l === 'object');
+    const angAll = (angBundle.data || []).filter(a => typeof a === 'object');
 
-  // Ranking
-  renderRanking('rank', loadLeads(), daysAgoISO(7));
-}
+    const leads = leadsAll.filter(l => {
+      if (!isLeadVisivel(l)) return false; // só contamos visíveis como "ativas"
+      if (fConsultor !== 'todos' && l.consultor && l.consultor !== fConsultor) return false;
+      return true;
+    });
 
-function setText(id, txt){ const el=document.getElementById(id); if(el) el.textContent = txt; }
-function setHTML(id, html){ const el=document.getElementById(id); if(el) el.innerHTML = html||''; }
+    const angs = angAll.filter(a => {
+      if (!isAngAtiva(a)) return false;
+      if (fConsultor !== 'todos') {
+        const c = getConsultorFromAng(a);
+        if (c && c !== fConsultor) return false;
+      }
+      return true;
+    });
 
-/* ======= EVENTOS ======= */
-document.querySelectorAll('.qbtn').forEach(b=>{
-  b.addEventListener('click', ()=>{
-    const mode = b.getAttribute('data-q');
-    const today = new Date(); const y = today.getFullYear();
-    if(mode==='ytd'){ document.getElementById('f_de').value = `${y}-01-01`; document.getElementById('f_ate').value=''; }
-    else{
-      const n = parseInt(mode,10);
-      document.getElementById('f_de').value = daysAgoISO(n);
-      document.getElementById('f_ate').value = new Date().toISOString().slice(0,10);
+    const leadsTotal = leads.length;
+    const angTotal = angs.length;
+
+    // LEADS: contagem por estado
+    const countsLeads = { novo:0, em_contacto:0, qualificado:0, visita:0, proposta:0, fecho:0 };
+    leads.forEach(l => {
+      const est = normalizeEstadoLead(l);
+      if (countsLeads[est] === undefined) countsLeads[est] = 0;
+      countsLeads[est]++;
+    });
+
+    const leadsFechadas = countsLeads['fecho'] || 0;
+    const taxaFecho = percent(leadsFechadas, leadsTotal);
+
+    // ANGARIAÇÕES: exclusivas / não exclusivas
+    let angExclusivas = 0;
+    angs.forEach(a => { if (isAngExclusiva(a)) angExclusivas++; });
+
+    const taxaExclusivo = percent(angExclusivas, angTotal);
+
+    // KPI topo
+    document.getElementById('kpiLeadsAtivas').textContent = leadsTotal;
+    document.getElementById('kpiLeadsFecho').textContent =
+      leadsTotal > 0 ? `Taxa de fecho: ${taxaFecho}` : 'Taxa de fecho: —';
+
+    document.getElementById('kpiAngAtivas').textContent = angTotal;
+    document.getElementById('kpiAngExclusivo').textContent =
+      angTotal > 0 ? `Exclusivas: ${taxaExclusivo}` : 'Exclusivas: —';
+
+    // Resumo de estado global
+    if (leadsTotal === 0 && angTotal === 0) {
+      lblResumoEstado.textContent = 'Sem dados registados.';
+    } else if (leadsTotal > 0 && angTotal === 0) {
+      lblResumoEstado.textContent = `Leads ativas: ${leadsTotal} · Sem angariações no filtro atual.`;
+    } else if (leadsTotal === 0 && angTotal > 0) {
+      lblResumoEstado.textContent = `Angariações ativas: ${angTotal} · Sem leads no filtro atual.`;
+    } else {
+      lblResumoEstado.textContent = `Leads: ${leadsTotal} · Angariações: ${angTotal}`;
     }
-  });
-});
-document.getElementById('apply').addEventListener('click', ()=>{
-  F_CONS = document.getElementById('f_consultor').value || '';
-  F_ORIG = document.getElementById('f_origem').value || '';
-  F_DE   = document.getElementById('f_de').value || '';
-  F_ATE  = document.getElementById('f_ate').value || '';
-  const newRate = Number(document.getElementById('f_comm').value)||0.05;
-  COMM_RATE = newRate; saveComm(newRate);
-  renderAll();
-});
-document.getElementById('exportCsv').addEventListener('click', ()=>{
-  const leads = filterLeads(loadLeads(), F_CONS, F_ORIG, F_DE, F_ATE);
-  exportCSV(leads);
-});
-document.getElementById('exportPng').addEventListener('click', exportPNG);
-document.getElementById('exportPdf').addEventListener('click', exportPDF);
 
-/* ======= INIT ======= */
-(function init(){
-  // datas por omissão: últimos 30 dias
-  document.getElementById('f_de').value = daysAgoISO(30);
-  document.getElementById('f_ate').value = new Date().toISOString().slice(0,10);
-  // comissão persistida
-  const selComm = document.getElementById('f_comm');
-  const match = Array.from(selComm.options).find(o => Number(o.value) === COMM_RATE);
-  selComm.value = match ? match.value : '0.05';
-  // origem dinâmico
-  populateOrigemSelect();
-  // render
-  renderAll();
-})();
+    lblFonteDados.textContent = `Leads: ${leadsBundle.key || '—'} · Angariações: ${angBundle.key || '—'}`;
+    lblDebugKeys.textContent = `Leads em: ${leadsBundle.key || '—'} | Angariações em: ${angBundle.key || '—'}`;
+
+    // BLOCO FUNIL
+    document.getElementById('mFunilTotalLeads').textContent = leadsTotal;
+    document.getElementById('mFunilResumo').textContent =
+      leadsTotal === 0 ? 'Sem leads no funil.' : 'Distribuição atual por etapa.';
+
+    const listFunil = document.getElementById('listFunil');
+    listFunil.innerHTML = '';
+    const labelsFunil = [
+      { key:'novo', label:'Novo' },
+      { key:'em_contacto', label:'Em Contacto' },
+      { key:'qualificado', label:'Qualificado' },
+      { key:'visita', label:'Visita' },
+      { key:'proposta', label:'Proposta' },
+      { key:'fecho', label:'Fecho' },
+    ];
+    if (leadsTotal === 0) {
+      listFunil.innerHTML = '<li class="empty">Nenhuma lead registada no filtro atual.</li>';
+    } else {
+      labelsFunil.forEach(item => {
+        const val = countsLeads[item.key] || 0;
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <span>${item.label}</span>
+          <span>${val} · ${percent(val, leadsTotal)}</span>
+        `;
+        listFunil.appendChild(li);
+      });
+    }
+
+    // BLOCO ANGARIAÇÕES
+    document.getElementById('mAngTotal').textContent = angTotal;
+    document.getElementById('mAngResumo').textContent =
+      angTotal === 0 ? 'Sem angariações no filtro atual.' : 'Atividade global de angariações.';
+
+    const listAng = document.getElementById('listAng');
+    listAng.innerHTML = '';
+    if (angTotal === 0) {
+      listAng.innerHTML = '<li class="empty">Nenhuma angariação registada no filtro atual.</li>';
+    } else {
+      // tentamos ver estados típicos
+      let angEmCurso = 0, angConcluidas = 0, angPerdidas = 0;
+      angAll.forEach(a => {
+        const est = (a.estadoNegocio || a.estado || '').toString().toLowerCase();
+        if (est.includes('perd') || est.includes('cancel')) angPerdidas++;
+        else if (est.includes('concl') || est.includes('vend')) angConcluidas++;
+        else angEmCurso++;
+      });
+      listAng.innerHTML = `
+        <li><span>Ativas (filtro) </span><span>${angTotal}</span></li>
+        <li><span>Exclusivas (filtro) </span><span>${angExclusivas} · ${taxaExclusivo}</span></li>
+        <li><span>Em curso (total) </span><span>${angEmCurso}</span></li>
+        <li><span>Concluídas (total) </span><span>${angConcluidas}</span></li>
+        <li><span>Perdidas/Canceladas (total) </span><span>${angPerdidas}</span></li>
+      `;
+    }
+
+    // BLOCO PERFORMANCE
+    const listPerf = document.getElementById('listPerf');
+    const mPerfResumo = document.getElementById('mPerfResumo');
+    const mPerfSub = document.getElementById('mPerfSub');
+
+    if (leadsTotal === 0) {
+      mPerfResumo.textContent = 'Sem histórico';
+      mPerfSub.textContent = 'Não há leads no filtro atual para análise de desempenho.';
+      listPerf.innerHTML = '<li class="empty">Sem dados de funil.</li>';
+    } else {
+      mPerfResumo.textContent = `${taxaFecho} · fecho sobre leads ativas`;
+      mPerfSub.textContent = 'Conversão atual do funil (Fecho / Leads ativas).';
+
+      listPerf.innerHTML = '';
+      const etapasChave = [
+        { from:'em_contacto', to:'qualificado', label:'Contacto → Qualificado' },
+        { from:'qualificado', to:'visita', label:'Qualificado → Visita' },
+        { from:'visita', to:'proposta', label:'Visita → Proposta' },
+        { from:'proposta', to:'fecho', label:'Proposta → Fecho' },
+      ];
+      etapasChave.forEach(e => {
+        const base = countsLeads[e.from] || 0;
+        const alvo = countsLeads[e.to] || 0;
+        const txt = base > 0 ? percent(alvo, base) : '—';
+        const li = document.createElement('li');
+        li.innerHTML = `<span>${e.label}</span><span>${txt}</span>`;
+        listPerf.appendChild(li);
+      });
+    }
+
+    // TABELA CONSULTOR
+    const tbl = document.getElementById('tblConsultores');
+    tbl.innerHTML = '';
+    const consultores = [
+      'Rui Quelhas',
+      'Manuel Oliveira',
+      'João Sousa',
+      'Francisco dos Santos',
+      'Rosário Vasconcelos',
+      'Armanda Meireles',
+      'Audrey Lucas'
+    ];
+
+    if (leadsAll.length === 0 && angAll.length === 0) {
+      tbl.innerHTML = '<tr><td colspan="5" class="empty">Sem dados disponíveis.</td></tr>';
+    } else {
+      let bestRow = null;
+      let bestFechos = -1;
+
+      consultores.forEach(nome => {
+        const leadsC = leadsAll.filter(l => l.consultor === nome && isLeadVisivel(l));
+        const angC = angAll.filter(a => getConsultorFromAng(a) === nome);
+
+        const totalLeads = leadsC.length;
+        const totalFechos = leadsC.filter(l => normalizeEstadoLead(l) === 'fecho').length;
+
+        const angAtivasC = angC.filter(a => isAngAtiva(a)).length;
+        const angExclC = angC.filter(a => isAngExclusiva(a)).length;
+
+        if (totalLeads === 0 && angC.length === 0) {
+          return;
+        }
+
+        if (totalFechos > bestFechos) {
+          bestFechos = totalFechos;
+          bestRow = nome;
+        }
+
+        const tr = document.createElement('tr');
+        tr.dataset.consultor = nome;
+        tr.innerHTML = `
+          <td>${nome}</td>
+          <td>${totalLeads}</td>
+          <td>${totalFechos}</td>
+          <td>${angAtivasC}</td>
+          <td>${angExclC}</td>
+        `;
+        tbl.appendChild(tr);
+      });
+
+      if (!tbl.children.length) {
+        tbl.innerHTML = '<tr><td colspan="5" class="empty">Sem dados disponíveis.</td></tr>';
+      } else if (bestRow) {
+        const rows = tbl.querySelectorAll('tr');
+        rows.forEach(r => {
+          if (r.dataset.consultor === bestRow) {
+            r.classList.add('highlight');
+          }
+        });
+        document.getElementById('mConsultorResumo').textContent =
+          `Melhor fecho no período: ${bestRow} (${bestFechos} fecho(s)).`;
+      }
+    }
+  }
+
+  // --- Eventos globais ---
+
+  document.getElementById('btnRefresh').addEventListener('click', renderDashboard);
+  document.getElementById('fDashConsultor').addEventListener('change', renderDashboard);
+
+  document.getElementById('btnLimparLS').addEventListener('click', () => {
+    if (!confirm('Esta ação remove apenas versões antigas de dados (não os registos atuais). Continuar?')) return;
+    limparCachesAntigas();
+    renderDashboard();
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    renderDashboard();
+  });
 </script>
 </body>
 </html>
