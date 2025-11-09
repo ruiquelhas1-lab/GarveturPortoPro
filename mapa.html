@@ -35,8 +35,8 @@ a{color:#e6e6e6;text-decoration:none}
 header{grid-column:1 / span 2;display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--border);background:#0F0F0F}
 .brand{display:flex;align-items:center;gap:10px}
 .brand h1{font-size:16px;margin:0;color:var(--gold)}
-.nav{display:flex;gap:8px;flex-wrap:wrap}
-.nav a{border:1px solid var(--border);padding:6px 10px;border-radius:8px;color:#ddd;font-size:13px}
+.nav{display:flex;gap:8px}
+.nav a{border:1px solid var(--border);padding:6px 10px;border-radius:8px;color:#ddd}
 .nav a.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
 
 .kpis{grid-column:1 / span 2;display:flex;gap:8px;align-items:center;padding:6px 12px;background:#0F0F0F;border-bottom:1px solid var(--border)}
@@ -125,13 +125,10 @@ input[type="file"]{display:none}
         <h1>Garvetur Porto Pro — Mapa</h1>
       </div>
       <div class="nav">
-        <a href="./index.html">Início</a>
-        <a class="active" href="./mapa.html">Mapa</a>
+        <a class="active" href="./index.html">Mapa</a>
         <a href="./kanban.html">Leads</a>
         <a href="./angariacoes.html">Angariações</a>
         <a href="./dashboard.html">Dashboard</a>
-        <a href="./vendas.html">Vendas</a>
-        <a href="./tarefas.html">Tarefas</a>
       </div>
     </header>
 
@@ -319,7 +316,7 @@ function numPT(v){ if(v===null||v===undefined||v==='') return null; const n=Numb
 async function loadLeafletAndCluster(){
   if(!window.L){ try{ await loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'); }catch{ await loadScript('https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js'); } }
   try{
-    if(!window.L.markerClusterGroup){ try{ await loadScript('https://unpkg.com/leaflet.markercluster@1.5.3/dist/markercluster.js'); }catch{ await loadScript('https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/markercluster.js'); } }
+    if(!window.L.markerClusterGroup){ try{ await loadScript('https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'); }catch{ await loadScript('https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'); } }
     CLUSTER_OK=!!window.L.markerClusterGroup;
   }catch{ CLUSTER_OK=false; }
 }
