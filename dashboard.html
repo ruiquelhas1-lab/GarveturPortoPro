@@ -16,10 +16,11 @@
       --danger:#F25F5C;
       --success:#4CAF50;
       --warning:#FFC857;
-      --card-border:rgba(163,139,99,.25);
+      --card-border:rgba(163,139,99,.3);
+      --chip-bg:#1E1E1E;
       --radius-lg:18px;
       --radius-md:12px;
-      --shadow-soft:0 14px 28px rgba(0,0,0,.45);
+      --shadow-soft:0 14px 25px rgba(0,0,0,.4);
     }
 
     *{box-sizing:border-box;}
@@ -85,12 +86,7 @@
       text-transform:uppercase;
     }
 
-    .header-actions{
-      display:flex;
-      align-items:center;
-      gap:8px;
-    }
-
+    /* NAV TABS */
     .nav-tabs{
       display:flex;
       align-items:center;
@@ -123,146 +119,71 @@
       font-weight:600;
     }
 
-    .btn{
-      border-radius:999px;
-      border:1px solid var(--gold-soft);
-      background:rgba(12,12,12,.9);
-      color:var(--text);
-      padding:7px 12px;
-      font-size:13px;
-      display:inline-flex;
+    .header-actions{
+      display:flex;
       align-items:center;
-      gap:6px;
-      cursor:pointer;
-      transition:.18s border-color,.18s background,.18s transform;
-    }
-    .btn:hover{
-      border-color:var(--gold);
-      transform:translateY(-1px);
-    }
-    .btn-primary{
-      background:var(--gold);
-      color:#0A0A0A;
-      border-color:var(--gold);
-      font-weight:500;
-    }
-    .btn-ghost{
-      background:transparent;
+      gap:8px;
+      font-size:11px;
+      color:var(--muted);
     }
 
+    .badge-soft{
+      border-radius:999px;
+      padding:3px 8px;
+      border:1px solid rgba(163,139,99,.4);
+      background:rgba(0,0,0,.4);
+      color:var(--muted);
+    }
+
+    /* Layout principal */
     .layout{
       display:grid;
-      grid-template-columns:280px minmax(0,1fr);
+      grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.3fr);
+      gap:14px;
+      padding:14px 16px 18px;
       height:calc(100vh - 64px);
       max-height:calc(100vh - 64px);
       overflow:hidden;
     }
-    @media (max-width: 960px){
+    @media (max-width: 1024px){
       .layout{
         grid-template-columns:1fr;
-        grid-template-rows:auto auto;
+        grid-auto-rows:auto;
         height:auto;
-      }
-      header.app-header{
-        flex-wrap:wrap;
-        align-items:flex-start;
+        max-height:none;
       }
     }
 
-    .sidebar{
-      border-right:1px solid rgba(163,139,99,.24);
-      background:radial-gradient(circle at top left,#141414,#060606);
-      padding:12px 14px;
-      overflow-y:auto;
-    }
-    .sidebar-section{
-      border-radius:var(--radius-md);
-      padding:10px 11px;
-      background:rgba(0,0,0,.45);
-      border:1px solid rgba(163,139,99,.18);
-      margin-bottom:10px;
-    }
-    .sidebar-section h3{
-      margin:0 0 6px;
-      font-size:11px;
-      text-transform:uppercase;
-      letter-spacing:.16em;
-      color:var(--muted);
-    }
-    .sidebar-section p{
-      margin:2px 0 6px;
-      font-size:12px;
-      color:var(--muted);
-    }
-
-    .field{
+    .column{
       display:flex;
       flex-direction:column;
-      gap:4px;
-      margin-bottom:8px;
-    }
-    .field-row{
-      display:flex;
-      gap:6px;
-    }
-    .field-label{
-      font-size:11px;
-      color:var(--muted);
-      text-transform:uppercase;
-      letter-spacing:.12em;
-    }
-    select, input[type="date"]{
-      background:rgba(0,0,0,.7);
-      color:var(--text);
-      border-radius:10px;
-      border:1px solid rgba(163,139,99,.22);
-      padding:6px 8px;
-      font-size:13px;
-      outline:none;
-      width:100%;
-    }
-    select:focus, input[type="date"]:focus{
-      border-color:var(--gold);
-      box-shadow:0 0 0 1px rgba(163,139,99,.35);
-    }
-
-    .filters-badges{
-      display:flex;
-      flex-wrap:wrap;
-      gap:6px;
-      margin-top:4px;
-    }
-    .badge{
-      font-size:11px;
-      border-radius:999px;
-      padding:3px 7px;
-      border:1px solid rgba(163,139,99,.35);
-      background:rgba(8,8,8,.9);
-      color:var(--muted);
-    }
-    .badge strong{color:var(--gold);}
-
-    main.dashboard{
-      padding:14px 16px 18px;
-      overflow-y:auto;
-      background:radial-gradient(circle at top,#1a1a1a,#050505 55%,#000 100%);
-    }
-
-    .dash-header{
-      display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
       gap:12px;
-      margin-bottom:14px;
+      overflow-y:auto;
     }
-    .dash-header h2{
+
+    /* Cards */
+    .card{
+      border-radius:var(--radius-lg);
+      border:1px solid var(--card-border);
+      background:radial-gradient(circle at top left,#181818,#070707);
+      box-shadow:var(--shadow-soft);
+      padding:10px 11px 11px;
+    }
+    .card-header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:6px;
+    }
+    .card-title-block h2{
       margin:0;
       font-size:15px;
       letter-spacing:.16em;
       text-transform:uppercase;
       color:var(--muted);
     }
-    .dash-header p{
+    .card-title-block p{
       margin:2px 0 0;
       font-size:12px;
       color:var(--muted);
@@ -270,93 +191,132 @@
 
     .kpi-grid{
       display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-      gap:10px;
-      margin-bottom:12px;
+      grid-template-columns:repeat(3, minmax(0,1fr));
+      gap:8px;
+      margin-top:4px;
     }
+    @media (max-width: 680px){
+      .kpi-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+    }
+
     .kpi-card{
-      border-radius:var(--radius-lg);
-      border:1px solid var(--card-border);
-      background:radial-gradient(circle at top left,#181818,#070707);
-      padding:10px 11px;
-      box-shadow:var(--shadow-soft);
+      border-radius:var(--radius-md);
+      border:1px solid rgba(163,139,99,.28);
+      background:rgba(0,0,0,.55);
+      padding:7px 8px;
+      display:flex;
+      flex-direction:column;
+      gap:2px;
     }
     .kpi-label{
       font-size:11px;
-      text-transform:uppercase;
-      letter-spacing:.16em;
       color:var(--muted);
-      margin-bottom:2px;
+      text-transform:uppercase;
+      letter-spacing:.12em;
     }
     .kpi-value{
-      font-size:22px;
+      font-size:18px;
       font-weight:600;
       color:#fff;
     }
     .kpi-sub{
       font-size:11px;
       color:var(--muted);
-      margin-top:2px;
     }
-    .kpi-pill{
-      display:inline-block;
-      font-size:10px;
-      padding:2px 7px;
-      border-radius:999px;
-      border:1px solid rgba(163,139,99,.4);
-      color:var(--gold);
+    .kpi-trend-good{
+      color:var(--success);
+      font-size:11px;
+    }
+    .kpi-trend-bad{
+      color:var(--danger);
+      font-size:11px;
+    }
+
+    .chip-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
       margin-top:4px;
     }
-
-    .section-title{
-      margin:10px 0 6px;
-      font-size:11px;
-      text-transform:uppercase;
-      letter-spacing:.18em;
+    .chip{
+      border-radius:999px;
+      padding:2px 7px;
+      font-size:10px;
+      border:1px solid rgba(163,139,99,.4);
+      background:var(--chip-bg);
       color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+    .chip-highlight{
+      border-color:var(--gold);
+      color:var(--gold);
     }
 
-    .table-like{
-      border-radius:var(--radius-md);
-      border:1px solid rgba(163,139,99,.22);
-      background:rgba(0,0,0,.4);
+    .list-simple{
+      margin-top:4px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .list-simple-row{
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      padding:3px 0;
+      border-bottom:1px dashed rgba(255,255,255,.05);
+    }
+    .list-simple-row:last-child{
+      border-bottom:none;
+    }
+    .list-simple-label{
+      color:#e0e0e0;
+    }
+    .list-simple-value{
+      font-weight:500;
+      color:var(--gold);
+    }
+
+    .bar-row{
+      margin-top:4px;
+      font-size:11px;
+      color:var(--muted);
+    }
+    .bar-label{
+      display:flex;
+      justify-content:space-between;
+      margin-bottom:2px;
+    }
+    .bar-track{
+      width:100%;
+      height:6px;
+      border-radius:999px;
+      background:rgba(255,255,255,.06);
       overflow:hidden;
+    }
+    .bar-fill{
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(163,139,99,.2), var(--gold));
+      width:0%;
+      transition:width .25s ease-out;
+    }
+
+    .muted{
+      color:var(--muted);
       font-size:12px;
     }
-    .table-header,
-    .table-row{
-      display:grid;
-      grid-template-columns:2fr 1fr 1fr 1fr;
-      padding:5px 8px;
+
+    .pill-pill{
+      display:inline-flex;
       align-items:center;
-    }
-    .table-header{
-      background:rgba(0,0,0,.7);
-      border-bottom:1px solid rgba(163,139,99,.3);
+      gap:4px;
       font-size:11px;
-      text-transform:uppercase;
-      letter-spacing:.12em;
-      color:var(--muted);
-    }
-    .table-row:nth-child(even){
-      background:rgba(255,255,255,.02);
-    }
-    .table-row span{
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
-    }
-    .chip-small{
-      display:inline-block;
-      padding:2px 6px;
       border-radius:999px;
-      border:1px solid rgba(163,139,99,.4);
-      font-size:10px;
-      color:var(--muted);
-    }
-    .chip-small.green{
-      border-color:rgba(76,175,80,.8);
-      color:#A5D6A7;
+      padding:3px 8px;
+      border:1px solid rgba(163,139,99,.3);
+      background:rgba(0,0,0,.4);
     }
   </style>
 </head>
@@ -372,7 +332,7 @@
       </div>
       <div>
         <h1>Garvetur Porto Pro — Dashboard</h1>
-        <span class="sub">Visão consolidada | Garvetur Luxury Porto</span>
+        <span class="sub">Visão global | Leads & Angariações</span>
       </div>
     </div>
 
@@ -384,294 +344,323 @@
     </nav>
 
     <div class="header-actions">
-      <button class="btn btn-ghost" id="refreshBtn">Recarregar</button>
+      <span class="badge-soft" id="headerTotals">Sessão atual</span>
     </div>
   </header>
 
   <div class="layout">
-    <aside class="sidebar">
-      <div class="sidebar-section">
-        <h3>Filtro rápido</h3>
-        <div class="field">
-          <label class="field-label" for="filtroConsultor">Consultor</label>
-          <select id="filtroConsultor">
-            <option value="">Todos</option>
-          </select>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label class="field-label" for="filtroDataDe">De</label>
-            <input type="date" id="filtroDataDe" />
-          </div>
-          <div class="field">
-            <label class="field-label" for="filtroDataAte">Até</label>
-            <input type="date" id="filtroDataAte" />
+    <!-- Coluna Esquerda: Leads -->
+    <div class="column" id="colLeads">
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title-block">
+            <h2>Leads</h2>
+            <p>Pipeline de clientes — do primeiro contacto até ao fecho.</p>
           </div>
         </div>
-        <p>Estes filtros afetam os KPI e os rankings por consultor.</p>
-      </div>
-
-      <div class="sidebar-section">
-        <h3>Resumo atual</h3>
-        <div class="filters-badges" id="resumoBadges"></div>
-      </div>
-
-      <div class="sidebar-section">
-        <h3>Nota</h3>
-        <p>Os dados são lidos diretamente do navegador (localStorage) das páginas de Leads e Angariações.</p>
-      </div>
-    </aside>
-
-    <main class="dashboard">
-      <div class="dash-header">
-        <div>
-          <h2>Indicadores principais</h2>
-          <p>Pipeline comercial consolidado (Leads + Angariações).</p>
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">Total de leads</div>
+            <div class="kpi-value" id="leadsTotal">0</div>
+            <div class="kpi-sub">Leads visíveis (todas as colunas)</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Leads em fecho</div>
+            <div class="kpi-value" id="leadsFecho">0</div>
+            <div class="kpi-sub">Coluna “Fecho”</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Taxa de fecho</div>
+            <div class="kpi-value" id="leadsTaxaFecho">0%</div>
+            <div class="kpi-sub">Fecho / Total</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Em contacto</div>
+            <div class="kpi-value" id="leadsEmContacto">0</div>
+            <div class="kpi-sub">Leads a trabalhar</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Qualificadas</div>
+            <div class="kpi-value" id="leadsQualificado">0</div>
+            <div class="kpi-sub">Com perfil definido</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Em visita / proposta</div>
+            <div class="kpi-value" id="leadsVisitaProposta">0</div>
+            <div class="kpi-sub">Visita + Proposta</div>
+          </div>
         </div>
-      </div>
 
-      <section class="kpi-grid" id="kpiGrid"></section>
+        <div class="chip-row" id="leadsEstadoChips"></div>
+      </section>
 
-      <h3 class="section-title">Ranking por consultor</h3>
-      <div class="table-like" id="tabelaConsultores">
-        <div class="table-header">
-          <span>Consultor</span>
-          <span>Leads ativas</span>
-          <span>Angariações</span>
-          <span>Exclusivos</span>
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title-block">
+            <h2>Leads por consultor</h2>
+            <p>Distribuição de leads ativas por consultor.</p>
+          </div>
         </div>
-      </div>
-    </main>
+        <div class="list-simple" id="leadsPorConsultor"></div>
+      </section>
+    </div>
+
+    <!-- Coluna Direita: Angariações -->
+    <div class="column" id="colAngs">
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title-block">
+            <h2>Angariações</h2>
+            <p>Carteira de produto — exclusividade, estado e ajustamento.</p>
+          </div>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">Total de angariações</div>
+            <div class="kpi-value" id="angTotal">0</div>
+            <div class="kpi-sub">Registos visíveis</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Exclusivas</div>
+            <div class="kpi-value" id="angExclusivo">0</div>
+            <div class="kpi-sub">Contrato em exclusivo</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Não exclusivas</div>
+            <div class="kpi-value" id="angNaoExclusivo">0</div>
+            <div class="kpi-sub">Contrato não exclusivo</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Novo / Negociação</div>
+            <div class="kpi-value" id="angNovoNeg">0</div>
+            <div class="kpi-sub">Novo + Em negociação</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Aprovados</div>
+            <div class="kpi-value" id="angAprovado">0</div>
+            <div class="kpi-sub">Prontos a trabalhar</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Perdidos</div>
+            <div class="kpi-value" id="angPerdido">0</div>
+            <div class="kpi-sub">Historico</div>
+          </div>
+        </div>
+
+        <div class="chip-row" id="angEstadoChips"></div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title-block">
+            <h2>Resumo por consultor</h2>
+            <p>Proporção de angariações ativas por consultor.</p>
+          </div>
+        </div>
+        <div id="angPorConsultor" class="list-simple"></div>
+      </section>
+    </div>
   </div>
 </div>
 
 <script>
 (function(){
-  function safeParse(key){
+  const LEADS_KEY = 'gpp_leads_v5';
+  const ANG_KEY   = 'gpp_angariacoes_v2';
+
+  function safeLoadLeads(){
     try{
-      const raw = localStorage.getItem(key);
-      if(!raw) return null;
-      return JSON.parse(raw);
+      const raw = localStorage.getItem(LEADS_KEY);
+      if(!raw) return [];
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
     }catch(e){
-      console.warn('Erro a ler', key, e);
-      return null;
+      console.error('Erro a ler leads:', e);
+      return [];
     }
   }
 
-  // Ajuda a extrair cartões de um objeto qualquer
-  function extrairCardsGeneric(st){
-    if(!st) return [];
-    // array direto
-    if(Array.isArray(st)) return st;
-
-    // array em st.cards / st.leads / st.deals
-    if(Array.isArray(st.cards)) return st.cards;
-    if(Array.isArray(st.leads)) return st.leads;
-    if(Array.isArray(st.deals)) return st.deals;
-
-    // objetos do tipo { id1: {...}, id2: {...} }
-    if(st.cards && typeof st.cards === 'object') return Object.values(st.cards);
-    if(st.leads && typeof st.leads === 'object') return Object.values(st.leads);
-    if(st.deals && typeof st.deals === 'object') return Object.values(st.deals);
-
-    return [];
+  function safeLoadAngs(){
+    try{
+      const raw = localStorage.getItem(ANG_KEY);
+      if(!raw) return [];
+      const parsed = JSON.parse(raw);
+      if(Array.isArray(parsed?.deals)) return parsed.deals;
+      if(Array.isArray(parsed)) return parsed;
+      return [];
+    }catch(e){
+      console.error('Erro a ler angariações:', e);
+      return [];
+    }
   }
 
-  function lerLeads(){
-    // Tentar vários storage keys para garantir que apanhamos a versão certa
-    const fontes = [
-      'gpp_leads_v3',
-      'gpp_leads_v2',
-      'gpp_leads'
-    ];
-
-    const todos = [];
-
-    fontes.forEach(key=>{
-      const st = safeParse(key);
-      const arr = extrairCardsGeneric(st);
-      arr.forEach(c=>{
-        if(c) todos.push(c);
-      });
-    });
-
-    // Deduplicar por id quando existir
-    const vistos = new Set();
-    const result = [];
-    todos.forEach(c=>{
-      const id = c.id || c.slug || JSON.stringify(c);
-      if(vistos.has(id)) return;
-      vistos.add(id);
-      if(c.visible === false || c.hidden) return;
-      result.push(c);
-    });
-
-    return result;
+  function text(id, value){
+    const el = document.getElementById(id);
+    if(el) el.textContent = value;
   }
 
-  function lerAngariacoes(){
-    const st = safeParse('gpp_angariacoes_v2');
-    const arr = extrairCardsGeneric(st);
-    return arr.filter(a => a && a.visible !== false);
+  function pct(num, den){
+    if(!den) return '0%';
+    return (num/den*100).toFixed(1).replace('.',',') + '%';
   }
 
-  function aplicarFiltros(data, filtro){
-    return data.filter(d=>{
-      if(filtro.consultor && d.consultor !== filtro.consultor) return false;
-      if(filtro.de || filtro.ate){
-        const dt = d.dataAngariacao || d.data || '';
-        if(filtro.de && dt && dt < filtro.de) return false;
-        if(filtro.ate && dt && dt > filtro.ate) return false;
-      }
-      return true;
-    });
-  }
+  function render(){
+    const leadsAll = safeLoadLeads();
+    const leads = leadsAll.filter(l => l.visivel !== false);
 
-  const filtroConsultor = document.getElementById('filtroConsultor');
-  const filtroDataDe = document.getElementById('filtroDataDe');
-  const filtroDataAte = document.getElementById('filtroDataAte');
-  const resumoBadges = document.getElementById('resumoBadges');
-  const kpiGrid = document.getElementById('kpiGrid');
-  const tabelaConsultores = document.getElementById('tabelaConsultores');
-  const refreshBtn = document.getElementById('refreshBtn');
+    const angAll = safeLoadAngs();
+    const angs = angAll.filter(a => a.visible !== false);
 
-  function atualizarDashboard(){
-    const leadsAll = lerLeads();
-    const angAll = lerAngariacoes();
+    // Header mini resumo
+    text('headerTotals', `Sessão atual · ${leads.length} leads · ${angs.length} angariações`);
 
-    const filtro = {
-      consultor: filtroConsultor.value || '',
-      de: filtroDataDe.value || '',
-      ate: filtroDataAte.value || ''
+    /* === LEADS === */
+    const totalLeads = leads.length;
+    const byEstado = {
+      'Novo':0,
+      'Em Contacto':0,
+      'Qualificado':0,
+      'Visita':0,
+      'Proposta':0,
+      'Fecho':0
     };
-
-    const leads = aplicarFiltros(leadsAll, filtro);
-    const angs = aplicarFiltros(angAll, filtro);
-
-    const leadsAtivas = leads.length;
-    const angAtivas = angs.length;
-    const angExclusivas = angs.filter(a => a.exclusivo).length;
-
-    resumoBadges.innerHTML = '';
-    function addBadge(txt){
-      const b = document.createElement('div');
-      b.className = 'badge';
-      b.innerHTML = txt;
-      resumoBadges.appendChild(b);
-    }
-    addBadge('Leads ativas <strong>'+leadsAtivas+'</strong>');
-    addBadge('Angariações ativas <strong>'+angAtivas+'</strong>');
-    addBadge('Exclusivas <strong>'+angExclusivas+'</strong>');
-
-    kpiGrid.innerHTML = '';
-
-    function addKpi(label, value, sub, pill){
-      const card = document.createElement('div');
-      card.className = 'kpi-card';
-      card.innerHTML = `
-        <div class="kpi-label">${label}</div>
-        <div class="kpi-value">${value}</div>
-        ${sub ? `<div class="kpi-sub">${sub}</div>` : ''}
-        ${pill ? `<div class="kpi-pill">${pill}</div>` : ''}
-      `;
-      kpiGrid.appendChild(card);
-    }
-
-    addKpi(
-      'Leads',
-      leadsAtivas,
-      'Leads ativas (todas as colunas)',
-      ''
-    );
-
-    addKpi(
-      'Angariações',
-      angAtivas,
-      'Total de angariações em carteira',
-      angExclusivas > 0 ? ('Exclusivas: ' + angExclusivas) : ''
-    );
-
-    const leadsPorCons = {};
     leads.forEach(l=>{
-      const c = l.consultor || '—';
-      leadsPorCons[c] = (leadsPorCons[c]||0)+1;
-    });
-
-    const angPorCons = {};
-    const angExPorCons = {};
-    angs.forEach(a=>{
-      const c = a.consultor || '—';
-      angPorCons[c] = (angPorCons[c]||0)+1;
-      if(a.exclusivo){
-        angExPorCons[c] = (angExPorCons[c]||0)+1;
+      if(byEstado[l.estado] != null){
+        byEstado[l.estado]++;
       }
     });
 
-    const consultores = new Set([
-      ...Object.keys(leadsPorCons),
-      ...Object.keys(angPorCons)
-    ]);
-    const lista = Array.from(consultores).filter(c=>c && c !== '—').sort();
+    const totalFecho = byEstado['Fecho'] || 0;
+    const emContacto = byEstado['Em Contacto'] || 0;
+    const qualif     = byEstado['Qualificado'] || 0;
+    const visitaProp = (byEstado['Visita'] || 0) + (byEstado['Proposta'] || 0);
 
-    const bodyRows = tabelaConsultores.querySelectorAll('.table-row');
-    bodyRows.forEach(r=>r.remove());
+    text('leadsTotal', totalLeads);
+    text('leadsFecho', totalFecho);
+    text('leadsTaxaFecho', pct(totalFecho, totalLeads));
+    text('leadsEmContacto', emContacto);
+    text('leadsQualificado', qualif);
+    text('leadsVisitaProposta', visitaProp);
 
-    if(lista.length === 0){
-      const row = document.createElement('div');
-      row.className = 'table-row';
-      row.innerHTML = `<span>Nenhum consultor com dados nos filtros atuais</span>
-                       <span>—</span><span>—</span><span>—</span>`;
-      tabelaConsultores.appendChild(row);
-      return;
+    // Chips por estado
+    const chipsLead = document.getElementById('leadsEstadoChips');
+    if(chipsLead){
+      chipsLead.innerHTML = '';
+      Object.entries(byEstado).forEach(([estado, n])=>{
+        const span = document.createElement('span');
+        span.className = 'chip' + (estado==='Fecho' ? ' chip-highlight' : '');
+        span.textContent = estado + ': ' + n;
+        chipsLead.appendChild(span);
+      });
     }
 
-    lista.forEach(c=>{
-      const row = document.createElement('div');
-      row.className = 'table-row';
-      const lCount = leadsPorCons[c] || 0;
-      const aCount = angPorCons[c] || 0;
-      const eCount = angExPorCons[c] || 0;
-
-      row.innerHTML = `
-        <span>${c}</span>
-        <span>${lCount}</span>
-        <span>${aCount}</span>
-        <span>${eCount > 0 ? '<span class="chip-small green">'+eCount+'</span>' : '0'}</span>
-      `;
-      tabelaConsultores.appendChild(row);
+    // Leads por consultor
+    const porConsLeads = {};
+    leads.forEach(l=>{
+      if(!l.consultor) return;
+      porConsLeads[l.consultor] = (porConsLeads[l.consultor] || 0) + 1;
     });
-  }
+    const elLpc = document.getElementById('leadsPorConsultor');
+    if(elLpc){
+      elLpc.innerHTML = '';
+      const entries = Object.entries(porConsLeads).sort((a,b)=>b[1]-a[1]);
+      if(!entries.length){
+        elLpc.innerHTML = '<div class="muted">Sem leads registadas neste navegador.</div>';
+      }else{
+        entries.forEach(([nome, n])=>{
+          const row = document.createElement('div');
+          row.className = 'list-simple-row';
+          const label = document.createElement('div');
+          label.className = 'list-simple-label';
+          label.textContent = nome;
+          const value = document.createElement('div');
+          value.className = 'list-simple-value';
+          value.textContent = n;
+          row.appendChild(label);
+          row.appendChild(value);
+          elLpc.appendChild(row);
+        });
+      }
+    }
 
-  function preencherFiltroConsultor(){
-    const leadsAll = lerLeads();
-    const angAll = lerAngariacoes();
-    const nomes = new Set();
-    leadsAll.forEach(l=>{ if(l && l.consultor) nomes.add(l.consultor); });
-    angAll.forEach(a=>{ if(a && a.consultor) nomes.add(a.consultor); });
+    /* === ANGARIAÇÕES === */
+    const totalAng = angs.length;
+    const excls = angs.filter(a => !!a.exclusivo).length;
+    const naoExcls = angs.filter(a => !!a.naoExclusivo).length;
 
-    const atual = filtroConsultor.value || '';
-    filtroConsultor.innerHTML = '<option value="">Todos</option>';
-    Array.from(nomes).sort().forEach(n=>{
-      const opt = document.createElement('option');
-      opt.value = n;
-      opt.textContent = n;
-      filtroConsultor.appendChild(opt);
+    const byEstadoAng = { novo:0, negociacao:0, aprovado:0, perdido:0 };
+    angs.forEach(a=>{
+      if(byEstadoAng[a.estadoAng] != null){
+        byEstadoAng[a.estadoAng]++;
+      }
     });
-    if(atual){
-      filtroConsultor.value = atual;
+
+    const novoNeg = (byEstadoAng.novo || 0) + (byEstadoAng.negociacao || 0);
+    const aprov   = byEstadoAng.aprovado || 0;
+    const perd    = byEstadoAng.perdido || 0;
+
+    text('angTotal', totalAng);
+    text('angExclusivo', excls);
+    text('angNaoExclusivo', naoExcls);
+    text('angNovoNeg', novoNeg);
+    text('angAprovado', aprov);
+    text('angPerdido', perd);
+
+    const chipsAng = document.getElementById('angEstadoChips');
+    if(chipsAng){
+      chipsAng.innerHTML = '';
+      const mapLabel = {novo:'Novo',negociacao:'Em negociação',aprovado:'Aprovado',perdido:'Perdido'};
+      Object.entries(byEstadoAng).forEach(([k,v])=>{
+        const span = document.createElement('span');
+        span.className = 'chip' + (k==='aprovado' ? ' chip-highlight' : '');
+        span.textContent = (mapLabel[k] || k) + ': ' + v;
+        chipsAng.appendChild(span);
+      });
+    }
+
+    // Angariações por consultor
+    const porConsAng = {};
+    angs.forEach(a=>{
+      if(!a.consultor) return;
+      porConsAng[a.consultor] = (porConsAng[a.consultor] || 0) + 1;
+    });
+    const elApc = document.getElementById('angPorConsultor');
+    if(elApc){
+      elApc.innerHTML = '';
+      const entries = Object.entries(porConsAng).sort((a,b)=>b[1]-a[1]);
+      if(!entries.length){
+        elApc.innerHTML = '<div class="muted">Sem angariações registadas neste navegador.</div>';
+      }else{
+        entries.forEach(([nome,n])=>{
+          const wrap = document.createElement('div');
+          wrap.className = 'bar-row';
+
+          const lbl = document.createElement('div');
+          lbl.className = 'bar-label';
+          const left = document.createElement('span');
+          left.textContent = nome;
+          const right = document.createElement('span');
+          right.textContent = n + ' ang.';
+          lbl.appendChild(left);
+          lbl.appendChild(right);
+
+          const track = document.createElement('div');
+          track.className = 'bar-track';
+          const fill = document.createElement('div');
+          fill.className = 'bar-fill';
+          const percent = totalAng ? Math.max(4, (n/totalAng)*100) : 0;
+          fill.style.width = percent.toFixed(1) + '%';
+          track.appendChild(fill);
+
+          wrap.appendChild(lbl);
+          wrap.appendChild(track);
+          elApc.appendChild(wrap);
+        });
+      }
     }
   }
 
-  filtroConsultor.addEventListener('change', atualizarDashboard);
-  filtroDataDe.addEventListener('change', atualizarDashboard);
-  filtroDataAte.addEventListener('change', atualizarDashboard);
-  refreshBtn.addEventListener('click', ()=>{
-    preencherFiltroConsultor();
-    atualizarDashboard();
-  });
-
-  preencherFiltroConsultor();
-  atualizarDashboard();
+  document.addEventListener('DOMContentLoaded', render);
 })();
 </script>
 </body>
