@@ -572,9 +572,7 @@
     }
   }
 
-  // Heurística para detectar leads e angariações nos dados locais:
-  // - Leads: qualquer key em localStorage cujo nome contenha "lead" (case insensitive) e o valor seja um array.
-  // - Angariações: qualquer key cujo nome contenha "angari".
+  // LEADS: qualquer key com "lead"
   function loadLeads() {
     const leads = [];
     if (!window.localStorage) return leads;
@@ -593,12 +591,13 @@
     return leads;
   }
 
+  // ANGARIAÇÕES: qualquer key com "ang" (ex.: gpp_ang_v3, angariacoes, etc.)
   function loadAngariacoes() {
     const ang = [];
     if (!window.localStorage) return ang;
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (!/angari/i.test(key)) continue;
+      if (!/ang/i.test(key)) continue;      // <-- mais abrangente que "angari"
       const parsed = safeParse(localStorage.getItem(key));
       if (Array.isArray(parsed)) {
         for (const item of parsed) {
@@ -611,7 +610,6 @@
     return ang;
   }
 
-  // Aplica filtros genéricos de visibilidade (se existirem flags)
   function filterVisiveis(arr) {
     return (arr || []).filter(a => {
       if (a === null || typeof a !== 'object') return false;
@@ -620,15 +618,6 @@
       if (a.visible === false) return false;
       return true;
     });
-  }
-
-  // Utilitários simples
-  function toNumber(value) {
-    if (value === null || value === undefined || value === '') return NaN;
-    if (typeof value === 'number') return value;
-    const s = String(value).replace(/\./g,'').replace(',','.');
-    const n = Number(s);
-    return isFinite(n) ? n : NaN;
   }
 
   function groupBy(arr, getter) {
@@ -645,7 +634,7 @@
     return Math.round((value / total) * 100);
   }
 
-  // Elementos DOM
+  // DOM
   const elLastSync = document.getElementById('lastSync');
   const elKpiLeadsTotal = document.getElementById('kpiLeadsTotal');
   const elKpiAngTotal = document.getElementById('kpiAngTotal');
@@ -697,11 +686,22 @@
       ? `${pctFecho}% das leads encontram-se em fecho.`
       : 'Sem leads suficientes para calcular taxa de fecho.';
 
-    // Angariações Exclusivas
+    // Angariações Exclusivas – deteção mais robusta (“exclus” em vários campos)
     const angExclusivas = rawAng.filter(a => {
-      const ex = (a.exclusivo || a.tipoExclusividade || a.naturezaContrato || '').toString().toLowerCase();
-      return ex.includes('exclusivo');
+      const txt = [
+        a.exclusivo,
+        a.exclusividade,
+        a.tipoExclusividade,
+        a.naturezaContrato,
+        a.tipoContrato
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toString()
+        .toLowerCase();
+      return txt.includes('exclus'); // apanha “exclusivo”, “exclusiva”, etc.
     });
+
     const nEx = angExclusivas.length;
     elKpiAngExclusivas.textContent = nEx;
     const pctEx = pct(nEx, totalAng);
@@ -731,7 +731,7 @@
       elAngEstadosText.textContent = 'Sem angariações registadas.';
     } else {
       const map = groupBy(rawAng, a => {
-        const estado = (a.estadoAng || a.estado || '').toString();
+        const estado = (a.estadoAng || a.estado || a.estadoNegocio || '').toString();
         return estado || 'Sem estado definido';
       });
       const parts = [];
@@ -742,11 +742,11 @@
       elAngEstadosText.textContent = parts.join(' · ');
     }
 
-    // Ranking consultores (Leads + Angariações)
+    // Ranking consultores
     const mapConsultores = new Map();
-    function acumular(pessoa, tipo) {
-      if (!pessoa) return;
-      const key = pessoa.toString().trim();
+    function acumular(nome, tipo) {
+      if (!nome) return;
+      const key = nome.toString().trim();
       if (!key) return;
       const prev = mapConsultores.get(key) || { leads: 0, ang: 0 };
       prev[tipo]++;
@@ -815,7 +815,7 @@
       elTagsOrigem.appendChild(span);
     }
 
-    // Insights simples
+    // Insights
     const insights = [];
     if (!totalLeads && !totalAng) {
       insights.push('Ainda não existem leads nem angariações registadas neste navegador.');
@@ -846,7 +846,6 @@
     }
   }
 
-  // Botão de reset: limpa dados antigos de leads/angariações no localStorage
   function resetLocalData() {
     if (!window.localStorage) return;
     const ok = window.confirm(
@@ -860,7 +859,7 @@
     const keysToRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (/lead/i.test(key) || /angari/i.test(key)) {
+      if (/lead/i.test(key) || /ang/i.test(key)) {
         keysToRemove.push(key);
       }
     }
@@ -871,7 +870,6 @@
   document.getElementById('refreshBtn').addEventListener('click', refreshDashboard);
   document.getElementById('resetBtn').addEventListener('click', resetLocalData);
 
-  // Primeira carga
   refreshDashboard();
 })();
 </script>
