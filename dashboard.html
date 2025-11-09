@@ -325,13 +325,8 @@
       color: #bbf7d0;
     }
 
-    .muted {
-      color: var(--muted);
-    }
-
-    .small {
-      font-size: 11px;
-    }
+    .muted { color: var(--muted); }
+    .small { font-size: 11px; }
 
     .footer-note {
       margin-top: 6px;
@@ -356,15 +351,9 @@
     }
 
     @media (max-width: 1100px) {
-      main {
-        flex-direction: column;
-      }
-      .col-main, .col-side {
-        flex: none;
-      }
-      .kpi-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
+      main { flex-direction: column; }
+      .col-main, .col-side { flex: none; }
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @media (max-width: 720px) {
@@ -377,15 +366,9 @@
         margin-left: 0;
         flex-wrap: wrap;
       }
-      main {
-        padding: 10px;
-      }
-      .panel {
-        padding: 10px;
-      }
-      .kpi-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
+      main { padding: 10px; }
+      .panel { padding: 10px; }
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
   </style>
 </head>
@@ -572,18 +555,41 @@
     }
   }
 
-  // LEADS: qualquer key com "lead"
+  /**
+   * LEADS: qualquer chave que contenha "lead"
+   * Estruturas suportadas:
+   *  - Array simples de objetos
+   *  - { items: [...] }, { registos: [...] }, { data: [...] }
+   */
   function loadLeads() {
     const leads = [];
     if (!window.localStorage) return leads;
+
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (!/lead/i.test(key)) continue;
+
       const parsed = safeParse(localStorage.getItem(key));
+      if (!parsed) continue;
+
       if (Array.isArray(parsed)) {
-        for (const item of parsed) {
-          if (item && typeof item === 'object') {
-            leads.push(item);
+        parsed.forEach(x => { if (x && typeof x === 'object') leads.push(x); });
+      } else if (typeof parsed === 'object') {
+        const candidates = [
+          parsed.items,
+          parsed.registos,
+          parsed.data,
+          parsed.lista,
+          parsed.leads
+        ].filter(Array.isArray);
+
+        if (candidates.length) {
+          candidates[0].forEach(x => { if (x && typeof x === 'object') leads.push(x); });
+        } else {
+          // Caso seja um dicionário de id -> objeto
+          const values = Object.values(parsed);
+          if (values.length && values.every(v => typeof v === 'object')) {
+            values.forEach(x => leads.push(x));
           }
         }
       }
@@ -591,18 +597,43 @@
     return leads;
   }
 
-  // ANGARIAÇÕES: qualquer key com "ang" (ex.: gpp_ang_v3, angariacoes, etc.)
+  /**
+   * ANGARIAÇÕES: qualquer chave que contenha "ang" (ex.: gpp_ang_v3, angariacoes, etc.)
+   * Estruturas suportadas:
+   *  - Array simples de objetos
+   *  - { items: [...] }, { registos: [...] }, { data: [...] }, { angariacoes: [...] }
+   *  - Dicionário id -> objeto
+   */
   function loadAngariacoes() {
     const ang = [];
     if (!window.localStorage) return ang;
+
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (!/ang/i.test(key)) continue;      // <-- mais abrangente que "angari"
+      if (!/ang/i.test(key)) continue; // mais abrangente
+
       const parsed = safeParse(localStorage.getItem(key));
+      if (!parsed) continue;
+
       if (Array.isArray(parsed)) {
-        for (const item of parsed) {
-          if (item && typeof item === 'object') {
-            ang.push(item);
+        parsed.forEach(x => { if (x && typeof x === 'object') ang.push(x); });
+      } else if (typeof parsed === 'object') {
+        const candidates = [
+          parsed.items,
+          parsed.registos,
+          parsed.data,
+          parsed.lista,
+          parsed.angariacoes,
+          parsed.ang,
+          parsed.angariacoesAtivas
+        ].filter(Array.isArray);
+
+        if (candidates.length) {
+          candidates[0].forEach(x => { if (x && typeof x === 'object') ang.push(x); });
+        } else {
+          const values = Object.values(parsed);
+          if (values.length && values.every(v => typeof v === 'object')) {
+            values.forEach(x => ang.push(x));
           }
         }
       }
@@ -686,14 +717,16 @@
       ? `${pctFecho}% das leads encontram-se em fecho.`
       : 'Sem leads suficientes para calcular taxa de fecho.';
 
-    // Angariações Exclusivas – deteção mais robusta (“exclus” em vários campos)
+    // Angariações Exclusivas – deteção (“exclus” em vários campos)
     const angExclusivas = rawAng.filter(a => {
       const txt = [
         a.exclusivo,
         a.exclusividade,
         a.tipoExclusividade,
         a.naturezaContrato,
-        a.tipoContrato
+        a.tipoContrato,
+        a.destaques,
+        a.tipo_exclusividade
       ]
         .filter(Boolean)
         .join(' ')
@@ -870,6 +903,7 @@
   document.getElementById('refreshBtn').addEventListener('click', refreshDashboard);
   document.getElementById('resetBtn').addEventListener('click', resetLocalData);
 
+  // Primeira carga
   refreshDashboard();
 })();
 </script>
