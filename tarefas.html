@@ -8,341 +8,172 @@
     :root{
       --gold:#A38B63;
       --bg:#0B0B0B;
-      --panel:#151515;
-      --panel-soft:#1C1C1C;
+      --panel:#141414;
+      --border:rgba(255,255,255,.14);
       --text:#FFFFFF;
       --muted:#A0A0A0;
-      --border:rgba(255,255,255,.14);
-      --radius-lg:18px;
-      --radius-md:12px;
+      --radius-md:14px;
       --shadow-soft:0 18px 35px rgba(0,0,0,.6);
     }
     *{box-sizing:border-box;}
     html,body{
-      margin:0;height:100%;
+      margin:0;
+      height:100%;
       font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
       background:radial-gradient(circle at top,#1c1c1c 0,#050505 55%,#000 100%);
       color:var(--text);
     }
     body{display:flex;flex-direction:column;}
+    .app-shell{display:grid;grid-template-rows:64px auto;height:100%;}
 
-    header{
+    header.app-header{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      padding:12px 18px;
+      padding:10px 18px;
       border-bottom:1px solid rgba(163,139,99,.35);
       background:linear-gradient(90deg,#050505,#111,#050505);
-      gap:14px;
+      gap:16px;
       flex-wrap:wrap;
     }
     .brand{display:flex;align-items:center;gap:10px;}
     .brand-icon{
-      width:28px;height:28px;border-radius:999px;
+      width:26px;height:26px;border-radius:999px;
       border:1px solid var(--gold);
       display:flex;align-items:center;justify-content:center;
       box-shadow:0 0 0 1px rgba(163,139,99,.3);
     }
     .brand h1{
-      margin:0;font-size:17px;
-      letter-spacing:.08em;text-transform:uppercase;color:var(--gold);
+      margin:0;font-size:17px;letter-spacing:.04em;
+      text-transform:uppercase;color:var(--gold);
     }
     .brand span.sub{
       display:block;font-size:11px;color:var(--muted);
-      letter-spacing:.14em;text-transform:uppercase;
+      letter-spacing:.12em;text-transform:uppercase;
     }
-
-    .nav{
-      display:flex;gap:6px;flex-wrap:wrap;
+    .nav-tabs{
+      display:flex;flex-wrap:wrap;align-items:center;gap:4px;
+      background:rgba(0,0,0,.35);padding:4px;
+      border-radius:999px;border:1px solid rgba(163,139,99,.35);
     }
-    .nav a{
-      font-size:11px;padding:5px 10px;border-radius:999px;
-      border:1px solid rgba(163,139,99,.35);
-      color:var(--muted);text-decoration:none;
-      text-transform:uppercase;letter-spacing:.12em;
-      background:rgba(0,0,0,.4);
+    .nav-tab{
+      padding:5px 10px;border-radius:999px;font-size:11px;
+      text-decoration:none;color:var(--muted);
+      letter-spacing:.12em;text-transform:uppercase;
+      border:1px solid transparent;
+      transition:.16s background,.16s color,.16s border-color,.16s transform;
     }
-    .nav a.active{
-      background:var(--gold);color:#0B0B0B;border-color:var(--gold);font-weight:600;
+    .nav-tab:hover{
+      color:#fff;border-color:rgba(163,139,99,.6);
+      transform:translateY(-1px);
     }
-
-    main{
-      flex:1;padding:16px 18px 18px;
-      display:grid;grid-template-columns:1.1fr minmax(0,1fr);gap:14px;
+    .nav-tab.active{
+      background:var(--gold);color:#0A0A0A;
+      border-color:var(--gold);font-weight:600;
     }
-    @media (max-width:960px){
-      main{grid-template-columns:1fr;grid-auto-rows:auto;}
-    }
-
-    .panel{
-      border-radius:var(--radius-lg);
-      background:linear-gradient(145deg,#171717,#0C0C0C);
-      border:1px solid var(--border);
-      box-shadow:var(--shadow-soft);
-      padding:12px 14px;
-    }
-    .panel h2{
-      margin:0 0 4px;font-size:14px;
-      letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
-    }
-    .panel p{
-      margin:2px 0 8px;font-size:12px;color:var(--muted);
-    }
-
-    .columns{
-      display:grid;
-      grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:10px;
-      margin-top:6px;
-    }
-    @media (max-width:1100px){
-      .columns{grid-template-columns:repeat(2,minmax(0,1fr));}
-    }
-    @media (max-width:720px){
-      .columns{grid-template-columns:1fr;}
-    }
-
-    .col{
-      border-radius:var(--radius-md);
-      border:1px solid rgba(255,255,255,.08);
-      background:var(--panel-soft);
-      padding:8px 9px;
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-    }
-    .col header{
-      padding:0;
-      border:none;
-      background:transparent;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-    }
-    .col-title{
-      font-size:12px;
-      text-transform:uppercase;
-      letter-spacing:.14em;
-      color:var(--muted);
-    }
-    .col-count{
-      font-size:11px;
-      color:var(--muted);
-    }
-
-    .tasks{
-      margin-top:4px;
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-    }
-
-    .task{
-      border-radius:10px;
-      border:1px solid rgba(163,139,99,.25);
-      background:#101010;
-      padding:7px 8px;
-      font-size:12px;
-    }
-    .task-title{
-      font-weight:600;
-      margin-bottom:2px;
-    }
-    .task-meta{
-      font-size:11px;
-      color:var(--muted);
-    }
-    .tag{
-      display:inline-block;
-      padding:1px 6px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.2);
-      font-size:10px;
-      color:var(--muted);
-    }
-    .tag.consultor{border-color:var(--gold);color:var(--gold);}
-    .tag.hoje{border-color:#4CAF50;color:#B2FFB2;}
-    .tag.urgente{border-color:#F25F5C;color:#FFB3B0;}
-
-    .hint{
-      margin-top:6px;
-      font-size:11px;
-      color:var(--muted);
-    }
-
-    .form-inline{
-      display:flex;
-      flex-wrap:wrap;
-      gap:6px;
-      margin-top:6px;
-      align-items:center;
-    }
-    .form-inline input,.form-inline select{
-      background:#0E0E0E;
-      border:1px solid rgba(255,255,255,.16);
-      border-radius:999px;
-      color:#fff;
-      padding:6px 9px;
-      font-size:12px;
-      outline:none;
+    .header-actions{
+      display:flex;align-items:center;gap:8px;flex-wrap:wrap;
     }
     .btn{
-      border-radius:999px;
-      border:1px solid rgba(163,139,99,.6);
-      background:rgba(0,0,0,.75);
-      color:var(--gold);
-      padding:6px 10px;
-      font-size:12px;
-      cursor:pointer;
+      border-radius:999px;border:1px solid rgba(163,139,99,.35);
+      background:rgba(12,12,12,.9);color:var(--text);
+      padding:7px 12px;font-size:13px;display:inline-flex;
+      align-items:center;gap:6px;cursor:pointer;
+      transition:.18s border-color,.18s background,.18s transform;
     }
+    .btn:hover{border-color:var(--gold);transform:translateY(-1px);}
 
-    footer{
-      padding:6px 14px;
-      font-size:11px;
-      color:var(--muted);
-      border-top:1px solid rgba(163,139,99,.28);
-      background:#050505;
-      display:flex;
-      justify-content:space-between;
-      gap:8px;
-      flex-wrap:wrap;
+    .main{
+      padding:18px 18px 20px;
+      background:radial-gradient(circle at top,#1a1a1a,#050505 55%,#000 100%);
+      height:calc(100vh - 64px);
+      overflow:auto;
     }
+    .hero{
+      max-width:720px;margin:0 auto;
+      text-align:center;
+      padding:26px 20px 28px;
+      border-radius:22px;
+      border:1px solid rgba(163,139,99,.35);
+      background:radial-gradient(circle at top,#181818,#070707);
+      box-shadow:var(--shadow-soft);
+    }
+    .hero h2{
+      margin:0;font-size:20px;letter-spacing:.12em;
+      text-transform:uppercase;color:var(--gold);
+    }
+    .hero p{
+      margin:8px 0 0;font-size:13px;color:var(--muted);
+    }
+    .hero-grid{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:10px;
+    }
+    .hero-card{
+      border-radius:var(--radius-md);
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(8,8,8,.9);
+      padding:10px 11px;
+      font-size:12px;
+      color:var(--muted);
+      text-align:left;
+    }
+    .hero-card strong{color:#fff;}
   </style>
 </head>
 <body>
-<header>
-  <div class="brand">
-    <div class="brand-icon">
-      <svg width="18" height="18" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
-        <circle cx="12" cy="12" r="9" />
-        <path d="M8 12.5l2.5 2.5L16 9" />
-      </svg>
-    </div>
-    <div>
-      <h1>Garvetur Porto Pro — Tarefas</h1>
-      <span class="sub">Planeamento operacional · em construção</span>
-    </div>
-  </div>
-  <nav class="nav">
-    <a href="./index.html">Home</a>
-    <a href="./mapa.html">Mapa</a>
-    <a href="./kanban.html">Leads</a>
-    <a href="./angariacoes.html">Angariações</a>
-    <a href="./dashboard.html">Dashboard</a>
-    <a href="./vendas.html">Vendas</a>
-    <a href="./tarefas.html" class="active">Tarefas</a>
-  </nav>
-</header>
-
-<main>
-  <section class="panel">
-    <h2>Visão geral</h2>
-    <p>Este módulo será o centro de <strong>follow-up diário</strong>: contactes de leads, prazos de angariações, visitas, CPCV, escrituras e tarefas internas.</p>
-
-    <div class="columns">
-      <div class="col">
-        <header>
-          <span class="col-title">Hoje</span>
-          <span class="col-count">3 exemplos</span>
-        </header>
-        <div class="tasks">
-          <div class="task">
-            <div class="task-title">Ligar a lead qualificada — Foz T3 vista mar</div>
-            <div class="task-meta">
-              <span class="tag consultor">Rui Quelhas</span>
-              <span class="tag hoje">Hoje</span>
-              <span class="tag urgente">Follow-up</span>
-            </div>
-          </div>
-          <div class="task">
-            <div class="task-title">Confirmar visita — Moradia Senhora da Hora</div>
-            <div class="task-meta">
-              <span class="tag consultor">Manuel Oliveira</span>
-              <span class="tag hoje">Hoje</span>
-            </div>
-          </div>
-          <div class="task">
-            <div class="task-title">Enviar ficha de angariação ao promotor</div>
-            <div class="task-meta">
-              <span class="tag consultor">João Sousa</span>
-              <span class="tag hoje">Hoje</span>
-            </div>
-          </div>
-        </div>
+<div class="app-shell">
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M8 12.5l2.5 2.5L16 9"></path>
+        </svg>
       </div>
-
-      <div class="col">
-        <header>
-          <span class="col-title">Esta semana</span>
-          <span class="col-count">2 exemplos</span>
-        </header>
-        <div class="tasks">
-          <div class="task">
-            <div class="task-title">Rever preços das angariações com elevado ajustamento</div>
-            <div class="task-meta">
-              <span class="tag">Pipeline</span>
-            </div>
-          </div>
-          <div class="task">
-            <div class="task-title">Reunião interna — análise de Leads em “Proposta”</div>
-            <div class="task-meta">
-              <span class="tag">Dashboard</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col">
-        <header>
-          <span class="col-title">Mais tarde</span>
-          <span class="col-count">Exemplos</span>
-        </header>
-        <div class="tasks">
-          <div class="task">
-            <div class="task-title">Planear ação com promotores para novos empreendimentos</div>
-            <div class="task-meta">
-              <span class="tag">Estratégico</span>
-            </div>
-          </div>
-        </div>
+      <div>
+        <h1>Garvetur Porto Pro — Tarefas</h1>
+        <span class="sub">Follow-up, compromissos e rotina comercial</span>
       </div>
     </div>
 
-    <p class="hint">Ainda não estão a ser gravadas tarefas — esta página é o esqueleto visual para a próxima fase.</p>
-  </section>
+    <nav class="nav-tabs">
+      <a href="index.html" class="nav-tab">Início</a>
+      <a href="mapa.html" class="nav-tab">Mapa</a>
+      <a href="kanban.html" class="nav-tab">Leads</a>
+      <a href="angariacoes.html" class="nav-tab">Angariações</a>
+      <a href="dashboard.html" class="nav-tab">Dashboard</a>
+      <a href="vendas.html" class="nav-tab">Vendas</a>
+      <a href="tarefas.html" class="nav-tab active">Tarefas</a>
+    </nav>
 
-  <section class="panel">
-    <h2>Esqueleto de criação de tarefas</h2>
-    <p>Na próxima fase, este formulário irá gravar tarefas no navegador (localStorage), ligadas a Leads e Angariações.</p>
-
-    <div class="form-inline">
-      <input id="tarefaTitulo" placeholder="Ex.: Ligar lead João Silva (T2 Boavista)">
-      <select id="tarefaConsultor">
-        <option value="">Consultor (opcional)</option>
-        <option>Rui Quelhas</option>
-        <option>Manuel Oliveira</option>
-        <option>João Sousa</option>
-        <option>Francisco dos Santos</option>
-        <option>Rosário Vasconcelos</option>
-        <option>Armanda Meireles</option>
-        <option>Audrey Lucas</option>
-      </select>
-      <select id="tarefaQuando">
-        <option value="">Quando</option>
-        <option>Hoje</option>
-        <option>Esta semana</option>
-        <option>Mais tarde</option>
-      </select>
-      <button class="btn" type="button" onclick="alert('Nesta versão ainda não grava, é apenas o esqueleto visual.');">+ Adicionar (em breve)</button>
+    <div class="header-actions">
+      <button class="btn" onclick="window.location.href='index.html'">← Início</button>
     </div>
+  </header>
 
-    <p class="hint">Podemos, mais tarde, fazer esta área falar diretamente com: Leads (para follow-up) e Angariações (para prazos de contrato, CPCV, escritura).</p>
-  </section>
-</main>
-
-<footer>
-  <span>Módulo de Tarefas em modo esqueleto — ainda sem gravação real de dados.</span>
-  <span>Pronto para integrar com Leads e Angariações numa fase seguinte.</span>
-</footer>
+  <main class="main">
+    <div class="hero">
+      <h2>Tarefas em construção</h2>
+      <p>Este módulo vai integrar tarefas ligadas a leads, angariações e vendas (follow-ups, visitas, telefonemas, etc.).</p>
+      <div class="hero-grid">
+        <div class="hero-card">
+          <strong>Ligação às Leads</strong><br>
+          Ver e agendar follow-ups diretamente a partir das leads em pipeline.
+        </div>
+        <div class="hero-card">
+          <strong>Alertas & prioridades</strong><br>
+          Destacar tarefas urgentes e pendentes por consultor.
+        </div>
+        <div class="hero-card">
+          <strong>Agenda comercial</strong><br>
+          Visão diária / semanal de visitas, chamadas e reuniões.
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
 </body>
 </html>
