@@ -1,855 +1,1221 @@
 <!doctype html>
 <html lang="pt">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Garvetur Porto Pro — Mapa (PDF inteligente)</title>
-
-<link rel="preconnect" href="https://unpkg.com" crossorigin>
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-
-<!-- Leaflet + Cluster CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="anonymous">
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin="anonymous">
-
-<!-- PapaParse (CSV) -->
-<script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js" crossorigin="anonymous" defer></script>
-
-<!-- idb-keyval (IndexedDB) — sem defer -->
-<script src="https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/idb-keyval.iife.min.js" crossorigin="anonymous"></script>
-
-<!-- PDF.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" crossorigin="anonymous"></script>
-<script>
-  if (window['pdfjsLib']) {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  }
-</script>
-
-<style>
-:root{ --gold:#A38B63; --bg:#0E0E0E; --panel:#131313; --text:#fff; --muted:#9AA0A6; --ok:#43A047; --info:#1E88E5; --warn:#E53935; --border:rgba(255,255,255,.12) }
-html,body{height:100%;margin:0;background:#0E0E0E;color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-a{color:#e6e6e6;text-decoration:none}
-.app{display:grid;grid-template-columns:380px 1fr;grid-template-rows:56px 40px 1fr;height:100%}
-header{grid-column:1 / span 2;display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--border);background:#0F0F0F}
-.brand{display:flex;align-items:center;gap:10px}
-.brand h1{font-size:16px;margin:0;color:var(--gold)}
-.nav{display:flex;gap:8px}
-.nav a{border:1px solid var(--border);padding:6px 10px;border-radius:8px;color:#ddd}
-.nav a.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
-
-.kpis{grid-column:1 / span 2;display:flex;gap:8px;align-items:center;padding:6px 12px;background:#0F0F0F;border-bottom:1px solid var(--border)}
-.kpi{display:flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:10px;padding:6px 10px;font-size:12px}
-.dot{width:10px;height:10px;border-radius:50%;background:#999;display:inline-block;border:1px solid rgba(0,0,0,.2)}
-.dot.c{background:var(--warn)} .dot.l{background:var(--info)} .dot.f{background:var(--ok)}
-.toolbar{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
-.btn{background:transparent;border:1px solid rgba(163,139,99,.5);color:#fff;padding:6px 10px;border-radius:10px;cursor:pointer;font-size:12px}
-.btn.primary{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
-.btn.ghost{border-color:var(--border);color:#ddd}
-.btn-sm{font-size:12px;border:1px solid var(--border);padding:4px 8px;border-radius:8px;background:transparent;color:#eee}
-input[type="file"]{display:none}
-
-.sidebar{background:var(--panel);border-right:1px solid var(--border);overflow:auto}
-.section{padding:10px;border-bottom:1px solid rgba(255,255,255,.08)}
-.hint{font-size:11px;color:#bdbdbd}
-.label{font-size:12px;color:#cfcfcf;margin:6px 0 4px}
-.field{display:flex;gap:6px}
-.field input,.field select{flex:1;background:#0E0E0E;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:8px 10px;color:#fff;outline:none}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.chip{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:#0E0E0E;color:#ddd;cursor:pointer}
-.chip.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
-.list{padding:8px 12px}
-.card{border:1px solid rgba(163,139,99,.25);border-radius:12px;padding:10px;margin-bottom:10px;background:#0E0E0E}
-.card .row{display:flex;justify-content:space-between;gap:8px}
-.card .name{font-weight:700}
-.card .meta{font-size:11px;color:#bbb;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
-.card .state{font-size:12px;color:#bbb;margin-top:4px}
-.card .actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
-.badge{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--border);font-size:11px}
-.empty{padding:10px;color:#bbb;font-size:13px}
-
-#map{width:100%;height:100%}
-.leaflet-container{background:#eaeaea}
-.legend{position:absolute;left:12px;bottom:16px;z-index:5000;background:#111;border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-size:12px;color:#fff}
-.legend .row{display:flex;gap:8px;align-items:center}
-.legend .swatch{width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.3)}
-.legend .c{background:#E53935}.legend .l{background:#1E88E5}.legend .f{background:#43A047}
-
-#side-panel{position:absolute;right:12px;top:80px;bottom:12px;width:min(470px,92vw);z-index:5001;background:#0F0F0F;border:1px solid var(--border);border-radius:12px;overflow:auto;display:none}
-#side-panel.show{display:block}
-.panel-head{position:sticky;top:0;background:#0F0F0F;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:10px 12px}
-.panel-inner{padding:12px}
-.meta-line{font-size:13px;margin:4px 0;color:#ddd}
-
-.pin{width:28px;height:28px;border-radius:50%;border:2px solid #111;box-shadow:0 2px 6px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:12px;position:relative;}
-.pin.c{ background:#E53935 } .pin.l{ background:#1E88E5 } .pin.f{ background:#43A047 }
-.pin.c::after{content:""; position:absolute; width:28px;height:28px;border-radius:50%; box-shadow:0 0 0 0 rgba(229,57,53,.55); animation:pulse 1.8s ease-out infinite;}
-@keyframes pulse{0%{ box-shadow:0 0 0 0 rgba(229,57,53,.55)}70%{ box-shadow:0 0 0 18px rgba(229,57,53,0)}100%{ box-shadow:0 0 0 0 rgba(229,57,53,0)}}
-
-.modal-backdrop{display:none; position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,.6); backdrop-filter:blur(2px); align-items:center; justify-content:center; padding:16px;}
-.modal-backdrop.show{display:flex}
-.modal{width:min(900px,96vw); background:#0F0F0F; border:1px solid var(--border); border-radius:12px; overflow:hidden;}
-.modal header{padding:10px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
-.modal .content{padding:12px;max-height:72vh;overflow:auto}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.form-field{display:flex;flex-direction:column;gap:6px}
-.form-field input,.form-field select,.form-field textarea{background:#0E0E0E;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:8px 10px;color:#fff;outline:none}
-.doc-row{display:grid;grid-template-columns:1fr 120px 1fr auto;gap:6px;align-items:center}
-.doc-row .del{border-color:#cc4b4b;color:#ffdddd}
-
-.pdf-backdrop{display:none; position:fixed; inset:0; z-index:11000; background:rgba(0,0,0,.6); backdrop-filter:blur(2px); align-items:center; justify-content:center; padding:16px;}
-.pdf-backdrop.show{display:flex}
-.pdf-card{width:min(1100px,96vw); height:min(88vh,900px); background:#0F0F0F; border:1px solid var(--border); border-radius:12px; overflow:hidden; display:flex; flex-direction:column;}
-.pdf-card header{padding:8px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
-.pdf-card .frame{flex:1}
-.pdf-card iframe{width:100%;height:100%;border:0}
-
-#loadingMask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:12000;display:none;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px}
-#loadingMask.show{display:flex}
-
-.hidden{display:none !important}
-@media (max-width: 1000px){
-  .app{grid-template-columns:1fr;grid-template-rows:56px 40px 280px 1fr}
-  .sidebar{grid-row:3}
-  #map{grid-row:4}
-  #side-panel{top:auto;bottom:72px}
-}
-</style>
-</head>
-<body>
-  <div class="app">
-    <header>
-      <div class="brand">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--gold)"><circle cx="12" cy="12" r="10" stroke-width="1.5"/><path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/></svg>
-        <h1>Garvetur Porto Pro — Mapa</h1>
-      </div>
-      <div class="nav">
-        <a class="active" href="./index.html">Mapa</a>
-        <a href="./kanban.html">Leads</a>
-        <a href="./angariacoes.html">Angariações</a>
-        <a href="./dashboard.html">Dashboard</a>
-      </div>
-    </header>
-
-    <div class="kpis">
-      <div class="kpi"><span class="dot"></span>Total: <b id="k_total">0</b></div>
-      <div class="kpi"><span class="dot c"></span>Em construção: <b id="k_c">0</b></div>
-      <div class="kpi"><span class="dot l"></span>Licenciado: <b id="k_l">0</b></div>
-      <div class="kpi"><span class="dot f"></span>Concluído: <b id="k_f">0</b></div>
-      <div class="toolbar">
-        <button class="btn" id="focusAmp">Focar AMP/Porto</button>
-        <button class="btn" id="exportCsv">Exportar CSV</button>
-        <button class="btn" id="exportGeo">Exportar GeoJSON</button>
-        <button class="btn ghost" id="toggleEdit" title="Modo Edição">🔒 Editar</button>
-
-        <label class="btn" for="csvFile" id="btnImport" style="display:none">Importar CSV</label>
-        <input id="csvFile" type="file" accept=".csv" />
-        <button class="btn primary" id="btnNew" style="display:none">+ Novo</button>
-        <button class="btn ghost" id="btnSave" style="display:none">Guardar</button>
-        <button class="btn ghost" id="btnClearAll" style="display:none">Limpar Tudo</button>
-      </div>
-    </div>
-
-    <aside class="sidebar">
-      <div class="section">
-        <div class="label">Pesquisa global</div>
-        <div class="field"><input id="q" placeholder="Ex.: 'Gaia licenciado 2027 promotor X'"></div>
-        <div class="hint">Pesquisa por nome, concelho, promotor, tipologias, estado, conclusão, notas e €/m².</div>
-      </div>
-      <div class="section">
-        <div class="label">Concelho</div>
-        <div class="field"><select id="f_concelho"><option value="">(Todos)</option></select></div>
-        <div class="label">Estado</div>
-        <div class="chips" id="estadoChips">
-          <div class="chip active" data-v="">Todos</div>
-          <div class="chip" data-v="em_construcao">Em construção</div>
-          <div class="chip" data-v="licenciado">Licenciado</div>
-          <div class="chip" data-v="concluido">Concluído</div>
-        </div>
-      </div>
-      <div class="section">
-        <div class="label">Conclusão (ano)</div>
-        <div class="field">
-          <input id="f_cmin" type="number" placeholder="Mín. ex.: 2025">
-          <input id="f_cmax" type="number" placeholder="Máx. ex.: 2029">
-        </div>
-        <div class="label" style="margin-top:6px">Preço €/m²</div>
-        <div class="field">
-          <input id="f_pmin" type="number" placeholder="Mín.">
-          <input id="f_pmax" type="number" placeholder="Máx.">
-        </div>
-      </div>
-      <div class="section">
-        <div class="label">Promotor</div>
-        <div class="field"><select id="f_promotor"><option value="">(Todos)</option></select></div>
-        <div class="label" style="margin-top:6px">Tipologias (texto)</div>
-        <div class="field"><input id="f_tipos" placeholder="Ex.: T1,T2"></div>
-      </div>
-      <div class="section">
-        <div class="actions">
-          <button class="btn primary" id="apply">Aplicar</button>
-          <button class="btn ghost" id="clear">Limpar</button>
-        </div>
-      </div>
-      <div class="section"><div class="label">Resultados</div></div>
-      <div class="list" id="list"></div>
-    </aside>
-
-    <div style="position:relative">
-      <div id="map"></div>
-      <div class="legend">
-        <div class="row"><span class="swatch c"></span> Em construção</div>
-        <div class="row"><span class="swatch l"></span> Licenciado</div>
-        <div class="row"><span class="swatch f"></span> Concluído</div>
-      </div>
-
-      <div id="side-panel">
-        <div class="panel-head">
-          <div style="font-weight:700">Detalhes</div>
-          <button class="btn" id="closePanel">Fechar ✕</button>
-        </div>
-        <div class="panel-inner" id="panelInner"></div>
-      </div>
-    </div>
-  </div>
-
-<!-- Modal Empreendimento -->
-<div id="editModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Empreendimento">
-  <div class="modal">
-    <header>
-      <div><strong id="editTitle">Novo Empreendimento</strong></div>
-      <div style="display:flex;gap:8px">
-        <button class="btn ghost" id="pickCoord">Definir no mapa</button>
-        <label class="btn" id="attachLocalLabel" for="attachLocalInput" style="display:none">📎 Anexar ficheiro</label>
-        <input id="attachLocalInput" type="file" accept="application/pdf,image/*" style="display:none">
-        <button class="btn" id="cancelEdit">Cancelar</button>
-        <button class="btn primary" id="saveEdit">Guardar</button>
-      </div>
-    </header>
-    <div class="content">
-      <div class="grid2">
-        <div class="form-field"><label>Nome</label><input id="f_nome"></div>
-        <div class="form-field"><label>Concelho</label><input id="f_concelho_e"></div>
-        <div class="form-field"><label>Estado</label>
-          <select id="f_estado">
-            <option value="">—</option>
-            <option value="em_construcao">Em construção</option>
-            <option value="licenciado">Licenciado</option>
-            <option value="concluido">Concluído</option>
-          </select>
-        </div>
-        <div class="form-field"><label>Promotor</label><input id="f_promotor_e"></div>
-        <div class="form-field"><label>Tipologias</label><input id="f_tipologias"></div>
-        <div class="form-field"><label>Conclusão (ano)</label><input id="f_conclusao" type="number" min="1900" max="2100"></div>
-        <div class="form-field"><label>€/m²</label><input id="f_preco" type="number" min="0" step="1"></div>
-        <div class="form-field"><label>Link</label><input id="f_link"></div>
-        <div class="form-field"><label>Latitude</label><input id="f_lat" type="number" step="0.000001"></div>
-        <div class="form-field"><label>Longitude</label><input id="f_lng" type="number" step="0.000001"></div>
-        <div class="form-field" style="grid-column:1 / span 2"><label>Notas</label><textarea id="f_notas" rows="3"></textarea></div>
-      </div>
-
-      <div style="margin-top:10px">
-        <div class="label">Documentos & Media</div>
-        <div id="docsBox"></div>
-        <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap">
-          <button class="btn" id="addDoc">+ Adicionar documento (URL)</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal PDF fullscreen -->
-<div id="pdfModal" class="pdf-backdrop" role="dialog" aria-modal="true" aria-label="Documento">
-  <div class="pdf-card">
-    <header>
-      <div><strong>Documento</strong></div>
-      <div style="display:flex;gap:8px">
-        <a id="pdfOpenNew" class="btn" target="_blank" rel="noreferrer">Abrir em nova aba</a>
-        <button class="btn" id="pdfClose">Fechar ✕</button>
-      </div>
-    </header>
-    <div class="frame"><iframe id="pdfFrame"></iframe></div>
-  </div>
-</div>
-
-<!-- Loading mask -->
-<div id="loadingMask"><div>⏳ A guardar anexo…</div></div>
-
-<script>
-/* ===== Helpers de carregamento dinâmico ===== */
-function loadScript(src){
-  return new Promise((res,rej)=>{
-    const s=document.createElement('script');
-    s.src=src; s.defer=true; s.crossOrigin='anonymous';
-    s.onload=()=>res(true); s.onerror=()=>rej(new Error('Falha a carregar '+src));
-    document.head.appendChild(s);
-  });
-}
-</script>
-
-<script>
-/* ===== Estado global ===== */
-const AMP_CENTER=[41.15,-8.61], AMP_ZOOM=12;
-const LS_KEY='gpp_dataset_v1';
-const PDF_INLINE_LIMIT=4*1024*1024; // 4 MB
-
-let MAP, CLUSTER, LAYER, CLUSTER_OK=false;
-let RAW=[], FILT=[];
-let ACTIVE=null;
-let EDIT_MODE=false;
-let EDIT_INDEX=-1;
-let PICKING=false;
-let UIState={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'' };
-
-const el=id=>document.getElementById(id);
-function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
-function stateKey(s){ const x=norm(s); if(x.includes('constr'))return 'em_construcao'; if(x.includes('licen'))return 'licenciado'; if(x.includes('concl'))return 'concluido'; return x||''; }
-function colorByState(k){ if(k==='em_construcao')return '#E53935'; if(k==='licenciado')return '#1E88E5'; if(k==='concluido')return '#43A047'; return '#A38B63'; }
-function pinClass(k){ if(k==='em_construcao')return 'pin c'; if(k==='licenciado')return 'pin l'; if(k==='concluido')return 'pin f'; return 'pin'; }
-function toCSV(rows){ return rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n'); }
-function slugify(s){ return norm(s).replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,''); }
-function numPT(v){ if(v===null||v===undefined||v==='') return null; const n=Number(String(v).replace(',','.')); return Number.isFinite(n)? n : null; }
-
-/* ===== Leaflet & Cluster ===== */
-async function loadLeafletAndCluster(){
-  if(!window.L){ try{ await loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'); }catch{ await loadScript('https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js'); } }
-  try{
-    if(!window.L.markerClusterGroup){ try{ await loadScript('https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'); }catch{ await loadScript('https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'); } }
-    CLUSTER_OK=!!window.L.markerClusterGroup;
-  }catch{ CLUSTER_OK=false; }
-}
-function initMap(){
-  MAP = L.map('map',{ zoomControl:true, scrollWheelZoom:true }).setView(AMP_CENTER, AMP_ZOOM);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(MAP);
-  if(CLUSTER_OK){
-    const clusterOpts={ spiderfyOnEveryZoom:false, showCoverageOnHover:false, maxClusterRadius:48 };
-    CLUSTER=L.markerClusterGroup(clusterOpts);
-    LAYER=L.layerGroup().addTo(CLUSTER); MAP.addLayer(CLUSTER);
-  }else{
-    LAYER=L.layerGroup().addTo(MAP);
-  }
-  el('focusAmp').addEventListener('click',()=>MAP.setView(AMP_CENTER,AMP_ZOOM,{animate:true}));
-}
-
-/* ===== Facetas / Filtros ===== */
-function buildFacetOptions(){
-  const concelhos=[...new Set(RAW.map(x=>x.concelho).filter(Boolean))].sort();
-  const promotores=[...new Set(RAW.map(x=>x.promotor).filter(Boolean))].sort();
-  el('f_concelho').innerHTML='<option value="">(Todos)</option>'+concelhos.map(c=>`<option>${c}</option>`).join('');
-  el('f_promotor').innerHTML='<option value="">(Todos)</option>'+promotores.map(c=>`<option>${c}</option>`).join('');
-}
-function matchTokens(obj,tokens){
-  if(!tokens.length) return true;
-  const hay=norm([obj.nome,obj.concelho,obj.promotor,obj.tipologias,obj.estado,obj.notas,obj.conclusao,obj.preco_m2].join(' '));
-  return tokens.every(tok=>hay.includes(tok));
-}
-function applyFilters(){
-  const tokens=norm(UIState.q).split(/\s+/).filter(Boolean);
-  const tiposTokens=norm(UIState.tipos||'').split(/[,\s]+/).filter(Boolean);
-  FILT=RAW.filter(p=>{
-    if(!matchTokens(p,tokens)) return false;
-    if(UIState.concelho && p.concelho!==UIState.concelho) return false;
-    if(UIState.estado && p.estado!==UIState.estado) return false;
-    const c=numPT(p.conclusao);
-    if(UIState.cmin && c!==null && c<Number(UIState.cmin)) return false;
-    if(UIState.cmax && c!==null && c>Number(UIState.cmax)) return false;
-    const m2=numPT(p.preco_m2);
-    if(UIState.pmin && m2!==null && m2<Number(UIState.pmin)) return false;
-    if(UIState.pmax && m2!==null && m2>Number(UIState.pmax)) return false;
-    if(UIState.promotor && p.promotor!==UIState.promotor) return false;
-    if(tiposTokens.length){ const base=norm(p.tipologias||''); const hit=tiposTokens.some(t=>base.includes(t)); if(!hit) return false; }
-    return true;
-  });
-}
-function renderKPIs(){
-  const t=FILT.length, c=FILT.filter(x=>x.estado==='em_construcao').length, l=FILT.filter(x=>x.estado==='licenciado').length, f=FILT.filter(x=>x.estado==='concluido').length;
-  el('k_total').textContent=t; el('k_c').textContent=c; el('k_l').textContent=l; el('k_f').textContent=f;
-}
-
-/* ===== Lista ===== */
-function stateLabel(s){
-  const c=colorByState(s);
-  return `<span class="badge" style="border-color:${c};color:${c}">${s||'—'}</span>`;
-}
-function renderList(){
-  const box=el('list'); box.innerHTML='';
-  if(!FILT.length){ box.innerHTML='<div class="empty">Sem resultados com os filtros atuais.</div>'; return; }
-  FILT.forEach(p=>{
-    const div=document.createElement('div'); div.className='card';
-    div.innerHTML=`
-      <div class="row">
-        <div>
-          <div class="name">${p.nome||'—'}</div>
-          <div class="meta">${p.concelho||'—'}</div>
-        </div>
-        ${stateLabel(p.estado)}
-      </div>
-      <div class="state">Conclusão: ${p.conclusao||'—'} · €/m²: ${p.preco_m2? Number(String(p.preco_m2).replace(',','.')).toLocaleString('pt-PT') : '—'}</div>
-      <div class="actions">
-        <button class="btn" data-act="zoom">Abrir no mapa</button>
-        ${p.link? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>` : ''}
-        <button class="btn" data-act="open">Detalhes</button>
-        ${EDIT_MODE ? `<button class="btn ghost" data-act="edit">Editar</button>
-        <button class="btn" style="border-color:#cc4b4b;color:#ffdddd" data-act="del">Apagar</button>`:''}
-      </div>`;
-    div.querySelector('[data-act="zoom"]').addEventListener('click',()=>{ if(p._lat&&p._lng) MAP?.setView([p._lat,p._lng],16,{animate:true}); });
-    div.querySelector('[data-act="open"]').addEventListener('click',()=>openFicha(p,true));
-    if(EDIT_MODE){
-      div.querySelector('[data-act="edit"]').addEventListener('click',()=>openEditBySlug(p.slug));
-      div.querySelector('[data-act="del"]').addEventListener('click',()=>deleteBySlug(p.slug));
+  <meta charset="utf-8" />
+  <title>Garvetur Porto Pro — Mapa</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin="anonymous"
+  />
+  <style>
+    :root {
+      --gold: #A38B63;
+      --bg: #0E0E0E;
+      --panel: #141414;
+      --panel-soft: #181818;
+      --border-subtle: rgba(163,139,99,0.35);
+      --text: #FFFFFF;
+      --muted: #A0A0A0;
+      --accent: #A38B63;
+      --danger: #F45B5B;
+      --success: #3FBF7F;
+      --info: #4BA3FF;
     }
-    box.appendChild(div);
-  });
-}
 
-/* ===== Mapa (marcadores) ===== */
-function makeDivIcon(state){ return L.divIcon({ className: pinClass(state), html:'', iconSize:[28,28], iconAnchor:[14,14], popupAnchor:[0,-12] }); }
-function renderMarkers(){
-  if(!window.L||!LAYER) return;
-  if(CLUSTER){ CLUSTER.clearLayers(); }
-  LAYER.clearLayers();
-  const pts=[];
-  FILT.forEach(p=>{
-    const lat=numPT(p._lat), lng=numPT(p._lng);
-    if(lat===null||lng===null) return;
-    pts.push([lat,lng]);
-    const m=L.marker([lat,lng],{icon:makeDivIcon(p.estado)});
-    m.on('click',()=>openFicha(p,true));
-    m.bindTooltip(`${p.nome||''}`,{direction:'top',offset:[0,-8],opacity:.9});
-    (CLUSTER||LAYER).addLayer ? (CLUSTER||LAYER).addLayer(m) : m.addTo(LAYER);
-  });
-  if(pts.length && MAP){
-    const b=L.latLngBounds(pts); if(b.isValid()) MAP.fitBounds(b.pad(0.2));
-  }
-}
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: radial-gradient(circle at top left, #202020 0, #0E0E0E 55%);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    }
 
-/* ===== Documentos & pré-visualização ===== */
-const IS_SAFARI=/^((?!chrome|android).)*safari/i.test(navigator.userAgent||'');
-let STORAGE_MODE='idb'; // 'idb' | 'dataurl'
-const DB_PREFIX='gpp_docs_';
-const TEMP_URLS=new Set();
+    body {
+      display: flex;
+      flex-direction: column;
+    }
 
-async function detectStorageMode(){
-  if(!window.idbKeyval){ STORAGE_MODE='dataurl'; return; }
-  try{
-    const test='__gpp_test__';
-    await idbKeyval.set(test,new Blob(['ok']));
-    const v=await idbKeyval.get(test);
-    await idbKeyval.del(test);
-    if(!v) throw new Error('sem leitura IDB');
-    STORAGE_MODE='idb';
-  }catch{ STORAGE_MODE='dataurl'; }
-}
-async function saveLocalBlob(file, slug){
-  const name=file.name||('file_'+Date.now());
-  const blob=file;
-  if(STORAGE_MODE==='idb'){
-    try{
-      const key=DB_PREFIX+(slug||'sem-slug')+'_'+name;
-      await idbKeyval.set(key,{meta:{name,type:blob.type||'application/octet-stream',size:blob.size||0,ts:Date.now()}, blob});
-      return 'idb://'+key;
-    }catch{/* fallback */}
-  }
-  // data: URL
-  const dataUrl=await new Promise((res,rej)=>{
-    const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=()=>rej(new Error('Falha FileReader')); fr.readAsDataURL(blob);
-  });
-  return dataUrl;
-}
-async function getLocal(idbUrl){
-  if(!idbUrl || !idbUrl.startsWith('idb://') || !window.idbKeyval) return null;
-  try{ return await idbKeyval.get(idbUrl.replace('idb://','')); }catch{ return null; }
-}
-async function getLocalBlobUrl(idbUrl){
-  const rec=await getLocal(idbUrl); if(!rec) return null;
-  const u=URL.createObjectURL(rec.blob); TEMP_URLS.add(u); return u;
-}
-async function resolveLocalUrl(rawUrl){
-  if(!rawUrl) return null;
-  if(rawUrl.startsWith('data:') || rawUrl.startsWith('http')) return rawUrl;
-  if(rawUrl.startsWith('idb://')) return await getLocalBlobUrl(rawUrl);
-  return rawUrl; // fallback
-}
-function revokeTempUrls(){ TEMP_URLS.forEach(u=>URL.revokeObjectURL(u)); TEMP_URLS.clear(); }
+    /* Shell geral */
 
-function openPDF(url){
-  el('pdfFrame').src=url; el('pdfOpenNew').href=url; el('pdfModal').classList.add('show');
-}
-el('pdfClose').addEventListener('click',()=>{ el('pdfModal').classList.remove('show'); el('pdfFrame').src='about:blank'; revokeTempUrls(); });
+    .app-shell {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
 
-async function renderDocPreview(container, rawUrl, type){
-  const url=await resolveLocalUrl(rawUrl);
-  if(!url){ container.innerHTML='<div class="hint">Documento indisponível.</div>'; return; }
+    .app-main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      padding: 12px 18px 18px;
+      gap: 16px;
+      box-sizing: border-box;
+    }
 
-  container.innerHTML='';
-
-  if(type==='img'){
-    const img=document.createElement('img');
-    img.src=url; img.alt=''; img.style.maxWidth='100%'; img.style.borderRadius='8px';
-    container.appendChild(img);
-    const bar=document.createElement('div');
-    bar.style.marginTop='6px'; bar.style.display='flex'; bar.style.gap='6px';
-    bar.innerHTML=`<a class="btn-sm" href="${url}" download>Transferir</a>
-                   <a class="btn-sm" href="${url}" target="_blank" rel="noreferrer noopener">Abrir em nova aba</a>`;
-    container.appendChild(bar);
-    return;
-  }
-
-  if(type==='link'){
-    container.innerHTML=`<a class="btn-sm" href="${url}" target="_blank" rel="noreferrer noopener">Abrir link</a>`;
-    return;
-  }
-
-  if(type==='pdf'){
-    // Se for IDB, verificar tamanho para decidir pré-visualização
-    if(rawUrl.startsWith('idb://')){
-      const rec=await getLocal(rawUrl);
-      const size=rec?.meta?.size ?? 0;
-      if(size > PDF_INLINE_LIMIT){
-        container.innerHTML = `
-          <div class="hint" style="line-height:1.5">
-            Ficheiro grande (${(size/1024/1024).toFixed(1)} MB). Para pré-visualizar sem bloqueios, hospede num URL HTTPS (ex.: <code>docs/</code> no repositório) e use o link aqui.<br>
-            Ainda assim, pode <a class="btn-sm" href="${await resolveLocalUrl(rawUrl)}" target="_blank" rel="noreferrer noopener">Abrir em nova aba</a> ou <a class="btn-sm" href="${await resolveLocalUrl(rawUrl)}" download>Transferir</a>.
-          </div>`;
-        return;
+    @media (max-width: 1024px) {
+      .app-main {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 360px;
+      }
+      .sidebar {
+        order: 2;
+      }
+      .map-wrapper {
+        order: 1;
       }
     }
 
-    if(!window['pdfjsLib']){
-      container.innerHTML = `<div class="hint">Pré-visualização indisponível. <a class="btn-sm" href="${url}" target="_blank" rel="noreferrer noopener">Abrir em nova aba</a></div>`;
-      return;
+    /* Cabeçalho comum */
+
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 18px;
+      border-bottom: 1px solid rgba(163,139,99,0.6);
+      background: linear-gradient(90deg, #050505, #121212 35%, #050505 100%);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.6);
     }
 
-    const wrap=document.createElement('div');
-    wrap.style.border='1px solid var(--border)';
-    wrap.style.borderRadius='8px';
-    wrap.style.overflow='hidden';
-    wrap.style.background='#fff';
-    wrap.style.height='420px';
-    wrap.style.display='flex';
-    wrap.style.alignItems='center';
-    wrap.style.justifyContent='center';
-    wrap.innerHTML='<div style="color:#666;font:13px/1.4 system-ui">A carregar PDF…</div>';
-    container.appendChild(wrap);
-
-    const bar=document.createElement('div');
-    bar.style.marginTop='6px';
-    bar.style.display='flex';
-    bar.style.gap='6px';
-    bar.innerHTML=`<a class="btn-sm" href="${url}" download>Transferir</a>
-                   <a class="btn-sm" href="${url}" target="_blank" rel="noreferrer noopener">Abrir em nova aba</a>
-                   <button class="btn-sm" id="btnExpandLocal">Expandir</button>`;
-    container.appendChild(bar);
-
-    try{
-      const loadingTask=pdfjsLib.getDocument(url);
-      const pdf=await loadingTask.promise;
-      const page=await pdf.getPage(1);
-      const viewport=page.getViewport({ scale: 1.4 });
-      const canvas=document.createElement('canvas');
-      const ctx=canvas.getContext('2d');
-      canvas.width=viewport.width; canvas.height=viewport.height;
-      wrap.innerHTML=''; wrap.appendChild(canvas);
-      await page.render({ canvasContext: ctx, viewport }).promise;
-
-      bar.querySelector('#btnExpandLocal')?.addEventListener('click',()=> openPDF(url));
-    }catch(e){
-      console.error(e);
-      wrap.innerHTML=`<div style="padding:10px;color:#444">Não foi possível pré-visualizar. <a class="btn-sm" href="${url}" target="_blank" rel="noreferrer noopener">Abrir em nova aba</a></div>`;
+    .app-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
-    return;
-  }
 
-  container.innerHTML=`<a class="btn-sm" href="${url}" target="_blank" rel="noreferrer noopener">Abrir</a>`;
-}
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 30% 0, #f3e4c1 0, #A38B63 40%, #2b2416 100%);
+      color: #121212;
+      font-weight: 700;
+      font-size: 15px;
+    }
 
-/* ===== Painel lateral (Ficha) ===== */
-function openFicha(p,focus=false){
-  ACTIVE=p;
-  const html=`
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-      <div>
-        <div style="font-weight:800;font-size:16px">${p.nome||'—'}</div>
-        <div style="font-size:12px;color:#bbb">${p.concelho||'—'} · ${stateLabel(p.estado)}</div>
-      </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn" data-act="center">Centrar</button>
-        <a class="btn" href="https://www.google.com/maps?q=${p._lat},${p._lng}" target="_blank" rel="noreferrer">Google Maps</a>
-        ${p.link? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>`:''}
-        <button class="btn" data-act="copy">Copiar resumo</button>
-        <button class="btn" data-act="share">Partilhar</button>
-        ${EDIT_MODE? `<button class="btn ghost" data-act="edit">Editar</button>`:''}
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
-      <div>
-        <div class="meta-line"><b>Promotor:</b> ${p.promotor||'—'}</div>
-        <div class="meta-line"><b>Tipologias:</b> ${p.tipologias||'—'}</div>
-        <div class="meta-line"><b>Conclusão:</b> ${p.conclusao||'—'}</div>
-        <div class="meta-line"><b>€/m²:</b> ${p.preco_m2? Number(String(p.preco_m2).replace(',','.')).toLocaleString('pt-PT') : '—'}</div>
-        <div class="meta-line"><b>Notas:</b> ${p.notas||'—'}</div>
-        <div class="meta-line"><b>Coordenadas:</b> ${numPT(p._lat)??'—'}, ${numPT(p._lng)??'—'}</div>
-      </div>
-      <div>
-        <div class="label">Documentos & Media</div>
-        ${buildDocsHTML(p.docs||[])}
-      </div>
-    </div>
-  `;
-  el('panelInner').innerHTML=html;
-  el('side-panel').classList.add('show');
-  if(focus && numPT(p._lat)!==null && numPT(p._lng)!==null) MAP?.setView([numPT(p._lat),numPT(p._lng)],16,{animate:true});
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+    }
 
-  el('panelInner').querySelector('[data-act="center"]')?.addEventListener('click',()=>{ if(numPT(p._lat)!==null && numPT(p._lng)!==null) MAP?.setView([p._lat,p._lng],16,{animate:true}); });
-  el('panelInner').querySelector('[data-act="copy"]')?.addEventListener('click',async ()=>{
-    const resumo=`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${p.conclusao||'—'} · ${p.link||''}`.trim();
-    try{ await navigator.clipboard.writeText(resumo);}catch{}
-  });
-  el('panelInner').querySelector('[data-act="share"]')?.addEventListener('click',async ()=>{
-    const shareData={ title:p.nome||'Empreendimento', text:`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${p.conclusao||'—'}`, url: location.href };
-    if(navigator.share){ try{ await navigator.share(shareData);}catch{} } else { try{ await navigator.clipboard.writeText(shareData.text+' '+(p.link||location.href));}catch{} }
-  });
+    .brand-title {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
 
-  const ul=el('panelInner').querySelector('#docList');
-  if(ul){
-    ul.querySelectorAll('li').forEach(li=>{
-      li.addEventListener('click', async ()=>{
-        const rawUrl=li.getAttribute('data-url'); const tp=li.getAttribute('data-type'); const view=el('panelInner').querySelector('#docView');
-        await renderDocPreview(view, rawUrl, tp);
+    .brand-subtitle {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .app-header-center {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+    }
+
+    .nav-tabs {
+      display: inline-flex;
+      padding: 3px;
+      border-radius: 999px;
+      background: rgba(20,20,20,0.9);
+      border: 1px solid rgba(163,139,99,0.4);
+      backdrop-filter: blur(10px);
+    }
+
+    .nav-tab {
+      position: relative;
+      padding: 6px 14px;
+      font-size: 12px;
+      color: var(--muted);
+      text-decoration: none;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      transition: all 0.18s ease;
+    }
+
+    .nav-tab span.dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: transparent;
+    }
+
+    .nav-tab:hover {
+      color: #f5f5f5;
+      background: rgba(255,255,255,0.04);
+    }
+
+    .nav-tab.active {
+      color: #0D0D0D;
+      background: linear-gradient(135deg, #F5E6C9, #A38B63);
+      box-shadow: 0 0 0 1px rgba(250,244,230,0.4), 0 8px 22px rgba(0,0,0,0.7);
+    }
+
+    .nav-tab.active span.dot {
+      background: #0D0D0D;
+    }
+
+    .app-header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .badge-env {
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(163,139,99,0.7);
+      background: rgba(5,5,5,0.9);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .btn-ghost-xs {
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: transparent;
+      color: var(--muted);
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .btn-ghost-xs:hover {
+      border-color: rgba(255,255,255,0.4);
+      color: #fff;
+    }
+
+    /* Painéis do mapa */
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border-radius: 14px;
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 14px 40px rgba(0,0,0,0.7);
+      padding: 10px 12px;
+      box-sizing: border-box;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .panel-title {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .kpi-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .kpi-pill {
+      flex: 1 1 90px;
+      min-width: 90px;
+      background: radial-gradient(circle at top left, #262018 0, #151515 55%);
+      border-radius: 12px;
+      border: 1px solid rgba(163,139,99,0.5);
+      padding: 6px 8px;
+      box-sizing: border-box;
+    }
+
+    .kpi-label {
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .kpi-value {
+      margin-top: 2px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .field-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .field-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .field-row > * {
+      flex: 1;
+    }
+
+    .input, select {
+      width: 100%;
+      box-sizing: border-box;
+      background: #0E0E0E;
+      border-radius: 10px;
+      border: 1px solid rgba(163,139,99,0.4);
+      color: #f5f5f5;
+      font-size: 12px;
+      padding: 6px 8px;
+      outline: none;
+    }
+
+    .input::placeholder {
+      color: #6f6f6f;
+    }
+
+    .input:focus, select:focus {
+      border-color: var(--gold);
+    }
+
+    .btn-sm {
+      font-size: 11px;
+      border-radius: 999px;
+      padding: 5px 9px;
+      border: 1px solid rgba(163,139,99,0.6);
+      background: rgba(255,255,255,0.02);
+      color: #f5f5f5;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .btn-sm:hover {
+      background: rgba(163,139,99,0.15);
+    }
+
+    .btn-sm.primary {
+      background: linear-gradient(135deg, #F5E6C9, #A38B63);
+      color: #111;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .list-panel {
+      margin-top: 4px;
+      max-height: 380px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .card {
+      border-radius: 12px;
+      border: 1px solid rgba(163,139,99,0.35);
+      background: radial-gradient(circle at top left, #252018 0, #121212 65%);
+      padding: 8px 9px;
+      margin-bottom: 7px;
+      cursor: pointer;
+      transition: border-color 0.15s ease, transform 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .card:hover {
+      border-color: var(--gold);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.6);
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .card-meta {
+      margin-top: 2px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .card-badges {
+      margin-top: 5px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .chip {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.17);
+      color: var(--muted);
+    }
+
+    .chip-estado {
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 600;
+    }
+
+    .chip-estado.construcao {
+      border-color: var(--danger);
+      color: #ffb3b3;
+    }
+
+    .chip-estado.licenciado {
+      border-color: var(--gold);
+      color: #f3e8c6;
+    }
+
+    .chip-estado.concluido {
+      border-color: var(--success);
+      color: #adf7c9;
+    }
+
+    .empty {
+      font-size: 12px;
+      color: var(--muted);
+      padding: 6px 2px;
+    }
+
+    /* Mapa */
+
+    .map-wrapper {
+      position: relative;
+      border-radius: 16px;
+      background: #101010;
+      border: 1px solid rgba(163,139,99,0.4);
+      overflow: hidden;
+      box-shadow: 0 18px 44px rgba(0,0,0,0.85);
+      display: flex;
+      flex-direction: column;
+    }
+
+    #map {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      min-height: 420px;
+    }
+
+    .map-top-bar {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      right: 8px;
+      z-index: 500;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    .map-top-left, .map-top-right {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .map-badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(15,15,15,0.86);
+      border: 1px solid rgba(163,139,99,0.7);
+      color: var(--muted);
+      backdrop-filter: blur(6px);
+    }
+
+    .legend {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      z-index: 500;
+      background: rgba(15,15,15,0.88);
+      border-radius: 10px;
+      border: 1px solid rgba(163,139,99,0.5);
+      padding: 6px 8px;
+      font-size: 11px;
+      color: var(--muted);
+      backdrop-filter: blur(6px);
+    }
+
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 3px;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.7);
+    }
+
+    .legend-dot.construcao {
+      background: #F45B5B;
+      box-shadow: 0 0 0 3px rgba(244,91,91,0.4);
+    }
+
+    .legend-dot.licenciado {
+      background: #F5E6C9;
+      box-shadow: 0 0 0 3px rgba(163,139,99,0.4);
+    }
+
+    .legend-dot.concluido {
+      background: #3FBF7F;
+      box-shadow: 0 0 0 3px rgba(63,191,127,0.3);
+    }
+
+    .legend-dot.outros {
+      background: #CBCBCB;
+      box-shadow: 0 0 0 3px rgba(203,203,203,0.3);
+    }
+
+    /* Pins (Leaflet divIcon) */
+
+    .g-pin {
+      position: relative;
+      width: 18px;
+      height: 24px;
+      transform: translate(-9px, -22px);
+    }
+
+    .g-pin-core {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      width: 16px;
+      height: 16px;
+      margin-left: -8px;
+      border-radius: 999px 999px 999px 999px;
+      border: 2px solid rgba(0,0,0,0.8);
+      box-sizing: border-box;
+      box-shadow: 0 5px 14px rgba(0,0,0,0.8);
+    }
+
+    .g-pin-tail {
+      position: absolute;
+      left: 50%;
+      bottom: 1px;
+      width: 4px;
+      height: 8px;
+      margin-left: -2px;
+      background: rgba(0,0,0,0.75);
+      border-radius: 999px;
+    }
+
+    .g-pin-core.construcao {
+      background: #F45B5B;
+      box-shadow:
+        0 0 0 2px rgba(244,91,91,0.65),
+        0 0 0 8px rgba(244,91,91,0.18),
+        0 6px 14px rgba(0,0,0,0.9);
+      animation: pulse-obra 1.5s infinite ease-out;
+    }
+
+    .g-pin-core.licenciado {
+      background: #F5E6C9;
+      box-shadow:
+        0 0 0 2px rgba(163,139,99,0.8),
+        0 6px 14px rgba(0,0,0,0.9);
+    }
+
+    .g-pin-core.concluido {
+      background: #3FBF7F;
+      box-shadow:
+        0 0 0 2px rgba(63,191,127,0.8),
+        0 6px 14px rgba(0,0,0,0.9);
+    }
+
+    .g-pin-core.outros {
+      background: #CBCBCB;
+      box-shadow:
+        0 0 0 2px rgba(180,180,180,0.8),
+        0 6px 14px rgba(0,0,0,0.9);
+    }
+
+    @keyframes pulse-obra {
+      0% {
+        box-shadow:
+          0 0 0 2px rgba(244,91,91,0.7),
+          0 0 0 8px rgba(244,91,91,0.26),
+          0 6px 14px rgba(0,0,0,0.9);
+      }
+      70% {
+        box-shadow:
+          0 0 0 2px rgba(244,91,91,0.0),
+          0 0 0 14px rgba(244,91,91,0.0),
+          0 6px 16px rgba(0,0,0,1);
+      }
+      100% {
+        box-shadow:
+          0 0 0 2px rgba(244,91,91,0.0),
+          0 0 0 4px rgba(244,91,91,0.0),
+          0 6px 14px rgba(0,0,0,0.9);
+      }
+    }
+
+    /* Popup */
+
+    .leaflet-popup-content {
+      font-size: 12px;
+      margin: 6px 8px;
+    }
+
+    .popup-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .popup-meta {
+      font-size: 11px;
+      color: #555;
+      margin-bottom: 3px;
+    }
+
+    .popup-link {
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    .popup-link a {
+      color: #0A67C2;
+      text-decoration: none;
+    }
+
+    .popup-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="app-header-left">
+        <div class="brand-mark">G</div>
+        <div class="brand-text">
+          <div class="brand-title">Garvetur Porto Pro</div>
+          <div class="brand-subtitle">Garvetur Luxury Porto · Mapa</div>
+        </div>
+      </div>
+      <div class="app-header-center">
+        <nav class="nav-tabs">
+          <a href="index.html" class="nav-tab active">
+            <span class="dot"></span>Mapa
+          </a>
+          <a href="kanban.html" class="nav-tab">
+            <span class="dot"></span>Leads
+          </a>
+          <a href="angariacoes.html" class="nav-tab">
+            <span class="dot"></span>Angariações
+          </a>
+          <a href="dashboard.html" class="nav-tab">
+            <span class="dot"></span>Dashboard
+          </a>
+        </nav>
+      </div>
+      <div class="app-header-right">
+        <div class="badge-env">Porto · Comercial</div>
+        <button type="button" class="btn-ghost-xs" onclick="location.reload()">Recarregar</button>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <!-- Sidebar esquerda -->
+      <section class="sidebar">
+        <!-- KPIs topo -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Resumo Mapa</div>
+            <span class="text-muted" style="font-size:11px;" id="kpi-dataLabel">Sem dados</span>
+          </div>
+          <div class="kpi-row">
+            <div class="kpi-pill">
+              <div class="kpi-label">Total empreendimentos</div>
+              <div class="kpi-value" id="kpi-total">0</div>
+              <div class="kpi-sub" id="kpi-concelhos">— concelhos</div>
+            </div>
+            <div class="kpi-pill">
+              <div class="kpi-label">Em construção</div>
+              <div class="kpi-value" id="kpi-construcao">0</div>
+              <div class="kpi-sub">Obras em curso</div>
+            </div>
+            <div class="kpi-pill">
+              <div class="kpi-label">Licenciado</div>
+              <div class="kpi-value" id="kpi-licenciado">0</div>
+              <div class="kpi-sub">Projetos licenciados</div>
+            </div>
+            <div class="kpi-pill">
+              <div class="kpi-label">Concluído</div>
+              <div class="kpi-value" id="kpi-concluido">0</div>
+              <div class="kpi-sub">Pronto / entregue</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controlo de dados -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Dados (CSV)</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Importar empreendimentos</label>
+            <input type="file" id="csvInput" accept=".csv" class="input" />
+            <div class="text-muted" style="margin-top:4px;">
+              Espera-se um ficheiro <strong>empreendimentos.csv</strong> com colunas:<br>
+              <em>nome, concelho, estado, promotor, tipologias, conclusao, preco_m2, notas, latitude, longitude, link</em>.
+            </div>
+            <div class="btn-row">
+              <button type="button" class="btn-sm primary" id="btnLoadSample">
+                Usar dados guardados
+              </button>
+              <button type="button" class="btn-sm" id="btnClear">
+                Limpar dados
+              </button>
+            </div>
+            <div class="text-muted" id="dataStatus" style="margin-top:4px; font-size:11px;">
+              Nenhum ficheiro carregado.
+            </div>
+          </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Filtros</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Estado</label>
+            <div class="field-row">
+              <select id="estadoFilter">
+                <option value="todos">Todos</option>
+                <option value="em_construcao">Em construção</option>
+                <option value="licenciado">Licenciado</option>
+                <option value="concluido">Concluído</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Concelho</label>
+            <select id="concelhoFilter">
+              <option value="todos">Todos</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Pesquisa livre</label>
+            <input id="searchInput" class="input" placeholder="Nome, promotor, notas…" />
+          </div>
+        </div>
+
+        <!-- Lista de empreendimentos -->
+        <div class="panel" style="flex:1; min-height:0;">
+          <div class="panel-header">
+            <div class="panel-title">Empreendimentos</div>
+            <span class="text-muted" id="listCount" style="font-size:11px;">0</span>
+          </div>
+          <div class="list-panel" id="listPanel">
+            <div class="empty">Sem dados. Importe um ficheiro CSV.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Mapa à direita -->
+      <section class="map-wrapper">
+        <div class="map-top-bar">
+          <div class="map-top-left">
+            <div class="map-badge">
+              AMP / Porto · vista geral
+            </div>
+          </div>
+          <div class="map-top-right">
+            <button type="button" class="btn-sm" id="btnFocusPorto">
+              Focar AMP/Porto
+            </button>
+          </div>
+        </div>
+        <div id="map"></div>
+        <div class="legend">
+          <div class="legend-row">
+            <div class="legend-dot construcao"></div>
+            <span>Em construção</span>
+          </div>
+          <div class="legend-row">
+            <div class="legend-dot licenciado"></div>
+            <span>Licenciado</span>
+          </div>
+          <div class="legend-row">
+            <div class="legend-dot concluido"></div>
+            <span>Concluído</span>
+          </div>
+          <div class="legend-row">
+            <div class="legend-dot outros"></div>
+            <span>Outros / sem estado</span>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin="anonymous"
+  ></script>
+  <script>
+    // --- Estado global ---
+    let empreendimentos = [];
+    let map, markerLayer;
+
+    // --- Utils ---
+
+    function normalizeEstado(raw) {
+      if (!raw) return '';
+      const s = String(raw).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      if (s.includes('constr')) return 'em_construcao';
+      if (s.includes('licen')) return 'licenciado';
+      if (s.includes('conclu') || s.includes('entreg')) return 'concluido';
+      return s || '';
+    }
+
+    function parseNumber(n) {
+      if (n === null || n === undefined) return null;
+      if (typeof n === 'number') return isFinite(n) ? n : null;
+      const s = String(n).trim().replace(/\./g, '').replace(',', '.');
+      if (!s) return null;
+      const v = Number(s);
+      return isFinite(v) ? v : null;
+    }
+
+    function parseCSV(text) {
+      const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+      if (!lines.length) return [];
+
+      // Detectar separador (vírgula ou ponto e vírgula)
+      const headSample = lines[0];
+      const commaCount = (headSample.match(/,/g) || []).length;
+      const semiCount = (headSample.match(/;/g) || []).length;
+      const sep = semiCount > commaCount ? ';' : ',';
+
+      const headers = lines[0].split(sep).map(h => h.trim().toLowerCase());
+      const rows = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i];
+        if (!line.trim()) continue;
+        const cols = line.split(sep);
+        const row = {};
+        headers.forEach((h, idx) => {
+          row[h] = cols[idx] !== undefined ? cols[idx].trim() : '';
+        });
+        rows.push(row);
+      }
+      return rows;
+    }
+
+    function getPinClass(estadoNorm) {
+      if (estadoNorm === 'em_construcao') return 'construcao';
+      if (estadoNorm === 'licenciado') return 'licenciado';
+      if (estadoNorm === 'concluido') return 'concluido';
+      return 'outros';
+    }
+
+    function formatConclusao(c) {
+      if (!c) return '—';
+      const n = parseNumber(c);
+      if (n && n % 1 === 0 && n > 1900 && n < 2100) return String(n);
+      return String(c);
+    }
+
+    // --- UI update ---
+
+    function updateKPIs() {
+      const total = empreendimentos.length;
+      const estadosCount = { em_construcao: 0, licenciado: 0, concluido: 0 };
+      const concelhosSet = new Set();
+
+      empreendimentos.forEach(e => {
+        if (e.concelho) concelhosSet.add(e.concelho);
+        const est = normalizeEstado(e.estado);
+        if (est === 'em_construcao') estadosCount.em_construcao++;
+        else if (est === 'licenciado') estadosCount.licenciado++;
+        else if (est === 'concluido') estadosCount.concluido++;
       });
-      li.querySelector('[data-act="expand"]')?.addEventListener('click', async (e)=>{
-        e.stopPropagation(); const raw=e.target.getAttribute('data-url'); const u=await resolveLocalUrl(raw); openPDF(u);
+
+      document.getElementById('kpi-total').textContent = total;
+      document.getElementById('kpi-construcao').textContent = estadosCount.em_construcao;
+      document.getElementById('kpi-licenciado').textContent = estadosCount.licenciado;
+      document.getElementById('kpi-concluido').textContent = estadosCount.concluido;
+      document.getElementById('kpi-concelhos').textContent = concelhosSet.size
+        ? concelhosSet.size + ' concelhos'
+        : '— concelhos';
+      document.getElementById('kpi-dataLabel').textContent =
+        total ? 'Dados carregados (' + total + ')' : 'Sem dados';
+
+      // Popular filtro de concelho
+      const concelhoFilter = document.getElementById('concelhoFilter');
+      const current = concelhoFilter.value;
+      const concelhos = Array.from(concelhosSet).sort((a, b) =>
+        a.localeCompare(b, 'pt')
+      );
+      concelhoFilter.innerHTML = '<option value="todos">Todos</option>';
+      concelhos.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        concelhoFilter.appendChild(opt);
       });
-    });
-  }
-}
-function buildDocsHTML(docs){
-  if(!Array.isArray(docs)||!docs.length) return '<div class="hint">Sem documentos anexados.</div>';
-  const items=docs.map(d=>{
-    const icon=d.type==='pdf'?'📄':(d.type==='img'?'🖼️':'🔗');
-    const extra=d.type==='pdf'?` <button class="btn-sm" data-act="expand" data-url="${d.url}">Expandir</button>`:'';
-    return `<li style="margin-bottom:6px;border:1px solid var(--border);padding:6px 8px;border-radius:8px" data-type="${d.type}" data-url="${d.url}">
-      ${icon} <a class="btn-sm" href="${d.url}" target="_blank" rel="noreferrer noopener">Abrir</a> · ${d.title||d.url}${extra}
-    </li>`;
-  }).join('');
-  return `<ul id="docList" style="list-style:none;margin:0;padding:0">${items}</ul><div id="docView" style="margin-top:8px"></div>`;
-}
-el('closePanel').addEventListener('click',()=>{ el('side-panel').classList.remove('show'); revokeTempUrls(); });
+      if (concelhos.includes(current)) concelhoFilter.value = current;
+    }
 
-/* ===== Exportações ===== */
-function exportCSV(){
-  const headers=["nome","concelho","estado","promotor","tipologias","conclusao","preco_m2","notas","link","latitude","longitude"];
-  const rows=FILT.map(p=>[p.nome,p.concelho,p.estado,p.promotor,p.tipologias,p.conclusao,p.preco_m2||'',p.notas||'',p.link||'',p._lat||'',p._lng||'']);
-  const csv=toCSV([headers,...rows]);
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download='empreendimentos.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-}
-function exportGeo(){
-  const fc={ type:"FeatureCollection", features: RAW.filter(p=>numPT(p._lat)!==null && numPT(p._lng)!==null).map(p=>({ type:"Feature", geometry:{type:"Point",coordinates:[numPT(p._lng),numPT(p._lat)]}, properties:{ slug:p.slug,nome:p.nome,concelho:p.concelho,estado:p.estado,promotor:p.promotor,tipologias:p.tipologias,conclusao:p.conclusao,preco_m2:p.preco_m2,notas:p.notas,link:p.link,docs:p.docs||[] } })) };
-  const blob=new Blob([JSON.stringify(fc,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download='empreendimentos.geojson'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-}
-el('exportCsv').addEventListener('click', exportCSV);
-el('exportGeo').addEventListener('click', exportGeo);
+    function applyFiltersAndRender() {
+      const estadoSel = document.getElementById('estadoFilter').value;
+      const concelhoSel = document.getElementById('concelhoFilter').value;
+      const q = document.getElementById('searchInput').value.trim().toLowerCase();
 
-/* ===== Persistência ===== */
-function saveLS(){ localStorage.setItem(LS_KEY, JSON.stringify(RAW)); }
-function loadLS(){ try{ const x=localStorage.getItem(LS_KEY); return x? JSON.parse(x): null;}catch{ return null; } }
+      const filtered = empreendimentos.filter(e => {
+        const estNorm = normalizeEstado(e.estado);
+        if (estadoSel !== 'todos' && estNorm !== estadoSel) return false;
+        if (concelhoSel !== 'todos' && e.concelho !== concelhoSel) return false;
 
-/* ===== Modo Edição ===== */
-function setEditMode(on){
-  EDIT_MODE=on;
-  el('toggleEdit').textContent= on? '🔓 Edição ON' : '🔒 Editar';
-  ['btnImport','btnNew','btnSave','btnClearAll','attachLocalLabel'].forEach(id=>{ const b=el(id); if(!b) return; b.style.display= on? 'inline-block' : 'none'; });
-  renderList();
-}
-el('toggleEdit').addEventListener('click',()=> setEditMode(!EDIT_MODE));
-el('btnClearAll').addEventListener('click',()=>{ if(confirm('Tem a certeza que pretende limpar todos os empreendimentos?')){ RAW=[]; saveLS(); run(); }});
-el('btnSave').addEventListener('click',()=>{ saveLS(); alert('Dados guardados localmente.'); });
+        if (q) {
+          const haystack = [
+            e.nome,
+            e.concelho,
+            e.promotor,
+            e.tipologias,
+            e.notas
+          ]
+            .map(v => (v || '').toString().toLowerCase())
+            .join(' ');
+          if (!haystack.includes(q)) return false;
+        }
+        return true;
+      });
 
-/* ===== CSV Import ===== */
-el('csvFile').addEventListener('change', async (ev)=>{
-  const file=ev.target.files?.[0]; if(!file) return;
-  if(!window.Papa){ alert('Leitor CSV indisponível.'); return; }
-  const text=await file.text();
-  Papa.parse(text,{ header:true, dynamicTyping:false, skipEmptyLines:true,
-    complete:res=>{
-      const incoming=(res.data||[]).map(row=>{
-        const p={
-          slug: slugify(row.nome||row.Nome||''),
-          nome: row.nome||row.Nome||'',
-          concelho: row.concelho||row.Concelho||row.municipio||'',
-          estado: stateKey(row.estado||row.status||''),
-          promotor: row.promotor||'',
-          tipologias: row.tipologias||'',
-          conclusao: row.conclusao||row["Ano de Conclusão"]||'',
-          preco_m2: row.preco_m2||row["preco_m2"]||row["Preço_m2"]||'',
-          notas: row.notas||row.Observacoes||row["Observações"]||'',
-          link: row.link||row.url||'',
-          _lat: numPT(row.latitude||row.Lat||row.lat),
-          _lng: numPT(row.longitude||row.Lng||row.lng),
-          docs:[]
+      renderList(filtered);
+      renderMarkers(filtered);
+    }
+
+    function renderList(list) {
+      const listPanel = document.getElementById('listPanel');
+      const listCount = document.getElementById('listCount');
+      listPanel.innerHTML = '';
+
+      listCount.textContent = list.length;
+
+      if (!list.length) {
+        listPanel.innerHTML = '<div class="empty">Sem resultados com os filtros atuais.</div>';
+        return;
+      }
+
+      list.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        const estNorm = normalizeEstado(item.estado);
+        const estClass =
+          estNorm === 'em_construcao'
+            ? 'construcao'
+            : estNorm === 'licenciado'
+            ? 'licenciado'
+            : estNorm === 'concluido'
+            ? 'concluido'
+            : '';
+
+        card.innerHTML = `
+          <div class="card-title">
+            <span>${item.nome || '—'}</span>
+            <span style="font-size:11px; color:${item.preco_m2 ? '#f3e8c6' : '#888'};">
+              ${item.preco_m2 ? Number(item.preco_m2).toLocaleString('pt-PT', { maximumFractionDigits: 0 }) + ' €/m²' : ''}
+            </span>
+          </div>
+          <div class="card-meta">
+            ${item.concelho || '—'} ${item.tipologias ? '· ' + item.tipologias : ''} ${
+          item.conclusao ? '· ' + formatConclusao(item.conclusao) : ''
+        }
+          </div>
+          <div class="card-badges">
+            <span class="chip chip-estado ${estClass}">
+              ${estNorm || 'sem estado'}
+            </span>
+            ${
+              item.promotor
+                ? '<span class="chip">Promotor: ' + item.promotor + '</span>'
+                : ''
+            }
+          </div>
+        `;
+
+        card.addEventListener('click', () => {
+          if (item._lat != null && item._lng != null && map) {
+            map.setView([item._lat, item._lng], 16, { animate: true });
+          }
+        });
+
+        listPanel.appendChild(card);
+      });
+    }
+
+    function renderMarkers(list) {
+      if (!map || !markerLayer) return;
+      markerLayer.clearLayers();
+
+      if (!list.length) return;
+
+      const bounds = [];
+
+      list.forEach(item => {
+        if (item._lat == null || item._lng == null) return;
+
+        const estNorm = normalizeEstado(item.estado);
+        const pinClass = getPinClass(estNorm);
+
+        const icon = L.divIcon({
+          className: '',
+          html:
+            '<div class="g-pin">' +
+            '<div class="g-pin-core ' +
+            pinClass +
+            '"></div>' +
+            '<div class="g-pin-tail"></div>' +
+            '</div>',
+          iconSize: [18, 24],
+          iconAnchor: [9, 22]
+        });
+
+        const marker = L.marker([item._lat, item._lng], { icon });
+
+        const popupHtml =
+          '<div class="popup-title">' +
+          (item.nome || '—') +
+          '</div>' +
+          '<div class="popup-meta">' +
+          (item.concelho || '—') +
+          (item.tipologias ? ' · ' + item.tipologias : '') +
+          (item.conclusao ? ' · ' + formatConclusao(item.conclusao) : '') +
+          '</div>' +
+          (item.estado
+            ? '<div class="popup-meta">Estado: ' + item.estado + '</div>'
+            : '') +
+          (item.promotor
+            ? '<div class="popup-meta">Promotor: ' + item.promotor + '</div>'
+            : '') +
+          (item.preco_m2
+            ? '<div class="popup-meta">Preço médio: ' +
+              Number(item.preco_m2).toLocaleString('pt-PT', {
+                maximumFractionDigits: 0
+              }) +
+              ' €/m²</div>'
+            : '') +
+          (item.notas
+            ? '<div class="popup-meta">Notas: ' + item.notas + '</div>'
+            : '') +
+          (item.link
+            ? '<div class="popup-link"><a href="' +
+              item.link +
+              '" target="_blank" rel="noreferrer">Abrir link do empreendimento</a></div>'
+            : '');
+
+        marker.bindPopup(popupHtml);
+        marker.addTo(markerLayer);
+
+        bounds.push([item._lat, item._lng]);
+      });
+
+      if (bounds.length) {
+        const b = L.latLngBounds(bounds);
+        map.fitBounds(b.pad(0.2));
+      }
+    }
+
+    function mapRowToEmpreendimento(row) {
+      const get = (keys) => {
+        for (const k of keys) {
+          if (row[k] !== undefined && row[k] !== '') return row[k];
+        }
+        return '';
+      };
+
+      const nome = get(['nome', 'name', 'titulo', 'título']);
+      const concelho = get(['concelho', 'municipio', 'município']);
+      const estado = get(['estado', 'status']);
+      const promotor = get(['promotor', 'developer']);
+      const tipologias = get(['tipologias', 'typologies']);
+      const conclusao = get(['conclusao', 'conclusão', 'conclusao_prevista']);
+      const preco_m2 = get(['preco_m2', 'preço_m2', 'preco_med_m2']);
+      const notas = get(['notas', 'observacoes', 'observações']);
+      const link = get(['link', 'url', 'website']);
+      const lat = parseNumber(get(['latitude', 'lat']));
+      const lng = parseNumber(get(['longitude', 'lng', 'lon']));
+
+      return {
+        nome,
+        concelho,
+        estado,
+        promotor,
+        tipologias,
+        conclusao,
+        preco_m2,
+        notas,
+        link,
+        _lat: lat,
+        _lng: lng
+      };
+    }
+
+    // --- Inicialização ---
+
+    function initMap() {
+      map = L.map('map', {
+        zoomControl: true,
+        scrollWheelZoom: true
+      }).setView([41.15, -8.61], 12); // AMP/Porto
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }).addTo(map);
+
+      markerLayer = L.layerGroup().addTo(map);
+    }
+
+    function initEvents() {
+      document.getElementById('csvInput').addEventListener('change', (ev) => {
+        const file = ev.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const text = e.target.result;
+            const rows = parseCSV(text);
+            empreendimentos = rows.map(mapRowToEmpreendimento);
+            localStorage.setItem('gpp_empreendimentos_csv', text);
+            document.getElementById('dataStatus').textContent =
+              'Ficheiro carregado: ' + file.name + ' (' + empreendimentos.length + ' registos).';
+            updateKPIs();
+            applyFiltersAndRender();
+          } catch (err) {
+            console.error(err);
+            document.getElementById('dataStatus').textContent =
+              'Erro ao ler o ficheiro CSV.';
+          }
         };
-        return p;
-      }).filter(p=>p.nome);
-      if(!incoming.length){ alert('Nenhuma linha válida encontrada no CSV.'); return; }
-      const bySlug=new Map(RAW.map(p=>[p.slug||slugify(p.nome),p]));
-      incoming.forEach(n=>{ const key=n.slug||slugify(n.nome); if(bySlug.has(key)){ Object.assign(bySlug.get(key),n);} else { RAW.push(n);} });
-      saveLS(); buildFacetOptions(); run();
-      alert(`Importação concluída: ${incoming.length} registos processados.`);
-      ev.target.value='';
-    },
-    error:()=> alert('Falha a ler CSV.')
-  });
-});
+        reader.readAsText(file, 'utf-8');
+      });
 
-/* ===== Modal Edição ===== */
-function updateLocalAttachVisibility(){ const lab=el('attachLocalLabel'); if(lab) lab.style.display= EDIT_MODE ? 'inline-block' : 'none'; }
-function addDocRow(d){
-  const row=document.createElement('div'); row.className='doc-row';
-  row.innerHTML=`
-    <input placeholder="Título (ex.: Brochura)" value="${d.title||''}">
-    <select>
-      <option value="pdf" ${d.type==='pdf'?'selected':''}>pdf</option>
-      <option value="img" ${d.type==='img'?'selected':''}>img</option>
-      <option value="link" ${d.type==='link'?'selected':''}>link</option>
-    </select>
-    <input placeholder="URL (https://… ou idb://… ou data:…)" value="${d.url||''}">
-    <button class="btn del">Apagar</button>
-  `;
-  row.querySelector('.del').addEventListener('click', async ()=>{
-    const inputs=row.querySelectorAll('input,select'); const u=inputs[2].value.trim();
-    if(u.startsWith('idb://')){ try{ await idbKeyval.del(u.replace('idb://','')); }catch{} }
-    row.remove();
-  });
-  el('docsBox').appendChild(row);
-}
-function fillEditForm(p){
-  el('f_nome').value=p.nome||''; el('f_concelho_e').value=p.concelho||''; el('f_estado').value=p.estado||''; el('f_promotor_e').value=p.promotor||'';
-  el('f_tipologias').value=p.tipologias||''; el('f_conclusao').value=p.conclusao||''; el('f_preco').value=p.preco_m2||'';
-  el('f_link').value=p.link||''; el('f_lat').value=p._lat!=null? p._lat : ''; el('f_lng').value=p._lng!=null? p._lng : ''; el('f_notas').value=p.notas||'';
-  const box=el('docsBox'); box.innerHTML='';
-  (p.docs||[]).forEach(d=> addDocRow(d));
-}
+      document.getElementById('btnLoadSample').addEventListener('click', () => {
+        const stored = localStorage.getItem('gpp_empreendimentos_csv');
+        if (!stored) {
+          document.getElementById('dataStatus').textContent =
+            'Não existem dados guardados no navegador.';
+          return;
+        }
+        try {
+          const rows = parseCSV(stored);
+          empreendimentos = rows.map(mapRowToEmpreendimento);
+          document.getElementById('dataStatus').textContent =
+            'Dados carregados do navegador (' + empreendimentos.length + ' registos).';
+          updateKPIs();
+          applyFiltersAndRender();
+        } catch (err) {
+          console.error(err);
+          document.getElementById('dataStatus').textContent =
+            'Erro ao ler dados guardados.';
+        }
+      });
 
-el('btnNew').addEventListener('click',()=>{
-  EDIT_INDEX=-1;
-  fillEditForm({nome:'',concelho:'',estado:'',promotor:'',tipologias:'',conclusao:'',preco_m2:'',notas:'',link:'',_lat:'',_lng:'',docs:[]});
-  el('editTitle').textContent='Novo Empreendimento';
-  el('editModal').classList.add('show');
-});
-function openEditBySlug(slug){
-  const idx=RAW.findIndex(p=>p.slug===slug); if(idx<0) return;
-  EDIT_INDEX=idx; const p=RAW[idx];
-  fillEditForm(p); el('editTitle').textContent='Editar Empreendimento'; el('editModal').classList.add('show');
-}
-el('cancelEdit').addEventListener('click',()=>{ el('editModal').classList.remove('show'); PICKING=false; });
+      document.getElementById('btnClear').addEventListener('click', () => {
+        empreendimentos = [];
+        localStorage.removeItem('gpp_empreendimentos_csv');
+        updateKPIs();
+        applyFiltersAndRender();
+        document.getElementById('dataStatus').textContent =
+          'Dados limpos. Importe um novo ficheiro CSV.';
+      });
 
-el('attachLocalInput').addEventListener('change', async (ev)=>{
-  const file=ev.target.files?.[0]; if(!file) return;
-  const slugCurrent=slugify(el('f_nome').value || (EDIT_INDEX>=0 ? RAW[EDIT_INDEX].nome : 'novo'));
-  el('loadingMask').classList.add('show');
-  try{
-    const url=await saveLocalBlob(file, slugCurrent);
-    const ext=(file.name.split('.').pop()||'').toLowerCase();
-    const type=(ext==='pdf')?'pdf':(['png','jpg','jpeg','webp','gif'].includes(ext)?'img':'link');
-    addDocRow({ title:file.name, type, url });
-  }catch(e){
-    alert('Não foi possível anexar o ficheiro. '+(e.message||''));
-  }finally{
-    el('loadingMask').classList.remove('show');
-    ev.target.value='';
-  }
-});
-el('addDoc').addEventListener('click',()=> addDocRow({title:'', type:'pdf', url:''}));
+      document.getElementById('estadoFilter').addEventListener('change', applyFiltersAndRender);
+      document.getElementById('concelhoFilter').addEventListener('change', applyFiltersAndRender);
+      document.getElementById('searchInput').addEventListener('input', applyFiltersAndRender);
 
-el('saveEdit').addEventListener('click',()=>{
-  const p={
-    nome:el('f_nome').value.trim(),
-    concelho:el('f_concelho_e').value.trim(),
-    estado:el('f_estado').value,
-    promotor:el('f_promotor_e').value.trim(),
-    tipologias:el('f_tipologias').value.trim(),
-    conclusao:el('f_conclusao').value? Number(el('f_conclusao').value): '',
-    preco_m2:el('f_preco').value? Number(el('f_preco').value): '',
-    notas:el('f_notas').value.trim(),
-    link:el('f_link').value.trim(),
-    _lat:el('f_lat').value? numPT(el('f_lat').value): null,
-    _lng:el('f_lng').value? numPT(el('f_lng').value): null,
-    docs:[]
-  };
-  el('docsBox').querySelectorAll('.doc-row').forEach(r=>{
-    const inputs=r.querySelectorAll('input,select'); const d={title:inputs[0].value.trim(), type:inputs[1].value, url:inputs[2].value.trim()};
-    if(d.url) p.docs.push(d);
-  });
-  if(!p.nome){ alert('O nome é obrigatório.'); return; }
-  p.slug=slugify(p.nome);
-  if(EDIT_INDEX>=0){ RAW[EDIT_INDEX]=Object.assign(RAW[EDIT_INDEX],p); }
-  else{
-    const exist=RAW.find(x=>x.slug===p.slug);
-    if(exist){
-      if(!confirm('Já existe um empreendimento com este nome. Substituir?')) return;
-      Object.assign(exist,p);
-    } else {
-      RAW.push(p);
+      document.getElementById('btnFocusPorto').addEventListener('click', () => {
+        if (map) {
+          map.setView([41.15, -8.61], 12, { animate: true });
+        }
+      });
+
+      // Ao iniciar, tentar carregar CSV guardado anteriormente
+      const stored = localStorage.getItem('gpp_empreendimentos_csv');
+      if (stored) {
+        try {
+          const rows = parseCSV(stored);
+          empreendimentos = rows.map(mapRowToEmpreendimento);
+          document.getElementById('dataStatus').textContent =
+            'Dados carregados automaticamente (' + empreendimentos.length + ' registos).';
+          updateKPIs();
+          applyFiltersAndRender();
+        } catch (err) {
+          console.error(err);
+        }
+      }
     }
-  }
-  saveLS(); el('editModal').classList.remove('show'); PICKING=false; buildFacetOptions(); run();
-});
 
-/* ===== UI filtros ===== */
-document.querySelectorAll('#estadoChips .chip').forEach(ch=>{
-  ch.addEventListener('click',()=>{
-    document.querySelectorAll('#estadoChips .chip').forEach(c=>c.classList.remove('active'));
-    ch.classList.add('active'); UIState.estado=ch.dataset.v||''; run();
-  });
-});
-el('apply').addEventListener('click',()=>{
-  UIState.q=el('q').value.trim(); UIState.concelho=el('f_concelho').value;
-  UIState.cmin=el('f_cmin').value; UIState.cmax=el('f_cmax').value;
-  UIState.pmin=el('f_pmin').value; UIState.pmax=el('f_pmax').value;
-  UIState.promotor=el('f_promotor').value; UIState.tipos=el('f_tipos').value.trim(); run();
-});
-el('clear').addEventListener('click',()=>{
-  ['q','f_concelho','f_cmin','f_cmax','f_pmin','f_pmax','f_promotor','f_tipos'].forEach(id=>el(id).value='');
-  document.querySelectorAll('#estadoChips .chip').forEach(c=>c.classList.remove('active'));
-  document.querySelector('#estadoChips .chip[data-v=""]').classList.add('active');
-  UIState={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'' }; run();
-});
-
-/* ===== Eventos diversos ===== */
-function setEditModeVisibility(){ ['btnImport','btnNew','btnSave','btnClearAll','attachLocalLabel'].forEach(id=>{ const b=el(id); if(!b) return; b.style.display= EDIT_MODE ? 'inline-block' : 'none'; }); }
-el('toggleEdit').addEventListener('click',()=> setTimeout(setEditModeVisibility,0));
-
-/* ===== Ciclo render ===== */
-function run(){ applyFilters(); renderKPIs(); renderList(); renderMarkers(); }
-
-/* ===== Picking coordenadas ===== */
-document.addEventListener('click',(e)=>{
-  if(!PICKING || !MAP) return;
-  if(!e.target.closest('#map')) return;
-  const latlng=MAP.mouseEventToLatLng(e);
-  el('f_lat').value=latlng.lat.toFixed(6); el('f_lng').value=latlng.lng.toFixed(6);
-  PICKING=false; el('pickCoord').textContent='Definir no mapa'; el('pickCoord').classList.remove('primary');
-});
-el('pickCoord').addEventListener('click',()=>{
-  PICKING=!PICKING; const b=el('pickCoord'); b.textContent= PICKING? 'Clique no mapa…' : 'Definir no mapa'; b.classList.toggle('primary',PICKING);
-});
-
-/* ===== Arranque ===== */
-(async function init(){
-  try{ await loadLeafletAndCluster(); }catch{}
-  if(window.L){ initMap(); } else { document.getElementById('map')?.classList.add('hidden'); }
-
-  // Persistência
-  const mem=loadLS(); RAW=Array.isArray(mem)? mem : [];
-  buildFacetOptions(); run();
-
-  // UI
-  setEditMode(false);
-})();
-</script>
+    document.addEventListener('DOMContentLoaded', () => {
+      initMap();
+      initEvents();
+    });
+  </script>
 </body>
 </html>
