@@ -583,7 +583,8 @@
     const dealsVisible = dealsFiltered.filter(d => d.visible !== false);
     const dealsHidden = dealsFiltered.filter(d => d.visible === false);
 
-    const estadosLead = ["Novo","Em Contacto","Qualificado","Visita","Proposta","Fecho"];
+    // 👇 AQUI: acrescentado "Perdido"
+    const estadosLead = ["Novo","Em Contacto","Qualificado","Visita","Proposta","Fecho","Perdido"];
     const byEstadoLeadVisible = {};
     const byEstadoLeadHidden = {};
     estadosLead.forEach(e=>{ byEstadoLeadVisible[e]=0; byEstadoLeadHidden[e]=0; });
@@ -780,13 +781,15 @@
   }
 
   function renderLeadStates(stats){
+    // 👇 AQUI: acrescentado "Perdido"
     const mapLabel = {
       "Novo":"Novo",
       "Em Contacto":"Em Contacto",
       "Qualificado":"Qualificado",
       "Visita":"Visita",
       "Proposta":"Proposta",
-      "Fecho":"Fecho"
+      "Fecho":"Fecho",
+      "Perdido":"Perdido"
     };
     leadStatesEl.innerHTML = '';
     Object.keys(mapLabel).forEach(key=>{
@@ -913,7 +916,8 @@
     sep.innerHTML = '<span><strong>Por estado</strong></span><span></span>';
     leadVisibilityEl.appendChild(sep);
 
-    const estados = ["Novo","Em Contacto","Qualificado","Visita","Proposta","Fecho"];
+    // 👇 AQUI: acrescentado "Perdido"
+    const estados = ["Novo","Em Contacto","Qualificado","Visita","Proposta","Fecho","Perdido"];
     estados.forEach(e=>{
       const row = document.createElement('div');
       row.className = 'stat-row';
