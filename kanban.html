@@ -610,7 +610,7 @@
   </div>
 </div>
 
-<!-- Modal Nova/Editar Lead (inalterado na lógica) -->
+<!-- Modal Nova/Editar Lead -->
 <div id="leadModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Lead">
   <div class="modal">
     <header>
@@ -693,9 +693,22 @@
           <select id="ld_perfil"><option value="">—</option><option>Investidor</option><option>Cliente final</option></select>
         </div>
 
-        <div class="form-field"><label>Classificação (1–5)</label>
-          <select id="ld_classificacao"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+        <div class="form-field">
+          <label>Classificação (1–5)</label>
+          <small style="font-size:11px;color:#9AA0A6;">
+            1 – Lead sem interesse · 2 – Partilha · 3 – Sem resposta a contacto ·
+            4 – Informação s/ imóvel · 5 – Quer marcar visita
+          </small>
+          <select id="ld_classificacao">
+            <option value="">—</option>
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+          </select>
         </div>
+
         <div class="form-field"><label>Ref. Interna</label><input id="ld_ref"></div>
 
         <div class="form-field"><label>URL anexo</label>
@@ -763,6 +776,15 @@ const LS_KEY='gpp_leads_v5';
 const EDIT_LS='gpp_leads_edit_mode';
 const COLS=["Novo","Em Contacto","Qualificado","Visita","Proposta","Fecho"];
 const CONSULT_RESOLVE=["Rui Quelhas","Manuel Oliveira","João Sousa","Francisco dos Santos","Rosário Vasconcelos","Armanda Meireles","Audrey Lucas"];
+
+// Mapa de classificação 1–5 para texto amigável
+const LEAD_CLASSIFICACAO_MAP = {
+  1: "Lead sem interesse",
+  2: "Partilha",
+  3: "Sem resposta a contacto",
+  4: "Informação s/ imóvel",
+  5: "Quer marcar visita"
+};
 
 let LEADS=[];
 let FILTER={ consultor:'', estado:'', ini:'', fim:'', q:'', showHidden:false, onlyHidden:false };
@@ -1124,8 +1146,14 @@ function renderBoard(){
       const card=document.createElement('div'); card.className='card';
 
       const moveOptions = COLS.map(c=>`<option value="${c}" ${c===lead.estado?'disabled':''}>${c}</option>`).join('');
-
       const disabledAttr = EDIT_MODE ? '' : 'disabled';
+
+      // Construir linha de classificação legível: "⭐ Classificação: 5 - Quer marcar visita"
+      const classNum = Number(lead.classificacao || 0);
+      const classDesc = LEAD_CLASSIFICACAO_MAP[classNum];
+      const classLine = classNum
+        ? `⭐ Classificação: ${classNum}${classDesc ? ' - '+classDesc : ''}`
+        : '';
 
       card.innerHTML=`
         <div class="top">
@@ -1133,10 +1161,10 @@ function renderBoard(){
             <div class="name">${lead.nome||'—'}</div>
             <div class="meta">${lead.consultor||'—'} ${lead.ref_interna? ' · '+badge('Ref: '+lead.ref_interna):''}</div>
           </div>
-          <div>${lead.classificacao? badge('★ '+lead.classificacao): ''}</div>
         </div>
         <div class="row"><b>Contacto:</b> ${lead.contacto||'—'}</div>
         <div class="row"><b>Email:</b> ${lead.email||'—'}</div>
+        ${classLine ? `<div class="row">${classLine}</div>` : ''}
         <div class="row"><b>Tipo:</b> ${lead.tipo_negocio||'—'} · <b>Imóvel:</b> ${lead.imovel||'—'} · <b>Tipologia:</b> ${lead.tipologia||'—'}</div>
         <div class="row"><b>Zona:</b> ${lead.zona||'—'} · <b>Valor:</b> ${lead.valor? Number(lead.valor).toLocaleString('pt-PT'): '—'}</div>
         <div class="row"><b>Data:</b> ${fmtDate(lead.data)} ${lead.url? ' · <a href="'+lead.url+'" target="_blank" rel="noreferrer">URL</a>':''}</div>
@@ -1152,6 +1180,7 @@ function renderBoard(){
           <button class="btn btn-ghost" data-act="toggle" ${disabledAttr}>${lead.visivel!==false?'Tornar invisível':'Tornar visível'}</button>
         </div>
       `;
+
       // Ações
       card.querySelector('[data-act="edit"]').addEventListener('click',()=>{
         if(!EDIT_MODE){ alert('Modo de edição bloqueado. Ative "🔓 Edição ativa" para editar.'); return; }
