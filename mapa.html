@@ -96,7 +96,7 @@ header.app-header{
 .brand span.sub{
   display:block;
   font-size:11px;
-  color:var(--muted);
+  color:#muted;
   letter-spacing:.12em;
   text-transform:uppercase;
 }
@@ -784,7 +784,7 @@ function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\
 function stateKey(s){ const x=norm(s); if(x.includes('constr'))return 'em_construcao'; if(x.includes('licen'))return 'licenciado'; if(x.includes('concl'))return 'concluido'; return x||''; }
 function colorByState(k){ if(k==='em_construcao')return '#E53935'; if(k==='licenciado')return '#1E88E5'; if(k==='concluido')return '#43A047'; return '#A38B63'; }
 function pinClass(k){ if(k==='em_construcao')return 'pin c'; if(k==='licenciado')return 'pin l'; if(k==='concluido')return 'pin f'; return 'pin'; }
-function toCSV(rows){ return rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n'); }
+function toCSV(rows){ return rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n'); }
 function slugify(s){ return norm(s).replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,''); }
 function numPT(v){ if(v===null||v===undefined||v==='') return null; const n=Number(String(v).replace(',','.')); return Number.isFinite(n)? n : null; }
 
@@ -811,9 +811,8 @@ function initMap(){
 
 /* ===== Facetas / Filtros ===== */
 function buildFacetOptions(){
-  const safeRaw = Array.isArray(RAW) ? RAW : [];
-  const concelhos=[...new Set(safeRaw.map(x=>x && x.concelho).filter(Boolean))].sort();
-  const promotores=[...new Set(safeRaw.map(x=>x && x.promotor).filter(Boolean))].sort();
+  const concelhos=[...new Set(RAW.map(x=>x.concelho).filter(Boolean))].sort();
+  const promotores=[...new Set(RAW.map(x=>x.promotor).filter(Boolean))].sort();
   el('f_concelho').innerHTML='<option value="">(Todos)</option>'+concelhos.map(c=>`<option>${c}</option>`).join('');
   el('f_promotor').innerHTML='<option value="">(Todos)</option>'+promotores.map(c=>`<option>${c}</option>`).join('');
 }
@@ -825,9 +824,7 @@ function matchTokens(obj,tokens){
 function applyFilters(){
   const tokens=norm(UIState.q).split(/\s+/).filter(Boolean);
   const tiposTokens=norm(UIState.tipos||'').split(/[,\s]+/).filter(Boolean);
-  const src = Array.isArray(RAW) ? RAW : [];
-  FILT=src.filter(p=>{
-    if(!p || typeof p!=='object') return false;
+  FILT=RAW.filter(p=>{
     if(!matchTokens(p,tokens)) return false;
     if(UIState.concelho && p.concelho!==UIState.concelho) return false;
     if(UIState.estado && p.estado!==UIState.estado) return false;
@@ -873,7 +870,7 @@ function renderList(){
         ${EDIT_MODE ? `<button class="btn ghost" data-act="edit">Editar</button>
         <button class="btn" style="border-color:#cc4b4b;color:#ffdddd" data-act="del">Apagar</button>`:''}
       </div>`;
-    div.querySelector('[data-act="zoom"]').addEventListener('click',()=>{ if(p._lat!=null&&p._lng!=null) MAP?.setView([p._lat,p._lng],16,{animate:true}); });
+    div.querySelector('[data-act="zoom"]').addEventListener('click',()=>{ if(p._lat&&p._lng) MAP?.setView([p._lat,p._lng],16,{animate:true}); });
     div.querySelector('[data-act="open"]').addEventListener('click',()=>openFicha(p,true));
     if(EDIT_MODE){
       div.querySelector('[data-act="edit"]').addEventListener('click',()=>openEditBySlug(p.slug));
@@ -1032,8 +1029,7 @@ async function renderDocPreview(container, rawUrl, type){
       wrap.innerHTML=''; wrap.appendChild(canvas);
       await page.render({ canvasContext: ctx, viewport }).promise;
 
-      const btnExpand = bar.querySelector('#btnExpandLocal');
-      if(btnExpand) btnExpand.addEventListener('click',()=> openPDF(url));
+      bar.querySelector('#btnExpandLocal')?.addEventListener('click',()=> openPDF(url));
     }catch(e){
       console.error(e);
       wrap.innerHTML=`<div style="padding:10px;color:#444">Não foi possível pré-visualizar. <a class="btn-sm" href="${url}" target="_blank" rel="noreferrer noopener">Abrir em nova aba</a></div>`;
@@ -1045,19 +1041,6 @@ async function renderDocPreview(container, rawUrl, type){
 }
 
 /* ===== Painel lateral (Ficha) ===== */
-function buildDocsHTML(docs){
-  const arr = Array.isArray(docs) ? docs : [];
-  if(!arr.length) return '<div class="hint">Sem documentos anexados.</div>';
-  const items=arr.map(d=>{
-    const icon=d.type==='pdf'?'📄':(d.type==='img'?'🖼️':'🔗');
-    const extra=d.type==='pdf'?` <button class="btn-sm" data-act="expand" data-url="${d.url}">Expandir</button>`:'';
-    return `<li style="margin-bottom:6px;border:1px solid var(--border);padding:6px 8px;border-radius:8px" data-type="${d.type}" data-url="${d.url}">
-      ${icon} <a class="btn-sm" href="${d.url}" target="_blank" rel="noreferrer noopener">Abrir</a> · ${d.title||d.url}${extra}
-    </li>`;
-  }).join('');
-  return `<ul id="docList" style="list-style:none;margin:0;padding:0">${items}</ul><div id="docView" style="margin-top:8px"></div>`;
-}
-
 function openFicha(p,focus=false){
   ACTIVE=p;
   const html=`
@@ -1082,7 +1065,7 @@ function openFicha(p,focus=false){
         <div class="meta-line"><b>Conclusão:</b> ${p.conclusao||'—'}</div>
         <div class="meta-line"><b>€/m²:</b> ${p.preco_m2? Number(String(p.preco_m2).replace(',','.')).toLocaleString('pt-PT') : '—'}</div>
         <div class="meta-line"><b>Notas:</b> ${p.notas||'—'}</div>
-        <div class="meta-line"><b>Coordenadas:</b> ${p._lat!=null ? p._lat : '—'}, ${p._lng!=null ? p._lng : '—'}</div>
+        <div class="meta-line"><b>Coordenadas:</b> ${numPT(p._lat)??'—'}, ${numPT(p._lng)??'—'}</div>
       </div>
       <div>
         <div class="label">Documentos & Media</div>
@@ -1092,42 +1075,41 @@ function openFicha(p,focus=false){
   `;
   el('panelInner').innerHTML=html;
   el('side-panel').classList.add('show');
-  if(focus && p._lat!=null && p._lng!=null) MAP?.setView([p._lat,p._lng],16,{animate:true});
+  if(focus && numPT(p._lat)!==null && numPT(p._lng)!==null) MAP?.setView([numPT(p._lat),numPT(p._lng)],16,{animate:true});
 
-  const inner = el('panelInner');
-  const btnCenter = inner.querySelector('[data-act="center"]');
-  if(btnCenter) btnCenter.addEventListener('click',()=>{ if(p._lat!=null && p._lng!=null) MAP?.setView([p._lat,p._lng],16,{animate:true}); });
-
-  const btnCopy = inner.querySelector('[data-act="copy"]');
-  if(btnCopy) btnCopy.addEventListener('click',async ()=>{
+  el('panelInner').querySelector('[data-act="center"]')?.addEventListener('click',()=>{ if(numPT(p._lat)!==null && numPT(p._lng)!==null) MAP?.setView([p._lat,p._lng],16,{animate:true}); });
+  el('panelInner').querySelector('[data-act="copy"]')?.addEventListener('click',async ()=>{
     const resumo=`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${p.conclusao||'—'} · ${p.link||''}`.trim();
     try{ await navigator.clipboard.writeText(resumo);}catch{}
   });
-
-  const btnShare = inner.querySelector('[data-act="share"]');
-  if(btnShare) btnShare.addEventListener('click',async ()=>{
+  el('panelInner').querySelector('[data-act="share"]')?.addEventListener('click',async ()=>{
     const shareData={ title:p.nome||'Empreendimento', text:`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${p.conclusao||'—'}`, url: location.href };
     if(navigator.share){ try{ await navigator.share(shareData);}catch{} } else { try{ await navigator.clipboard.writeText(shareData.text+' '+(p.link||location.href));}catch{} }
   });
 
-  const btnEdit = inner.querySelector('[data-act="edit"]');
-  if(btnEdit && EDIT_MODE){ btnEdit.addEventListener('click',()=>openEditBySlug(p.slug)); }
-
-  const ul=inner.querySelector('#docList');
+  const ul=el('panelInner').querySelector('#docList');
   if(ul){
     ul.querySelectorAll('li').forEach(li=>{
       li.addEventListener('click', async ()=>{
-        const rawUrl=li.getAttribute('data-url'); const tp=li.getAttribute('data-type'); const view=inner.querySelector('#docView');
+        const rawUrl=li.getAttribute('data-url'); const tp=li.getAttribute('data-type'); const view=el('panelInner').querySelector('#docView');
         await renderDocPreview(view, rawUrl, tp);
       });
-      const btnExp = li.querySelector('[data-act="expand"]');
-      if(btnExp){
-        btnExp.addEventListener('click', async (e)=>{
-          e.stopPropagation(); const raw=e.target.getAttribute('data-url'); const u=await resolveLocalUrl(raw); if(u) openPDF(u);
-        });
-      }
+      li.querySelector('[data-act="expand"]')?.addEventListener('click', async (e)=>{
+        e.stopPropagation(); const raw=e.target.getAttribute('data-url'); const u=await resolveLocalUrl(raw); openPDF(u);
+      });
     });
   }
+}
+function buildDocsHTML(docs){
+  if(!Array.isArray(docs)||!docs.length) return '<div class="hint">Sem documentos anexados.</div>';
+  const items=docs.map(d=>{
+    const icon=d.type==='pdf'?'📄':(d.type==='img'?'🖼️':'🔗');
+    const extra=d.type==='pdf'?` <button class="btn-sm" data-act="expand" data-url="${d.url}">Expandir</button>`:'';
+    return `<li style="margin-bottom:6px;border:1px solid var(--border);padding:6px 8px;border-radius:8px" data-type="${d.type}" data-url="${d.url}">
+      ${icon} <a class="btn-sm" href="${d.url}" target="_blank" rel="noreferrer noopener">Abrir</a> · ${d.title||d.url}${extra}
+    </li>`;
+  }).join('');
+  return `<ul id="docList" style="list-style:none;margin:0;padding:0">${items}</ul><div id="docView" style="margin-top:8px"></div>`;
 }
 el('closePanel').addEventListener('click',()=>{ el('side-panel').classList.remove('show'); revokeTempUrls(); });
 
@@ -1140,8 +1122,7 @@ function exportCSV(){
   const a=document.createElement('a'); a.href=url; a.download='empreendimentos.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 function exportGeo(){
-  const src = Array.isArray(RAW) ? RAW : [];
-  const fc={ type:"FeatureCollection", features: src.filter(p=>p && numPT(p._lat)!==null && numPT(p._lng)!==null).map(p=>({ type:"Feature", geometry:{type:"Point",coordinates:[numPT(p._lng),numPT(p._lat)]}, properties:{ slug:p.slug,nome:p.nome,concelho:p.concelho,estado:p.estado,promotor:p.promotor,tipologias:p.tipologias,conclusao:p.conclusao,preco_m2:p.preco_m2,notas:p.notas,link:p.link,docs:p.docs||[] } })) };
+  const fc={ type:"FeatureCollection", features: RAW.filter(p=>numPT(p._lat)!==null && numPT(p._lng)!==null).map(p=>({ type:"Feature", geometry:{type:"Point",coordinates:[numPT(p._lng),numPT(p._lat)]}, properties:{ slug:p.slug,nome:p.nome,concelho:p.concelho,estado:p.estado,promotor:p.promotor,tipologias:p.tipologias,conclusao:p.conclusao,preco_m2:p.preco_m2,notas:p.notas,link:p.link,docs:p.docs||[] } })) };
   const blob=new Blob([JSON.stringify(fc,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob);
   const a=document.createElement('a'); a.href=url; a.download='empreendimentos.geojson'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
@@ -1149,42 +1130,31 @@ el('exportCsv').addEventListener('click', exportCSV);
 el('exportGeo').addEventListener('click', exportGeo);
 
 /* ===== Persistência ===== */
-function saveLS(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(RAW)); }catch(e){ console.error('Falha a guardar LS',e); } }
-function loadLS(){ try{ const x=localStorage.getItem(LS_KEY); return x? JSON.parse(x): null;}catch{ return null; } }
-
-function sanitizeDataset(mem){
-  if(!Array.isArray(mem)) return [];
-  return mem
-    .filter(x=>x && typeof x==='object')
-    .map(p=>{
-      const clone = Object.assign({
-        nome:'',
-        concelho:'',
-        estado:'',
-        promotor:'',
-        tipologias:'',
-        conclusao:'',
-        preco_m2:'',
-        notas:'',
-        link:'',
-        _lat:null,
-        _lng:null,
-        docs:[]
-      }, p || {});
-      if(!Array.isArray(clone.docs)) clone.docs=[];
-      return clone;
-    });
+function saveLS(){ 
+  try{
+    localStorage.setItem(LS_KEY, JSON.stringify(RAW)); 
+  }catch(e){
+    console.error('Erro a guardar LS',e);
+  }
+}
+function loadLS(){ 
+  try{ 
+    const raw=localStorage.getItem(LS_KEY); 
+    if(!raw) return null;
+    const parsed=JSON.parse(raw);
+    if(!Array.isArray(parsed)) return null;
+    return parsed;
+  }catch(e){ 
+    console.error('Erro a ler LS',e); 
+    return null; 
+  } 
 }
 
 /* ===== Modo Edição ===== */
 function setEditMode(on){
-  EDIT_MODE=!!on;
+  EDIT_MODE=on;
   el('toggleEdit').textContent= on? '🔓 Edição ON' : '🔒 Editar';
-  ['btnImport','btnNew','btnSave','btnClearAll','attachLocalLabel'].forEach(id=>{
-    const b=el(id);
-    if(!b) return;
-    b.style.display= on? 'inline-block' : 'none';
-  });
+  ['btnImport','btnNew','btnSave','btnClearAll','attachLocalLabel'].forEach(id=>{ const b=el(id); if(!b) return; b.style.display= on? 'inline-block' : 'none'; });
   renderList();
 }
 el('toggleEdit').addEventListener('click',()=> setEditMode(!EDIT_MODE));
@@ -1217,7 +1187,6 @@ el('csvFile').addEventListener('change', async (ev)=>{
         return p;
       }).filter(p=>p.nome);
       if(!incoming.length){ alert('Nenhuma linha válida encontrada no CSV.'); return; }
-      RAW = sanitizeDataset(RAW);
       const bySlug=new Map(RAW.map(p=>[p.slug||slugify(p.nome),p]));
       incoming.forEach(n=>{ const key=n.slug||slugify(n.nome); if(bySlug.has(key)){ Object.assign(bySlug.get(key),n);} else { RAW.push(n);} });
       saveLS(); buildFacetOptions(); run();
@@ -1229,6 +1198,7 @@ el('csvFile').addEventListener('change', async (ev)=>{
 });
 
 /* ===== Modal Edição ===== */
+function updateLocalAttachVisibility(){ const lab=el('attachLocalLabel'); if(lab) lab.style.display= EDIT_MODE ? 'inline-block' : 'none'; }
 function addDocRow(d){
   const row=document.createElement('div'); row.className='doc-row';
   row.innerHTML=`
@@ -1253,7 +1223,7 @@ function fillEditForm(p){
   el('f_tipologias').value=p.tipologias||''; el('f_conclusao').value=p.conclusao||''; el('f_preco').value=p.preco_m2||'';
   el('f_link').value=p.link||''; el('f_lat').value=p._lat!=null? p._lat : ''; el('f_lng').value=p._lng!=null? p._lng : ''; el('f_notas').value=p.notas||'';
   const box=el('docsBox'); box.innerHTML='';
-  (Array.isArray(p.docs)?p.docs:[]).forEach(d=> addDocRow(d));
+  (p.docs||[]).forEach(d=> addDocRow(d));
 }
 
 el('btnNew').addEventListener('click',()=>{
@@ -1266,12 +1236,6 @@ function openEditBySlug(slug){
   const idx=RAW.findIndex(p=>p.slug===slug); if(idx<0) return;
   EDIT_INDEX=idx; const p=RAW[idx];
   fillEditForm(p); el('editTitle').textContent='Editar Empreendimento'; el('editModal').classList.add('show');
-}
-function deleteBySlug(slug){
-  const idx=RAW.findIndex(p=>p.slug===slug); if(idx<0) return;
-  if(!confirm('Apagar este empreendimento?')) return;
-  RAW.splice(idx,1);
-  saveLS(); run();
 }
 el('cancelEdit').addEventListener('click',()=>{ el('editModal').classList.remove('show'); PICKING=false; });
 
@@ -1316,7 +1280,6 @@ el('saveEdit').addEventListener('click',()=>{
   p.slug=slugify(p.nome);
   if(EDIT_INDEX>=0){ RAW[EDIT_INDEX]=Object.assign(RAW[EDIT_INDEX],p); }
   else{
-    RAW = sanitizeDataset(RAW);
     const exist=RAW.find(x=>x.slug===p.slug);
     if(exist){
       if(!confirm('Já existe um empreendimento com este nome. Substituir?')) return;
@@ -1348,16 +1311,16 @@ el('clear').addEventListener('click',()=>{
   UIState={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'' }; run();
 });
 
+/* ===== Eventos diversos ===== */
+function setEditModeVisibility(){ ['btnImport','btnNew','btnSave','btnClearAll','attachLocalLabel'].forEach(id=>{ const b=el(id); if(!b) return; b.style.display= EDIT_MODE ? 'inline-block' : 'none'; }); }
+el('toggleEdit').addEventListener('click',()=> setTimeout(setEditModeVisibility,0));
+
 /* ===== Ciclo render ===== */
-function run(){
-  try{
-    applyFilters();
-    renderKPIs();
-    renderList();
-    renderMarkers();
-  }catch(e){
-    console.error('Erro no ciclo de renderização',e);
-  }
+function run(){ 
+  applyFilters(); 
+  renderKPIs(); 
+  renderList(); 
+  renderMarkers(); 
 }
 
 /* ===== Picking coordenadas ===== */
@@ -1372,16 +1335,57 @@ el('pickCoord').addEventListener('click',()=>{
   PICKING=!PICKING; const b=el('pickCoord'); b.textContent= PICKING? 'Clique no mapa…' : 'Definir no mapa'; b.classList.toggle('primary',PICKING);
 });
 
-/* ===== Arranque ===== */
+/* ===== Arranque com auto-recuperação ===== */
 (async function init(){
-  try{ await detectStorageMode(); }catch(e){ console.warn('Não foi possível testar modo de storage',e); }
-  try{ await loadLeafletAndCluster(); }catch(e){ console.error('Erro a carregar Leaflet',e); }
-  if(window.L){ initMap(); } else { document.getElementById('map')?.classList.add('hidden'); }
+  try{
+    await detectStorageMode();
+  }catch(e){
+    console.warn('Falha a detetar modo de armazenamento, a usar dataurl.',e);
+    STORAGE_MODE='dataurl';
+  }
 
-  const mem=loadLS();
-  RAW = sanitizeDataset(mem);
-  buildFacetOptions();
-  run();
+  try{ 
+    await loadLeafletAndCluster(); 
+  }catch(e){
+    console.error('Erro a carregar Leaflet/Cluster',e);
+  }
+
+  if(window.L){ 
+    try{
+      initMap(); 
+    }catch(e){
+      console.error('Erro a iniciar mapa',e);
+    }
+  } else { 
+    document.getElementById('map')?.classList.add('hidden'); 
+  }
+
+  // Carregar dataset com salvaguarda
+  try{
+    const mem=loadLS();
+    RAW = Array.isArray(mem) ? mem.filter(p=>p && typeof p==='object') : [];
+  }catch(e){
+    console.error('Erro ao processar dataset, a limpar LS',e);
+    localStorage.removeItem(LS_KEY);
+    RAW=[];
+  }
+
+  // Render com auto-reset se algo rebentar
+  try{
+    buildFacetOptions(); 
+    run();
+  }catch(e){
+    console.error('Erro no render inicial do mapa, a limpar LS e tentar de novo',e);
+    alert('O módulo Mapa encontrou dados locais corrompidos. Os dados deste módulo serão limpos para recuperar o funcionamento.');
+    localStorage.removeItem(LS_KEY);
+    RAW=[];
+    try{
+      buildFacetOptions();
+      run();
+    }catch(e2){
+      console.error('Falha mesmo após limpeza de dados locais',e2);
+    }
+  }
 
   setEditMode(false);
 })();
