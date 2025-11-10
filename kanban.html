@@ -291,7 +291,7 @@
     /* BOARD / COLUNAS / CARDS */
     .board{
       display:grid;
-      grid-template-columns:repeat(6,minmax(260px,1fr));
+      grid-template-columns:repeat(7,minmax(260px,1fr));
       gap:10px;
     }
     @media (max-width:1400px){
@@ -572,6 +572,7 @@
             <option>Visita</option>
             <option>Proposta</option>
             <option>Fecho</option>
+            <option>Perdido</option>
           </select>
         </div>
         <div class="field">
@@ -728,6 +729,7 @@
           <label class="state-pill"><input type="checkbox" class="cb_estado" value="Visita"> Visita</label>
           <label class="state-pill"><input type="checkbox" class="cb_estado" value="Proposta"> Proposta</label>
           <label class="state-pill"><input type="checkbox" class="cb_estado" value="Fecho"> Fecho</label>
+          <label class="state-pill"><input type="checkbox" class="cb_estado" value="Perdido"> Perdido</label>
         </div>
         <div class="help">Se selecionar um estado, o cartão será gravado diretamente nessa coluna. Se nada selecionar, fica em <b>Novo</b>.</div>
       </div>
@@ -774,7 +776,7 @@
 /* ===== Estado ===== */
 const LS_KEY='gpp_leads_v5';
 const EDIT_LS='gpp_leads_edit_mode';
-const COLS=["Novo","Em Contacto","Qualificado","Visita","Proposta","Fecho"];
+const COLS=["Novo","Em Contacto","Qualificado","Visita","Proposta","Fecho","Perdido"];
 const CONSULT_RESOLVE=["Rui Quelhas","Manuel Oliveira","João Sousa","Francisco dos Santos","Rosário Vasconcelos","Armanda Meireles","Audrey Lucas"];
 
 // Mapa de classificação 1–5 para texto amigável
@@ -1112,6 +1114,7 @@ function renderSummary(byEstado){
     <span class="badge-kpi">Visita: ${counts['Visita']||0}</span>
     <span class="badge-kpi">Proposta: ${counts['Proposta']||0}</span>
     <span class="badge-kpi">Fecho: ${fecho}</span>
+    <span class="badge-kpi">Perdido: ${counts['Perdido']||0}</span>
     <span class="badge-kpi highlight">Taxa de Fecho: ${taxaFecho}%</span>
   `;
 }
