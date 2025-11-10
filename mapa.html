@@ -28,89 +28,481 @@
 </script>
 
 <style>
-:root{ --gold:#A38B63; --bg:#0E0E0E; --panel:#131313; --text:#fff; --muted:#9AA0A6; --ok:#43A047; --info:#1E88E5; --warn:#E53935; --border:rgba(255,255,255,.12) }
-html,body{height:100%;margin:0;background:#0E0E0E;color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-a{color:#e6e6e6;text-decoration:none}
-.app{display:grid;grid-template-columns:380px 1fr;grid-template-rows:56px 40px 1fr;height:100%}
-header{grid-column:1 / span 2;display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--border);background:#0F0F0F}
-.brand{display:flex;align-items:center;gap:10px}
-.brand h1{font-size:16px;margin:0;color:var(--gold)}
-.nav{display:flex;gap:8px}
-.nav a{border:1px solid var(--border);padding:6px 10px;border-radius:8px;color:#ddd}
-.nav a.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
+:root{
+  --gold:#A38B63;
+  --bg:#0E0E0E;
+  --panel:#131313;
+  --text:#fff;
+  --muted:#9AA0A6;
+  --ok:#43A047;
+  --info:#1E88E5;
+  --warn:#E53935;
+  --border:rgba(255,255,255,.12);
+}
 
-.kpis{grid-column:1 / span 2;display:flex;gap:8px;align-items:center;padding:6px 12px;background:#0F0F0F;border-bottom:1px solid var(--border)}
-.kpi{display:flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:10px;padding:6px 10px;font-size:12px}
-.dot{width:10px;height:10px;border-radius:50%;background:#999;display:inline-block;border:1px solid rgba(0,0,0,.2)}
-.dot.c{background:var(--warn)} .dot.l{background:var(--info)} .dot.f{background:var(--ok)}
-.toolbar{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
-.btn{background:transparent;border:1px solid rgba(163,139,99,.5);color:#fff;padding:6px 10px;border-radius:10px;cursor:pointer;font-size:12px}
-.btn.primary{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
-.btn.ghost{border-color:var(--border);color:#ddd}
-.btn-sm{font-size:12px;border:1px solid var(--border);padding:4px 8px;border-radius:8px;background:transparent;color:#eee}
+html,body{
+  height:100%;
+  margin:0;
+  background:#0E0E0E;
+  color:var(--text);
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+a{color:#e6e6e6;text-decoration:none}
+
+.app{
+  display:grid;
+  grid-template-columns:380px 1fr;
+  grid-template-rows:56px 40px 1fr;
+  height:100%;
+}
+
+/* Header / barra superior */
+header{
+  grid-column:1 / span 2;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 12px;
+  border-bottom:1px solid var(--border);
+  background:linear-gradient(90deg,#050505,#111,#050505);
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.brand h1{
+  font-size:16px;
+  margin:0;
+  color:var(--gold);
+}
+.nav{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+.nav a{
+  border:1px solid var(--border);
+  padding:6px 10px;
+  border-radius:999px;
+  color:#ddd;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+}
+.nav a.active{
+  background:var(--gold);
+  color:#111;
+  border-color:var(--gold);
+  font-weight:700;
+}
+
+/* KPIs */
+.kpis{
+  grid-column:1 / span 2;
+  display:flex;
+  gap:8px;
+  align-items:center;
+  padding:6px 12px;
+  background:#0F0F0F;
+  border-bottom:1px solid var(--border);
+}
+.kpi{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:6px 10px;
+  font-size:12px;
+}
+.dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#999;
+  display:inline-block;
+  border:1px solid rgba(0,0,0,.2);
+}
+.dot.c{background:var(--warn)}
+.dot.l{background:var(--info)}
+.dot.f{background:var(--ok)}
+.toolbar{
+  margin-left:auto;
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+.btn{
+  background:transparent;
+  border:1px solid rgba(163,139,99,.5);
+  color:#fff;
+  padding:6px 10px;
+  border-radius:10px;
+  cursor:pointer;
+  font-size:12px;
+}
+.btn.primary{
+  background:var(--gold);
+  color:#111;
+  border-color:var(--gold);
+  font-weight:700;
+}
+.btn.ghost{
+  border-color:var(--border);
+  color:#ddd;
+}
+.btn-sm{
+  font-size:12px;
+  border:1px solid var(--border);
+  padding:4px 8px;
+  border-radius:8px;
+  background:transparent;
+  color:#eee;
+}
 input[type="file"]{display:none}
 
-.sidebar{background:var(--panel);border-right:1px solid var(--border);overflow:auto}
-.section{padding:10px;border-bottom:1px solid rgba(255,255,255,.08)}
-.hint{font-size:11px;color:#bdbdbd}
-.label{font-size:12px;color:#cfcfcf;margin:6px 0 4px}
-.field{display:flex;gap:6px}
-.field input,.field select{flex:1;background:#0E0E0E;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:8px 10px;color:#fff;outline:none}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.chip{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:#0E0E0E;color:#ddd;cursor:pointer}
-.chip.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
-.list{padding:8px 12px}
-.card{border:1px solid rgba(163,139,99,.25);border-radius:12px;padding:10px;margin-bottom:10px;background:#0E0E0E}
-.card .row{display:flex;justify-content:space-between;gap:8px}
+/* Sidebar */
+.sidebar{
+  background:var(--panel);
+  border-right:1px solid var(--border);
+  overflow:auto;
+}
+.section{
+  padding:10px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.hint{
+  font-size:11px;
+  color:#bdbdbd;
+}
+.label{
+  font-size:12px;
+  color:#cfcfcf;
+  margin:6px 0 4px;
+}
+.field{
+  display:flex;
+  gap:6px;
+}
+.field input,.field select{
+  flex:1;
+  background:#0E0E0E;
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:8px;
+  padding:8px 10px;
+  color:#fff;
+  outline:none;
+}
+.chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:6px;
+}
+.chip{
+  font-size:12px;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.16);
+  background:#0E0E0E;
+  color:#ddd;
+  cursor:pointer;
+}
+.chip.active{
+  background:var(--gold);
+  color:#111;
+  border-color:var(--gold);
+  font-weight:700;
+}
+.list{
+  padding:8px 12px;
+}
+.card{
+  border:1px solid rgba(163,139,99,.25);
+  border-radius:12px;
+  padding:10px;
+  margin-bottom:10px;
+  background:#0E0E0E;
+}
+.card .row{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+}
 .card .name{font-weight:700}
-.card .meta{font-size:11px;color:#bbb;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
-.card .state{font-size:12px;color:#bbb;margin-top:4px}
-.card .actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
-.badge{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--border);font-size:11px}
-.empty{padding:10px;color:#bbb;font-size:13px}
+.card .meta{
+  font-size:11px;
+  color:#bbb;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  margin-top:2px;
+}
+.card .state{
+  font-size:12px;
+  color:#bbb;
+  margin-top:4px;
+}
+.card .actions{
+  display:flex;
+  gap:6px;
+  margin-top:8px;
+  flex-wrap:wrap;
+}
+.badge{
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  font-size:11px;
+}
+.empty{
+  padding:10px;
+  color:#bbb;
+  font-size:13px;
+}
 
-#map{width:100%;height:100%}
+/* Mapa */
+#map{
+  width:100%;
+  height:100%;
+}
 .leaflet-container{background:#eaeaea}
-.legend{position:absolute;left:12px;bottom:16px;z-index:5000;background:#111;border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-size:12px;color:#fff}
-.legend .row{display:flex;gap:8px;align-items:center}
-.legend .swatch{width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.3)}
-.legend .c{background:#E53935}.legend .l{background:#1E88E5}.legend .f{background:#43A047}
 
-#side-panel{position:absolute;right:12px;top:80px;bottom:12px;width:min(470px,92vw);z-index:5001;background:#0F0F0F;border:1px solid var(--border);border-radius:12px;overflow:auto;display:none}
+/* Legenda */
+.legend{
+  position:absolute;
+  left:12px;
+  bottom:16px;
+  z-index:5000;
+  background:#111;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:8px 10px;
+  font-size:12px;
+  color:#fff;
+}
+.legend .row{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+.legend .swatch{
+  width:12px;
+  height:12px;
+  border-radius:3px;
+  border:1px solid rgba(0,0,0,.3);
+}
+.legend .c{background:#E53935}
+.legend .l{background:#1E88E5}
+.legend .f{background:#43A047}
+
+/* Mensagem discreta topo mapa */
+.status-bar{
+  position:absolute;
+  top:8px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(10,10,10,.95);
+  border-radius:999px;
+  border:1px solid var(--border);
+  padding:4px 10px;
+  font-size:11px;
+  color:var(--muted);
+  z-index:6000;
+  display:none;
+}
+.status-bar.show{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+/* Painel lateral detalhes */
+#side-panel{
+  position:absolute;
+  right:12px;
+  top:80px;
+  bottom:12px;
+  width:min(470px,92vw);
+  z-index:5001;
+  background:#0F0F0F;
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:auto;
+  display:none;
+}
 #side-panel.show{display:block}
-.panel-head{position:sticky;top:0;background:#0F0F0F;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:10px 12px}
+.panel-head{
+  position:sticky;
+  top:0;
+  background:#0F0F0F;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 12px;
+}
 .panel-inner{padding:12px}
-.meta-line{font-size:13px;margin:4px 0;color:#ddd}
+.meta-line{
+  font-size:13px;
+  margin:4px 0;
+  color:#ddd;
+}
 
-.pin{width:28px;height:28px;border-radius:50%;border:2px solid #111;box-shadow:0 2px 6px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:12px;position:relative;}
-.pin.c{ background:#E53935 } .pin.l{ background:#1E88E5 } .pin.f{ background:#43A047 }
-.pin.c::after{content:""; position:absolute; width:28px;height:28px;border-radius:50%; box-shadow:0 0 0 0 rgba(229,57,53,.55); animation:pulse 1.8s ease-out infinite;}
-@keyframes pulse{0%{ box-shadow:0 0 0 0 rgba(229,57,53,.55)}70%{ box-shadow:0 0 0 18px rgba(229,57,53,0)}100%{ box-shadow:0 0 0 0 rgba(229,57,53,0)}}
+/* Pins */
+.pin{
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  border:2px solid #111;
+  box-shadow:0 2px 6px rgba(0,0,0,.35);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-weight:800;
+  font-size:12px;
+  position:relative;
+}
+.pin.c{ background:#E53935 }
+.pin.l{ background:#1E88E5 }
+.pin.f{ background:#43A047 }
+.pin.c::after{
+  content:"";
+  position:absolute;
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  box-shadow:0 0 0 0 rgba(229,57,53,.55);
+  animation:pulse 1.8s ease-out infinite;
+}
+@keyframes pulse{
+  0%{ box-shadow:0 0 0 0 rgba(229,57,53,.55)}
+  70%{ box-shadow:0 0 0 18px rgba(229,57,53,0)}
+  100%{ box-shadow:0 0 0 0 rgba(229,57,53,0)}
+}
 
-.modal-backdrop{display:none; position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,.6); backdrop-filter:blur(2px); align-items:center; justify-content:center; padding:16px;}
+/* Modal edição */
+.modal-backdrop{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:10000;
+  background:rgba(0,0,0,.6);
+  backdrop-filter:blur(2px);
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+}
 .modal-backdrop.show{display:flex}
-.modal{width:min(900px,96vw); background:#0F0F0F; border:1px solid var(--border); border-radius:12px; overflow:hidden;}
-.modal header{padding:10px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
-.modal .content{padding:12px;max-height:72vh;overflow:auto}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.form-field{display:flex;flex-direction:column;gap:6px}
-.form-field input,.form-field select,.form-field textarea{background:#0E0E0E;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:8px 10px;color:#fff;outline:none}
-.doc-row{display:grid;grid-template-columns:1fr 120px 1fr auto;gap:6px;align-items:center}
-.doc-row .del{border-color:#cc4b4b;color:#ffdddd}
+.modal{
+  width:min(900px,96vw);
+  background:#0F0F0F;
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+}
+.modal header{
+  padding:10px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid var(--border);
+}
+.modal .content{
+  padding:12px;
+  max-height:72vh;
+  overflow:auto;
+}
+.grid2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.form-field{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.form-field input,.form-field select,.form-field textarea{
+  background:#0E0E0E;
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:8px;
+  padding:8px 10px;
+  color:#fff;
+  outline:none;
+}
+.doc-row{
+  display:grid;
+  grid-template-columns:1fr 120px 1fr auto;
+  gap:6px;
+  align-items:center;
+}
+.doc-row .del{
+  border-color:#cc4b4b;
+  color:#ffdddd;
+}
 
-.pdf-backdrop{display:none; position:fixed; inset:0; z-index:11000; background:rgba(0,0,0,.6); backdrop-filter:blur(2px); align-items:center; justify-content:center; padding:16px;}
+/* Modal PDF fullscreen */
+.pdf-backdrop{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:11000;
+  background:rgba(0,0,0,.6);
+  backdrop-filter:blur(2px);
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+}
 .pdf-backdrop.show{display:flex}
-.pdf-card{width:min(1100px,96vw); height:min(88vh,900px); background:#0F0F0F; border:1px solid var(--border); border-radius:12px; overflow:hidden; display:flex; flex-direction:column;}
-.pdf-card header{padding:8px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.pdf-card{
+  width:min(1100px,96vw);
+  height:min(88vh,900px);
+  background:#0F0F0F;
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+.pdf-card header{
+  padding:8px 10px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid var(--border);
+}
 .pdf-card .frame{flex:1}
-.pdf-card iframe{width:100%;height:100%;border:0}
+.pdf-card iframe{
+  width:100%;
+  height:100%;
+  border:0;
+}
 
-#loadingMask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:12000;display:none;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px}
+/* Loading mask para anexos grandes */
+#loadingMask{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.35);
+  z-index:12000;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-weight:700;
+  font-size:14px;
+}
 #loadingMask.show{display:flex}
 
 .hidden{display:none !important}
+
 @media (max-width: 1000px){
-  .app{grid-template-columns:1fr;grid-template-rows:56px 40px 280px 1fr}
+  .app{
+    grid-template-columns:1fr;
+    grid-template-rows:56px 40px 280px 1fr;
+  }
   .sidebar{grid-row:3}
   #map{grid-row:4}
   #side-panel{top:auto;bottom:72px}
@@ -118,23 +510,23 @@ input[type="file"]{display:none}
 </style>
 </head>
 <body>
-
-  <!-- Banner de recuperação automática (aparece só se houver problema no localStorage) -->
-  <div id="recoveryBanner" class="hidden" style="background:#b71c1c;color:#fff;padding:6px 10px;font-size:12px;text-align:center">
-    ⚠️ <span data-role="msg">Os dados do mapa foram recuperados automaticamente devido a um problema no armazenamento local.</span>
-  </div>
-
   <div class="app">
     <header>
       <div class="brand">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--gold)"><circle cx="12" cy="12" r="10" stroke-width="1.5"/><path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--gold)">
+          <circle cx="12" cy="12" r="10" stroke-width="1.5"/>
+          <path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/>
+        </svg>
         <h1>Garvetur Porto Pro — Mapa</h1>
       </div>
       <div class="nav">
-        <a class="active" href="./index.html">Mapa</a>
+        <a href="./index.html">Início</a>
+        <a class="active" href="./mapa.html">Mapa</a>
         <a href="./kanban.html">Leads</a>
         <a href="./angariacoes.html">Angariações</a>
         <a href="./dashboard.html">Dashboard</a>
+        <a href="./vendas.html">Vendas</a>
+        <a href="./tarefas.html">Tarefas</a>
       </div>
     </header>
 
@@ -204,6 +596,10 @@ input[type="file"]{display:none}
 
     <div style="position:relative">
       <div id="map"></div>
+
+      <!-- Barra discreta de estado / carregamento -->
+      <div id="statusBar" class="status-bar"></div>
+
       <div class="legend">
         <div class="row"><span class="swatch c"></span> Em construção</div>
         <div class="row"><span class="swatch l"></span> Licenciado</div>
@@ -309,30 +705,80 @@ let EDIT_INDEX=-1;
 let PICKING=false;
 let UIState={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'' };
 
+let LS_SKIPPED=false;
+let LS_ERROR=false;
+
 const el=id=>document.getElementById(id);
 function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
-function stateKey(s){ const x=norm(s); if(x.includes('constr'))return 'em_construcao'; if(x.includes('licen'))return 'licenciado'; if(x.includes('concl'))return 'concluido'; return x||''; }
-function colorByState(k){ if(k==='em_construcao')return '#E53935'; if(k==='licenciado')return '#1E88E5'; if(k==='concluido')return '#43A047'; return '#A38B63'; }
-function pinClass(k){ if(k==='em_construcao')return 'pin c'; if(k==='licenciado')return 'pin l'; if(k==='concluido')return 'pin f'; return 'pin'; }
-function toCSV(rows){ return rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n'); }
+function stateKey(s){
+  const x=norm(s);
+  if(x.includes('constr'))return 'em_construcao';
+  if(x.includes('licen'))return 'licenciado';
+  if(x.includes('concl'))return 'concluido';
+  return x||'';
+}
+function colorByState(k){
+  if(k==='em_construcao')return '#E53935';
+  if(k==='licenciado')return '#1E88E5';
+  if(k==='concluido')return '#43A047';
+  return '#A38B63';
+}
+function pinClass(k){
+  if(k==='em_construcao')return 'pin c';
+  if(k==='licenciado')return 'pin l';
+  if(k==='concluido')return 'pin f';
+  return 'pin';
+}
+function toCSV(rows){
+  return rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n');
+}
 function slugify(s){ return norm(s).replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,''); }
-function numPT(v){ if(v===null||v===undefined||v==='') return null; const n=Number(String(v).replace(',','.')); return Number.isFinite(n)? n : null; }
+function numPT(v){
+  if(v===null||v===undefined||v==='') return null;
+  const n=Number(String(v).replace(',','.'));
+  return Number.isFinite(n)? n : null;
+}
+
+/* ===== Barra de estado ===== */
+function setStatus(msg){
+  const bar = el('statusBar');
+  if(!bar) return;
+  if(!msg){
+    bar.classList.remove('show');
+    bar.textContent='';
+    return;
+  }
+  bar.textContent = msg;
+  bar.classList.add('show');
+}
 
 /* ===== Leaflet & Cluster ===== */
 async function loadLeafletAndCluster(){
-  if(!window.L){ try{ await loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'); }catch{ await loadScript('https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js'); } }
+  if(!window.L){
+    try{ await loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'); }
+    catch{ await loadScript('https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js'); }
+  }
   try{
-    if(!window.L.markerClusterGroup){ try{ await loadScript('https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'); }catch{ await loadScript('https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'); } }
+    if(!window.L.markerClusterGroup){
+      try{ await loadScript('https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'); }
+      catch{ await loadScript('https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'); }
+    }
     CLUSTER_OK=!!window.L.markerClusterGroup;
-  }catch{ CLUSTER_OK=false; }
+  }catch{
+    CLUSTER_OK=false;
+  }
 }
 function initMap(){
   MAP = L.map('map',{ zoomControl:true, scrollWheelZoom:true }).setView(AMP_CENTER, AMP_ZOOM);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(MAP);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:19,
+    attribution:'&copy; OpenStreetMap'
+  }).addTo(MAP);
   if(CLUSTER_OK){
     const clusterOpts={ spiderfyOnEveryZoom:false, showCoverageOnHover:false, maxClusterRadius:48 };
     CLUSTER=L.markerClusterGroup(clusterOpts);
-    LAYER=L.layerGroup().addTo(CLUSTER); MAP.addLayer(CLUSTER);
+    LAYER=L.layerGroup().addTo(CLUSTER);
+    MAP.addLayer(CLUSTER);
   }else{
     LAYER=L.layerGroup().addTo(MAP);
   }
@@ -365,13 +811,23 @@ function applyFilters(){
     if(UIState.pmin && m2!==null && m2<Number(UIState.pmin)) return false;
     if(UIState.pmax && m2!==null && m2>Number(UIState.pmax)) return false;
     if(UIState.promotor && p.promotor!==UIState.promotor) return false;
-    if(tiposTokens.length){ const base=norm(p.tipologias||''); const hit=tiposTokens.some(t=>base.includes(t)); if(!hit) return false; }
+    if(tiposTokens.length){
+      const base=norm(p.tipologias||'');
+      const hit=tiposTokens.some(t=>base.includes(t));
+      if(!hit) return false;
+    }
     return true;
   });
 }
 function renderKPIs(){
-  const t=FILT.length, c=FILT.filter(x=>x.estado==='em_construcao').length, l=FILT.filter(x=>x.estado==='licenciado').length, f=FILT.filter(x=>x.estado==='concluido').length;
-  el('k_total').textContent=t; el('k_c').textContent=c; el('k_l').textContent=l; el('k_f').textContent=f;
+  const t=FILT.length;
+  const c=FILT.filter(x=>x.estado==='em_construcao').length;
+  const l=FILT.filter(x=>x.estado==='licenciado').length;
+  const f=FILT.filter(x=>x.estado==='concluido').length;
+  el('k_total').textContent=t;
+  el('k_c').textContent=c;
+  el('k_l').textContent=l;
+  el('k_f').textContent=f;
 }
 
 /* ===== Lista ===== */
@@ -380,10 +836,15 @@ function stateLabel(s){
   return `<span class="badge" style="border-color:${c};color:${c}">${s||'—'}</span>`;
 }
 function renderList(){
-  const box=el('list'); box.innerHTML='';
-  if(!FILT.length){ box.innerHTML='<div class="empty">Sem resultados com os filtros atuais.</div>'; return; }
+  const box=el('list');
+  box.innerHTML='';
+  if(!FILT.length){
+    box.innerHTML='<div class="empty">Sem resultados com os filtros atuais.</div>';
+    return;
+  }
   FILT.forEach(p=>{
-    const div=document.createElement('div'); div.className='card';
+    const div=document.createElement('div');
+    div.className='card';
     div.innerHTML=`
       <div class="row">
         <div>
@@ -392,15 +853,21 @@ function renderList(){
         </div>
         ${stateLabel(p.estado)}
       </div>
-      <div class="state">Conclusão: ${p.conclusao||'—'} · €/m²: ${p.preco_m2? Number(String(p.preco_m2).replace(',','.')).toLocaleString('pt-PT') : '—'}</div>
+      <div class="state">Conclusão: ${p.conclusao||'—'} · €/m²: ${
+        p.preco_m2? Number(String(p.preco_m2).replace(',','.')).toLocaleString('pt-PT') : '—'
+      }</div>
       <div class="actions">
         <button class="btn" data-act="zoom">Abrir no mapa</button>
         ${p.link? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>` : ''}
         <button class="btn" data-act="open">Detalhes</button>
-        ${EDIT_MODE ? `<button class="btn ghost" data-act="edit">Editar</button>
-        <button class="btn" style="border-color:#cc4b4b;color:#ffdddd" data-act="del">Apagar</button>`:''}
+        ${EDIT_MODE ? `
+          <button class="btn ghost" data-act="edit">Editar</button>
+          <button class="btn" style="border-color:#cc4b4b;color:#ffdddd" data-act="del">Apagar</button>` : ''
+        }
       </div>`;
-    div.querySelector('[data-act="zoom"]').addEventListener('click',()=>{ if(p._lat&&p._lng) MAP?.setView([p._lat,p._lng],16,{animate:true}); });
+    div.querySelector('[data-act="zoom"]').addEventListener('click',()=>{
+      if(p._lat&&p._lng) MAP?.setView([p._lat,p._lng],16,{animate:true});
+    });
     div.querySelector('[data-act="open"]').addEventListener('click',()=>openFicha(p,true));
     if(EDIT_MODE){
       div.querySelector('[data-act="edit"]').addEventListener('click',()=>openEditBySlug(p.slug));
@@ -411,7 +878,15 @@ function renderList(){
 }
 
 /* ===== Mapa (marcadores) ===== */
-function makeDivIcon(state){ return L.divIcon({ className: pinClass(state), html:'', iconSize:[28,28], iconAnchor:[14,14], popupAnchor:[0,-12] }); }
+function makeDivIcon(state){
+  return L.divIcon({
+    className: pinClass(state),
+    html:'',
+    iconSize:[28,28],
+    iconAnchor:[14,14],
+    popupAnchor:[0,-12]
+  });
+}
 function renderMarkers(){
   if(!window.L||!LAYER) return;
   if(CLUSTER){ CLUSTER.clearLayers(); }
@@ -427,7 +902,8 @@ function renderMarkers(){
     (CLUSTER||LAYER).addLayer ? (CLUSTER||LAYER).addLayer(m) : m.addTo(LAYER);
   });
   if(pts.length && MAP){
-    const b=L.latLngBounds(pts); if(b.isValid()) MAP.fitBounds(b.pad(0.2));
+    const b=L.latLngBounds(pts);
+    if(b.isValid()) MAP.fitBounds(b.pad(0.2));
   }
 }
 
@@ -446,7 +922,9 @@ async function detectStorageMode(){
     await idbKeyval.del(test);
     if(!v) throw new Error('sem leitura IDB');
     STORAGE_MODE='idb';
-  }catch{ STORAGE_MODE='dataurl'; }
+  }catch{
+    STORAGE_MODE='dataurl';
+  }
 }
 async function saveLocalBlob(file, slug){
   const name=file.name||('file_'+Date.now());
@@ -454,14 +932,21 @@ async function saveLocalBlob(file, slug){
   if(STORAGE_MODE==='idb'){
     try{
       const key=DB_PREFIX+(slug||'sem-slug')+'_'+name;
-      await idbKeyval.set(key,{meta:{name,type:blob.type||'application/octet-stream',size:blob.size||0,ts:Date.now()}, blob});
+      await idbKeyval.set(key,{
+        meta:{name,type:blob.type||'application/octet-stream',size:blob.size||0,ts:Date.now()},
+        blob
+      });
       return 'idb://'+key;
-    }catch{/* fallback */}
+    }catch{
+      // fallback
+    }
   }
-  // data: URL (atenção: pode ficar grande; há guarda na leitura do LS)
   const dataUrl=await new Promise((res,rej)=>{
-    const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=()=>rej(new Error('Falha FileReader')); fr.readAsDataURL(blob);
-    });
+    const fr=new FileReader();
+    fr.onload=()=>res(fr.result);
+    fr.onerror=()=>rej(new Error('Falha FileReader'));
+    fr.readAsDataURL(blob);
+  });
   return dataUrl;
 }
 async function getLocal(idbUrl){
@@ -476,27 +961,44 @@ async function resolveLocalUrl(rawUrl){
   if(!rawUrl) return null;
   if(rawUrl.startsWith('data:') || rawUrl.startsWith('http')) return rawUrl;
   if(rawUrl.startsWith('idb://')) return await getLocalBlobUrl(rawUrl);
-  return rawUrl; // fallback
+  return rawUrl;
 }
-function revokeTempUrls(){ TEMP_URLS.forEach(u=>URL.revokeObjectURL(u)); TEMP_URLS.clear(); }
+function revokeTempUrls(){
+  TEMP_URLS.forEach(u=>URL.revokeObjectURL(u));
+  TEMP_URLS.clear();
+}
 
 function openPDF(url){
-  el('pdfFrame').src=url; el('pdfOpenNew').href=url; el('pdfModal').classList.add('show');
+  el('pdfFrame').src=url;
+  el('pdfOpenNew').href=url;
+  el('pdfModal').classList.add('show');
 }
-el('pdfClose').addEventListener('click',()=>{ el('pdfModal').classList.remove('show'); el('pdfFrame').src='about:blank'; revokeTempUrls(); });
+el('pdfClose').addEventListener('click',()=>{
+  el('pdfModal').classList.remove('show');
+  el('pdfFrame').src='about:blank';
+  revokeTempUrls();
+});
 
 async function renderDocPreview(container, rawUrl, type){
   const url=await resolveLocalUrl(rawUrl);
-  if(!url){ container.innerHTML='<div class="hint">Documento indisponível.</div>'; return; }
+  if(!url){
+    container.innerHTML='<div class="hint">Documento indisponível.</div>';
+    return;
+  }
 
   container.innerHTML='';
 
   if(type==='img'){
     const img=document.createElement('img');
-    img.src=url; img.alt=''; img.style.maxWidth='100%'; img.style.borderRadius='8px';
+    img.src=url;
+    img.alt='';
+    img.style.maxWidth='100%';
+    img.style.borderRadius='8px';
     container.appendChild(img);
     const bar=document.createElement('div');
-    bar.style.marginTop='6px'; bar.style.display='flex'; bar.style.gap='6px';
+    bar.style.marginTop='6px';
+    bar.style.display='flex';
+    bar.style.gap='6px';
     bar.innerHTML=`<a class="btn-sm" href="${url}" download>Transferir</a>
                    <a class="btn-sm" href="${url}" target="_blank" rel="noreferrer noopener">Abrir em nova aba</a>`;
     container.appendChild(bar);
@@ -509,16 +1011,15 @@ async function renderDocPreview(container, rawUrl, type){
   }
 
   if(type==='pdf'){
-    // Se for IDB, verificar tamanho para decidir pré-visualização
     if(rawUrl.startsWith('idb://')){
       const rec=await getLocal(rawUrl);
       const size=rec?.meta?.size ?? 0;
       if(size > PDF_INLINE_LIMIT){
-        const safeUrl = await resolveLocalUrl(rawUrl);
+        const resolved = await resolveLocalUrl(rawUrl);
         container.innerHTML = `
           <div class="hint" style="line-height:1.5">
             Ficheiro grande (${(size/1024/1024).toFixed(1)} MB). Para pré-visualizar sem bloqueios, hospede num URL HTTPS (ex.: <code>docs/</code> no repositório) e use o link aqui.<br>
-            Ainda assim, pode <a class="btn-sm" href="${safeUrl}" target="_blank" rel="noreferrer noopener">Abrir em nova aba</a> ou <a class="btn-sm" href="${safeUrl}" download>Transferir</a>.
+            Ainda assim, pode <a class="btn-sm" href="${resolved}" target="_blank" rel="noreferrer noopener">Abrir em nova aba</a> ou <a class="btn-sm" href="${resolved}" download>Transferir</a>.
           </div>`;
         return;
       }
@@ -557,8 +1058,10 @@ async function renderDocPreview(container, rawUrl, type){
       const viewport=page.getViewport({ scale: 1.4 });
       const canvas=document.createElement('canvas');
       const ctx=canvas.getContext('2d');
-      canvas.width=viewport.width; canvas.height=viewport.height;
-      wrap.innerHTML=''; wrap.appendChild(canvas);
+      canvas.width=viewport.width;
+      canvas.height=viewport.height;
+      wrap.innerHTML='';
+      wrap.appendChild(canvas);
       await page.render({ canvasContext: ctx, viewport }).promise;
 
       bar.querySelector('#btnExpandLocal')?.addEventListener('click',()=> openPDF(url));
@@ -595,7 +1098,9 @@ function openFicha(p,focus=false){
         <div class="meta-line"><b>Promotor:</b> ${p.promotor||'—'}</div>
         <div class="meta-line"><b>Tipologias:</b> ${p.tipologias||'—'}</div>
         <div class="meta-line"><b>Conclusão:</b> ${p.conclusao||'—'}</div>
-        <div class="meta-line"><b>€/m²:</b> ${p.preco_m2? Number(String(p.preco_m2).replace(',','.')).toLocaleString('pt-PT') : '—'}</div>
+        <div class="meta-line"><b>€/m²:</b> ${
+          p.preco_m2? Number(String(p.preco_m2).replace(',','.')).toLocaleString('pt-PT') : '—'
+        }</div>
         <div class="meta-line"><b>Notas:</b> ${p.notas||'—'}</div>
         <div class="meta-line"><b>Coordenadas:</b> ${numPT(p._lat)??'—'}, ${numPT(p._lng)??'—'}</div>
       </div>
@@ -607,27 +1112,44 @@ function openFicha(p,focus=false){
   `;
   el('panelInner').innerHTML=html;
   el('side-panel').classList.add('show');
-  if(focus && numPT(p._lat)!==null && numPT(p._lng)!==null) MAP?.setView([numPT(p._lat),numPT(p._lng)],16,{animate:true});
+  if(focus && numPT(p._lat)!==null && numPT(p._lng)!==null){
+    MAP?.setView([numPT(p._lat),numPT(p._lng)],16,{animate:true});
+  }
 
-  el('panelInner').querySelector('[data-act="center"]')?.addEventListener('click',()=>{ if(numPT(p._lat)!==null && numPT(p._lng)!==null) MAP?.setView([p._lat,p._lng],16,{animate:true}); });
+  el('panelInner').querySelector('[data-act="center"]')?.addEventListener('click',()=>{
+    if(numPT(p._lat)!==null && numPT(p._lng)!==null) MAP?.setView([p._lat,p._lng],16,{animate:true});
+  });
   el('panelInner').querySelector('[data-act="copy"]')?.addEventListener('click',async ()=>{
     const resumo=`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${p.conclusao||'—'} · ${p.link||''}`.trim();
     try{ await navigator.clipboard.writeText(resumo);}catch{}
   });
   el('panelInner').querySelector('[data-act="share"]')?.addEventListener('click',async ()=>{
-    const shareData={ title:p.nome||'Empreendimento', text:`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${p.conclusao||'—'}`, url: location.href };
-    if(navigator.share){ try{ await navigator.share(shareData);}catch{} } else { try{ await navigator.clipboard.writeText(shareData.text+' '+(p.link||location.href));}catch{} }
+    const shareData={
+      title:p.nome||'Empreendimento',
+      text:`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${p.conclusao||'—'}`,
+      url: location.href
+    };
+    if(navigator.share){
+      try{ await navigator.share(shareData);}catch{}
+    } else {
+      try{ await navigator.clipboard.writeText(shareData.text+' '+(p.link||location.href));}catch{}
+    }
   });
 
   const ul=el('panelInner').querySelector('#docList');
   if(ul){
     ul.querySelectorAll('li').forEach(li=>{
       li.addEventListener('click', async ()=>{
-        const rawUrl=li.getAttribute('data-url'); const tp=li.getAttribute('data-type'); const view=el('panelInner').querySelector('#docView');
+        const rawUrl=li.getAttribute('data-url');
+        const tp=li.getAttribute('data-type');
+        const view=el('panelInner').querySelector('#docView');
         await renderDocPreview(view, rawUrl, tp);
       });
       li.querySelector('[data-act="expand"]')?.addEventListener('click', async (e)=>{
-        e.stopPropagation(); const raw=e.target.getAttribute('data-url'); const u=await resolveLocalUrl(raw); openPDF(u);
+        e.stopPropagation();
+        const raw=e.target.getAttribute('data-url');
+        const u=await resolveLocalUrl(raw);
+        openPDF(u);
       });
     });
   }
@@ -643,73 +1165,85 @@ function buildDocsHTML(docs){
   }).join('');
   return `<ul id="docList" style="list-style:none;margin:0;padding:0">${items}</ul><div id="docView" style="margin-top:8px"></div>`;
 }
-el('closePanel').addEventListener('click',()=>{ el('side-panel').classList.remove('show'); revokeTempUrls(); });
+el('closePanel').addEventListener('click',()=>{
+  el('side-panel').classList.remove('show');
+  revokeTempUrls();
+});
 
 /* ===== Exportações ===== */
 function exportCSV(){
   const headers=["nome","concelho","estado","promotor","tipologias","conclusao","preco_m2","notas","link","latitude","longitude"];
-  const rows=FILT.map(p=>[p.nome,p.concelho,p.estado,p.promotor,p.tipologias,p.conclusao,p.preco_m2||'',p.notas||'',p.link||'',p._lat||'',p._lng||'']);
+  const rows=FILT.map(p=>[
+    p.nome,p.concelho,p.estado,p.promotor,p.tipologias,p.conclusao,
+    p.preco_m2||'',p.notas||'',p.link||'',p._lat||'',p._lng||''
+  ]);
   const csv=toCSV([headers,...rows]);
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download='empreendimentos.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='empreendimentos.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 function exportGeo(){
-  const fc={ type:"FeatureCollection", features: RAW.filter(p=>numPT(p._lat)!==null && numPT(p._lng)!==null).map(p=>({ type:"Feature", geometry:{type:"Point",coordinates:[numPT(p._lng),numPT(p._lat)]}, properties:{ slug:p.slug,nome:p.nome,concelho:p.concelho,estado:p.estado,promotor:p.promotor,tipologias:p.tipologias,conclusao:p.conclusao,preco_m2:p.preco_m2,notas:p.notas,link:p.link,docs:p.docs||[] } })) };
-  const blob=new Blob([JSON.stringify(fc,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download='empreendimentos.geojson'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  const fc={
+    type:"FeatureCollection",
+    features: RAW.filter(p=>numPT(p._lat)!==null && numPT(p._lng)!==null).map(p=>({
+      type:"Feature",
+      geometry:{type:"Point",coordinates:[numPT(p._lng),numPT(p._lat)]},
+      properties:{
+        slug:p.slug,
+        nome:p.nome,
+        concelho:p.concelho,
+        estado:p.estado,
+        promotor:p.promotor,
+        tipologias:p.tipologias,
+        conclusao:p.conclusao,
+        preco_m2:p.preco_m2,
+        notas:p.notas,
+        link:p.link,
+        docs:p.docs||[]
+      }
+    }))
+  };
+  const blob=new Blob([JSON.stringify(fc,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='empreendimentos.geojson';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 el('exportCsv').addEventListener('click', exportCSV);
 el('exportGeo').addEventListener('click', exportGeo);
 
-/* ===== Persistência ===== */
-function saveLS(){ localStorage.setItem(LS_KEY, JSON.stringify(RAW)); }
-
-// Guard contra localStorage gigante/corrompido
+/* ===== Persistência (robusta) ===== */
+function saveLS(){
+  try{
+    localStorage.setItem(LS_KEY, JSON.stringify(RAW));
+  }catch(e){
+    console.warn('Falha ao guardar em localStorage:', e);
+  }
+}
 function loadLS(){
   try{
-    const raw = localStorage.getItem(LS_KEY);
-    if(!raw) return null;
-
-    // Se o payload for muito grande (ex.: PDF em data URL), fazemos backup e limpamos
-    if(raw.length > 800000){ // ~800 KB
-      const backupKey = LS_KEY + '_backup_' + new Date().toISOString();
-      try{
-        localStorage.setItem(backupKey, raw);
-      }catch{}
-      try{
-        localStorage.removeItem(LS_KEY);
-      }catch{}
-
-      const banner = document.getElementById('recoveryBanner');
-      if(banner){
-        banner.classList.remove('hidden');
-        const span = banner.querySelector('span[data-role="msg"]');
-        if(span){
-          span.textContent = 'Detectado ficheiro muito grande no armazenamento local (possível anexo em data:). Foi criada uma cópia de segurança ('+backupKey+') e os dados do mapa foram limpos para recuperar a aplicação.';
-        }
-      }
+    const x=localStorage.getItem(LS_KEY);
+    if(!x) return null;
+    // Proteção contra datasets gigantes (ex.: data: URLs enormes)
+    if(x.length > 500000){ // ~0.5 MB
+      console.warn('Dataset local demasiado grande, a ignorar para evitar bloqueios.');
+      LS_SKIPPED=true;
       return null;
     }
-
-    return JSON.parse(raw);
+    return JSON.parse(x);
   }catch(e){
-    // Se der erro ao fazer parse, tentamos guardar backup antes de limpar
-    try{
-      const raw = localStorage.getItem(LS_KEY);
-      if(raw){
-        const backupKey = LS_KEY + '_backup_' + new Date().toISOString();
-        try{ localStorage.setItem(backupKey, raw); }catch{}
-        try{ localStorage.removeItem(LS_KEY); }catch{}
-        const banner = document.getElementById('recoveryBanner');
-        if(banner){
-          banner.classList.remove('hidden');
-          const span = banner.querySelector('span[data-role="msg"]');
-          if(span){
-            span.textContent = 'Os dados do mapa estavam corrompidos. Foi criada uma cópia de segurança ('+backupKey+') e os dados foram limpos para recuperar a aplicação.';
-          }
-        }
-      }
-    }catch{}
+    console.warn('Falha a ler dados locais, a iniciar base vazia.', e);
+    LS_ERROR=true;
     return null;
   }
 }
@@ -718,19 +1252,35 @@ function loadLS(){
 function setEditMode(on){
   EDIT_MODE=on;
   el('toggleEdit').textContent= on? '🔓 Edição ON' : '🔒 Editar';
-  ['btnImport','btnNew','btnSave','btnClearAll','attachLocalLabel'].forEach(id=>{ const b=el(id); if(!b) return; b.style.display= on? 'inline-block' : 'none'; });
+  ['btnImport','btnNew','btnSave','btnClearAll','attachLocalLabel'].forEach(id=>{
+    const b=el(id);
+    if(!b) return;
+    b.style.display= on? 'inline-block' : 'none';
+  });
   renderList();
 }
 el('toggleEdit').addEventListener('click',()=> setEditMode(!EDIT_MODE));
-el('btnClearAll').addEventListener('click',()=>{ if(confirm('Tem a certeza que pretende limpar todos os empreendimentos?')){ RAW=[]; saveLS(); run(); }});
-el('btnSave').addEventListener('click',()=>{ saveLS(); alert('Dados guardados localmente.'); });
+el('btnClearAll').addEventListener('click',()=>{
+  if(confirm('Tem a certeza que pretende limpar todos os empreendimentos?')){
+    RAW=[];
+    saveLS();
+    run();
+  }
+});
+el('btnSave').addEventListener('click',()=>{
+  saveLS();
+  alert('Dados guardados localmente.');
+});
 
 /* ===== CSV Import ===== */
 el('csvFile').addEventListener('change', async (ev)=>{
   const file=ev.target.files?.[0]; if(!file) return;
   if(!window.Papa){ alert('Leitor CSV indisponível.'); return; }
   const text=await file.text();
-  Papa.parse(text,{ header:true, dynamicTyping:false, skipEmptyLines:true,
+  Papa.parse(text,{
+    header:true,
+    dynamicTyping:false,
+    skipEmptyLines:true,
     complete:res=>{
       const incoming=(res.data||[]).map(row=>{
         const p={
@@ -750,10 +1300,22 @@ el('csvFile').addEventListener('change', async (ev)=>{
         };
         return p;
       }).filter(p=>p.nome);
-      if(!incoming.length){ alert('Nenhuma linha válida encontrada no CSV.'); return; }
+      if(!incoming.length){
+        alert('Nenhuma linha válida encontrada no CSV.');
+        return;
+      }
       const bySlug=new Map(RAW.map(p=>[p.slug||slugify(p.nome),p]));
-      incoming.forEach(n=>{ const key=n.slug||slugify(n.nome); if(bySlug.has(key)){ Object.assign(bySlug.get(key),n);} else { RAW.push(n);} });
-      saveLS(); buildFacetOptions(); run();
+      incoming.forEach(n=>{
+        const key=n.slug||slugify(n.nome);
+        if(bySlug.has(key)){
+          Object.assign(bySlug.get(key),n);
+        } else {
+          RAW.push(n);
+        }
+      });
+      saveLS();
+      buildFacetOptions();
+      run();
       alert(`Importação concluída: ${incoming.length} registos processados.`);
       ev.target.value='';
     },
@@ -762,9 +1324,13 @@ el('csvFile').addEventListener('change', async (ev)=>{
 });
 
 /* ===== Modal Edição ===== */
-function updateLocalAttachVisibility(){ const lab=el('attachLocalLabel'); if(lab) lab.style.display= EDIT_MODE ? 'inline-block' : 'none'; }
+function updateLocalAttachVisibility(){
+  const lab=el('attachLocalLabel');
+  if(lab) lab.style.display= EDIT_MODE ? 'inline-block' : 'none';
+}
 function addDocRow(d){
-  const row=document.createElement('div'); row.className='doc-row';
+  const row=document.createElement('div');
+  row.className='doc-row';
   row.innerHTML=`
     <input placeholder="Título (ex.: Brochura)" value="${d.title||''}">
     <select>
@@ -776,32 +1342,55 @@ function addDocRow(d){
     <button class="btn del">Apagar</button>
   `;
   row.querySelector('.del').addEventListener('click', async ()=>{
-    const inputs=row.querySelectorAll('input,select'); const u=inputs[2].value.trim();
-    if(u.startsWith('idb://')){ try{ await idbKeyval.del(u.replace('idb://','')); }catch{} }
+    const inputs=row.querySelectorAll('input,select');
+    const u=inputs[2].value.trim();
+    if(u.startsWith('idb://')){
+      try{ await idbKeyval.del(u.replace('idb://','')); }catch{}
+    }
     row.remove();
   });
   el('docsBox').appendChild(row);
 }
 function fillEditForm(p){
-  el('f_nome').value=p.nome||''; el('f_concelho_e').value=p.concelho||''; el('f_estado').value=p.estado||''; el('f_promotor_e').value=p.promotor||'';
-  el('f_tipologias').value=p.tipologias||''; el('f_conclusao').value=p.conclusao||''; el('f_preco').value=p.preco_m2||'';
-  el('f_link').value=p.link||''; el('f_lat').value=p._lat!=null? p._lat : ''; el('f_lng').value=p._lng!=null? p._lng : ''; el('f_notas').value=p.notas||'';
-  const box=el('docsBox'); box.innerHTML='';
+  el('f_nome').value=p.nome||'';
+  el('f_concelho_e').value=p.concelho||'';
+  el('f_estado').value=p.estado||'';
+  el('f_promotor_e').value=p.promotor||'';
+  el('f_tipologias').value=p.tipologias||'';
+  el('f_conclusao').value=p.conclusao||'';
+  el('f_preco').value=p.preco_m2||'';
+  el('f_link').value=p.link||'';
+  el('f_lat').value=p._lat!=null? p._lat : '';
+  el('f_lng').value=p._lng!=null? p._lng : '';
+  el('f_notas').value=p.notas||'';
+  const box=el('docsBox');
+  box.innerHTML='';
   (p.docs||[]).forEach(d=> addDocRow(d));
 }
 
 el('btnNew').addEventListener('click',()=>{
   EDIT_INDEX=-1;
-  fillEditForm({nome:'',concelho:'',estado:'',promotor:'',tipologias:'',conclusao:'',preco_m2:'',notas:'',link:'',_lat:'',_lng:'',docs:[]});
+  fillEditForm({
+    nome:'',concelho:'',estado:'',promotor:'',
+    tipologias:'',conclusao:'',preco_m2:'',
+    notas:'',link:'',_lat:'',_lng:'',docs:[]
+  });
   el('editTitle').textContent='Novo Empreendimento';
   el('editModal').classList.add('show');
 });
 function openEditBySlug(slug){
-  const idx=RAW.findIndex(p=>p.slug===slug); if(idx<0) return;
-  EDIT_INDEX=idx; const p=RAW[idx];
-  fillEditForm(p); el('editTitle').textContent='Editar Empreendimento'; el('editModal').classList.add('show');
+  const idx=RAW.findIndex(p=>p.slug===slug);
+  if(idx<0) return;
+  EDIT_INDEX=idx;
+  const p=RAW[idx];
+  fillEditForm(p);
+  el('editTitle').textContent='Editar Empreendimento';
+  el('editModal').classList.add('show');
 }
-el('cancelEdit').addEventListener('click',()=>{ el('editModal').classList.remove('show'); PICKING=false; });
+el('cancelEdit').addEventListener('click',()=>{
+  el('editModal').classList.remove('show');
+  PICKING=false;
+});
 
 el('attachLocalInput').addEventListener('change', async (ev)=>{
   const file=ev.target.files?.[0]; if(!file) return;
@@ -837,13 +1426,22 @@ el('saveEdit').addEventListener('click',()=>{
     docs:[]
   };
   el('docsBox').querySelectorAll('.doc-row').forEach(r=>{
-    const inputs=r.querySelectorAll('input,select'); const d={title:inputs[0].value.trim(), type:inputs[1].value, url:inputs[2].value.trim()};
+    const inputs=r.querySelectorAll('input,select');
+    const d={
+      title:inputs[0].value.trim(),
+      type:inputs[1].value,
+      url:inputs[2].value.trim()
+    };
     if(d.url) p.docs.push(d);
   });
-  if(!p.nome){ alert('O nome é obrigatório.'); return; }
+  if(!p.nome){
+    alert('O nome é obrigatório.');
+    return;
+  }
   p.slug=slugify(p.nome);
-  if(EDIT_INDEX>=0){ RAW[EDIT_INDEX]=Object.assign(RAW[EDIT_INDEX],p); }
-  else{
+  if(EDIT_INDEX>=0){
+    RAW[EDIT_INDEX]=Object.assign(RAW[EDIT_INDEX],p);
+  } else {
     const exist=RAW.find(x=>x.slug===p.slug);
     if(exist){
       if(!confirm('Já existe um empreendimento com este nome. Substituir?')) return;
@@ -852,61 +1450,103 @@ el('saveEdit').addEventListener('click',()=>{
       RAW.push(p);
     }
   }
-  saveLS(); el('editModal').classList.remove('show'); PICKING=false; buildFacetOptions(); run();
+  saveLS();
+  el('editModal').classList.remove('show');
+  PICKING=false;
+  buildFacetOptions();
+  run();
 });
 
 /* ===== UI filtros ===== */
 document.querySelectorAll('#estadoChips .chip').forEach(ch=>{
   ch.addEventListener('click',()=>{
     document.querySelectorAll('#estadoChips .chip').forEach(c=>c.classList.remove('active'));
-    ch.classList.add('active'); UIState.estado=ch.dataset.v||''; run();
+    ch.classList.add('active');
+    UIState.estado=ch.dataset.v||'';
+    run();
   });
 });
 el('apply').addEventListener('click',()=>{
-  UIState.q=el('q').value.trim(); UIState.concelho=el('f_concelho').value;
-  UIState.cmin=el('f_cmin').value; UIState.cmax=el('f_cmax').value;
-  UIState.pmin=el('f_pmin').value; UIState.pmax=el('f_pmax').value;
-  UIState.promotor=el('f_promotor').value; UIState.tipos=el('f_tipos').value.trim(); run();
+  UIState.q=el('q').value.trim();
+  UIState.concelho=el('f_concelho').value;
+  UIState.cmin=el('f_cmin').value;
+  UIState.cmax=el('f_cmax').value;
+  UIState.pmin=el('f_pmin').value;
+  UIState.pmax=el('f_pmax').value;
+  UIState.promotor=el('f_promotor').value;
+  UIState.tipos=el('f_tipos').value.trim();
+  run();
 });
 el('clear').addEventListener('click',()=>{
   ['q','f_concelho','f_cmin','f_cmax','f_pmin','f_pmax','f_promotor','f_tipos'].forEach(id=>el(id).value='');
   document.querySelectorAll('#estadoChips .chip').forEach(c=>c.classList.remove('active'));
   document.querySelector('#estadoChips .chip[data-v=""]').classList.add('active');
-  UIState={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'' }; run();
+  UIState={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'' };
+  run();
 });
 
 /* ===== Eventos diversos ===== */
-function setEditModeVisibility(){ ['btnImport','btnNew','btnSave','btnClearAll','attachLocalLabel'].forEach(id=>{ const b=el(id); if(!b) return; b.style.display= EDIT_MODE ? 'inline-block' : 'none'; }); }
+function setEditModeVisibility(){
+  ['btnImport','btnNew','btnSave','btnClearAll','attachLocalLabel'].forEach(id=>{
+    const b=el(id);
+    if(!b) return;
+    b.style.display= EDIT_MODE ? 'inline-block' : 'none';
+  });
+}
 el('toggleEdit').addEventListener('click',()=> setTimeout(setEditModeVisibility,0));
 
 /* ===== Ciclo render ===== */
-function run(){ applyFilters(); renderKPIs(); renderList(); renderMarkers(); }
+function run(){
+  applyFilters();
+  renderKPIs();
+  renderList();
+  renderMarkers();
+}
 
 /* ===== Picking coordenadas ===== */
 document.addEventListener('click',(e)=>{
   if(!PICKING || !MAP) return;
   if(!e.target.closest('#map')) return;
   const latlng=MAP.mouseEventToLatLng(e);
-  el('f_lat').value=latlng.lat.toFixed(6); el('f_lng').value=latlng.lng.toFixed(6);
-  PICKING=false; el('pickCoord').textContent='Definir no mapa'; el('pickCoord').classList.remove('primary');
+  el('f_lat').value=latlng.lat.toFixed(6);
+  el('f_lng').value=latlng.lng.toFixed(6);
+  PICKING=false;
+  el('pickCoord').textContent='Definir no mapa';
+  el('pickCoord').classList.remove('primary');
 });
 el('pickCoord').addEventListener('click',()=>{
-  PICKING=!PICKING; const b=el('pickCoord'); b.textContent= PICKING? 'Clique no mapa…' : 'Definir no mapa'; b.classList.toggle('primary',PICKING);
+  PICKING=!PICKING;
+  const b=el('pickCoord');
+  b.textContent= PICKING? 'Clique no mapa…' : 'Definir no mapa';
+  b.classList.toggle('primary',PICKING);
 });
 
 /* ===== Arranque ===== */
 (async function init(){
+  setStatus('A iniciar mapa…');
+
   try{ await loadLeafletAndCluster(); }catch{}
-  if(window.L){ initMap(); } else { document.getElementById('map')?.classList.add('hidden'); }
+  if(window.L){
+    initMap();
+  } else {
+    document.getElementById('map')?.classList.add('hidden');
+    setStatus('⚠ Não foi possível carregar o motor de mapa (Leaflet). Verifique a ligação à internet.');
+    return;
+  }
 
-  // Detectar modo de armazenamento para anexos (IDB vs dataURL)
-  try{ await detectStorageMode(); }catch{}
+  const mem=loadLS();
+  RAW=Array.isArray(mem)? mem : [];
+  buildFacetOptions();
+  run();
 
-  // Persistência com guarda
-  const mem=loadLS(); RAW=Array.isArray(mem)? mem : [];
-  buildFacetOptions(); run();
+  if(LS_SKIPPED){
+    setStatus('⚠ Dados locais antigos eram muito pesados e foram ignorados. O mapa foi aberto vazio.');
+  } else if(LS_ERROR){
+    setStatus('⚠ Não foi possível ler os dados locais guardados anteriormente. O mapa foi aberto vazio.');
+  } else {
+    setStatus('');
+  }
 
-  // UI
   setEditMode(false);
 })();
 </script>
