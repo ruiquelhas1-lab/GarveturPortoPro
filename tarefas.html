@@ -577,7 +577,7 @@
     </div>
 
     <nav class="nav-tabs">
-      <a href="index.html" class="nav-tab">Home</a>
+      <a href="index.html" class="nav-tab">Início</a>
       <a href="mapa.html" class="nav-tab">Mapa</a>
       <a href="kanban.html" class="nav-tab">Leads</a>
       <a href="angariacoes.html" class="nav-tab">Angariações</a>
@@ -650,6 +650,8 @@
             <span class="slider"></span>
           </label>
         </div>
+        <button class="btn" id="applyFiltersBtn" style="margin-top:6px;width:100%;">Aplicar filtros</button>
+        <button class="btn" id="clearFiltersBtn" style="margin-top:4px;width:100%;background:transparent;border-color:rgba(255,255,255,.2);">Limpar</button>
         <p style="margin-top:6px;">Use os filtros para organizar o dia, reuniões de pipeline e follow-up por consultor.</p>
       </div>
 
@@ -815,6 +817,8 @@
 <script>
 (function(){
   const STORAGE_KEY = 'gpp_tarefas_v1';
+  const FILTERS_STORAGE_KEY = 'gpp_tarefas_filters_v1';
+  const GLOBAL_FILTERS_KEY = 'gpp_global_filters_v1';
 
   const CONSULTOR_OPTIONS = [
     "Rui Quelhas",
@@ -845,6 +849,8 @@
   const filterDataDe = $('filterDataDe');
   const filterDataAte = $('filterDataAte');
   const filterShowCompleted = $('filterShowCompleted');
+  const applyFiltersBtn = $('applyFiltersBtn');
+  const clearFiltersBtn = $('clearFiltersBtn');
 
   const modalBackdrop = $('modalBackdrop');
   const modalTitle = $('modalTitle');
@@ -859,6 +865,15 @@
   let state = {
     locked:true,
     tasks:[]
+  };
+
+  let FILTERS = {
+    responsavel:'',
+    estado:'',
+    prioridade:'',
+    de:'',
+    ate:'',
+    showCompleted:false
   };
 
   function todayISO(){
@@ -891,6 +906,87 @@
     }catch(e){
       console.error('Erro ao guardar storage tarefas', e);
     }
+  }
+
+  function loadFiltersFromStorage(){
+    try{
+      const raw = localStorage.getItem(FILTERS_STORAGE_KEY);
+      if(!raw) return;
+      const parsed = JSON.parse(raw);
+      if(parsed && typeof parsed === 'object'){
+        FILTERS = Object.assign({}, FILTERS, parsed);
+      }
+    }catch(e){
+      console.error('Erro a carregar filtros de tarefas', e);
+    }
+  }
+
+  function loadGlobalFiltersFallback(){
+    // Só aplica se ainda não houver filtros locais (primeiro uso)
+    if(FILTERS.responsavel || FILTERS.de || FILTERS.ate) return;
+    try{
+      const raw = localStorage.getItem(GLOBAL_FILTERS_KEY);
+      if(!raw) return;
+      const g = JSON.parse(raw) || {};
+      if(!FILTERS.responsavel && g.consultor) FILTERS.responsavel = g.consultor;
+      if(!FILTERS.de && g.de) FILTERS.de = g.de;
+      if(!FILTERS.ate && g.ate) FILTERS.ate = g.ate;
+    }catch(e){
+      console.error('Erro a carregar filtros globais', e);
+    }
+  }
+
+  function applyFiltersToControls(){
+    filterResponsavel.value = FILTERS.responsavel || '';
+    filterEstado.value = FILTERS.estado || '';
+    filterPrioridade.value = FILTERS.prioridade || '';
+    filterDataDe.value = FILTERS.de || '';
+    filterDataAte.value = FILTERS.ate || '';
+    filterShowCompleted.checked = !!FILTERS.showCompleted;
+  }
+
+  function updateFiltersFromControls(){
+    FILTERS.responsavel = filterResponsavel.value || '';
+    FILTERS.estado = filterEstado.value || '';
+    FILTERS.prioridade = filterPrioridade.value || '';
+    FILTERS.de = filterDataDe.value || '';
+    FILTERS.ate = filterDataAte.value || '';
+    FILTERS.showCompleted = filterShowCompleted.checked;
+  }
+
+  function saveFiltersToStorage(){
+    try{
+      localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(FILTERS));
+    }catch(e){
+      console.error('Erro a guardar filtros de tarefas', e);
+    }
+  }
+
+  function syncGlobalFiltersFromTasks(){
+    const g = {
+      consultor: FILTERS.responsavel || '',
+      de: FILTERS.de || '',
+      ate: FILTERS.ate || ''
+    };
+    try{
+      localStorage.setItem(GLOBAL_FILTERS_KEY, JSON.stringify(g));
+    }catch(e){
+      console.error('Erro a guardar filtros globais', e);
+    }
+  }
+
+  function clearFilters(){
+    FILTERS = {
+      responsavel:'',
+      estado:'',
+      prioridade:'',
+      de:'',
+      ate:'',
+      showCompleted:false
+    };
+    applyFiltersToControls();
+    saveFiltersToStorage();
+    syncGlobalFiltersFromTasks();
   }
 
   function updateLockUI(){
@@ -984,12 +1080,12 @@
   }
 
   function applyFilters(tasks){
-    const resp = filterResponsavel.value;
-    const est = filterEstado.value;
-    const prio = filterPrioridade.value;
-    const from = filterDataDe.value;
-    const to = filterDataAte.value;
-    const showCompleted = filterShowCompleted.checked;
+    const resp = FILTERS.responsavel || '';
+    const est = FILTERS.estado || '';
+    const prio = FILTERS.prioridade || '';
+    const from = FILTERS.de || '';
+    const to = FILTERS.ate || '';
+    const showCompleted = !!FILTERS.showCompleted;
 
     return tasks.filter(t=>{
       if(resp && t.responsavel !== resp) return false;
@@ -1084,12 +1180,8 @@
     // KPIs gerais
     let total = tasks.length;
     let porEstado = {por_fazer:0,em_curso:0,concluida:0,adiada:0,cancelada:0};
-    let porResponsavel = {};
     tasks.forEach(t=>{
       if(porEstado[t.estado] !== undefined) porEstado[t.estado]++;
-      if(t.responsavel){
-        porResponsavel[t.responsavel] = (porResponsavel[t.responsavel]||0)+1;
-      }
     });
 
     // Resumo rápido (apenas com tarefas filtradas)
@@ -1105,7 +1197,7 @@
     badge2.innerHTML = 'Em aberto <strong>' + abertas + '</strong>';
     summaryBadges.appendChild(badge2);
 
-    const fil = applyFilters(tasks);
+    const fil = filtered;
     const porRespFiltrado = {};
     fil.forEach(t=>{
       if(!t.responsavel) return;
@@ -1471,12 +1563,17 @@
   closeModalBtn.addEventListener('click', closeModal);
   cancelModalBtn.addEventListener('click', closeModal);
 
-  filterResponsavel.addEventListener('change', renderCards);
-  filterEstado.addEventListener('change', renderCards);
-  filterPrioridade.addEventListener('change', renderCards);
-  filterDataDe.addEventListener('change', renderCards);
-  filterDataAte.addEventListener('change', renderCards);
-  filterShowCompleted.addEventListener('change', renderCards);
+  applyFiltersBtn.addEventListener('click', ()=>{
+    updateFiltersFromControls();
+    saveFiltersToStorage();
+    syncGlobalFiltersFromTasks();
+    renderCards();
+  });
+
+  clearFiltersBtn.addEventListener('click', ()=>{
+    clearFilters();
+    renderCards();
+  });
 
   saveTaskBtn.addEventListener('click',(e)=>{
     e.preventDefault();
@@ -1508,6 +1605,9 @@
   // Init
   initConsultores();
   loadState();
+  loadFiltersFromStorage();
+  loadGlobalFiltersFallback();
+  applyFiltersToControls();
   renderCards();
 
 })();
