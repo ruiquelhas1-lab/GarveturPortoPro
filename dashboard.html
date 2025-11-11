@@ -294,7 +294,7 @@
     .kpi-badge.warn{border-color:rgba(255,200,87,.8);color:#FFE082;}
     .kpi-badge.bad{border-color:rgba(242,95,92,.8);color:#FFABAB;}
 
-    /* NOVO: zona de gráficos */
+    /* Zona de gráficos */
     .charts-grid{
       display:grid;
       grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
@@ -464,7 +464,7 @@
       <!-- KPIs principais -->
       <section class="kpi-grid" id="kpiGrid"></section>
 
-      <!-- NOVO: zona de gráficos -->
+      <!-- Zona de gráficos -->
       <section class="charts-grid">
         <div class="chart-card">
           <div class="chart-header">Leads por estado</div>
@@ -473,7 +473,7 @@
           </div>
         </div>
         <div class="chart-card">
-          <div class="chart-header">Negócios por mês (Fecho + Aprovado)</div>
+          <div class="chart-header">Negócios fechados por mês</div>
           <div class="chart-wrapper">
             <canvas id="chartNegociosMes"></canvas>
           </div>
@@ -708,7 +708,8 @@
   function buildNegocios(leadsFiltered, dealsFiltered){
     const list = [];
 
-    // Leads em Fecho
+    // Alinhado com vendas.html:
+    // Leads em Fecho + Angariações em Aprovado (visíveis e invisíveis)
     leadsFiltered.forEach(l=>{
       if(!l || l.estado !== 'Fecho') return;
       const valor = parseNum(l.fecho_negocio || l.valor || 0);
@@ -720,7 +721,6 @@
       });
     });
 
-    // Angariações aprovadas
     dealsFiltered.forEach(a=>{
       if(!a || a.estadoAng !== 'aprovado') return;
       const preco = parseNum(a.precoPedido || 0);
@@ -960,9 +960,9 @@
     });
 
     kpiData.push({
-      label:'Negócios (Fecho + Aprovado)',
+      label:'Negócios fechados',
       value: totalNegocios,
-      sub: `Leads: ${totalNegLead} · Angariações: ${totalNegAng}`,
+      sub: `Leads em Fecho + Angariações aprovadas`,
       badge: volumeNegocios ? ('Volume ' + formatMoney(volumeNegocios)) : ''
     });
 
@@ -977,7 +977,7 @@
       label:'Tarefas críticas',
       value: taskStats.criticas || 0,
       sub:'Prioridade alta / crítica em aberto',
-      badge: taskStats.total ? '' : ''
+      badge: ''
     });
 
     kpiData.forEach(k=>{
@@ -1272,6 +1272,15 @@
       return;
     }
 
+    // Lê as cores do CSS
+    const styles   = getComputedStyle(document.documentElement);
+    const gold     = (styles.getPropertyValue('--gold') || '#A38B63').trim();
+    const danger   = (styles.getPropertyValue('--danger') || '#F25F5C').trim();
+    const success  = (styles.getPropertyValue('--success') || '#4CAF50').trim();
+    const warning  = (styles.getPropertyValue('--warning') || '#FFC857').trim();
+    const muted1   = '#4E4E4E';
+    const muted2   = '#777777';
+
     // Leads por estado (doughnut)
     const leadLabels = ["Novo","Em Contacto","Qualificado","Visita","Proposta","Fecho","Perdido"];
     const leadData   = leadLabels.map(l=>stats.byEstadoLeadVisible[l] || 0);
@@ -1284,13 +1293,13 @@
         datasets:[{
           data:leadData,
           backgroundColor:[
-            '#A38B63',
-            '#C9A87B',
-            '#7C6A4D',
-            '#4E4E4E',
-            '#888888',
-            '#4CAF50',
-            '#F25F5C'
+            gold,
+            warning,
+            muted1,
+            muted2,
+            '#999999',
+            success,
+            danger
           ],
           borderColor:'#000',
           borderWidth:1
@@ -1305,7 +1314,7 @@
       }
     });
 
-    // Negócios por mês (bar)
+    // Negócios fechados por mês (bar)
     const mapaMes = {};
     negocios.forEach(n=>{
       if(!n.data) return;
@@ -1330,7 +1339,7 @@
         datasets:[{
           label:'Volume',
           data:negData,
-          backgroundColor:'#A38B63'
+          backgroundColor:gold
         }]
       },
       options:{
@@ -1364,7 +1373,7 @@
         labels:tLabels,
         datasets:[{
           data:tData,
-          backgroundColor:'#C9A87B'
+          backgroundColor:warning
         }]
       },
       options:{
