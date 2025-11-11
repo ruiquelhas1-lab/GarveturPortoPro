@@ -4,6 +4,8 @@
   <meta charset="utf-8" />
   <title>Garvetur Porto Pro — Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Chart.js para gráficos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     :root{
       --gold:#A38B63;
@@ -292,6 +294,40 @@
     .kpi-badge.warn{border-color:rgba(255,200,87,.8);color:#FFE082;}
     .kpi-badge.bad{border-color:rgba(242,95,92,.8);color:#FFABAB;}
 
+    /* NOVO: zona de gráficos */
+    .charts-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:12px;
+      margin-bottom:14px;
+    }
+    .chart-card{
+      border-radius:var(--radius-md);
+      border:1px solid rgba(163,139,99,.3);
+      background:radial-gradient(circle at top left,#181818,#050505);
+      padding:8px 10px 10px;
+      box-shadow:var(--shadow-soft);
+      min-height:220px;
+      display:flex;
+      flex-direction:column;
+    }
+    .chart-header{
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+    .chart-wrapper{
+      position:relative;
+      flex:1;
+      min-height:160px;
+    }
+    .chart-wrapper canvas{
+      width:100% !important;
+      height:100% !important;
+    }
+
     .details-grid{
       display:grid;
       grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
@@ -364,7 +400,7 @@
       </div>
       <div>
         <h1>Garvetur Porto Pro — Dashboard</h1>
-        <span class="sub">Visão global | Leads & Angariações</span>
+        <span class="sub">Visão global · Leads, Angariações & Tarefas</span>
       </div>
     </div>
 
@@ -403,7 +439,7 @@
             <input type="date" id="filterDataAte" />
           </div>
         </div>
-        <p>O período aplica-se à <strong>data da Lead</strong> e à <strong>data da Angariação</strong>.</p>
+        <p>O período aplica-se à <strong>data da Lead</strong>, à <strong>data da Angariação</strong> e à <strong>data limite das Tarefas</strong>.</p>
       </div>
 
       <div class="sidebar-section">
@@ -412,6 +448,7 @@
           Use o filtro de <strong>Consultor</strong> para preparar reuniões individuais.<br>
           Combine com o período para ver apenas o mês atual ou um trimestre.
         </p>
+        <p>Os gráficos e KPIs atualizam automaticamente com os filtros.</p>
       </div>
     </aside>
 
@@ -419,13 +456,37 @@
       <div class="section-header">
         <div>
           <h2>Visão Geral</h2>
-          <p>Resumo consolidado de pipeline comercial — Leads & Produto.</p>
+          <p>Resumo consolidado de pipeline comercial — Leads, Produto, Negócios & Ações.</p>
         </div>
         <div id="contextLabel" style="font-size:11px;color:var(--muted);text-align:right;"></div>
       </div>
 
+      <!-- KPIs principais -->
       <section class="kpi-grid" id="kpiGrid"></section>
 
+      <!-- NOVO: zona de gráficos -->
+      <section class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-header">Leads por estado</div>
+          <div class="chart-wrapper">
+            <canvas id="chartLeadsEstado"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">Negócios por mês (Fecho + Aprovado)</div>
+          <div class="chart-wrapper">
+            <canvas id="chartNegociosMes"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">Tarefas por estado</div>
+          <div class="chart-wrapper">
+            <canvas id="chartTarefasEstado"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Detalhes -->
       <section class="details-grid">
         <div class="panel">
           <h3>Leads — Detalhe por estado</h3>
@@ -462,10 +523,16 @@
           <small>Total de angariações filtradas, visíveis e invisíveis.</small>
           <div id="dealVisibility"></div>
         </div>
+
+        <div class="panel">
+          <h3>Tarefas — Estado & Prioridade</h3>
+          <small>Tarefas filtradas por responsável / período.</small>
+          <div id="taskSummary"></div>
+        </div>
       </section>
 
       <div id="emptyState" class="empty" style="display:none;">
-        Ainda não existem dados nas Leads e Angariações com os filtros atuais.
+        Ainda não existem dados em Leads, Angariações ou Tarefas com os filtros atuais.
       </div>
     </main>
   </div>
@@ -474,24 +541,35 @@
 <script>
 (function(){
   const STORAGE_LEADS = 'gpp_leads_v5';
-  const STORAGE_ANG = 'gpp_angariacoes_v2';
+  const STORAGE_ANG   = 'gpp_angariacoes_v2';
+  const STORAGE_TASKS = 'gpp_tarefas_v1';
 
-  const filterConsultor = document.getElementById('filterConsultor');
-  const filterDataDe = document.getElementById('filterDataDe');
-  const filterDataAte = document.getElementById('filterDataAte');
-  const kpiGrid = document.getElementById('kpiGrid');
-  const leadStatesEl = document.getElementById('leadStates');
-  const dealStatesEl = document.getElementById('dealStates');
-  const profileSummaryEl = document.getElementById('profileSummary');
-  const notesSummaryEl = document.getElementById('notesSummary');
-  const leadVisibilityEl = document.getElementById('leadVisibility');
-  const dealVisibilityEl = document.getElementById('dealVisibility');
-  const emptyState = document.getElementById('emptyState');
-  const contextLabel = document.getElementById('contextLabel');
-  const reloadBtn = document.getElementById('reloadBtn');
+  const filterConsultor   = document.getElementById('filterConsultor');
+  const filterDataDe      = document.getElementById('filterDataDe');
+  const filterDataAte     = document.getElementById('filterDataAte');
+  const kpiGrid           = document.getElementById('kpiGrid');
+  const leadStatesEl      = document.getElementById('leadStates');
+  const dealStatesEl      = document.getElementById('dealStates');
+  const profileSummaryEl  = document.getElementById('profileSummary');
+  const notesSummaryEl    = document.getElementById('notesSummary');
+  const leadVisibilityEl  = document.getElementById('leadVisibility');
+  const dealVisibilityEl  = document.getElementById('dealVisibility');
+  const taskSummaryEl     = document.getElementById('taskSummary');
+  const emptyState        = document.getElementById('emptyState');
+  const contextLabel      = document.getElementById('contextLabel');
+  const reloadBtn         = document.getElementById('reloadBtn');
 
-  let allLeads = [];
-  let allDeals = [];
+  const chartLeadsEstadoCanvas   = document.getElementById('chartLeadsEstado');
+  const chartNegociosMesCanvas   = document.getElementById('chartNegociosMes');
+  const chartTarefasEstadoCanvas = document.getElementById('chartTarefasEstado');
+
+  let allLeads  = [];
+  let allDeals  = [];
+  let allTasks  = [];
+
+  let chartLeadsEstado   = null;
+  let chartNegociosMes   = null;
+  let chartTarefasEstado = null;
 
   function parseNum(v){
     if(v===null || v===undefined || v==='') return 0;
@@ -512,6 +590,14 @@
     const v = parsePct(n);
     if(!isFinite(v)) return '—';
     return v.toFixed(1).replace('.',',') + '%';
+  }
+
+  function todayISO(){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return y + '-' + m + '-' + day;
   }
 
   function loadLeads(){
@@ -536,10 +622,31 @@
     }
   }
 
+  function loadTasks(){
+    try{
+      const raw = localStorage.getItem(STORAGE_TASKS);
+      if(!raw){
+        allTasks = [];
+        return;
+      }
+      const parsed = JSON.parse(raw);
+      if(parsed && Array.isArray(parsed.tasks)){
+        allTasks = parsed.tasks;
+      }else if(Array.isArray(parsed)){
+        allTasks = parsed;
+      }else{
+        allTasks = [];
+      }
+    }catch(e){
+      console.error('Erro a ler tarefas:',e);
+      allTasks = [];
+    }
+  }
+
   function applyFilters(){
     const cons = filterConsultor.value || '';
-    const de = filterDataDe.value || '';
-    const ate = filterDataAte.value || '';
+    const de   = filterDataDe.value || '';
+    const ate  = filterDataAte.value || '';
 
     let leads = allLeads.slice().filter(l => l);
     let deals = allDeals.slice().filter(d => d);
@@ -560,10 +667,31 @@
     return {leads, deals};
   }
 
+  function applyTaskFilters(){
+    const cons = filterConsultor.value || '';
+    const de   = filterDataDe.value || '';
+    const ate  = filterDataAte.value || '';
+
+    let tasks = allTasks.slice().filter(t=>t);
+
+    if(cons){
+      tasks = tasks.filter(t => (t.responsavel || '') === cons);
+    }
+    if(de){
+      tasks = tasks.filter(t => !t.dataLimite || t.dataLimite >= de);
+    }
+    if(ate){
+      tasks = tasks.filter(t => !t.dataLimite || t.dataLimite <= ate);
+    }
+    return tasks;
+  }
+
   function buildConsultorOptions(){
     const set = new Set();
     allLeads.forEach(l => { if(l && l.consultor) set.add(l.consultor); });
     allDeals.forEach(d => { if(d && d.consultor) set.add(d.consultor); });
+    allTasks.forEach(t => { if(t && t.responsavel) set.add(t.responsavel); });
+
     const current = filterConsultor.value;
     filterConsultor.innerHTML = '<option value="">Todos</option>';
     Array.from(set).sort().forEach(name=>{
@@ -577,16 +705,45 @@
     }
   }
 
+  function buildNegocios(leadsFiltered, dealsFiltered){
+    const list = [];
+
+    // Leads em Fecho
+    leadsFiltered.forEach(l=>{
+      if(!l || l.estado !== 'Fecho') return;
+      const valor = parseNum(l.fecho_negocio || l.valor || 0);
+      list.push({
+        tipo:'lead',
+        consultor: l.consultor || '',
+        data: l.data || '',
+        valor: isFinite(valor) ? valor : 0
+      });
+    });
+
+    // Angariações aprovadas
+    dealsFiltered.forEach(a=>{
+      if(!a || a.estadoAng !== 'aprovado') return;
+      const preco = parseNum(a.precoPedido || 0);
+      list.push({
+        tipo:'ang',
+        consultor: a.consultor || '',
+        data: a.dataAngariacao || '',
+        valor: isFinite(preco) ? preco : 0
+      });
+    });
+
+    return list;
+  }
+
   function computeStats(leadsFiltered, dealsFiltered){
     const leadsVisible = leadsFiltered.filter(l => l.visivel !== false);
-    const leadsHidden = leadsFiltered.filter(l => l.visivel === false);
+    const leadsHidden  = leadsFiltered.filter(l => l.visivel === false);
     const dealsVisible = dealsFiltered.filter(d => d.visible !== false);
-    const dealsHidden = dealsFiltered.filter(d => d.visible === false);
+    const dealsHidden  = dealsFiltered.filter(d => d.visible === false);
 
-    // 👇 AQUI: acrescentado "Perdido"
     const estadosLead = ["Novo","Em Contacto","Qualificado","Visita","Proposta","Fecho","Perdido"];
     const byEstadoLeadVisible = {};
-    const byEstadoLeadHidden = {};
+    const byEstadoLeadHidden  = {};
     estadosLead.forEach(e=>{ byEstadoLeadVisible[e]=0; byEstadoLeadHidden[e]=0; });
 
     leadsVisible.forEach(l=>{
@@ -601,18 +758,18 @@
     });
 
     const totalLeadsVisible = leadsVisible.length;
-    const totalLeadsHidden = leadsHidden.length;
-    const totalLeadsAll = totalLeadsVisible + totalLeadsHidden;
+    const totalLeadsHidden  = leadsHidden.length;
+    const totalLeadsAll     = totalLeadsVisible + totalLeadsHidden;
 
     const fechoLeadsVisiveis = leadsVisible.filter(l => l.estado === 'Fecho');
-    const totalFecho = fechoLeadsVisiveis.length;
-    const taxaFecho = totalLeadsVisible ? (totalFecho / totalLeadsVisible * 100) : 0;
+    const totalFecho         = fechoLeadsVisiveis.length;
+    const taxaFecho          = totalLeadsVisible ? (totalFecho / totalLeadsVisible * 100) : 0;
 
-    let totalNegocio = 0;
+    let totalNegocio  = 0;
     let totalComissao = 0;
     fechoLeadsVisiveis.forEach(l=>{
       const negocio = parseNum(l.fecho_negocio);
-      const pct = parsePct(l.fecho_comissao_pct);
+      const pct     = parsePct(l.fecho_comissao_pct);
       totalNegocio += negocio;
       if(isFinite(pct) && negocio>0){
         totalComissao += negocio * (pct/100);
@@ -621,7 +778,7 @@
 
     const estadosDeal = ["novo","negociacao","aprovado","perdido"];
     const byEstadoDealVisible = {};
-    const byEstadoDealHidden = {};
+    const byEstadoDealHidden  = {};
     estadosDeal.forEach(e=>{ byEstadoDealVisible[e]=0; byEstadoDealHidden[e]=0; });
 
     let totalExcl = 0;
@@ -704,8 +861,63 @@
     };
   }
 
-  function renderKpis(stats){
+  function computeTaskStats(tasks){
+    const countsByEstado = {
+      por_fazer:0,
+      em_curso:0,
+      concluida:0,
+      adiada:0,
+      cancelada:0
+    };
+    const countsByPrioridade = {
+      baixa:0,
+      normal:0,
+      alta:0,
+      critica:0
+    };
+
+    let abertas  = 0;
+    let criticas = 0;
+    let atrasadas= 0;
+    const hoje   = todayISO();
+
+    tasks.forEach(t=>{
+      if(countsByEstado[t.estado] !== undefined){
+        countsByEstado[t.estado]++;
+      }
+      if(countsByPrioridade[t.prioridade] !== undefined){
+        countsByPrioridade[t.prioridade]++;
+      }
+
+      const isDone = t.estado === 'concluida' || t.estado === 'cancelada';
+      if(!isDone){
+        abertas++;
+        if(t.prioridade === 'alta' || t.prioridade === 'critica'){
+          criticas++;
+        }
+        if(t.dataLimite && t.dataLimite < hoje){
+          atrasadas++;
+        }
+      }
+    });
+
+    return {
+      total: tasks.length,
+      countsByEstado,
+      countsByPrioridade,
+      abertas,
+      criticas,
+      atrasadas
+    };
+  }
+
+  function renderKpis(stats, negocios, taskStats){
     kpiGrid.innerHTML = '';
+
+    const totalNegocios   = negocios.length;
+    const totalNegLead    = negocios.filter(n=>n.tipo==='lead').length;
+    const totalNegAng     = negocios.filter(n=>n.tipo==='ang').length;
+    const volumeNegocios  = negocios.reduce((acc,n)=>acc+(n.valor||0),0);
 
     const kpiData = [];
 
@@ -727,7 +939,7 @@
     kpiData.push({
       label:'Negócio em Fecho',
       value:formatMoney(stats.totalNegocio),
-      sub:'Somatório de Valor do Negócio (leads visíveis em Fecho)',
+      sub:'Valor do Negócio (leads em Fecho visíveis)',
       badge: stats.totalComissao ? ('Comissão estimada ' + formatMoney(stats.totalComissao)) : ''
     });
 
@@ -743,15 +955,29 @@
     kpiData.push({
       label:'Volume de Produto',
       value:formatMoney(stats.volumePedido),
-      sub:'Soma do Preço Pedido (angariações visíveis)',
+      sub:'Preço pedido (angariações visíveis)',
       badge: stats.totalComissaoPot ? ('Comissão potencial ' + formatMoney(stats.totalComissaoPot)) : ''
     });
 
     kpiData.push({
-      label:'Ajustamento médio',
-      value:formatPct(stats.mediaAjust),
-      sub:'Média de % de ajustamento nas angariações visíveis',
-      badge:'',
+      label:'Negócios (Fecho + Aprovado)',
+      value: totalNegocios,
+      sub: `Leads: ${totalNegLead} · Angariações: ${totalNegAng}`,
+      badge: volumeNegocios ? ('Volume ' + formatMoney(volumeNegocios)) : ''
+    });
+
+    kpiData.push({
+      label:'Tarefas em aberto',
+      value: taskStats.abertas || 0,
+      sub: `Total tarefas filtradas: ${taskStats.total}`,
+      badge: taskStats.atrasadas ? (`${taskStats.atrasadas} em atraso`) : ''
+    });
+
+    kpiData.push({
+      label:'Tarefas críticas',
+      value: taskStats.criticas || 0,
+      sub:'Prioridade alta / crítica em aberto',
+      badge: taskStats.total ? '' : ''
     });
 
     kpiData.forEach(k=>{
@@ -781,7 +1007,6 @@
   }
 
   function renderLeadStates(stats){
-    // 👇 AQUI: acrescentado "Perdido"
     const mapLabel = {
       "Novo":"Novo",
       "Em Contacto":"Em Contacto",
@@ -916,7 +1141,6 @@
     sep.innerHTML = '<span><strong>Por estado</strong></span><span></span>';
     leadVisibilityEl.appendChild(sep);
 
-    // 👇 AQUI: acrescentado "Perdido"
     const estados = ["Novo","Em Contacto","Qualificado","Visita","Proposta","Fecho","Perdido"];
     estados.forEach(e=>{
       const row = document.createElement('div');
@@ -978,10 +1202,63 @@
     });
   }
 
+  function renderTaskSummary(taskStats){
+    taskSummaryEl.innerHTML = '';
+
+    const ESTADO_LABEL = {
+      por_fazer:'Por fazer',
+      em_curso:'Em curso',
+      concluida:'Concluída',
+      adiada:'Adiada',
+      cancelada:'Cancelada'
+    };
+    const PRIO_LABEL = {
+      baixa:'Baixa',
+      normal:'Normal',
+      alta:'Alta',
+      critica:'Crítica'
+    };
+
+    const makeRow = (label, value) => {
+      const row = document.createElement('div');
+      row.className = 'stat-row';
+      const l = document.createElement('span');
+      l.textContent = label;
+      const v = document.createElement('span');
+      v.innerHTML = '<strong>'+value+'</strong>';
+      row.appendChild(l);
+      row.appendChild(v);
+      taskSummaryEl.appendChild(row);
+    };
+
+    makeRow('Total tarefas (filtros)', taskStats.total || 0);
+    makeRow('Em aberto', taskStats.abertas || 0);
+    makeRow('Críticas / Alta', taskStats.criticas || 0);
+    makeRow('Em atraso', taskStats.atrasadas || 0);
+
+    const sep1 = document.createElement('div');
+    sep1.className = 'stat-row';
+    sep1.innerHTML = '<span><strong>Por estado</strong></span><span></span>';
+    taskSummaryEl.appendChild(sep1);
+
+    Object.keys(ESTADO_LABEL).forEach(k=>{
+      makeRow(ESTADO_LABEL[k], taskStats.countsByEstado[k] || 0);
+    });
+
+    const sep2 = document.createElement('div');
+    sep2.className = 'stat-row';
+    sep2.innerHTML = '<span><strong>Por prioridade</strong></span><span></span>';
+    taskSummaryEl.appendChild(sep2);
+
+    Object.keys(PRIO_LABEL).forEach(k=>{
+      makeRow(PRIO_LABEL[k], taskStats.countsByPrioridade[k] || 0);
+    });
+  }
+
   function updateContextLabel(){
     const cons = filterConsultor.value || '';
-    const de = filterDataDe.value || '';
-    const ate = filterDataAte.value || '';
+    const de   = filterDataDe.value || '';
+    const ate  = filterDataAte.value || '';
     const parts = [];
     if(cons) parts.push('Consultor: ' + cons);
     if(de || ate){
@@ -990,23 +1267,149 @@
     contextLabel.textContent = parts.length ? parts.join(' | ') : 'Sem filtros — visão global';
   }
 
+  function renderCharts(stats, negocios, taskStats){
+    if(typeof Chart === 'undefined'){
+      return;
+    }
+
+    // Leads por estado (doughnut)
+    const leadLabels = ["Novo","Em Contacto","Qualificado","Visita","Proposta","Fecho","Perdido"];
+    const leadData   = leadLabels.map(l=>stats.byEstadoLeadVisible[l] || 0);
+
+    if(chartLeadsEstado){ chartLeadsEstado.destroy(); }
+    chartLeadsEstado = new Chart(chartLeadsEstadoCanvas, {
+      type:'doughnut',
+      data:{
+        labels:leadLabels,
+        datasets:[{
+          data:leadData,
+          backgroundColor:[
+            '#A38B63',
+            '#C9A87B',
+            '#7C6A4D',
+            '#4E4E4E',
+            '#888888',
+            '#4CAF50',
+            '#F25F5C'
+          ],
+          borderColor:'#000',
+          borderWidth:1
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{labels:{color:'#ddd',font:{size:10}}}
+        }
+      }
+    });
+
+    // Negócios por mês (bar)
+    const mapaMes = {};
+    negocios.forEach(n=>{
+      if(!n.data) return;
+      const d = new Date(n.data);
+      if(isNaN(d.getTime())) return;
+      const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+      if(!mapaMes[key]) mapaMes[key] = 0;
+      mapaMes[key] += n.valor || 0;
+    });
+    const keys = Object.keys(mapaMes).sort((a,b)=>a.localeCompare(b));
+    const negLabels = keys.map(k=>{
+      const [y,m] = k.split('-');
+      return m + '/' + y.slice(-2);
+    });
+    const negData   = keys.map(k=>mapaMes[k]);
+
+    if(chartNegociosMes){ chartNegociosMes.destroy(); }
+    chartNegociosMes = new Chart(chartNegociosMesCanvas, {
+      type:'bar',
+      data:{
+        labels:negLabels,
+        datasets:[{
+          label:'Volume',
+          data:negData,
+          backgroundColor:'#A38B63'
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false}
+        },
+        scales:{
+          x:{ticks:{color:'#ddd'}},
+          y:{ticks:{color:'#ddd'},beginAtZero:true}
+        }
+      }
+    });
+
+    // Tarefas por estado (bar horizontal)
+    const ESTADO_LABEL = {
+      por_fazer:'Por fazer',
+      em_curso:'Em curso',
+      concluida:'Concluída',
+      adiada:'Adiada',
+      cancelada:'Cancelada'
+    };
+    const tLabels = Object.keys(ESTADO_LABEL).map(k=>ESTADO_LABEL[k]);
+    const tData   = Object.keys(ESTADO_LABEL).map(k=>taskStats.countsByEstado[k] || 0);
+
+    if(chartTarefasEstado){ chartTarefasEstado.destroy(); }
+    chartTarefasEstado = new Chart(chartTarefasEstadoCanvas, {
+      type:'bar',
+      data:{
+        labels:tLabels,
+        datasets:[{
+          data:tData,
+          backgroundColor:'#C9A87B'
+        }]
+      },
+      options:{
+        indexAxis:'y',
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false}
+        },
+        scales:{
+          x:{ticks:{color:'#ddd'},beginAtZero:true},
+          y:{ticks:{color:'#ddd'}}
+        }
+      }
+    });
+  }
+
   function refresh(){
     loadLeads();
     loadDeals();
+    loadTasks();
     buildConsultorOptions();
+
     const {leads,deals} = applyFilters();
-    const stats = computeStats(leads,deals);
+    const tasksFiltered = applyTaskFilters();
+    const negocios      = buildNegocios(leads,deals);
 
-    const hasVisibleData = (stats.totalLeadsVisible > 0) || (stats.totalDealsVisible > 0);
-    emptyState.style.display = hasVisibleData ? 'none' : 'block';
+    const stats      = computeStats(leads,deals);
+    const taskStats  = computeTaskStats(tasksFiltered);
 
-    renderKpis(stats);
+    const hasData = (stats.totalLeadsVisible > 0) ||
+                    (stats.totalDealsVisible > 0) ||
+                    (taskStats.total > 0);
+
+    emptyState.style.display = hasData ? 'none' : 'block';
+
+    renderKpis(stats, negocios, taskStats);
     renderLeadStates(stats);
     renderDealStates(stats);
     renderProfile(stats);
     renderNotes(stats);
     renderVisibilityLeads(stats);
     renderVisibilityDeals(stats);
+    renderTaskSummary(taskStats);
+    renderCharts(stats, negocios, taskStats);
     updateContextLabel();
   }
 
