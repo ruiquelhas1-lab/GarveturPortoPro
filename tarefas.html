@@ -294,6 +294,38 @@
       margin-left:4px;
     }
 
+    /* Banner de origem (filtragem vinda de Leads/Vendas) */
+    .origin-banner{
+      margin-bottom:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--gold-soft);
+      background:rgba(163,139,99,.12);
+      font-size:12px;
+      color:var(--muted);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .origin-banner strong{
+      color:var(--gold);
+    }
+    .origin-banner button{
+      border-radius:999px;
+      border:1px solid rgba(163,139,99,.4);
+      background:rgba(0,0,0,.6);
+      color:var(--muted);
+      padding:3px 8px;
+      font-size:11px;
+      cursor:pointer;
+    }
+    .origin-banner button:hover{
+      border-color:var(--gold);
+      color:#fff;
+    }
+
     .cards-grid{
       display:grid;
       grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
@@ -675,6 +707,15 @@
           <div class="pipeline-kpis" id="pipelineKpis"></div>
         </div>
       </div>
+
+      <!-- Banner de origem (quando vem de Leads/Vendas ou quando há filtro de origem ativo) -->
+      <div id="originFilterBanner" class="origin-banner" style="display:none;">
+        <div>
+          🔗 <strong id="originFilterLabel"></strong>
+        </div>
+        <button type="button" id="clearOriginFilterBtn">Limpar filtro de origem</button>
+      </div>
+
       <div id="cardsGrid" class="cards-grid"></div>
       <div id="emptyState" class="empty" style="display:none;">
         Ainda não existem tarefas registadas com os filtros atuais.
@@ -852,6 +893,10 @@
   const applyFiltersBtn = $('applyFiltersBtn');
   const clearFiltersBtn = $('clearFiltersBtn');
 
+  const originFilterBanner = $('originFilterBanner');
+  const originFilterLabel = $('originFilterLabel');
+  const clearOriginFilterBtn = $('clearOriginFilterBtn');
+
   const modalBackdrop = $('modalBackdrop');
   const modalTitle = $('modalTitle');
   const closeModalBtn = $('closeModalBtn');
@@ -867,13 +912,16 @@
     tasks:[]
   };
 
+  // Inclui filtros "escondidos" de origem (vindo de Leads/Vendas)
   let FILTERS = {
     responsavel:'',
     estado:'',
     prioridade:'',
     de:'',
     ate:'',
-    showCompleted:false
+    showCompleted:false,
+    origemTipo:'',
+    origemRef:''
   };
 
   function todayISO(){
@@ -936,6 +984,52 @@
     }
   }
 
+  // Integração com Leads/Vendas via parâmetros na URL
+  function applyUrlContext(){
+    try{
+      const params = new URLSearchParams(window.location.search);
+      const origem = (params.get('origem') || '').trim();   // lead, angariacao, venda, interna
+      const ref    = (params.get('ref') || '').trim();
+      const consultor = (params.get('consultor') || '').trim();
+      const nova   = (params.get('nova') || '').trim();     // "1" para abrir modal "Nova tarefa"
+
+      // Se veio consultor e ainda não há filtro local de responsável, herdamos
+      if(consultor && !FILTERS.responsavel){
+        FILTERS.responsavel = consultor;
+      }
+
+      // Se veio origem/ref, ativamos filtro "escondido" por origem
+      if(origem || ref){
+        FILTERS.origemTipo = origem || '';
+        FILTERS.origemRef  = ref || '';
+      }
+
+      // Se é pedido de "Nova tarefa" vinda de outro módulo, tentamos abrir já o modal
+      if(nova === '1'){
+        // Só abrimos se o modo não estiver bloqueado
+        if(state.locked){
+          setTimeout(()=>{
+            alert('Para criar uma nova tarefa associada, ative "Edição ativa" (cadeado no topo).');
+          }, 300);
+        }else{
+          openModal(null);
+          // Pré-preenchemos os campos de origem automaticamente
+          if(origem){
+            $('origemTipo').value = origem;
+          }
+          if(ref){
+            $('origemRef').value = ref;
+          }
+          if(consultor){
+            responsavelSelect.value = consultor;
+          }
+        }
+      }
+    }catch(e){
+      console.error('Erro a interpretar parâmetros da URL em tarefas', e);
+    }
+  }
+
   function applyFiltersToControls(){
     filterResponsavel.value = FILTERS.responsavel || '';
     filterEstado.value = FILTERS.estado || '';
@@ -952,6 +1046,7 @@
     FILTERS.de = filterDataDe.value || '';
     FILTERS.ate = filterDataAte.value || '';
     FILTERS.showCompleted = filterShowCompleted.checked;
+    // origemTipo / origemRef mantêm-se até serem limpos
   }
 
   function saveFiltersToStorage(){
@@ -982,7 +1077,9 @@
       prioridade:'',
       de:'',
       ate:'',
-      showCompleted:false
+      showCompleted:false,
+      origemTipo:'',
+      origemRef:''
     };
     applyFiltersToControls();
     saveFiltersToStorage();
@@ -1086,6 +1183,8 @@
     const from = FILTERS.de || '';
     const to = FILTERS.ate || '';
     const showCompleted = !!FILTERS.showCompleted;
+    const oTipo = FILTERS.origemTipo || '';
+    const oRef = FILTERS.origemRef || '';
 
     return tasks.filter(t=>{
       if(resp && t.responsavel !== resp) return false;
@@ -1098,6 +1197,13 @@
 
       if(from && t.dataLimite && t.dataLimite < from) return false;
       if(to && t.dataLimite && t.dataLimite > to) return false;
+
+      // Filtro de origem (vindo de Leads/Vendas ou manual via URL)
+      if(oTipo && t.origemTipo !== oTipo) return false;
+      if(oRef){
+        const tref = (t.origemRef || '').toLowerCase();
+        if(!tref.includes(oRef.toLowerCase())) return false;
+      }
 
       return true;
     });
@@ -1156,6 +1262,22 @@
     return 'chip-primary';
   }
 
+  function renderOriginBanner(){
+    if(FILTERS.origemTipo || FILTERS.origemRef){
+      const parts = [];
+      if(FILTERS.origemTipo){
+        parts.push('Origem: ' + origemLabel(FILTERS.origemTipo));
+      }
+      if(FILTERS.origemRef){
+        parts.push('Ref.: ' + FILTERS.origemRef);
+      }
+      originFilterLabel.textContent = parts.join(' · ');
+      originFilterBanner.style.display = 'flex';
+    }else{
+      originFilterBanner.style.display = 'none';
+    }
+  }
+
   function renderCards(){
     const tasks = state.tasks.slice().sort((a,b)=>{
       const da = a.dataLimite || '';
@@ -1170,6 +1292,8 @@
 
     const filtered = applyFilters(tasks);
     cardsGrid.innerHTML = '';
+
+    renderOriginBanner();
 
     if(!filtered.length){
       emptyState.style.display = 'block';
@@ -1575,6 +1699,14 @@
     renderCards();
   });
 
+  // Limpar só o filtro de origem (mantém restante filtros aplicados)
+  clearOriginFilterBtn.addEventListener('click', ()=>{
+    FILTERS.origemTipo = '';
+    FILTERS.origemRef  = '';
+    saveFiltersToStorage();
+    renderCards();
+  });
+
   saveTaskBtn.addEventListener('click',(e)=>{
     e.preventDefault();
     if(state.locked){
@@ -1607,6 +1739,7 @@
   loadState();
   loadFiltersFromStorage();
   loadGlobalFiltersFallback();
+  applyUrlContext();          // integra contexto vindo de Leads/Vendas (+Tarefa / Ver Tarefas)
   applyFiltersToControls();
   renderCards();
 
