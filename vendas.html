@@ -445,6 +445,24 @@
       color:var(--muted);
       margin-top:16px;
     }
+
+    /* Botões pequenos para integração com Tarefas */
+    .btn-xs{
+      border-radius:999px;
+      padding:3px 7px;
+      border:1px solid rgba(163,139,99,.35);
+      background:rgba(5,5,5,.9);
+      color:var(--muted);
+      font-size:10px;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+    }
+    .btn-xs.primary{
+      border-color:var(--gold);
+      color:var(--gold);
+    }
   </style>
 </head>
 <body>
@@ -580,6 +598,9 @@
   const LS_VENDAS_FILTERS_KEY = 'gpp_vendas_filters_v1';
   const LS_GLOBAL_FILTERS_KEY = 'gpp_filtros_globais';
 
+  /* Integração com tarefas (mesmo storage do módulo Tarefas) */
+  const LS_TAREFAS_KEY = 'gpp_tarefas_v1';
+
   const fConsultor = document.getElementById('fConsultor');
   const fOrigem = document.getElementById('fOrigem');
   const fDe = document.getElementById('fDe');
@@ -664,6 +685,116 @@
     fIncluirInvisiveis.checked = FILTERS.incluirInvisiveis;
   }
 
+  /* ===== Helpers comuns ===== */
+  function parseNumber(v){
+    if(v==null || v==='') return NaN;
+    const s = String(v).replace('.','').replace(',','.');
+    const n = parseFloat(s);
+    return isFinite(n) ? n : NaN;
+  }
+  function formatMoney(v){
+    const n = Number(v);
+    if(!isFinite(n) || n === 0) return '€ 0';
+    return n.toLocaleString('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+  }
+  function formatDate(d){
+    if(!d) return '—';
+    try{
+      const dt = new Date(d);
+      if(isNaN(dt.getTime())) return d;
+      return dt.toLocaleDateString('pt-PT');
+    }catch{return d;}
+  }
+  function todayISO(){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return y + '-' + m + '-' + day;
+  }
+  function offsetDateISO(days){
+    const d = new Date();
+    d.setDate(d.getDate()+days);
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return y + '-' + m + '-' + day;
+  }
+
+  /* ===== Integração com Tarefas (localStorage partilhado) ===== */
+  function loadTarefasState(){
+    try{
+      const raw = localStorage.getItem(LS_TAREFAS_KEY);
+      if(!raw) return {locked:true,tasks:[]};
+      const parsed = JSON.parse(raw);
+      if(Array.isArray(parsed.tasks)) return parsed;
+      if(Array.isArray(parsed)) return {locked:true,tasks:parsed};
+      return {locked:true,tasks:[]};
+    }catch(e){
+      console.error('Erro ao carregar tarefas (vendas)', e);
+      return {locked:true,tasks:[]};
+    }
+  }
+  function saveTarefasState(st){
+    try{
+      localStorage.setItem(LS_TAREFAS_KEY, JSON.stringify(st));
+    }catch(e){
+      console.error('Erro ao guardar tarefas (vendas)', e);
+    }
+  }
+
+  function createTaskFromNegocio(neg){
+    const state = loadTarefasState();
+
+    const id = 'task_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+    const tituloBase = neg.cliente || neg.titulo || 'cliente';
+
+    const origemRefParts = [];
+    if(neg.titulo) origemRefParts.push(neg.titulo);
+    if(neg.cliente) origemRefParts.push(neg.cliente);
+
+    const nova = {
+      id,
+      responsavel: neg.consultor || '',
+      apoio: '',
+      origemTipo: 'venda',
+      origemRef: origemRefParts.join(' — ') || 'Negócio',
+      estado: 'por_fazer',
+      prioridade: 'normal',
+      tipoTarefa: 'followup',
+      tags: neg.tipo === 'lead' ? 'Lead — Fecho' : 'Angariação — Aprovado',
+      titulo: 'Follow-up pós-venda — ' + tituloBase,
+      descricao: 'Tarefa criada a partir do módulo Vendas (negócio fechado/carteira).',
+      dataCriacao: todayISO(),
+      dataLimite: offsetDateISO(1),
+      horaLimite: '',
+      createdAtMs: Date.now()
+    };
+
+    state.tasks.push(nova);
+    saveTarefasState(state);
+
+    alert('Tarefa criada com sucesso a partir desta venda.\n\nPode revê-la no módulo "Tarefas".');
+  }
+
+  function openTarefasForNegocio(neg){
+    const params = new URLSearchParams();
+    params.set('from', 'vendas');
+    params.set('origemTipo', 'venda');
+
+    const origemRefParts = [];
+    if(neg.titulo) origemRefParts.push(neg.titulo);
+    if(neg.cliente) origemRefParts.push(neg.cliente);
+    if(origemRefParts.length){
+      params.set('origemRef', origemRefParts.join(' — '));
+    }
+    if(neg.consultor){
+      params.set('responsavel', neg.consultor);
+    }
+
+    window.location.href = 'tarefas.html?' + params.toString();
+  }
+
   /* ===== Load Leads & Angariações ===== */
   function loadLeads(){
     try{
@@ -688,26 +819,6 @@
       console.error('Erro a ler angariações', e);
       return [];
     }
-  }
-
-  function parseNumber(v){
-    if(v==null || v==='') return NaN;
-    const s = String(v).replace('.','').replace(',','.');
-    const n = parseFloat(s);
-    return isFinite(n) ? n : NaN;
-  }
-  function formatMoney(v){
-    const n = Number(v);
-    if(!isFinite(n) || n === 0) return '€ 0';
-    return n.toLocaleString('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
-  }
-  function formatDate(d){
-    if(!d) return '—';
-    try{
-      const dt = new Date(d);
-      if(isNaN(dt.getTime())) return d;
-      return dt.toLocaleDateString('pt-PT');
-    }catch{return d;}
   }
 
   /* ===== Construção da lista de negócios ===== */
@@ -995,6 +1106,33 @@
       foot.appendChild(leftF);
       foot.appendChild(rightF);
       card.appendChild(foot);
+
+      /* Linha de ações para integração com Tarefas */
+      const actions = new DocumentFragment();
+      const actionsRow = document.createElement('div');
+      actionsRow.className = 'card-footer';
+      actionsRow.style.justifyContent = 'flex-end';
+
+      const btnAddTask = document.createElement('button');
+      btnAddTask.className = 'btn-xs primary';
+      btnAddTask.textContent = '+ Tarefa';
+      btnAddTask.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        createTaskFromNegocio(n);
+      });
+
+      const btnViewTasks = document.createElement('button');
+      btnViewTasks.className = 'btn-xs';
+      btnViewTasks.textContent = 'Ver tarefas';
+      btnViewTasks.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        openTarefasForNegocio(n);
+      });
+
+      actionsRow.appendChild(btnAddTask);
+      actionsRow.appendChild(btnViewTasks);
+      actions.appendChild(actionsRow);
+      card.appendChild(actions);
 
       card.addEventListener('click', (e)=>{
         if(e.target.tagName === 'BUTTON' || e.target.tagName === 'A') return;
