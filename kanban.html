@@ -492,7 +492,7 @@
       border-color:#A38B63;
     }
 
-    /* INTERCalares */
+    /* INTERCALARES */
     .intercalares{
       display:flex;
       flex-direction:column;
@@ -602,7 +602,7 @@
         </div>
       </div>
 
-      <!-- Sumário pipeline (mantém o mesmo ID para o JS) -->
+      <!-- Sumário pipeline -->
       <div id="pipelineSummary" class="summary-bar"></div>
 
       <!-- Quadro Kanban -->
@@ -734,7 +734,7 @@
         <div class="help">Se selecionar um estado, o cartão será gravado diretamente nessa coluna. Se nada selecionar, fica em <b>Novo</b>.</div>
       </div>
 
-      <!-- FECHO (ordem pedida) -->
+      <!-- FECHO -->
       <div id="fechoBox" class="grid2" style="margin-top:8px; display:none">
         <div class="form-field"><label>Valor do Negócio (€)</label><input id="ld_fecho_negocio" type="number" min="0" step="1000"></div>
         <div class="form-field">
@@ -779,6 +779,9 @@ const EDIT_LS='gpp_leads_edit_mode';
 const COLS=["Novo","Em Contacto","Qualificado","Visita","Proposta","Fecho","Perdido"];
 const CONSULT_RESOLVE=["Rui Quelhas","Manuel Oliveira","João Sousa","Francisco dos Santos","Rosário Vasconcelos","Armanda Meireles","Audrey Lucas"];
 
+// storage de tarefas (partilhado com tarefas.html)
+const TASKS_STORAGE_KEY = 'gpp_tarefas_v1';
+
 // Mapa de classificação 1–5 para texto amigável
 const LEAD_CLASSIFICACAO_MAP = {
   1: "Lead sem interesse",
@@ -796,6 +799,14 @@ let EDIT_MODE=false;
 
 const $=id=>document.getElementById(id);
 const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+
+function todayISO(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return y + '-' + m + '-' + day;
+}
 
 /* ===== Persistência ===== */
 function loadLS(){ try{ const x=localStorage.getItem(LS_KEY); return x? JSON.parse(x):[];}catch{return[];} }
@@ -850,6 +861,66 @@ function uid(){ return 'L'+Math.random().toString(36).slice(2,9)+Date.now().toSt
 function parsePercent(v){ if(!v) return ''; const s=String(v).replace('%','').replace(',','.'); const n=Number(s); return Number.isFinite(n)? n: ''; }
 function sumIntercalares(arr){ return (arr||[]).reduce((a,b)=>a+(Number(b)||0),0); }
 
+/* ===== Tarefas: integração ===== */
+function loadTasksState(){
+  try{
+    const raw = localStorage.getItem(TASKS_STORAGE_KEY);
+    if(!raw) return {locked:true,tasks:[]};
+    const parsed = JSON.parse(raw);
+    if(!Array.isArray(parsed.tasks)) parsed.tasks = [];
+    if(typeof parsed.locked!=='boolean') parsed.locked = true;
+    return parsed;
+  }catch(e){
+    console.error('Erro ao carregar tarefas a partir do Kanban', e);
+    return {locked:true,tasks:[]};
+  }
+}
+function saveTasksState(state){
+  try{
+    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(state));
+  }catch(e){
+    console.error('Erro ao guardar tarefas a partir do Kanban', e);
+  }
+}
+
+function createTaskFromLead(lead){
+  const tasksState = loadTasksState();
+
+  const origemRefParts = [];
+  if(lead.ref_interna) origemRefParts.push(lead.ref_interna);
+  if(lead.nome) origemRefParts.push(lead.nome);
+  const origemRef = origemRefParts.join(' — ');
+
+  const titulo = 'Follow-up lead: ' + (lead.nome || 'sem nome');
+
+  const tarefa = {
+    id: 'task_' + Date.now(),
+    responsavel: lead.consultor || '',
+    apoio: '',
+    origemTipo: 'lead',
+    origemRef: origemRef || (lead.nome || ''),
+    estado: 'por_fazer',
+    prioridade: 'normal',
+    tipoTarefa: 'followup',
+    tags: 'lead, pipeline',
+    titulo: titulo,
+    descricao: 'Tarefa criada a partir da lead "' + (lead.nome || '') +
+      '" no Kanban em ' + new Date().toLocaleString('pt-PT') + '.',
+    dataCriacao: todayISO(),
+    dataLimite: lead.data || todayISO(),
+    horaLimite: '',
+    createdAtMs: Date.now()
+  };
+
+  tasksState.tasks.push(tarefa);
+  saveTasksState(tasksState);
+
+  const abrir = confirm('Tarefa criada para esta lead.\n\nQuer abrir a página de Tarefas agora?');
+  if(abrir){
+    window.open('tarefas.html','_blank');
+  }
+}
+
 /* ===== Lateral ===== */
 function buildFilters(){
   const sel=$('f_consultor'); sel.innerHTML='<option value="">(Todos)</option>'+CONSULT_RESOLVE.map(c=>`<option>${c}</option>`).join('');
@@ -865,7 +936,9 @@ $('applyFilters').addEventListener('click',()=>{
 $('clearFilters').addEventListener('click',()=>{
   FILTER={consultor:'',estado:'',ini:'',fim:'',q:'',showHidden:false,onlyHidden:false};
   ['f_consultor','f_estado','f_ini','f_fim','q','f_show_hidden','f_only_hidden'].forEach(id=>{
-    const el=$(id); if(el.type==='checkbox'){ el.checked=false; } else { el.value=''; }
+    const el=$(id);
+    if(!el) return;
+    if(el.type==='checkbox'){ el.checked=false; } else { el.value=''; }
   });
   persistFilters(); renderBoard();
 });
@@ -1151,7 +1224,7 @@ function renderBoard(){
       const moveOptions = COLS.map(c=>`<option value="${c}" ${c===lead.estado?'disabled':''}>${c}</option>`).join('');
       const disabledAttr = EDIT_MODE ? '' : 'disabled';
 
-      // Construir linha de classificação legível: "⭐ Classificação: 5 - Quer marcar visita"
+      // linha de classificação legível
       const classNum = Number(lead.classificacao || 0);
       const classDesc = LEAD_CLASSIFICACAO_MAP[classNum];
       const classLine = classNum
@@ -1172,7 +1245,7 @@ function renderBoard(){
         <div class="row"><b>Zona:</b> ${lead.zona||'—'} · <b>Valor:</b> ${lead.valor? Number(lead.valor).toLocaleString('pt-PT'): '—'}</div>
         <div class="row"><b>Data:</b> ${fmtDate(lead.data)} ${lead.url? ' · <a href="'+lead.url+'" target="_blank" rel="noreferrer">URL</a>':''}</div>
         ${lead.estado==='Fecho' ? `<div class="row">${fechoSummary(lead)}</div>` : ''}
-        <div class="actions">
+        <div class="actions actions-main">
           <button class="btn btn-ghost" data-act="edit" ${disabledAttr}>Editar</button>
           <button class="btn btn-ghost" data-act="dup" ${disabledAttr}>Duplicar</button>
           <select class="move-select" data-id="${lead.id}" ${disabledAttr}>
@@ -1182,9 +1255,13 @@ function renderBoard(){
           <button class="btn" style="border-color:#cc4b4b;color:#ffdddd" data-act="del" ${disabledAttr}>Apagar</button>
           <button class="btn btn-ghost" data-act="toggle" ${disabledAttr}>${lead.visivel!==false?'Tornar invisível':'Tornar visível'}</button>
         </div>
+        <div class="actions actions-tarefas">
+          <button class="btn btn-ghost" data-act="add-task">+ Tarefa</button>
+          <button class="btn btn-ghost" data-act="view-tasks">Ver Tarefas</button>
+        </div>
       `;
 
-      // Ações
+      // Ações de lead
       card.querySelector('[data-act="edit"]').addEventListener('click',()=>{
         if(!EDIT_MODE){ alert('Modo de edição bloqueado. Ative "🔓 Edição ativa" para editar.'); return; }
         $('saveLead').dataset.editId = lead.id;
@@ -1215,6 +1292,14 @@ function renderBoard(){
         if(!EDIT_MODE){ alert('Modo de edição bloqueado. Ative "🔓 Edição ativa" para alterar visibilidade.'); return; }
         lead.visivel = lead.visivel===false ? true : false;
         saveLS(); renderBoard();
+      });
+
+      // Ações de tarefas (independentes do lock das leads)
+      card.querySelector('[data-act="add-task"]').addEventListener('click',()=>{
+        createTaskFromLead(lead);
+      });
+      card.querySelector('[data-act="view-tasks"]').addEventListener('click',()=>{
+        window.open('tarefas.html','_blank');
       });
 
       if(lead.visivel===false) card.style.opacity=.45;
