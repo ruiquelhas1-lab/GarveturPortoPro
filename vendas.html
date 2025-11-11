@@ -577,6 +577,9 @@
   const LS_LEADS_KEY = 'gpp_leads_v5';
   const LS_ANG_KEY   = 'gpp_angariacoes_v2';
 
+  const LS_VENDAS_FILTERS_KEY = 'gpp_vendas_filters_v1';
+  const LS_GLOBAL_FILTERS_KEY = 'gpp_filtros_globais';
+
   const fConsultor = document.getElementById('fConsultor');
   const fOrigem = document.getElementById('fOrigem');
   const fDe = document.getElementById('fDe');
@@ -609,6 +612,59 @@
     incluirInvisiveis:false
   };
 
+  /* ===== Helpers de storage (globais + locais) ===== */
+  function loadGlobalFilters(){
+    try{
+      const raw = localStorage.getItem(LS_GLOBAL_FILTERS_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }catch{
+      return {};
+    }
+  }
+  function saveGlobalFilters(from){
+    try{
+      const current = loadGlobalFilters();
+      const merged = Object.assign({}, current, {
+        consultor: from.consultor ?? current.consultor ?? '',
+        de: from.de ?? current.de ?? '',
+        ate: from.ate ?? current.ate ?? ''
+      });
+      localStorage.setItem(LS_GLOBAL_FILTERS_KEY, JSON.stringify(merged));
+    }catch{}
+  }
+  function loadVendasFilters(){
+    try{
+      const raw = localStorage.getItem(LS_VENDAS_FILTERS_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }catch{
+      return {};
+    }
+  }
+  function saveVendasFilters(){
+    try{
+      localStorage.setItem(LS_VENDAS_FILTERS_KEY, JSON.stringify(FILTERS));
+    }catch{}
+  }
+
+  function hydrateFiltersFromStorage(){
+    const global = loadGlobalFilters();
+    const local = loadVendasFilters();
+
+    FILTERS.consultor = local.consultor || global.consultor || '';
+    FILTERS.de        = local.de        || global.de        || '';
+    FILTERS.ate       = local.ate       || global.ate       || '';
+    FILTERS.origem    = local.origem    || '';
+    FILTERS.incluirInvisiveis = !!local.incluirInvisiveis;
+
+    // Aplicar nos campos da UI
+    if(FILTERS.consultor) fConsultor.value = FILTERS.consultor;
+    if(FILTERS.de) fDe.value = FILTERS.de;
+    if(FILTERS.ate) fAte.value = FILTERS.ate;
+    if(FILTERS.origem) fOrigem.value = FILTERS.origem;
+    fIncluirInvisiveis.checked = FILTERS.incluirInvisiveis;
+  }
+
+  /* ===== Load Leads & Angariações ===== */
   function loadLeads(){
     try{
       const raw = localStorage.getItem(LS_LEADS_KEY);
@@ -654,15 +710,15 @@
     }catch{return d;}
   }
 
+  /* ===== Construção da lista de negócios ===== */
   function buildNegocios(){
     const leads = loadLeads();
     const angs  = loadAngariacoes();
     const list = [];
 
-    // Leads em Fecho
+    // Leads em Fecho (inclui visíveis e invisíveis; visibilidade tratada nos filtros)
     leads.forEach(l=>{
       if(l.estado !== 'Fecho') return;
-      if(l.visivel === false) return;
 
       const valorNegocio = parseNumber(l.fecho_negocio || l.valor || 0);
       const comissaoPct = (l.fecho_comissao_pct!=='' && l.fecho_comissao_pct!=null)
@@ -691,10 +747,9 @@
       });
     });
 
-    // Angariações aprovadas
+    // Angariações aprovadas (inclui visíveis e invisíveis; filtramos depois)
     angs.forEach(a=>{
       if(a.estadoAng !== 'aprovado') return;
-      if(a.visible === false) return;
 
       const precoPedido = parseNumber(a.precoPedido || 0);
       let comPerc = '';
@@ -742,6 +797,7 @@
     NEGOCIOS.forEach(n=>{
       if(n.consultor) set.add(n.consultor);
     });
+    const current = fConsultor.value;
     fConsultor.innerHTML = '<option value="">Todos</option>';
     Array.from(set).sort().forEach(name=>{
       const opt = document.createElement('option');
@@ -749,6 +805,9 @@
       opt.textContent = name;
       fConsultor.appendChild(opt);
     });
+    if(current && set.has(current)){
+      fConsultor.value = current;
+    }
   }
 
   function applyFilters(){
@@ -762,6 +821,7 @@
     });
   }
 
+  /* ===== Renderizações ===== */
   function renderKpis(lista){
     const total = lista.length;
     const totalLead = lista.filter(n=>n.tipo==='lead').length;
@@ -962,6 +1022,7 @@
     renderCards(listaLeads, listaAng);
   }
 
+  /* ===== Exportação CSV ===== */
   exportCsvBtn.addEventListener('click', ()=>{
     const lista = applyFilters();
     if(!lista.length){
@@ -998,12 +1059,16 @@
     URL.revokeObjectURL(url);
   });
 
+  /* ===== Filtros: aplicar / limpar (com persistência local + global) ===== */
   applyFiltersBtn.addEventListener('click', ()=>{
     FILTERS.consultor = fConsultor.value || '';
     FILTERS.origem = fOrigem.value || '';
     FILTERS.de = fDe.value || '';
     FILTERS.ate = fAte.value || '';
     FILTERS.incluirInvisiveis = fIncluirInvisiveis.checked;
+
+    saveVendasFilters();
+    saveGlobalFilters(FILTERS);
     applyAndRender();
   });
 
@@ -1013,13 +1078,19 @@
     fDe.value = '';
     fAte.value = '';
     fIncluirInvisiveis.checked = false;
+
     FILTERS = {consultor:'',origem:'',de:'',ate:'',incluirInvisiveis:false};
+
+    saveVendasFilters();
+    saveGlobalFilters(FILTERS);
     applyAndRender();
   });
 
+  /* ===== Arranque ===== */
   (function init(){
     buildNegocios();
     populateConsultores();
+    hydrateFiltersFromStorage();
     applyAndRender();
   })();
 })();
