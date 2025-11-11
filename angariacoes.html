@@ -658,7 +658,7 @@
       </div>
     </div>
 
-    <!-- NOVA NAV BAR SUPERIOR -->
+    <!-- NAV BAR SUPERIOR -->
     <nav class="nav-tabs">
       <a href="index.html" class="nav-tab">Início</a>
       <a href="mapa.html" class="nav-tab">Mapa</a>
@@ -687,30 +687,52 @@
     <aside class="sidebar">
       <div class="sidebar-section">
         <h3>Filtros</h3>
+
         <div class="field">
           <label class="field-label" for="filterConsultor">Consultor</label>
           <select id="filterConsultor">
             <option value="">Todos</option>
           </select>
         </div>
-        <div class="field-row">
-          <div class="field">
-            <label class="field-label" for="filterDataDe">De</label>
-            <input type="date" id="filterDataDe" />
-          </div>
-          <div class="field">
-            <label class="field-label" for="filterDataAte">Até</label>
-            <input type="date" id="filterDataAte" />
+
+        <!-- PERÍODO -->
+        <div class="field">
+          <label class="field-label">Período</label>
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label" for="filterDataDe">De</label>
+              <input type="date" id="filterDataDe" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="filterDataAte">Até</label>
+              <input type="date" id="filterDataAte" />
+            </div>
           </div>
         </div>
+
+        <!-- VISIBILIDADE -->
         <div class="toggle-line">
-          <span>Mostrar angariações invisíveis</span>
+          <span>Mostrar invisíveis</span>
           <label class="switch">
             <input type="checkbox" id="filterShowHidden">
             <span class="slider"></span>
           </label>
         </div>
-        <p style="margin-top:6px;">Use estes filtros para preparar reuniões, análises semanais ou focar num consultor.</p>
+        <div class="toggle-line">
+          <span>Só invisíveis</span>
+          <label class="switch">
+            <input type="checkbox" id="filterOnlyHidden">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- BOTÕES -->
+        <div class="field-row" style="margin-top:8px;">
+          <button class="btn" id="filterApplyBtn" style="flex:1;">Aplicar</button>
+          <button class="btn btn-ghost" id="filterClearBtn" style="flex:1;border-color:rgba(255,255,255,.2);">Limpar</button>
+        </div>
+
+        <p style="margin-top:6px;">Use estes filtros (período, consultor e visibilidade) para preparar reuniões e análises. O botão <strong>Aplicar</strong> guarda os filtros neste navegador.</p>
       </div>
 
       <div class="sidebar-section">
@@ -1238,6 +1260,7 @@
 <script>
 (function(){
   const STORAGE_KEY = 'gpp_angariacoes_v2';
+  const FILTERS_STORAGE_KEY = 'gpp_ang_filters_v1';
 
   const CONSULTOR_OPTIONS = [
     "Rui Quelhas",
@@ -1307,6 +1330,9 @@
   const filterDataDe = $('filterDataDe');
   const filterDataAte = $('filterDataAte');
   const filterShowHidden = $('filterShowHidden');
+  const filterOnlyHidden = $('filterOnlyHidden');
+  const filterApplyBtn = $('filterApplyBtn');
+  const filterClearBtn = $('filterClearBtn');
 
   const modalBackdrop = $('modalBackdrop');
   const modalTitle = $('modalTitle');
@@ -1624,15 +1650,56 @@
     return data;
   }
 
+  function loadFilterState(){
+    try{
+      const raw = localStorage.getItem(FILTERS_STORAGE_KEY);
+      if(!raw) return;
+      const obj = JSON.parse(raw);
+      if(!obj || typeof obj !== 'object') return;
+
+      if(obj.consultor && filterConsultor.querySelector('option[value="'+obj.consultor+'"]')){
+        filterConsultor.value = obj.consultor;
+      }
+      filterDataDe.value = obj.de || '';
+      filterDataAte.value = obj.ate || '';
+      filterShowHidden.checked = !!obj.mostrarInvisiveis;
+      filterOnlyHidden.checked = !!obj.soInvisiveis;
+    }catch(e){
+      console.error('Erro a carregar filtros angariações', e);
+    }
+  }
+
+  function saveFilterStateFromUI(){
+    const data = {
+      consultor: filterConsultor.value || '',
+      de: filterDataDe.value || '',
+      ate: filterDataAte.value || '',
+      mostrarInvisiveis: filterShowHidden.checked,
+      soInvisiveis: filterOnlyHidden.checked
+    };
+    try{
+      localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(data));
+    }catch(e){
+      console.error('Erro a guardar filtros angariações', e);
+    }
+  }
+
   function applyFilters(deals){
     const cons = filterConsultor.value;
     const from = filterDataDe.value;
     const to = filterDataAte.value;
     const showHidden = filterShowHidden.checked;
+    const onlyHidden = filterOnlyHidden.checked;
 
     return deals.filter(d=>{
       if(cons && d.consultor !== cons) return false;
-      if(!showHidden && d.visible === false) return false;
+
+      if(onlyHidden){
+        if(d.visible !== false) return false;
+      }else if(!showHidden && d.visible === false){
+        return false;
+      }
+
       if(from && d.dataAngariacao && d.dataAngariacao < from) return false;
       if(to && d.dataAngariacao && d.dataAngariacao > to) return false;
       return true;
@@ -2170,7 +2237,7 @@
   <div class="line"><span class="strong">Preço pedido:</span> ${deal.precoPedido || '-'} &nbsp; | &nbsp;
     <span class="strong">Sugerido:</span> ${deal.precoSugerido || '-'}</div>
   <div class="line"><span class="strong">Comissão:</span> ${comPerc ? comPerc + '%' : '-'} &nbsp; | &nbsp;
-    <span class="strong">Ajustamento:</span> ${deal.percentAjust ? '${deal.percentAjust}%' : '-'}</div>
+    <span class="strong">Ajustamento:</span> ${deal.percentAjust ? deal.percentAjust + '%' : '-'}</div>
 
   <h2 class="section">Características (10.1)</h2>
   <div class="line">
@@ -2255,10 +2322,21 @@
 
   isEmpreendimento.addEventListener('change', updateEmpBlockVisibility);
 
-  filterConsultor.addEventListener('change', renderCards);
-  filterDataDe.addEventListener('change', renderCards);
-  filterDataAte.addEventListener('change', renderCards);
-  filterShowHidden.addEventListener('change', renderCards);
+  // Filtros: aplicar/limpar
+  filterApplyBtn.addEventListener('click', ()=>{
+    saveFilterStateFromUI();
+    renderCards();
+  });
+
+  filterClearBtn.addEventListener('click', ()=>{
+    filterConsultor.value = '';
+    filterDataDe.value = '';
+    filterDataAte.value = '';
+    filterShowHidden.checked = false;
+    filterOnlyHidden.checked = false;
+    saveFilterStateFromUI();
+    renderCards();
+  });
 
   saveDealBtn.addEventListener('click', (e)=>{
     e.preventDefault();
@@ -2295,6 +2373,7 @@
 
   initConsultores();
   loadState();
+  loadFilterState();
   renderCards();
 
 })();
