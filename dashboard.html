@@ -222,7 +222,7 @@
     .checks{
       display:flex;
       flex-direction:column;
-      gap:4px;
+      gap:6px;
       margin-top:4px;
       font-size:12px;
       color:var(--muted);
@@ -234,11 +234,6 @@
     }
     .checks input{
       accent-color:var(--gold);
-    }
-    .sidebar-buttons{
-      display:flex;
-      gap:6px;
-      margin-top:6px;
     }
 
     .main-area{
@@ -266,56 +261,16 @@
       font-size:12px;
       color:var(--muted);
     }
-    #contextLabel{
+
+    .context-label{
       font-size:11px;
       color:var(--muted);
       text-align:right;
     }
 
-    /* Sub-tabs (Leads / Angariações / Fechos / Tarefas) */
-    .subtabs{
-      display:flex;
-      flex-wrap:wrap;
-      gap:6px;
-      margin-bottom:10px;
-      border-radius:999px;
-      padding:4px;
-      background:rgba(0,0,0,.5);
-      border:1px solid rgba(163,139,99,.25);
-    }
-    .subtab{
-      border-radius:999px;
-      border:1px solid transparent;
-      padding:5px 10px;
-      font-size:11px;
-      text-transform:uppercase;
-      letter-spacing:.12em;
-      color:var(--muted);
-      background:transparent;
-      cursor:pointer;
-      transition:.16s background,.16s color,.16s border-color,.16s transform;
-    }
-    .subtab.active{
-      background:var(--gold);
-      color:#000;
-      border-color:var(--gold);
-      font-weight:600;
-    }
-    .subtab:hover{
-      border-color:rgba(163,139,99,.6);
-      transform:translateY(-1px);
-    }
-
-    .area{
-      display:none;
-    }
-    .area.active{
-      display:block;
-    }
-
     .kpi-grid{
       display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+      grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
       gap:10px;
       margin-bottom:14px;
     }
@@ -359,80 +314,141 @@
     .kpi-badge.warn{border-color:rgba(255,200,87,.8);color:#FFE082;}
     .kpi-badge.bad{border-color:rgba(242,95,92,.8);color:#FFABAB;}
 
+    /* TABS DAS ÁREAS */
+    .area-tabs{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-bottom:10px;
+    }
+    .area-tab{
+      border-radius:999px;
+      border:1px solid rgba(163,139,99,.28);
+      background:rgba(5,5,5,.9);
+      color:var(--muted);
+      padding:4px 10px;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      transition:.16s background,.16s border-color,.16s color,.16s transform;
+    }
+    .area-tab span.icon{
+      font-size:13px;
+    }
+    .area-tab.active{
+      background:var(--gold);
+      color:#0A0A0A;
+      border-color:var(--gold);
+      font-weight:600;
+      transform:translateY(-1px);
+    }
+
+    .area-panel{
+      display:none;
+      animation:fadeIn .18s ease-out;
+    }
+    .area-panel.active{
+      display:block;
+    }
+    @keyframes fadeIn{
+      from{opacity:0;transform:translateY(4px);}
+      to{opacity:1;transform:none;}
+    }
+
+    /* GRÁFICOS */
     .charts-grid{
       display:grid;
       grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
       gap:10px;
-      margin-bottom:10px;
+      margin-top:6px;
     }
     .chart-card{
       border-radius:var(--radius-md);
-      border:1px solid rgba(163,139,99,.28);
-      background:rgba(0,0,0,.55);
-      padding:8px 9px 6px;
+      border:1px solid rgba(163,139,99,.26);
+      background:radial-gradient(circle at top,#191919,#050505);
+      padding:8px 10px;
+      box-shadow:0 12px 24px rgba(0,0,0,.55);
+      display:flex;
+      flex-direction:column;
+      gap:4px;
     }
-    .chart-card h3{
-      margin:0 0 4px;
-      font-size:11px;
-      text-transform:uppercase;
-      letter-spacing:.14em;
-      color:var(--muted);
-    }
-    .chart-card canvas{
-      width:100% !important;
-      height:200px !important;
-    }
-
-    .details-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-      gap:12px;
-      margin-top:4px;
-    }
-    .panel{
-      border-radius:var(--radius-md);
-      border:1px solid rgba(163,139,99,.28);
-      background:rgba(0,0,0,.55);
-      padding:9px 10px;
-    }
-    .panel h3{
-      margin:0 0 6px;
-      font-size:12px;
-      text-transform:uppercase;
-      letter-spacing:.14em;
-      color:var(--muted);
-    }
-    .panel small{
-      font-size:11px;
-      color:var(--muted);
-    }
-    .stat-row{
+    .chart-header{
       display:flex;
       justify-content:space-between;
-      font-size:12px;
-      margin:2px 0;
+      align-items:flex-start;
+      gap:6px;
+    }
+    .chart-title{
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.14em;
       color:var(--muted);
     }
-    .stat-row strong{
-      color:#f5f5f5;
-      font-weight:500;
+    .chart-subtitle{
+      font-size:11px;
+      color:var(--muted);
+      text-align:right;
     }
 
-    .chips{
+    .chart-rows{
+      margin-top:4px;
       display:flex;
-      flex-wrap:wrap;
+      flex-direction:column;
       gap:4px;
+    }
+    .chart-row{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-size:11px;
+      color:var(--muted);
+    }
+    .chart-label{
+      width:90px;
+      flex-shrink:0;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .chart-bar-wrap{
+      flex:1;
+      background:linear-gradient(90deg,#111,#080808);
+      border-radius:999px;
+      overflow:hidden;
+      position:relative;
+      height:8px;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.04);
+    }
+    .chart-bar{
+      position:absolute;
+      inset:0;
+      border-radius:999px;
+      background:linear-gradient(90deg,rgba(163,139,99,1),rgba(245,225,181,0.85));
+      width:0%;
+      transform-origin:left center;
+      transition:width .25s ease-out;
+    }
+    .chart-value{
+      width:90px;
+      text-align:right;
+      flex-shrink:0;
+      font-variant-numeric:tabular-nums;
+    }
+    .chart-empty{
+      font-size:11px;
+      color:var(--muted);
       margin-top:4px;
     }
-    .chip{
-      border-radius:999px;
-      padding:2px 7px;
-      font-size:10px;
-      border:1px solid rgba(163,139,99,.4);
-      background:#1B1B1B;
-      color:var(--muted);
-      text-transform:uppercase;
-      letter-spacing:.06em;
+
+    /* Gráficos complementares escondidos em ecrãs menores */
+    @media(max-width:1100px){
+      .chart-card.responsive{
+        display:none;
+      }
     }
 
     .empty{
@@ -441,9 +457,6 @@
       margin-top:10px;
     }
   </style>
-
-  <!-- Chart.js para os gráficos -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
 <div class="app-shell">
@@ -457,7 +470,7 @@
       </div>
       <div>
         <h1>Garvetur Porto Pro — Dashboard</h1>
-        <span class="sub">Visão global — Leads, Angariações, Fechos & Tarefas</span>
+        <span class="sub">Visão global · Leads · Produto · Fecho · Tarefas</span>
       </div>
     </div>
 
@@ -472,7 +485,7 @@
     </nav>
 
     <div class="header-actions">
-      <button class="btn btn-ghost" id="reloadBtn">Recalcular</button>
+      <button class="btn btn-ghost" id="reloadBtn">Atualizar dados</button>
     </div>
   </header>
 
@@ -497,20 +510,19 @@
           </div>
         </div>
         <div class="checks">
-          <label><input type="checkbox" id="filterShowHidden"> Mostrar invisíveis</label>
-          <label><input type="checkbox" id="filterOnlyHidden"> Só invisíveis</label>
+          <label><input type="checkbox" id="filterShowHidden" /> Mostrar invisíveis</label>
+          <label><input type="checkbox" id="filterOnlyHidden" /> Só invisíveis</label>
         </div>
-        <div class="sidebar-buttons">
-          <button class="btn" id="applyFiltersBtn" style="flex:1;">Aplicar</button>
-          <button class="btn btn-ghost" id="clearFiltersBtn" style="flex:1;">Limpar</button>
-        </div>
-        <p style="margin-top:6px;">O período aplica-se à <strong>data da Lead</strong>, <strong>data da Angariação</strong>, fechos e tarefas (data limite).</p>
+        <button class="btn" id="applyFiltersBtn" style="margin-top:6px;width:100%;">Aplicar filtros</button>
+        <button class="btn" id="clearFiltersBtn" style="margin-top:4px;width:100%;background:transparent;border-color:rgba(255,255,255,.2);">Limpar</button>
+        <p style="margin-top:6px;">Período aplica-se à <strong>data da Lead</strong>, <strong>data da Angariação</strong>, datas de Fecho & tarefas (data limite).</p>
       </div>
 
       <div class="sidebar-section">
         <h3>Dicas</h3>
-        <p>Use o filtro de <strong>Consultor</strong> para preparar reuniões individuais, combinando com o período (mês, trimestre, ano).</p>
-        <p>Os botões <strong>Mostrar/Só invisíveis</strong> ajudam a auditar o que foi retirado da vista principal nos módulos de Leads e Angariações.</p>
+        <p>Use o filtro de <strong>Consultor</strong> para preparar reuniões individuais.</p>
+        <p>Combine com o período para ver apenas o mês atual, um trimestre ou o ano.</p>
+        <p>Os gráficos complementares escondem-se em ecrãs pequenos para manter a leitura limpa.</p>
       </div>
     </aside>
 
@@ -518,177 +530,53 @@
       <div class="section-header">
         <div>
           <h2>Visão Geral</h2>
-          <p>Resumo consolidado do funil comercial — Leads, Produto, Fechos e Tarefas.</p>
+          <p>Resumo consolidado de pipeline comercial — Leads, Produto, Fecho e Tarefas.</p>
         </div>
-        <div id="contextLabel"></div>
+        <div id="contextLabel" class="context-label"></div>
       </div>
 
-      <div class="subtabs">
-        <button class="subtab active" data-area="leads">Leads</button>
-        <button class="subtab" data-area="ang">Angariações</button>
-        <button class="subtab" data-area="fechos">Fechos / Negócios</button>
-        <button class="subtab" data-area="tarefas">Tarefas</button>
+      <!-- KPIs GLOBAIS -->
+      <section class="kpi-grid" id="kpiGrid"></section>
+
+      <!-- Tabs das áreas -->
+      <div class="area-tabs">
+        <button class="area-tab active" data-area="leads">
+          <span class="icon">📊</span> Leads
+        </button>
+        <button class="area-tab" data-area="angs">
+          <span class="icon">🏗️</span> Angariações
+        </button>
+        <button class="area-tab" data-area="fechos">
+          <span class="icon">💼</span> Fechos & Vendas
+        </button>
+        <button class="area-tab" data-area="tarefas">
+          <span class="icon">✅</span> Tarefas
+        </button>
       </div>
 
-      <!-- ÁREA LEADS -->
-      <section class="area active" id="areaLeads">
-        <div class="kpi-grid" id="kpiLeadsGrid"></div>
-        <div class="charts-grid">
-          <div class="chart-card">
-            <h3>Leads por tipo de negócio</h3>
-            <canvas id="chartLeadTipo"></canvas>
-          </div>
-          <div class="chart-card">
-            <h3>Classificação (1–5)</h3>
-            <canvas id="chartLeadClass"></canvas>
-          </div>
-          <div class="chart-card">
-            <h3>Perfil (Investidor / Cliente final)</h3>
-            <canvas id="chartLeadPerfil"></canvas>
-          </div>
-          <div class="chart-card">
-            <h3>Tipologia mais procurada</h3>
-            <canvas id="chartLeadTipologia"></canvas>
-          </div>
-        </div>
-
-        <div class="details-grid">
-          <div class="panel">
-            <h3>Distribuição por imóvel</h3>
-            <small>Contagem por tipo de imóvel nas leads filtradas.</small>
-            <div id="leadImovelStats"></div>
-          </div>
-          <div class="panel">
-            <h3>Zonas preferenciais (Top)</h3>
-            <small>Zonas mais mencionadas nas leads visíveis com filtros atuais.</small>
-            <div id="leadZonaStats"></div>
-          </div>
-          <div class="panel">
-            <h3>Resumo de classificações</h3>
-            <small>Mistura de leads “frias” e “quentes”.</small>
-            <div id="leadClassStats"></div>
-          </div>
-        </div>
+      <!-- ÁREA: LEADS -->
+      <section class="area-panel active" id="areaLeads">
+        <div class="charts-grid" id="leadsCharts"></div>
+        <div class="empty" id="leadsEmpty" style="display:none;">Sem leads nos filtros atuais.</div>
       </section>
 
-      <!-- ÁREA ANGARIAÇÕES -->
-      <section class="area" id="areaAng">
-        <div class="kpi-grid" id="kpiAngGrid"></div>
-        <div class="charts-grid">
-          <div class="chart-card">
-            <h3>Exclusivo vs Não exclusivo</h3>
-            <canvas id="chartAngExclusivo"></canvas>
-          </div>
-          <div class="chart-card">
-            <h3>Empreendimentos vs Unidade isolada</h3>
-            <canvas id="chartAngEmp"></canvas>
-          </div>
-          <div class="chart-card">
-            <h3>Natureza do imóvel</h3>
-            <canvas id="chartAngNatureza"></canvas>
-          </div>
-          <div class="chart-card">
-            <h3>Comissão média por intervalo</h3>
-            <canvas id="chartAngComissao"></canvas>
-          </div>
-        </div>
-
-        <div class="details-grid">
-          <div class="panel">
-            <h3>Estado do imóvel</h3>
-            <small>Novo, usado, remodelado, etc.</small>
-            <div id="angEstadoImovelStats"></div>
-          </div>
-          <div class="panel">
-            <h3>Valores médios</h3>
-            <small>Produto médio por angariação.</small>
-            <div id="angValoresMedios"></div>
-          </div>
-          <div class="panel">
-            <h3>Resumo por consultor</h3>
-            <small>Quantidade e volume de produto.</small>
-            <div id="angConsultorResumo"></div>
-          </div>
-        </div>
+      <!-- ÁREA: ANGARIAÇÕES -->
+      <section class="area-panel" id="areaAngs">
+        <div class="charts-grid" id="angsCharts"></div>
+        <div class="empty" id="angsEmpty" style="display:none;">Sem angariações nos filtros atuais.</div>
       </section>
 
-      <!-- ÁREA FECHOS / NEGÓCIOS -->
-      <section class="area" id="areaFechos">
-        <div class="kpi-grid" id="kpiFechosGrid"></div>
-        <div class="charts-grid">
-          <div class="chart-card">
-            <h3>Negócios por mês (Leads Fecho)</h3>
-            <canvas id="chartFechosMes"></canvas>
-          </div>
-          <div class="chart-card">
-            <h3>Negócios por consultor</h3>
-            <canvas id="chartFechosConsultor"></canvas>
-          </div>
-        </div>
-
-        <div class="details-grid">
-          <div class="panel">
-            <h3>Origem dos negócios</h3>
-            <small>Leads fechadas vs angariações aprovadas.</small>
-            <div id="fechosOrigemStats"></div>
-          </div>
-          <div class="panel">
-            <h3>Ticket médio por tipo de negócio</h3>
-            <small>Compra, venda, arrendamento, etc.</small>
-            <div id="fechosTipoStats"></div>
-          </div>
-          <div class="panel">
-            <h3>Resumo financeiro</h3>
-            <small>Volumes e comissões estimadas.</small>
-            <div id="fechosResumoFinanceiro"></div>
-          </div>
-        </div>
+      <!-- ÁREA: FECHOS & VENDAS -->
+      <section class="area-panel" id="areaFechos">
+        <div class="charts-grid" id="fechosCharts"></div>
+        <div class="empty" id="fechosEmpty" style="display:none;">Sem negócios de fecho nos filtros atuais.</div>
       </section>
 
-      <!-- ÁREA TAREFAS -->
-      <section class="area" id="areaTarefas">
-        <div class="kpi-grid" id="kpiTarefasGrid"></div>
-        <div class="charts-grid">
-          <div class="chart-card">
-            <h3>Tarefas por estado</h3>
-            <canvas id="chartTarefasEstado"></canvas>
-          </div>
-          <div class="chart-card">
-            <h3>Tarefas por prioridade</h3>
-            <canvas id="chartTarefasPrioridade"></canvas>
-          </div>
-          <div class="chart-card">
-            <h3>Tarefas por tipo</h3>
-            <canvas id="chartTarefasTipo"></canvas>
-          </div>
-          <div class="chart-card">
-            <h3>Tarefas por consultor</h3>
-            <canvas id="chartTarefasConsultor"></canvas>
-          </div>
-        </div>
-
-        <div class="details-grid">
-          <div class="panel">
-            <h3>Estado & atraso</h3>
-            <small>Situação das tarefas abertas.</small>
-            <div id="tarefasEstadoStats"></div>
-          </div>
-          <div class="panel">
-            <h3>Resumo de prazos</h3>
-            <small>Limites, atrasos e carga média.</small>
-            <div id="tarefasPrazoStats"></div>
-          </div>
-          <div class="panel">
-            <h3>Notas rápidas</h3>
-            <small>Pontos para reunião de pipeline.</small>
-            <div id="tarefasNotas" class="chips"></div>
-          </div>
-        </div>
+      <!-- ÁREA: TAREFAS -->
+      <section class="area-panel" id="areaTarefas">
+        <div class="charts-grid" id="tarefasCharts"></div>
+        <div class="empty" id="tarefasEmpty" style="display:none;">Sem tarefas nos filtros atuais.</div>
       </section>
-
-      <div id="emptyState" class="empty" style="display:none;">
-        Ainda não existem dados nas Leads, Angariações, Fechos ou Tarefas com os filtros atuais.
-      </div>
     </main>
   </div>
 </div>
@@ -697,8 +585,7 @@
 (function(){
   const STORAGE_LEADS = 'gpp_leads_v5';
   const STORAGE_ANG   = 'gpp_angariacoes_v2';
-  const STORAGE_TAR   = 'gpp_tarefas_v1';
-  const DASH_FILTERS  = 'gpp_dashboard_filters_v2';
+  const STORAGE_TASKS = 'gpp_tarefas_v1';
 
   const filterConsultor   = document.getElementById('filterConsultor');
   const filterDataDe      = document.getElementById('filterDataDe');
@@ -709,37 +596,32 @@
   const clearFiltersBtn   = document.getElementById('clearFiltersBtn');
   const reloadBtn         = document.getElementById('reloadBtn');
 
-  const contextLabel   = document.getElementById('contextLabel');
-  const emptyState     = document.getElementById('emptyState');
+  const kpiGrid           = document.getElementById('kpiGrid');
+  const contextLabel      = document.getElementById('contextLabel');
 
-  const kpiLeadsGrid   = document.getElementById('kpiLeadsGrid');
-  const kpiAngGrid     = document.getElementById('kpiAngGrid');
-  const kpiFechosGrid  = document.getElementById('kpiFechosGrid');
-  const kpiTarefasGrid = document.getElementById('kpiTarefasGrid');
+  const leadsCharts       = document.getElementById('leadsCharts');
+  const angsCharts        = document.getElementById('angsCharts');
+  const fechosCharts      = document.getElementById('fechosCharts');
+  const tarefasCharts     = document.getElementById('tarefasCharts');
 
-  const leadImovelStats   = document.getElementById('leadImovelStats');
-  const leadZonaStats     = document.getElementById('leadZonaStats');
-  const leadClassStats    = document.getElementById('leadClassStats');
+  const leadsEmpty        = document.getElementById('leadsEmpty');
+  const angsEmpty         = document.getElementById('angsEmpty');
+  const fechosEmpty       = document.getElementById('fechosEmpty');
+  const tarefasEmpty      = document.getElementById('tarefasEmpty');
 
-  const angEstadoImovelStats = document.getElementById('angEstadoImovelStats');
-  const angValoresMedios     = document.getElementById('angValoresMedios');
-  const angConsultorResumo   = document.getElementById('angConsultorResumo');
-
-  const fechosOrigemStats      = document.getElementById('fechosOrigemStats');
-  const fechosTipoStats        = document.getElementById('fechosTipoStats');
-  const fechosResumoFinanceiro = document.getElementById('fechosResumoFinanceiro');
-
-  const tarefasEstadoStats = document.getElementById('tarefasEstadoStats');
-  const tarefasPrazoStats  = document.getElementById('tarefasPrazoStats');
-  const tarefasNotas       = document.getElementById('tarefasNotas');
-
-  const CHARTS = {}; // para destruir/recriar Chart.js
+  const areaTabs = Array.from(document.querySelectorAll('.area-tab'));
+  const areaPanels = {
+    leads:  document.getElementById('areaLeads'),
+    angs:   document.getElementById('areaAngs'),
+    fechos: document.getElementById('areaFechos'),
+    tarefas:document.getElementById('areaTarefas')
+  };
 
   let allLeads = [];
-  let allDeals = [];
+  let allAngs  = [];
   let allTasks = [];
 
-  let FILTER = {
+  const FILTERS = {
     consultor:'',
     de:'',
     ate:'',
@@ -747,14 +629,15 @@
     onlyHidden:false
   };
 
+  /* ===== Helpers numéricos & formatação ===== */
   function parseNum(v){
     if(v===null || v===undefined || v==='') return 0;
-    const n = parseFloat(String(v).replace(',','.'));
+    const n = parseFloat(String(v).replace(/\./g,'').replace(',','.'));
     return isFinite(n) ? n : 0;
   }
   function parsePct(v){
     if(v===null || v===undefined || v==='') return NaN;
-    const n = parseFloat(String(v).replace(',','.'));
+    const n = parseFloat(String(v).replace('%','').replace(',','.'));
     return isFinite(n) ? n : NaN;
   }
   function formatMoney(n){
@@ -762,16 +645,43 @@
     if(!isFinite(v) || v === 0) return '€ 0';
     return v.toLocaleString('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
   }
+  function formatInt(n){
+    const v = parseInt(n,10) || 0;
+    return v.toLocaleString('pt-PT');
+  }
   function formatPct(n){
     const v = parsePct(n);
     if(!isFinite(v)) return '—';
     return v.toFixed(1).replace('.',',') + '%';
   }
-  function todayISO(){
-    const d = new Date();
-    return d.toISOString().slice(0,10);
+
+  function groupCount(arr, labelFn){
+    const map = {};
+    arr.forEach(item=>{
+      const label = labelFn(item);
+      if(!label) return;
+      map[label] = (map[label] || 0) + 1;
+    });
+    return map;
+  }
+  function mapToSortedArray(map){
+    return Object.entries(map)
+      .filter(([,v])=>v>0)
+      .sort((a,b)=>b[1]-a[1])
+      .map(([label,value])=>({label,value}));
+  }
+  function topN(items,n){
+    if(items.length <= n) return items;
+    const top = items.slice(0,n);
+    const resto = items.slice(n);
+    const somaResto = resto.reduce((acc,it)=>acc+it.value,0);
+    if(somaResto>0){
+      top.push({label:'Outros',value:somaResto});
+    }
+    return top;
   }
 
+  /* ===== Leitura de dados ===== */
   function loadLeads(){
     try{
       const raw = localStorage.getItem(STORAGE_LEADS);
@@ -782,66 +692,41 @@
       allLeads = [];
     }
   }
-
-  function loadAngariacoes(){
+  function loadAngs(){
     try{
       const raw = localStorage.getItem(STORAGE_ANG);
       const parsed = raw ? JSON.parse(raw) : {};
-      allDeals = (parsed && Array.isArray(parsed.deals)) ? parsed.deals : [];
+      allAngs = (parsed && Array.isArray(parsed.deals)) ? parsed.deals : [];
     }catch(e){
       console.error('Erro a ler angariações:',e);
-      allDeals = [];
+      allAngs = [];
     }
   }
-
-  function loadTarefas(){
+  function loadTasks(){
     try{
-      const raw = localStorage.getItem(STORAGE_TAR);
-      const parsed = raw ? JSON.parse(raw) : {};
-      allTasks = (parsed && Array.isArray(parsed.tasks)) ? parsed.tasks : [];
+      const raw = localStorage.getItem(STORAGE_TASKS);
+      if(!raw){ allTasks = []; return; }
+      const parsed = JSON.parse(raw);
+      if(parsed && Array.isArray(parsed.tasks)){
+        allTasks = parsed.tasks;
+      }else if(Array.isArray(parsed)){
+        allTasks = parsed;
+      }else{
+        allTasks = [];
+      }
     }catch(e){
       console.error('Erro a ler tarefas:',e);
       allTasks = [];
     }
   }
 
-  function loadFilters(){
-    try{
-      const raw = localStorage.getItem(DASH_FILTERS);
-      if(!raw) return;
-      const parsed = JSON.parse(raw);
-      if(parsed && typeof parsed === 'object'){
-        FILTER = Object.assign(FILTER, parsed);
-      }
-    }catch{}
-  }
-  function saveFilters(){
-    try{
-      localStorage.setItem(DASH_FILTERS, JSON.stringify(FILTER));
-    }catch{}
-  }
-  function applyFiltersToControls(){
-    filterConsultor.value = FILTER.consultor || '';
-    filterDataDe.value    = FILTER.de || '';
-    filterDataAte.value   = FILTER.ate || '';
-    filterShowHidden.checked = !!FILTER.showHidden;
-    filterOnlyHidden.checked = !!FILTER.onlyHidden;
-  }
-  function updateFiltersFromControls(){
-    FILTER.consultor   = filterConsultor.value || '';
-    FILTER.de          = filterDataDe.value || '';
-    FILTER.ate         = filterDataAte.value || '';
-    FILTER.showHidden  = filterShowHidden.checked;
-    FILTER.onlyHidden  = filterOnlyHidden.checked;
-  }
-
   function buildConsultorOptions(){
     const set = new Set();
-    allLeads.forEach(l => { if(l && l.consultor) set.add(l.consultor); });
-    allDeals.forEach(d => { if(d && d.consultor) set.add(d.consultor); });
-    allTasks.forEach(t => { if(t && t.responsavel) set.add(t.responsavel); });
+    allLeads.forEach(l=>{ if(l && l.consultor) set.add(l.consultor); });
+    allAngs.forEach(d=>{ if(d && d.consultor) set.add(d.consultor); });
+    allTasks.forEach(t=>{ if(t && t.responsavel) set.add(t.responsavel); });
 
-    const current = filterConsultor.value;
+    const current = FILTERS.consultor || filterConsultor.value;
     filterConsultor.innerHTML = '<option value="">Todos</option>';
     Array.from(set).sort().forEach(name=>{
       const opt = document.createElement('option');
@@ -854,723 +739,555 @@
     }
   }
 
-  function filterLeads(){
-    let arr = allLeads.slice();
-    if(FILTER.consultor){
-      arr = arr.filter(l => (l.consultor || '') === FILTER.consultor);
+  /* ===== Aplicar filtros ===== */
+  function applyFilters(){
+    const cons = FILTERS.consultor;
+    const de   = FILTERS.de;
+    const ate  = FILTERS.ate;
+    const showHidden = FILTERS.showHidden;
+    const onlyHidden = FILTERS.onlyHidden;
+
+    // Leads
+    let leads = allLeads.slice().filter(l=>l);
+    if(cons){
+      leads = leads.filter(l=> (l.consultor || '') === cons);
     }
-    if(FILTER.de){
-      arr = arr.filter(l => !l.data || l.data >= FILTER.de);
+    if(de){
+      leads = leads.filter(l=> !l.data || l.data >= de);
     }
-    if(FILTER.ate){
-      arr = arr.filter(l => !l.data || l.data <= FILTER.ate);
+    if(ate){
+      leads = leads.filter(l=> !l.data || l.data <= ate);
     }
-    if(FILTER.onlyHidden){
-      arr = arr.filter(l => l.visivel === false);
-    }else if(!FILTER.showHidden){
-      arr = arr.filter(l => l.visivel !== false);
+    if(onlyHidden){
+      leads = leads.filter(l=> l.visivel === false);
+    }else if(!showHidden){
+      leads = leads.filter(l=> l.visivel !== false);
     }
-    return arr;
+
+    // Angariações
+    let angs = allAngs.slice().filter(d=>d);
+    if(cons){
+      angs = angs.filter(d=> (d.consultor || '') === cons);
+    }
+    if(de){
+      angs = angs.filter(d=> !d.dataAngariacao || d.dataAngariacao >= de);
+    }
+    if(ate){
+      angs = angs.filter(d=> !d.dataAngariacao || d.dataAngariacao <= ate);
+    }
+    if(onlyHidden){
+      angs = angs.filter(d=> d.visible === false);
+    }else if(!showHidden){
+      angs = angs.filter(d=> d.visible !== false);
+    }
+
+    // Negócios (Fechos) — Leads em Fecho + Angariações aprovadas
+    const negocios = buildNegocios(leads, angs);
+
+    // Tarefas — período e consultor (não há invisíveis)
+    let tasks = allTasks.slice().filter(t=>t);
+    if(cons){
+      tasks = tasks.filter(t=> (t.responsavel || '') === cons);
+    }
+    if(de){
+      tasks = tasks.filter(t=> !t.dataLimite || t.dataLimite >= de);
+    }
+    if(ate){
+      tasks = tasks.filter(t=> !t.dataLimite || t.dataLimite <= ate);
+    }
+
+    return {leads, angs, negocios, tasks};
   }
 
-  function filterDeals(){
-    let arr = allDeals.slice();
-    if(FILTER.consultor){
-      arr = arr.filter(d => (d.consultor || '') === FILTER.consultor);
-    }
-    if(FILTER.de){
-      arr = arr.filter(d => !d.dataAngariacao || d.dataAngariacao >= FILTER.de);
-    }
-    if(FILTER.ate){
-      arr = arr.filter(d => !d.dataAngariacao || d.dataAngariacao <= FILTER.ate);
-    }
-    if(FILTER.onlyHidden){
-      arr = arr.filter(d => d.visible === false);
-    }else if(!FILTER.showHidden){
-      arr = arr.filter(d => d.visible !== false);
-    }
-    return arr;
-  }
+  function buildNegocios(leads, angs){
+    const list = [];
 
-  function filterTasks(){
-    let arr = allTasks.slice();
-    if(FILTER.consultor){
-      arr = arr.filter(t => (t.responsavel || '') === FILTER.consultor);
-    }
-    if(FILTER.de){
-      arr = arr.filter(t => !t.dataLimite || t.dataLimite >= FILTER.de);
-    }
-    if(FILTER.ate){
-      arr = arr.filter(t => !t.dataLimite || t.dataLimite <= FILTER.ate);
-    }
-    return arr;
-  }
-
-  function updateContextLabel(){
-    const parts = [];
-    if(FILTER.consultor) parts.push('Consultor: ' + FILTER.consultor);
-    if(FILTER.de || FILTER.ate){
-      parts.push('Período: ' + (FILTER.de||'…') + ' a ' + (FILTER.ate||'…'));
-    }
-    contextLabel.textContent = parts.length ? parts.join(' | ') : 'Sem filtros — visão global';
-  }
-
-  /* Helpers gráficos */
-  function destroyChart(key){
-    if(CHARTS[key]){
-      CHARTS[key].destroy();
-      CHARTS[key] = null;
-    }
-  }
-  function createChart(key, ctx, config){
-    destroyChart(key);
-    CHARTS[key] = new Chart(ctx, config);
-  }
-
-  /* ====== LEADS ====== */
-  function renderLeadsArea(leads){
-    kpiLeadsGrid.innerHTML = '';
-    leadImovelStats.innerHTML = '';
-    leadZonaStats.innerHTML   = '';
-    leadClassStats.innerHTML  = '';
-
-    const total = leads.length;
-    const fechos = leads.filter(l => l.estado === 'Fecho');
-    const totalFecho = fechos.length;
-    const taxaFecho = total ? (totalFecho/total*100) : 0;
-
-    let somaNegocio = 0;
-    let somaClass   = 0;
-    let contaClass  = 0;
+    // Leads em Fecho
     leads.forEach(l=>{
-      if(l.fecho_negocio){
-        somaNegocio += parseNum(l.fecho_negocio);
-      }
-      if(l.classificacao){
-        somaClass += parseNum(l.classificacao);
-        contaClass++;
-      }
+      if(l.estado !== 'Fecho') return;
+      const valorNegocio = parseNum(l.fecho_negocio || l.valor || 0);
+      list.push({
+        tipo: 'lead',
+        id: l.id || '',
+        consultor: l.consultor || '',
+        cliente: l.nome || '',
+        titulo: l.imovel ? (l.imovel + (l.tipologia? ' ' + l.tipologia : '')) : (l.imovel || 'Lead'),
+        data: l.data || '',
+        valor: valorNegocio,
+        origem: (l.papel || '') ? ('Lead — '+l.papel) : 'Lead'
+      });
     });
-    const ticketMedio = totalFecho ? somaNegocio/totalFecho : 0;
-    const classMedia  = contaClass ? somaClass/contaClass : NaN;
+
+    // Angariações aprovadas
+    angs.forEach(a=>{
+      if(a.estadoAng !== 'aprovado') return;
+      const precoPedido = parseNum(a.precoPedido || 0);
+      const titulo = a.isEmpreendimento && a.nomeEmp
+        ? a.nomeEmp
+        : (a.tituloImovel || 'Angariação');
+      list.push({
+        tipo:'ang',
+        id:a.id || '',
+        consultor:a.consultor || '',
+        cliente: a.isEmpreendimento ? (a.promotor || '') : (a.nomeProp || ''),
+        titulo,
+        data:a.dataAngariacao || '',
+        valor:precoPedido,
+        origem:a.isEmpreendimento ? 'Angariação — Empreendimento' : 'Angariação'
+      });
+    });
+
+    // Ordenar por data decrescente
+    list.sort((a,b)=>{
+      const da = a.data || '';
+      const db = b.data || '';
+      return db.localeCompare(da);
+    });
+    return list;
+  }
+
+  /* ===== KPIs globais ===== */
+  function renderGlobalKpis(leads, angs, negocios, tasks){
+    kpiGrid.innerHTML = '';
+
+    const leadsAtivas = leads.length;
+    const angsAtivas  = angs.length;
+
+    const negociosCount = negocios.length;
+    const negociosVolume = negocios.reduce((acc,n)=>acc+(n.valor||0),0);
+
+    const tarefasAbertas = tasks.filter(t=> t.estado!=='concluida' && t.estado!=='cancelada').length;
+    const proxTarefa = tasks
+      .filter(t=>t.dataLimite && t.estado!=='concluida' && t.estado!=='cancelada')
+      .sort((a,b)=>(a.dataLimite||'').localeCompare(b.dataLimite||''))[0];
 
     const kpis = [
       {
-        label:'Leads (filtros atuais)',
-        value: total,
-        sub: 'Total de leads após filtros e regras de visibilidade',
-        badge: totalFecho ? `${totalFecho} em Fecho` : ''
+        label:'Leads ativas',
+        value: formatInt(leadsAtivas),
+        sub:'Leads após filtros (respeitando visibilidade).'
       },
       {
-        label:'Taxa de fecho',
-        value: total ? taxaFecho.toFixed(1).replace('.',',') + '%' : '—',
-        sub: total ? `${totalFecho} fechos em ${total} leads` : 'Sem leads nos filtros atuais',
-        badge: total ? (taxaFecho>=20?'Saudável':(taxaFecho>=10?'Atenção':'Baixa')) : '',
-        badgeClass: total ? (taxaFecho>=20?'ok':(taxaFecho>=10?'warn':'bad')) : ''
+        label:'Angariações ativas',
+        value: formatInt(angsAtivas),
+        sub:'Angariações após filtros (respeitando visibilidade).'
       },
       {
-        label:'Ticket médio (Fecho)',
-        value: formatMoney(ticketMedio),
-        sub: 'Valor médio de negócio nas leads em Fecho',
-        badge: totalFecho ? 'Volume Fecho ' + formatMoney(somaNegocio) : ''
+        label:'Negócios (Fechos/Vendas)',
+        value: formatInt(negociosCount),
+        sub:'Leads em Fecho + Angariações aprovadas.',
+        badge: negociosVolume ? 'Volume: ' + formatMoney(negociosVolume) : ''
       },
       {
-        label:'Classificação média',
-        value: isFinite(classMedia)? classMedia.toFixed(1).replace('.',',') : '—',
-        sub: 'Baseada nas classificações 1–5 das leads',
-        badge:''
+        label:'Tarefas em aberto',
+        value: formatInt(tarefasAbertas),
+        sub: proxTarefa ? ('Próxima data: ' + proxTarefa.dataLimite) : 'Sem tarefas com data limite nos filtros.'
       }
     ];
 
     kpis.forEach(k=>{
       const card = document.createElement('div');
       card.className = 'kpi-card';
-      card.innerHTML = `
-        <div class="kpi-label">${k.label}</div>
-        <div class="kpi-value">${k.value}</div>
-        <div class="kpi-sub">${k.sub || ''}</div>
-      `;
+
+      const lab = document.createElement('div');
+      lab.className = 'kpi-label';
+      lab.textContent = k.label;
+      const val = document.createElement('div');
+      val.className = 'kpi-value';
+      val.textContent = k.value;
+      const sub = document.createElement('div');
+      sub.className = 'kpi-sub';
+      sub.textContent = k.sub || '';
+
+      card.appendChild(lab);
+      card.appendChild(val);
+      card.appendChild(sub);
+
       if(k.badge){
         const b = document.createElement('div');
         b.className = 'kpi-badge';
-        if(k.badgeClass) b.classList.add(k.badgeClass);
         b.textContent = k.badge;
         card.appendChild(b);
       }
-      kpiLeadsGrid.appendChild(card);
-    });
 
-    const countBy = (arr, fn) => {
-      const m = {};
-      arr.forEach(item=>{
-        const key = fn(item);
-        if(!key) return;
-        m[key] = (m[key]||0)+1;
-      });
-      return m;
-    };
-
-    const tipoMap      = countBy(leads, l=>l.tipo_negocio || '');
-    const classMap     = countBy(leads, l=>l.classificacao || '');
-    const perfilMap    = countBy(leads, l=>l.perfil || '');
-    const tipologiaMap = countBy(leads, l=>l.tipologia || '');
-    const imovelMap    = countBy(leads, l=>l.imovel || '');
-    const zonaMap      = countBy(leads, l=>(l.zona||'').trim().toLowerCase());
-
-    /* Gráficos */
-    const ctxTipo   = document.getElementById('chartLeadTipo').getContext('2d');
-    const ctxClass  = document.getElementById('chartLeadClass').getContext('2d');
-    const ctxPerfil = document.getElementById('chartLeadPerfil').getContext('2d');
-    const ctxTip    = document.getElementById('chartLeadTipologia').getContext('2d');
-
-    const tipoLabels = Object.keys(tipoMap);
-    const tipoValues = tipoLabels.map(k=>tipoMap[k]);
-    createChart('leadTipo', ctxTipo, {
-      type:'bar',
-      data:{
-        labels: tipoLabels,
-        datasets:[{label:'Leads', data:tipoValues, backgroundColor:'rgba(163,139,99,0.8)'}]
-      },
-      options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}
-    });
-
-    const classLabels = ['1','2','3','4','5'];
-    const classValues = classLabels.map(k=>classMap[k]||0);
-    createChart('leadClass', ctxClass, {
-      type:'bar',
-      data:{
-        labels: classLabels,
-        datasets:[{label:'Leads', data:classValues, backgroundColor:'rgba(163,139,99,0.8)'}]
-      },
-      options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}
-    });
-
-    const perfilLabels = ['Investidor','Cliente final'];
-    const perfilValues = perfilLabels.map(lbl=>{
-      if(lbl==='Investidor') return perfilMap['Investidor']||0;
-      if(lbl==='Cliente final') return perfilMap['Cliente final']||0;
-      return 0;
-    });
-    createChart('leadPerfil', ctxPerfil, {
-      type:'pie',
-      data:{
-        labels: perfilLabels,
-        datasets:[{data:perfilValues, backgroundColor:['rgba(163,139,99,0.9)','rgba(120,120,120,0.9)']}]
-      },
-      options:{plugins:{legend:{position:'bottom'}}}
-    });
-
-    const tipLabels = Object.keys(tipologiaMap);
-    const tipValues = tipLabels.map(k=>tipologiaMap[k]);
-    createChart('leadTipologia', ctxTip, {
-      type:'bar',
-      data:{
-        labels: tipLabels,
-        datasets:[{label:'Leads', data:tipValues, backgroundColor:'rgba(163,139,99,0.8)'}]
-      },
-      options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}
-    });
-
-    // Imóvel
-    Object.keys(imovelMap).sort((a,b)=>imovelMap[b]-imovelMap[a]).forEach(k=>{
-      const row = document.createElement('div');
-      row.className = 'stat-row';
-      row.innerHTML = `<span>${k||'—'}</span><span><strong>${imovelMap[k]}</strong></span>`;
-      leadImovelStats.appendChild(row);
-    });
-
-    // Zonas top
-    const zonasSorted = Object.entries(zonaMap)
-      .filter(([z])=>z)
-      .sort((a,b)=>b[1]-a[1])
-      .slice(0,8);
-    if(zonasSorted.length===0){
-      leadZonaStats.textContent = 'Sem zonas preferenciais nos filtros atuais.';
-    }else{
-      zonasSorted.forEach(([z,count])=>{
-        const row = document.createElement('div');
-        row.className = 'stat-row';
-        row.innerHTML = `<span>${z}</span><span><strong>${count}</strong></span>`;
-        leadZonaStats.appendChild(row);
-      });
-    }
-
-    // Summary classificações
-    ['1','2','3','4','5'].forEach(k=>{
-      const row = document.createElement('div');
-      row.className='stat-row';
-      const labelMap = {
-        '1':'Lead sem interesse',
-        '2':'Partilha',
-        '3':'Sem resposta',
-        '4':'Info s/ imóvel',
-        '5':'Quer visita'
-      };
-      row.innerHTML = `<span>${k} — ${labelMap[k]||''}</span><span><strong>${classMap[k]||0}</strong></span>`;
-      leadClassStats.appendChild(row);
+      kpiGrid.appendChild(card);
     });
   }
 
-  /* ====== ANGARIAÇÕES ====== */
-  function renderAngArea(deals){
-    kpiAngGrid.innerHTML = '';
-    angEstadoImovelStats.innerHTML = '';
-    angValoresMedios.innerHTML = '';
-    angConsultorResumo.innerHTML = '';
-
-    const total = deals.length;
-    const excl   = deals.filter(d=>d.exclusivo).length;
-    const naoExcl= deals.filter(d=>d.naoExclusivo).length;
-    const empr   = deals.filter(d=>d.isEmpreendimento).length;
-
-    let somaPreco = 0;
-    deals.forEach(d=>{ somaPreco += parseNum(d.precoPedido); });
-    const mediaPreco = total ? somaPreco/total : 0;
-
-    let somaCom = 0, contaCom = 0;
-    deals.forEach(d=>{
-      let pct = NaN;
-      if(d.comissao === 'outro' && d.comissaoOutro){
-        pct = parsePct(d.comissaoOutro);
-      }else if(d.comissao){
-        pct = parsePct(d.comissao);
-      }
-      if(isFinite(pct)){
-        somaCom += pct;
-        contaCom++;
-      }
-    });
-    const mediaCom = contaCom ? somaCom/contaCom : NaN;
-
-    const kpis = [
-      {
-        label:'Angariações (filtros atuais)',
-        value: total,
-        sub:'Produto ativo após filtros e visibilidade',
-        badge: total ? `Exclusivo: ${excl} · Não exclusivo: ${naoExcl}` : ''
-      },
-      {
-        label:'Empreendimentos',
-        value: empr,
-        sub:'Número de angariações marcadas como empreendimentos',
-        badge: total ? Math.round(empr/total*100)+'% do total' : ''
-      },
-      {
-        label:'Valor médio',
-        value: formatMoney(mediaPreco),
-        sub:'Preço pedido médio por angariação',
-        badge: somaPreco ? 'Volume total ' + formatMoney(somaPreco) : ''
-      },
-      {
-        label:'Comissão média',
-        value: isFinite(mediaCom)? mediaCom.toFixed(1).replace('.',',')+'%' : '—',
-        sub:'Média simples da comissão configurada',
-        badge:''
-      }
-    ];
-
-    kpis.forEach(k=>{
+  /* ===== Componente de gráfico (barras horizontais) ===== */
+  function renderBarChart(container, opts){
+    const {title, subtitle, items, formatter, responsive} = opts;
+    if(!items || !items.length){
       const card = document.createElement('div');
-      card.className = 'kpi-card';
-      card.innerHTML = `
-        <div class="kpi-label">${k.label}</div>
-        <div class="kpi-value">${k.value}</div>
-        <div class="kpi-sub">${k.sub||''}</div>
-      `;
-      if(k.badge){
-        const b = document.createElement('div');
-        b.className = 'kpi-badge';
-        b.textContent = k.badge;
-        card.appendChild(b);
-      }
-      kpiAngGrid.appendChild(card);
+      card.className = 'chart-card' + (responsive ? ' responsive':'');
+      const header = document.createElement('div');
+      header.className = 'chart-header';
+      const t = document.createElement('div');
+      t.className = 'chart-title';
+      t.textContent = title;
+      const s = document.createElement('div');
+      s.className = 'chart-subtitle';
+      s.textContent = subtitle || '';
+      header.appendChild(t);
+      header.appendChild(s);
+      const empty = document.createElement('div');
+      empty.className = 'chart-empty';
+      empty.textContent = 'Sem dados suficientes para este gráfico.';
+      card.appendChild(header);
+      card.appendChild(empty);
+      container.appendChild(card);
+      return;
+    }
+
+    const max = Math.max(...items.map(it=>it.value || 0)) || 1;
+
+    const card = document.createElement('div');
+    card.className = 'chart-card' + (responsive ? ' responsive':'');
+    const header = document.createElement('div');
+    header.className = 'chart-header';
+    const t = document.createElement('div');
+    t.className = 'chart-title';
+    t.textContent = title;
+    const s = document.createElement('div');
+    s.className = 'chart-subtitle';
+    s.textContent = subtitle || '';
+    header.appendChild(t);
+    header.appendChild(s);
+    card.appendChild(header);
+
+    const rows = document.createElement('div');
+    rows.className = 'chart-rows';
+
+    items.forEach(it=>{
+      const row = document.createElement('div');
+      row.className = 'chart-row';
+
+      const lab = document.createElement('div');
+      lab.className = 'chart-label';
+      lab.textContent = it.label;
+
+      const barWrap = document.createElement('div');
+      barWrap.className = 'chart-bar-wrap';
+      const bar = document.createElement('div');
+      bar.className = 'chart-bar';
+      const pct = max>0 ? (it.value/max*100) : 0;
+      bar.style.width = pct.toFixed(1) + '%';
+      barWrap.appendChild(bar);
+
+      const val = document.createElement('div');
+      val.className = 'chart-value';
+      val.textContent = formatter ? formatter(it.value) : it.value;
+
+      row.appendChild(lab);
+      row.appendChild(barWrap);
+      row.appendChild(val);
+      rows.appendChild(row);
     });
 
-    const countBy = (arr, fn) => {
-      const m={};
-      arr.forEach(d=>{
-        const key = fn(d);
-        if(!key) return;
-        m[key] = (m[key]||0)+1;
-      });
-      return m;
+    card.appendChild(rows);
+    container.appendChild(card);
+  }
+
+  /* ===== Dashboards por área ===== */
+
+  // LEADS
+  function renderLeadsArea(leads){
+    leadsCharts.innerHTML = '';
+    const hasData = leads.length>0;
+    leadsEmpty.style.display = hasData ? 'none':'block';
+    if(!hasData) return;
+
+    const visibles = leads; // já filtrados por visibilidade conforme filtros
+
+    // 1) Leads por estado
+    const estadosOrden = ["Novo","Em Contacto","Qualificado","Visita","Proposta","Fecho","Perdido"];
+    const byEstado = groupCount(visibles, l=>l.estado && estadosOrden.includes(l.estado) ? l.estado : '');
+    const arrEstados = estadosOrden.map(e=>({label:e, value: byEstado[e] || 0}));
+    renderBarChart(leadsCharts,{
+      title:'Leads por Estado',
+      subtitle:'Distribuição atual do funil.',
+      items:arrEstados,
+      formatter:formatInt,
+      responsive:false
+    });
+
+    // 2) Tipo de negócio
+    const tipoMap = groupCount(visibles, l=>l.tipo_negocio || '');
+    const tipoArr = mapToSortedArray(tipoMap);
+    renderBarChart(leadsCharts,{
+      title:'Tipo de Negócio',
+      subtitle:'Venda · Compra · Arrendamento · Permuta.',
+      items:tipoArr,
+      formatter:formatInt,
+      responsive:false
+    });
+
+    // 3) Classificação (1–5)
+    const classMap = groupCount(visibles, l=>l.classificacao || '');
+    const classOrder = ['1','2','3','4','5'];
+    const classArr = classOrder.map(c=>({label:'Nível '+c, value:classMap[c] || 0}));
+    renderBarChart(leadsCharts,{
+      title:'Classificação (1–5)',
+      subtitle:'Temperatura das leads.',
+      items:classArr,
+      formatter:formatInt,
+      responsive:false
+    });
+
+    // 4) Perfil (Investidor / Cliente final)
+    const perfilMap = groupCount(visibles, l=>l.perfil || '');
+    const perfilArr = mapToSortedArray(perfilMap);
+    renderBarChart(leadsCharts,{
+      title:'Perfil do Cliente',
+      subtitle:'Investidor vs Cliente final.',
+      items:perfilArr,
+      formatter:formatInt,
+      responsive:true
+    });
+
+    // 5) Tipologia
+    const tipoLogMap = groupCount(visibles, l=>l.tipologia || '');
+    const tipArr = topN(mapToSortedArray(tipoLogMap), 6);
+    renderBarChart(leadsCharts,{
+      title:'Tipologias mais procuradas',
+      subtitle:'Top tipologias nas leads.',
+      items:tipArr,
+      formatter:formatInt,
+      responsive:true
+    });
+
+    // 6) Imóvel
+    const imovelMap = groupCount(visibles, l=>l.imovel || '');
+    const imovelArr = topN(mapToSortedArray(imovelMap), 6);
+    renderBarChart(leadsCharts,{
+      title:'Tipo de Imóvel',
+      subtitle:'Moradia · Apartamento · Loja · etc.',
+      items:imovelArr,
+      formatter:formatInt,
+      responsive:true
+    });
+
+    // 7) Zona preferencial
+    const zonaMap = groupCount(visibles, l=>l.zona || '');
+    const zonaArr = topN(mapToSortedArray(zonaMap), 6);
+    renderBarChart(leadsCharts,{
+      title:'Zonas preferenciais (Top)',
+      subtitle:'Principais zonas pedidas nas leads.',
+      items:zonaArr,
+      formatter:formatInt,
+      responsive:true
+    });
+  }
+
+  // ANGARIAÇÕES
+  function renderAngsArea(angs){
+    angsCharts.innerHTML = '';
+    const hasData = angs.length>0;
+    angsEmpty.style.display = hasData ? 'none':'block';
+    if(!hasData) return;
+
+    const vis = angs;
+
+    // 1) Estado da angariação
+    const estadosOrder = ['novo','negociacao','aprovado','perdido'];
+    const labelEstado = {novo:'Novo',negociacao:'Negociação',aprovado:'Aprovado',perdido:'Perdido'};
+    const estMap = groupCount(vis, a=>a.estadoAng || '');
+    const estArr = estadosOrder.map(k=>({label:labelEstado[k], value:estMap[k] || 0}));
+    renderBarChart(angsCharts,{
+      title:'Angariações por Estado',
+      subtitle:'Pipeline de produto.',
+      items:estArr,
+      formatter:formatInt,
+      responsive:false
+    });
+
+    // 2) Exclusivo vs Não exclusivo
+    const exclMap = {
+      'Exclusivo': vis.filter(a=>a.exclusivo).length,
+      'Não exclusivo': vis.filter(a=>a.naoExclusivo).length
     };
+    const exclArr = mapToSortedArray(exclMap);
+    renderBarChart(angsCharts,{
+      title:'Exclusivo vs Não exclusivo',
+      subtitle:'Posicionamento dos imóveis.',
+      items:exclArr,
+      formatter:formatInt,
+      responsive:false
+    });
 
-    const exclusivoMap = { 'Exclusivo':excl, 'Não exclusivo':naoExcl };
-    const empMap       = { 'Empreendimento':empr, 'Unidade isolada': total - empr };
+    // 3) Empreendimento vs Unidade isolada
+    const empMap = {
+      'Empreendimento': vis.filter(a=>a.isEmpreendimento).length,
+      'Unidade isolada': vis.filter(a=>!a.isEmpreendimento).length
+    };
+    const empArr = mapToSortedArray(empMap);
+    renderBarChart(angsCharts,{
+      title:'Empreendimentos',
+      subtitle:'Carteira de empreendimentos vs unidades isoladas.',
+      items:empArr,
+      formatter:formatInt,
+      responsive:false
+    });
 
-    const naturezaMap  = countBy(deals,d=>d.naturezaImovel || '');
-    const estadoImMap  = countBy(deals,d=>d.estadoImovel || '');
+    // 4) Natureza do imóvel
+    const natMap = groupCount(vis, a=>a.natureza || '');
+    const natArr = topN(mapToSortedArray(natMap), 6);
+    renderBarChart(angsCharts,{
+      title:'Natureza do Imóvel',
+      subtitle:'Apartamento, Moradia, Loja, etc.',
+      items:natArr,
+      formatter:formatInt,
+      responsive:true
+    });
 
-    const comBuckets   = {'≤3%':0,'3–5%':0,'>5%':0};
-    deals.forEach(d=>{
+    // 5) Estado do imóvel
+    const estImovelMap = groupCount(vis, a=>a.estadoImovel || '');
+    const estImovelArr = topN(mapToSortedArray(estImovelMap), 6);
+    renderBarChart(angsCharts,{
+      title:'Estado do Imóvel',
+      subtitle:'Novo, usado, em construção...',
+      items:estImovelArr,
+      formatter:formatInt,
+      responsive:true
+    });
+
+    // 6) Comissão (distribuição por intervalos) + valor médio
+    const comBuckets = {
+      '<=3%':0,
+      '3–5%':0,
+      '>=5%':0
+    };
+    let somaValor = 0;
+    let countValor = 0;
+    vis.forEach(a=>{
+      const preco = parseNum(a.precoPedido || 0);
+      if(preco>0){ somaValor += preco; countValor++; }
+
       let pct = NaN;
-      if(d.comissao === 'outro' && d.comissaoOutro){
-        pct = parsePct(d.comissaoOutro);
-      }else if(d.comissao){
-        pct = parsePct(d.comissao);
+      if(a.comissao === 'outro' && a.comissaoOutro){
+        pct = parsePct(a.comissaoOutro);
+      }else if(a.comissao){
+        pct = parsePct(a.comissao);
       }
       if(!isFinite(pct)) return;
-      if(pct<=3) comBuckets['≤3%']++;
-      else if(pct<=5) comBuckets['3–5%']++;
-      else comBuckets['>5%']++;
+      if(pct <= 3) comBuckets['<=3%']++;
+      else if(pct <5) comBuckets['3–5%']++;
+      else comBuckets['>=5%']++;
     });
-
-    const ctxExcl    = document.getElementById('chartAngExclusivo').getContext('2d');
-    const ctxEmp     = document.getElementById('chartAngEmp').getContext('2d');
-    const ctxNat     = document.getElementById('chartAngNatureza').getContext('2d');
-    const ctxCom     = document.getElementById('chartAngComissao').getContext('2d');
-
-    createChart('angExcl', ctxExcl, {
-      type:'pie',
-      data:{
-        labels:Object.keys(exclusivoMap),
-        datasets:[{data:Object.values(exclusivoMap),backgroundColor:['rgba(163,139,99,0.9)','rgba(120,120,120,0.9)']}]
-      },
-      options:{plugins:{legend:{position:'bottom'}}}
+    const comArr = mapToSortedArray(comBuckets);
+    const valorMedio = countValor ? somaValor/countValor : 0;
+    renderBarChart(angsCharts,{
+      title:'Comissão (intervalos)',
+      subtitle:'Valor médio: ' + formatMoney(valorMedio),
+      items:comArr,
+      formatter:formatInt,
+      responsive:true
     });
-
-    createChart('angEmp', ctxEmp, {
-      type:'doughnut',
-      data:{
-        labels:Object.keys(empMap),
-        datasets:[{data:Object.values(empMap),backgroundColor:['rgba(163,139,99,0.9)','rgba(80,80,80,0.9)']}]
-      },
-      options:{plugins:{legend:{position:'bottom'}}}
-    });
-
-    const natLabels = Object.keys(naturezaMap);
-    const natValues = natLabels.map(k=>naturezaMap[k]);
-    createChart('angNat', ctxNat,{
-      type:'bar',
-      data:{labels:natLabels,datasets:[{data:natValues,backgroundColor:'rgba(163,139,99,0.8)'}]},
-      options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
-    });
-
-    const comLabels = Object.keys(comBuckets);
-    const comValues = comLabels.map(k=>comBuckets[k]);
-    createChart('angCom', ctxCom,{
-      type:'bar',
-      data:{labels:comLabels,datasets:[{data:comValues,backgroundColor:'rgba(163,139,99,0.8)'}]},
-      options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
-    });
-
-    // Estado do imóvel
-    Object.keys(estadoImMap).sort((a,b)=>estadoImMap[b]-estadoImMap[a]).forEach(k=>{
-      const row = document.createElement('div');
-      row.className='stat-row';
-      row.innerHTML = `<span>${k||'—'}</span><span><strong>${estadoImMap[k]}</strong></span>`;
-      angEstadoImovelStats.appendChild(row);
-    });
-
-    // Valores médios
-    const row1 = document.createElement('div');
-    row1.className='stat-row';
-    row1.innerHTML = `<span>Valor médio</span><span><strong>${formatMoney(mediaPreco)}</strong></span>`;
-    angValoresMedios.appendChild(row1);
-
-    const row2 = document.createElement('div');
-    row2.className='stat-row';
-    row2.innerHTML = `<span>Volume total</span><span><strong>${formatMoney(somaPreco)}</strong></span>`;
-    angValoresMedios.appendChild(row2);
-
-    const row3 = document.createElement('div');
-    row3.className='stat-row';
-    row3.innerHTML = `<span>Comissão média</span><span><strong>${isFinite(mediaCom)? mediaCom.toFixed(1).replace('.',',')+'%' : '—'}</strong></span>`;
-    angValoresMedios.appendChild(row3);
-
-    // Por consultor
-    const porCons={};
-    deals.forEach(d=>{
-      const c = d.consultor||'';
-      if(!c) return;
-      if(!porCons[c]) porCons[c] = {q:0,vol:0};
-      porCons[c].q++;
-      porCons[c].vol += parseNum(d.precoPedido);
-    });
-    if(Object.keys(porCons).length===0){
-      angConsultorResumo.textContent='Sem dados por consultor.';
-    }else{
-      Object.entries(porCons).sort((a,b)=>b[1].vol-a[1].vol).forEach(([nome,info])=>{
-        const row = document.createElement('div');
-        row.className='stat-row';
-        row.innerHTML = `<span>${nome} (${info.q})</span><span><strong>${formatMoney(info.vol)}</strong></span>`;
-        angConsultorResumo.appendChild(row);
-      });
-    }
   }
 
-  /* ====== FECHOS / NEGÓCIOS ====== */
-  function renderFechosArea(leads, deals){
-    kpiFechosGrid.innerHTML='';
-    fechosOrigemStats.innerHTML='';
-    fechosTipoStats.innerHTML='';
-    fechosResumoFinanceiro.innerHTML='';
+  // FECHOS & VENDAS
+  function renderFechosArea(negocios){
+    fechosCharts.innerHTML = '';
+    const hasData = negocios.length>0;
+    fechosEmpty.style.display = hasData ? 'none':'block';
+    if(!hasData) return;
 
-    const fechosLeads = leads.filter(l=>l.estado==='Fecho');
-    const aprovados   = deals.filter(d=>d.estadoAng==='aprovado');
-
-    let volFechos = 0;
-    let volCom    = 0;
-    let diasTot   = 0;
-    let diasCount = 0;
-
-    const tipoAgg = {};
-    const porCons = {};
-
-    fechosLeads.forEach(l=>{
-      const valor = parseNum(l.fecho_negocio || l.valor);
-      volFechos += valor;
-
-      const pct = parsePct(l.fecho_comissao_pct);
-      if(isFinite(pct)) volCom += valor*(pct/100);
-
-      const tipo = l.tipo_negocio || '—';
-      if(!tipoAgg[tipo]) tipoAgg[tipo]={q:0,vol:0};
-      tipoAgg[tipo].q++;
-      tipoAgg[tipo].vol += valor;
-
-      const c = l.consultor||'';
-      if(c){
-        if(!porCons[c]) porCons[c]={q:0,vol:0};
-        porCons[c].q++;
-        porCons[c].vol += valor;
-      }
-
-      if(l.data && l.fecho_cpcv_date){
-        const d1 = new Date(l.data);
-        const d2 = new Date(l.fecho_cpcv_date);
-        if(!isNaN(d1.getTime()) && !isNaN(d2.getTime())){
-          const diff = (d2-d1)/(1000*60*60*24);
-          diasTot += diff;
-          diasCount++;
-        }
-      }
-    });
-
-    const ticketMedio = fechosLeads.length ? volFechos/fechosLeads.length : 0;
-    const tempoMedio  = diasCount ? diasTot/diasCount : NaN;
-
-    let volAprovados = 0;
-    aprovados.forEach(a=>{
-      volAprovados += parseNum(a.precoPedido);
-    });
-
-    const kpis = [
-      {
-        label:'Negócios fechados (Leads)',
-        value: fechosLeads.length,
-        sub:'Baseado em leads em Fecho com filtros atuais',
-        badge: fechosLeads.length ? 'Ticket médio '+formatMoney(ticketMedio) : ''
-      },
-      {
-        label:'Volume de negócios (Leads)',
-        value: formatMoney(volFechos),
-        sub:'Somatório do valor de negócio das leads fechadas',
-        badge: volCom ? 'Comissão estimada '+formatMoney(volCom) : ''
-      },
-      {
-        label:'Carteira aprovada',
-        value: aprovados.length,
-        sub:'Angariações em Aprovado (carteira pronta a vender)',
-        badge: volAprovados ? 'Volume carteira '+formatMoney(volAprovados) : ''
-      },
-      {
-        label:'Tempo médio até CPCV',
-        value: isFinite(tempoMedio)? Math.round(tempoMedio)+' dias' : '—',
-        sub:'Entre data da lead e data do CPCV (quando preenchido)',
-        badge:''
-      }
-    ];
-    kpis.forEach(k=>{
-      const card=document.createElement('div');
-      card.className='kpi-card';
-      card.innerHTML=`
-        <div class="kpi-label">${k.label}</div>
-        <div class="kpi-value">${k.value}</div>
-        <div class="kpi-sub">${k.sub||''}</div>
-      `;
-      if(k.badge){
-        const b=document.createElement('div');
-        b.className='kpi-badge';
-        b.textContent=k.badge;
-        card.appendChild(b);
-      }
-      kpiFechosGrid.appendChild(card);
-    });
-
-    // Origem
-    const row1=document.createElement('div');
-    row1.className='stat-row';
-    row1.innerHTML=`<span>Leads em Fecho</span><span><strong>${fechosLeads.length}</strong> (${formatMoney(volFechos)})</span>`;
-    fechosOrigemStats.appendChild(row1);
-
-    const row2=document.createElement('div');
-    row2.className='stat-row';
-    row2.innerHTML=`<span>Angariações aprovadas</span><span><strong>${aprovados.length}</strong> (${formatMoney(volAprovados)})</span>`;
-    fechosOrigemStats.appendChild(row2);
-
-    // Tipo de negócio
-    Object.entries(tipoAgg).forEach(([tipo,info])=>{
-      const r=document.createElement('div');
-      r.className='stat-row';
-      r.innerHTML=`<span>${tipo}</span><span><strong>${info.q}</strong> (${formatMoney(info.vol)})</span>`;
-      fechosTipoStats.appendChild(r);
-    });
-
-    // Resumo financeiro
-    const r1=document.createElement('div');
-    r1.className='stat-row';
-    r1.innerHTML=`<span>Volume negócios (Leads)</span><span><strong>${formatMoney(volFechos)}</strong></span>`;
-    fechosResumoFinanceiro.appendChild(r1);
-    const r2=document.createElement('div');
-    r2.className='stat-row';
-    r2.innerHTML=`<span>Comissão estimada</span><span><strong>${formatMoney(volCom)}</strong></span>`;
-    fechosResumoFinanceiro.appendChild(r2);
-    const r3=document.createElement('div');
-    r3.className='stat-row';
-    r3.innerHTML=`<span>Volume carteira aprovada</span><span><strong>${formatMoney(volAprovados)}</strong></span>`;
-    fechosResumoFinanceiro.appendChild(r3);
-
-    // Gráficos
-    const ctxMes  = document.getElementById('chartFechosMes').getContext('2d');
-    const ctxCons = document.getElementById('chartFechosConsultor').getContext('2d');
-
-    const porMes = {};
-    fechosLeads.forEach(l=>{
-      const ds = l.fecho_cpcv_date || l.data || '';
-      if(!ds) return;
-      const d = new Date(ds);
+    // 1) Volume mensal (todos consultores)
+    const mapaMensal = {};
+    negocios.forEach(n=>{
+      if(!n.data) return;
+      const d = new Date(n.data);
       if(isNaN(d.getTime())) return;
-      const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-      porMes[key]=(porMes[key]||0)+1;
+      const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+      mapaMensal[key] = (mapaMensal[key] || 0) + (n.valor || 0);
     });
-    const mesLabels = Object.keys(porMes).sort();
-    const mesVals   = mesLabels.map(k=>porMes[k]);
-    createChart('fechosMes', ctxMes,{
-      type:'line',
-      data:{labels:mesLabels,datasets:[{label:'Negócios',data:mesVals,borderColor:'rgba(163,139,99,0.9)',backgroundColor:'rgba(163,139,99,0.2)',tension:0.2}]},
-      options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+    const arrMensal = Object.entries(mapaMensal)
+      .sort((a,b)=>a[0].localeCompare(b[0]))
+      .map(([key,val])=>{
+        const [y,m] = key.split('-');
+        return {label: m+'/'+y.slice(-2), value:val};
+      });
+    renderBarChart(fechosCharts,{
+      title:'Volume Mensal de Negócios',
+      subtitle:'Somatório do valor de negócio por mês.',
+      items:arrMensal,
+      formatter:formatMoney,
+      responsive:false
     });
 
-    const consLabels = Object.keys(porCons);
-    const consVals   = consLabels.map(k=>porCons[k].q);
-    createChart('fechosCons', ctxCons,{
-      type:'bar',
-      data:{labels:consLabels,datasets:[{data:consVals,backgroundColor:'rgba(163,139,99,0.8)'}]},
-      options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+    // 2) Negócios por consultor
+    const consMap = groupCount(negocios, n=>n.consultor || '(sem consultor)');
+    const consArr = mapToSortedArray(consMap);
+    renderBarChart(fechosCharts,{
+      title:'Negócios por Consultor',
+      subtitle:'Número de negócios fechados por consultor.',
+      items:consArr,
+      formatter:formatInt,
+      responsive:false
+    });
+
+    // 3) Volume por tipo (Lead Fecho vs Angariação aprovada)
+    const volTipoMap = {};
+    negocios.forEach(n=>{
+      const label = n.tipo === 'lead' ? 'Leads · Fecho' : 'Angariações aprovadas';
+      volTipoMap[label] = (volTipoMap[label] || 0) + (n.valor || 0);
+    });
+    const volTipoArr = mapToSortedArray(volTipoMap);
+    renderBarChart(fechosCharts,{
+      title:'Origem dos Negócios',
+      subtitle:'Peso de Leads vs Angariações nos negócios fechados.',
+      items:volTipoArr,
+      formatter:formatMoney,
+      responsive:true
     });
   }
 
-  /* ====== TAREFAS ====== */
+  // TAREFAS
   function renderTarefasArea(tasks){
-    kpiTarefasGrid.innerHTML='';
-    tarefasEstadoStats.innerHTML='';
-    tarefasPrazoStats.innerHTML='';
-    tarefasNotas.innerHTML='';
+    tarefasCharts.innerHTML = '';
+    const hasData = tasks.length>0;
+    tarefasEmpty.style.display = hasData ? 'none':'block';
+    if(!hasData) return;
 
-    const total = tasks.length;
-    const concluidas = tasks.filter(t=>t.estado==='concluida').length;
-    const canceladas = tasks.filter(t=>t.estado==='cancelada').length;
-    const abertas = total - concluidas - canceladas;
-    const criticas = tasks.filter(t=>t.prioridade==='critica').length;
-
-    const hoje = todayISO();
-    const atrasadas = tasks.filter(t=>{
-      if(!t.dataLimite) return false;
-      return t.dataLimite < hoje && t.estado!=='concluida' && t.estado!=='cancelada';
-    }).length;
-
-    const kpis = [
-      {
-        label:'Tarefas (filtros atuais)',
-        value: total,
-        sub:'Total de tarefas encontradas',
-        badge:''
-      },
-      {
-        label:'Em aberto',
-        value: abertas,
-        sub:'Por fazer ou em curso',
-        badge: atrasadas ? atrasadas+' atrasadas' : ''
-      },
-      {
-        label:'Concluídas',
-        value: concluidas,
-        sub:'Tarefas marcadas como concluídas',
-        badge:''
-      },
-      {
-        label:'Críticas',
-        value: criticas,
-        sub:'Prioridade crítica',
-        badge:''
-      }
-    ];
-    kpis.forEach(k=>{
-      const card=document.createElement('div');
-      card.className='kpi-card';
-      card.innerHTML=`
-        <div class="kpi-label">${k.label}</div>
-        <div class="kpi-value">${k.value}</div>
-        <div class="kpi-sub">${k.sub||''}</div>
-      `;
-      if(k.badge){
-        const b=document.createElement('div');
-        b.className='kpi-badge';
-        b.textContent=k.badge;
-        card.appendChild(b);
-      }
-      kpiTarefasGrid.appendChild(card);
-    });
-
-    const countBy = (arr, fn)=>{
-      const m={};
-      arr.forEach(t=>{
-        const k = fn(t);
-        if(!k) return;
-        m[k]=(m[k]||0)+1;
-      });
-      return m;
-    };
-
-    const estadoMap = countBy(tasks,t=>t.estado||'');
-    const prioMap   = countBy(tasks,t=>t.prioridade||'');
-    const tipoMap   = countBy(tasks,t=>t.tipoTarefa||'');
-    const consMap   = countBy(tasks,t=>t.responsavel||'');
-
-    const ctxEst  = document.getElementById('chartTarefasEstado').getContext('2d');
-    const ctxPrio = document.getElementById('chartTarefasPrioridade').getContext('2d');
-    const ctxTipo = document.getElementById('chartTarefasTipo').getContext('2d');
-    const ctxCons = document.getElementById('chartTarefasConsultor').getContext('2d');
-
-    const estLabelsMap = {
+    // 1) Tarefas por estado
+    const estOrder = ['por_fazer','em_curso','concluida','adiada','cancelada'];
+    const estLabel = {
       por_fazer:'Por fazer',
       em_curso:'Em curso',
       concluida:'Concluída',
       adiada:'Adiada',
       cancelada:'Cancelada'
     };
-    const estKeys   = Object.keys(estLabelsMap);
-    const estLabels = estKeys.map(k=>estLabelsMap[k]);
-    const estValues = estKeys.map(k=>estadoMap[k]||0);
-    createChart('tarEstado', ctxEst,{
-      type:'bar',
-      data:{labels:estLabels,datasets:[{data:estValues,backgroundColor:'rgba(163,139,99,0.8)'}]},
-      options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+    const estMap = groupCount(tasks, t=>t.estado || '');
+    const estArr = estOrder.map(k=>({label:estLabel[k], value:estMap[k] || 0}));
+    renderBarChart(tarefasCharts,{
+      title:'Tarefas por Estado',
+      subtitle:'Carga de trabalho e execução.',
+      items:estArr,
+      formatter:formatInt,
+      responsive:false
     });
 
-    const prioLabelsMap = {baixa:'Baixa',normal:'Normal',alta:'Alta',critica:'Crítica'};
-    const prioKeys   = Object.keys(prioLabelsMap);
-    const prioLabels = prioKeys.map(k=>prioLabelsMap[k]);
-    const prioValues = prioKeys.map(k=>prioMap[k]||0);
-    createChart('tarPrio', ctxPrio,{
-      type:'bar',
-      data:{labels:prioLabels,datasets:[{data:prioValues,backgroundColor:'rgba(163,139,99,0.8)'}]},
-      options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+    // 2) Tarefas por prioridade
+    const prioOrder = ['baixa','normal','alta','critica'];
+    const prioLabel = {
+      baixa:'Baixa',
+      normal:'Normal',
+      alta:'Alta',
+      critica:'Crítica'
+    };
+    const prioMap = groupCount(tasks, t=>t.prioridade || '');
+    const prioArr = prioOrder.map(k=>({label:prioLabel[k], value:prioMap[k] || 0}));
+    renderBarChart(tarefasCharts,{
+      title:'Prioridade das Tarefas',
+      subtitle:'Em que nível está o foco.',
+      items:prioArr,
+      formatter:formatInt,
+      responsive:false
     });
 
-    const tipoLabelsMap = {
+    // 3) Tarefas por tipo
+    const tipoLabel = {
       chamada:'Chamada',
       email:'Email',
       visita:'Visita',
@@ -1578,142 +1295,113 @@
       followup:'Follow-up',
       outro:'Outro'
     };
-    const tipoKeys   = Object.keys(tipoLabelsMap);
-    const tipoLabels = tipoKeys.map(k=>tipoLabelsMap[k]);
-    const tipoValues = tipoKeys.map(k=>tipoMap[k]||0);
-    createChart('tarTipo', ctxTipo,{
-      type:'pie',
-      data:{labels:tipoLabels,datasets:[{data:tipoValues,backgroundColor:[
-        'rgba(163,139,99,0.9)','rgba(120,120,120,0.9)','rgba(90,90,90,0.9)',
-        'rgba(70,70,70,0.9)','rgba(50,50,50,0.9)','rgba(30,30,30,0.9)'
-      ]}]},
-      options:{plugins:{legend:{position:'bottom'}}}
+    const tipoMap = groupCount(tasks, t=>t.tipoTarefa || '');
+    const tipoArrRaw = Object.entries(tipoMap)
+      .map(([k,v])=>({label:tipoLabel[k] || k, value:v}))
+      .sort((a,b)=>b.value-a.value);
+    const tipoArr = topN(tipoArrRaw, 6);
+    renderBarChart(tarefasCharts,{
+      title:'Tipo de Tarefa',
+      subtitle:'Distribuição por tipo de ação.',
+      items:tipoArr,
+      formatter:formatInt,
+      responsive:true
     });
 
-    const consLabels = Object.keys(consMap);
-    const consValues = consLabels.map(k=>consMap[k]);
-    createChart('tarCons', ctxCons,{
-      type:'bar',
-      data:{labels:consLabels,datasets:[{data:consValues,backgroundColor:'rgba(163,139,99,0.8)'}]},
-      options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+    // 4) Tarefas por responsável
+    const respMap = groupCount(tasks, t=>t.responsavel || '(sem responsável)');
+    const respArr = mapToSortedArray(respMap);
+    renderBarChart(tarefasCharts,{
+      title:'Tarefas por Responsável',
+      subtitle:'Carga de tarefas por consultor.',
+      items:respArr,
+      formatter:formatInt,
+      responsive:true
     });
-
-    // Estado & atraso
-    const r1=document.createElement('div');
-    r1.className='stat-row';
-    r1.innerHTML=`<span>Em aberto</span><span><strong>${abertas}</strong></span>`;
-    tarefasEstadoStats.appendChild(r1);
-
-    const r2=document.createElement('div');
-    r2.className='stat-row';
-    r2.innerHTML=`<span>Concluídas</span><span><strong>${concluidas}</strong></span>`;
-    tarefasEstadoStats.appendChild(r2);
-
-    const r3=document.createElement('div');
-    r3.className='stat-row';
-    r3.innerHTML=`<span>Canceladas</span><span><strong>${canceladas}</strong></span>`;
-    tarefasEstadoStats.appendChild(r3);
-
-    const r4=document.createElement('div');
-    r4.className='stat-row';
-    r4.innerHTML=`<span>Atrasadas</span><span><strong>${atrasadas}</strong></span>`;
-    tarefasEstadoStats.appendChild(r4);
-
-    // Prazo
-    let comData=0;
-    tasks.forEach(t=>{ if(t.dataLimite) comData++; });
-    const p1=document.createElement('div');
-    p1.className='stat-row';
-    p1.innerHTML=`<span>Com data limite</span><span><strong>${comData}</strong></span>`;
-    tarefasPrazoStats.appendChild(p1);
-
-    const p2=document.createElement('div');
-    p2.className='stat-row';
-    p2.innerHTML=`<span>Sem data limite</span><span><strong>${total-comData}</strong></span>`;
-    tarefasPrazoStats.appendChild(p2);
-
-    // Notas
-    if(total===0){
-      const c=document.createElement('span');
-      c.className='chip';
-      c.textContent='Sem tarefas nos filtros atuais';
-      tarefasNotas.appendChild(c);
-    }else{
-      if(atrasadas>0){
-        const c=document.createElement('span');
-        c.className='chip';
-        c.textContent=atrasadas+' tarefas atrasadas — rever follow-up';
-        tarefasNotas.appendChild(c);
-      }
-      if(criticas>0){
-        const c=document.createElement('span');
-        c.className='chip';
-        c.textContent=criticas+' tarefas críticas';
-        tarefasNotas.appendChild(c);
-      }
-      const porResp = Object.entries(consMap).sort((a,b)=>b[1]-a[1]).slice(0,3);
-      porResp.forEach(([nome,q])=>{
-        const c=document.createElement('span');
-        c.className='chip';
-        c.textContent=`${nome}: ${q} tarefas`;
-        tarefasNotas.appendChild(c);
-      });
-    }
   }
 
+  /* ===== Contexto (texto) ===== */
+  function updateContextLabel(){
+    const cons = FILTERS.consultor;
+    const de   = FILTERS.de;
+    const ate  = FILTERS.ate;
+    const parts = [];
+    if(cons) parts.push('Consultor: ' + cons);
+    if(de || ate){
+      parts.push('Período: ' + (de || '…') + ' a ' + (ate || '…'));
+    }
+    if(FILTERS.onlyHidden){
+      parts.push('Só invisíveis');
+    }else if(FILTERS.showHidden){
+      parts.push('Inclui invisíveis');
+    }
+    contextLabel.textContent = parts.length ? parts.join(' | ') : 'Sem filtros — visão global';
+  }
+
+  /* ===== Tabs das áreas ===== */
+  areaTabs.forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const area = btn.dataset.area;
+      areaTabs.forEach(b=>b.classList.toggle('active', b===btn));
+      Object.keys(areaPanels).forEach(key=>{
+        areaPanels[key].classList.toggle('active', key===area);
+      });
+    });
+  });
+
+  /* ===== Ciclo principal ===== */
   function refresh(){
     loadLeads();
-    loadAngariacoes();
-    loadTarefas();
+    loadAngs();
+    loadTasks();
     buildConsultorOptions();
 
-    const leads = filterLeads();
-    const deals = filterDeals();
-    const tasks = filterTasks();
+    const {leads, angs, negocios, tasks} = applyFilters();
 
-    const hasData = leads.length || deals.length || tasks.length;
-    emptyState.style.display = hasData ? 'none' : 'block';
-
+    renderGlobalKpis(leads, angs, negocios, tasks);
     renderLeadsArea(leads);
-    renderAngArea(deals);
-    renderFechosArea(leads,deals);
+    renderAngsArea(angs);
+    renderFechosArea(negocios);
     renderTarefasArea(tasks);
     updateContextLabel();
   }
 
-  /* Subtabs */
-  document.querySelectorAll('.subtab').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      document.querySelectorAll('.subtab').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      const area = btn.dataset.area;
-      document.querySelectorAll('.area').forEach(a=>{
-        a.classList.remove('active');
-      });
-      document.getElementById('area'+area.charAt(0).toUpperCase()+area.slice(1)).classList.add('active');
-    });
-  });
+  function applyFiltersFromUI(){
+    FILTERS.consultor  = filterConsultor.value || '';
+    FILTERS.de         = filterDataDe.value || '';
+    FILTERS.ate        = filterDataAte.value || '';
+    FILTERS.showHidden = filterShowHidden.checked;
+    FILTERS.onlyHidden = filterOnlyHidden.checked;
 
-  applyFiltersBtn.addEventListener('click',()=>{
-    updateFiltersFromControls();
-    saveFilters();
+    if(FILTERS.onlyHidden){
+      FILTERS.showHidden = true;
+      filterShowHidden.checked = true;
+    }
+
     refresh();
-  });
-  clearFiltersBtn.addEventListener('click',()=>{
-    FILTER={consultor:'',de:'',ate:'',showHidden:false,onlyHidden:false};
-    applyFiltersToControls();
-    saveFilters();
+  }
+
+  function clearFilters(){
+    filterConsultor.value = '';
+    filterDataDe.value    = '';
+    filterDataAte.value   = '';
+    filterShowHidden.checked = false;
+    filterOnlyHidden.checked = false;
+
+    FILTERS.consultor  = '';
+    FILTERS.de         = '';
+    FILTERS.ate        = '';
+    FILTERS.showHidden = false;
+    FILTERS.onlyHidden = false;
+
     refresh();
-  });
+  }
+
+  applyFiltersBtn.addEventListener('click', applyFiltersFromUI);
+  clearFiltersBtn.addEventListener('click', clearFilters);
   reloadBtn.addEventListener('click', refresh);
 
-  // INIT
-  loadFilters();
-  loadLeads();
-  loadAngariacoes();
-  loadTarefas();
-  buildConsultorOptions();
-  applyFiltersToControls();
+  // Arranque
   refresh();
 })();
 </script>
