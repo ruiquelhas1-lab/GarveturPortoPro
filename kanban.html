@@ -928,6 +928,66 @@ function createTaskFromLead(lead){
   }
 }
 
+/* ===== Deep link vindo de Tarefas (abrir ficha original) ===== */
+function applyDeepLinkFromTarefas(){
+  try{
+    const params = new URLSearchParams(window.location.search);
+    const refParam = (params.get('ref') || '').trim();
+    if(!refParam) return;
+
+    const refNorm = norm(refParam);
+    if(!refNorm) return;
+
+    let bestLead = null;
+    let bestScore = 0;
+
+    LEADS.forEach(l=>{
+      const refIntNorm = norm(l.ref_interna || '');
+      const nomeNorm = norm(l.nome || '');
+      let score = 0;
+
+      // coincidência forte pela ref interna
+      if(refIntNorm && (refNorm.includes(refIntNorm) || refIntNorm.includes(refNorm))){
+        score += 4;
+      }
+      // coincidência pelo nome
+      if(nomeNorm && (refNorm.includes(nomeNorm) || nomeNorm.includes(refNorm))){
+        score += 2;
+      }
+      // combinação "ref — nome"
+      if(refIntNorm && nomeNorm){
+        const combo = (refIntNorm + ' — ' + nomeNorm);
+        if(combo === refNorm){
+          score += 3;
+        }
+      }
+
+      if(score > bestScore){
+        bestScore = score;
+        bestLead = l;
+      }
+    });
+
+    if(!bestLead){
+      console.warn('Nenhuma lead encontrada para ref:', refParam);
+      alert('Não foi possível encontrar a lead associada à referência:\n' + refParam);
+      return;
+    }
+
+    // garantir que a ficha abre em modo editável
+    if(!EDIT_MODE){
+      setEditMode(true);
+    }
+
+    $('saveLead').dataset.editId = bestLead.id;
+    $('saveLead').dataset.editEstado = bestLead.estado;
+    openModal(bestLead);
+
+  }catch(e){
+    console.error('Erro ao aplicar deep link de tarefas para Kanban', e);
+  }
+}
+
 /* ===== Lateral ===== */
 function buildFilters(){
   const sel=$('f_consultor'); sel.innerHTML='<option value="">(Todos)</option>'+CONSULT_RESOLVE.map(c=>`<option>${c}</option>`).join('');
@@ -1404,6 +1464,7 @@ $('exportXlsx').addEventListener('click',()=>{
   });
 
   renderBoard();
+  applyDeepLinkFromTarefas(); // <- abre automaticamente a ficha se vier de Tarefas com ?ref=
 })();
 </script>
 </body>
