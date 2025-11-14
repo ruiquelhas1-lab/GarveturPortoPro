@@ -479,7 +479,7 @@
       border-radius:999px;
       padding:6px 10px;
       font-size:12px;
-      background:#0E0E0E;
+      background:#0E0EE;
       cursor:pointer;
     }
     .state-pill input{
@@ -893,6 +893,13 @@ function createTaskFromLead(lead){
 
   const titulo = 'Follow-up lead: ' + (lead.nome || 'sem nome');
 
+  // nova regra: dataCriacao = hoje, dataLimite = hoje + 8 dias
+  const agora = new Date();
+  const dataCriacaoISO = todayISO();
+  const limite = new Date(agora);
+  limite.setDate(limite.getDate() + 8);
+  const dataLimiteISO = limite.toISOString().slice(0,10);
+
   const tarefa = {
     id: 'task_' + Date.now(),
     responsavel: lead.consultor || '',
@@ -906,8 +913,8 @@ function createTaskFromLead(lead){
     titulo: titulo,
     descricao: 'Tarefa criada a partir da lead "' + (lead.nome || '') +
       '" no Kanban em ' + new Date().toLocaleString('pt-PT') + '.',
-    dataCriacao: todayISO(),
-    dataLimite: lead.data || todayISO(),
+    dataCriacao: dataCriacaoISO,
+    dataLimite: dataLimiteISO,
     horaLimite: '',
     createdAtMs: Date.now()
   };
