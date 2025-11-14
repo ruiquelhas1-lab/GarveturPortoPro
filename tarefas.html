@@ -1,5 +1,4 @@
 
-
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -14,9 +13,9 @@
       --bg:#0B0B0B;
       --panel:#141414;
       --panel-soft:#181818;
-      --border:rgba(255,255,255,.14);
       --text:#FFFFFF;
       --muted:#A0A0A0;
+      --border:rgba(255,255,255,.14);
       --danger:#F25F5C;
       --success:#4CAF50;
       --warning:#FFC857;
@@ -24,7 +23,6 @@
       --radius-md:14px;
       --shadow-soft:0 18px 35px rgba(0,0,0,.6);
     }
-
     *{box-sizing:border-box;}
     html,body{
       margin:0;
@@ -33,12 +31,17 @@
       background:radial-gradient(circle at top,#1c1c1c 0,#050505 55%,#000 100%);
       color:var(--text);
     }
-
     body{display:flex;flex-direction:column;}
-    .app-shell{display:grid;grid-template-rows:64px auto;height:100%;}
 
-    /* ---------------------- BARRA SUPERIOR ---------------------- */
+    .app-shell{
+      display:grid;
+      grid-template-rows:64px auto;
+      height:100%;
+    }
 
+    /* -------------------------------------------
+       HEADER PREMIUM (igual ao design atual)
+    ------------------------------------------- */
     header.app-header{
       display:flex;
       align-items:center;
@@ -52,114 +55,117 @@
       top:0;
       z-index:20;
     }
-
-    .brand{display:flex;align-items:center;gap:10px;}
-
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
     .brand-icon{
-      width:28px;height:28px;border-radius:999px;
+      width:26px;
+      height:26px;
+      border-radius:999px;
       border:1px solid var(--gold);
-      display:flex;align-items:center;justify-content:center;
+      display:flex;
+      align-items:center;
+      justify-content:center;
       box-shadow:0 0 0 1px rgba(163,139,99,.3);
     }
-
     .brand h1{
-      margin:0;font-size:17px;letter-spacing:.04em;
-      text-transform:uppercase;color:var(--gold);
+      margin:0;
+      font-size:17px;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      color:var(--gold);
     }
-
     .brand span.sub{
-      display:block;font-size:11px;color:var(--muted);
-      letter-spacing:.12em;text-transform:uppercase;
+      display:block;
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.12em;
+      text-transform:uppercase;
     }
 
-    /* ---------------------- NAVEGAÇÃO ---------------------- */
-
+    /* Tabs dos módulos UI (mantém visual consistente) */
     .nav-tabs{
-      display:flex;flex-wrap:wrap;align-items:center;gap:4px;
-      background:rgba(0,0,0,.35);padding:4px;
-      border-radius:999px;border:1px solid rgba(163,139,99,.35);
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:4px;
+      background:rgba(0,0,0,.35);
+      padding:4px;
+      border-radius:999px;
+      border:1px solid rgba(163,139,99,.35);
     }
-
     .nav-tab{
-      padding:6px 12px;border-radius:999px;font-size:11px;
-      text-decoration:none;color:var(--muted);
-      letter-spacing:.12em;text-transform:uppercase;
+      padding:5px 10px;
+      border-radius:999px;
+      font-size:11px;
+      text-decoration:none;
+      color:var(--muted);
+      letter-spacing:.12em;
+      text-transform:uppercase;
       border:1px solid transparent;
       transition:.16s background,.16s color,.16s border-color,.16s transform;
     }
-
     .nav-tab:hover{
-      color:#fff;border-color:rgba(163,139,99,.6);
+      color:#fff;
+      border-color:rgba(163,139,99,.6);
       transform:translateY(-1px);
     }
-
     .nav-tab.active{
-      background:var(--gold);color:#0A0A0A;
-      border-color:var(--gold);font-weight:600;
+      background:var(--gold);
+      color:#0A0A0A;
+      border-color:var(--gold);
+      font-weight:600;
     }
 
-    /* ---------------------- BOTÕES SUPERIORES ---------------------- */
-
     .header-actions{
-      display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
     }
 
     .btn{
-      border-radius:999px;border:1px solid var(--gold-soft);
-      background:rgba(12,12,12,.9);color:var(--text);
-      padding:7px 12px;font-size:13px;display:inline-flex;
-      align-items:center;gap:6px;cursor:pointer;
+      border-radius:999px;
+      border:1px solid var(--gold-soft);
+      background:rgba(12,12,12,.9);
+      color:var(--text);
+      padding:7px 12px;
+      font-size:13px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      cursor:pointer;
       transition:.18s border-color,.18s background,.18s transform;
     }
-
     .btn-primary{
       background:var(--gold);
       color:#0A0A0A;
       border-color:var(--gold);
       font-weight:500;
     }
-
-    .btn-ghost{
-      background:transparent;
+    .btn:hover{
+      border-color:var(--gold);
+      transform:translateY(-1px);
     }
 
-    .btn:hover{border-color:var(--gold);transform:translateY(-1px);}
-    .btn:disabled{
-      opacity:.45;
-      cursor:not-allowed;
-      transform:none;
-    }
-
-    .btn-icon{
-      width:32px;height:32px;padding:0;
-      border-radius:999px;justify-content:center;
-    }
-
-    /* ---------------------- SIDEBAR ---------------------- */
-
+    /* Layout base */
     .layout{
       display:grid;
       grid-template-columns:320px minmax(0,1fr);
       height:calc(100vh - 64px);
-      max-height:calc(100vh - 64px);
       overflow:hidden;
     }
 
-    @media (max-width: 960px){
-      .layout{
-        grid-template-columns:1fr;
-        grid-template-rows:auto auto;
-        height:auto;max-height:none;
-      }
-    }
-
-    .sidebar{
+    aside.sidebar{
       border-right:1px solid rgba(163,139,99,.24);
       background:radial-gradient(circle at top left,#141414,#060606);
       padding:12px 14px;
       overflow-y:auto;
     }
 
+    /* Painel lateral — igual ao existente */
     .sidebar-section{
       border-radius:var(--radius-md);
       padding:10px 11px;
@@ -167,7 +173,6 @@
       border:1px solid rgba(163,139,99,.18);
       margin-bottom:10px;
     }
-
     .sidebar-section h3{
       margin:0 0 6px;
       font-size:11px;
@@ -175,63 +180,130 @@
       letter-spacing:.16em;
       color:var(--muted);
     }
-
     .sidebar-section p{
       margin:2px 0 6px;
       font-size:12px;
       color:var(--muted);
     }
 
-    /* ---------------------- CAMPOS / INPUTS ---------------------- */
-
-    .field{display:flex;flex-direction:column;gap:4px;margin-bottom:8px;}
-
-    .field-row{display:flex;gap:6px;}
-
-    label.field-label{
-      font-size:11px;color:var(--muted);
-      text-transform:uppercase;letter-spacing:.12em;
-    }
-
-    input[type="text"],
-    input[type="number"],
-    input[type="date"],
-    input[type="time"],
-    input[type="email"],
-    select,
-    textarea{
-      background:rgba(0,0,0,.7);
-      color:var(--text);
-      border-radius:10px;
-      border:1px solid rgba(163,139,99,.22);
-      padding:6px 8px;
-      font-size:13px;
-      outline:none;width:100%;
-    }
-
-    input:focus, select:focus, textarea:focus{
-      border-color:var(--gold);
-      box-shadow:0 0 0 1px rgba(163,139,99,.35);
-    }
-
-    textarea{
-      resize:vertical;
-      min-height:60px;
-    }
-
-    .toggle-line{
-      display:flex;align-items:center;justify-content:space-between;
-      font-size:12px;margin-top:4px;
-    }
-
-    .toggle-line span{color:var(--muted);}
-
-    /* ---------------------- ÁREA DE CARTÕES ---------------------- */
-
+    /* -------------------------------------------
+       CARTÕES (design original preservado)
+    ------------------------------------------- */
     .cards-area{
       padding:14px 16px 18px;
       overflow-y:auto;
       background:radial-gradient(circle at top,#1a1a1a,#050505 55%,#000 100%);
+    }
+
+    .cards-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+      gap:10px;
+    }
+
+    .card{
+      border-radius:var(--radius-lg);
+      border:1px solid rgba(163,139,99,.3);
+      padding:10px 11px 9px;
+      background:radial-gradient(circle at top left,#181818,#070707);
+      box-shadow:var(--shadow-soft);
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    .card.completed{
+      opacity:.55;
+      border-style:dashed;
+    }
+
+    .card-title{
+      margin:0;
+      font-size:14px;
+      font-weight:600;
+      color:#fff;
+    }
+
+    .card-subtitle{
+      margin:1px 0 0;
+      font-size:11px;
+      color:var(--muted);
+    }
+
+    .chip-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
+      margin-top:4px;
+    }
+    .chip{
+      border-radius:999px;
+      padding:2px 7px;
+      font-size:10px;
+      border:1px solid rgba(163,139,99,.4);
+      background:#1E1E1E;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+
+    /* -------------------------------------------
+       MODAL PREMIUM (base sem conteúdo interno)
+       — A ficha original será enviada na parte B/C
+    ------------------------------------------- */
+    .modal-backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.65);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:300;
+    }
+    .modal-backdrop.open{
+      display:flex;
+    }
+
+    .modal{
+      width:min(900px,96vw);
+      max-height:92vh;
+      background:radial-gradient(circle at top,#151515,#050505);
+      border-radius:22px;
+      border:1px solid rgba(163,139,99,.5);
+      box-shadow:0 24px 45px rgba(0,0,0,.8);
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+    }
+
+    .modal-header{
+      padding:10px 16px 8px;
+      border-bottom:1px solid rgba(163,139,99,.25);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      background:linear-gradient(90deg,#050505,#111,#050505);
+    }
+    .modal-header h2{
+      margin:0;
+      font-size:15px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--gold);
+    }
+
+    .modal-body{
+      padding:12px 16px;
+      overflow-y:auto;
+    }
+
+    .modal-footer{
+      padding:8px 14px 10px;
+      border-top:1px solid rgba(163,139,99,.25);
+      display:flex;
+      justify-content:flex-end;
+      background:#050505;
+      gap:8px;
     }
 
   </style>
@@ -239,9 +311,8 @@
 <body>
 <div class="app-shell">
 
-  <!-- ===================== BARRA SUPERIOR ===================== -->
+  <!-- HEADER PREMIUM -->
   <header class="app-header">
-
     <div class="brand">
       <div class="brand-icon">
         <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
@@ -251,11 +322,10 @@
       </div>
       <div>
         <h1>Garvetur Porto Pro — Tarefas</h1>
-        <span class="sub">Follow-up, compromissos e rotina comercial</span>
+        <span class="sub">Gestão integrada de ações | Leads & Angariações</span>
       </div>
     </div>
 
-    <!-- ===================== MENU DE NAVEGAÇÃO COMPLETO ===================== -->
     <nav class="nav-tabs">
       <a href="index.html" class="nav-tab">Início</a>
       <a href="mapa.html" class="nav-tab">Mapa</a>
@@ -266,1948 +336,1353 @@
       <a href="tarefas.html" class="nav-tab active">Tarefas</a>
     </nav>
 
-    <!-- ===================== AÇÕES (CADEADO, EXPORTAÇÕES, + NOVA TAREFA) ===================== -->
     <div class="header-actions">
-      <div class="pill-lock" id="lockPill">
-        <span>Modo</span>
-        <span class="state" id="lockStateLabel">Bloqueado</span>
-        <button id="toggleLockBtn" title="Alternar edição">🔒</button>
-      </div>
-
-      <button class="btn btn-ghost" id="exportCsvBtn" title="Exportar CSV">⤓ CSV</button>
-      <button class="btn btn-ghost" id="exportPdfBtn" title="Imprimir / PDF">⤓ PDF</button>
-      <button class="btn btn-primary" id="newTaskBtn">+ Nova Tarefa</button>
+      <button id="btnNovaTarefa" class="btn btn-primary">+ Nova tarefa</button>
     </div>
-
   </header>
 
-  <!-- ===================== LAYOUT (SIDEBAR + CONTEÚDO) ===================== -->
-
+  <!-- LAYOUT 2 COLUNAS -->
   <div class="layout">
 
-    <!-- ===================== SIDEBAR (Filtros + Resumo) ===================== -->
-
+    <!-- SIDEBAR -->
     <aside class="sidebar">
 
       <div class="sidebar-section">
         <h3>Filtros</h3>
 
         <div class="field">
-          <label class="field-label" for="filterResponsavel">Responsável</label>
-          <select id="filterResponsavel">
+          <label class="field-label">Consultor</label>
+          <select id="filterConsultor">
             <option value="">Todos</option>
           </select>
         </div>
 
         <div class="field-row">
           <div class="field">
-            <label class="field-label" for="filterEstado">Estado</label>
-            <select id="filterEstado">
-              <option value="">Todos</option>
-              <option value="por_fazer">Por fazer</option>
-              <option value="em_curso">Em curso</option>
-              <option value="concluida">Concluída</option>
-              <option value="adiada">Adiada</option>
-              <option value="cancelada">Cancelada</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label class="field-label" for="filterPrioridade">Prioridade</label>
-            <select id="filterPrioridade">
-              <option value="">Todas</option>
-              <option value="baixa">Baixa</option>
-              <option value="normal">Normal</option>
-              <option value="alta">Alta</option>
-              <option value="critica">Crítica</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label class="field-label" for="filterDataDe">De (data limite)</label>
+            <label class="field-label">De</label>
             <input type="date" id="filterDataDe">
           </div>
           <div class="field">
-            <label class="field-label" for="filterDataAte">Até (data limite)</label>
+            <label class="field-label">Até</label>
             <input type="date" id="filterDataAte">
           </div>
         </div>
 
-        <div class="toggle-line">
-          <span>Mostrar concluídas</span>
-          <label class="switch">
-            <input type="checkbox" id="filterShowCompleted">
-            <span class="slider"></span>
-          </label>
+        <div class="field">
+          <label class="field-label">Estado</label>
+          <select id="filterEstado">
+            <option value="">Todos</option>
+            <option value="pendente">Pendente</option>
+            <option value="concluida">Concluída</option>
+            <option value="atrasada">Atrasada</option>
+          </select>
         </div>
 
-        <button class="btn" id="applyFiltersBtn" style="margin-top:6px;width:100%;">Aplicar filtros</button>
-        <button class="btn" id="clearFiltersBtn" style="
-          margin-top:4px;width:100%;
-          background:transparent;border-color:rgba(255,255,255,.2);
-        ">Limpar</button>
+        <div class="field">
+          <label class="field-label">Visibilidade</label>
+          <select id="filterVisibilidade">
+            <option value="">Visíveis</option>
+            <option value="invisiveis">Só invisíveis</option>
+            <option value="todas">Todas</option>
+          </select>
+        </div>
 
-        <p style="margin-top:6px;">Use os filtros para organizar o dia, visitas, chamadas e follow-up.</p>
+        <div class="field-row" style="margin-top:8px;">
+          <button id="btnAplicarFiltros" class="btn" style="flex:1;">Aplicar</button>
+          <button id="btnLimparFiltros" class="btn btn-ghost" style="flex:1;">Limpar</button>
+        </div>
       </div>
 
-      <!-- Resumo rápido -->
       <div class="sidebar-section">
-        <h3>Resumo rápido</h3>
-        <div class="filters-badges" id="summaryBadges"></div>
+        <h3>Dicas</h3>
+        <p>Use filtros para preparar o follow-up diário ou as reuniões de consultor.</p>
       </div>
 
-      <div class="sidebar-section">
-        <h3>Notas</h3>
-        <p>Quando o cadeado está em <strong>Bloqueado</strong>, não pode alterar tarefas.</p>
-        <p>Ative <strong>Edição ativa</strong> para criar/editar tarefas.</p>
-      </div>
     </aside>
-    <!-- ===================== ÁREA PRINCIPAL (Cards, KPI, Banner de origem) ===================== -->
 
+    <!-- ÁREA DE CARTÕES -->
     <main class="cards-area">
+      <div class="cards-grid" id="cardsGrid"></div>
 
-      <div class="cards-header">
-        <div class="cards-header-left">
-          <h2>Tarefas</h2>
-          <p>Visão das ações comerciais: chamadas, visitas, follow-ups e compromissos ligados ao negócio.</p>
-          <div class="pipeline-kpis" id="pipelineKpis"></div>
-        </div>
+      <div id="emptyState" class="empty" style="display:none;margin-top:20px;font-size:12px;color:var(--muted);">
+        Nenhuma tarefa encontrada com os filtros atuais.
       </div>
-
-      <!-- Banner de origem (quando tarefas foram abertas via Leads/Vendas) -->
-      <div id="originFilterBanner" class="origin-banner" style="display:none;">
-        <div>
-          🔗 <strong id="originFilterLabel"></strong>
-        </div>
-        <button type="button" id="clearOriginFilterBtn">Limpar filtro de origem</button>
-      </div>
-
-      <!-- Grid dos cartões -->
-      <div id="cardsGrid" class="cards-grid"></div>
-
-      <!-- Estado vazio -->
-      <div id="emptyState" class="empty" style="display:none;">
-        Ainda não existem tarefas registadas com os filtros atuais.
-      </div>
-
     </main>
-  </div> <!-- fecha layout -->
 
-
-  <!-- ===================== MODAL BASE DE TAREFA ===================== -->
-
-  <div class="modal-backdrop" id="modalBackdrop">
-    <div class="modal">
-
-      <div class="modal-header">
-        <h2 id="modalTitle">Nova Tarefa</h2>
-        <button class="btn btn-icon btn-ghost" id="closeModalBtn" title="Fechar">✕</button>
-      </div>
-
-      <div class="modal-body">
-        <form id="taskForm">
-          <input type="hidden" id="taskId" />
-
-          <div class="form-grid">
-
-            <!-- ===================== COLUNA 1 — Envolvidos & Origem ===================== -->
-            <div class="form-section">
-              <h3>Envolvidos & Origem</h3>
-
-              <div class="field-row">
-                <div class="field">
-                  <label class="field-label" for="responsavel">Responsável</label>
-                  <select id="responsavel"></select>
-                </div>
-
-                <div class="field">
-                  <label class="field-label" for="apoio">Apoio / Gestor</label>
-                  <select id="apoio"></select>
-                </div>
-              </div>
-
-              <div class="field-row">
-
-                <div class="field">
-                  <label class="field-label" for="origemTipo">Origem</label>
-                  <select id="origemTipo">
-                    <option value="">—</option>
-                    <option value="lead">Lead</option>
-                    <option value="angariacao">Angariação</option>
-                    <option value="venda">Venda</option>
-                    <option value="interna">Interna</option>
-                  </select>
-                </div>
-
-                <div class="field">
-                  <label class="field-label" for="origemRef">Ref. associada</label>
-                  <input type="text" id="origemRef" placeholder="Ex.: REF-123 / Nome cliente" />
-                </div>
-
-              </div>
-
-              <div class="field-row">
-
-                <div class="field">
-                  <label class="field-label" for="estado">Estado</label>
-                  <select id="estado">
-                    <option value="por_fazer">Por fazer</option>
-                    <option value="em_curso">Em curso</option>
-                    <option value="concluida">Concluída</option>
-                    <option value="adiada">Adiada</option>
-                    <option value="cancelada">Cancelada</option>
-                  </select>
-                </div>
-
-                <div class="field">
-                  <label class="field-label" for="prioridade">Prioridade</label>
-                  <select id="prioridade">
-                    <option value="baixa">Baixa</option>
-                    <option value="normal" selected>Normal</option>
-                    <option value="alta">Alta</option>
-                    <option value="critica">Crítica</option>
-                  </select>
-                </div>
-
-              </div>
-
-              <div class="field">
-                <label class="field-label" for="tipoTarefa">Tipo de tarefa</label>
-                <select id="tipoTarefa">
-                  <option value="chamada">Chamada telefónica</option>
-                  <option value="email">Email</option>
-                  <option value="visita">Visita</option>
-                  <option value="reuniao">Reunião</option>
-                  <option value="followup">Follow-up</option>
-                  <option value="outro">Outro</option>
-                </select>
-              </div>
-
-              <div class="field">
-                <label class="field-label" for="tags">Tags / etiquetas</label>
-                <input type="text" id="tags" placeholder="Ex.: empreend. X, frio, urgente" />
-              </div>
-
-            </div>
-
-            <!-- ===================== COLUNA 2 — Detalhes & Datas ===================== -->
-            <div class="form-section">
-              <h3>Detalhes & Datas</h3>
-
-              <div class="field">
-                <label class="field-label" for="titulo">Título</label>
-                <input type="text" id="titulo" placeholder="Ex.: Agendar visita com proprietários" />
-              </div>
-
-              <div class="field">
-                <label class="field-label" for="descricao">Descrição</label>
-                <textarea id="descricao" placeholder="Notas sobre a tarefa, contexto, alinhamento com cliente..."></textarea>
-              </div>
-
-              <div class="field-row">
-                <div class="field">
-                  <label class="field-label" for="dataCriacao">Data criação</label>
-                  <input type="date" id="dataCriacao" />
-                </div>
-                <div class="field">
-                  <label class="field-label" for="dataLimite">Data limite</label>
-                  <input type="date" id="dataLimite" />
-                </div>
-              </div>
-
-              <div class="field-row">
-                <div class="field">
-                  <label class="field-label" for="horaLimite">Hora</label>
-                  <input type="time" id="horaLimite" />
-                </div>
-
-                <div class="field">
-                  <label class="field-label">&nbsp;</label>
-                  <small>Use data/hora para organizar visitas e follow-up.</small>
-                </div>
-              </div>
-
-            </div>
-
-          </div> <!-- fecha form-grid -->
-        </form>
-      </div>
-
-      <div class="modal-footer">
-        <div class="modal-footer-left">
-          Dados guardados apenas neste dispositivo (localStorage).
-        </div>
-        <div>
-          <button class="btn btn-ghost" id="cancelModalBtn">Cancelar</button>
-          <button class="btn btn-primary" id="saveTaskBtn">Guardar</button>
-        </div>
-      </div>
-
-    </div> <!-- fecha modal -->
-  </div> <!-- fecha modal-backdrop -->
-  <!-- ===================== MODAL FICHA ORIGINAL (Lead / Angariação / Venda) ===================== -->
-
-  <div class="modal-backdrop" id="recordModalBackdrop" style="display:none;">
-    <div class="modal">
-
-      <div class="modal-header">
-        <div>
-          <h2 id="recordModalTitle">Ficha original</h2>
-          <div id="recordModalSubtitle" style="font-size:11px;color:var(--muted);margin-top:2px;"></div>
-        </div>
-        <button class="btn btn-icon btn-ghost" id="closeRecordModalBtn" title="Fechar">✕</button>
-      </div>
-
-      <div class="modal-body">
-        <div class="form-grid">
-
-          <!-- COLUNA ESQUERDA: Ficha original (edição genérica) -->
-          <div class="form-section">
-            <h3>Ficha original</h3>
-            <small>Campos provenientes da Lead / Angariação / Venda. Editáveis e guardados na origem.</small>
-
-            <div id="recordMainInfo" style="margin-top:6px;margin-bottom:6px;font-size:12px;color:var(--muted);"></div>
-
-            <div id="recordFields" style="display:flex;flex-direction:column;gap:6px;font-size:12px;"></div>
-          </div>
-
-          <!-- COLUNA DIREITA: Contexto 360º (Histórico + Timeline + Notas) -->
-          <div class="form-section">
-            <h3>Contexto 360º</h3>
-            <small>Histórico de tarefas, timeline e notas internas sobre este cliente / imóvel / promotor.</small>
-
-            <!-- Alertas / avisos rápidos -->
-            <div id="recordAlerts" style="margin-top:6px;font-size:12px;color:var(--muted);"></div>
-
-            <!-- Secção Histórico de Tarefas (colapsada por defeito) -->
-            <div style="margin-top:10px;">
-              <button type="button" class="btn btn-ghost" id="toggleTasksSectionBtn" style="padding:4px 10px;font-size:11px;">
-                ▶ Histórico de tarefas
-              </button>
-              <div id="recordTasksSection" style="margin-top:6px;display:none;">
-                <div id="recordTasksList" style="font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:4px;"></div>
-              </div>
-            </div>
-
-            <!-- Secção Timeline & Notas (colapsada por defeito) -->
-            <div style="margin-top:12px;">
-              <button type="button" class="btn btn-ghost" id="toggleTimelineSectionBtn" style="padding:4px 10px;font-size:11px;">
-                ▶ Timeline & notas
-              </button>
-              <div id="recordTimelineSection" style="margin-top:6px;display:none;">
-                <div id="recordTimeline" style="font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:6px;"></div>
-
-                <div style="margin-top:8px;">
-                  <textarea id="recordNewNote" placeholder="Adicionar nota interna (não cria tarefa)..." style="width:100%;min-height:60px;background:rgba(0,0,0,.7);color:var(--text);border-radius:10px;border:1px solid rgba(163,139,99,.22);padding:6px 8px;font-size:12px;"></textarea>
-                  <button type="button" class="btn btn-primary" id="addRecordNoteBtn" style="margin-top:4px;font-size:12px;">
-                    <span style="font-size:11px;color:var(--gold);">●</span> Adicionar nota
-                  </button>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <div class="modal-footer-left">
-          Edição aplicada à ficha de origem (Leads / Angariações) e notas guardadas apenas neste dispositivo.
-        </div>
-        <div>
-          <button class="btn btn-ghost" id="saveRecordBtn">Guardar ficha</button>
-        </div>
-      </div>
-
-    </div>
   </div>
 
-  <!-- ===================== SCRIPT PRINCIPAL ===================== -->
-
-  <script>
-  (function(){
-
-    // ========= CONSTANTES DE STORAGE =========
-    const STORAGE_KEY           = 'gpp_tarefas_v1';
-    const FILTERS_STORAGE_KEY   = 'gpp_tarefas_filters_v1';
-    const GLOBAL_FILTERS_KEY    = 'gpp_global_filters_v1';
-    const STORAGE_LEADS         = 'gpp_leads_v5';
-    const STORAGE_ANG           = 'gpp_angariacoes_v2';
-    const TIMELINE_STORAGE_KEY  = 'gpp_timeline_v1';
-    const SESSION_ALERT_KEY     = 'gpp_tarefas_alertas_sessao_v1';
-
-    const CONSULTOR_OPTIONS = [
-      "Rui Quelhas",
-      "Manuel Oliveira",
-      "João Sousa",
-      "Francisco dos Santos",
-      "Rosário Vasconcelos",
-      "Armanda Meireles",
-      "Audrey Lucas",
-      "Outro"
-    ];
-
-    function $(id){ return document.getElementById(id); }
-
-    // ========= ELEMENTOS DOM PRINCIPAIS =========
-    const lockStateLabel   = $('lockStateLabel');
-    const toggleLockBtn    = $('toggleLockBtn');
-    const newTaskBtn       = $('newTaskBtn');
-    const exportCsvBtn     = $('exportCsvBtn');
-    const exportPdfBtn     = $('exportPdfBtn');
-    const cardsGrid        = $('cardsGrid');
-    const emptyState       = $('emptyState');
-    const pipelineKpis     = $('pipelineKpis');
-    const summaryBadges    = $('summaryBadges');
-
-    const filterResponsavel   = $('filterResponsavel');
-    const filterEstado        = $('filterEstado');
-    const filterPrioridade    = $('filterPrioridade');
-    const filterDataDe        = $('filterDataDe');
-    const filterDataAte       = $('filterDataAte');
-    const filterShowCompleted = $('filterShowCompleted');
-    const applyFiltersBtn     = $('applyFiltersBtn');
-    const clearFiltersBtn     = $('clearFiltersBtn');
-
-    const originFilterBanner  = $('originFilterBanner');
-    const originFilterLabel   = $('originFilterLabel');
-    const clearOriginFilterBtn= $('clearOriginFilterBtn');
-
-    const modalBackdrop   = $('modalBackdrop');
-    const modalTitle      = $('modalTitle');
-    const closeModalBtn   = $('closeModalBtn');
-    const cancelModalBtn  = $('cancelModalBtn');
-    const saveTaskBtn     = $('saveTaskBtn');
-    const taskForm        = $('taskForm');
-
-    const responsavelSelect = $('responsavel');
-    const apoioSelect       = $('apoio');
-
-    // Modal Ficha Original
-    const recordModalBackdrop   = $('recordModalBackdrop');
-    const recordModalTitle      = $('recordModalTitle');
-    const recordModalSubtitle   = $('recordModalSubtitle');
-    const recordMainInfo        = $('recordMainInfo');
-    const recordFields          = $('recordFields');
-    const recordAlerts          = $('recordAlerts');
-    const recordTasksSection    = $('recordTasksSection');
-    const recordTasksList       = $('recordTasksList');
-    const recordTimelineSection = $('recordTimelineSection');
-    const recordTimeline        = $('recordTimeline');
-    const recordNewNote         = $('recordNewNote');
-    const addRecordNoteBtn      = $('addRecordNoteBtn');
-    const toggleTasksSectionBtn = $('toggleTasksSectionBtn');
-    const toggleTimelineSectionBtn = $('toggleTimelineSectionBtn');
-    const closeRecordModalBtn   = $('closeRecordModalBtn');
-    const saveRecordBtn         = $('saveRecordBtn');
-
-    // ========= ESTADO =========
-    let state = {
-      locked: true,
-      tasks: []
-    };
-
-    // Filtros (inclui origem escondida)
-    let FILTERS = {
-      responsavel: '',
-      estado: '',
-      prioridade: '',
-      de: '',
-      ate: '',
-      showCompleted: false,
-      origemTipo: '',
-      origemRef: ''
-    };
-
-    let allLeads = [];
-    let allDeals = [];
-    let angRaw   = null;   // objeto bruto de angariações (para re-gravar)
-
-    let timelineStore = {};
-    let alertedMap    = loadAlertedMap();
-
-    let currentRecordContext = null; // { tipo, task, record, index, key, clienteNome, promotorNome }
-
-    // ========= HELPERS DE DATA =========
-    function todayISO(){
-      const d = new Date();
-      const y = d.getFullYear();
-      const m = String(d.getMonth()+1).padStart(2,'0');
-      const day = String(d.getDate()).padStart(2,'0');
-      return y + '-' + m + '-' + day;
-    }
-
-    function addDaysToISO(iso, days){
-      if(!iso) return '';
-      const d = new Date(iso + 'T00:00:00');
-      if(isNaN(d)) return iso;
-      d.setDate(d.getDate() + days);
-      const y = d.getFullYear();
-      const m = String(d.getMonth()+1).padStart(2,'0');
-      const day = String(d.getDate()).padStart(2,'0');
-      return y + '-' + m + '-' + day;
-    }
-
-    function daysFromToday(iso){
-      if(!iso) return null;
-      const today = new Date();
-      today.setHours(0,0,0,0);
-      const d = new Date(iso + 'T00:00:00');
-      if(isNaN(d)) return null;
-      const diffMs = d.getTime() - today.getTime();
-      return Math.round(diffMs / (24*60*60*1000));
-    }
-
-    // ========= STORAGE AUX =========
-    function loadState(){
-      try{
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if(raw){
-          const parsed = JSON.parse(raw);
-          if(Array.isArray(parsed.tasks)){
-            state.tasks = parsed.tasks;
-          }
-          state.locked = parsed.locked !== false;
-        }
-      }catch(e){
-        console.error('Erro ao carregar storage tarefas', e);
-      }
-      updateLockUI();
-    }
-
-    function saveState(){
-      try{
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      }catch(e){
-        console.error('Erro ao guardar storage tarefas', e);
-      }
-    }
-
-    function loadFiltersFromStorage(){
-      try{
-        const raw = localStorage.getItem(FILTERS_STORAGE_KEY);
-        if(!raw) return;
-        const parsed = JSON.parse(raw);
-        if(parsed && typeof parsed === 'object'){
-          FILTERS = Object.assign({}, FILTERS, parsed);
-        }
-      }catch(e){
-        console.error('Erro a carregar filtros de tarefas', e);
-      }
-    }
-
-    function saveFiltersToStorage(){
-      try{
-        localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(FILTERS));
-      }catch(e){
-        console.error('Erro a guardar filtros de tarefas', e);
-      }
-    }
-
-    function loadGlobalFiltersFallback(){
-      if(FILTERS.responsavel || FILTERS.de || FILTERS.ate) return;
-      try{
-        const raw = localStorage.getItem(GLOBAL_FILTERS_KEY);
-        if(!raw) return;
-        const g = JSON.parse(raw) || {};
-        if(!FILTERS.responsavel && g.consultor) FILTERS.responsavel = g.consultor;
-        if(!FILTERS.de && g.de) FILTERS.de = g.de;
-        if(!FILTERS.ate && g.ate) FILTERS.ate = g.ate;
-      }catch(e){
-        console.error('Erro a carregar filtros globais', e);
-      }
-    }
-
-    function syncGlobalFiltersFromTasks(){
-      const g = {
-        consultor: FILTERS.responsavel || '',
-        de: FILTERS.de || '',
-        ate: FILTERS.ate || ''
-      };
-      try{
-        localStorage.setItem(GLOBAL_FILTERS_KEY, JSON.stringify(g));
-      }catch(e){
-        console.error('Erro a guardar filtros globais', e);
-      }
-    }
-
-    function applyFiltersToControls(){
-      filterResponsavel.value   = FILTERS.responsavel || '';
-      filterEstado.value        = FILTERS.estado || '';
-      filterPrioridade.value    = FILTERS.prioridade || '';
-      filterDataDe.value        = FILTERS.de || '';
-      filterDataAte.value       = FILTERS.ate || '';
-      filterShowCompleted.checked = !!FILTERS.showCompleted;
-    }
-
-    function updateFiltersFromControls(){
-      FILTERS.responsavel   = filterResponsavel.value || '';
-      FILTERS.estado        = filterEstado.value || '';
-      FILTERS.prioridade    = filterPrioridade.value || '';
-      FILTERS.de            = filterDataDe.value || '';
-      FILTERS.ate           = filterDataAte.value || '';
-      FILTERS.showCompleted = filterShowCompleted.checked;
-    }
-
-    function clearFilters(){
-      FILTERS = {
-        responsavel:'',
-        estado:'',
-        prioridade:'',
-        de:'',
-        ate:'',
-        showCompleted:false,
-        origemTipo:'',
-        origemRef:''
-      };
-      applyFiltersToControls();
-      saveFiltersToStorage();
-      syncGlobalFiltersFromTasks();
-    }
-
-    // ========= ALERTAS EM SESSÃO =========
-    function loadAlertedMap(){
-      try{
-        const raw = sessionStorage.getItem(SESSION_ALERT_KEY);
-        if(!raw) return {};
-        const obj = JSON.parse(raw);
-        return obj && typeof obj === 'object' ? obj : {};
-      }catch(e){
-        return {};
-      }
-    }
-    function saveAlertedMap(){
-      try{
-        sessionStorage.setItem(SESSION_ALERT_KEY, JSON.stringify(alertedMap));
-      }catch(e){}
-    }
-
-    // ========= LEADS & ANGARIAÇÕES =========
-    function loadLeads(){
-      try{
-        const raw = localStorage.getItem(STORAGE_LEADS);
-        const parsed = raw ? JSON.parse(raw) : [];
-        allLeads = Array.isArray(parsed) ? parsed : [];
-      }catch(e){
-        console.error('Erro a ler leads:', e);
-        allLeads = [];
-      }
-    }
-
-    function loadDeals(){
-      try{
-        const raw = localStorage.getItem(STORAGE_ANG);
-        const parsed = raw ? JSON.parse(raw) : {};
-        angRaw   = parsed && typeof parsed === 'object' ? parsed : {};
-        allDeals = Array.isArray(angRaw.deals) ? angRaw.deals : [];
-      }catch(e){
-        console.error('Erro a ler angariações:', e);
-        angRaw = {};
-        allDeals = [];
-      }
-    }
-
-    // Timeline (notas internas só)
-    function loadTimelineStore(){
-      try{
-        const raw = localStorage.getItem(TIMELINE_STORAGE_KEY);
-        const parsed = raw ? JSON.parse(raw) : {};
-        timelineStore = (parsed && typeof parsed === 'object') ? parsed : {};
-      }catch(e){
-        timelineStore = {};
-      }
-    }
-    function saveTimelineStore(){
-      try{
-        localStorage.setItem(TIMELINE_STORAGE_KEY, JSON.stringify(timelineStore));
-      }catch(e){}
-    }
-
-    // ========= CONSULTOR / LOCK =========
-    function initConsultores(){
-      CONSULTOR_OPTIONS.forEach(name=>{
-        const opt1 = document.createElement('option');
-        opt1.value = name; opt1.textContent = name;
-        responsavelSelect.appendChild(opt1);
-
-        const opt2 = document.createElement('option');
-        opt2.value = name; opt2.textContent = name;
-        apoioSelect.appendChild(opt2);
-
-        const opt3 = document.createElement('option');
-        opt3.value = name; opt3.textContent = name;
-        filterResponsavel.appendChild(opt3);
-      });
-    }
-
-    function updateLockUI(){
-      if(state.locked){
-        lockStateLabel.textContent = 'Bloqueado';
-        toggleLockBtn.textContent  = '🔒';
-        newTaskBtn.disabled = true;
-      }else{
-        lockStateLabel.textContent = 'Edição ativa';
-        toggleLockBtn.textContent  = '🔓';
-        newTaskBtn.disabled = false;
-      }
-    }
-
-    // ========= CONTEXTO URL (vindo de Leads / Angariações / Vendas) =========
-    function applyUrlContext(){
-      try{
-        const params    = new URLSearchParams(window.location.search);
-        const origem    = (params.get('origem') || '').trim();
-        const ref       = (params.get('ref') || '').trim();
-        const consultor = (params.get('consultor') || '').trim();
-        const nova      = (params.get('nova') || '').trim(); // "1" => abrir modal de nova tarefa
-
-        if(consultor && !FILTERS.responsavel){
-          FILTERS.responsavel = consultor;
-        }
-
-        if(origem || ref){
-          FILTERS.origemTipo = origem || '';
-          FILTERS.origemRef  = ref || '';
-        }
-
-        // Se veio "nova tarefa" pedida a partir de outro módulo
-        if(nova === '1'){
-          if(state.locked){
-            setTimeout(()=>{
-              alert('Para criar uma nova tarefa associada, ative "Edição ativa" (cadeado no topo).');
-            }, 300);
-          }else{
-            openModal(null);
-            if(origem) $('origemTipo').value = origem;
-            if(ref)    $('origemRef').value  = ref;
-            if(consultor) responsavelSelect.value = consultor;
-          }
-        }
-      }catch(e){
-        console.error('Erro a interpretar parâmetros da URL em tarefas', e);
-      }
-    }
-
-    // ========= LABELS / CLASSES =========
-    function estadoLabel(e){
-      return {
-        por_fazer:'Por fazer',
-        em_curso:'Em curso',
-        concluida:'Concluída',
-        adiada:'Adiada',
-        cancelada:'Cancelada'
-      }[e] || '—';
-    }
-    function prioridadeLabel(p){
-      return {
-        baixa:'Baixa',
-        normal:'Normal',
-        alta:'Alta',
-        critica:'Crítica'
-      }[p] || '—';
-    }
-    function tipoLabel(t){
-      return {
-        chamada:'Chamada',
-        email:'Email',
-        visita:'Visita',
-        reuniao:'Reunião',
-        followup:'Follow-up',
-        outro:'Outro'
-      }[t] || '—';
-    }
-    function origemLabel(tipo){
-      return {
-        lead:'Lead',
-        angariacao:'Angariação',
-        venda:'Venda',
-        interna:'Interna'
-      }[tipo] || '';
-    }
-
-    function prioridadeClass(p){
-      if(p === 'critica') return 'chip-red';
-      if(p === 'alta')    return 'chip-yellow';
-      if(p === 'baixa')   return 'chip';
-      return 'chip-primary';
-    }
-    function estadoClass(e){
-      if(e === 'concluida')                return 'chip-green';
-      if(e === 'adiada' || e === 'cancelada') return 'chip-red';
-      if(e === 'em_curso')                 return 'chip-yellow';
-      return 'chip-primary';
-    }
-
-    // ========= URGÊNCIA DAS TAREFAS =========
-    function getUrgencyMeta(task){
-      if(!task || !task.dataLimite) return {score:9999, level:'none'};
-      if(task.estado === 'concluida' || task.estado === 'cancelada'){
-        return {score:9999, level:'done'};
-      }
-      const d = daysFromToday(task.dataLimite);
-      if(d === null) return {score:9999, level:'none'};
-
-      let level = 'low';
-      if(d < 0) level = 'overdue';
-      else if(d === 0) level = 'due';
-      else if(d <= 2) level = 'high';
-      else if(d <= 5) level = 'medium';
-      else level = 'low';
-
-      return {score: d, level};
-    }
-
-    function applyUrgencyStyles(card, meta){
-      if(!meta) return;
-      if(meta.level === 'none' || meta.level === 'done') return;
-
-      if(meta.level === 'overdue'){
-        card.style.borderColor = 'rgba(242,95,92,0.9)';
-        card.style.boxShadow   = '0 0 0 1px rgba(242,95,92,0.5), 0 18px 40px rgba(0,0,0,0.9)';
-        card.style.background  = 'radial-gradient(circle at top left,#3b1111,#070707)';
-      }else if(meta.level === 'due'){
-        card.style.borderColor = 'rgba(242,95,92,0.8)';
-        card.style.boxShadow   = '0 0 0 1px rgba(242,95,92,0.35), 0 18px 35px rgba(0,0,0,0.85)';
-        card.style.background  = 'radial-gradient(circle at top left,#361616,#070707)';
-      }else if(meta.level === 'high'){
-        card.style.borderColor = 'rgba(255,200,87,0.9)';
-        card.style.boxShadow   = '0 0 0 1px rgba(255,200,87,0.35), 0 18px 30px rgba(0,0,0,0.8)';
-        card.style.background  = 'radial-gradient(circle at top left,#3b2b11,#070707)';
-      }else if(meta.level === 'medium'){
-        card.style.borderColor = 'rgba(163,139,99,0.9)';
-        card.style.boxShadow   = '0 0 0 1px rgba(163,139,99,0.35), 0 18px 30px rgba(0,0,0,0.75)';
-      }
-    }
-
-    // ========= FILTROS =========
-    function applyFilters(tasks){
-      const resp          = FILTERS.responsavel || '';
-      const est           = FILTERS.estado || '';
-      const prio          = FILTERS.prioridade || '';
-      const from          = FILTERS.de || '';
-      const to            = FILTERS.ate || '';
-      const showCompleted = !!FILTERS.showCompleted;
-      const oTipo         = FILTERS.origemTipo || '';
-      const oRef          = (FILTERS.origemRef || '').toLowerCase();
-
-      return tasks.filter(t=>{
-        if(resp && t.responsavel !== resp) return false;
-        if(est  && t.estado      !== est)  return false;
-        if(prio && t.prioridade  !== prio) return false;
-
-        if(!showCompleted && (t.estado === 'concluida' || t.estado === 'cancelada')){
-          return false;
-        }
-
-        if(from && t.dataLimite && t.dataLimite < from) return false;
-        if(to   && t.dataLimite && t.dataLimite > to)   return false;
-
-        if(oTipo && t.origemTipo !== oTipo) return false;
-        if(oRef){
-          const tref = (t.origemRef || '').toLowerCase();
-          if(!tref.includes(oRef)) return false;
-        }
-
-        return true;
-      });
-    }
-
-    function renderOriginBanner(){
-      if(FILTERS.origemTipo || FILTERS.origemRef){
-        const parts = [];
-        if(FILTERS.origemTipo){
-          parts.push('Origem: ' + origemLabel(FILTERS.origemTipo));
-        }
-        if(FILTERS.origemRef){
-          parts.push('Ref.: ' + FILTERS.origemRef);
-        }
-        originFilterLabel.textContent = parts.join(' · ');
-        originFilterBanner.style.display = 'flex';
-      }else{
-        originFilterBanner.style.display = 'none';
-      }
-    }
-
-    // ========= MODAL TAREFA =========
-    function openModal(task){
-      modalBackdrop.classList.add('open');
-
-      if(task){
-        modalTitle.textContent = 'Editar Tarefa';
-        $('taskId').value      = task.id || '';
-        responsavelSelect.value= task.responsavel || '';
-        apoioSelect.value      = task.apoio || '';
-        $('origemTipo').value  = task.origemTipo || '';
-        $('origemRef').value   = task.origemRef || '';
-        $('estado').value      = task.estado || 'por_fazer';
-        $('prioridade').value  = task.prioridade || 'normal';
-        $('tipoTarefa').value  = task.tipoTarefa || 'chamada';
-        $('tags').value        = task.tags || '';
-        $('titulo').value      = task.titulo || '';
-        $('descricao').value   = task.descricao || '';
-        $('dataCriacao').value = task.dataCriacao || '';
-        $('dataLimite').value  = task.dataLimite || '';
-        $('horaLimite').value  = task.horaLimite || '';
-      }else{
-        modalTitle.textContent = 'Nova Tarefa';
-        taskForm.reset();
-        $('taskId').value      = '';
-        const hoje = todayISO();
-        $('dataCriacao').value = hoje;
-        // Por defeito: data limite = hoje + 8 dias
-        $('dataLimite').value  = addDaysToISO(hoje, 8);
-      }
-    }
-
-    function closeModal(){
-      modalBackdrop.classList.remove('open');
-    }
-
-    function ensureDeadlineValid(dataCriacao, dataLimite){
-      if(!dataCriacao || !dataLimite) return true;
-      return dataLimite > dataCriacao;
-    }
-
-    function collectFormData(){
-      const id = $('taskId').value || 'task_' + Date.now();
-
-      let dataCriacao = $('dataCriacao').value;
-      if(!dataCriacao){
-        dataCriacao = todayISO();
-      }
-      let dataLimite = $('dataLimite').value;
-      if(dataLimite && !ensureDeadlineValid(dataCriacao, dataLimite)){
-        alert('A data limite deve ser posterior à data de criação.');
-        return null;
-      }
-
-      const data = {
-        id,
-        responsavel:  responsavelSelect.value || '',
-        apoio:        apoioSelect.value || '',
-        origemTipo:   $('origemTipo').value || '',
-        origemRef:    $('origemRef').value || '',
-        estado:       $('estado').value || 'por_fazer',
-        prioridade:   $('prioridade').value || 'normal',
-        tipoTarefa:   $('tipoTarefa').value || 'chamada',
-        tags:         $('tags').value || '',
-        titulo:       $('titulo').value || '',
-        descricao:    $('descricao').value || '',
-        dataCriacao:  dataCriacao,
-        dataLimite:   dataLimite || '',
-        horaLimite:   $('horaLimite').value || '',
-        createdAtMs:  Date.now()
-      };
-
-      return data;
-    }
-
-    // ========= RECORD / FICHA ORIGINAL (MODAL PREMIUM) =========
-
-    function guessClienteNome(record){
-      if(!record || typeof record !== 'object') return '';
-      return record.nomeCliente || record.nome || record.cliente || record.proprietario || '';
-    }
-
-    function guessPromotorNome(record){
-      if(!record || typeof record !== 'object') return '';
-      return record.promotor || record.promoter || record.empresa || record.entidade || '';
-    }
-
-    function buildRecordKey(task, record){
-      const tipo = task.origemTipo || 'interno';
-      if(record){
-        if(record.id)   return tipo + ':' + String(record.id);
-        if(record.ref)  return tipo + ':' + String(record.ref);
-        if(record.codigo) return tipo + ':' + String(record.codigo);
-      }
-      if(task.origemRef){
-        return tipo + ':' + task.origemRef.toLowerCase();
-      }
-      return tipo + ':sem_ref';
-    }
-
-    function findRecordContext(task){
-      if(!task || !task.origemTipo) return null;
-      const tipo = task.origemTipo;
-      const ref  = (task.origemRef || '').toLowerCase();
-
-      if(!ref) return null;
-
-      if(tipo === 'lead'){
-        let idx = -1;
-        for(let i=0;i<allLeads.length;i++){
-          const l = allLeads[i] || {};
-          const cands = [
-            l.ref, l.referencia, l.codigo, l.codigoInterno,
-            l.nome, l.nomeCliente, l.cliente
-          ];
-          if(cands.some(v=>{
-            if(!v) return false;
-            const s = String(v).toLowerCase();
-            return ref.includes(s) || s.includes(ref);
-          })){
-            idx = i; break;
-          }
-        }
-        if(idx === -1) return null;
-        const record = allLeads[idx];
-        return {
-          tipo: 'lead',
-          task,
-          record,
-          index: idx,
-          key: buildRecordKey(task, record),
-          clienteNome: guessClienteNome(record),
-          promotorNome: guessPromotorNome(record)
-        };
-      }
-
-      if(tipo === 'angariacao'){
-        let idx = -1;
-        for(let i=0;i<allDeals.length;i++){
-          const d = allDeals[i] || {};
-          const cands = [
-            d.ref, d.referencia, d.codigo, d.codigoInterno,
-            d.imovel, d.nomeImovel, d.emp, d.empreendimento
-          ];
-          if(cands.some(v=>{
-            if(!v) return false;
-            const s = String(v).toLowerCase();
-            return ref.includes(s) || s.includes(ref);
-          })){
-            idx = i; break;
-          }
-        }
-        if(idx === -1) return null;
-        const record = allDeals[idx];
-        return {
-          tipo: 'angariacao',
-          task,
-          record,
-          index: idx,
-          key: buildRecordKey(task, record),
-          clienteNome: guessClienteNome(record),
-          promotorNome: guessPromotorNome(record)
-        };
-      }
-
-      // Para venda / interna, mantemos genérico
-      return {
-        tipo: tipo,
-        task,
-        record: null,
-        index: -1,
-        key: buildRecordKey(task, null),
-        clienteNome: '',
-        promotorNome: ''
-      };
-    }
-
-    function isTaskRelatedToContext(task, ctx){
-      if(!task || !ctx) return false;
-      if(task.id === ctx.task.id) return true;
-      if(task.origemTipo !== ctx.tipo) return false;
-
-      const baseRef   = (ctx.task.origemRef || '').toLowerCase();
-      const otherRef  = (task.origemRef || '').toLowerCase();
-      const cliente   = (ctx.clienteNome || '').toLowerCase();
-      const promotor  = (ctx.promotorNome || '').toLowerCase();
-
-      if(baseRef && otherRef && (baseRef.includes(otherRef) || otherRef.includes(baseRef))){
-        return true;
-      }
-      if(cliente && otherRef.includes(cliente)) return true;
-      if(promotor && otherRef.includes(promotor)) return true;
-
-      return false;
-    }
-
-    function openRecordModalForTask(task){
-      if(!task || !task.origemTipo){
-        alert('Esta tarefa não está ligada a uma Lead / Angariação / Venda.');
-        return;
-      }
-
-      const ctx = findRecordContext(task);
-      if(!ctx){
-        alert('Não foi possível localizar a ficha original associada a esta tarefa.');
-        return;
-      }
-
-      currentRecordContext = ctx;
-
-      // Cabeçalho
-      const tipoLabel = origemLabel(ctx.tipo) || ctx.tipo;
-      recordModalTitle.textContent = 'Ficha ' + tipoLabel;
-
-      const subParts = [];
-      if(ctx.task.origemRef) subParts.push(ctx.task.origemRef);
-      if(ctx.clienteNome)    subParts.push('Cliente: ' + ctx.clienteNome);
-      if(ctx.promotorNome)   subParts.push('Promotor: ' + ctx.promotorNome);
-      recordModalSubtitle.textContent = subParts.join(' · ');
-
-      // Info principal
-      recordMainInfo.innerHTML = '';
-      const infoLines = [];
-      if(ctx.clienteNome) infoLines.push('<strong>Cliente:</strong> ' + ctx.clienteNome);
-      if(ctx.promotorNome)infoLines.push('<strong>Promotor:</strong> ' + ctx.promotorNome);
-      if(ctx.tipo === 'lead' && ctx.record && ctx.record.estado){
-        infoLines.push('<strong>Estado lead:</strong> ' + ctx.record.estado);
-      }
-      if(ctx.tipo === 'angariacao' && ctx.record && ctx.record.estadoAng){
-        infoLines.push('<strong>Estado angariação:</strong> ' + ctx.record.estadoAng);
-      }
-      if(!infoLines.length) infoLines.push('Ficha ligada à origem: ' + tipoLabel + '.');
-      recordMainInfo.innerHTML = infoLines.join('<br>');
-
-      // Campos editáveis da ficha
-      renderRecordFields(ctx);
-
-      // Alertas / consistência simples
-      renderRecordAlerts(ctx);
-
-      // Histórico de tarefas relacionadas
-      renderRecordTasks(ctx);
-
-      // Timeline + notas
-      renderRecordTimeline(ctx);
-
-      // Secções colapsadas por defeito
-      recordTasksSection.style.display    = 'none';
-      recordTimelineSection.style.display = 'none';
-
-      recordModalBackdrop.style.display = 'flex';
-    }
-
-    function closeRecordModal(){
-      recordModalBackdrop.style.display = 'none';
-      currentRecordContext = null;
-    }
-
-    function renderRecordFields(ctx){
-      recordFields.innerHTML = '';
-
-      const record = ctx.record;
-      if(!record || typeof record !== 'object'){
-        const span = document.createElement('div');
-        span.style.fontSize = '12px';
-        span.style.color    = 'var(--muted)';
-        span.textContent    = 'Ficha sem campos estruturados disponíveis (registo genérico).';
-        recordFields.appendChild(span);
-        return;
-      }
-
-      const keys = Object.keys(record).filter(k=>!['createdAtMs','updatedAtMs'].includes(k));
-
-      keys.forEach(key=>{
-        const val = record[key];
-        if(typeof val === 'object') return; // simplificação
-
-        const wrapper = document.createElement('div');
-        wrapper.className = 'field';
-
-        const lbl = document.createElement('label');
-        lbl.className = 'field-label';
-        lbl.textContent = key;
-        wrapper.appendChild(lbl);
-
-        const inp = document.createElement('input');
-        inp.type  = 'text';
-        inp.value = (val === null || val === undefined) ? '' : String(val);
-        inp.setAttribute('data-field', key);
-        wrapper.appendChild(inp);
-
-        recordFields.appendChild(wrapper);
-      });
-    }
-
-    function renderRecordAlerts(ctx){
-      recordAlerts.innerHTML = '';
-
-      const msgs = [];
-
-      if(ctx.tipo === 'lead' && ctx.record){
-        if(!ctx.record.imovel && !ctx.record.imovelRef && !ctx.record.tipologia){
-          msgs.push('Lead sem imóvel/tipologia associada — completar informação para avançar no pipeline.');
-        }
-        if(!ctx.record.telefone && !ctx.record.telemovel && !ctx.record.email){
-          msgs.push('Dados de contacto em falta — difícil prosseguir follow-up.');
-        }
-      }
-
-      if(ctx.tipo === 'angariacao' && ctx.record){
-        if(!ctx.record.precoPedido){
-          msgs.push('Angariação sem preço definido — atenção ao posicionamento no mercado.');
-        }
-        if(!ctx.record.comissao && !ctx.record.comissaoOutro){
-          msgs.push('Comissão não definida — rever condições com o proprietário/promotor.');
-        }
-      }
-
-      if(!msgs.length){
-        const span = document.createElement('div');
-        span.textContent = 'Sem alertas críticos nesta ficha.';
-        span.style.fontSize = '12px';
-        span.style.color    = 'var(--muted)';
-        recordAlerts.appendChild(span);
-        return;
-      }
-
-      msgs.forEach(m=>{
-        const div = document.createElement('div');
-        div.style.fontSize = '12px';
-        div.style.color    = 'var(--muted)';
-        div.textContent    = '⚠ ' + m;
-        recordAlerts.appendChild(div);
-      });
-    }
-
-    function renderRecordTasks(ctx){
-      recordTasksList.innerHTML = '';
-
-      const related = state.tasks.filter(t=> isTaskRelatedToContext(t, ctx));
-
-      if(!related.length){
-        const div = document.createElement('div');
-        div.textContent = 'Sem tarefas associadas a esta ficha.';
-        recordTasksList.appendChild(div);
-        return;
-      }
-
-      related.sort((a,b)=>{
-        // mais recentes primeiro
-        const da = a.dataCriacao || '';
-        const db = b.dataCriacao || '';
-        if(da && db) return db.localeCompare(da);
-        return (b.createdAtMs||0) - (a.createdAtMs||0);
-      });
-
-      related.forEach(t=>{
-        const row = document.createElement('div');
-        row.style.display        = 'flex';
-        row.style.justifyContent = 'space-between';
-        row.style.gap            = '6px';
-        row.style.alignItems     = 'center';
-
-        const left = document.createElement('div');
-        left.style.flex = '1';
-        left.style.minWidth = '0';
-        left.innerHTML = '<strong>'+(t.titulo || '(Sem título)')+'</strong><br><span style="font-size:11px;color:var(--muted);">'+
-          (t.dataLimite || t.dataCriacao || '')+' · '+estadoLabel(t.estado)+' · '+prioridadeLabel(t.prioridade)+'</span>';
-
-        const btn = document.createElement('button');
-        btn.className = 'btn-xs';
-        btn.innerHTML = 'Abrir tarefa';
-        btn.addEventListener('click', ()=>{
-          if(state.locked){
-            alert('Ative "Edição ativa" para editar tarefas.');
-            return;
-          }
-          openModal(t);
-        });
-
-        row.appendChild(left);
-        row.appendChild(btn);
-        recordTasksList.appendChild(row);
-      });
-    }
-
-    function renderRecordTimeline(ctx){
-      recordTimeline.innerHTML = '';
-
-      const events = [];
-
-      // Evento base: criação da lead/angariação se houver data
-      if(ctx.tipo === 'lead' && ctx.record && ctx.record.data){
-        events.push({
-          type: 'evento',
-          when: ctx.record.data,
-          label: 'Lead criada',
-          detail: ''
-        });
-      }
-      if(ctx.tipo === 'angariacao' && ctx.record && ctx.record.dataAngariacao){
-        events.push({
-          type: 'evento',
-          when: ctx.record.dataAngariacao,
-          label: 'Angariação criada',
-          detail: ''
-        });
-      }
-
-      // Eventos de tarefas
-      const related = state.tasks.filter(t=> isTaskRelatedToContext(t, ctx));
-      related.forEach(t=>{
-        const when = t.dataCriacao || t.dataLimite || '';
-        events.push({
-          type: 'tarefa',
-          when,
-          label: 'Tarefa: ' + (t.titulo || '(Sem título)'),
-          detail: estadoLabel(t.estado)+' · '+prioridadeLabel(t.prioridade)
-        });
-      });
-
-      // Notas internas do timelineStore
-      const key = ctx.key;
-      const notes = timelineStore[key] || [];
-      notes.forEach(n=>{
-        events.push({
-          type: 'nota',
-          when: (n.when || '').substring(0,10),
-          label: 'Nota interna',
-          detail: n.text || ''
-        });
-      });
-
-      // Ordenar por data ascendente
-      events.sort((a,b)=>{
-        const da = a.when || '';
-        const db = b.when || '';
-        return da.localeCompare(db);
-      });
-
-      if(!events.length){
-        const div = document.createElement('div');
-        div.textContent = 'Sem eventos registados na timeline.';
-        recordTimeline.appendChild(div);
-        return;
-      }
-
-      events.forEach(ev=>{
-        const item = document.createElement('div');
-        item.style.padding      = '4px 6px';
-        item.style.borderRadius = '10px';
-        item.style.border       = '1px solid rgba(163,139,99,0.25)';
-        item.style.cursor       = 'pointer';
-
-        const header = document.createElement('div');
-        header.style.fontSize = '11px';
-        header.style.color    = 'var(--muted)';
-        const icon = '<span style="color:var(--gold);font-size:11px;">●</span>';
-        header.innerHTML = icon + ' ' + (ev.when || '—') + ' · ' + ev.label;
-
-        const body = document.createElement('div');
-        body.style.fontSize = '12px';
-        body.style.color    = '#f5f5f5';
-        body.textContent    = ev.detail || '';
-
-        item.appendChild(header);
-        if(ev.detail){
-          item.appendChild(body);
-        }
-
-        item.addEventListener('click', ()=>{
-          const txt = (ev.when || '') + ' — ' + ev.label + (ev.detail ? '\n\n' + ev.detail : '');
-          alert(txt);
-        });
-
-        recordTimeline.appendChild(item);
-      });
-    }
-
-    function addNoteToCurrentRecord(){
-      if(!currentRecordContext) return;
-      const text = (recordNewNote.value || '').trim();
-      if(!text){
-        alert('Escreva uma nota antes de adicionar.');
-        return;
-      }
-      const key = currentRecordContext.key;
-      if(!timelineStore[key]) timelineStore[key] = [];
-      timelineStore[key].push({
-        type:'nota',
-        when: new Date().toISOString(),
-        text
-      });
-      saveTimelineStore();
-      recordNewNote.value = '';
-      renderRecordTimeline(currentRecordContext);
-    }
-
-    function saveCurrentRecordEdits(){
-      if(!currentRecordContext) return;
-
-      const ctx    = currentRecordContext;
-      const record = ctx.record;
-      if(!record || typeof record !== 'object'){
-        alert('Ficha de origem genérica — nada para guardar.');
-        return;
-      }
-
-      // Recolher inputs
-      const inputs = recordFields.querySelectorAll('input[data-field]');
-      inputs.forEach(inp=>{
-        const field = inp.getAttribute('data-field');
-        if(!field) return;
-        record[field] = inp.value;
-      });
-
-      if(ctx.tipo === 'lead'){
-        if(ctx.index >=0 && ctx.index < allLeads.length){
-          allLeads[ctx.index] = record;
-          try{
-            localStorage.setItem(STORAGE_LEADS, JSON.stringify(allLeads));
-          }catch(e){
-            console.error('Erro a gravar leads', e);
-          }
-        }
-      }else if(ctx.tipo === 'angariacao'){
-        if(!angRaw || typeof angRaw !== 'object'){
-          angRaw = {};
-        }
-        if(!Array.isArray(angRaw.deals)){
-          angRaw.deals = allDeals;
-        }
-        if(ctx.index >=0 && ctx.index < allDeals.length){
-          allDeals[ctx.index] = record;
-        }
-        try{
-          localStorage.setItem(STORAGE_ANG, JSON.stringify(angRaw));
-        }catch(e){
-          console.error('Erro a gravar angariações', e);
-        }
-      }
-
-      alert('Ficha de origem atualizada com sucesso.');
-    }
-
-    // ========= RENDERIZAÇÃO DOS CARTÕES =========
-    function renderCards(){
-      // ordenar por urgência + data
-      const tasks = state.tasks.slice().sort((a,b)=>{
-        const ua = getUrgencyMeta(a);
-        const ub = getUrgencyMeta(b);
-        if(ua.score !== ub.score) return ua.score - ub.score;
-
-        const da = a.dataLimite || '';
-        const db = b.dataLimite || '';
-        if(da && db) return da.localeCompare(db);
-        if(da && !db) return -1;
-        if(!da && db) return 1;
-        return (a.createdAtMs || 0) - (b.createdAtMs || 0);
-      });
-
-      const filtered = applyFilters(tasks);
-      cardsGrid.innerHTML = '';
-
-      renderOriginBanner();
-
-      if(!filtered.length){
-        emptyState.style.display = 'block';
-      }else{
-        emptyState.style.display = 'none';
-      }
-
-      // KPIs gerais
-      let total = tasks.length;
-      let porEstado = {por_fazer:0,em_curso:0,concluida:0,adiada:0,cancelada:0};
-      tasks.forEach(t=>{
-        if(porEstado[t.estado] !== undefined) porEstado[t.estado]++;
-      });
-
-      summaryBadges.innerHTML = '';
-      const badge1 = document.createElement('div');
-      badge1.className = 'badge';
-      badge1.innerHTML = 'Total tarefas <strong>'+ total +'</strong>';
-      summaryBadges.appendChild(badge1);
-
-      const badge2 = document.createElement('div');
-      const abertas = tasks.filter(t=>t.estado!=='concluida' && t.estado!=='cancelada').length;
-      badge2.className = 'badge';
-      badge2.innerHTML = 'Em aberto <strong>'+ abertas +'</strong>';
-      summaryBadges.appendChild(badge2);
-
-      const porRespFiltrado = {};
-      filtered.forEach(t=>{
-        if(!t.responsavel) return;
-        porRespFiltrado[t.responsavel] = (porRespFiltrado[t.responsavel] || 0) + 1;
-      });
-      Object.keys(porRespFiltrado).sort().forEach(n=>{
-        const b = document.createElement('div');
-        b.className = 'badge';
-        b.innerHTML = '<strong>'+n+':</strong> ' + porRespFiltrado[n];
-        summaryBadges.appendChild(b);
-      });
-
-      pipelineKpis.innerHTML = '';
-      ['por_fazer','em_curso','concluida','adiada','cancelada'].forEach(k=>{
-        const chip = document.createElement('div');
-        chip.className = 'kpi-chip';
-        chip.innerHTML = estadoLabel(k) + '<span class="value">'+porEstado[k]+'</span>';
-        pipelineKpis.appendChild(chip);
-      });
-
-      // Notificações para tarefas no limite / em atraso
-      const alertsToShow = [];
-
-      filtered.forEach(t=>{
-        const card = document.createElement('div');
-        card.className = 'card' + ((t.estado === 'concluida' || t.estado === 'cancelada') ? ' completed':'');
-        card.dataset.id = t.id;
-
-        const urgency = getUrgencyMeta(t);
-        applyUrgencyStyles(card, urgency);
-
-        // Selo de atraso / limite
-        if(urgency.level === 'overdue' || urgency.level === 'due'){
-          const badgeTop = document.createElement('div');
-          badgeTop.className = 'chip chip-red';
-          badgeTop.textContent = urgency.level === 'overdue' ? '⚠ Em atraso' : '⚠ Data limite hoje';
-          badgeTop.style.marginBottom = '4px';
-          card.appendChild(badgeTop);
-
-          if(!alertedMap[t.id]){
-            alertsToShow.push(t.titulo || '(Sem título)');
-            alertedMap[t.id] = true;
-          }
-        }
-
-        const topRow = document.createElement('div');
-        topRow.className = 'card-top-row';
-
-        const titleBlock = document.createElement('div');
-        titleBlock.className = 'card-title-block';
-
-        const h3 = document.createElement('h3');
-        h3.className = 'card-title';
-        h3.textContent = t.titulo || '(Sem título)';
-        titleBlock.appendChild(h3);
-
-        const subtitle = document.createElement('div');
-        subtitle.className = 'card-subtitle';
-        const linhaSub = [
-          t.responsavel || '',
-          prioridadeLabel(t.prioridade),
-          estadoLabel(t.estado)
-        ].filter(Boolean).join(' · ');
-        subtitle.textContent = linhaSub;
-        titleBlock.appendChild(subtitle);
-
-        const chipsRow = document.createElement('div');
-        chipsRow.className = 'chip-row';
-
-        const chipEst = document.createElement('span');
-        chipEst.className = 'chip ' + estadoClass(t.estado);
-        chipEst.textContent = estadoLabel(t.estado);
-        chipsRow.appendChild(chipEst);
-
-        const chipPrio = document.createElement('span');
-        chipPrio.className = 'chip ' + prioridadeClass(t.prioridade);
-        chipPrio.textContent = prioridadeLabel(t.prioridade);
-        chipsRow.appendChild(chipPrio);
-
-        if(t.tipoTarefa){
-          const ch = document.createElement('span');
-          ch.className = 'chip';
-          ch.textContent = tipoLabel(t.tipoTarefa);
-          chipsRow.appendChild(ch);
-        }
-
-        if(t.origemTipo){
-          const ch = document.createElement('span');
-          ch.className = 'chip';
-          ch.textContent = origemLabel(t.origemTipo);
-          chipsRow.appendChild(ch);
-        }
-
-        if(t.tags){
-          const ch = document.createElement('span');
-          ch.className = 'chip';
-          ch.textContent = t.tags;
-          chipsRow.appendChild(ch);
-        }
-
-        titleBlock.appendChild(chipsRow);
-        topRow.appendChild(titleBlock);
-        card.appendChild(topRow);
-
-        // Origem
-        if(t.origemTipo || t.origemRef){
-          const sec = document.createElement('div');
-          sec.className = 'card-section';
-          const span = document.createElement('span');
-          const parts = [];
-          if(t.origemTipo) parts.push(origemLabel(t.origemTipo));
-          if(t.origemRef)  parts.push(t.origemRef);
-          span.innerHTML = '<strong>Origem:</strong> ' + parts.join(' · ');
-          sec.appendChild(span);
-          card.appendChild(sec);
-        }
-
-        // Datas
-        if(t.dataCriacao || t.dataLimite || t.horaLimite){
-          const sec = document.createElement('div');
-          sec.className = 'card-section';
-          const span = document.createElement('span');
-          const parts = [];
-          if(t.dataCriacao) parts.push('Criada em ' + t.dataCriacao);
-          if(t.dataLimite) parts.push('Limite ' + t.dataLimite + (t.horaLimite ? ' ' + t.horaLimite : ''));
-          span.innerHTML = parts.join(' · ');
-          sec.appendChild(span);
-          card.appendChild(sec);
-        }
-
-        // Descrição (resumo)
-        if(t.descricao){
-          const sec = document.createElement('div');
-          sec.className = 'card-section';
-          const span = document.createElement('span');
-          let txt = t.descricao;
-          if(txt.length > 180){
-            txt = txt.slice(0,177) + '…';
-          }
-          span.textContent = txt;
-          sec.appendChild(span);
-          card.appendChild(sec);
-        }
-
-        const foot = document.createElement('div');
-        foot.className = 'card-footer';
-
-        const left = document.createElement('div');
-        left.className = 'card-footer-left';
-
-        const partes = [];
-        if(t.responsavel) partes.push(t.responsavel);
-        if(t.apoio && t.apoio !== t.responsavel) partes.push('Apoio: ' + t.apoio);
-        left.textContent = partes.join(' · ');
-        foot.appendChild(left);
-
-        const right = document.createElement('div');
-        right.className = 'card-footer-right';
-
-        // Botão Concluir/Reabrir
-        const btnDone = document.createElement('button');
-        btnDone.className = 'btn-xs primary';
-        btnDone.textContent = (t.estado === 'concluida') ? 'Reabrir' : 'Concluir';
-        btnDone.addEventListener('click',()=>{
-          if(state.locked) return;
-          if(t.estado === 'concluida'){
-            t.estado = 'por_fazer';
-          }else{
-            t.estado = 'concluida';
-          }
-          saveState();
-          renderCards();
-        });
-        right.appendChild(btnDone);
-
-        // Botão Ver ficha original (se houver origem)
-        if(t.origemTipo && t.origemTipo !== 'interna'){
-          const btnView = document.createElement('button');
-          btnView.className = 'btn-xs';
-          btnView.innerHTML = '<span style="font-size:11px;color:var(--gold);">●</span> Ver ficha original';
-          btnView.addEventListener('click',()=>{
-            openRecordModalForTask(t);
-          });
-          right.appendChild(btnView);
-        }
-
-        // Botão Editar
-        const btnEdit = document.createElement('button');
-        btnEdit.className = 'btn-xs';
-        btnEdit.textContent = 'Editar';
-        btnEdit.addEventListener('click',()=>{
-          if(state.locked) return;
-          openModal(t);
-        });
-        right.appendChild(btnEdit);
-
-        // Botão Apagar
-        const btnDel = document.createElement('button');
-        btnDel.className = 'btn-xs danger';
-        btnDel.textContent = 'Apagar';
-        btnDel.addEventListener('click',()=>{
-          if(state.locked) return;
-          if(confirm('Tem a certeza que pretende apagar esta tarefa?')){
-            state.tasks = state.tasks.filter(x=>x.id !== t.id);
-            saveState();
-            renderCards();
-          }
-        });
-        right.appendChild(btnDel);
-
-        foot.appendChild(right);
-        card.appendChild(foot);
-
-        cardsGrid.appendChild(card);
-      });
-
-      if(alertsToShow.length){
-        saveAlertedMap();
-        alert('Tem tarefas no limite ou em atraso:\n\n' + alertsToShow.map(t=>'- ' + t).join('\n'));
-      }
-    }
-
-    // ========= EXPORTAÇÕES =========
-    function exportCsv(){
-      if(!state.tasks.length){
-        alert('Não existem tarefas para exportar.');
-        return;
-      }
-
-      const cols = [
-        'id','titulo','descricao','responsavel','apoio',
-        'origemTipo','origemRef',
-        'estado','prioridade','tipoTarefa',
-        'tags','dataCriacao','dataLimite','horaLimite'
-      ];
-
-      function esc(v){
-        if(v==null) return '';
-        const s = String(v).replace(/"/g,'""');
-        return '"' + s + '"';
-      }
-
-      let csv = cols.map(esc).join(';') + '\n';
-      state.tasks.forEach(t=>{
-        const row = cols.map(c=>esc(t[c]));
-        csv += row.join(';') + '\n';
-      });
-
-      const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement('a');
-      a.href     = url;
-      a.download = 'tarefas_garvetur_porto_pro.csv';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-
-    function exportPdfList(){
-      const filtered = applyFilters(state.tasks);
-      if(!filtered.length){
-        alert('Não existem tarefas com os filtros atuais para exportar.');
-        return;
-      }
-
-      const w = window.open('', '_blank');
-      if(!w){
-        alert('O navegador bloqueou a abertura da janela de impressão.\n\nPor favor permita pop-ups para este site ou use a opção de imprimir diretamente no browser.');
-        return;
-      }
-
-      let rowsHtml = '';
-      filtered.forEach(t=>{
-        rowsHtml += `
-        <tr>
-          <td>${t.dataLimite || ''} ${t.horaLimite || ''}</td>
-          <td>${t.titulo || ''}</td>
-          <td>${t.responsavel || ''}</td>
-          <td>${estadoLabel(t.estado)}</td>
-          <td>${prioridadeLabel(t.prioridade)}</td>
-          <td>${tipoLabel(t.tipoTarefa)}</td>
-        </tr>`;
-      });
-
-      const html = `
-<!doctype html>
-<html lang="pt-PT">
-<head>
-<meta charset="utf-8" />
-<title>Lista de Tarefas — Garvetur Porto Pro</title>
-<style>
-  @page { size: A4; margin: 1.5cm; }
-  body{
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-    margin:0;
-    padding:0;
-    color:#222;
-    background:#fff;
-  }
-  h1{
-    font-size:18px;
-    margin:0 0 4px;
-    letter-spacing:.12em;
-    text-transform:uppercase;
-    color:#333;
-  }
-  .sub{
-    font-size:11px;
-    color:#777;
-    letter-spacing:.18em;
-    text-transform:uppercase;
-  }
-  header{
-    border-bottom:2px solid #A38B63;
-    padding-bottom:6px;
-    margin-bottom:10px;
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-end;
-  }
-  .brand-block{
-    max-width:70%;
-  }
-  .info-block{
-    font-size:11px;
-    color:#555;
-    text-align:right;
-  }
-  table{
-    width:100%;
-    border-collapse:collapse;
-    font-size:10px;
-    margin-top:6px;
-  }
-  th,td{
-    border-bottom:1px solid #ddd;
-    padding:4px 3px;
-    text-align:left;
-  }
-  th{
-    background:#f5f5f5;
-    font-weight:600;
-  }
-  tbody tr:nth-child(even){
-    background:#fafafa;
-  }
-</style>
-</head>
-<body>
-  <header>
-    <div class="brand-block">
-      <h1>Garvetur Porto Pro</h1>
-      <div class="sub">Lista de tarefas</div>
+</div>
+
+<!-- MODAL PREMIUM (estrutura base - conteúdo virá na Parte C/D) -->
+<div id="modalBackdrop" class="modal-backdrop">
+  <div class="modal">
+
+    <div class="modal-header">
+      <h2 id="modalTitle">Ficha</h2>
+      <button id="modalClose" class="btn btn-ghost">Fechar</button>
     </div>
-    <div class="info-block">
-      <div>Data emissão: ${new Date().toLocaleDateString('pt-PT')}</div>
-      <div>Total tarefas: ${filtered.length}</div>
+
+    <div class="modal-body" id="modalBody">
+      <!-- conteúdo dinâmico será colocado aqui -->
     </div>
-  </header>
 
-  <table>
-    <thead>
-      <tr>
-        <th style="width:16%;">Data / Hora</th>
-        <th style="width:32%;">Tarefa</th>
-        <th style="width:18%;">Responsável</th>
-        <th style="width:14%;">Estado</th>
-        <th style="width:10%;">Prioridade</th>
-        <th style="width:10%;">Tipo</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${rowsHtml}
-    </tbody>
-  </table>
+    <div class="modal-footer">
+      <button id="btnGuardarModal" class="btn btn-primary">Guardar alterações</button>
+    </div>
 
+  </div>
+</div>
 <script>
-  window.print();
-<\/script>
-</body>
-</html>
+/* ============================================================
+   TAREFAS — MÓDULO PREMIUM (JS - PARTE 1/3)
+   ============================================================ */
+
+(function(){
+  /* -----------------------------
+     CONST & STORAGE KEYS
+  ------------------------------ */
+  const STORAGE_KEY = "gpp_tarefas_v2";
+  const FILTERS_KEY = "gpp_tarefas_filters_v2";
+
+  const consultores = [
+    "Rui Quelhas",
+    "Manuel Oliveira",
+    "João Sousa",
+    "Francisco dos Santos",
+    "Rosário Vasconcelos",
+    "Armanda Meireles",
+    "Audrey Lucas",
+    "Outro"
+  ];
+
+  /* -----------------------------
+     DOM SHORTCUT
+  ------------------------------ */
+  function $(id){ return document.getElementById(id); }
+
+  const cardsGrid = $("cardsGrid");
+  const emptyState = $("emptyState");
+
+  /* Filtros */
+  const fConsultor = $("filterConsultor");
+  const fDataDe = $("filterDataDe");
+  const fDataAte = $("filterDataAte");
+  const fEstado = $("filterEstado");
+  const fVis = $("filterVisibilidade");
+  const btnAplicar = $("btnAplicarFiltros");
+  const btnLimpar = $("btnLimparFiltros");
+
+  /* Modal */
+  const modalBackdrop = $("modalBackdrop");
+  const modalBody = $("modalBody");
+  const modalTitle = $("modalTitle");
+  const modalClose = $("modalClose");
+  const btnGuardarModal = $("btnGuardarModal");
+
+  /* Nova tarefa */
+  const btnNovaTarefa = $("btnNovaTarefa");
+
+  /* -----------------------------
+     ESTADO PRINCIPAL
+  ------------------------------ */
+  let state = {
+    tarefas: [],
+    filtros: {
+      consultor: "",
+      de: "",
+      ate: "",
+      estado: "",
+      vis: ""
+    }
+  };
+
+  /* -----------------------------
+     LOAD & SAVE STATE
+  ------------------------------ */
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        const parsed = JSON.parse(raw);
+        state.tarefas = parsed.tarefas || [];
+      }
+    }catch(e){
+      console.error("Erro a carregar tarefas", e);
+    }
+
+    try{
+      const rawF = localStorage.getItem(FILTERS_KEY);
+      if(rawF){
+        state.filtros = Object.assign(state.filtros, JSON.parse(rawF));
+      }
+    }catch(e){
+      console.error("Erro a carregar filtros", e);
+    }
+  }
+
+  function saveState(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function saveFilters(){
+    localStorage.setItem(FILTERS_KEY, JSON.stringify(state.filtros));
+  }
+
+  /* -----------------------------
+     INIT FILTROS UI
+  ------------------------------ */
+  function initFiltersUI(){
+    consultores.forEach(c=>{
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      fConsultor.appendChild(opt);
+    });
+
+    fConsultor.value = state.filtros.consultor || "";
+    fDataDe.value = state.filtros.de || "";
+    fDataAte.value = state.filtros.ate || "";
+    fEstado.value = state.filtros.estado || "";
+    fVis.value = state.filtros.vis || "";
+  }
+
+  /* -----------------------------
+     CÁLCULO — URGÊNCIA / CORES
+  ------------------------------ */
+  function urgenciaClass(tarefa){
+    if(!tarefa.dataLimite) return "";
+
+    const hoje = new Date();
+    const limite = new Date(tarefa.dataLimite + "T00:00:00");
+
+    const diff = limite - hoje;
+    const dias = diff / (1000*60*60*24);
+
+    if(dias < 0){
+      return "urg-critical";       // atrasada
+    }else if(dias <= 1){
+      return "urg-red";            // muito urgente
+    }else if(dias <= 3){
+      return "urg-orange";         // moderada
+    }else if(dias <= 7){
+      return "urg-yellow";         // suave
+    }
+    return "";
+  }
+
+  /* -----------------------------
+     FILTRAGEM
+  ------------------------------ */
+  function aplicarFiltrosLista(lista){
+    return lista.filter(t=>{
+      if(state.filtros.consultor && t.responsavel !== state.filtros.consultor){
+        return false;
+      }
+      if(state.filtros.de && t.dataLimite && t.dataLimite < state.filtros.de){
+        return false;
+      }
+      if(state.filtros.ate && t.dataLimite && t.dataLimite > state.filtros.ate){
+        return false;
+      }
+      if(state.filtros.estado){
+        if(state.filtros.estado === "atrasada"){
+          const cl = urgenciaClass(t);
+          if(cl !== "urg-critical") return false;
+        }else{
+          if(t.estado !== state.filtros.estado) return false;
+        }
+      }
+      if(state.filtros.vis === "invisiveis" && !t.invisivel){
+        return false;
+      }
+      return true;
+    });
+  }
+
+  /* -----------------------------
+     RENDER CARTÕES
+  ------------------------------ */
+  function renderCards(){
+    cardsGrid.innerHTML = "";
+
+    let lista = state.tarefas.slice();
+
+    // Ordenação automática por urgência e data limite
+    lista.sort((a,b)=>{
+      const clA = urgenciaClass(a);
+      const clB = urgenciaClass(b);
+
+      const prioridade = {"urg-critical":4,"urg-red":3,"urg-orange":2,"urg-yellow":1,"":0};
+
+      const pA = prioridade[clA] || 0;
+      const pB = prioridade[clB] || 0;
+
+      if(pA !== pB) return pB - pA;
+
+      if(a.dataLimite && b.dataLimite){
+        return a.dataLimite.localeCompare(b.dataLimite);
+      }
+      return (a.createdAt || 0) - (b.createdAt || 0);
+    });
+
+    lista = aplicarFiltrosLista(lista);
+
+    if(lista.length === 0){
+      emptyState.style.display = "block";
+      return;
+    }
+    emptyState.style.display = "none";
+
+    lista.forEach(t=>{
+      const card = document.createElement("div");
+      card.classList.add("card");
+
+      const urg = urgenciaClass(t);
+      if(urg) card.classList.add(urg);
+
+      card.innerHTML = `
+        <div class="card-header">
+          <h3>${t.titulo || "(sem título)"}</h3>
+          <p>${t.responsavel || ""} · ${t.estado}</p>
+        </div>
+
+        <div class="card-info">
+          ${
+            t.dataLimite
+            ? `<div class="info-line"><strong>Limite:</strong> ${t.dataLimite}</div>`
+            : ""
+          }
+          ${
+            t.origemTipo
+            ? `<div class="info-line"><strong>Origem:</strong> ${t.origemTipo} — ${t.origemRef || ""}</div>`
+            : ""
+          }
+        </div>
+
+        <div class="card-footer">
+          <button class="btn-card ver">Ver ficha</button>
+          <button class="btn-card editar">Editar</button>
+        </div>
       `;
 
-      w.document.open();
-      w.document.write(html);
-      w.document.close();
+      card.querySelector(".ver").addEventListener("click",()=>{
+        abrirModalFicha(t);
+      });
+
+      card.querySelector(".editar").addEventListener("click",()=>{
+        abrirModalEdicao(t);
+      });
+
+      cardsGrid.appendChild(card);
+    });
+  }
+
+  /* -----------------------------
+     NOVA TAREFA
+  ------------------------------ */
+  btnNovaTarefa.addEventListener("click",()=>{
+    abrirModalEdicao(null);
+  });
+
+  /* -----------------------------
+     APLICAR / LIMPAR FILTROS
+  ------------------------------ */
+  btnAplicar.addEventListener("click",()=>{
+    state.filtros.consultor = fConsultor.value;
+    state.filtros.de = fDataDe.value;
+    state.filtros.ate = fDataAte.value;
+    state.filtros.estado = fEstado.value;
+    state.filtros.vis = fVis.value;
+
+    saveFilters();
+    renderCards();
+  });
+
+  btnLimpar.addEventListener("click",()=>{
+    state.filtros = {consultor:"",de:"",ate:"",estado:"",vis:""};
+    saveFilters();
+    initFiltersUI();
+    renderCards();
+  });
+
+  /* -----------------------------
+     MODAL (apenas parte base — PARTE D irá completar)
+  ------------------------------ */
+  function abrirModalBase(titulo,conteudoHtml){
+    modalTitle.textContent = titulo;
+    modalBody.innerHTML = conteudoHtml;
+    modalBackdrop.classList.add("open");
+  }
+
+  modalClose.addEventListener("click",()=>{
+    modalBackdrop.classList.remove("open");
+  });
+
+  /* PLACEHOLDERS — serão substituídos na PARTE D */
+  function abrirModalEdicao(tarefa){
+    abrirModalBase("Editar tarefa","<p>A carregar editor...</p>");
+  }
+
+  function abrirModalFicha(tarefa){
+    abrirModalBase("Ficha completa","<p>A carregar ficha...</p>");
+  }
+
+  /* -----------------------------
+     INIT
+  ------------------------------ */
+  loadState();
+  initFiltersUI();
+  renderCards();
+
+})();
+</script>
+<script>
+/* ============================================================
+   TAREFAS — MÓDULO PREMIUM (JS - PARTE 2/3)
+   ============================================================ */
+
+(function(){
+
+  /* ============================================================
+     1) OBTÉM LEAD OU ANGARIAÇÃO DO LOCALSTORAGE
+     ============================================================ */
+
+  function getLeadByRef(ref){
+    try{
+      const raw = localStorage.getItem("gpp_leads_v3");
+      if(!raw) return null;
+      const arr = JSON.parse(raw);
+      return arr.find(l => (l.ref || "").toLowerCase() === ref.toLowerCase()) || null;
+    }catch(e){
+      console.error("Erro ao carregar leads", e);
+      return null;
+    }
+  }
+
+  function getAngByRef(ref){
+    try{
+      const raw = localStorage.getItem("gpp_ang_v3");
+      if(!raw) return null;
+      const arr = JSON.parse(raw);
+      return arr.find(a => (a.ref || "").toLowerCase() === ref.toLowerCase()) || null;
+    }catch(e){
+      console.error("Erro ao carregar angariações", e);
+      return null;
+    }
+  }
+
+  /* ============================================================
+     2) HISTÓRICO DE TAREFAS RELACIONADAS
+     ============================================================ */
+
+  function getHistoricoTarefas(ref){
+    try{
+      const raw = localStorage.getItem("gpp_tarefas_v2");
+      if(!raw) return [];
+      const arr = JSON.parse(raw).tarefas || [];
+      return arr.filter(t => 
+        (t.origemRef || "").toLowerCase().includes((ref||"").toLowerCase())
+      );
+    }catch(e){
+      console.error("Erro histórico tarefas", e);
+      return [];
+    }
+  }
+
+  /* ============================================================
+     3) BLOCO — PRÓXIMOS PASSOS (lógica automática)
+     ============================================================ */
+
+  function gerarProximosPassos(leadOuAng){
+    if(!leadOuAng) return [];
+
+    const passos = [];
+
+    // Estado pipeline
+    switch((leadOuAng.estado || "").toLowerCase()){
+      case "proposta":
+        passos.push("Follow-up à proposta enviada nas últimas 24h");
+        break;
+      case "visita":
+        passos.push("Contactar cliente para feedback da visita");
+        break;
+      case "qualificado":
+        passos.push("Apresentar shortlist de imóveis alinhados ao perfil");
+        break;
     }
 
-    // ========= EVENTOS =========
-    toggleLockBtn.addEventListener('click',()=>{
-      state.locked = !state.locked;
-      updateLockUI();
-      saveState();
+    // Classificação
+    if(leadOuAng.classificacao == 5){
+      passos.push("Agendar visita imediata — lead quente (classificação 5)");
+    }
+
+    // Sem imóvel definido
+    if(!leadOuAng.imovel || leadOuAng.imovel === ""){
+      passos.push("Definir imóvel preferencial com o cliente");
+    }
+
+    if(passos.length === 0){
+      passos.push("Sem próximos passos automáticos — analisar manualmente.");
+    }
+
+    return passos;
+  }
+
+  /* ============================================================
+     4) TIMELINE (eventos clicáveis — visual premium)
+     ============================================================ */
+
+  function gerarTimeline(leadOuAng, historico){
+    const eventos = [];
+
+    if(leadOuAng){
+      eventos.push({
+        tipo:"criado",
+        data:leadOuAng.dataCriacao || "",
+        label:"Lead criada"
+      });
+    }
+
+    // Estado pipeline
+    if(leadOuAng.estado){
+      eventos.push({
+        tipo:"estado",
+        data:leadOuAng.dataAtualizacao || "",
+        label:"Estado atual: " + leadOuAng.estado
+      });
+    }
+
+    // Tarefas associadas
+    historico.forEach(t=>{
+      eventos.push({
+        tipo:"tarefa",
+        data:t.dataCriacao,
+        label:"Tarefa: " + (t.titulo || "(sem título)"),
+        id:t.id
+      });
     });
 
-    newTaskBtn.addEventListener('click',()=>{
-      if(state.locked) return;
-      openModal(null);
+    // Ordenação por data
+    eventos.sort((a,b)=> (a.data||"").localeCompare(b.data||""));
+
+    let html = `<div class="timeline">`;
+
+    eventos.forEach(ev=>{
+      html += `
+        <div class="tl-item ${ev.tipo}">
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="tl-date">${ev.data || ""}</div>
+            <div class="tl-label">${ev.label}</div>
+            ${
+              ev.tipo === "tarefa"
+              ? `<button class="tl-btn" data-id="${ev.id}">Ver tarefa</button>`
+              : ``
+            }
+          </div>
+        </div>
+      `;
     });
 
-    closeModalBtn.addEventListener('click', closeModal);
-    cancelModalBtn.addEventListener('click', closeModal);
+    html += `</div>`;
+    return html;
+  }
 
-    applyFiltersBtn.addEventListener('click', ()=>{
-      updateFiltersFromControls();
-      saveFiltersToStorage();
-      syncGlobalFiltersFromTasks();
-      renderCards();
-    });
+  /* ============================================================
+     5) FICHA ORIGINAL — Layout premium (idêntico ao módulo Leads)
+     ============================================================ */
 
-    clearFiltersBtn.addEventListener('click', ()=>{
-      clearFilters();
-      renderCards();
-    });
+  function renderFichaOriginal(data){
+    if(!data){
+      return `<p style="color:#F25F5C;">Ficha original não encontrada.</p>`;
+    }
 
-    clearOriginFilterBtn.addEventListener('click', ()=>{
-      FILTERS.origemTipo = '';
-      FILTERS.origemRef  = '';
-      saveFiltersToStorage();
-      renderCards();
-    });
+    return `
+      <div class="ficha-original">
+        <h3 class="fo-title">${data.nome || data.proprietario || "Sem nome"}</h3>
 
-    saveTaskBtn.addEventListener('click',(e)=>{
-      e.preventDefault();
-      if(state.locked){
-        alert('O modo de edição está bloqueado. Desbloqueie o cadeado no topo para guardar alterações.');
+        <div class="fo-grid">
+          <div>
+            <label>Contacto</label>
+            <div>${data.telefone||""}</div>
+          </div>
+          <div>
+            <label>Email</label>
+            <div>${data.email||""}</div>
+          </div>
+          <div>
+            <label>Estado</label>
+            <div>${data.estado||""}</div>
+          </div>
+          <div>
+            <label>Classificação</label>
+            <div>${data.classificacao||""}</div>
+          </div>
+          <div>
+            <label>Tipo negócio</label>
+            <div>${data.tipoNegocio||""}</div>
+          </div>
+          <div>
+            <label>Imóvel</label>
+            <div>${data.imovel||""}</div>
+          </div>
+        </div>
+
+        <div class="fo-notas">
+          <label>Notas internas</label>
+          <textarea id="foNotasEdit">${data.notas||""}</textarea>
+        </div>
+
+        <div style="text-align:right;margin-top:10px;">
+          <button class="btn-primary" id="btnGuardarFichaOriginal">Guardar alterações</button>
+        </div>
+      </div>
+    `;
+  }
+
+  /* ============================================================
+     6) MODAL — ABRIR FICHA COMPLETA
+     ============================================================ */
+
+  window.abrirModalFicha = function(tarefa){
+    const ref = tarefa.origemRef;
+    const tipo = tarefa.origemTipo;
+
+    let ficha = null;
+
+    if(tipo === "lead") ficha = getLeadByRef(ref);
+    if(tipo === "angariacao") ficha = getAngByRef(ref);
+
+    const historico = getHistoricoTarefas(ref);
+    const passos = gerarProximosPassos(ficha);
+    const timeline = gerarTimeline(ficha, historico);
+
+    const conteudo = `
+      <div class="modal-section">
+        <h2 class="sec-title">Ficha Original</h2>
+        ${renderFichaOriginal(ficha)}
+      </div>
+
+      <details class="modal-section" open>
+        <summary><span>Histórico de Tarefas</span></summary>
+        <div class="historico-list">
+          ${
+            historico.length
+            ? historico.map(h=>`
+                <div class="hist-item">
+                  <strong>${h.titulo||""}</strong>
+                  <div>${h.dataCriacao || ""}</div>
+                </div>
+              `).join("")
+            : `<p>Sem tarefas associadas.</p>`
+          }
+        </div>
+      </details>
+
+      <details class="modal-section">
+        <summary><span>Próximos Passos</span></summary>
+        <ul class="pp-list">
+          ${passos.map(p=>`<li>${p}</li>`).join("")}
+        </ul>
+      </details>
+
+      <details class="modal-section">
+        <summary><span>Timeline</span></summary>
+        ${timeline}
+      </details>
+    `;
+
+    document.getElementById("modalTitle").textContent = "Ficha completa";
+    document.getElementById("modalBody").innerHTML = conteudo;
+    document.getElementById("modalBackdrop").classList.add("open");
+
+    // Guardar notas da ficha original
+    const btnGuardar = document.getElementById("btnGuardarFichaOriginal");
+    if(btnGuardar){
+      btnGuardar.onclick = ()=>{
+        ficha.notas = document.getElementById("foNotasEdit").value;
+        if(tipo === "lead"){
+          salvarLead(ficha);
+        }else{
+          salvarAng(ficha);
+        }
+        alert("Ficha original atualizada.");
+      };
+    }
+  };
+
+  /* ============================================================
+     7) MODAL — ABRIR PARA EDIÇÃO DA TAREFA
+     ============================================================ */
+
+  window.abrirModalEdicao = function(tarefa){
+    const novo = !tarefa;
+
+    const t = tarefa || {
+      id:"t_"+Date.now(),
+      titulo:"",
+      descricao:"",
+      dataCriacao: new Date().toISOString().slice(0,10),
+      dataLimite: new Date(Date.now()+8*86400000).toISOString().slice(0,10),
+      estado:"por_fazer",
+      prioridade:"normal",
+      responsavel:"",
+      origemTipo:"",
+      origemRef:""
+    };
+
+    const html = `
+      <div class="form">
+        <label>Título</label>
+        <input id="tTitulo" type="text" value="${t.titulo}">
+        <label>Descrição</label>
+        <textarea id="tDesc">${t.descricao||""}</textarea>
+
+        <label>Responsável</label>
+        <select id="tResp">
+          ${consultores.map(c=>`<option ${c===t.responsavel?"selected":""}>${c}</option>`).join("")}
+        </select>
+
+        <label>Data limite</label>
+        <input id="tDataLimite" type="date" value="${t.dataLimite||""}">
+
+        <label>Estado</label>
+        <select id="tEstado">
+          <option value="por_fazer" ${t.estado==="por_fazer"?"selected":""}>Por fazer</option>
+          <option value="em_curso" ${t.estado==="em_curso"?"selected":""}>Em curso</option>
+          <option value="concluida" ${t.estado==="concluida"?"selected":""}>Concluída</option>
+        </select>
+      </div>
+    `;
+
+    document.getElementById("modalTitle").textContent = novo ? "Nova tarefa" : "Editar tarefa";
+    document.getElementById("modalBody").innerHTML = html;
+    document.getElementById("modalBackdrop").classList.add("open");
+
+    document.getElementById("btnGuardarModal").onclick = ()=>{
+
+      t.titulo = document.getElementById("tTitulo").value;
+      t.descricao = document.getElementById("tDesc").value;
+      t.responsavel = document.getElementById("tResp").value;
+
+      const novaData = document.getElementById("tDataLimite").value;
+      if(novaData < t.dataCriacao){
+        alert("A data limite não pode ser inferior à data de criação.");
         return;
       }
-      const data = collectFormData();
-      if(!data) return;
-      const idx = state.tasks.findIndex(t=>t.id === data.id);
+
+      t.dataLimite = novaData;
+      t.estado = document.getElementById("tEstado").value;
+
+      if(novo){
+        t.createdAt = Date.now();
+        state.tarefas.push(t);
+      }
+
+      localStorage.setItem("gpp_tarefas_v2", JSON.stringify(state));
+      document.getElementById("modalBackdrop").classList.remove("open");
+      location.reload();
+    };
+  };
+
+
+  /* ============================================================
+     8) SALVAR LEAD / ANGARIAÇÃO (COM notas & info atualizada)
+     ============================================================ */
+
+  function salvarLead(lead){
+    try{
+      const raw = localStorage.getItem("gpp_leads_v3");
+      if(!raw) return;
+      let arr = JSON.parse(raw);
+      const idx = arr.findIndex(l=>l.ref===lead.ref);
       if(idx>=0){
-        state.tasks[idx] = data;
-      }else{
-        state.tasks.push(data);
+        arr[idx] = lead;
+        localStorage.setItem("gpp_leads_v3", JSON.stringify(arr));
       }
-      saveState();
-      renderCards();
-      closeModal();
-    });
+    }catch(e){
+      console.error("Erro guardar lead", e);
+    }
+  }
 
-    exportCsvBtn.addEventListener('click', exportCsv);
-    exportPdfBtn.addEventListener('click', exportPdfList);
-
-    window.addEventListener('keydown',(e)=>{
-      if(e.key==='Escape'){
-        if(modalBackdrop.classList.contains('open')){
-          closeModal();
-        }else if(recordModalBackdrop.style.display === 'flex'){
-          closeRecordModal();
-        }
+  function salvarAng(ang){
+    try{
+      const raw = localStorage.getItem("gpp_ang_v3");
+      if(!raw) return;
+      let arr = JSON.parse(raw);
+      const idx = arr.findIndex(a=>a.ref===ang.ref);
+      if(idx>=0){
+        arr[idx] = ang;
+        localStorage.setItem("gpp_ang_v3", JSON.stringify(arr));
       }
-    });
+    }catch(e){
+      console.error("Erro guardar angariação", e);
+    }
+  }
 
-    // Modal ficha original
-    closeRecordModalBtn.addEventListener('click', closeRecordModal);
-    addRecordNoteBtn.addEventListener('click', addNoteToCurrentRecord);
-    saveRecordBtn.addEventListener('click', saveCurrentRecordEdits);
+})();
+</script>
+/* ============================================================
+   CSS PREMIUM — Modal Ficha, Timeline, Histórico, Próximos Passos
+   ============================================================ */
 
-    toggleTasksSectionBtn.addEventListener('click', ()=>{
-      const isOpen = recordTasksSection.style.display === 'block';
-      recordTasksSection.style.display = isOpen ? 'none' : 'block';
-      toggleTasksSectionBtn.textContent = (isOpen ? '▶' : '▼') + ' Histórico de tarefas';
-    });
+.modal-section{
+  background:rgba(0,0,0,.55);
+  border:1px solid rgba(163,139,99,.35);
+  border-radius:18px;
+  padding:14px 16px;
+  margin-bottom:14px;
+}
 
-    toggleTimelineSectionBtn.addEventListener('click', ()=>{
-      const isOpen = recordTimelineSection.style.display === 'block';
-      recordTimelineSection.style.display = isOpen ? 'none' : 'block';
-      toggleTimelineSectionBtn.textContent = (isOpen ? '▶' : '▼') + ' Timeline & notas';
-    });
+.modal-section h2.sec-title{
+  margin:0 0 10px;
+  font-size:15px;
+  text-transform:uppercase;
+  letter-spacing:.14em;
+  color:var(--gold);
+}
 
-    // ========= INIT =========
-    initConsultores();
-    loadState();
-    loadFiltersFromStorage();
-    loadGlobalFiltersFallback();
-    loadLeads();
-    loadDeals();
-    loadTimelineStore();
-    applyUrlContext();
-    applyFiltersToControls();
-    renderCards();
+/* ----------------------------------------------
+   Ficha Original
+   ---------------------------------------------- */
 
-  })();
-  </script>
+.ficha-original{
+  background:rgba(0,0,0,.55);
+  border:1px solid rgba(163,139,99,.25);
+  padding:14px;
+  border-radius:16px;
+}
 
-</body>
-</html>
+.fo-title{
+  margin:0 0 10px;
+  font-size:16px;
+  font-weight:600;
+  color:#fff;
+}
 
+.fo-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin-bottom:14px;
+}
+
+.fo-grid label{
+  font-size:11px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.12em;
+}
+
+.fo-grid div{
+  font-size:13px;
+  color:#fff;
+}
+
+.fo-notas{
+  margin-top:10px;
+}
+
+.fo-notas label{
+  display:block;
+  font-size:11px;
+  color:var(--muted);
+  text-transform:uppercase;
+  margin-bottom:4px;
+}
+
+#foNotasEdit{
+  width:100%;
+  min-height:70px;
+  border-radius:12px;
+  border:1px solid rgba(163,139,99,.25);
+  background:#111;
+  color:#fff;
+  padding:8px;
+}
+
+/* ----------------------------------------------
+   Histórico
+   ---------------------------------------------- */
+
+.historico-list{
+  margin-top:10px;
+}
+
+.hist-item{
+  border:1px solid rgba(163,139,99,.25);
+  padding:8px 10px;
+  border-radius:12px;
+  background:rgba(0,0,0,.45);
+  margin-bottom:6px;
+  color:#ddd;
+}
+
+.hist-item strong{
+  color:#fff;
+  font-size:13px;
+}
+
+/* ----------------------------------------------
+   Próximos Passos
+   ---------------------------------------------- */
+
+.pp-list{
+  padding-left:20px;
+  margin-top:8px;
+  color:#ddd;
+}
+
+.pp-list li{
+  margin-bottom:6px;
+}
+
+/* ----------------------------------------------
+   Timeline
+   ---------------------------------------------- */
+
+.timeline{
+  border-left:2px solid var(--gold);
+  padding-left:14px;
+  margin-top:10px;
+}
+
+.tl-item{
+  margin-bottom:14px;
+  position:relative;
+  padding-left:4px;
+}
+
+.tl-dot{
+  width:12px;
+  height:12px;
+  background:var(--gold);
+  border-radius:50%;
+  position:absolute;
+  left:-19px;
+  top:2px;
+  box-shadow:0 0 6px rgba(163,139,99,.8);
+}
+
+.tl-content{
+  color:#ddd;
+}
+
+.tl-date{
+  font-size:11px;
+  color:var(--muted);
+}
+
+.tl-label{
+  font-size:13px;
+  margin-top:2px;
+  color:#fff;
+}
+
+.tl-btn{
+  margin-top:4px;
+  border-radius:999px;
+  border:1px solid rgba(163,139,99,.35);
+  background:rgba(0,0,0,.55);
+  padding:3px 10px;
+  font-size:11px;
+  color:var(--gold);
+  cursor:pointer;
+}
+
+.tl-btn:hover{
+  border-color:var(--gold);
+  background:rgba(163,139,99,.12);
+}
+
+/* ----------------------------------------------
+   Details (colapsáveis premium)
+   ---------------------------------------------- */
+
+details{
+  border-radius:16px;
+  border:1px solid rgba(163,139,99,.25);
+  background:rgba(0,0,0,.45);
+  padding:8px 10px;
+}
+
+details summary{
+  cursor:pointer;
+  list-style:none;
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  color:var(--gold);
+}
+
+details summary::-webkit-details-marker{
+  display:none;
+}
+
+details[open]{
+  border-color:var(--gold);
+}
+
+/* ----------------------------------------------
+   Modal Premium
+   ---------------------------------------------- */
+
+#modalBody{
+  max-height:70vh;
+  overflow-y:auto;
+  padding-right:4px;
+}
+
+#modalBody::-webkit-scrollbar{
+  width:8px;
+}
+#modalBody::-webkit-scrollbar-thumb{
+  background:rgba(163,139,99,.35);
+  border-radius:4px;
+}
+#modalBody::-webkit-scrollbar-thumb:hover{
+  background:var(--gold);
+}
+
+/* ----------------------------------------------
+   Botão Guardar
+   ---------------------------------------------- */
+
+#btnGuardarFichaOriginal,
+#btnGuardarModal{
+  padding:7px 14px;
+  border-radius:999px;
+  background:var(--gold);
+  border:1px solid var(--gold);
+  color:#111;
+  cursor:pointer;
+  font-weight:600;
+}
+
+#btnGuardarFichaOriginal:hover,
+#btnGuardarModal:hover{
+  background:#c9ae78;
+  border-color:#c9ae78;
+}
+/* ============================================================
+   PARTE F — JS Premium
+   Modal Ficha Original + Timeline + Histórico + Próximos Passos
+   ============================================================ */
+
+// ======= Elementos Globais =======
+let modalFichaBackdrop = null;
+let modalFicha = null;
+let modalFichaBody = null;
+let btnFecharFicha = null;
+
+
+// ======= Criar Modal Ficha Original =======
+function initModalFichaOriginal() {
+  // Evitar criar 2x
+  if (document.getElementById('modalFichaWrapper')) return;
+
+  const html = `
+    <div class="modal-backdrop" id="modalFichaBackdrop">
+      <div class="modal" id="modalFichaWrapper" style="max-width:960px;">
+        <div class="modal-header">
+          <h2 id="modalFichaTitle">Ficha Original</h2>
+          <button class="btn btn-icon btn-ghost" id="btnFecharFicha">✕</button>
+        </div>
+
+        <div id="modalFichaBody" class="modal-body">
+          <!-- Conteúdo é injetado dinamicamente -->
+        </div>
+
+        <div class="modal-footer">
+          <div></div>
+          <div>
+            <button id="btnGuardarFichaOriginal" class="btn btn-primary">
+              Guardar alterações
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', html);
+
+  modalFichaBackdrop = document.getElementById('modalFichaBackdrop');
+  modalFicha = document.getElementById('modalFichaWrapper');
+  modalFichaBody = document.getElementById('modalFichaBody');
+  btnFecharFicha = document.getElementById('btnFecharFicha');
+
+  btnFecharFicha.addEventListener('click', closeFichaOriginal);
+}
+
+
+// ======= Abrir o modal =======
+function openFichaOriginal(tipo, ref) {
+  initModalFichaOriginal();
+
+  // 1. Buscar dados reais
+  let dados = null;
+  if (tipo === 'lead') {
+    const raw = JSON.parse(localStorage.getItem('gpp_leads_v1') || '[]');
+    dados = raw.find(l => (l.id === ref || l.ref === ref));
+  } else if (tipo === 'angariacao') {
+    const raw = JSON.parse(localStorage.getItem('gpp_angariacoes_v1') || '[]');
+    dados = raw.find(a => (a.id === ref || a.referencia === ref));
+  }
+
+  if (!dados) {
+    alert("Ficha não encontrada.");
+    return;
+  }
+
+  // 2. Construir HTML completo
+  modalFichaBody.innerHTML = buildFichaHTML(tipo, dados);
+
+  // 3. Abrir modal
+  modalFichaBackdrop.classList.add('open');
+}
+
+
+// ======= Fechar modal =======
+function closeFichaOriginal() {
+  if (modalFichaBackdrop) {
+    modalFichaBackdrop.classList.remove('open');
+  }
+}
+
+
+// ======= Guardar alterações =======
+function guardarFichaOriginal() {
+  const tipo = document.getElementById("foTipo").value;
+  const id = document.getElementById("foId").value;
+
+  // Buscar storage correto
+  const key = (tipo === 'lead') ? 'gpp_leads_v1' : 'gpp_angariacoes_v1';
+  const raw = JSON.parse(localStorage.getItem(key) || '[]');
+
+  const idx = raw.findIndex(x => x.id === id);
+  if (idx < 0) {
+    alert("Erro: Ficha não encontrada.");
+    return;
+  }
+
+  // Atualizar campos editados
+  const camposEditaveis = document.querySelectorAll("[data-fo-edit]");
+  camposEditaveis.forEach(c => {
+    const campo = c.dataset.foEdit;
+    raw[idx][campo] = c.value;
+  });
+
+  // Guardar notas internas
+  const notas = document.getElementById("foNotasEdit").value;
+  raw[idx].notasInternas = notas;
+
+  localStorage.setItem(key, JSON.stringify(raw));
+  alert("Alterações guardadas com sucesso.");
+
+  closeFichaOriginal();
+}
+
+
+// ======= HTML Completo da Ficha Original =======
+function buildFichaHTML(tipo, d) {
+
+  const nomeCliente =
+    d.nome ||
+    d.nomeCliente ||
+    d.cliente ||
+    d.proprietario ||
+    "Sem nome";
+
+  const ref = d.ref || d.referencia || d.id || "—";
+
+  // Gera histórico de tarefas
+  const timelineHTML = buildTimelineHTML(ref, nomeCliente, tipo);
+
+  // Próximos passos
+  const passosHTML = buildProximosPassos(d);
+
+  // Histórico
+  const historicoHTML = buildHistoricoHTML(ref, nomeCliente);
+
+  // Secção principal da ficha original
+  const dadosPrincipaisHTML = buildDadosOriginais(tipo, d);
+
+  return `
+    <div class="modal-section">
+      <h2 class="sec-title">Identificação</h2>
+      <div class="ficha-original">
+        <input type="hidden" id="foTipo" value="${tipo}">
+        <input type="hidden" id="foId" value="${d.id}">
+        <div class="fo-grid">
+          <div>
+            <label>Nome</label>
+            <input data-fo-edit="nome" value="${nomeCliente}" class="fo-edit">
+          </div>
+          <div>
+            <label>Referência</label>
+            <div>${ref}</div>
+          </div>
+          <div>
+            <label>Contacto</label>
+            <input data-fo-edit="contacto" value="${d.contacto || ''}">
+          </div>
+          <div>
+            <label>Email</label>
+            <input data-fo-edit="email" value="${d.email || ''}">
+          </div>
+        </div>
+
+        <div class="fo-notas">
+          <label>Notas Internas</label>
+          <textarea id="foNotasEdit">${d.notasInternas || ''}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <details>
+      <summary>Ficha Completa</summary>
+      <div style="margin-top:12px;">
+        ${dadosPrincipaisHTML}
+      </div>
+    </details>
+
+    <details>
+      <summary>Histórico de tarefas</summary>
+      <div class="historico-list">
+        ${historicoHTML}
+      </div>
+    </details>
+
+    <details>
+      <summary>Próximos passos</summary>
+      ${passosHTML}
+    </details>
+
+    <details>
+      <summary>Timeline</summary>
+      <div class="timeline">
+        ${timelineHTML}
+      </div>
+    </details>
+  `;
+}
+
+
+// ======= Ficha Original (dados avançados) =======
+function buildDadosOriginais(tipo, d) {
+
+  const linhas = Object.keys(d)
+    .filter(k => !['id', 'notasInternas'].includes(k))
+    .map(k => `
+      <div class="hist-item">
+        <strong>${k}</strong><br>
+        ${d[k]}
+      </div>
+    `).join("");
+
+  return `
+    <div>
+      ${linhas || "<i>Sem dados adicionais.</i>"}
+    </div>
+  `;
+}
+
+
+// ======= Próximos Passos Automáticos =======
+function buildProximosPassos(d) {
+
+  const passos = [];
+
+  // Classificação alta
+  if (d.classificacao == 5) {
+    passos.push("Agendar visita imediata — lead muito quente.");
+  }
+
+  // Proposta
+  if (d.estado === "Proposta") {
+    passos.push("Ligar para follow-up da proposta.");
+  }
+
+  // Falta imóvel
+  if (!d.imovel && d.tipoNegocio !== "investidor") {
+    passos.push("Associar imóvel à lead.");
+  }
+
+  return `
+    <ul class="pp-list">
+      ${passos.length ? passos.map(p => `<li>${p}</li>`).join("") : "<i>Sem recomendações automáticas.</i>"}
+    </ul>
+  `;
+}
+
+
+// ======= Timeline =======
+function buildTimelineHTML(ref, nomeCliente, tipo) {
+
+  const raw = JSON.parse(localStorage.getItem('gpp_tarefas_v1') || '[]');
+
+  const relevantes = raw.tasks.filter(t =>
+    t.origemRef &&
+    (
+      t.origemRef.toLowerCase().includes(nomeCliente.toLowerCase()) ||
+      t.origemRef.toLowerCase().includes(ref.toLowerCase())
+    )
+  );
+
+  if (!relevantes.length) {
+    return `<i>Sem eventos registados.</i>`;
+  }
+
+  return relevantes.map(t => `
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-content">
+        <div class="tl-date">${t.dataLimite || t.dataCriacao || '—'}</div>
+        <div class="tl-label">${t.titulo || '(Sem título)'}</div>
+        <button class="tl-btn" onclick="javascript:openTaskFromTimeline('${t.id}')">Ver tarefa</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+
+// ======= Histórico =======
+function buildHistoricoHTML(ref, nomeCliente) {
+  const raw = JSON.parse(localStorage.getItem('gpp_tarefas_v1') || '[]');
+  const relevantes = raw.tasks.filter(t =>
+    t.origemRef &&
+    (
+      t.origemRef.toLowerCase().includes(nomeCliente.toLowerCase()) ||
+      t.origemRef.toLowerCase().includes(ref.toLowerCase())
+    )
+  );
+
+  if (!relevantes.length) {
+    return `<i>Sem histórico registado.</i>`;
+  }
+
+  return relevantes.map(t => `
+    <div class="hist-item">
+      <strong>${t.titulo}</strong><br>
+      Estado: ${t.estado}<br>
+      Responsável: ${t.responsavel}<br>
+      Prazo: ${t.dataLimite || '—'}
+    </div>
+  `).join("");
+}
+
+
+// ======= Abrir tarefa diretamente pelo timeline =======
+function openTaskFromTimeline(taskId) {
+  const btn = document.querySelector(`[data-id="${taskId}"] .btn-xs`);
+  if (btn) btn.click();
+  closeFichaOriginal();
+}
+
+
+// ======= Ligar botão Guardar =======
+document.addEventListener("click", function(e){
+  if (e.target && e.target.id === "btnGuardarFichaOriginal") {
+    guardarFichaOriginal();
+  }
+});
