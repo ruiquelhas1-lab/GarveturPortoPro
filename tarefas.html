@@ -326,24 +326,6 @@
       color:#fff;
     }
 
-    /* Alerta de prazos (hoje/atraso) */
-    .deadline-alert{
-      margin-bottom:8px;
-      padding:6px 10px;
-      border-radius:999px;
-      border:1px solid rgba(242,95,92,.7);
-      background:rgba(242,95,92,.12);
-      font-size:12px;
-      color:var(--muted);
-      display:flex;
-      align-items:center;
-      gap:8px;
-      flex-wrap:wrap;
-    }
-    .deadline-alert strong{
-      color:#FFE082;
-    }
-
     .cards-grid{
       display:grid;
       grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
@@ -360,31 +342,50 @@
       flex-direction:column;
       gap:6px;
       position:relative;
+      transition:background .2s,border-color .2s,transform .2s,box-shadow .2s;
     }
     .card.completed{
       opacity:.6;
       border-style:dashed;
+      box-shadow:none;
     }
 
-    /* Cores de urgência por data limite */
-    .card-deadline-medium{
-      border-color: rgba(255,200,87,.8);
-      box-shadow: 0 18px 35px rgba(255,200,87,.25);
+    /* URGÊNCIA POR COR (gradual para o vermelho) */
+    .card-urgency-soft:not(.completed){
+      border-color:rgba(255,180,120,.5);
+      background:
+        radial-gradient(circle at top left, rgba(255,200,150,.12), transparent 55%),
+        radial-gradient(circle at bottom right,#181818,#070707);
     }
-    .card-deadline-soon{
-      border-color: rgba(255,140,0,.9);
-      box-shadow: 0 18px 35px rgba(255,140,0,.30);
-      background: radial-gradient(circle at top left,#25120a,#070707);
+    .card-urgency-medium:not(.completed){
+      border-color:rgba(255,150,100,.7);
+      background:
+        radial-gradient(circle at top left, rgba(255,140,100,.18), transparent 55%),
+        radial-gradient(circle at bottom right,#181818,#050505);
     }
-    .card-deadline-today{
-      border-color: rgba(242,95,92,1);
-      box-shadow: 0 20px 40px rgba(242,95,92,.40);
-      background: radial-gradient(circle at top left,#2b0b0b,#070707);
+    .card-urgency-high:not(.completed){
+      border-color:rgba(255,110,90,.9);
+      background:
+        radial-gradient(circle at top left, rgba(255,90,70,.25), transparent 55%),
+        radial-gradient(circle at bottom right,#191010,#050505);
+      box-shadow:0 20px 40px rgba(255,80,60,.25);
+      transform:translateY(-1px);
     }
-    .card-overdue{
-      border-color: rgba(220,53,69,1);
-      box-shadow: 0 22px 45px rgba(220,53,69,.55);
-      background: radial-gradient(circle at top left,#3a0505,#050505);
+    .card-urgency-due:not(.completed){
+      border-color:var(--danger);
+      background:
+        radial-gradient(circle at top left, rgba(255,70,70,.3), transparent 55%),
+        radial-gradient(circle at bottom right,#1b0d0d,#050505);
+      box-shadow:0 22px 45px rgba(255,60,60,.3);
+      transform:translateY(-1px);
+    }
+    .card-urgency-overdue:not(.completed){
+      border-color:#ff4b4b;
+      background:
+        radial-gradient(circle at top left, rgba(255,40,40,.38), transparent 55%),
+        radial-gradient(circle at bottom right,#200808,#050505);
+      box-shadow:0 24px 50px rgba(255,40,40,.35);
+      transform:translateY(-1.5px);
     }
 
     .card-top-row{
@@ -442,6 +443,7 @@
     .chip-red{
       border-color:rgba(242,95,92,.8);
       color:#FFABAB;
+      background:rgba(80,10,10,.9);
     }
     .chip-yellow{
       border-color:rgba(255,200,87,.8);
@@ -629,46 +631,6 @@
     .switch input:checked + .slider:before{
       transform:translateX(14px);
     }
-
-    /* MODAL FICHA ORIGINAL (visualização) */
-    .modal-original-body{
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:10px;
-      font-size:12px;
-    }
-    @media (max-width: 900px){
-      .modal-original-body{
-        grid-template-columns:1fr;
-      }
-    }
-    .original-block{
-      border-radius:var(--radius-md);
-      border:1px solid rgba(163,139,99,.25);
-      background:rgba(0,0,0,.55);
-      padding:8px 9px;
-    }
-    .original-block h3{
-      margin:0 0 6px;
-      font-size:12px;
-      text-transform:uppercase;
-      letter-spacing:.14em;
-      color:var(--muted);
-    }
-    .original-field{
-      margin-bottom:4px;
-    }
-    .original-label{
-      font-size:11px;
-      text-transform:uppercase;
-      letter-spacing:.12em;
-      color:var(--muted);
-      display:block;
-    }
-    .original-value{
-      font-size:12px;
-      color:#eee;
-    }
   </style>
 </head>
 <body>
@@ -786,9 +748,6 @@
           <div class="pipeline-kpis" id="pipelineKpis"></div>
         </div>
       </div>
-
-      <!-- Alerta de prazos (hoje e atrasadas) -->
-      <div id="deadlineAlerts" class="deadline-alert" style="display:none;"></div>
 
       <!-- Banner de origem (quando vem de Leads/Vendas ou quando há filtro de origem ativo) -->
       <div id="originFilterBanner" class="origin-banner" style="display:none;">
@@ -937,35 +896,11 @@
   </div>
 </div>
 
-<!-- MODAL FICHA ORIGINAL (Lead) -->
-<div class="modal-backdrop" id="originalModalBackdrop">
-  <div class="modal">
-    <div class="modal-header">
-      <h2 id="originalModalTitle">Ficha original</h2>
-      <button class="btn btn-icon btn-ghost" id="closeOriginalModalBtn" title="Fechar">✕</button>
-    </div>
-    <div class="modal-body">
-      <div id="originalModalInner" class="modal-original-body">
-        <!-- conteúdo preenchido via JS -->
-      </div>
-    </div>
-    <div class="modal-footer">
-      <div class="modal-footer-left" id="originalModalMeta"></div>
-      <div>
-        <button class="btn btn-ghost" id="closeOriginalModalBtnFooter">Fechar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <script>
 (function(){
   const STORAGE_KEY = 'gpp_tarefas_v1';
   const FILTERS_STORAGE_KEY = 'gpp_tarefas_filters_v1';
   const GLOBAL_FILTERS_KEY = 'gpp_global_filters_v1';
-
-  // Leads (kanban) storage
-  const LEADS_LS_KEY = 'gpp_leads_v5';
 
   const CONSULTOR_OPTIONS = [
     "Rui Quelhas",
@@ -989,7 +924,6 @@
   const emptyState = $('emptyState');
   const pipelineKpis = $('pipelineKpis');
   const summaryBadges = $('summaryBadges');
-  const deadlineAlerts = $('deadlineAlerts');
 
   const filterResponsavel = $('filterResponsavel');
   const filterEstado = $('filterEstado');
@@ -1013,14 +947,6 @@
 
   const responsavelSelect = $('responsavel');
   const apoioSelect = $('apoio');
-
-  // Modal ficha original
-  const originalModalBackdrop = $('originalModalBackdrop');
-  const originalModalInner = $('originalModalInner');
-  const originalModalTitle = $('originalModalTitle');
-  const originalModalMeta = $('originalModalMeta');
-  const closeOriginalModalBtn = $('closeOriginalModalBtn');
-  const closeOriginalModalBtnFooter = $('closeOriginalModalBtnFooter');
 
   let state = {
     locked:true,
@@ -1064,18 +990,18 @@
     }
   }
 
-  function daysUntil(dateISO){
-    if(!dateISO) return null;
+  function diffInDays(fromISO, toISO){
     try{
-      const [y,m,d] = dateISO.split('-').map(Number);
-      const target = new Date(y, m-1, d);
-      const now = new Date();
-      target.setHours(0,0,0,0);
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const diffMs = target.getTime() - today.getTime();
-      return Math.round(diffMs / 86400000);
+      if(!fromISO || !toISO) return null;
+      const a = fromISO.split('-').map(Number);
+      const b = toISO.split('-').map(Number);
+      if(a.length !== 3 || b.length !== 3) return null;
+      const da = new Date(a[0], a[1]-1, a[2]);
+      const db = new Date(b[0], b[1]-1, b[2]);
+      const ms = db - da;
+      return Math.round(ms / 86400000);
     }catch(e){
-      console.error('Erro em daysUntil', e);
+      console.error('Erro em diffInDays', e);
       return null;
     }
   }
@@ -1141,22 +1067,27 @@
       const consultor = (params.get('consultor') || '').trim();
       const nova   = (params.get('nova') || '').trim();     // "1" para abrir modal "Nova tarefa"
 
+      // Se veio consultor e ainda não há filtro local de responsável, herdamos
       if(consultor && !FILTERS.responsavel){
         FILTERS.responsavel = consultor;
       }
 
+      // Se veio origem/ref, ativamos filtro "escondido" por origem
       if(origem || ref){
         FILTERS.origemTipo = origem || '';
         FILTERS.origemRef  = ref || '';
       }
 
+      // Se é pedido de "Nova tarefa" vinda de outro módulo, tentamos abrir já o modal
       if(nova === '1'){
+        // Só abrimos se o modo não estiver bloqueado
         if(state.locked){
           setTimeout(()=>{
             alert('Para criar uma nova tarefa associada, ative "Edição ativa" (cadeado no topo).');
           }, 300);
         }else{
           openModal(null);
+          // Pré-preenchemos os campos de origem automaticamente
           if(origem){
             $('origemTipo').value = origem;
           }
@@ -1189,6 +1120,7 @@
     FILTERS.de = filterDataDe.value || '';
     FILTERS.ate = filterDataAte.value || '';
     FILTERS.showCompleted = filterShowCompleted.checked;
+    // origemTipo / origemRef mantêm-se até serem limpos
   }
 
   function saveFiltersToStorage(){
@@ -1283,8 +1215,8 @@
       $('taskId').value = '';
       const hoje = todayISO();
       $('dataCriacao').value = hoje;
-      // data limite por defeito = data criação + 8 dias
-      $('dataLimite').value = addDaysISO(hoje, 8);
+      $('dataLimite').value = addDaysISO(hoje, 8); // regra: +8 dias
+      $('horaLimite').value = '';
     }
   }
 
@@ -1300,18 +1232,11 @@
       dataCriacao = todayISO();
     }
 
-    let dataLimite = $('dataLimite').value;
+    let dataLimite = $('dataLimite').value || '';
 
-    // Se o utilizador não indicar data limite, definimos automaticamente: criação + 8 dias
-    if(!dataLimite){
+    // Garantia: data limite tem de ser superior à data de criação
+    if(dataLimite && dataCriacao && dataLimite <= dataCriacao){
       dataLimite = addDaysISO(dataCriacao, 8);
-    }else if(dataLimite < dataCriacao){
-      const ajustada = addDaysISO(dataCriacao, 8);
-      alert(
-        'A data limite não pode ser anterior à data de criação.\n\n' +
-        'O sistema ajustou automaticamente para ' + ajustada + ' (data de criação + 8 dias).'
-      );
-      dataLimite = ajustada;
     }
 
     const data = {
@@ -1357,6 +1282,7 @@
       if(from && t.dataLimite && t.dataLimite < from) return false;
       if(to && t.dataLimite && t.dataLimite > to) return false;
 
+      // Filtro de origem (vindo de Leads/Vendas ou manual via URL)
       if(oTipo && t.origemTipo !== oTipo) return false;
       if(oRef){
         const tref = (t.origemRef || '').toLowerCase();
@@ -1420,6 +1346,19 @@
     return 'chip-primary';
   }
 
+  function getUrgencyClass(task){
+    if(!task.dataLimite) return '';
+    const today = todayISO();
+    const diff = diffInDays(today, task.dataLimite); // dias até ao prazo
+    if(diff == null) return '';
+    if(diff < 0) return 'card-urgency-overdue';
+    if(diff === 0) return 'card-urgency-due';
+    if(diff <= 2) return 'card-urgency-high';
+    if(diff <= 5) return 'card-urgency-medium';
+    if(diff <= 8) return 'card-urgency-soft';
+    return '';
+  }
+
   function renderOriginBanner(){
     if(FILTERS.origemTipo || FILTERS.origemRef){
       const parts = [];
@@ -1436,218 +1375,25 @@
     }
   }
 
-  function loadLeads(){
-    try{
-      const raw = localStorage.getItem(LEADS_LS_KEY);
-      if(!raw) return [];
-      const parsed = JSON.parse(raw);
-      if(Array.isArray(parsed)) return parsed;
-      return [];
-    }catch(e){
-      console.error('Erro a carregar leads para ficha original', e);
-      return [];
-    }
-  }
-
-  function findLeadForTask(task){
-    if(!task || task.origemTipo !== 'lead') return null;
-    const origemRef = (task.origemRef || '').trim();
-    if(!origemRef) return null;
-
-    const leads = loadLeads();
-    if(!leads.length) return null;
-
-    const refLower = origemRef.toLowerCase();
-
-    // tentar match direto com ref_interna
-    let found = leads.find(l => (l.ref_interna || '').toLowerCase() === refLower);
-    if(found) return found;
-
-    // separar por "—" se existir
-    const parts = origemRef.split('—').map(p=>p.trim());
-    if(parts.length >= 1){
-      const r = parts[0].toLowerCase();
-      found = leads.find(l => (l.ref_interna || '').toLowerCase() === r);
-      if(found) return found;
-    }
-    if(parts.length >= 2){
-      const name = parts[1].toLowerCase();
-      found = leads.find(l => (l.nome || '').toLowerCase() === name);
-      if(found) return found;
-    }
-
-    // fallback: includes na ref interna
-    found = leads.find(l => {
-      const ref = (l.ref_interna || '').toLowerCase();
-      return ref && (refLower.includes(ref) || ref.includes(refLower));
-    });
-    if(found) return found;
-
-    // fallback: includes no nome
-    found = leads.find(l => {
-      const nome = (l.nome || '').toLowerCase();
-      return nome && (refLower.includes(nome) || nome.includes(refLower));
-    });
-
-    return found || null;
-  }
-
+  // Abre ficha original no módulo Leads (kanban.html)
   function openOriginalModal(task){
-    if(!task || !task.origemTipo){
-      alert('Esta tarefa não tem origem associada.');
+    if(!task){
+      alert('Não foi possível identificar a tarefa selecionada.');
       return;
     }
 
     if(task.origemTipo !== 'lead'){
-      alert('Neste momento a ficha original está disponível apenas para Leads.\nEm próximo passo podemos ligar também Angariações/Vendas.');
+      alert('Neste momento, o atalho "Ver ficha original" está disponível apenas para tarefas associadas a Leads.');
       return;
     }
 
-    const lead = findLeadForTask(task);
-    if(!lead){
-      alert('Não foi possível encontrar a ficha original no armazenamento local.\n\nVerifique se a referência coincide exatamente com a usada em Leads.');
+    if(!task.origemRef || !task.origemRef.trim()){
+      alert('Esta tarefa não tem referência associada à lead.');
       return;
     }
 
-    originalModalTitle.textContent = 'Ficha original — Lead';
-    originalModalMeta.textContent = 'Ref. interna: ' + (lead.ref_interna || '—') +
-      ' · Estado: ' + (lead.estado || '—') +
-      (lead.data ? ' · Data: ' + lead.data : '');
-
-    function val(v){ return v!=null && v!=='' ? v : '—'; }
-
-    const blocos = [];
-
-    blocos.push(`
-      <div class="original-block">
-        <h3>Identificação</h3>
-        <div class="original-field">
-          <span class="original-label">Nome cliente</span>
-          <span class="original-value">${val(lead.nome)}</span>
-        </div>
-        <div class="original-field">
-          <span class="original-label">Consultor</span>
-          <span class="original-value">${val(lead.consultor)}</span>
-        </div>
-        <div class="original-field">
-          <span class="original-label">Contacto</span>
-          <span class="original-value">${val(lead.contacto)}</span>
-        </div>
-        <div class="original-field">
-          <span class="original-label">Email</span>
-          <span class="original-value">${val(lead.email)}</span>
-        </div>
-        <div class="original-field">
-          <span class="original-label">Ref. interna</span>
-          <span class="original-value">${val(lead.ref_interna)}</span>
-        </div>
-        <div class="original-field">
-          <span class="original-label">Classificação</span>
-          <span class="original-value">${val(lead.classificacao)}</span>
-        </div>
-      </div>
-    `);
-
-    blocos.push(`
-      <div class="original-block">
-        <h3>Negócio & Perfil</h3>
-        <div class="original-field">
-          <span class="original-label">Tipo de negócio</span>
-          <span class="original-value">${val(lead.tipo_negocio)}</span>
-        </div>
-        <div class="original-field">
-          <span class="original-label">Imóvel</span>
-          <span class="original-value">${val(lead.imovel)}</span>
-        </div>
-        <div class="original-field">
-          <span class="original-label">Tipologia</span>
-          <span class="original-value">${val(lead.tipologia)}</span>
-        </div>
-        <div class="original-field">
-          <span class="original-label">Zona preferencial</span>
-          <span class="original-value">${val(lead.zona)}</span>
-        </div>
-        <div class="original-field">
-          <span class="original-label">Perfil</span>
-          <span class="original-value">${val(lead.perfil)}</span>
-        </div>
-        <div class="original-field">
-          <span class="original-label">Comprador / Vendedor</span>
-          <span class="original-value">${val(lead.papel)}</span>
-        </div>
-      </div>
-    `);
-
-    blocos.push(`
-      <div class="original-block">
-        <h3>Financeiro</h3>
-        <div class="original-field">
-          <span class="original-label">Capitais próprios (€)</span>
-          <span class="original-value">${val(lead.capitais)}</span>
-        </div>
-        <div class="original-field">
-          <span class="original-label">Valor alvo (€)</span>
-          <span class="original-value">${val(lead.valor)}</span>
-        </div>
-        <div class="original-field">
-          <span class="original-label">Financiamento bancário</span>
-          <span class="original-value">${val(lead.financiamento)}</span>
-        </div>
-        <div class="original-field">
-          <span class="original-label">Simulação bancária</span>
-          <span class="original-value">${val(lead.simulacao)}</span>
-        </div>
-        <div class="original-field">
-          <span class="original-label">Banco</span>
-          <span class="original-value">${val(lead.banco)}</span>
-        </div>
-      </div>
-    `);
-
-    blocos.push(`
-      <div class="original-block">
-        <h3>Outros dados</h3>
-        <div class="original-field">
-          <span class="original-label">Urgente</span>
-          <span class="original-value">${val(lead.urgente)}</span>
-        </div>
-        <div class="original-field">
-          <span class="original-label">Pode comprar em planta</span>
-          <span class="original-value">${val(lead.planta)}</span>
-        </div>
-        <div class="original-field">
-          <span class="original-label">1ª habitação</span>
-          <span class="original-value">${val(lead.primeira_hab)}</span>
-        </div>
-        <div class="original-field">
-          <span class="original-label">Tem imóvel para vender</span>
-          <span class="original-value">${val(lead.tem_imovel)}</span>
-        </div>
-        <div class="original-field">
-          <span class="original-label">Já está à venda</span>
-          <span class="original-value">${val(lead.ja_venda)}</span>
-        </div>
-        <div class="original-field">
-          <span class="original-label">Notas</span>
-          <span class="original-value">${val(lead.notas)}</span>
-        </div>
-        <div class="original-field">
-          <span class="original-label">URL anexo</span>
-          <span class="original-value">${
-            lead.url
-              ? '<a href="'+lead.url+'" target="_blank" rel="noreferrer">'+lead.url+'</a>'
-              : '—'
-          }</span>
-        </div>
-      </div>
-    `);
-
-    originalModalInner.innerHTML = blocos.join('');
-    originalModalBackdrop.classList.add('open');
-  }
-
-  function closeOriginalModal(){
-    originalModalBackdrop.classList.remove('open');
+    const url = 'kanban.html?ref=' + encodeURIComponent(task.origemRef.trim());
+    window.open(url, '_blank');
   }
 
   function renderCards(){
@@ -1673,7 +1419,7 @@
       emptyState.style.display = 'none';
     }
 
-    // KPI globais (todas as tarefas)
+    // KPIs gerais
     let total = tasks.length;
     let porEstado = {por_fazer:0,em_curso:0,concluida:0,adiada:0,cancelada:0};
     tasks.forEach(t=>{
@@ -1715,55 +1461,19 @@
       pipelineKpis.appendChild(chip);
     });
 
-    // Alerta de prazos (com base em todas as tarefas)
-    const today = todayISO();
-    const pendingWithDeadline = tasks.filter(t =>
-      t.dataLimite &&
-      t.estado !== 'concluida' &&
-      t.estado !== 'cancelada'
-    );
-    const overdue = pendingWithDeadline.filter(t => t.dataLimite < today);
-    const dueToday = pendingWithDeadline.filter(t => t.dataLimite === today);
-
-    if(deadlineAlerts){
-      if(overdue.length || dueToday.length){
-        deadlineAlerts.style.display = 'flex';
-        deadlineAlerts.innerHTML =
-          '⚠️ ' +
-          (overdue.length ? `<strong>${overdue.length}</strong> tarefas em atraso` : '') +
-          (overdue.length && dueToday.length ? ' · ' : '') +
-          (dueToday.length ? `⏰ <strong>${dueToday.length}</strong> com prazo hoje` : '');
-      }else{
-        deadlineAlerts.style.display = 'none';
-        deadlineAlerts.textContent = '';
-      }
-    }
-
     // Cartões
+    const today = todayISO();
+
     filtered.forEach(t=>{
-      let extraUrgencyClass = '';
-
-      if(t.estado !== 'concluida' && t.estado !== 'cancelada' && t.dataLimite){
-        const diffDays = daysUntil(t.dataLimite);
-        if(diffDays !== null){
-          if(diffDays < 0){
-            extraUrgencyClass = ' card-overdue';
-          }else if(diffDays === 0){
-            extraUrgencyClass = ' card-deadline-today';
-          }else if(diffDays <= 2){
-            extraUrgencyClass = ' card-deadline-soon';
-          }else if(diffDays <= 5){
-            extraUrgencyClass = ' card-deadline-medium';
-          }
-        }
-      }
-
       const card = document.createElement('div');
-      card.className =
-        'card' +
-        ((t.estado === 'concluida' || t.estado === 'cancelada') ? ' completed' : '') +
-        extraUrgencyClass;
-
+      let cardClass = 'card';
+      if(t.estado === 'concluida' || t.estado === 'cancelada'){
+        cardClass += ' completed';
+      }else{
+        const urg = getUrgencyClass(t);
+        if(urg) cardClass += ' ' + urg;
+      }
+      card.className = cardClass;
       card.dataset.id = t.id;
 
       const topRow = document.createElement('div');
@@ -1819,6 +1529,24 @@
         ch.className = 'chip';
         ch.textContent = t.tags;
         chipsRow.appendChild(ch);
+      }
+
+      // Alerta visual quando chega ao prazo / em atraso
+      if(t.dataLimite){
+        const diff = diffInDays(today, t.dataLimite);
+        if(diff !== null){
+          if(diff === 0 && t.estado !== 'concluida' && t.estado !== 'cancelada'){
+            const ch = document.createElement('span');
+            ch.className = 'chip chip-red';
+            ch.textContent = '⚠ Prazo hoje';
+            chipsRow.appendChild(ch);
+          }else if(diff < 0 && t.estado !== 'concluida' && t.estado !== 'cancelada'){
+            const ch = document.createElement('span');
+            ch.className = 'chip chip-red';
+            ch.textContent = '⚠ Em atraso';
+            chipsRow.appendChild(ch);
+          }
+        }
       }
 
       titleBlock.appendChild(chipsRow);
@@ -2124,6 +1852,7 @@
     renderCards();
   });
 
+  // Limpar só o filtro de origem (mantém restante filtros aplicados)
   clearOriginFilterBtn.addEventListener('click', ()=>{
     FILTERS.origemTipo = '';
     FILTERS.origemRef  = '';
@@ -2153,24 +1882,17 @@
   exportPdfBtn.addEventListener('click', exportPdfList);
 
   window.addEventListener('keydown',(e)=>{
-    if(e.key==='Escape'){
-      if(modalBackdrop.classList.contains('open')){
-        closeModal();
-      }else if(originalModalBackdrop.classList.contains('open')){
-        closeOriginalModal();
-      }
+    if(e.key==='Escape' && modalBackdrop.classList.contains('open')){
+      closeModal();
     }
   });
-
-  closeOriginalModalBtn.addEventListener('click', closeOriginalModal);
-  closeOriginalModalBtnFooter.addEventListener('click', closeOriginalModal);
 
   // Init
   initConsultores();
   loadState();
   loadFiltersFromStorage();
   loadGlobalFiltersFallback();
-  applyUrlContext();
+  applyUrlContext();          // integra contexto vindo de Leads/Vendas (+Tarefa / Ver Tarefas)
   applyFiltersToControls();
   renderCards();
 
