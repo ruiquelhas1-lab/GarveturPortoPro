@@ -294,6 +294,7 @@
       margin-left:4px;
     }
 
+    /* Banner de origem (filtragem vinda de Leads/Vendas) */
     .origin-banner{
       margin-bottom:8px;
       padding:6px 10px;
@@ -325,6 +326,24 @@
       color:#fff;
     }
 
+    /* Alerta de prazos (hoje/atraso) */
+    .deadline-alert{
+      margin-bottom:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(242,95,92,.7);
+      background:rgba(242,95,92,.12);
+      font-size:12px;
+      color:var(--muted);
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .deadline-alert strong{
+      color:#FFE082;
+    }
+
     .cards-grid{
       display:grid;
       grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
@@ -345,6 +364,27 @@
     .card.completed{
       opacity:.6;
       border-style:dashed;
+    }
+
+    /* Cores de urgência por data limite */
+    .card-deadline-medium{
+      border-color: rgba(255,200,87,.8);
+      box-shadow: 0 18px 35px rgba(255,200,87,.25);
+    }
+    .card-deadline-soon{
+      border-color: rgba(255,140,0,.9);
+      box-shadow: 0 18px 35px rgba(255,140,0,.30);
+      background: radial-gradient(circle at top left,#25120a,#070707);
+    }
+    .card-deadline-today{
+      border-color: rgba(242,95,92,1);
+      box-shadow: 0 20px 40px rgba(242,95,92,.40);
+      background: radial-gradient(circle at top left,#2b0b0b,#070707);
+    }
+    .card-overdue{
+      border-color: rgba(220,53,69,1);
+      box-shadow: 0 22px 45px rgba(220,53,69,.55);
+      background: radial-gradient(circle at top left,#3a0505,#050505);
     }
 
     .card-top-row{
@@ -589,6 +629,46 @@
     .switch input:checked + .slider:before{
       transform:translateX(14px);
     }
+
+    /* MODAL FICHA ORIGINAL (visualização) */
+    .modal-original-body{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+      font-size:12px;
+    }
+    @media (max-width: 900px){
+      .modal-original-body{
+        grid-template-columns:1fr;
+      }
+    }
+    .original-block{
+      border-radius:var(--radius-md);
+      border:1px solid rgba(163,139,99,.25);
+      background:rgba(0,0,0,.55);
+      padding:8px 9px;
+    }
+    .original-block h3{
+      margin:0 0 6px;
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:var(--muted);
+    }
+    .original-field{
+      margin-bottom:4px;
+    }
+    .original-label{
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      color:var(--muted);
+      display:block;
+    }
+    .original-value{
+      font-size:12px;
+      color:#eee;
+    }
   </style>
 </head>
 <body>
@@ -707,6 +787,10 @@
         </div>
       </div>
 
+      <!-- Alerta de prazos (hoje e atrasadas) -->
+      <div id="deadlineAlerts" class="deadline-alert" style="display:none;"></div>
+
+      <!-- Banner de origem (quando vem de Leads/Vendas ou quando há filtro de origem ativo) -->
       <div id="originFilterBanner" class="origin-banner" style="display:none;">
         <div>
           🔗 <strong id="originFilterLabel"></strong>
@@ -853,120 +937,22 @@
   </div>
 </div>
 
-<!-- MODAL FICHA ORIGINAL (LEAD) -->
-<div class="modal-backdrop" id="recordBackdrop">
+<!-- MODAL FICHA ORIGINAL (Lead) -->
+<div class="modal-backdrop" id="originalModalBackdrop">
   <div class="modal">
     <div class="modal-header">
-      <h2 id="recordTitle">Ficha original</h2>
-      <button class="btn btn-icon btn-ghost" id="recordCloseBtn" title="Fechar">✕</button>
+      <h2 id="originalModalTitle">Ficha original</h2>
+      <button class="btn btn-icon btn-ghost" id="closeOriginalModalBtn" title="Fechar">✕</button>
     </div>
     <div class="modal-body">
-      <form id="recordForm">
-        <input type="hidden" id="rec_id" />
-        <div class="form-grid">
-          <div class="form-section">
-            <h3>Lead — Dados principais</h3>
-            <div class="field">
-              <label class="field-label" for="rec_nome">Nome cliente</label>
-              <input type="text" id="rec_nome" />
-            </div>
-            <div class="field-row">
-              <div class="field">
-                <label class="field-label" for="rec_consultor">Consultor</label>
-                <select id="rec_consultor"></select>
-              </div>
-              <div class="field">
-                <label class="field-label" for="rec_ref_interna">Ref. Interna</label>
-                <input type="text" id="rec_ref_interna" />
-              </div>
-            </div>
-            <div class="field-row">
-              <div class="field">
-                <label class="field-label" for="rec_contacto">Contacto</label>
-                <input type="text" id="rec_contacto" />
-              </div>
-              <div class="field">
-                <label class="field-label" for="rec_email">Email</label>
-                <input type="email" id="rec_email" />
-              </div>
-            </div>
-          </div>
-
-          <div class="form-section">
-            <h3>Negócio & Enquadramento</h3>
-            <div class="field-row">
-              <div class="field">
-                <label class="field-label" for="rec_tipo_negocio">Tipo de negócio</label>
-                <select id="rec_tipo_negocio">
-                  <option value="">—</option>
-                  <option value="Venda">Venda</option>
-                  <option value="Compra">Compra</option>
-                  <option value="Arrendamento">Arrendamento</option>
-                  <option value="Permuta">Permuta</option>
-                </select>
-              </div>
-              <div class="field">
-                <label class="field-label" for="rec_imovel">Imóvel</label>
-                <select id="rec_imovel">
-                  <option value="">—</option>
-                  <option value="Moradia">Moradia</option>
-                  <option value="Apartamento">Apartamento</option>
-                  <option value="Loja">Loja</option>
-                  <option value="Armazém">Armazém</option>
-                  <option value="Escritório">Escritório</option>
-                  <option value="Terreno">Terreno</option>
-                  <option value="Outro">Outro</option>
-                </select>
-              </div>
-            </div>
-            <div class="field-row">
-              <div class="field">
-                <label class="field-label" for="rec_tipologia">Tipologia</label>
-                <select id="rec_tipologia">
-                  <option value="">—</option>
-                  <option value="T0">T0</option>
-                  <option value="T1">T1</option>
-                  <option value="T2">T2</option>
-                  <option value="T3">T3</option>
-                  <option value="T4">T4</option>
-                  <option value="T5">T5</option>
-                  <option value=">T5">&gt;T5</option>
-                </select>
-              </div>
-              <div class="field">
-                <label class="field-label" for="rec_zona">Zona preferencial</label>
-                <input type="text" id="rec_zona" />
-              </div>
-            </div>
-            <div class="field-row">
-              <div class="field">
-                <label class="field-label" for="rec_valor">Valor alvo (€)</label>
-                <input type="number" id="rec_valor" min="0" step="1000" />
-              </div>
-              <div class="field">
-                <label class="field-label" for="rec_data">Data</label>
-                <input type="date" id="rec_data" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-section" style="margin-top:10px;">
-          <h3>Notas internas</h3>
-          <div class="field">
-            <label class="field-label" for="rec_notas">Notas</label>
-            <textarea id="rec_notas" rows="4" placeholder="Contexto comercial, perfil, próximos passos…"></textarea>
-          </div>
-        </div>
-      </form>
+      <div id="originalModalInner" class="modal-original-body">
+        <!-- conteúdo preenchido via JS -->
+      </div>
     </div>
     <div class="modal-footer">
-      <div class="modal-footer-left">
-        Alterações gravadas diretamente na lead original (kanban.html) no mesmo localStorage (<code>gpp_leads_v5</code>).
-      </div>
+      <div class="modal-footer-left" id="originalModalMeta"></div>
       <div>
-        <button class="btn btn-ghost" id="recordCancelBtn">Cancelar</button>
-        <button class="btn btn-primary" id="recordSaveBtn">Guardar ficha</button>
+        <button class="btn btn-ghost" id="closeOriginalModalBtnFooter">Fechar</button>
       </div>
     </div>
   </div>
@@ -977,6 +963,8 @@
   const STORAGE_KEY = 'gpp_tarefas_v1';
   const FILTERS_STORAGE_KEY = 'gpp_tarefas_filters_v1';
   const GLOBAL_FILTERS_KEY = 'gpp_global_filters_v1';
+
+  // Leads (kanban) storage
   const LEADS_LS_KEY = 'gpp_leads_v5';
 
   const CONSULTOR_OPTIONS = [
@@ -1001,6 +989,7 @@
   const emptyState = $('emptyState');
   const pipelineKpis = $('pipelineKpis');
   const summaryBadges = $('summaryBadges');
+  const deadlineAlerts = $('deadlineAlerts');
 
   const filterResponsavel = $('filterResponsavel');
   const filterEstado = $('filterEstado');
@@ -1026,18 +1015,19 @@
   const apoioSelect = $('apoio');
 
   // Modal ficha original
-  const recordBackdrop = $('recordBackdrop');
-  const recordTitle = $('recordTitle');
-  const recordCloseBtn = $('recordCloseBtn');
-  const recordCancelBtn = $('recordCancelBtn');
-  const recordSaveBtn = $('recordSaveBtn');
-  const recConsultorSelect = $('rec_consultor');
+  const originalModalBackdrop = $('originalModalBackdrop');
+  const originalModalInner = $('originalModalInner');
+  const originalModalTitle = $('originalModalTitle');
+  const originalModalMeta = $('originalModalMeta');
+  const closeOriginalModalBtn = $('closeOriginalModalBtn');
+  const closeOriginalModalBtnFooter = $('closeOriginalModalBtnFooter');
 
   let state = {
     locked:true,
     tasks:[]
   };
 
+  // Inclui filtros "escondidos" de origem (vindo de Leads/Vendas)
   let FILTERS = {
     responsavel:'',
     estado:'',
@@ -1055,6 +1045,39 @@
     const m = String(d.getMonth()+1).padStart(2,'0');
     const day = String(d.getDate()).padStart(2,'0');
     return y + '-' + m + '-' + day;
+  }
+
+  function addDaysISO(baseISO, days){
+    try{
+      if(!baseISO) baseISO = todayISO();
+      const parts = baseISO.split('-').map(Number);
+      if(parts.length !== 3) return todayISO();
+      const dt = new Date(parts[0], parts[1]-1, parts[2]);
+      dt.setDate(dt.getDate() + (days || 0));
+      const y = dt.getFullYear();
+      const m = String(dt.getMonth()+1).padStart(2,'0');
+      const d = String(dt.getDate()).padStart(2,'0');
+      return y + '-' + m + '-' + d;
+    }catch(e){
+      console.error('Erro em addDaysISO', e);
+      return todayISO();
+    }
+  }
+
+  function daysUntil(dateISO){
+    if(!dateISO) return null;
+    try{
+      const [y,m,d] = dateISO.split('-').map(Number);
+      const target = new Date(y, m-1, d);
+      const now = new Date();
+      target.setHours(0,0,0,0);
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const diffMs = target.getTime() - today.getTime();
+      return Math.round(diffMs / 86400000);
+    }catch(e){
+      console.error('Erro em daysUntil', e);
+      return null;
+    }
   }
 
   function loadState(){
@@ -1095,6 +1118,7 @@
   }
 
   function loadGlobalFiltersFallback(){
+    // Só aplica se ainda não houver filtros locais (primeiro uso)
     if(FILTERS.responsavel || FILTERS.de || FILTERS.ate) return;
     try{
       const raw = localStorage.getItem(GLOBAL_FILTERS_KEY);
@@ -1108,13 +1132,14 @@
     }
   }
 
+  // Integração com Leads/Vendas via parâmetros na URL
   function applyUrlContext(){
     try{
       const params = new URLSearchParams(window.location.search);
-      const origem = (params.get('origem') || '').trim();
+      const origem = (params.get('origem') || '').trim();   // lead, angariacao, venda, interna
       const ref    = (params.get('ref') || '').trim();
       const consultor = (params.get('consultor') || '').trim();
-      const nova   = (params.get('nova') || '').trim();
+      const nova   = (params.get('nova') || '').trim();     // "1" para abrir modal "Nova tarefa"
 
       if(consultor && !FILTERS.responsavel){
         FILTERS.responsavel = consultor;
@@ -1231,13 +1256,6 @@
       opt3.value = name;
       opt3.textContent = name;
       filterResponsavel.appendChild(opt3);
-
-      if(recConsultorSelect){
-        const opt4 = document.createElement('option');
-        opt4.value = name;
-        opt4.textContent = name;
-        recConsultorSelect.appendChild(opt4);
-      }
     });
   }
 
@@ -1263,7 +1281,10 @@
       modalTitle.textContent = 'Nova Tarefa';
       taskForm.reset();
       $('taskId').value = '';
-      $('dataCriacao').value = todayISO();
+      const hoje = todayISO();
+      $('dataCriacao').value = hoje;
+      // data limite por defeito = data criação + 8 dias
+      $('dataLimite').value = addDaysISO(hoje, 8);
     }
   }
 
@@ -1279,6 +1300,20 @@
       dataCriacao = todayISO();
     }
 
+    let dataLimite = $('dataLimite').value;
+
+    // Se o utilizador não indicar data limite, definimos automaticamente: criação + 8 dias
+    if(!dataLimite){
+      dataLimite = addDaysISO(dataCriacao, 8);
+    }else if(dataLimite < dataCriacao){
+      const ajustada = addDaysISO(dataCriacao, 8);
+      alert(
+        'A data limite não pode ser anterior à data de criação.\n\n' +
+        'O sistema ajustou automaticamente para ' + ajustada + ' (data de criação + 8 dias).'
+      );
+      dataLimite = ajustada;
+    }
+
     const data = {
       id,
       responsavel: responsavelSelect.value || '',
@@ -1292,7 +1327,7 @@
       titulo: $('titulo').value || '',
       descricao: $('descricao').value || '',
       dataCriacao: dataCriacao,
-      dataLimite: $('dataLimite').value || '',
+      dataLimite: dataLimite,
       horaLimite: $('horaLimite').value || '',
       createdAtMs: Date.now()
     };
@@ -1401,140 +1436,218 @@
     }
   }
 
-  /* === LEADS (localStorage) === */
-  function loadLeadsFromStorage(){
+  function loadLeads(){
     try{
       const raw = localStorage.getItem(LEADS_LS_KEY);
       if(!raw) return [];
       const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed : [];
+      if(Array.isArray(parsed)) return parsed;
+      return [];
     }catch(e){
-      console.error('Erro ao carregar leads do localStorage', e);
+      console.error('Erro a carregar leads para ficha original', e);
       return [];
     }
   }
 
-  function saveLeadsToStorage(leads){
-    try{
-      localStorage.setItem(LEADS_LS_KEY, JSON.stringify(leads));
-    }catch(e){
-      console.error('Erro ao guardar leads no localStorage', e);
+  function findLeadForTask(task){
+    if(!task || task.origemTipo !== 'lead') return null;
+    const origemRef = (task.origemRef || '').trim();
+    if(!origemRef) return null;
+
+    const leads = loadLeads();
+    if(!leads.length) return null;
+
+    const refLower = origemRef.toLowerCase();
+
+    // tentar match direto com ref_interna
+    let found = leads.find(l => (l.ref_interna || '').toLowerCase() === refLower);
+    if(found) return found;
+
+    // separar por "—" se existir
+    const parts = origemRef.split('—').map(p=>p.trim());
+    if(parts.length >= 1){
+      const r = parts[0].toLowerCase();
+      found = leads.find(l => (l.ref_interna || '').toLowerCase() === r);
+      if(found) return found;
     }
+    if(parts.length >= 2){
+      const name = parts[1].toLowerCase();
+      found = leads.find(l => (l.nome || '').toLowerCase() === name);
+      if(found) return found;
+    }
+
+    // fallback: includes na ref interna
+    found = leads.find(l => {
+      const ref = (l.ref_interna || '').toLowerCase();
+      return ref && (refLower.includes(ref) || ref.includes(refLower));
+    });
+    if(found) return found;
+
+    // fallback: includes no nome
+    found = leads.find(l => {
+      const nome = (l.nome || '').toLowerCase();
+      return nome && (refLower.includes(nome) || nome.includes(refLower));
+    });
+
+    return found || null;
   }
 
-  // Função de matching robusto entre tarefa e lead
-  function findLeadForTask(task, leads){
-    if(!task) return null;
-
-    const norm = (s) => (s || '').toString().trim().toLowerCase();
-
-    const rawRef = norm(task.origemRef);
-    const titulo = norm(task.titulo);
-    const tags   = norm(task.tags);
-
-    if(!rawRef && !titulo && !tags) return null;
-
-    // 1) match exato ref_interna == origemRef
-    if(rawRef){
-      let lead = leads.find(l => norm(l.ref_interna) === rawRef);
-      if(lead) return lead;
+  function openOriginalModal(task){
+    if(!task || !task.origemTipo){
+      alert('Esta tarefa não tem origem associada.');
+      return;
     }
 
-    // 2) origemRef no formato "REF — Nome"
-    let splitTokens = [];
-    if(rawRef){
-      splitTokens = rawRef
-        .split(/[—-]/)
-        .map(norm)
-        .filter(Boolean);
+    if(task.origemTipo !== 'lead'){
+      alert('Neste momento a ficha original está disponível apenas para Leads.\nEm próximo passo podemos ligar também Angariações/Vendas.');
+      return;
     }
 
-    if(splitTokens.length){
-      // 2a) ref_interna == token
-      for(const tok of splitTokens){
-        const lead = leads.find(l => norm(l.ref_interna) === tok);
-        if(lead) return lead;
-      }
-      // 2b) nome == token
-      for(const tok of splitTokens){
-        const lead = leads.find(l => norm(l.nome) === tok);
-        if(lead) return lead;
-      }
-    }
-
-    // 3) nome == origemRef completo
-    if(rawRef){
-      let lead = leads.find(l => norm(l.nome) === rawRef);
-      if(lead) return lead;
-    }
-
-    // 4) fuzzy com tokens de origemRef
-    if(splitTokens.length){
-      let lead = leads.find(l => {
-        const blob = norm([l.ref_interna, l.nome, l.contacto, l.email].join(' '));
-        return splitTokens.every(t => blob.includes(t));
-      });
-      if(lead) return lead;
-    }
-
-    // 5) usar também título + tags
-    const searchTokens = [rawRef, titulo, tags].map(norm).filter(Boolean);
-    for(const tok of searchTokens){
-      if(!tok) continue;
-      const lead = leads.find(l => {
-        const blob = norm([l.ref_interna, l.nome, l.contacto, l.email].join(' '));
-        return blob.includes(tok);
-      });
-      if(lead) return lead;
-    }
-
-    return null;
-  }
-
-  function openRecordModalForLead(lead){
+    const lead = findLeadForTask(task);
     if(!lead){
-      alert('Não foi possível carregar os dados da ficha original.');
+      alert('Não foi possível encontrar a ficha original no armazenamento local.\n\nVerifique se a referência coincide exatamente com a usada em Leads.');
       return;
     }
 
-    $('rec_id').value = lead.id || '';
-    $('rec_nome').value = lead.nome || '';
-    if(recConsultorSelect){
-      recConsultorSelect.value = lead.consultor || '';
-    }
-    $('rec_ref_interna').value = lead.ref_interna || '';
-    $('rec_contacto').value = lead.contacto || '';
-    $('rec_email').value = lead.email || '';
-    $('rec_tipo_negocio').value = lead.tipo_negocio || '';
-    $('rec_imovel').value = lead.imovel || '';
-    $('rec_tipologia').value = lead.tipologia || '';
-    $('rec_zona').value = lead.zona || '';
-    $('rec_valor').value = lead.valor || '';
-    $('rec_data').value = lead.data || '';
-    $('rec_notas').value = lead.notas || '';
+    originalModalTitle.textContent = 'Ficha original — Lead';
+    originalModalMeta.textContent = 'Ref. interna: ' + (lead.ref_interna || '—') +
+      ' · Estado: ' + (lead.estado || '—') +
+      (lead.data ? ' · Data: ' + lead.data : '');
 
-    recordTitle.textContent = 'Ficha original — Lead';
-    recordBackdrop.classList.add('open');
+    function val(v){ return v!=null && v!=='' ? v : '—'; }
+
+    const blocos = [];
+
+    blocos.push(`
+      <div class="original-block">
+        <h3>Identificação</h3>
+        <div class="original-field">
+          <span class="original-label">Nome cliente</span>
+          <span class="original-value">${val(lead.nome)}</span>
+        </div>
+        <div class="original-field">
+          <span class="original-label">Consultor</span>
+          <span class="original-value">${val(lead.consultor)}</span>
+        </div>
+        <div class="original-field">
+          <span class="original-label">Contacto</span>
+          <span class="original-value">${val(lead.contacto)}</span>
+        </div>
+        <div class="original-field">
+          <span class="original-label">Email</span>
+          <span class="original-value">${val(lead.email)}</span>
+        </div>
+        <div class="original-field">
+          <span class="original-label">Ref. interna</span>
+          <span class="original-value">${val(lead.ref_interna)}</span>
+        </div>
+        <div class="original-field">
+          <span class="original-label">Classificação</span>
+          <span class="original-value">${val(lead.classificacao)}</span>
+        </div>
+      </div>
+    `);
+
+    blocos.push(`
+      <div class="original-block">
+        <h3>Negócio & Perfil</h3>
+        <div class="original-field">
+          <span class="original-label">Tipo de negócio</span>
+          <span class="original-value">${val(lead.tipo_negocio)}</span>
+        </div>
+        <div class="original-field">
+          <span class="original-label">Imóvel</span>
+          <span class="original-value">${val(lead.imovel)}</span>
+        </div>
+        <div class="original-field">
+          <span class="original-label">Tipologia</span>
+          <span class="original-value">${val(lead.tipologia)}</span>
+        </div>
+        <div class="original-field">
+          <span class="original-label">Zona preferencial</span>
+          <span class="original-value">${val(lead.zona)}</span>
+        </div>
+        <div class="original-field">
+          <span class="original-label">Perfil</span>
+          <span class="original-value">${val(lead.perfil)}</span>
+        </div>
+        <div class="original-field">
+          <span class="original-label">Comprador / Vendedor</span>
+          <span class="original-value">${val(lead.papel)}</span>
+        </div>
+      </div>
+    `);
+
+    blocos.push(`
+      <div class="original-block">
+        <h3>Financeiro</h3>
+        <div class="original-field">
+          <span class="original-label">Capitais próprios (€)</span>
+          <span class="original-value">${val(lead.capitais)}</span>
+        </div>
+        <div class="original-field">
+          <span class="original-label">Valor alvo (€)</span>
+          <span class="original-value">${val(lead.valor)}</span>
+        </div>
+        <div class="original-field">
+          <span class="original-label">Financiamento bancário</span>
+          <span class="original-value">${val(lead.financiamento)}</span>
+        </div>
+        <div class="original-field">
+          <span class="original-label">Simulação bancária</span>
+          <span class="original-value">${val(lead.simulacao)}</span>
+        </div>
+        <div class="original-field">
+          <span class="original-label">Banco</span>
+          <span class="original-value">${val(lead.banco)}</span>
+        </div>
+      </div>
+    `);
+
+    blocos.push(`
+      <div class="original-block">
+        <h3>Outros dados</h3>
+        <div class="original-field">
+          <span class="original-label">Urgente</span>
+          <span class="original-value">${val(lead.urgente)}</span>
+        </div>
+        <div class="original-field">
+          <span class="original-label">Pode comprar em planta</span>
+          <span class="original-value">${val(lead.planta)}</span>
+        </div>
+        <div class="original-field">
+          <span class="original-label">1ª habitação</span>
+          <span class="original-value">${val(lead.primeira_hab)}</span>
+        </div>
+        <div class="original-field">
+          <span class="original-label">Tem imóvel para vender</span>
+          <span class="original-value">${val(lead.tem_imovel)}</span>
+        </div>
+        <div class="original-field">
+          <span class="original-label">Já está à venda</span>
+          <span class="original-value">${val(lead.ja_venda)}</span>
+        </div>
+        <div class="original-field">
+          <span class="original-label">Notas</span>
+          <span class="original-value">${val(lead.notas)}</span>
+        </div>
+        <div class="original-field">
+          <span class="original-label">URL anexo</span>
+          <span class="original-value">${
+            lead.url
+              ? '<a href="'+lead.url+'" target="_blank" rel="noreferrer">'+lead.url+'</a>'
+              : '—'
+          }</span>
+        </div>
+      </div>
+    `);
+
+    originalModalInner.innerHTML = blocos.join('');
+    originalModalBackdrop.classList.add('open');
   }
 
-  function closeRecordModal(){
-    recordBackdrop.classList.remove('open');
-  }
-
-  function openFichaOriginalFromTask(task){
-    const leads = loadLeadsFromStorage();
-    if(!leads.length){
-      alert('Não foram encontradas leads guardadas no navegador.\n\nAbra o módulo de Leads (kanban.html) e confirme que existem registos.');
-      return;
-    }
-
-    const lead = findLeadForTask(task, leads);
-    if(!lead){
-      alert('Não foi possível encontrar a ficha original no armazenamento local.\n\nVerifique se a referência coincide com a Ref. Interna ou com o nome do cliente tal como estão em Leads.');
-      return;
-    }
-
-    openRecordModalForLead(lead);
+  function closeOriginalModal(){
+    originalModalBackdrop.classList.remove('open');
   }
 
   function renderCards(){
@@ -1560,12 +1673,14 @@
       emptyState.style.display = 'none';
     }
 
+    // KPI globais (todas as tarefas)
     let total = tasks.length;
     let porEstado = {por_fazer:0,em_curso:0,concluida:0,adiada:0,cancelada:0};
     tasks.forEach(t=>{
       if(porEstado[t.estado] !== undefined) porEstado[t.estado]++;
     });
 
+    // Resumo rápido (apenas com tarefas filtradas)
     summaryBadges.innerHTML = '';
     const badge1 = document.createElement('div');
     badge1.className = 'badge';
@@ -1600,9 +1715,56 @@
       pipelineKpis.appendChild(chip);
     });
 
+    // Alerta de prazos (com base em todas as tarefas)
+    const today = todayISO();
+    const pendingWithDeadline = tasks.filter(t =>
+      t.dataLimite &&
+      t.estado !== 'concluida' &&
+      t.estado !== 'cancelada'
+    );
+    const overdue = pendingWithDeadline.filter(t => t.dataLimite < today);
+    const dueToday = pendingWithDeadline.filter(t => t.dataLimite === today);
+
+    if(deadlineAlerts){
+      if(overdue.length || dueToday.length){
+        deadlineAlerts.style.display = 'flex';
+        deadlineAlerts.innerHTML =
+          '⚠️ ' +
+          (overdue.length ? `<strong>${overdue.length}</strong> tarefas em atraso` : '') +
+          (overdue.length && dueToday.length ? ' · ' : '') +
+          (dueToday.length ? `⏰ <strong>${dueToday.length}</strong> com prazo hoje` : '');
+      }else{
+        deadlineAlerts.style.display = 'none';
+        deadlineAlerts.textContent = '';
+      }
+    }
+
+    // Cartões
     filtered.forEach(t=>{
+      let extraUrgencyClass = '';
+
+      if(t.estado !== 'concluida' && t.estado !== 'cancelada' && t.dataLimite){
+        const diffDays = daysUntil(t.dataLimite);
+        if(diffDays !== null){
+          if(diffDays < 0){
+            extraUrgencyClass = ' card-overdue';
+          }else if(diffDays === 0){
+            extraUrgencyClass = ' card-deadline-today';
+          }else if(diffDays <= 2){
+            extraUrgencyClass = ' card-deadline-soon';
+          }else if(diffDays <= 5){
+            extraUrgencyClass = ' card-deadline-medium';
+          }
+        }
+      }
+
       const card = document.createElement('div');
-      card.className = 'card' + ((t.estado === 'concluida' || t.estado === 'cancelada') ? ' completed':'');
+      card.className =
+        'card' +
+        ((t.estado === 'concluida' || t.estado === 'cancelada') ? ' completed' : '') +
+        extraUrgencyClass;
+
+      card.dataset.id = t.id;
 
       const topRow = document.createElement('div');
       topRow.className = 'card-top-row';
@@ -1663,6 +1825,7 @@
       topRow.appendChild(titleBlock);
       card.appendChild(topRow);
 
+      // Origem
       if(t.origemTipo || t.origemRef){
         const sec = document.createElement('div');
         sec.className = 'card-section';
@@ -1675,6 +1838,7 @@
         card.appendChild(sec);
       }
 
+      // Datas
       if(t.dataCriacao || t.dataLimite || t.horaLimite){
         const sec = document.createElement('div');
         sec.className = 'card-section';
@@ -1687,6 +1851,7 @@
         card.appendChild(sec);
       }
 
+      // Descrição (resumo)
       if(t.descricao){
         const sec = document.createElement('div');
         sec.className = 'card-section';
@@ -1738,13 +1903,13 @@
       });
       right.appendChild(btnEdit);
 
-      const btnViewOrig = document.createElement('button');
-      btnViewOrig.className = 'btn-xs';
-      btnViewOrig.textContent = 'Ver ficha original';
-      btnViewOrig.addEventListener('click', ()=>{
-        openFichaOriginalFromTask(t);
+      const btnView = document.createElement('button');
+      btnView.className = 'btn-xs';
+      btnView.textContent = 'Ver ficha original';
+      btnView.addEventListener('click',()=>{
+        openOriginalModal(t);
       });
-      right.appendChild(btnViewOrig);
+      right.appendChild(btnView);
 
       const btnDel = document.createElement('button');
       btnDel.className = 'btn-xs danger';
@@ -1987,53 +2152,18 @@
   exportCsvBtn.addEventListener('click', exportCsv);
   exportPdfBtn.addEventListener('click', exportPdfList);
 
-  // Modal ficha original — eventos
-  if(recordCloseBtn){
-    recordCloseBtn.addEventListener('click', closeRecordModal);
-  }
-  if(recordCancelBtn){
-    recordCancelBtn.addEventListener('click', closeRecordModal);
-  }
-  if(recordSaveBtn){
-    recordSaveBtn.addEventListener('click', function(e){
-      e.preventDefault();
-      const id = $('rec_id').value;
-      if(!id){
-        closeRecordModal();
-        return;
-      }
-      const leads = loadLeadsFromStorage();
-      const idx = leads.findIndex(l=>l.id === id);
-      if(idx === -1){
-        alert('Não foi possível localizar a ficha para guardar.');
-        return;
-      }
-      const lead = leads[idx];
-      lead.nome = $('rec_nome').value.trim();
-      lead.consultor = recConsultorSelect ? recConsultorSelect.value : (lead.consultor || '');
-      lead.ref_interna = $('rec_ref_interna').value.trim();
-      lead.contacto = $('rec_contacto').value.trim();
-      lead.email = $('rec_email').value.trim();
-      lead.tipo_negocio = $('rec_tipo_negocio').value;
-      lead.imovel = $('rec_imovel').value;
-      lead.tipologia = $('rec_tipologia').value;
-      lead.zona = $('rec_zona').value.trim();
-      lead.valor = $('rec_valor').value;
-      lead.data = $('rec_data').value;
-      lead.notas = $('rec_notas').value;
-
-      saveLeadsToStorage(leads);
-      closeRecordModal();
-      alert('Ficha original atualizada com sucesso.');
-    });
-  }
-
   window.addEventListener('keydown',(e)=>{
     if(e.key==='Escape'){
-      if(modalBackdrop.classList.contains('open')) closeModal();
-      if(recordBackdrop.classList.contains('open')) closeRecordModal();
+      if(modalBackdrop.classList.contains('open')){
+        closeModal();
+      }else if(originalModalBackdrop.classList.contains('open')){
+        closeOriginalModal();
+      }
     }
   });
+
+  closeOriginalModalBtn.addEventListener('click', closeOriginalModal);
+  closeOriginalModalBtnFooter.addEventListener('click', closeOriginalModal);
 
   // Init
   initConsultores();
