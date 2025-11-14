@@ -589,6 +589,58 @@
     .switch input:checked + .slider:before{
       transform:translateX(14px);
     }
+
+    /* Modal Ficha Original – ajustes suaves */
+    .ficha-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+    }
+    @media (max-width: 900px){
+      .ficha-grid{
+        grid-template-columns:1fr;
+      }
+    }
+    .ficha-section-title{
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:var(--muted);
+      margin-bottom:4px;
+    }
+    .ficha-extra-block{
+      margin-top:8px;
+      border-radius:var(--radius-md);
+      border:1px solid rgba(163,139,99,.22);
+      background:rgba(0,0,0,.6);
+      padding:8px 9px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .ficha-extra-block summary{
+      cursor:pointer;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:var(--gold);
+      margin-bottom:4px;
+    }
+    .ficha-extra-block ul{
+      padding-left:18px;
+      margin:6px 0 0;
+      font-size:12px;
+    }
+    .ficha-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-size:11px;
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid rgba(163,139,99,.35);
+      background:rgba(0,0,0,.6);
+      color:var(--muted);
+    }
   </style>
 </head>
 <body>
@@ -759,7 +811,7 @@
               </div>
               <div class="field">
                 <label class="field-label" for="origemRef">Ref. associada</label>
-                <input type="text" id="origemRef" placeholder="Ex.: REF-123, nome cliente..." />
+                <input type="text" id="origemRef" placeholder="Ex.: Ref. Interna da lead, nome cliente..." />
               </div>
             </div>
 
@@ -853,58 +905,139 @@
   </div>
 </div>
 
-<!-- MODAL FICHA ORIGINAL (Lead / Angariação / Venda) -->
-<div class="modal-backdrop" id="fichaBackdrop">
+<!-- MODAL FICHA ORIGINAL (Lead) -->
+<div class="modal-backdrop" id="fichaModalBackdrop">
   <div class="modal">
     <div class="modal-header">
-      <h2 id="fichaTitle">Ficha original</h2>
-      <button class="btn btn-icon btn-ghost" id="closeFichaBtn" title="Fechar">✕</button>
+      <h2 id="fichaModalTitle">Ficha Original</h2>
+      <button class="btn btn-icon btn-ghost" id="closeFichaModalBtn" title="Fechar">✕</button>
     </div>
-    <div class="modal-body" id="fichaBody">
-      <div class="form-section" id="fichaTopPanel" style="margin-bottom:8px;">
-        <h3>Resumo rápido</h3>
-        <small id="fichaSummaryLine">
-          Selecionará automaticamente os principais dados da lead / angariação / venda associada à tarefa.
-        </small>
+    <div class="modal-body">
+      <form id="fichaForm">
+        <input type="hidden" id="fichaOrigemTipo" />
+        <input type="hidden" id="fichaLeadId" />
+        <div class="ficha-grid">
+          <div class="form-section">
+            <div class="ficha-section-title">Identificação</div>
+            <div class="field">
+              <label class="field-label" for="fichaNome">Nome cliente</label>
+              <input type="text" id="fichaNome" />
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="fichaConsultor">Consultor</label>
+                <input type="text" id="fichaConsultor" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="fichaEstado">Estado</label>
+                <select id="fichaEstado">
+                  <option value="Novo">Novo</option>
+                  <option value="Em Contacto">Em Contacto</option>
+                  <option value="Qualificado">Qualificado</option>
+                  <option value="Visita">Visita</option>
+                  <option value="Proposta">Proposta</option>
+                  <option value="Fecho">Fecho</option>
+                  <option value="Perdido">Perdido</option>
+                </select>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="fichaContacto">Contacto</label>
+                <input type="text" id="fichaContacto" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="fichaEmail">Email</label>
+                <input type="email" id="fichaEmail" />
+              </div>
+            </div>
+            <div class="field">
+              <label class="field-label" for="fichaRefInterna">Ref. Interna</label>
+              <input type="text" id="fichaRefInterna" />
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="fichaData">Data</label>
+                <input type="date" id="fichaData" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="fichaUrl">URL anexo</label>
+                <input type="text" id="fichaUrl" placeholder="https://…" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="ficha-section-title">Negócio & Perfil</div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="fichaTipoNegocio">Tipo de negócio</label>
+                <input type="text" id="fichaTipoNegocio" placeholder="Compra, venda, arrendamento…" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="fichaImovel">Imóvel / Tipologia</label>
+                <input type="text" id="fichaImovel" placeholder="Apartamento T2, Moradia T4…" />
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="fichaZona">Zona preferencial</label>
+                <input type="text" id="fichaZona" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="fichaValor">Valor alvo (€)</label>
+                <input type="number" id="fichaValor" min="0" step="1000" />
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="fichaPapel">Comprador / Vendedor</label>
+                <input type="text" id="fichaPapel" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="fichaPerfil">Investidor / Cliente final</label>
+                <input type="text" id="fichaPerfil" />
+              </div>
+            </div>
+            <div class="field">
+              <label class="field-label" for="fichaNotas">Notas</label>
+              <textarea id="fichaNotas" rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <div class="ficha-extra-block">
+        <details>
+          <summary>Histórico de tarefas associadas</summary>
+          <ul id="fichaTarefasLista"></ul>
+        </details>
       </div>
 
-      <div class="form-section">
-        <h3>Campos principais</h3>
-        <small>Os campos abaixo são carregados diretamente do registo original no localStorage.</small>
-        <div id="fichaFieldsGrid" style="margin-top:6px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;"></div>
+      <div class="ficha-extra-block">
+        <details>
+          <summary>Notas internas & contexto</summary>
+          <p style="margin-top:4px;">
+            Use este espaço na ficha original (campo Notas) para consolidar informação relevante de todas as interações:
+            visitas realizadas, propostas feitas, feedback do cliente, objeções e próximos passos.
+          </p>
+        </details>
       </div>
 
-      <div class="form-section" style="margin-top:8px;">
-        <h3>Extras</h3>
-
-        <details id="fichaTimeline" style="margin-bottom:4px;">
-          <summary style="cursor:pointer;font-size:12px;">Timeline (colapsada por defeito)</summary>
-          <div id="fichaTimelineBody" style="margin-top:4px;font-size:12px;color:var(--muted);"></div>
-        </details>
-
-        <details id="fichaTarefasAssoc" style="margin-bottom:4px;">
-          <summary style="cursor:pointer;font-size:12px;">Histórico de tarefas associadas</summary>
-          <div id="fichaTarefasBody" style="margin-top:4px;font-size:12px;color:var(--muted);"></div>
-        </details>
-
-        <details id="fichaNotas" style="margin-bottom:4px;">
-          <summary style="cursor:pointer;font-size:12px;">Notas internas</summary>
-          <div id="fichaNotasBody" style="margin-top:4px;font-size:12px;color:var(--muted);"></div>
-        </details>
-
-        <details id="fichaAlerta">
-          <summary style="cursor:pointer;font-size:12px;">Alerta inteligente</summary>
-          <div id="fichaAlertBody" style="margin-top:4px;font-size:12px;color:var(--muted);"></div>
+      <div class="ficha-extra-block">
+        <details>
+          <summary>Alerta inteligente</summary>
+          <p id="fichaAlertaTexto" style="margin-top:4px;"></p>
         </details>
       </div>
     </div>
     <div class="modal-footer">
-      <div class="modal-footer-left" id="fichaInfoLabel">
-        Ligado ao registo original (lead / angariação / venda) guardado neste navegador.
+      <div class="modal-footer-left" id="fichaMeta">
+        Ficha ligada ao módulo original (Leads). Alterações gravam diretamente na lead.
       </div>
       <div>
-        <button class="btn btn-ghost" id="cancelFichaBtn">Fechar</button>
-        <button class="btn btn-primary" id="saveFichaBtn">Guardar alterações</button>
+        <button class="btn btn-ghost" id="cancelFichaModalBtn">Cancelar</button>
+        <button class="btn btn-primary" id="saveFichaModalBtn">Guardar alterações</button>
       </div>
     </div>
   </div>
@@ -916,11 +1049,8 @@
   const FILTERS_STORAGE_KEY = 'gpp_tarefas_filters_v1';
   const GLOBAL_FILTERS_KEY = 'gpp_global_filters_v1';
 
-  const FICHA_STORAGE_KEYS = {
-    lead: 'gpp_leads_v1',
-    angariacao: 'gpp_angariacoes_v1',
-    venda: 'gpp_vendas_v1'
-  };
+  // Leads (kanban) – chave real
+  const LEADS_LS_KEY = 'gpp_leads_v5';
 
   const CONSULTOR_OPTIONS = [
     "Rui Quelhas",
@@ -968,32 +1098,37 @@
   const responsavelSelect = $('responsavel');
   const apoioSelect = $('apoio');
 
-  const fichaBackdrop = $('fichaBackdrop');
-  const fichaTitle = $('fichaTitle');
-  const closeFichaBtn = $('closeFichaBtn');
-  const cancelFichaBtn = $('cancelFichaBtn');
-  const saveFichaBtn = $('saveFichaBtn');
-  const fichaSummaryLine = $('fichaSummaryLine');
-  const fichaFieldsGrid = $('fichaFieldsGrid');
-  const fichaTimelineBody = $('fichaTimelineBody');
-  const fichaTarefasBody = $('fichaTarefasBody');
-  const fichaNotasBody = $('fichaNotasBody');
-  const fichaAlertBody = $('fichaAlertBody');
-  const fichaInfoLabel = $('fichaInfoLabel');
+  // Modal Ficha Original
+  const fichaModalBackdrop = $('fichaModalBackdrop');
+  const fichaModalTitle = $('fichaModalTitle');
+  const closeFichaModalBtn = $('closeFichaModalBtn');
+  const cancelFichaModalBtn = $('cancelFichaModalBtn');
+  const saveFichaModalBtn = $('saveFichaModalBtn');
+
+  const fichaOrigemTipo = $('fichaOrigemTipo');
+  const fichaLeadId = $('fichaLeadId');
+  const fichaNome = $('fichaNome');
+  const fichaConsultor = $('fichaConsultor');
+  const fichaEstado = $('fichaEstado');
+  const fichaContacto = $('fichaContacto');
+  const fichaEmail = $('fichaEmail');
+  const fichaRefInterna = $('fichaRefInterna');
+  const fichaData = $('fichaData');
+  const fichaUrl = $('fichaUrl');
+  const fichaTipoNegocio = $('fichaTipoNegocio');
+  const fichaImovel = $('fichaImovel');
+  const fichaZona = $('fichaZona');
+  const fichaValor = $('fichaValor');
+  const fichaPapel = $('fichaPapel');
+  const fichaPerfil = $('fichaPerfil');
+  const fichaNotas = $('fichaNotas');
+  const fichaTarefasLista = $('fichaTarefasLista');
+  const fichaAlertaTexto = $('fichaAlertaTexto');
+  const fichaMeta = $('fichaMeta');
 
   let state = {
     locked:true,
     tasks:[]
-  };
-
-  let fichaContext = {
-    tipo: '',
-    storageKey: '',
-    root: null,
-    propName: null,
-    arr: null,
-    index: -1,
-    record: null
   };
 
   let FILTERS = {
@@ -1006,6 +1141,8 @@
     origemTipo:'',
     origemRef:''
   };
+
+  let currentFicha = null; // { tipo:'lead', leadIndex:0, leadId:'...' }
 
   function todayISO(){
     const d = new Date();
@@ -1020,16 +1157,10 @@
       const raw = localStorage.getItem(STORAGE_KEY);
       if(raw){
         const parsed = JSON.parse(raw);
-        if(Array.isArray(parsed)){
-          state.tasks = parsed;
-          state.locked = true;
-        }else if(parsed && Array.isArray(parsed.tasks)){
+        if(Array.isArray(parsed.tasks)){
           state.tasks = parsed.tasks;
-          state.locked = parsed.locked !== false;
-        }else{
-          state.tasks = Array.isArray(parsed && parsed.items) ? parsed.items : [];
-          state.locked = true;
         }
+        state.locked = parsed.locked !== false;
       }
     }catch(e){
       console.error('Erro ao carregar storage tarefas', e);
@@ -1039,11 +1170,7 @@
 
   function saveState(){
     try{
-      const payload = {
-        locked: state.locked,
-        tasks: state.tasks
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }catch(e){
       console.error('Erro ao guardar storage tarefas', e);
     }
@@ -1240,7 +1367,7 @@
       dataCriacao = todayISO();
     }
 
-    return {
+    const data = {
       id,
       responsavel: responsavelSelect.value || '',
       apoio: apoioSelect.value || '',
@@ -1257,6 +1384,8 @@
       horaLimite: $('horaLimite').value || '',
       createdAtMs: Date.now()
     };
+
+    return data;
   }
 
   function applyFilters(tasks){
@@ -1360,264 +1489,6 @@
     }
   }
 
-  function prettyLabel(key){
-    return key
-      .replace(/_/g,' ')
-      .replace(/([a-z])([A-Z])/g,'$1 $2')
-      .replace(/\b(id|Id)\b/,'ID')
-      .replace(/\bref\b/i,'Ref.')
-      .replace(/\bnif\b/i,'NIF')
-      .replace(/\s+/g,' ')
-      .replace(/^./,c=>c.toUpperCase());
-  }
-
-  function loadArrayFromRoot(parsed){
-    if(Array.isArray(parsed)) return {root:parsed, propName:null, arr:parsed};
-    if(parsed && Array.isArray(parsed.leads)) return {root:parsed, propName:'leads', arr:parsed.leads};
-    if(parsed && Array.isArray(parsed.angariacoes)) return {root:parsed, propName:'angariacoes', arr:parsed.angariacoes};
-    if(parsed && Array.isArray(parsed.vendas)) return {root:parsed, propName:'vendas', arr:parsed.vendas};
-    if(parsed && Array.isArray(parsed.items)) return {root:parsed, propName:'items', arr:parsed.items};
-    return {root:parsed, propName:null, arr:[]};
-  }
-
-  function matchRecordByRef(rec, refStr){
-    if(!rec) return false;
-    const r = (refStr || '').toString().trim().toLowerCase();
-    if(!r) return false;
-
-    const candidates = [
-      rec.id,
-      rec.ref,
-      rec.referencia,
-      rec.codigo,
-      rec.codigoInterno,
-      rec.codigo_imovel,
-      rec.codigoImovel
-    ].filter(Boolean).map(x=>String(x).toLowerCase());
-
-    for(const c of candidates){
-      if(c === r) return true;
-      if(c.includes(r)) return true;
-      if(r.includes(c)) return true;
-    }
-    return false;
-  }
-
-  function findFichaOriginal(tipo, origemRef){
-    const storageKey = FICHA_STORAGE_KEYS[tipo];
-    if(!storageKey) return null;
-
-    try{
-      const raw = localStorage.getItem(storageKey);
-      if(!raw) return null;
-      const parsed = JSON.parse(raw);
-      const {root, propName, arr} = loadArrayFromRoot(parsed);
-      if(!Array.isArray(arr) || !arr.length) return null;
-
-      let index = -1;
-      for(let i=0;i<arr.length;i++){
-        if(matchRecordByRef(arr[i], origemRef)){
-          index = i;
-          break;
-        }
-      }
-      if(index === -1) return null;
-
-      return {
-        storageKey,
-        root,
-        propName,
-        arr,
-        index,
-        record: arr[index]
-      };
-    }catch(e){
-      console.error('Erro ao carregar ficha original', e);
-      return null;
-    }
-  }
-
-  function openFichaModal(task){
-    if(!task || !task.origemTipo){
-      alert('Esta tarefa não tem origem associada (lead / angariação / venda).');
-      return;
-    }
-    if(task.origemTipo === 'interna'){
-      alert('Tarefas internas não têm ficha original externa.');
-      return;
-    }
-    if(!task.origemRef){
-      alert('A tarefa não tem "Ref. associada" preenchida.');
-      return;
-    }
-
-    const tipo = task.origemTipo;
-    const ctx = findFichaOriginal(tipo, task.origemRef);
-    if(!ctx){
-      alert('Não foi possível encontrar a ficha original no armazenamento local.\n\nVerifique se a referência coincide exatamente com a usada em Leads/Angariações/Vendas.');
-      return;
-    }
-
-    fichaContext = Object.assign({tipo}, ctx);
-
-    const r = ctx.record || {};
-    const nome = r.nome || r.nomeCliente || r.cliente || r.proprietario || '';
-    const consultor = r.consultor || r.responsavel || task.responsavel || '';
-    const estado = r.estado || r.status || '';
-    const fase = r.fase || r.etapa || r.funnel || '';
-    const dataEntrada = r.dataEntrada || r.dataCriacao || r.createdAt || '';
-
-    const parts = [];
-    if(nome) parts.push('<strong>' + nome + '</strong>');
-    if(consultor) parts.push('Consultor: ' + consultor);
-    if(estado) parts.push('Estado: ' + estado);
-    if(fase) parts.push('Fase: ' + fase);
-    if(dataEntrada) parts.push('Entrada: ' + dataEntrada);
-
-    fichaSummaryLine.innerHTML = parts.join(' · ') || 'Registo encontrado. Pode editar os campos em baixo e gravar.';
-
-    fichaFieldsGrid.innerHTML = '';
-    const recordKeys = Object.keys(r);
-
-    recordKeys.forEach(key=>{
-      const value = r[key];
-      if(typeof value === 'object') return;
-
-      const wrapper = document.createElement('div');
-      wrapper.className = 'field';
-
-      const label = document.createElement('label');
-      label.className = 'field-label';
-      label.textContent = prettyLabel(key);
-      wrapper.appendChild(label);
-
-      const isLong = value && String(value).length > 120;
-      let control;
-      if(isLong){
-        control = document.createElement('textarea');
-        control.rows = 3;
-      }else{
-        control = document.createElement('input');
-        control.type = 'text';
-      }
-      control.value = value != null ? String(value) : '';
-      control.dataset.key = key;
-      wrapper.appendChild(control);
-
-      fichaFieldsGrid.appendChild(wrapper);
-    });
-
-    fichaTimelineBody.innerHTML = '';
-    if(Array.isArray(r.timeline) && r.timeline.length){
-      const ul = document.createElement('ul');
-      ul.style.listStyle = 'disc';
-      ul.style.marginLeft = '18px';
-      r.timeline.forEach(ev=>{
-        const li = document.createElement('li');
-        li.textContent = typeof ev === 'string' ? ev : JSON.stringify(ev);
-        ul.appendChild(li);
-      });
-      fichaTimelineBody.appendChild(ul);
-    }else{
-      fichaTimelineBody.textContent = 'Sem registos de timeline neste momento.';
-    }
-
-    fichaTarefasBody.innerHTML = '';
-    const ligadas = state.tasks.filter(t=>{
-      return t.origemTipo === task.origemTipo &&
-             t.origemRef &&
-             task.origemRef &&
-             t.origemRef.toLowerCase() === task.origemRef.toLowerCase();
-    });
-
-    if(ligadas.length){
-      const ul = document.createElement('ul');
-      ul.style.listStyle = 'disc';
-      ul.style.marginLeft = '18px';
-      ligadas.forEach(t=>{
-        const li = document.createElement('li');
-        li.textContent = (t.dataLimite || '') + ' — ' + (t.titulo || '(Sem título)') + ' [' + estadoLabel(t.estado) + ']';
-        ul.appendChild(li);
-      });
-      fichaTarefasBody.appendChild(ul);
-    }else{
-      fichaTarefasBody.textContent = 'Nenhuma outra tarefa associada foi encontrada.';
-    }
-
-    fichaNotasBody.innerHTML = '';
-    if(r.notasInternas || r.notas){
-      const txt = r.notasInternas || r.notas;
-      const p = document.createElement('p');
-      p.textContent = txt;
-      fichaNotasBody.appendChild(p);
-    }else{
-      fichaNotasBody.textContent = 'Sem notas internas registadas na ficha original.';
-    }
-
-    fichaAlertBody.innerHTML = '';
-    const alertLines = [];
-    if(task.prioridade === 'critica' || task.prioridade === 'alta'){
-      alertLines.push('⚠ Tarefa marcada com prioridade elevada.');
-    }
-    if(task.estado !== 'concluida'){
-      alertLines.push('➡ Recomendado confirmar próximos passos com o cliente/proprietário.');
-    }
-    if(!alertLines.length){
-      alertLines.push('Nenhum alerta relevante detetado neste momento.');
-    }
-    fichaAlertBody.innerHTML = alertLines.join('<br>');
-
-    fichaInfoLabel.textContent = 'Ligado a "' + origemLabel(tipo) + '" no storage: ' + ctx.storageKey;
-
-    fichaBackdrop.classList.add('open');
-  }
-
-  function closeFichaModal(){
-    fichaBackdrop.classList.remove('open');
-    fichaContext = {
-      tipo:'',
-      storageKey:'',
-      root:null,
-      propName:null,
-      arr:null,
-      index:-1,
-      record:null
-    };
-  }
-
-  function saveFichaChanges(){
-    if(!fichaContext || !fichaContext.arr || fichaContext.index < 0){
-      alert('Não há ficha carregada para guardar.');
-      return;
-    }
-
-    const rec = Object.assign({}, fichaContext.record);
-    const inputs = fichaFieldsGrid.querySelectorAll('input,textarea');
-    inputs.forEach(el=>{
-      const key = el.dataset.key;
-      if(!key) return;
-      rec[key] = el.value;
-    });
-
-    fichaContext.arr[fichaContext.index] = rec;
-    fichaContext.record = rec;
-
-    try{
-      let toSave;
-      if(fichaContext.propName){
-        fichaContext.root[fichaContext.propName] = fichaContext.arr;
-        toSave = fichaContext.root;
-      }else{
-        toSave = fichaContext.arr;
-      }
-      localStorage.setItem(fichaContext.storageKey, JSON.stringify(toSave));
-      alert('Ficha original atualizada com sucesso.');
-    }catch(e){
-      console.error('Erro ao guardar ficha original', e);
-      alert('Ocorreu um erro ao guardar as alterações.');
-    }
-  }
-
   function renderCards(){
     const tasks = state.tasks.slice().sort((a,b)=>{
       const da = a.dataLimite || '';
@@ -1659,8 +1530,9 @@
     badge2.innerHTML = 'Em aberto <strong>' + abertas + '</strong>';
     summaryBadges.appendChild(badge2);
 
+    const fil = filtered;
     const porRespFiltrado = {};
-    filtered.forEach(t=>{
+    fil.forEach(t=>{
       if(!t.responsavel) return;
       porRespFiltrado[t.responsavel] = (porRespFiltrado[t.responsavel]||0)+1;
     });
@@ -1819,13 +1691,13 @@
       });
       right.appendChild(btnEdit);
 
-      const btnFicha = document.createElement('button');
-      btnFicha.className = 'btn-xs';
-      btnFicha.textContent = 'Ver ficha original';
-      btnFicha.addEventListener('click',()=>{
-        openFichaModal(t);
+      const btnView = document.createElement('button');
+      btnView.className = 'btn-xs';
+      btnView.textContent = 'Ver ficha original';
+      btnView.addEventListener('click',()=>{
+        openFichaOriginalFromTask(t);
       });
-      right.appendChild(btnFicha);
+      right.appendChild(btnView);
 
       const btnDel = document.createElement('button');
       btnDel.className = 'btn-xs danger';
@@ -2013,6 +1885,223 @@
     w.document.close();
   }
 
+  // ===== FICHA ORIGINAL (LEAD) =====
+
+  function loadLeadsArray(){
+    try{
+      const raw = localStorage.getItem(LEADS_LS_KEY);
+      if(!raw) return [];
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    }catch(e){
+      console.error('Erro a ler leads do localStorage', e);
+      return [];
+    }
+  }
+
+  function saveLeadsArray(leads){
+    try{
+      localStorage.setItem(LEADS_LS_KEY, JSON.stringify(leads));
+    }catch(e){
+      console.error('Erro a guardar leads no localStorage', e);
+    }
+  }
+
+  function findLeadForTask(task, leads){
+    if(!task || !task.origemRef) return null;
+    const raw = (task.origemRef || '').trim();
+    if(!raw) return null;
+
+    const parts = raw.split('—');
+    const refPart = parts[0].trim();
+    const namePart = parts.slice(1).join('—').trim();
+
+    let lead = leads.find(l=> (l.ref_interna || '').trim() === raw);
+    if(!lead && refPart){
+      lead = leads.find(l=> (l.ref_interna || '').trim() === refPart);
+    }
+    if(!lead && namePart){
+      const ln = (namePart || '').toLowerCase();
+      lead = leads.find(l=> (l.nome || '').toLowerCase() === ln);
+    }
+    if(!lead){
+      const lowRaw = raw.toLowerCase();
+      lead = leads.find(l=>{
+        const blob = [
+          l.ref_interna || '',
+          l.nome || '',
+          l.contacto || '',
+          l.email || ''
+        ].join(' ').toLowerCase();
+        return blob.includes(lowRaw);
+      });
+    }
+    return lead || null;
+  }
+
+  function openFichaOriginalFromTask(task){
+    const tipo = task.origemTipo || 'lead';
+
+    if(tipo !== 'lead'){
+      alert('Neste momento, a ficha original está disponível apenas para origem "Lead".');
+      return;
+    }
+
+    const leads = loadLeadsArray();
+    if(!leads.length){
+      alert('Não foi possível encontrar a ficha original no armazenamento local.\n\nAinda não existem leads gravadas (gpp_leads_v5).');
+      return;
+    }
+
+    const lead = findLeadForTask(task, leads);
+    if(!lead){
+      alert('Não foi possível encontrar a ficha original no armazenamento local.\n\nVerifique se a referência coincide exatamente com a usada em Leads (Ref. Interna ou nome do cliente).');
+      return;
+    }
+
+    currentFicha = {
+      tipo:'lead',
+      leadId: lead.id,
+      leadIndex: leads.findIndex(l=>l.id === lead.id)
+    };
+
+    fichaOrigemTipo.value = 'lead';
+    fichaLeadId.value = lead.id || '';
+
+    fichaNome.value = lead.nome || '';
+    fichaConsultor.value = lead.consultor || '';
+    fichaEstado.value = lead.estado || 'Novo';
+    fichaContacto.value = lead.contacto || '';
+    fichaEmail.value = lead.email || '';
+    fichaRefInterna.value = lead.ref_interna || '';
+    fichaData.value = lead.data || '';
+    fichaUrl.value = lead.url || '';
+    fichaTipoNegocio.value = lead.tipo_negocio || '';
+    fichaImovel.value = ((lead.imovel || '') + (lead.tipologia ? ' ' + lead.tipologia : '')).trim();
+    fichaZona.value = lead.zona || '';
+    fichaValor.value = lead.valor || '';
+    fichaPapel.value = lead.papel || '';
+    fichaPerfil.value = lead.perfil || '';
+    fichaNotas.value = lead.notas || '';
+
+    renderFichaHistoricoTarefas(lead);
+    renderFichaAlerta(lead);
+
+    fichaModalTitle.textContent = 'Ficha original — Lead';
+    fichaMeta.textContent = 'Ligado à lead com Ref. Interna "' + (lead.ref_interna || '—') + '". Alterações gravam diretamente no módulo de Leads.';
+    fichaModalBackdrop.classList.add('open');
+  }
+
+  function closeFichaModal(){
+    fichaModalBackdrop.classList.remove('open');
+    currentFicha = null;
+  }
+
+  function renderFichaHistoricoTarefas(lead){
+    fichaTarefasLista.innerHTML = '';
+    const ref = (lead.ref_interna || '').toLowerCase();
+    const nome = (lead.nome || '').toLowerCase();
+
+    const relacionados = (state.tasks || []).filter(t=>{
+      const oref = (t.origemRef || '').toLowerCase();
+      if(ref && oref.includes(ref)) return true;
+      if(nome && oref.includes(nome)) return true;
+      if(t.origemTipo === 'lead' && !t.origemRef && nome){
+        const titulo = (t.titulo || '').toLowerCase();
+        return titulo.includes(nome);
+      }
+      return false;
+    });
+
+    if(!relacionados.length){
+      const li = document.createElement('li');
+      li.textContent = 'Nenhuma tarefa associada encontrada com base na referência / nome desta lead.';
+      fichaTarefasLista.appendChild(li);
+      return;
+    }
+
+    relacionados
+      .sort((a,b)=>(a.dataLimite||'').localeCompare(b.dataLimite||''))
+      .forEach(t=>{
+        const li = document.createElement('li');
+        const partes = [];
+        if(t.dataLimite) partes.push(t.dataLimite + (t.horaLimite ? ' ' + t.horaLimite : ''));
+        if(t.titulo) partes.push(t.titulo);
+        if(t.responsavel) partes.push('Resp.: ' + t.responsavel);
+        partes.push('Estado: ' + estadoLabel(t.estado));
+        li.textContent = partes.join(' · ');
+        fichaTarefasLista.appendChild(li);
+      });
+  }
+
+  function renderFichaAlerta(lead){
+    const urgente = (lead.urgente || '').toLowerCase() === 'sim';
+    const temFin = (lead.financiamento || '').toLowerCase() === 'sim';
+    const classif = Number(lead.classificacao || 0) || 0;
+
+    const mensagens = [];
+
+    if(urgente){
+      mensagens.push('⚡ Lead marcada como URGENTE — priorizar contactos e propostas.');
+    }
+    if(classif >= 4){
+      mensagens.push('⭐ Classificação ' + classif + ' — lead com elevado potencial. Garantir plano claro de follow-up.');
+    }
+    if(temFin && (lead.simulacao || '').toLowerCase() !== 'sim'){
+      mensagens.push('🏦 Cliente indica financiamento bancário, mas sem simulação marcada. Pode ser oportunidade para intermediação de crédito.');
+    }
+
+    if(!mensagens.length){
+      fichaAlertaTexto.textContent = 'Sem alertas específicos. Use esta área para identificar riscos ou oportunidades especiais ligados a esta lead.';
+    }else{
+      fichaAlertaTexto.innerHTML = mensagens.join('<br>');
+    }
+  }
+
+  function saveFichaOriginal(){
+    if(!currentFicha || currentFicha.tipo !== 'lead'){
+      closeFichaModal();
+      return;
+    }
+
+    const leads = loadLeadsArray();
+    if(!leads.length){
+      alert('Não foi possível guardar — não foram encontradas leads no armazenamento local.');
+      return;
+    }
+
+    const idx = leads.findIndex(l=>l.id === currentFicha.leadId);
+    if(idx < 0){
+      alert('Não foi possível guardar — a lead deixou de existir no armazenamento local.');
+      return;
+    }
+
+    const lead = leads[idx];
+
+    lead.nome = fichaNome.value.trim();
+    lead.consultor = fichaConsultor.value.trim();
+    lead.estado = fichaEstado.value || 'Novo';
+    lead.contacto = fichaContacto.value.trim();
+    lead.email = fichaEmail.value.trim();
+    lead.ref_interna = fichaRefInterna.value.trim();
+    lead.data = fichaData.value.trim();
+    lead.url = fichaUrl.value.trim();
+    lead.tipo_negocio = fichaTipoNegocio.value.trim();
+    lead.imovel = fichaImovel.value.trim();
+    lead.zona = fichaZona.value.trim();
+    lead.valor = fichaValor.value.trim();
+    lead.papel = fichaPapel.value.trim();
+    lead.perfil = fichaPerfil.value.trim();
+    lead.notas = fichaNotas.value.trim();
+
+    leads[idx] = lead;
+    saveLeadsArray(leads);
+
+    alert('Alterações guardadas na ficha original da lead.');
+    closeFichaModal();
+  }
+
+  // Eventos
   toggleLockBtn.addEventListener('click',()=>{
     state.locked = !state.locked;
     updateLockUI();
@@ -2071,17 +2160,21 @@
     if(e.key==='Escape'){
       if(modalBackdrop.classList.contains('open')){
         closeModal();
-      }
-      if(fichaBackdrop.classList.contains('open')){
+      }else if(fichaModalBackdrop.classList.contains('open')){
         closeFichaModal();
       }
     }
   });
 
-  closeFichaBtn.addEventListener('click', closeFichaModal);
-  cancelFichaBtn.addEventListener('click', closeFichaModal);
-  saveFichaBtn.addEventListener('click', saveFichaChanges);
+  // Eventos ficha original
+  closeFichaModalBtn.addEventListener('click', closeFichaModal);
+  cancelFichaModalBtn.addEventListener('click', closeFichaModal);
+  saveFichaModalBtn.addEventListener('click',(e)=>{
+    e.preventDefault();
+    saveFichaOriginal();
+  });
 
+  // Init
   initConsultores();
   loadState();
   loadFiltersFromStorage();
