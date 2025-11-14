@@ -9,16 +9,16 @@
       --gold:#A38B63;
       --gold-soft:rgba(163,139,99,.35);
       --bg:#0B0B0B;
-      --panel:#121212;
+      --panel:#141414;
       --panel-soft:#181818;
+      --border:rgba(255,255,255,.14);
       --text:#FFFFFF;
       --muted:#A0A0A0;
       --danger:#F25F5C;
       --success:#4CAF50;
       --warning:#FFC857;
-      --border:rgba(255,255,255,.16);
-      --radius-md:14px;
       --radius-lg:18px;
+      --radius-md:14px;
       --shadow-soft:0 18px 35px rgba(0,0,0,.6);
     }
     *{box-sizing:border-box;}
@@ -29,15 +29,8 @@
       background:radial-gradient(circle at top,#1c1c1c 0,#050505 55%,#000 100%);
       color:var(--text);
     }
-    body{
-      display:flex;
-      flex-direction:column;
-    }
-    .app-shell{
-      display:grid;
-      grid-template-rows:64px auto;
-      height:100%;
-    }
+    body{display:flex;flex-direction:column;}
+    .app-shell{display:grid;grid-template-rows:64px auto;height:100%;}
 
     header.app-header{
       display:flex;
@@ -48,109 +41,76 @@
       background:linear-gradient(90deg,#050505,#111,#050505);
       gap:16px;
       flex-wrap:wrap;
+      position:sticky;
+      top:0;
+      z-index:20;
     }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
+    .brand{display:flex;align-items:center;gap:10px;}
     .brand-icon{
-      width:26px;
-      height:26px;
-      border-radius:999px;
+      width:26px;height:26px;border-radius:999px;
       border:1px solid var(--gold);
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      display:flex;align-items:center;justify-content:center;
       box-shadow:0 0 0 1px rgba(163,139,99,.3);
     }
     .brand h1{
-      margin:0;
-      font-size:17px;
-      letter-spacing:.04em;
-      text-transform:uppercase;
-      color:var(--gold);
+      margin:0;font-size:17px;letter-spacing:.04em;
+      text-transform:uppercase;color:var(--gold);
     }
     .brand span.sub{
-      display:block;
-      font-size:11px;
-      color:var(--muted);
-      letter-spacing:.12em;
-      text-transform:uppercase;
+      display:block;font-size:11px;color:var(--muted);
+      letter-spacing:.12em;text-transform:uppercase;
     }
-
     .nav-tabs{
-      display:flex;
-      flex-wrap:wrap;
-      align-items:center;
-      gap:4px;
-      background:rgba(0,0,0,.35);
-      padding:4px;
-      border-radius:999px;
-      border:1px solid rgba(163,139,99,.35);
+      display:flex;flex-wrap:wrap;align-items:center;gap:4px;
+      background:rgba(0,0,0,.35);padding:4px;
+      border-radius:999px;border:1px solid rgba(163,139,99,.35);
     }
     .nav-tab{
-      padding:5px 10px;
-      border-radius:999px;
-      font-size:11px;
-      text-decoration:none;
-      color:var(--muted);
-      letter-spacing:.12em;
-      text-transform:uppercase;
+      padding:5px 10px;border-radius:999px;font-size:11px;
+      text-decoration:none;color:var(--muted);
+      letter-spacing:.12em;text-transform:uppercase;
       border:1px solid transparent;
       transition:.16s background,.16s color,.16s border-color,.16s transform;
     }
     .nav-tab:hover{
-      color:#fff;
-      border-color:rgba(163,139,99,.6);
+      color:#fff;border-color:rgba(163,139,99,.6);
       transform:translateY(-1px);
     }
     .nav-tab.active{
-      background:var(--gold);
-      color:#0A0A0A;
-      border-color:var(--gold);
-      font-weight:600;
+      background:var(--gold);color:0A0A0A;
+      border-color:var(--gold);font-weight:600;
     }
-
     .header-actions{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      flex-wrap:wrap;
+      display:flex;align-items:center;gap:8px;flex-wrap:wrap;
     }
-
     .btn{
-      border-radius:999px;
-      border:1px solid var(--gold-soft);
-      background:rgba(12,12,12,.9);
-      color:var(--text);
-      padding:7px 12px;
-      font-size:13px;
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      cursor:pointer;
+      border-radius:999px;border:1px solid var(--gold-soft);
+      background:rgba(12,12,12,.9);color:var(--text);
+      padding:7px 12px;font-size:13px;display:inline-flex;
+      align-items:center;gap:6px;cursor:pointer;
       transition:.18s border-color,.18s background,.18s transform;
     }
-    .btn.primary{
+    .btn-primary{
       background:var(--gold);
       color:#0A0A0A;
       border-color:var(--gold);
-      font-weight:600;
+      font-weight:500;
     }
-    .btn.ghost{
+    .btn-ghost{
       background:transparent;
-      border-color:rgba(255,255,255,.24);
-      color:var(--muted);
     }
-    .btn[disabled]{
+    .btn-icon{
+      width:32px;
+      height:32px;
+      padding:0;
+      border-radius:999px;
+      justify-content:center;
+    }
+    .btn:hover{border-color:var(--gold);transform:translateY(-1px);}
+    .btn:disabled{
       opacity:.45;
       cursor:not-allowed;
       transform:none;
-    }
-    .btn:hover:not([disabled]){
-      border-color:var(--gold);
-      transform:translateY(-1px);
     }
 
     .pill-lock{
@@ -183,18 +143,21 @@
       max-height:calc(100vh - 64px);
       overflow:hidden;
     }
-    @media (max-width:960px){
+    @media (max-width: 960px){
       .layout{
         grid-template-columns:1fr;
         grid-template-rows:auto auto;
         height:auto;
         max-height:none;
       }
+      .sidebar{
+        max-height:none;
+      }
     }
 
     .sidebar{
-      background:radial-gradient(circle at top left,#141414,#060606);
       border-right:1px solid rgba(163,139,99,.24);
+      background:radial-gradient(circle at top left,#141414,#060606);
       padding:12px 14px;
       overflow-y:auto;
     }
@@ -213,10 +176,11 @@
       color:var(--muted);
     }
     .sidebar-section p{
-      margin:2px 0 4px;
+      margin:2px 0 6px;
       font-size:12px;
       color:var(--muted);
     }
+
     .field{
       display:flex;
       flex-direction:column;
@@ -234,29 +198,63 @@
       letter-spacing:.12em;
     }
     input[type="text"],
+    input[type="number"],
     input[type="date"],
-    select{
+    input[type="time"],
+    input[type="email"],
+    select,
+    textarea{
       background:rgba(0,0,0,.7);
+      color:var(--text);
       border-radius:10px;
-      border:1px solid rgba(255,255,255,.16);
-      color:#fff;
+      border:1px solid rgba(163,139,99,.22);
       padding:6px 8px;
-      font-size:12px;
+      font-size:13px;
       outline:none;
       width:100%;
     }
-    input:focus,select:focus{
+    input:focus, select:focus, textarea:focus{
       border-color:var(--gold);
       box-shadow:0 0 0 1px rgba(163,139,99,.35);
+    }
+    textarea{
+      resize:vertical;
+      min-height:60px;
+    }
+
+    .filters-badges{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:4px;
+    }
+    .badge{
+      font-size:11px;
+      border-radius:999px;
+      padding:3px 7px;
+      border:1px solid rgba(163,139,99,.35);
+      background:rgba(8,8,8,.8);
+      color:var(--muted);
+    }
+    .badge strong{color:var(--gold);}
+
+    .toggle-line{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      font-size:12px;
+      margin-top:4px;
+    }
+    .toggle-line span{
+      color:var(--muted);
     }
 
     .cards-area{
       padding:14px 16px 18px;
       overflow-y:auto;
       background:radial-gradient(circle at top,#1a1a1a,#050505 55%,#000 100%);
-      display:flex;
-      flex-direction:column;
     }
+
     .cards-header{
       display:flex;
       align-items:flex-end;
@@ -276,56 +274,124 @@
       font-size:12px;
       color:var(--muted);
     }
-    .summary-bar{
-      padding:6px 10px;
-      font-size:12px;
-      border-radius:999px;
-      border:1px solid rgba(163,139,99,.35);
-      background:rgba(0,0,0,.55);
-      color:#ddd;
+    .pipeline-kpis{
       display:flex;
       flex-wrap:wrap;
       gap:8px;
-      align-items:center;
-      margin-bottom:8px;
+      margin-top:4px;
     }
-    .badge-kpi{
-      padding:2px 8px;
+    .kpi-chip{
       border-radius:999px;
-      border:1px solid rgba(255,255,255,.18);
+      padding:4px 9px;
+      border:1px solid rgba(163,139,99,.32);
       font-size:11px;
       color:var(--muted);
-      background:rgba(15,15,15,.9);
+      background:rgba(8,8,8,.9);
     }
-    .badge-kpi.highlight{
-      border-color:var(--gold);
+    .kpi-chip span.value{
       color:var(--gold);
       font-weight:600;
+      margin-left:4px;
+    }
+
+    /* Banner de origem (filtragem vinda de Leads/Vendas) */
+    .origin-banner{
+      margin-bottom:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--gold-soft);
+      background:rgba(163,139,99,.12);
+      font-size:12px;
+      color:var(--muted);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .origin-banner strong{
+      color:var(--gold);
+    }
+    .origin-banner button{
+      border-radius:999px;
+      border:1px solid rgba(163,139,99,.4);
+      background:rgba(0,0,0,.6);
+      color:var(--muted);
+      padding:3px 8px;
+      font-size:11px;
+      cursor:pointer;
+    }
+    .origin-banner button:hover{
+      border-color:var(--gold);
+      color:#fff;
     }
 
     .cards-grid{
       display:grid;
       grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
       gap:10px;
-      margin-top:4px;
     }
+
     .card{
       border-radius:var(--radius-lg);
       border:1px solid rgba(163,139,99,.3);
+      padding:10px 11px 9px;
       background:radial-gradient(circle at top left,#181818,#070707);
       box-shadow:var(--shadow-soft);
-      padding:9px 10px;
       display:flex;
       flex-direction:column;
-      gap:4px;
+      gap:6px;
+      position:relative;
+      transition:background .2s,border-color .2s,transform .2s,box-shadow .2s;
     }
-    .card.dim{
-      opacity:.5;
+    .card.completed{
+      opacity:.6;
       border-style:dashed;
+      box-shadow:none;
     }
-    .card-top{
+
+    /* URGÊNCIA POR COR (gradual para o vermelho) */
+    .card-urgency-soft:not(.completed){
+      border-color:rgba(255,180,120,.5);
+      background:
+        radial-gradient(circle at top left, rgba(255,200,150,.12), transparent 55%),
+        radial-gradient(circle at bottom right,#181818,#070707);
+    }
+    .card-urgency-medium:not(.completed){
+      border-color:rgba(255,150,100,.7);
+      background:
+        radial-gradient(circle at top left, rgba(255,140,100,.18), transparent 55%),
+        radial-gradient(circle at bottom right,#181818,#050505);
+    }
+    .card-urgency-high:not(.completed){
+      border-color:rgba(255,110,90,.9);
+      background:
+        radial-gradient(circle at top left, rgba(255,90,70,.25), transparent 55%),
+        radial-gradient(circle at bottom right,#191010,#050505);
+      box-shadow:0 20px 40px rgba(255,80,60,.25);
+      transform:translateY(-1px);
+    }
+    .card-urgency-due:not(.completed){
+      border-color:var(--danger);
+      background:
+        radial-gradient(circle at top left, rgba(255,70,70,.3), transparent 55%),
+        radial-gradient(circle at bottom right,#1b0d0d,#050505);
+      box-shadow:0 22px 45px rgba(255,60,60,.3);
+      transform:translateY(-1px);
+    }
+    .card-urgency-overdue:not(.completed){
+      border-color:#ff4b4b;
+      background:
+        radial-gradient(circle at top left, rgba(255,40,40,.38), transparent 55%),
+        radial-gradient(circle at bottom right,#200808,#050505);
+      box-shadow:0 24px 50px rgba(255,40,40,.35);
+      transform:translateY(-1.5px);
+    }
+
+    .card-top-row{
       display:flex;
       justify-content:space-between;
+      align-items:flex-start;
       gap:8px;
     }
     .card-title-block{
@@ -337,57 +403,79 @@
       font-size:14px;
       font-weight:600;
       color:#fff;
+      text-overflow:ellipsis;
       white-space:nowrap;
       overflow:hidden;
-      text-overflow:ellipsis;
     }
-    .card-sub{
+    .card-subtitle{
       margin:1px 0 0;
       font-size:11px;
       color:var(--muted);
+      text-overflow:ellipsis;
       white-space:nowrap;
       overflow:hidden;
-      text-overflow:ellipsis;
     }
-    .chips{
+
+    .chip-row{
       display:flex;
       flex-wrap:wrap;
       gap:4px;
-      margin-top:3px;
+      margin-top:4px;
     }
     .chip{
       border-radius:999px;
       padding:2px 7px;
       font-size:10px;
-      border:1px solid rgba(163,139,99,.35);
-      background:rgba(10,10,10,.9);
+      border:1px solid rgba(163,139,99,.4);
+      background:#1E1E1E;
       color:var(--muted);
       text-transform:uppercase;
       letter-spacing:.08em;
     }
-    .chip.estado_por_fazer{border-color:rgba(255,255,255,.25);}
-    .chip.estado_em_progresso{border-color:rgba(255,200,87,.85);color:#FFE082;}
-    .chip.estado_concluida{border-color:rgba(76,175,80,.85);color:#A5D6A7;}
-    .chip.estado_cancelada{border-color:rgba(242,95,92,.9);color:#FFABAB;}
-    .chip.prio_alta{border-color:rgba(242,95,92,.9);color:#FFABAB;}
-    .chip.prio_baixa{border-color:rgba(163,139,99,.4);color:#B0BEC5;}
-
-    .card-body{
-      font-size:12px;
-      color:#ddd;
-      margin-top:4px;
+    .chip-primary{
+      border-color:var(--gold);
+      color:var(--gold);
     }
-    .card-body small{
+    .chip-green{
+      border-color:rgba(76,175,80,.7);
+      color:#A5D6A7;
+    }
+    .chip-red{
+      border-color:rgba(242,95,92,.8);
+      color:#FFABAB;
+      background:rgba(80,10,10,.9);
+    }
+    .chip-yellow{
+      border-color:rgba(255,200,87,.8);
+      color:#FFE082;
+    }
+
+    .card-section{
+      border-top:1px solid rgba(163,139,99,.18);
+      padding-top:4px;
+      margin-top:2px;
+      font-size:12px;
       color:var(--muted);
     }
+    .card-section strong{
+      color:#f5f5f5;
+      font-weight:500;
+    }
+
     .card-footer{
       margin-top:6px;
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:4px;
+      gap:6px;
       font-size:11px;
       color:var(--muted);
+    }
+    .card-footer-left{
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
+      align-items:center;
     }
     .card-footer-right{
       display:flex;
@@ -395,6 +483,7 @@
       gap:4px;
       justify-content:flex-end;
     }
+
     .btn-xs{
       border-radius:999px;
       padding:3px 7px;
@@ -419,10 +508,9 @@
     .empty{
       font-size:12px;
       color:var(--muted);
-      margin-top:10px;
+      padding:16px 4px;
     }
 
-    /* Modal */
     .modal-backdrop{
       position:fixed;
       inset:0;
@@ -432,9 +520,11 @@
       justify-content:center;
       z-index:40;
     }
-    .modal-backdrop.show{display:flex;}
+    .modal-backdrop.open{
+      display:flex;
+    }
     .modal{
-      width:min(720px,96vw);
+      width:min(900px,96vw);
       max-height:90vh;
       background:radial-gradient(circle at top,#151515,#050505);
       border-radius:22px;
@@ -445,7 +535,7 @@
       overflow:hidden;
     }
     .modal-header{
-      padding:10px 14px 8px;
+      padding:10px 16px 8px;
       border-bottom:1px solid rgba(163,139,99,.25);
       display:flex;
       align-items:center;
@@ -455,7 +545,7 @@
     }
     .modal-header h2{
       margin:0;
-      font-size:14px;
+      font-size:15px;
       letter-spacing:.12em;
       text-transform:uppercase;
       color:var(--gold);
@@ -463,8 +553,35 @@
     .modal-body{
       padding:10px 14px 12px;
       overflow-y:auto;
-      font-size:12px;
     }
+    .form-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+    }
+    @media (max-width: 900px){
+      .form-grid{
+        grid-template-columns:1fr;
+      }
+    }
+    .form-section{
+      border-radius:var(--radius-md);
+      border:1px solid rgba(163,139,99,.22);
+      background:rgba(0,0,0,.55);
+      padding:8px 9px;
+    }
+    .form-section h3{
+      margin:0 0 6px;
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:var(--muted);
+    }
+    .form-section small{
+      font-size:11px;
+      color:var(--muted);
+    }
+
     .modal-footer{
       padding:8px 14px 10px;
       border-top:1px solid rgba(163,139,99,.25);
@@ -472,34 +589,48 @@
       justify-content:space-between;
       gap:8px;
       background:#050505;
+    }
+    .modal-footer-left{
       font-size:11px;
       color:var(--muted);
     }
-    .form-grid{
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:8px 10px;
+
+    .switch{
+      position:relative;
+      display:inline-block;
+      width:34px;
+      height:18px;
     }
-    @media (max-width:720px){
-      .form-grid{grid-template-columns:1fr;}
+    .switch input{
+      opacity:0;
+      width:0;
+      height:0;
     }
-    textarea{
-      width:100%;
-      min-height:70px;
-      resize:vertical;
-      background:#0E0E0E;
-      border:1px solid rgba(255,255,255,.16);
-      border-radius:10px;
-      color:#fff;
-      padding:6px 8px;
-      font-size:12px;
-      outline:none;
+    .slider{
+      position:absolute;
+      cursor:pointer;
+      inset:0;
+      background-color:#444;
+      transition:.2s;
+      border-radius:34px;
     }
-    textarea:focus{
-      border-color:var(--gold);
-      box-shadow:0 0 0 1px rgba(163,139,99,.35);
+    .slider:before{
+      position:absolute;
+      content:"";
+      height:14px;
+      width:14px;
+      left:3px;
+      bottom:2px;
+      background-color:white;
+      transition:.2s;
+      border-radius:50%;
     }
-    .hint{font-size:11px;color:var(--muted);}
+    .switch input:checked + .slider{
+      background-color:var(--gold);
+    }
+    .switch input:checked + .slider:before{
+      transform:translateX(14px);
+    }
   </style>
 </head>
 <body>
@@ -514,7 +645,7 @@
       </div>
       <div>
         <h1>Garvetur Porto Pro — Tarefas</h1>
-        <span class="sub">Follow-up comercial & operacional</span>
+        <span class="sub">Follow-up, compromissos e rotina comercial</span>
       </div>
     </div>
 
@@ -532,203 +663,234 @@
       <div class="pill-lock" id="lockPill">
         <span>Modo</span>
         <span class="state" id="lockStateLabel">Bloqueado</span>
-        <button id="toggleLockBtn" title="Alternar entre edição bloqueada e ativa">🔒</button>
+        <button id="toggleLockBtn" title="Alternar entre edição bloqueada e ativa">
+          🔒
+        </button>
       </div>
-      <button class="btn ghost" id="exportCsvBtn">⤓ CSV</button>
-      <button class="btn primary" id="newTaskBtn">+ Nova tarefa</button>
+      <button class="btn btn-ghost" id="exportCsvBtn" title="Exportar tarefas para CSV">⤓ CSV</button>
+      <button class="btn btn-ghost" id="exportPdfBtn" title="Imprimir / PDF (lista atual)">⤓ PDF</button>
+      <button class="btn btn-primary" id="newTaskBtn">+ Nova Tarefa</button>
     </div>
   </header>
 
   <div class="layout">
-    <!-- SIDEBAR -->
     <aside class="sidebar">
       <div class="sidebar-section">
         <h3>Filtros</h3>
         <div class="field">
-          <label class="field-label" for="f_q">Pesquisa</label>
-          <input id="f_q" type="text" placeholder="Título, responsável, origem, tags, notas…">
-        </div>
-        <div class="field">
-          <label class="field-label" for="f_responsavel">Responsável</label>
-          <select id="f_responsavel">
-            <option value="">(Todos)</option>
-            <option>Rui Quelhas</option>
-            <option>Manuel Oliveira</option>
-            <option>João Sousa</option>
-            <option>Francisco dos Santos</option>
-            <option>Rosário Vasconcelos</option>
-            <option>Armanda Meireles</option>
-            <option>Audrey Lucas</option>
+          <label class="field-label" for="filterResponsavel">Responsável</label>
+          <select id="filterResponsavel">
+            <option value="">Todos</option>
           </select>
         </div>
         <div class="field-row">
           <div class="field">
-            <label class="field-label" for="f_estado">Estado</label>
-            <select id="f_estado">
-              <option value="">(Todos)</option>
+            <label class="field-label" for="filterEstado">Estado</label>
+            <select id="filterEstado">
+              <option value="">Todos</option>
               <option value="por_fazer">Por fazer</option>
-              <option value="em_progresso">Em progresso</option>
+              <option value="em_curso">Em curso</option>
               <option value="concluida">Concluída</option>
+              <option value="adiada">Adiada</option>
               <option value="cancelada">Cancelada</option>
             </select>
           </div>
           <div class="field">
-            <label class="field-label" for="f_prioridade">Prioridade</label>
-            <select id="f_prioridade">
-              <option value="">(Todas)</option>
+            <label class="field-label" for="filterPrioridade">Prioridade</label>
+            <select id="filterPrioridade">
+              <option value="">Todas</option>
               <option value="baixa">Baixa</option>
               <option value="normal">Normal</option>
               <option value="alta">Alta</option>
+              <option value="critica">Crítica</option>
             </select>
           </div>
         </div>
         <div class="field-row">
           <div class="field">
-            <label class="field-label" for="f_de">Prazo de</label>
-            <input id="f_de" type="date">
+            <label class="field-label" for="filterDataDe">De (data limite)</label>
+            <input type="date" id="filterDataDe" />
           </div>
           <div class="field">
-            <label class="field-label" for="f_ate">Prazo até</label>
-            <input id="f_ate" type="date">
+            <label class="field-label" for="filterDataAte">Até (data limite)</label>
+            <input type="date" id="filterDataAte" />
           </div>
         </div>
-        <div class="field">
-          <label class="field-label" for="f_origem">Origem</label>
-          <select id="f_origem">
-            <option value="">(Todas)</option>
-            <option value="lead">Lead</option>
-            <option value="angariacao">Angariação</option>
-            <option value="manual">Manual/Outros</option>
-          </select>
+        <div class="toggle-line">
+          <span>Mostrar concluídas</span>
+          <label class="switch">
+            <input type="checkbox" id="filterShowCompleted">
+            <span class="slider"></span>
+          </label>
         </div>
-        <div class="field-row" style="margin-top:6px;">
-          <button class="btn" id="applyFiltersBtn" style="flex:1;">Aplicar</button>
-          <button class="btn ghost" id="clearFiltersBtn" style="flex:1;">Limpar</button>
-        </div>
+        <button class="btn" id="applyFiltersBtn" style="margin-top:6px;width:100%;">Aplicar filtros</button>
+        <button class="btn" id="clearFiltersBtn" style="margin-top:4px;width:100%;background:transparent;border-color:rgba(255,255,255,.2);">Limpar</button>
+        <p style="margin-top:6px;">Use os filtros para organizar o dia, reuniões de pipeline e follow-up por consultor.</p>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Resumo rápido</h3>
+        <div class="filters-badges" id="summaryBadges"></div>
       </div>
 
       <div class="sidebar-section">
         <h3>Notas</h3>
-        <p>As tarefas são guardadas apenas neste navegador (<strong>localStorage</strong>).</p>
-        <p>Quando o cadeado está em <strong>Bloqueado</strong>, não há risco de apagar ou alterar tarefas por engano.</p>
-        <p>Quando está em <strong>Edição ativa</strong>, pode criar, editar, concluir e eliminar tarefas.</p>
+        <p>Quando o cadeado está em <strong>Bloqueado</strong>, não há risco de alterar tarefas por engano.</p>
+        <p>Quando está <strong>Edição ativa</strong>, pode criar, editar, concluir e apagar tarefas.</p>
       </div>
     </aside>
 
-    <!-- MAIN -->
     <main class="cards-area">
       <div class="cards-header">
         <div class="cards-header-left">
           <h2>Tarefas</h2>
-          <p>Follow-up estruturado de Leads, Angariações e tarefas internas.</p>
+          <p>Visão das ações comerciais: chamadas, visitas, follow-ups e compromissos ligados ao negócio.</p>
+          <div class="pipeline-kpis" id="pipelineKpis"></div>
         </div>
       </div>
 
-      <div id="summaryBar" class="summary-bar"></div>
+      <!-- Banner de origem (quando vem de Leads/Vendas ou quando há filtro de origem ativo) -->
+      <div id="originFilterBanner" class="origin-banner" style="display:none;">
+        <div>
+          🔗 <strong id="originFilterLabel"></strong>
+        </div>
+        <button type="button" id="clearOriginFilterBtn">Limpar filtro de origem</button>
+      </div>
 
       <div id="cardsGrid" class="cards-grid"></div>
       <div id="emptyState" class="empty" style="display:none;">
-        Não existem tarefas com os filtros atuais.
+        Ainda não existem tarefas registadas com os filtros atuais.
       </div>
     </main>
   </div>
 </div>
 
 <!-- MODAL TAREFA -->
-<div class="modal-backdrop" id="taskModalBackdrop">
+<div class="modal-backdrop" id="modalBackdrop">
   <div class="modal">
     <div class="modal-header">
-      <h2 id="modalTitle">Nova tarefa</h2>
-      <button class="btn ghost" id="closeModalBtn">✕</button>
+      <h2 id="modalTitle">Nova Tarefa</h2>
+      <button class="btn btn-icon btn-ghost" id="closeModalBtn" title="Fechar">✕</button>
     </div>
     <div class="modal-body">
       <form id="taskForm">
-        <input type="hidden" id="t_id">
+        <input type="hidden" id="taskId" />
         <div class="form-grid">
-          <div class="field">
-            <label class="field-label" for="t_titulo">Título *</label>
-            <input id="t_titulo" type="text" placeholder="Ex.: Follow-up lead João — enviar proposta">
+          <div class="form-section">
+            <h3>Envolvidos & Origem</h3>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="responsavel">Responsável</label>
+                <select id="responsavel"></select>
+              </div>
+              <div class="field">
+                <label class="field-label" for="apoio">Apoio / Gestor</label>
+                <select id="apoio"></select>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="origemTipo">Origem</label>
+                <select id="origemTipo">
+                  <option value="">—</option>
+                  <option value="lead">Lead</option>
+                  <option value="angariacao">Angariação</option>
+                  <option value="venda">Venda</option>
+                  <option value="interna">Interna</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="field-label" for="origemRef">Ref. associada</label>
+                <input type="text" id="origemRef" placeholder="Ex.: REF-123, nome cliente..." />
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="estado">Estado</label>
+                <select id="estado">
+                  <option value="por_fazer">Por fazer</option>
+                  <option value="em_curso">Em curso</option>
+                  <option value="concluida">Concluída</option>
+                  <option value="adiada">Adiada</option>
+                  <option value="cancelada">Cancelada</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="field-label" for="prioridade">Prioridade</label>
+                <select id="prioridade">
+                  <option value="baixa">Baixa</option>
+                  <option value="normal" selected>Normal</option>
+                  <option value="alta">Alta</option>
+                  <option value="critica">Crítica</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="tipoTarefa">Tipo de tarefa</label>
+              <select id="tipoTarefa">
+                <option value="chamada">Chamada telefónica</option>
+                <option value="email">Email</option>
+                <option value="visita">Visita</option>
+                <option value="reuniao">Reunião</option>
+                <option value="followup">Follow-up</option>
+                <option value="outro">Outro</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="tags">Tags / etiquetas</label>
+              <input type="text" id="tags" placeholder="Ex.: empreendimento X, frio, urgente" />
+            </div>
           </div>
-          <div class="field">
-            <label class="field-label" for="t_responsavel">Responsável *</label>
-            <select id="t_responsavel">
-              <option value="">—</option>
-              <option>Rui Quelhas</option>
-              <option>Manuel Oliveira</option>
-              <option>João Sousa</option>
-              <option>Francisco dos Santos</option>
-              <option>Rosário Vasconcelos</option>
-              <option>Armanda Meireles</option>
-              <option>Audrey Lucas</option>
-            </select>
-          </div>
-          <div class="field">
-            <label class="field-label" for="t_apoio">Apoio</label>
-            <input id="t_apoio" type="text" placeholder="Ex.: apoio coordenador / colega">
-          </div>
-          <div class="field">
-            <label class="field-label" for="t_estado">Estado</label>
-            <select id="t_estado">
-              <option value="por_fazer">Por fazer</option>
-              <option value="em_progresso">Em progresso</option>
-              <option value="concluida">Concluída</option>
-              <option value="cancelada">Cancelada</option>
-            </select>
-          </div>
-          <div class="field">
-            <label class="field-label" for="t_prioridade">Prioridade</label>
-            <select id="t_prioridade">
-              <option value="normal">Normal</option>
-              <option value="alta">Alta</option>
-              <option value="baixa">Baixa</option>
-            </select>
-          </div>
-          <div class="field">
-            <label class="field-label" for="t_tipo">Tipo de tarefa</label>
-            <input id="t_tipo" type="text" placeholder="Ex.: followup, visita, reunião, interno…">
-          </div>
-          <div class="field">
-            <label class="field-label" for="t_dataCriacao">Data criação</label>
-            <input id="t_dataCriacao" type="date">
-          </div>
-          <div class="field">
-            <label class="field-label" for="t_dataLimite">Data limite</label>
-            <input id="t_dataLimite" type="date">
-          </div>
-          <div class="field">
-            <label class="field-label" for="t_horaLimite">Hora limite</label>
-            <input id="t_horaLimite" type="text" placeholder="Ex.: 15:00">
-          </div>
-          <div class="field">
-            <label class="field-label" for="t_tags">Tags</label>
-            <input id="t_tags" type="text" placeholder="Ex.: lead, followup, The View">
-          </div>
-          <div class="field">
-            <label class="field-label" for="t_origemTipo">Origem</label>
-            <select id="t_origemTipo">
-              <option value="">—</option>
-              <option value="lead">Lead</option>
-              <option value="angariacao">Angariação</option>
-              <option value="manual">Manual/Outros</option>
-            </select>
-          </div>
-          <div class="field">
-            <label class="field-label" for="t_origemRef">Origem Ref.</label>
-            <input id="t_origemRef" type="text" placeholder="Ex.: Ref interna, nome lead, nome empreendimento">
+
+          <div class="form-section">
+            <h3>Detalhes & Datas</h3>
+
+            <div class="field">
+              <label class="field-label" for="titulo">Título</label>
+              <input type="text" id="titulo" placeholder="Ex.: Agendar visita com proprietários" />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="descricao">Descrição</label>
+              <textarea id="descricao" placeholder="Notas rápidas sobre o objetivo da tarefa, contexto, acordo com o cliente..."></textarea>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="dataCriacao">Data criação</label>
+                <input type="date" id="dataCriacao" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="dataLimite">Data limite</label>
+                <input type="date" id="dataLimite" />
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="horaLimite">Hora</label>
+                <input type="time" id="horaLimite" />
+              </div>
+              <div class="field">
+                <label class="field-label">&nbsp;</label>
+                <small>Use a data limite e hora para organizar visitas, chamadas e follow-ups do dia.</small>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="field" style="margin-top:6px;">
-          <label class="field-label" for="t_descricao">Descrição</label>
-          <textarea id="t_descricao" placeholder="Notas úteis para a execução da tarefa."></textarea>
-        </div>
-        <p class="hint">Se a tarefa tiver origem em Lead ou Angariação criada noutro módulo, o campo <strong>Origem</strong> será preenchido automaticamente (origemTipo/origemRef).</p>
       </form>
     </div>
     <div class="modal-footer">
-      <span>Dados guardados em localStorage (chave <code>gpp_tarefas_v1</code>).</span>
+      <div class="modal-footer-left">
+        Dados guardados apenas neste navegador (localStorage). Use exportações para backup/partilha.
+      </div>
       <div>
-        <button class="btn ghost" id="cancelModalBtn">Cancelar</button>
-        <button class="btn primary" id="saveTaskBtn">Guardar</button>
+        <button class="btn btn-ghost" id="cancelModalBtn">Cancelar</button>
+        <button class="btn btn-primary" id="saveTaskBtn">Guardar</button>
       </div>
     </div>
   </div>
@@ -736,30 +898,73 @@
 
 <script>
 (function(){
-  const TASKS_STORAGE_KEY = 'gpp_tarefas_v1';
+  const STORAGE_KEY = 'gpp_tarefas_v1';
+  const FILTERS_STORAGE_KEY = 'gpp_tarefas_filters_v1';
+  const GLOBAL_FILTERS_KEY = 'gpp_global_filters_v1';
 
-  function loadTasksState(){
-    try{
-      const raw = localStorage.getItem(TASKS_STORAGE_KEY);
-      if(!raw) return {locked:true,tasks:[]};
-      const parsed = JSON.parse(raw);
-      if(!Array.isArray(parsed.tasks)) parsed.tasks = [];
-      if(typeof parsed.locked!=='boolean') parsed.locked = true;
-      return parsed;
-    }catch(e){
-      console.error('Erro ao carregar tarefas', e);
-      return {locked:true,tasks:[]};
-    }
-  }
-  function saveTasksState(state){
-    try{
-      localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(state));
-    }catch(e){
-      console.error('Erro ao guardar tarefas', e);
-    }
-  }
+  const CONSULTOR_OPTIONS = [
+    "Rui Quelhas",
+    "Manuel Oliveira",
+    "João Sousa",
+    "Francisco dos Santos",
+    "Rosário Vasconcelos",
+    "Armanda Meireles",
+    "Audrey Lucas",
+    "Outro"
+  ];
 
   function $(id){ return document.getElementById(id); }
+
+  const lockStateLabel = $('lockStateLabel');
+  const toggleLockBtn = $('toggleLockBtn');
+  const newTaskBtn = $('newTaskBtn');
+  const exportCsvBtn = $('exportCsvBtn');
+  const exportPdfBtn = $('exportPdfBtn');
+  const cardsGrid = $('cardsGrid');
+  const emptyState = $('emptyState');
+  const pipelineKpis = $('pipelineKpis');
+  const summaryBadges = $('summaryBadges');
+
+  const filterResponsavel = $('filterResponsavel');
+  const filterEstado = $('filterEstado');
+  const filterPrioridade = $('filterPrioridade');
+  const filterDataDe = $('filterDataDe');
+  const filterDataAte = $('filterDataAte');
+  const filterShowCompleted = $('filterShowCompleted');
+  const applyFiltersBtn = $('applyFiltersBtn');
+  const clearFiltersBtn = $('clearFiltersBtn');
+
+  const originFilterBanner = $('originFilterBanner');
+  const originFilterLabel = $('originFilterLabel');
+  const clearOriginFilterBtn = $('clearOriginFilterBtn');
+
+  const modalBackdrop = $('modalBackdrop');
+  const modalTitle = $('modalTitle');
+  const closeModalBtn = $('closeModalBtn');
+  const cancelModalBtn = $('cancelModalBtn');
+  const saveTaskBtn = $('saveTaskBtn');
+  const taskForm = $('taskForm');
+
+  const responsavelSelect = $('responsavel');
+  const apoioSelect = $('apoio');
+
+  let state = {
+    locked:true,
+    tasks:[]
+  };
+
+  // Inclui filtros "escondidos" de origem (vindo de Leads/Vendas)
+  let FILTERS = {
+    responsavel:'',
+    estado:'',
+    prioridade:'',
+    de:'',
+    ate:'',
+    showCompleted:false,
+    origemTipo:'',
+    origemRef:''
+  };
+
   function todayISO(){
     const d = new Date();
     const y = d.getFullYear();
@@ -768,48 +973,192 @@
     return y + '-' + m + '-' + day;
   }
 
-  let state = loadTasksState();
-  let FILTER = {q:'',responsavel:'',estado:'',prioridade:'',de:'',ate:'',origem:''};
+  function addDaysISO(baseISO, days){
+    try{
+      if(!baseISO) baseISO = todayISO();
+      const parts = baseISO.split('-').map(Number);
+      if(parts.length !== 3) return todayISO();
+      const dt = new Date(parts[0], parts[1]-1, parts[2]);
+      dt.setDate(dt.getDate() + (days || 0));
+      const y = dt.getFullYear();
+      const m = String(dt.getMonth()+1).padStart(2,'0');
+      const d = String(dt.getDate()).padStart(2,'0');
+      return y + '-' + m + '-' + d;
+    }catch(e){
+      console.error('Erro em addDaysISO', e);
+      return todayISO();
+    }
+  }
 
-  const lockStateLabel = $('lockStateLabel');
-  const toggleLockBtn = $('toggleLockBtn');
-  const newTaskBtn = $('newTaskBtn');
-  const exportCsvBtn = $('exportCsvBtn');
+  function diffInDays(fromISO, toISO){
+    try{
+      if(!fromISO || !toISO) return null;
+      const a = fromISO.split('-').map(Number);
+      const b = toISO.split('-').map(Number);
+      if(a.length !== 3 || b.length !== 3) return null;
+      const da = new Date(a[0], a[1]-1, a[2]);
+      const db = new Date(b[0], b[1]-1, b[2]);
+      const ms = db - da;
+      return Math.round(ms / 86400000);
+    }catch(e){
+      console.error('Erro em diffInDays', e);
+      return null;
+    }
+  }
 
-  const f_q = $('f_q');
-  const f_responsavel = $('f_responsavel');
-  const f_estado = $('f_estado');
-  const f_prioridade = $('f_prioridade');
-  const f_de = $('f_de');
-  const f_ate = $('f_ate');
-  const f_origem = $('f_origem');
-  const applyFiltersBtn = $('applyFiltersBtn');
-  const clearFiltersBtn = $('clearFiltersBtn');
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        const parsed = JSON.parse(raw);
+        if(Array.isArray(parsed.tasks)){
+          state.tasks = parsed.tasks;
+        }
+        state.locked = parsed.locked !== false;
+      }
+    }catch(e){
+      console.error('Erro ao carregar storage tarefas', e);
+    }
+    updateLockUI();
+  }
 
-  const cardsGrid = $('cardsGrid');
-  const emptyState = $('emptyState');
-  const summaryBar = $('summaryBar');
+  function saveState(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }catch(e){
+      console.error('Erro ao guardar storage tarefas', e);
+    }
+  }
 
-  const taskModalBackdrop = $('taskModalBackdrop');
-  const modalTitle = $('modalTitle');
-  const closeModalBtn = $('closeModalBtn');
-  const cancelModalBtn = $('cancelModalBtn');
-  const saveTaskBtn = $('saveTaskBtn');
+  function loadFiltersFromStorage(){
+    try{
+      const raw = localStorage.getItem(FILTERS_STORAGE_KEY);
+      if(!raw) return;
+      const parsed = JSON.parse(raw);
+      if(parsed && typeof parsed === 'object'){
+        FILTERS = Object.assign({}, FILTERS, parsed);
+      }
+    }catch(e){
+      console.error('Erro a carregar filtros de tarefas', e);
+    }
+  }
 
-  const t_id = $('t_id');
-  const t_titulo = $('t_titulo');
-  const t_responsavel = $('t_responsavel');
-  const t_apoio = $('t_apoio');
-  const t_estado = $('t_estado');
-  const t_prioridade = $('t_prioridade');
-  const t_tipo = $('t_tipo');
-  const t_dataCriacao = $('t_dataCriacao');
-  const t_dataLimite = $('t_dataLimite');
-  const t_horaLimite = $('t_horaLimite');
-  const t_tags = $('t_tags');
-  const t_origemTipo = $('t_origemTipo');
-  const t_origemRef = $('t_origemRef');
-  const t_descricao = $('t_descricao');
+  function loadGlobalFiltersFallback(){
+    // Só aplica se ainda não houver filtros locais (primeiro uso)
+    if(FILTERS.responsavel || FILTERS.de || FILTERS.ate) return;
+    try{
+      const raw = localStorage.getItem(GLOBAL_FILTERS_KEY);
+      if(!raw) return;
+      const g = JSON.parse(raw) || {};
+      if(!FILTERS.responsavel && g.consultor) FILTERS.responsavel = g.consultor;
+      if(!FILTERS.de && g.de) FILTERS.de = g.de;
+      if(!FILTERS.ate && g.ate) FILTERS.ate = g.ate;
+    }catch(e){
+      console.error('Erro a carregar filtros globais', e);
+    }
+  }
+
+  // Integração com Leads/Vendas via parâmetros na URL
+  function applyUrlContext(){
+    try{
+      const params = new URLSearchParams(window.location.search);
+      const origem = (params.get('origem') || '').trim();   // lead, angariacao, venda, interna
+      const ref    = (params.get('ref') || '').trim();
+      const consultor = (params.get('consultor') || '').trim();
+      const nova   = (params.get('nova') || '').trim();     // "1" para abrir modal "Nova tarefa"
+
+      // Se veio consultor e ainda não há filtro local de responsável, herdamos
+      if(consultor && !FILTERS.responsavel){
+        FILTERS.responsavel = consultor;
+      }
+
+      // Se veio origem/ref, ativamos filtro "escondido" por origem
+      if(origem || ref){
+        FILTERS.origemTipo = origem || '';
+        FILTERS.origemRef  = ref || '';
+      }
+
+      // Se é pedido de "Nova tarefa" vinda de outro módulo, tentamos abrir já o modal
+      if(nova === '1'){
+        // Só abrimos se o modo não estiver bloqueado
+        if(state.locked){
+          setTimeout(()=>{
+            alert('Para criar uma nova tarefa associada, ative "Edição ativa" (cadeado no topo).');
+          }, 300);
+        }else{
+          openModal(null);
+          // Pré-preenchemos os campos de origem automaticamente
+          if(origem){
+            $('origemTipo').value = origem;
+          }
+          if(ref){
+            $('origemRef').value = ref;
+          }
+          if(consultor){
+            responsavelSelect.value = consultor;
+          }
+        }
+      }
+    }catch(e){
+      console.error('Erro a interpretar parâmetros da URL em tarefas', e);
+    }
+  }
+
+  function applyFiltersToControls(){
+    filterResponsavel.value = FILTERS.responsavel || '';
+    filterEstado.value = FILTERS.estado || '';
+    filterPrioridade.value = FILTERS.prioridade || '';
+    filterDataDe.value = FILTERS.de || '';
+    filterDataAte.value = FILTERS.ate || '';
+    filterShowCompleted.checked = !!FILTERS.showCompleted;
+  }
+
+  function updateFiltersFromControls(){
+    FILTERS.responsavel = filterResponsavel.value || '';
+    FILTERS.estado = filterEstado.value || '';
+    FILTERS.prioridade = filterPrioridade.value || '';
+    FILTERS.de = filterDataDe.value || '';
+    FILTERS.ate = filterDataAte.value || '';
+    FILTERS.showCompleted = filterShowCompleted.checked;
+    // origemTipo / origemRef mantêm-se até serem limpos
+  }
+
+  function saveFiltersToStorage(){
+    try{
+      localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(FILTERS));
+    }catch(e){
+      console.error('Erro a guardar filtros de tarefas', e);
+    }
+  }
+
+  function syncGlobalFiltersFromTasks(){
+    const g = {
+      consultor: FILTERS.responsavel || '',
+      de: FILTERS.de || '',
+      ate: FILTERS.ate || ''
+    };
+    try{
+      localStorage.setItem(GLOBAL_FILTERS_KEY, JSON.stringify(g));
+    }catch(e){
+      console.error('Erro a guardar filtros globais', e);
+    }
+  }
+
+  function clearFilters(){
+    FILTERS = {
+      responsavel:'',
+      estado:'',
+      prioridade:'',
+      de:'',
+      ate:'',
+      showCompleted:false,
+      origemTipo:'',
+      origemRef:''
+    };
+    applyFiltersToControls();
+    saveFiltersToStorage();
+    syncGlobalFiltersFromTasks();
+  }
 
   function updateLockUI(){
     if(state.locked){
@@ -823,344 +1172,498 @@
     }
   }
 
-  function norm(s){
-    return String(s||'').toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g,'');
+  function initConsultores(){
+    CONSULTOR_OPTIONS.forEach(name=>{
+      const opt1 = document.createElement('option');
+      opt1.value = name;
+      opt1.textContent = name;
+      responsavelSelect.appendChild(opt1);
+
+      const opt2 = document.createElement('option');
+      opt2.value = name;
+      opt2.textContent = name;
+      apoioSelect.appendChild(opt2);
+
+      const opt3 = document.createElement('option');
+      opt3.value = name;
+      opt3.textContent = name;
+      filterResponsavel.appendChild(opt3);
+    });
   }
 
   function openModal(task){
+    modalBackdrop.classList.add('open');
     if(task){
-      modalTitle.textContent = 'Editar tarefa';
-      t_id.value = task.id || '';
-      t_titulo.value = task.titulo || '';
-      t_responsavel.value = task.responsavel || '';
-      t_apoio.value = task.apoio || '';
-      t_estado.value = task.estado || 'por_fazer';
-      t_prioridade.value = task.prioridade || 'normal';
-      t_tipo.value = task.tipoTarefa || '';
-      t_dataCriacao.value = task.dataCriacao || todayISO();
-      t_dataLimite.value = task.dataLimite || '';
-      t_horaLimite.value = task.horaLimite || '';
-      t_tags.value = task.tags || '';
-      t_origemTipo.value = task.origemTipo || '';
-      t_origemRef.value = task.origemRef || '';
-      t_descricao.value = task.descricao || '';
+      modalTitle.textContent = 'Editar Tarefa';
+      $('taskId').value = task.id || '';
+      responsavelSelect.value = task.responsavel || '';
+      apoioSelect.value = task.apoio || '';
+      $('origemTipo').value = task.origemTipo || '';
+      $('origemRef').value = task.origemRef || '';
+      $('estado').value = task.estado || 'por_fazer';
+      $('prioridade').value = task.prioridade || 'normal';
+      $('tipoTarefa').value = task.tipoTarefa || 'chamada';
+      $('tags').value = task.tags || '';
+      $('titulo').value = task.titulo || '';
+      $('descricao').value = task.descricao || '';
+      $('dataCriacao').value = task.dataCriacao || '';
+      $('dataLimite').value = task.dataLimite || '';
+      $('horaLimite').value = task.horaLimite || '';
     }else{
-      modalTitle.textContent = 'Nova tarefa';
-      t_id.value = '';
-      t_titulo.value = '';
-      t_responsavel.value = '';
-      t_apoio.value = '';
-      t_estado.value = 'por_fazer';
-      t_prioridade.value = 'normal';
-      t_tipo.value = '';
-      t_dataCriacao.value = todayISO();
-      t_dataLimite.value = '';
-      t_horaLimite.value = '';
-      t_tags.value = '';
-      t_origemTipo.value = 'manual';
-      t_origemRef.value = '';
-      t_descricao.value = '';
+      modalTitle.textContent = 'Nova Tarefa';
+      taskForm.reset();
+      $('taskId').value = '';
+      const hoje = todayISO();
+      $('dataCriacao').value = hoje;
+      $('dataLimite').value = addDaysISO(hoje, 8); // regra: +8 dias
+      $('horaLimite').value = '';
     }
-    taskModalBackdrop.classList.add('show');
   }
 
   function closeModal(){
-    taskModalBackdrop.classList.remove('show');
+    modalBackdrop.classList.remove('open');
   }
 
-  function collectForm(){
-    const id = t_id.value || ('task_' + Date.now());
-    const existing = state.tasks.find(t=>t.id===id) || {};
-    const nowMs = existing.createdAtMs || Date.now();
+  function collectFormData(){
+    const id = $('taskId').value || 'task_' + Date.now();
 
-    const tarefa = Object.assign({}, existing, {
+    let dataCriacao = $('dataCriacao').value;
+    if(!dataCriacao){
+      dataCriacao = todayISO();
+    }
+
+    let dataLimite = $('dataLimite').value || '';
+
+    // Garantia: data limite tem de ser superior à data de criação
+    if(dataLimite && dataCriacao && dataLimite <= dataCriacao){
+      dataLimite = addDaysISO(dataCriacao, 8);
+    }
+
+    const data = {
       id,
-      titulo: t_titulo.value.trim(),
-      responsavel: t_responsavel.value.trim(),
-      apoio: t_apoio.value.trim(),
-      estado: t_estado.value || 'por_fazer',
-      prioridade: t_prioridade.value || 'normal',
-      tipoTarefa: t_tipo.value.trim(),
-      dataCriacao: t_dataCriacao.value || todayISO(),
-      dataLimite: t_dataLimite.value || '',
-      horaLimite: t_horaLimite.value.trim(),
-      tags: t_tags.value.trim(),
-      origemTipo: t_origemTipo.value || '',
-      origemRef: t_origemRef.value.trim(),
-      descricao: t_descricao.value.trim(),
-      createdAtMs: nowMs
-    });
-    return tarefa;
+      responsavel: responsavelSelect.value || '',
+      apoio: apoioSelect.value || '',
+      origemTipo: $('origemTipo').value || '',
+      origemRef: $('origemRef').value || '',
+      estado: $('estado').value || 'por_fazer',
+      prioridade: $('prioridade').value || 'normal',
+      tipoTarefa: $('tipoTarefa').value || 'chamada',
+      tags: $('tags').value || '',
+      titulo: $('titulo').value || '',
+      descricao: $('descricao').value || '',
+      dataCriacao: dataCriacao,
+      dataLimite: dataLimite,
+      horaLimite: $('horaLimite').value || '',
+      createdAtMs: Date.now()
+    };
+
+    return data;
   }
 
   function applyFilters(tasks){
-    let arr = tasks.slice();
-    const tq = norm(FILTER.q||'');
-    if(tq){
-      arr = arr.filter(t=>{
-        const blob = [
-          t.titulo,
-          t.responsavel,
-          t.apoio,
-          t.origemTipo,
-          t.origemRef,
-          t.tags,
-          t.descricao
-        ].map(norm).join(' ');
-        return blob.includes(tq);
-      });
-    }
-    if(FILTER.responsavel){
-      arr = arr.filter(t=>t.responsavel === FILTER.responsavel);
-    }
-    if(FILTER.estado){
-      arr = arr.filter(t=>t.estado === FILTER.estado);
-    }
-    if(FILTER.prioridade){
-      arr = arr.filter(t=>t.prioridade === FILTER.prioridade);
-    }
-    if(FILTER.origem){
-      if(FILTER.origem === 'manual'){
-        arr = arr.filter(t=>!t.origemTipo || t.origemTipo==='manual');
-      }else{
-        arr = arr.filter(t=>t.origemTipo === FILTER.origem);
+    const resp = FILTERS.responsavel || '';
+    const est = FILTERS.estado || '';
+    const prio = FILTERS.prioridade || '';
+    const from = FILTERS.de || '';
+    const to = FILTERS.ate || '';
+    const showCompleted = !!FILTERS.showCompleted;
+    const oTipo = FILTERS.origemTipo || '';
+    const oRef = FILTERS.origemRef || '';
+
+    return tasks.filter(t=>{
+      if(resp && t.responsavel !== resp) return false;
+      if(est && t.estado !== est) return false;
+      if(prio && t.prioridade !== prio) return false;
+
+      if(!showCompleted && (t.estado === 'concluida' || t.estado === 'cancelada')){
+        return false;
       }
-    }
-    if(FILTER.de){
-      arr = arr.filter(t=>!t.dataLimite || t.dataLimite >= FILTER.de);
-    }
-    if(FILTER.ate){
-      arr = arr.filter(t=>!t.dataLimite || t.dataLimite <= FILTER.ate);
-    }
-    return arr;
-  }
 
-  function renderSummary(all, filtered){
-    const total = all.length;
-    const visiveis = filtered.length;
-    const porEstado = {por_fazer:0,em_progresso:0,concluida:0,cancelada:0};
-    all.forEach(t=>{
-      if(porEstado[t.estado]!==undefined) porEstado[t.estado]++;
+      if(from && t.dataLimite && t.dataLimite < from) return false;
+      if(to && t.dataLimite && t.dataLimite > to) return false;
+
+      // Filtro de origem (vindo de Leads/Vendas ou manual via URL)
+      if(oTipo && t.origemTipo !== oTipo) return false;
+      if(oRef){
+        const tref = (t.origemRef || '').toLowerCase();
+        if(!tref.includes(oRef.toLowerCase())) return false;
+      }
+
+      return true;
     });
+  }
 
-    summaryBar.innerHTML = '';
-    const spanTotal = document.createElement('span');
-    spanTotal.className='badge-kpi';
-    spanTotal.textContent = 'Total: ' + total;
-    summaryBar.appendChild(spanTotal);
-
-    const spanVis = document.createElement('span');
-    spanVis.className='badge-kpi';
-    spanVis.textContent = 'Visíveis (filtros): ' + visiveis;
-    summaryBar.appendChild(spanVis);
-
-    const mapLbl = {
+  function estadoLabel(e){
+    return {
       por_fazer:'Por fazer',
-      em_progresso:'Em progresso',
+      em_curso:'Em curso',
       concluida:'Concluída',
+      adiada:'Adiada',
       cancelada:'Cancelada'
-    };
-    Object.keys(porEstado).forEach(k=>{
-      const s = document.createElement('span');
-      s.className='badge-kpi';
-      s.textContent = mapLbl[k]+': '+porEstado[k];
-      summaryBar.appendChild(s);
-    });
-
-    const concl = porEstado.concluida;
-    const pend = total ? (total - concl - porEstado.cancelada) : 0;
-    const taxa = total ? ((concl/total)*100).toFixed(1) : '0.0';
-    const hl = document.createElement('span');
-    hl.className='badge-kpi highlight';
-    hl.textContent = 'Taxa conclusão (excl. canceladas): ' + taxa + '%';
-    summaryBar.appendChild(hl);
+    }[e] || '—';
   }
 
-  function classEstadoChip(estado){
-    switch(estado){
-      case 'por_fazer': return 'chip estado_por_fazer';
-      case 'em_progresso': return 'chip estado_em_progresso';
-      case 'concluida': return 'chip estado_concluida';
-      case 'cancelada': return 'chip estado_cancelada';
-      default: return 'chip';
-    }
-  }
-  function labelEstado(estado){
-    return ({
-      por_fazer:'Por fazer',
-      em_progresso:'Em progresso',
-      concluida:'Concluída',
-      cancelada:'Cancelada'
-    }[estado] || '—');
-  }
-  function labelPrioridade(p){
-    return ({
+  function prioridadeLabel(p){
+    return {
       baixa:'Baixa',
       normal:'Normal',
-      alta:'Alta'
-    }[p] || '—');
+      alta:'Alta',
+      critica:'Crítica'
+    }[p] || '—';
   }
 
-  function openFichaOriginal(tarefa){
-    if(tarefa.origemTipo === 'lead'){
-      // Lead ➜ abre Kanban
-      window.open('kanban.html','_blank');
-      return;
-    }
-    if(tarefa.origemTipo === 'angariacao'){
-      // Angariação ➜ abre Angariações
-      window.open('angariacoes.html','_blank');
-      return;
-    }
-    alert('Esta tarefa não tem ficha original associada.');
+  function tipoLabel(t){
+    return {
+      chamada:'Chamada',
+      email:'Email',
+      visita:'Visita',
+      reuniao:'Reunião',
+      followup:'Follow-up',
+      outro:'Outro'
+    }[t] || '—';
   }
 
-  function renderTasks(){
-    const all = state.tasks
-      .slice()
-      .sort((a,b)=>(a.createdAtMs||0)-(b.createdAtMs||0));
+  function origemLabel(tipo){
+    return {
+      lead:'Lead',
+      angariacao:'Angariação',
+      venda:'Venda',
+      interna:'Interna'
+    }[tipo] || '';
+  }
 
-    const filtered = applyFilters(all);
+  function prioridadeClass(p){
+    if(p === 'critica') return 'chip-red';
+    if(p === 'alta') return 'chip-yellow';
+    if(p === 'baixa') return 'chip';
+    return 'chip-primary';
+  }
+
+  function estadoClass(e){
+    if(e === 'concluida') return 'chip-green';
+    if(e === 'adiada' || e === 'cancelada') return 'chip-red';
+    if(e === 'em_curso') return 'chip-yellow';
+    return 'chip-primary';
+  }
+
+  function getUrgencyClass(task){
+    if(!task.dataLimite) return '';
+    const today = todayISO();
+    const diff = diffInDays(today, task.dataLimite); // dias até ao prazo
+    if(diff == null) return '';
+    if(diff < 0) return 'card-urgency-overdue';
+    if(diff === 0) return 'card-urgency-due';
+    if(diff <= 2) return 'card-urgency-high';
+    if(diff <= 5) return 'card-urgency-medium';
+    if(diff <= 8) return 'card-urgency-soft';
+    return '';
+  }
+
+  function renderOriginBanner(){
+    if(FILTERS.origemTipo || FILTERS.origemRef){
+      const parts = [];
+      if(FILTERS.origemTipo){
+        parts.push('Origem: ' + origemLabel(FILTERS.origemTipo));
+      }
+      if(FILTERS.origemRef){
+        parts.push('Ref.: ' + FILTERS.origemRef);
+      }
+      originFilterLabel.textContent = parts.join(' · ');
+      originFilterBanner.style.display = 'flex';
+    }else{
+      originFilterBanner.style.display = 'none';
+    }
+  }
+
+  // *** ALTERADO: agora suporta Lead E Angariação ***
+  function openOriginalModal(task){
+    if(!task){
+      alert('Não foi possível identificar a tarefa selecionada.');
+      return;
+    }
+
+    if(!task.origemTipo || !task.origemRef || !task.origemRef.trim()){
+      alert('Esta tarefa não tem referência associada a uma ficha de origem (Lead ou Angariação).');
+      return;
+    }
+
+    const ref = encodeURIComponent(task.origemRef.trim());
+
+    // Lead ➜ Kanban, com instrução para abrir modal em edição
+    if(task.origemTipo === 'lead'){
+      const url = 'kanban.html?ref=' + ref + '&abrir=1&origem=tarefas';
+      window.location.href = url;
+      return;
+    }
+
+    // Angariação ➜ módulo Angariações, também com instrução para abrir modal em edição
+    if(task.origemTipo === 'angariacao'){
+      const url = 'angariacoes.html?ref=' + ref + '&abrir=1&origem=tarefas';
+      window.location.href = url;
+      return;
+    }
+
+    alert('Neste momento, o atalho "Ver ficha original" está disponível apenas para tarefas associadas a Leads ou Angariações.');
+  }
+
+  function renderCards(){
+    const tasks = state.tasks.slice().sort((a,b)=>{
+      const da = a.dataLimite || '';
+      const db = b.dataLimite || '';
+      if(da && db){
+        return da.localeCompare(db);
+      }
+      if(da && !db) return -1;
+      if(!da && db) return 1;
+      return (a.createdAtMs || 0) - (b.createdAtMs || 0);
+    });
+
+    const filtered = applyFilters(tasks);
     cardsGrid.innerHTML = '';
 
+    renderOriginBanner();
+
     if(!filtered.length){
-      emptyState.style.display='block';
+      emptyState.style.display = 'block';
     }else{
-      emptyState.style.display='none';
+      emptyState.style.display = 'none';
     }
 
-    renderSummary(all, filtered);
+    // KPIs gerais
+    let total = tasks.length;
+    let porEstado = {por_fazer:0,em_curso:0,concluida:0,adiada:0,cancelada:0};
+    tasks.forEach(t=>{
+      if(porEstado[t.estado] !== undefined) porEstado[t.estado]++;
+    });
+
+    // Resumo rápido (apenas com tarefas filtradas)
+    summaryBadges.innerHTML = '';
+    const badge1 = document.createElement('div');
+    badge1.className = 'badge';
+    badge1.innerHTML = 'Total tarefas <strong>' + total + '</strong>';
+    summaryBadges.appendChild(badge1);
+
+    const badge2 = document.createElement('div');
+    const abertas = tasks.filter(t=>t.estado!=='concluida' && t.estado!=='cancelada').length;
+    badge2.className = 'badge';
+    badge2.innerHTML = 'Em aberto <strong>' + abertas + '</strong>';
+    summaryBadges.appendChild(badge2);
+
+    const fil = filtered;
+    const porRespFiltrado = {};
+    fil.forEach(t=>{
+      if(!t.responsavel) return;
+      porRespFiltrado[t.responsavel] = (porRespFiltrado[t.responsavel]||0)+1;
+    });
+    Object.keys(porRespFiltrado).sort().forEach(n=>{
+      const b = document.createElement('div');
+      b.className = 'badge';
+      b.innerHTML = '<strong>'+n+':</strong> ' + porRespFiltrado[n];
+      summaryBadges.appendChild(b);
+    });
+
+    pipelineKpis.innerHTML = '';
+    const estadosOrdem = ['por_fazer','em_curso','concluida','adiada','cancelada'];
+    estadosOrdem.forEach(k=>{
+      const chip = document.createElement('div');
+      chip.className = 'kpi-chip';
+      chip.innerHTML = estadoLabel(k) + '<span class="value">'+porEstado[k]+'</span>';
+      pipelineKpis.appendChild(chip);
+    });
+
+    // Cartões
+    const today = todayISO();
 
     filtered.forEach(t=>{
       const card = document.createElement('div');
-      card.className = 'card' + (t.estado==='concluida' || t.estado==='cancelada' ? ' dim' : '');
-
-      const top = document.createElement('div');
-      top.className='card-top';
-
-      const tb = document.createElement('div');
-      tb.className='card-title-block';
-
-      const title = document.createElement('h3');
-      title.className='card-title';
-      title.textContent = t.titulo || '(Sem título)';
-      tb.appendChild(title);
-
-      const sub = document.createElement('div');
-      sub.className='card-sub';
-      const partes = [];
-      if(t.responsavel) partes.push('Resp.: '+t.responsavel);
-      if(t.origemTipo){
-        partes.push('Origem: '+(t.origemTipo==='lead' ? 'Lead' : t.origemTipo==='angariacao' ? 'Angariação' : 'Manual'));
+      let cardClass = 'card';
+      if(t.estado === 'concluida' || t.estado === 'cancelada'){
+        cardClass += ' completed';
+      }else{
+        const urg = getUrgencyClass(t);
+        if(urg) cardClass += ' ' + urg;
       }
-      if(t.origemRef) partes.push(t.origemRef);
-      sub.textContent = partes.join(' · ');
-      tb.appendChild(sub);
+      card.className = cardClass;
+      card.dataset.id = t.id;
 
-      const chips = document.createElement('div');
-      chips.className='chips';
+      const topRow = document.createElement('div');
+      topRow.className = 'card-top-row';
 
-      const chEst = document.createElement('span');
-      chEst.className = classEstadoChip(t.estado);
-      chEst.textContent = labelEstado(t.estado);
-      chips.appendChild(chEst);
+      const titleBlock = document.createElement('div');
+      titleBlock.className = 'card-title-block';
 
-      const chPri = document.createElement('span');
-      chPri.className='chip ' + (t.prioridade==='alta' ? 'prio_alta' : t.prioridade==='baixa' ? 'prio_baixa' : '');
-      chPri.textContent = 'Prioridade: '+labelPrioridade(t.prioridade);
-      chips.appendChild(chPri);
+      const h3 = document.createElement('h3');
+      h3.className = 'card-title';
+      h3.textContent = t.titulo || '(Sem título)';
+      titleBlock.appendChild(h3);
+
+      const subtitle = document.createElement('div');
+      subtitle.className = 'card-subtitle';
+      const linhaSub = [
+        t.responsavel || '',
+        prioridadeLabel(t.prioridade),
+        estadoLabel(t.estado)
+      ].filter(Boolean).join(' · ');
+      subtitle.textContent = linhaSub;
+      titleBlock.appendChild(subtitle);
+
+      const chipsRow = document.createElement('div');
+      chipsRow.className = 'chip-row';
+
+      const chipEst = document.createElement('span');
+      chipEst.className = 'chip ' + estadoClass(t.estado);
+      chipEst.textContent = estadoLabel(t.estado);
+      chipsRow.appendChild(chipEst);
+
+      const chipPrio = document.createElement('span');
+      chipPrio.className = 'chip ' + prioridadeClass(t.prioridade);
+      chipPrio.textContent = prioridadeLabel(t.prioridade);
+      chipsRow.appendChild(chipPrio);
 
       if(t.tipoTarefa){
-        const chTipo = document.createElement('span');
-        chTipo.className='chip';
-        chTipo.textContent = t.tipoTarefa;
-        chips.appendChild(chTipo);
+        const ch = document.createElement('span');
+        ch.className = 'chip';
+        ch.textContent = tipoLabel(t.tipoTarefa);
+        chipsRow.appendChild(ch);
       }
+
+      if(t.origemTipo){
+        const ch = document.createElement('span');
+        ch.className = 'chip';
+        ch.textContent = origemLabel(t.origemTipo);
+        chipsRow.appendChild(ch);
+      }
+
       if(t.tags){
-        const chTags = document.createElement('span');
-        chTags.className='chip';
-        chTags.textContent = t.tags;
-        chips.appendChild(chTags);
+        const ch = document.createElement('span');
+        ch.className = 'chip';
+        ch.textContent = t.tags;
+        chipsRow.appendChild(ch);
       }
 
-      tb.appendChild(chips);
-      top.appendChild(tb);
-      card.appendChild(top);
+      // Alerta visual quando chega ao prazo / em atraso
+      if(t.dataLimite){
+        const diff = diffInDays(today, t.dataLimite);
+        if(diff !== null){
+          if(diff === 0 && t.estado !== 'concluida' && t.estado !== 'cancelada'){
+            const ch = document.createElement('span');
+            ch.className = 'chip chip-red';
+            ch.textContent = '⚠ Prazo hoje';
+            chipsRow.appendChild(ch);
+          }else if(diff < 0 && t.estado !== 'concluida' && t.estado !== 'cancelada'){
+            const ch = document.createElement('span');
+            ch.className = 'chip chip-red';
+            ch.textContent = '⚠ Em atraso';
+            chipsRow.appendChild(ch);
+          }
+        }
+      }
 
+      titleBlock.appendChild(chipsRow);
+      topRow.appendChild(titleBlock);
+      card.appendChild(topRow);
+
+      // Origem
+      if(t.origemTipo || t.origemRef){
+        const sec = document.createElement('div');
+        sec.className = 'card-section';
+        const span = document.createElement('span');
+        const parts = [];
+        if(t.origemTipo) parts.push(origemLabel(t.origemTipo));
+        if(t.origemRef) parts.push(t.origemRef);
+        span.innerHTML = '<strong>Origem:</strong> ' + parts.join(' · ');
+        sec.appendChild(span);
+        card.appendChild(sec);
+      }
+
+      // Datas
+      if(t.dataCriacao || t.dataLimite || t.horaLimite){
+        const sec = document.createElement('div');
+        sec.className = 'card-section';
+        const span = document.createElement('span');
+        const parts = [];
+        if(t.dataCriacao) parts.push('Criada em ' + t.dataCriacao);
+        if(t.dataLimite) parts.push('Limite ' + t.dataLimite + (t.horaLimite ? ' ' + t.horaLimite : ''));
+        span.innerHTML = parts.join(' · ');
+        sec.appendChild(span);
+        card.appendChild(sec);
+      }
+
+      // Descrição (resumo)
       if(t.descricao){
-        const body = document.createElement('div');
-        body.className='card-body';
-        body.textContent = t.descricao;
-        card.appendChild(body);
+        const sec = document.createElement('div');
+        sec.className = 'card-section';
+        const span = document.createElement('span');
+        let txt = t.descricao;
+        if(txt.length > 180){
+          txt = txt.slice(0,177) + '…';
+        }
+        span.textContent = txt;
+        sec.appendChild(span);
+        card.appendChild(sec);
       }
 
-      const footer = document.createElement('div');
-      footer.className='card-footer';
-
+      const foot = document.createElement('div');
+      foot.className = 'card-footer';
       const left = document.createElement('div');
-      const linhas = [];
-      if(t.dataCriacao) linhas.push('Criada: '+t.dataCriacao);
-      if(t.dataLimite) linhas.push('Prazo: '+t.dataLimite+(t.horaLimite? ' '+t.horaLimite:''));
-      left.textContent = linhas.join(' · ');
-      footer.appendChild(left);
+      left.className = 'card-footer-left';
+
+      const partes = [];
+      if(t.responsavel) partes.push(t.responsavel);
+      if(t.apoio && t.apoio !== t.responsavel) partes.push('Apoio: ' + t.apoio);
+      left.textContent = partes.join(' · ');
+      foot.appendChild(left);
 
       const right = document.createElement('div');
-      right.className='card-footer-right';
+      right.className = 'card-footer-right';
 
-      const btnEditar = document.createElement('button');
-      btnEditar.className='btn-xs primary';
-      btnEditar.textContent='Editar';
-      btnEditar.addEventListener('click',()=>{
-        if(state.locked){
-          alert('Modo de edição bloqueado. Desbloqueie o cadeado para editar tarefas.');
-          return;
+      const btnDone = document.createElement('button');
+      btnDone.className = 'btn-xs primary';
+      btnDone.textContent = (t.estado === 'concluida') ? 'Reabrir' : 'Concluir';
+      btnDone.addEventListener('click',()=>{
+        if(state.locked) return;
+        if(t.estado === 'concluida'){
+          t.estado = 'por_fazer';
+        }else{
+          t.estado = 'concluida';
         }
+        saveState();
+        renderCards();
+      });
+      right.appendChild(btnDone);
+
+      const btnEdit = document.createElement('button');
+      btnEdit.className = 'btn-xs';
+      btnEdit.textContent = 'Editar';
+      btnEdit.addEventListener('click',()=>{
+        if(state.locked) return;
         openModal(t);
       });
-      right.appendChild(btnEditar);
+      right.appendChild(btnEdit);
 
-      const btnConcluir = document.createElement('button');
-      btnConcluir.className='btn-xs';
-      btnConcluir.textContent = t.estado==='concluida' ? 'Reabrir' : 'Concluir';
-      btnConcluir.addEventListener('click',()=>{
-        if(state.locked){
-          alert('Modo de edição bloqueado. Desbloqueie o cadeado para alterar o estado.');
-          return;
-        }
-        t.estado = (t.estado==='concluida' ? 'por_fazer' : 'concluida');
-        saveTasksState(state);
-        renderTasks();
+      const btnView = document.createElement('button');
+      btnView.className = 'btn-xs';
+      btnView.textContent = 'Ver ficha original';
+      btnView.addEventListener('click',()=>{
+        openOriginalModal(t);
       });
-      right.appendChild(btnConcluir);
-
-      const btnVer = document.createElement('button');
-      btnVer.className='btn-xs';
-      btnVer.textContent='Ver ficha original';
-      btnVer.addEventListener('click',()=>{
-        openFichaOriginal(t);
-      });
-      right.appendChild(btnVer);
+      right.appendChild(btnView);
 
       const btnDel = document.createElement('button');
-      btnDel.className='btn-xs danger';
-      btnDel.textContent='Apagar';
+      btnDel.className = 'btn-xs danger';
+      btnDel.textContent = 'Apagar';
       btnDel.addEventListener('click',()=>{
-        if(state.locked){
-          alert('Modo de edição bloqueado. Desbloqueie o cadeado para apagar tarefas.');
-          return;
-        }
+        if(state.locked) return;
         if(confirm('Tem a certeza que pretende apagar esta tarefa?')){
-          state.tasks = state.tasks.filter(x=>x.id!==t.id);
-          saveTasksState(state);
-          renderTasks();
+          state.tasks = state.tasks.filter(x=>x.id !== t.id);
+          saveState();
+          renderCards();
         }
       });
       right.appendChild(btnDel);
 
-      footer.appendChild(right);
-      card.appendChild(footer);
+      foot.appendChild(right);
+      card.appendChild(foot);
 
       cardsGrid.appendChild(card);
     });
@@ -1171,118 +1674,238 @@
       alert('Não existem tarefas para exportar.');
       return;
     }
+
     const cols = [
-      'id','titulo','responsavel','apoio','estado','prioridade','tipoTarefa',
-      'dataCriacao','dataLimite','horaLimite','tags','origemTipo','origemRef','descricao','createdAtMs'
+      'id','titulo','descricao','responsavel','apoio',
+      'origemTipo','origemRef',
+      'estado','prioridade','tipoTarefa',
+      'tags','dataCriacao','dataLimite','horaLimite'
     ];
+
     function esc(v){
       if(v==null) return '';
       const s = String(v).replace(/"/g,'""');
       return '"' + s + '"';
     }
+
     let csv = cols.map(esc).join(';') + '\n';
     state.tasks.forEach(t=>{
       const row = cols.map(c=>esc(t[c]));
       csv += row.join(';') + '\n';
     });
+
     const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href=url;
-    a.download='tarefas_garvetur_porto_pro.csv';
+    a.href = url;
+    a.download = 'tarefas_garvetur_porto_pro.csv';
     document.body.appendChild(a);
     a.click();
-    a.remove();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  }
+
+  function exportPdfList(){
+    const filtered = applyFilters(state.tasks);
+    if(!filtered.length){
+      alert('Não existem tarefas com os filtros atuais para exportar.');
+      return;
+    }
+
+    const w = window.open('', '_blank');
+    if(!w){
+      alert('O navegador bloqueou a abertura da janela de impressão.\n\nPor favor permita pop-ups para este site ou use a opção de imprimir diretamente no browser.');
+      return;
+    }
+
+    let rowsHtml = '';
+    filtered.forEach(t=>{
+      rowsHtml += `
+      <tr>
+        <td>${t.dataLimite || ''} ${t.horaLimite || ''}</td>
+        <td>${t.titulo || ''}</td>
+        <td>${t.responsavel || ''}</td>
+        <td>${estadoLabel(t.estado)}</td>
+        <td>${prioridadeLabel(t.prioridade)}</td>
+        <td>${tipoLabel(t.tipoTarefa)}</td>
+      </tr>`;
+    });
+
+    const html = `
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8" />
+<title>Lista de Tarefas — Garvetur Porto Pro</title>
+<style>
+  @page { size: A4; margin: 1.5cm; }
+  body{
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    margin:0;
+    padding:0;
+    color:#222;
+    background:#fff;
+  }
+  h1{
+    font-size:18px;
+    margin:0 0 4px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:#333;
+  }
+  .sub{
+    font-size:11px;
+    color:#777;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+  }
+  header{
+    border-bottom:2px solid #A38B63;
+    padding-bottom:6px;
+    margin-bottom:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+  }
+  .brand-block{
+    max-width:70%;
+  }
+  .info-block{
+    font-size:11px;
+    color:#555;
+    text-align:right;
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:10px;
+    margin-top:6px;
+  }
+  th,td{
+    border-bottom:1px solid #ddd;
+    padding:4px 3px;
+    text-align:left;
+  }
+  th{
+    background:#f5f5f5;
+    font-weight:600;
+  }
+  tbody tr:nth-child(even){
+    background:#fafafa;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="brand-block">
+      <h1>Garvetur Porto Pro</h1>
+      <div class="sub">Lista de tarefas</div>
+    </div>
+    <div class="info-block">
+      <div>Data emissão: ${new Date().toLocaleDateString('pt-PT')}</div>
+      <div>Total tarefas: ${filtered.length}</div>
+    </div>
+  </header>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:16%;">Data / Hora</th>
+        <th style="width:32%;">Tarefa</th>
+        <th style="width:18%;">Responsável</th>
+        <th style="width:14%;">Estado</th>
+        <th style="width:10%;">Prioridade</th>
+        <th style="width:10%;">Tipo</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rowsHtml}
+    </tbody>
+  </table>
+
+<script>
+  window.print();
+<\/script>
+</body>
+</html>
+    `;
+
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
   }
 
   // Eventos
   toggleLockBtn.addEventListener('click',()=>{
     state.locked = !state.locked;
-    saveTasksState(state);
     updateLockUI();
+    saveState();
   });
 
   newTaskBtn.addEventListener('click',()=>{
-    if(state.locked){
-      alert('Modo de edição bloqueado. Desbloqueie o cadeado para criar tarefas.');
-      return;
-    }
+    if(state.locked) return;
     openModal(null);
   });
 
   closeModalBtn.addEventListener('click', closeModal);
   cancelModalBtn.addEventListener('click', closeModal);
 
+  applyFiltersBtn.addEventListener('click', ()=>{
+    updateFiltersFromControls();
+    saveFiltersToStorage();
+    syncGlobalFiltersFromTasks();
+    renderCards();
+  });
+
+  clearFiltersBtn.addEventListener('click', ()=>{
+    clearFilters();
+    renderCards();
+  });
+
+  // Limpar só o filtro de origem (mantém restante filtros aplicados)
+  clearOriginFilterBtn.addEventListener('click', ()=>{
+    FILTERS.origemTipo = '';
+    FILTERS.origemRef  = '';
+    saveFiltersToStorage();
+    renderCards();
+  });
+
   saveTaskBtn.addEventListener('click',(e)=>{
     e.preventDefault();
     if(state.locked){
-      alert('Modo de edição bloqueado. Desbloqueie o cadeado para guardar alterações.');
+      alert('O modo de edição está bloqueado. Desbloqueie o cadeado no topo para guardar alterações.');
       return;
     }
-    const task = collectForm();
-    if(!task.titulo){
-      alert('Indique um título para a tarefa.');
-      return;
-    }
-    if(!task.responsavel){
-      alert('Indique o responsável pela tarefa.');
-      return;
-    }
-    const idx = state.tasks.findIndex(t=>t.id===task.id);
+    const data = collectFormData();
+    const idx = state.tasks.findIndex(t=>t.id === data.id);
     if(idx>=0){
-      state.tasks[idx] = task;
+      state.tasks[idx] = data;
     }else{
-      state.tasks.push(task);
+      state.tasks.push(data);
     }
-    saveTasksState(state);
+    saveState();
+    renderCards();
     closeModal();
-    renderTasks();
-  });
-
-  // Filtros
-  applyFiltersBtn.addEventListener('click',()=>{
-    FILTER.q = f_q.value.trim();
-    FILTER.responsavel = f_responsavel.value;
-    FILTER.estado = f_estado.value;
-    FILTER.prioridade = f_prioridade.value;
-    FILTER.de = f_de.value;
-    FILTER.ate = f_ate.value;
-    FILTER.origem = f_origem.value;
-    renderTasks();
-  });
-  clearFiltersBtn.addEventListener('click',()=>{
-    FILTER = {q:'',responsavel:'',estado:'',prioridade:'',de:'',ate:'',origem:''};
-    f_q.value='';
-    f_responsavel.value='';
-    f_estado.value='';
-    f_prioridade.value='';
-    f_de.value='';
-    f_ate.value='';
-    f_origem.value='';
-    renderTasks();
-  });
-
-  let qTimer=null;
-  f_q.addEventListener('input',()=>{
-    clearTimeout(qTimer);
-    qTimer=setTimeout(()=>{
-      FILTER.q = f_q.value.trim();
-      renderTasks();
-    },200);
   });
 
   exportCsvBtn.addEventListener('click', exportCsv);
+  exportPdfBtn.addEventListener('click', exportPdfList);
 
-  window.addEventListener('keydown',e=>{
-    if(e.key==='Escape' && taskModalBackdrop.classList.contains('show')){
+  window.addEventListener('keydown',(e)=>{
+    if(e.key==='Escape' && modalBackdrop.classList.contains('open')){
       closeModal();
     }
   });
 
-  // Boot
-  updateLockUI();
-  renderTasks();
+  // Init
+  initConsultores();
+  loadState();
+  loadFiltersFromStorage();
+  loadGlobalFiltersFallback();
+  applyUrlContext();          // integra contexto vindo de Leads/Vendas (+Tarefa / Ver Tarefas)
+  applyFiltersToControls();
+  renderCards();
+
 })();
 </script>
 </body>
