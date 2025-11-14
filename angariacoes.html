@@ -368,17 +368,21 @@
       flex-direction:column;
       gap:6px;
       position:relative;
-      transition:border-color .18s, box-shadow .18s, transform .18s;
+      transition:box-shadow .2s, transform .2s, border-color .2s, background .2s;
     }
     .card.hidden-card{
       opacity:.45;
       border-style:dashed;
     }
-    /* realce quando vem de "Ver ficha original" em Tarefas */
+
+    /* Destaque quando vindo de "Ver ficha original" em Tarefas */
     .card.card--highlight{
-      border-color:var(--gold);
-      box-shadow:0 0 0 2px rgba(163,139,99,.7);
+      border-color:#ffc857;
+      box-shadow:0 0 0 2px rgba(255,200,87,.7), 0 22px 40px rgba(0,0,0,.85);
       transform:translateY(-1px);
+      background:
+        radial-gradient(circle at top left, rgba(255,200,87,.22), transparent 55%),
+        radial-gradient(circle at bottom right,#181818,#070707);
     }
 
     .card-top-row{
@@ -1732,25 +1736,6 @@
     return 'chip-red';
   }
 
-  // Criar tarefa a partir de uma angariação
-  function createTaskFromDeal(deal){
-    if(!deal) return;
-    // usamos a referência interna como chave principal; se não existir, usamos título/empreendimento
-    const refBase = (deal.refInterna && deal.refInterna.trim())
-      || (deal.tituloImovel && deal.tituloImovel.trim())
-      || (deal.nomeEmp && deal.nomeEmp.trim())
-      || (deal.nomeProp && deal.nomeProp.trim())
-      || '';
-    const consultor = (deal.consultor || '').trim();
-
-    let url = 'tarefas.html?origem=angariacao';
-    if(refBase) url += '&ref=' + encodeURIComponent(refBase);
-    if(consultor) url += '&consultor=' + encodeURIComponent(consultor);
-    url += '&nova=1';
-
-    window.location.href = url;
-  }
-
   function renderCards(){
     const deals = state.deals.slice().sort((a,b)=>{
       const da = a.dataAngariacao || '';
@@ -2034,14 +2019,6 @@
         exportOnePdf(d);
       });
       right.appendChild(btnPdf);
-
-      const btnTask = document.createElement('button');
-      btnTask.className = 'btn-xs';
-      btnTask.textContent = 'Criar tarefa';
-      btnTask.addEventListener('click',()=>{
-        createTaskFromDeal(d);
-      });
-      right.appendChild(btnTask);
 
       const btnVis = document.createElement('button');
       btnVis.className = 'btn-xs';
@@ -2340,7 +2317,7 @@
     }
   }
 
-  // Aplicar contexto vindo de tarefas (Ver ficha original de uma angariação)
+  // Integração com Tarefas: abrir ficha original da angariação
   function applyUrlContext(){
     try{
       const params = new URLSearchParams(window.location.search);
@@ -2348,20 +2325,37 @@
       const abrir = (params.get('abrir') || '').trim();
       if(!refRaw) return;
 
-      // se vier com abrir=1 (como em tarefas.html) abrimos logo a ficha
-      if(abrir === '1' || !abrir){ // permitimos também sem abrir para ser mais robusto
-        const ref = refRaw.toLowerCase();
+      // Normalizar referência:
+      //  - refCompleta  = string total (ex.: "A1 - António")
+      //  - refBase      = primeira parte antes de "-" / "–" / "|" (ex.: "A1")
+      const refCompleta = refRaw.toLowerCase();
+      const refBase = refRaw.split(/[-–|]/)[0].trim().toLowerCase();
+
+      function matchRef(campo){
+        if(!campo) return false;
+        const v = String(campo).toLowerCase().trim();
+        if(!v) return false;
+        return (
+          v === refBase ||
+          v === refCompleta ||
+          v.includes(refBase) ||
+          refBase.includes(v) ||
+          v.includes(refCompleta) ||
+          refCompleta.includes(v)
+        );
+      }
+
+      if(abrir === '1' || !abrir){
         const match = state.deals.find(d=>{
           return (
-            (d.refInterna && d.refInterna.toLowerCase().includes(ref)) ||
-            (d.tituloImovel && d.tituloImovel.toLowerCase().includes(ref)) ||
-            (d.nomeEmp && d.nomeEmp.toLowerCase().includes(ref)) ||
-            (d.nomeProp && d.nomeProp.toLowerCase().includes(ref))
+            matchRef(d.refInterna) ||
+            matchRef(d.tituloImovel) ||
+            matchRef(d.nomeEmp) ||
+            matchRef(d.nomeProp)
           );
         });
 
         if(match){
-          // abre modal e destaca o cartão
           openModal(match);
           setTimeout(()=>{
             const el = document.querySelector('.card[data-id="'+match.id+'"]');
@@ -2380,7 +2374,6 @@
     }
   }
 
-  // Eventos
   toggleLockBtn.addEventListener('click',()=>{
     state.locked = !state.locked;
     updateLockUI();
@@ -2440,7 +2433,6 @@
     }
   });
 
-  // Init
   renderCheckboxGroup('zonaEnvolventeGroup','zonaEnvolvente',ZONA_ENVOLVENTE);
   renderCheckboxGroup('infraGroup','infraestruturas',INFRAESTRUTURAS);
   renderCheckboxGroup('equipGroup','equipamentos',EQUIPAMENTOS);
@@ -2451,7 +2443,7 @@
   loadState();
   loadFilterState();
   renderCards();
-  applyUrlContext(); // muito importante para o "Ver ficha original" vindo de Tarefas
+  applyUrlContext(); // importante para "Ver ficha original" vindo de Tarefas
 
 })();
 </script>
