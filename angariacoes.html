@@ -373,6 +373,10 @@
       opacity:.45;
       border-style:dashed;
     }
+    .card.card-highlight{
+      border-color:var(--gold);
+      box-shadow:0 0 0 2px var(--gold), 0 20px 40px rgba(0,0,0,.85);
+    }
 
     .card-top-row{
       display:flex;
@@ -467,6 +471,14 @@
       flex-wrap:wrap;
       gap:4px;
       justify-content:flex-end;
+    }
+
+    .card-tasks-row{
+      margin-top:4px;
+      display:flex;
+      justify-content:flex-end;
+      gap:4px;
+      font-size:11px;
     }
 
     .btn-xs{
@@ -1262,6 +1274,9 @@
   const STORAGE_KEY = 'gpp_angariacoes_v2';
   const FILTERS_STORAGE_KEY = 'gpp_ang_filters_v1';
 
+  // Tarefas (partilhado com tarefas.html e kanban.html)
+  const TASKS_STORAGE_KEY = 'gpp_tarefas_v1';
+
   const CONSULTOR_OPTIONS = [
     "Rui Quelhas",
     "Manuel Oliveira",
@@ -1315,6 +1330,87 @@
   ];
 
   function $(id){ return document.getElementById(id); }
+  function todayISO(){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return y + '-' + m + '-' + day;
+  }
+  function norm(s){
+    return String(s||'').toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g,'');
+  }
+
+  // === Integração Tarefas (localStorage partilhado) ===
+  function loadTasksState(){
+    try{
+      const raw = localStorage.getItem(TASKS_STORAGE_KEY);
+      if(!raw) return {locked:true,tasks:[]};
+      const parsed = JSON.parse(raw);
+      if(!Array.isArray(parsed.tasks)) parsed.tasks = [];
+      if(typeof parsed.locked!=='boolean') parsed.locked = true;
+      return parsed;
+    }catch(e){
+      console.error('Erro ao carregar tarefas a partir de angariações', e);
+      return {locked:true,tasks:[]};
+    }
+  }
+  function saveTasksState(state){
+    try{
+      localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(state));
+    }catch(e){
+      console.error('Erro ao guardar tarefas a partir de angariações', e);
+    }
+  }
+
+  function createTaskFromAngariacao(deal){
+    const tasksState = loadTasksState();
+
+    // origemRef: ref interna + título/nome empreendimento
+    const partes = [];
+    if(deal.refInterna) partes.push(deal.refInterna);
+    const titulo = deal.isEmpreendimento && deal.nomeEmp
+      ? deal.nomeEmp
+      : (deal.tituloImovel || deal.nomeProp || '');
+    if(titulo) partes.push(titulo);
+    const origemRef = partes.join(' — ');
+
+    const tituloTarefa = 'Follow-up angariação: ' + (titulo || 'sem título');
+
+    const hoje = todayISO();
+    const limite = new Date();
+    limite.setDate(limite.getDate() + 8);
+    const dataLimiteISO = limite.toISOString().slice(0,10);
+
+    const tarefa = {
+      id: 'task_' + Date.now(),
+      responsavel: deal.consultor || '',
+      apoio: '',
+      origemTipo: 'angariacao',
+      origemRef: origemRef || (titulo || ''),
+      estado: 'por_fazer',
+      prioridade: 'normal',
+      tipoTarefa: 'followup',
+      tags: 'angariacao, produto, carteira',
+      titulo: tituloTarefa,
+      descricao: 'Tarefa criada a partir da angariação "' + (titulo || '') +
+        '" em ' + new Date().toLocaleString('pt-PT') + '.',
+      dataCriacao: hoje,
+      dataLimite: dataLimiteISO,
+      horaLimite: '',
+      createdAtMs: Date.now()
+    };
+
+    tasksState.tasks.push(tarefa);
+    saveTasksState(tasksState);
+
+    const abrir = confirm('Tarefa criada para esta angariação.\n\nQuer abrir a página de Tarefas agora?');
+    if(abrir){
+      window.open('tarefas.html','_blank');
+    }
+  }
 
   const lockStateLabel = $('lockStateLabel');
   const toggleLockBtn = $('toggleLockBtn');
@@ -1366,6 +1462,8 @@
     locked:true,
     deals:[]
   };
+
+  let incomingRefHandled = false;
 
   function loadState(){
     try{
@@ -2036,8 +2134,35 @@
       foot.appendChild(right);
       card.appendChild(foot);
 
+      // Linha de tarefas (independente do lock de edição)
+      const tasksRow = document.createElement('div');
+      tasksRow.className = 'card-tasks-row';
+
+      const btnAddTask = document.createElement('button');
+      btnAddTask.className = 'btn-xs';
+      btnAddTask.textContent = '+ Tarefa';
+      btnAddTask.addEventListener('click',()=>{
+        createTaskFromAngariacao(d);
+      });
+      tasksRow.appendChild(btnAddTask);
+
+      const btnViewTasks = document.createElement('button');
+      btnViewTasks.className = 'btn-xs';
+      btnViewTasks.textContent = 'Ver Tarefas';
+      btnViewTasks.addEventListener('click',()=>{
+        window.open('tarefas.html','_blank');
+      });
+      tasksRow.appendChild(btnViewTasks);
+
+      card.appendChild(tasksRow);
+
       cardsGrid.appendChild(card);
     });
+
+    // Depois de renderizar, se houver ref externa por tratar, fazemos highlight
+    if(!incomingRefHandled){
+      handleIncomingRef();
+    }
   }
 
   function exportCsv(){
@@ -2306,6 +2431,72 @@
     }
   }
 
+  // Encontrar angariação a partir de ?ref=... vindo de tarefas.html
+  function findDealByRef(refRaw){
+    const ref = norm(refRaw);
+    if(!ref) return null;
+    // 1) match exato com Ref. interna
+    let deal = state.deals.find(d=> d.refInterna && norm(d.refInterna) === ref);
+    if(deal) return deal;
+    // 2) ref contem refInterna ou vice-versa
+    deal = state.deals.find(d=> d.refInterna && (ref.includes(norm(d.refInterna)) || norm(d.refInterna).includes(ref)));
+    if(deal) return deal;
+    // 3) dentro do título / empreendimento / proprietário
+    for(const d of state.deals){
+      const blob = [
+        d.tituloImovel,
+        d.nomeEmp,
+        d.nomeProp
+      ].map(norm).join(' ');
+      if(blob.includes(ref)) return d;
+    }
+    // 4) fallback por palavras
+    const parts = ref.split(/\s+/).filter(Boolean);
+    for(const d of state.deals){
+      const blob = [
+        d.tituloImovel,
+        d.nomeEmp,
+        d.nomeProp
+      ].map(norm).join(' ');
+      if(parts.some(p=>blob.includes(p))) return d;
+    }
+    return null;
+  }
+
+  function handleIncomingRef(){
+    if(incomingRefHandled) return;
+    const params = new URLSearchParams(window.location.search);
+    const refParam = params.get('ref');
+    if(!refParam) {
+      incomingRefHandled = true;
+      return;
+    }
+
+    const targetDeal = findDealByRef(refParam);
+    incomingRefHandled = true;
+    if(!targetDeal) return;
+
+    // Garantir que filtros não escondem a angariação
+    filterConsultor.value = '';
+    filterDataDe.value = '';
+    filterDataAte.value = '';
+    filterShowHidden.checked = true;
+    filterOnlyHidden.checked = false;
+    saveFilterStateFromUI();
+
+    // Re-render com filtros limpos
+    const id = targetDeal.id;
+    // renderCards será chamado de novo a partir daqui externamente
+
+    setTimeout(()=>{
+      const card = document.querySelector('.card[data-id="'+id+'"]');
+      if(card){
+        card.classList.add('card-highlight');
+        card.scrollIntoView({behavior:'smooth',block:'center'});
+      }
+    }, 120);
+  }
+
   toggleLockBtn.addEventListener('click',()=>{
     state.locked = !state.locked;
     updateLockUI();
@@ -2375,7 +2566,6 @@
   loadState();
   loadFilterState();
   renderCards();
-
 })();
 </script>
 </body>
