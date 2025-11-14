@@ -2,1687 +2,1121 @@
 <!doctype html>
 <html lang="pt-PT">
 <head>
-  <meta charset="utf-8" />
-  <title>Garvetur Porto Pro — Tarefas</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="utf-8" />
+<title>Garvetur Porto Pro — Tarefas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <style>
-    :root{
-      --gold:#A38B63;
-      --gold-soft:rgba(163,139,99,.35);
-      --bg:#0B0B0B;
-      --panel:#141414;
-      --panel-soft:#181818;
-      --text:#FFFFFF;
-      --muted:#A0A0A0;
-      --border:rgba(255,255,255,.14);
-      --danger:#F25F5C;
-      --success:#4CAF50;
-      --warning:#FFC857;
-      --radius-lg:18px;
-      --radius-md:14px;
-      --shadow-soft:0 18px 35px rgba(0,0,0,.6);
-    }
-    *{box-sizing:border-box;}
-    html,body{
-      margin:0;
-      height:100%;
-      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-      background:radial-gradient(circle at top,#1c1c1c 0,#050505 55%,#000 100%);
-      color:var(--text);
-    }
-    body{display:flex;flex-direction:column;}
+<style>
+:root{
+ --gold:#A38B63;
+ --gold-soft:rgba(163,139,99,.35);
+ --bg:#0B0B0B;
+ --panel:#141414;
+ --panel-soft:#181818;
+ --border:rgba(255,255,255,.12);
+ --text:#FFFFFF;
+ --muted:#A0A0A0;
+ --danger:#F25F5C;
+ --success:#4CAF50;
+ --warning:#FFC857;
+ --radius-lg:20px;
+ --radius-md:14px;
+ --shadow-soft:0 18px 35px rgba(0,0,0,.55);
+}
 
-    .app-shell{
-      display:grid;
-      grid-template-rows:64px auto;
-      height:100%;
-    }
+/* Reset + Base */
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:radial-gradient(circle at top,#1c1c1c,#050505 55%,#000);color:var(--text);}
+body{display:flex;flex-direction:column;}
+.app-shell{display:grid;grid-template-rows:64px auto;height:100%;}
 
-    /* -------------------------------------------
-       HEADER PREMIUM (igual ao design atual)
-    ------------------------------------------- */
-    header.app-header{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:10px 18px;
-      border-bottom:1px solid rgba(163,139,99,.35);
-      background:linear-gradient(90deg,#050505,#111,#050505);
-      gap:16px;
-      flex-wrap:wrap;
-      position:sticky;
-      top:0;
-      z-index:20;
-    }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
-    .brand-icon{
-      width:26px;
-      height:26px;
-      border-radius:999px;
-      border:1px solid var(--gold);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      box-shadow:0 0 0 1px rgba(163,139,99,.3);
-    }
-    .brand h1{
-      margin:0;
-      font-size:17px;
-      letter-spacing:.04em;
-      text-transform:uppercase;
-      color:var(--gold);
-    }
-    .brand span.sub{
-      display:block;
-      font-size:11px;
-      color:var(--muted);
-      letter-spacing:.12em;
-      text-transform:uppercase;
-    }
+/* HEADER */
+header.app-header{
+ display:flex;align-items:center;justify-content:space-between;
+ padding:10px 18px;
+ border-bottom:1px solid rgba(163,139,99,.35);
+ background:linear-gradient(90deg,#050505,#111,#050505);
+ gap:16px;flex-wrap:wrap;
+ position:sticky;top:0;z-index:20;
+}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-icon{
+ width:26px;height:26px;border-radius:999px;border:1px solid var(--gold);
+ display:flex;align-items:center;justify-content:center;
+ box-shadow:0 0 0 1px rgba(163,139,99,.3);
+}
+.brand h1{margin:0;font-size:17px;letter-spacing:.04em;text-transform:uppercase;color:var(--gold);}
+.brand span.sub{display:block;font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;}
 
-    /* Tabs dos módulos UI (mantém visual consistente) */
-    .nav-tabs{
-      display:flex;
-      flex-wrap:wrap;
-      align-items:center;
-      gap:4px;
-      background:rgba(0,0,0,.35);
-      padding:4px;
-      border-radius:999px;
-      border:1px solid rgba(163,139,99,.35);
-    }
-    .nav-tab{
-      padding:5px 10px;
-      border-radius:999px;
-      font-size:11px;
-      text-decoration:none;
-      color:var(--muted);
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      border:1px solid transparent;
-      transition:.16s background,.16s color,.16s border-color,.16s transform;
-    }
-    .nav-tab:hover{
-      color:#fff;
-      border-color:rgba(163,139,99,.6);
-      transform:translateY(-1px);
-    }
-    .nav-tab.active{
-      background:var(--gold);
-      color:#0A0A0A;
-      border-color:var(--gold);
-      font-weight:600;
-    }
+/* NAV TABS */
+.nav-tabs{
+ display:flex;flex-wrap:wrap;align-items:center;gap:4px;
+ background:rgba(0,0,0,.35);padding:4px;
+ border-radius:999px;border:1px solid rgba(163,139,99,.35);
+}
+.nav-tab{
+ padding:5px 10px;border-radius:999px;font-size:11px;text-decoration:none;
+ color:var(--muted);letter-spacing:.12em;text-transform:uppercase;border:1px solid transparent;
+ transition:.16s background,.16s color,.16s border-color,.16s transform;
+}
+.nav-tab:hover{color:#fff;border-color:rgba(163,139,99,.6);transform:translateY(-1px);}
+.nav-tab.active{background:var(--gold);color:#0A0A0A;border-color:var(--gold);font-weight:600;}
 
-    .header-actions{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      flex-wrap:wrap;
-    }
+/* HEADER ACTIONS */
+.header-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.btn{
+ border-radius:999px;border:1px solid var(--gold-soft);
+ background:rgba(12,12,12,.9);color:var(--text);
+ padding:7px 12px;font-size:13px;display:inline-flex;align-items:center;gap:6px;
+ cursor:pointer;transition:.18s border-color,.18s background,.18s transform;
+}
+.btn:hover{border-color:var(--gold);transform:translateY(-1px);}
+.btn-primary{background:var(--gold);color:#0A0A0A;border-color:var(--gold);font-weight:500;}
+.btn-ghost{background:transparent;}
+.btn-icon{width:34px;height:34px;padding:0;border-radius:999px;justify-content:center;}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
 
-    .btn{
-      border-radius:999px;
-      border:1px solid var(--gold-soft);
-      background:rgba(12,12,12,.9);
-      color:var(--text);
-      padding:7px 12px;
-      font-size:13px;
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      cursor:pointer;
-      transition:.18s border-color,.18s background,.18s transform;
-    }
-    .btn-primary{
-      background:var(--gold);
-      color:#0A0A0A;
-      border-color:var(--gold);
-      font-weight:500;
-    }
-    .btn:hover{
-      border-color:var(--gold);
-      transform:translateY(-1px);
-    }
+.pill-lock{
+ display:inline-flex;align-items:center;gap:6px;font-size:12px;
+ padding:4px 9px;border-radius:999px;background:rgba(0,0,0,.45);
+ border:1px solid rgba(255,255,255,.14);color:var(--muted);
+}
+.pill-lock span.state{font-weight:500;color:var(--gold);}
+.pill-lock button{all:unset;cursor:pointer;padding:2px 6px;border-radius:999px;background:rgba(255,255,255,.05);}
 
-    /* Layout base */
-    .layout{
-      display:grid;
-      grid-template-columns:320px minmax(0,1fr);
-      height:calc(100vh - 64px);
-      overflow:hidden;
-    }
+/* LAYOUT */
+.layout{
+ display:grid;grid-template-columns:320px minmax(0,1fr);
+ height:calc(100vh - 64px);max-height:calc(100vh - 64px);overflow:hidden;
+}
+@media(max-width:960px){
+ .layout{grid-template-columns:1fr;grid-template-rows:auto auto;height:auto;max-height:none;}
+}
 
-    aside.sidebar{
-      border-right:1px solid rgba(163,139,99,.24);
-      background:radial-gradient(circle at top left,#141414,#060606);
-      padding:12px 14px;
-      overflow-y:auto;
-    }
+/* SIDEBAR */
+.sidebar{
+ border-right:1px solid rgba(163,139,99,.24);
+ background:radial-gradient(circle at top left,#141414,#060606);
+ padding:12px 14px;overflow-y:auto;
+}
+.sidebar-section{
+ border-radius:var(--radius-md);padding:10px 11px;background:rgba(0,0,0,.45);
+ border:1px solid rgba(163,139,99,.18);margin-bottom:10px;
+}
+.sidebar-section h3{
+ margin:0 0 6px;font-size:11px;text-transform:uppercase;
+ letter-spacing:.16em;color:var(--muted);
+}
+.sidebar-section p{margin:2px 0 6px;font-size:12px;color:var(--muted);}
 
-    /* Painel lateral — igual ao existente */
-    .sidebar-section{
-      border-radius:var(--radius-md);
-      padding:10px 11px;
-      background:rgba(0,0,0,.45);
-      border:1px solid rgba(163,139,99,.18);
-      margin-bottom:10px;
-    }
-    .sidebar-section h3{
-      margin:0 0 6px;
-      font-size:11px;
-      text-transform:uppercase;
-      letter-spacing:.16em;
-      color:var(--muted);
-    }
-    .sidebar-section p{
-      margin:2px 0 6px;
-      font-size:12px;
-      color:var(--muted);
-    }
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:8px;}
+.field-row{display:flex;gap:6px;}
+label.field-label{
+ font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;
+}
+input,select,textarea{
+ background:rgba(0,0,0,.7);color:var(--text);border-radius:10px;border:1px solid rgba(163,139,99,.22);
+ padding:6px 8px;font-size:13px;outline:none;width:100%;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 0 1px rgba(163,139,99,.35);}
+textarea{resize:vertical;min-height:60px;}
 
-    /* -------------------------------------------
-       CARTÕES (design original preservado)
-    ------------------------------------------- */
-    .cards-area{
-      padding:14px 16px 18px;
-      overflow-y:auto;
-      background:radial-gradient(circle at top,#1a1a1a,#050505 55%,#000 100%);
-    }
+.filters-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
+.badge{
+ font-size:11px;border-radius:999px;padding:3px 7px;border:1px solid rgba(163,139,99,.35);
+ background:rgba(8,8,8,.9);color:var(--muted);
+}
+.badge strong{color:var(--gold);}
 
-    .cards-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
-      gap:10px;
-    }
+/* SWITCH */
+.toggle-line{display:flex;align-items:center;justify-content:space-between;font-size:12px;margin-top:4px;}
+.switch{position:relative;display:inline-block;width:34px;height:18px;}
+.switch input{opacity:0;width:0;height:0;}
+.slider{
+ position:absolute;cursor:pointer;inset:0;background:#444;transition:.2s;border-radius:34px;
+}
+.slider:before{
+ position:absolute;content:"";height:14px;width:14px;left:3px;bottom:2px;
+ background:white;transition:.2s;border-radius:50%;
+}
+.switch input:checked + .slider{background:var(--gold);}
+.switch input:checked + .slider:before{transform:translateX(14px);}
 
-    .card{
-      border-radius:var(--radius-lg);
-      border:1px solid rgba(163,139,99,.3);
-      padding:10px 11px 9px;
-      background:radial-gradient(circle at top left,#181818,#070707);
-      box-shadow:var(--shadow-soft);
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-    }
+/* MAIN AREA — CARDS */
+.cards-area{
+ padding:14px 16px 18px;overflow-y:auto;
+ background:radial-gradient(circle at top,#1a1a1a,#050505 55%,#000 100%);
+}
+.cards-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:8px;gap:10px;}
+.cards-header-left h2{
+ margin:0;font-size:15px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
+}
+.cards-header-left p{margin:2px 0 0;font-size:12px;color:var(--muted);}
+.pipeline-kpis{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
+.kpi-chip{
+ border-radius:999px;padding:4px 9px;border:1px solid rgba(163,139,99,.32);
+ font-size:11px;color:var(--muted);background:rgba(8,8,8,.9);
+}
+.kpi-chip span.value{color:var(--gold);font-weight:600;margin-left:4px;}
 
-    .card.completed{
-      opacity:.55;
-      border-style:dashed;
-    }
+.origin-banner{
+ margin-bottom:8px;padding:6px 10px;border-radius:999px;
+ border:1px solid var(--gold-soft);background:rgba(163,139,99,.12);
+ font-size:12px;color:var(--muted);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
+}
+.origin-banner strong{color:var(--gold);}
+.origin-banner button{
+ border-radius:999px;border:1px solid rgba(163,139,99,.4);
+ background:rgba(0,0,0,.6);color:var(--muted);padding:3px 8px;
+ font-size:11px;cursor:pointer;
+}
+.origin-banner button:hover{border-color:var(--gold);color:#fff;}
 
-    .card-title{
-      margin:0;
-      font-size:14px;
-      font-weight:600;
-      color:#fff;
-    }
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px;}
+.card{
+ border-radius:var(--radius-lg);border:1px solid rgba(163,139,99,.3);
+ padding:10px 11px 9px;background:radial-gradient(circle at top left,#181818,#070707);
+ box-shadow:var(--shadow-soft);display:flex;flex-direction:column;gap:6px;position:relative;
+}
+.card.completed{opacity:.6;border-style:dashed;}
 
-    .card-subtitle{
-      margin:1px 0 0;
-      font-size:11px;
-      color:var(--muted);
-    }
+.card-title{margin:0;font-size:14px;font-weight:600;color:#fff;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;}
+.card-subtitle{margin:1px 0 0;font-size:11px;color:var(--muted);white-space:nowrap;text-overflow:ellipsis;overflow:hidden;}
+.chip-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
+.chip{
+ border-radius:999px;padding:2px 7px;font-size:10px;
+ border:1px solid rgba(163,139,99,.4);background:#1E1E1E;color:var(--muted);
+ text-transform:uppercase;letter-spacing:.08em;
+}
+.chip-primary{border-color:var(--gold);color:var(--gold);}
+.chip-green{border-color:rgba(76,175,80,.7);color:#A5D6A7;}
+.chip-red{border-color:rgba(242,95,92,.8);color:#FFABAB;}
+.chip-yellow{border-color:rgba(255,200,87,.8);color:#FFE082;}
 
-    .chip-row{
-      display:flex;
-      flex-wrap:wrap;
-      gap:4px;
-      margin-top:4px;
-    }
-    .chip{
-      border-radius:999px;
-      padding:2px 7px;
-      font-size:10px;
-      border:1px solid rgba(163,139,99,.4);
-      background:#1E1E1E;
-      color:var(--muted);
-      text-transform:uppercase;
-      letter-spacing:.08em;
-    }
+.card-section{
+ border-top:1px solid rgba(163,139,99,.18);
+ padding-top:4px;margin-top:2px;font-size:12px;color:var(--muted);
+}
+.card-section strong{color:#f5f5f5;font-weight:500;}
 
-    /* -------------------------------------------
-       MODAL PREMIUM (base sem conteúdo interno)
-       — A ficha original será enviada na parte B/C
-    ------------------------------------------- */
-    .modal-backdrop{
-      position:fixed;
-      inset:0;
-      background:rgba(0,0,0,.65);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      z-index:300;
-    }
-    .modal-backdrop.open{
-      display:flex;
-    }
+.card-footer{margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:11px;color:var(--muted);}
+.card-footer-left{display:flex;flex-wrap:wrap;gap:4px;align-items:center;}
+.card-footer-right{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;}
 
-    .modal{
-      width:min(900px,96vw);
-      max-height:92vh;
-      background:radial-gradient(circle at top,#151515,#050505);
-      border-radius:22px;
-      border:1px solid rgba(163,139,99,.5);
-      box-shadow:0 24px 45px rgba(0,0,0,.8);
-      display:flex;
-      flex-direction:column;
-      overflow:hidden;
-    }
+.btn-xs{
+ border-radius:999px;padding:3px 7px;border:1px solid rgba(163,139,99,.35);
+ background:rgba(5,5,5,.9);color:var(--muted);font-size:10px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;
+}
+.btn-xs.primary{border-color:var(--gold);color:var(--gold);}
+.btn-xs.danger{border-color:var(--danger);color:#FFB3B0;}
 
-    .modal-header{
-      padding:10px 16px 8px;
-      border-bottom:1px solid rgba(163,139,99,.25);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      background:linear-gradient(90deg,#050505,#111,#050505);
-    }
-    .modal-header h2{
-      margin:0;
-      font-size:15px;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      color:var(--gold);
-    }
+.empty{font-size:12px;color:var(--muted);padding:16px 4px;text-align:center;}
 
-    .modal-body{
-      padding:12px 16px;
-      overflow-y:auto;
-    }
+/* MODAL — BASE */
+.modal-backdrop{
+ position:fixed;inset:0;background:rgba(0,0,0,.75);
+ display:none;align-items:center;justify-content:center;z-index:40;
+}
+.modal-backdrop.open{display:flex;}
+/* MODAL — CONTAINER */
+.modal{
+ width:820px;max-width:95%;max-height:88vh;
+ background:radial-gradient(circle at top left,#1b1b1b,#0c0c0c);
+ border:1px solid rgba(163,139,99,.35);
+ border-radius:var(--radius-lg);
+ box-shadow:0 22px 45px rgba(0,0,0,.65);
+ display:flex;flex-direction:column;overflow:hidden;
+}
 
-    .modal-footer{
-      padding:8px 14px 10px;
-      border-top:1px solid rgba(163,139,99,.25);
-      display:flex;
-      justify-content:flex-end;
-      background:#050505;
-      gap:8px;
-    }
+/* MODAL HEADER */
+.modal-header{
+ padding:12px 16px;
+ border-bottom:1px solid rgba(163,139,99,.25);
+ display:flex;align-items:center;justify-content:space-between;gap:10px;
+ background:rgba(0,0,0,.45);
+}
+.modal-header h2{
+ margin:0;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);
+}
+.modal-close{
+ cursor:pointer;border:none;background:transparent;color:var(--muted);
+ font-size:20px;line-height:1;padding:2px 8px;
+}
+.modal-close:hover{color:#fff;}
 
-  </style>
+/* MODAL BODY */
+.modal-body{
+ padding:14px 16px;overflow-y:auto;
+ display:flex;flex-direction:column;gap:14px;
+}
+
+/* SECÇÃO DO MODAL */
+.modal-section{
+ background:rgba(0,0,0,.35);
+ border:1px solid rgba(163,139,99,.22);
+ border-radius:var(--radius-md);
+ padding:12px 14px;
+}
+.modal-section h3{
+ margin:0 0 8px;font-size:13px;letter-spacing:.12em;
+ text-transform:uppercase;color:var(--muted);
+ display:flex;align-items:center;justify-content:space-between;
+}
+
+/* Colapsáveis */
+.collapse-toggle{
+ cursor:pointer;font-size:12px;color:var(--gold);text-decoration:underline;
+}
+.collapse-content{margin-top:6px;}
+.collapse-content.hidden{display:none;}
+
+/* Tabela de histórico */
+.history-table{
+ width:100%;border-collapse:collapse;font-size:12px;margin-top:6px;
+}
+.history-table th, .history-table td{
+ padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;
+}
+.history-table th{color:var(--gold);font-weight:500;text-transform:uppercase;font-size:11px;}
+
+/* Timeline */
+.timeline{
+ border-left:2px solid var(--gold-soft);
+ margin-top:10px;padding-left:14px;
+ display:flex;flex-direction:column;gap:12px;
+}
+.timeline-item{position:relative;}
+.timeline-item::before{
+ content:'';position:absolute;left:-10px;top:4px;
+ width:8px;height:8px;border-radius:50%;background:var(--gold);
+}
+.timeline-item strong{color:#fff;}
+.timeline-item small{color:var(--muted);display:block;margin-top:2px;}
+
+/* Notas */
+.note-box{
+ margin-top:6px;border-radius:var(--radius-md);padding:8px 10px;
+ background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+}
+.add-note-btn{
+ margin-top:8px;font-size:12px;color:var(--gold);cursor:pointer;
+ text-decoration:underline;
+}
+.add-note-area{
+ margin-top:6px;display:flex;flex-direction:column;gap:6px;
+}
+.add-note-area textarea{
+ min-height:60px;resize:vertical;
+}
+.add-note-area button{
+ align-self:flex-end;border-radius:999px;padding:6px 12px;
+ background:var(--gold);border:none;color:#000;font-size:12px;cursor:pointer;
+}
+
+/* MODAL FOOTER */
+.modal-footer{
+ padding:12px 16px;border-top:1px solid rgba(163,139,99,.25);
+ display:flex;justify-content:flex-end;gap:8px;
+ background:rgba(0,0,0,.45);
+}
+.modal-footer .btn-small{
+ border-radius:999px;padding:6px 14px;border:1px solid rgba(163,139,99,.3);
+ background:rgba(0,0,0,.6);color:var(--muted);font-size:12px;cursor:pointer;
+}
+.modal-footer .btn-small:hover{border-color:var(--gold);color:#fff;}
+.modal-footer .btn-save{
+ background:var(--gold);border-color:var(--gold);color:#000;font-weight:600;
+}
+</style>
 </head>
+
 <body>
 <div class="app-shell">
 
-  <!-- HEADER PREMIUM -->
-  <header class="app-header">
-    <div class="brand">
-      <div class="brand-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
-          <circle cx="12" cy="12" r="9"></circle>
-          <path d="M8 12.5l2.5 2.5L16 9"></path>
-        </svg>
+<!-- HEADER -->
+<header class="app-header">
+ <div class="brand">
+  <div class="brand-icon">
+   <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
+     <circle cx="12" cy="12" r="9"></circle>
+     <path d="M8 12.5l2.5 2.5L16 9"></path>
+   </svg>
+  </div>
+  <div>
+   <h1>Garvetur Porto Pro — Tarefas</h1>
+   <span class="sub">Gestão Operacional</span>
+  </div>
+ </div>
+
+ <nav class="nav-tabs">
+   <a href="index.html" class="nav-tab">Início</a>
+   <a href="mapa.html" class="nav-tab">Mapa</a>
+   <a href="kanban.html" class="nav-tab">Leads</a>
+   <a href="angariacoes.html" class="nav-tab">Angariações</a>
+   <a href="dashboard.html" class="nav-tab">Dashboard</a>
+   <a href="vendas.html" class="nav-tab">Vendas</a>
+   <a href="tarefas.html" class="nav-tab active">Tarefas</a>
+ </nav>
+
+ <div class="header-actions">
+   <div class="pill-lock">
+     <svg width="13" height="13" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="2">
+       <rect x="6" y="11" width="12" height="9" rx="2"></rect>
+       <path d="M8 11V8a4 4 0 118 0v3"></path>
+     </svg>
+     <span class="state" id="lockStateLabel">Bloqueado</span>
+     <button id="toggleLockBtn">Alternar</button>
+   </div>
+   <button id="newTaskBtn" class="btn btn-primary" disabled>NOVA TAREFA</button>
+ </div>
+</header>
+<!-- LAYOUT PRINCIPAL -->
+<div class="layout">
+
+<!-- ===== SIDEBAR (FILTROS) ===== -->
+<aside class="sidebar">
+  <div class="sidebar-section">
+    <h3>Filtros</h3>
+
+    <div class="field">
+      <label class="field-label">Responsável</label>
+      <select id="filterResponsavel">
+        <option value="">Todos</option>
+      </select>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">Estado</label>
+        <select id="filterEstado">
+          <option value="">Todos</option>
+          <option value="por_fazer">Por fazer</option>
+          <option value="em_curso">Em curso</option>
+          <option value="concluida">Concluída</option>
+          <option value="adiada">Adiada</option>
+          <option value="cancelada">Cancelada</option>
+        </select>
       </div>
-      <div>
-        <h1>Garvetur Porto Pro — Tarefas</h1>
-        <span class="sub">Gestão integrada de ações | Leads & Angariações</span>
+
+      <div class="field">
+        <label class="field-label">Prioridade</label>
+        <select id="filterPrioridade">
+          <option value="">Todas</option>
+          <option value="baixa">Baixa</option>
+          <option value="normal">Normal</option>
+          <option value="alta">Alta</option>
+          <option value="critica">Crítica</option>
+        </select>
       </div>
     </div>
 
-    <nav class="nav-tabs">
-      <a href="index.html" class="nav-tab">Início</a>
-      <a href="mapa.html" class="nav-tab">Mapa</a>
-      <a href="kanban.html" class="nav-tab">Leads</a>
-      <a href="angariacoes.html" class="nav-tab">Angariações</a>
-      <a href="dashboard.html" class="nav-tab">Dashboard</a>
-      <a href="vendas.html" class="nav-tab">Vendas</a>
-      <a href="tarefas.html" class="nav-tab active">Tarefas</a>
-    </nav>
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">De (data limite)</label>
+        <input type="date" id="filterDataDe">
+      </div>
 
-    <div class="header-actions">
-      <button id="btnNovaTarefa" class="btn btn-primary">+ Nova tarefa</button>
+      <div class="field">
+        <label class="field-label">Até (data limite)</label>
+        <input type="date" id="filterDataAte">
+      </div>
     </div>
-  </header>
 
-  <!-- LAYOUT 2 COLUNAS -->
-  <div class="layout">
+    <div class="toggle-line">
+      <span>Mostrar concluídas</span>
+      <label class="switch">
+        <input type="checkbox" id="filterShowCompleted">
+        <span class="slider"></span>
+      </label>
+    </div>
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-
-      <div class="sidebar-section">
-        <h3>Filtros</h3>
-
-        <div class="field">
-          <label class="field-label">Consultor</label>
-          <select id="filterConsultor">
-            <option value="">Todos</option>
-          </select>
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label class="field-label">De</label>
-            <input type="date" id="filterDataDe">
-          </div>
-          <div class="field">
-            <label class="field-label">Até</label>
-            <input type="date" id="filterDataAte">
-          </div>
-        </div>
-
-        <div class="field">
-          <label class="field-label">Estado</label>
-          <select id="filterEstado">
-            <option value="">Todos</option>
-            <option value="pendente">Pendente</option>
-            <option value="concluida">Concluída</option>
-            <option value="atrasada">Atrasada</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label class="field-label">Visibilidade</label>
-          <select id="filterVisibilidade">
-            <option value="">Visíveis</option>
-            <option value="invisiveis">Só invisíveis</option>
-            <option value="todas">Todas</option>
-          </select>
-        </div>
-
-        <div class="field-row" style="margin-top:8px;">
-          <button id="btnAplicarFiltros" class="btn" style="flex:1;">Aplicar</button>
-          <button id="btnLimparFiltros" class="btn btn-ghost" style="flex:1;">Limpar</button>
-        </div>
-      </div>
-
-      <div class="sidebar-section">
-        <h3>Dicas</h3>
-        <p>Use filtros para preparar o follow-up diário ou as reuniões de consultor.</p>
-      </div>
-
-    </aside>
-
-    <!-- ÁREA DE CARTÕES -->
-    <main class="cards-area">
-      <div class="cards-grid" id="cardsGrid"></div>
-
-      <div id="emptyState" class="empty" style="display:none;margin-top:20px;font-size:12px;color:var(--muted);">
-        Nenhuma tarefa encontrada com os filtros atuais.
-      </div>
-    </main>
+    <button id="applyFiltersBtn" class="btn" style="margin-top:8px;width:100%;">Aplicar Filtros</button>
+    <button id="clearFiltersBtn" class="btn" style="margin-top:4px;width:100%;background:transparent;border-color:rgba(255,255,255,.2);">Limpar</button>
 
   </div>
 
-</div>
-
-<!-- MODAL PREMIUM (estrutura base - conteúdo virá na Parte C/D) -->
-<div id="modalBackdrop" class="modal-backdrop">
-  <div class="modal">
-
-    <div class="modal-header">
-      <h2 id="modalTitle">Ficha</h2>
-      <button id="modalClose" class="btn btn-ghost">Fechar</button>
-    </div>
-
-    <div class="modal-body" id="modalBody">
-      <!-- conteúdo dinâmico será colocado aqui -->
-    </div>
-
-    <div class="modal-footer">
-      <button id="btnGuardarModal" class="btn btn-primary">Guardar alterações</button>
-    </div>
-
+  <div class="sidebar-section">
+    <h3>Resumo</h3>
+    <div id="summaryBadges" class="filters-badges"></div>
   </div>
-</div>
+
+  <div class="sidebar-section">
+    <h3>Nota</h3>
+    <p>Com o cadeado bloqueado não é possível editar tarefas.</p>
+    <p>Desbloqueie para criar, editar e apagar.</p>
+  </div>
+</aside>
+
+
+<!-- ===== ÁREA DOS CARTÕES ===== -->
+<main class="cards-area">
+
+  <div class="cards-header">
+    <div class="cards-header-left">
+      <h2>Tarefas</h2>
+      <p>Follow-up comercial, visitas e compromissos</p>
+      <div id="pipelineKpis" class="pipeline-kpis"></div>
+    </div>
+  </div>
+
+  <!-- Banner quando vem de Leads / Vendas -->
+  <div id="originFilterBanner" class="origin-banner" style="display:none;">
+    <div>🔗 <strong id="originFilterLabel"></strong></div>
+    <button id="clearOriginFilterBtn">Limpar filtro</button>
+  </div>
+
+  <div id="cardsGrid" class="cards-grid"></div>
+  <div id="emptyState" class="empty" style="display:none;">Não existem tarefas com estes filtros.</div>
+
+</main>
+
+</div> <!-- /layout -->
+<!-- ======================== -->
+<!--  SCRIPT FINAL COMPLETO   -->
+<!-- ======================== -->
+
 <script>
-/* ============================================================
-   TAREFAS — MÓDULO PREMIUM (JS - PARTE 1/3)
-   ============================================================ */
-
 (function(){
-  /* -----------------------------
-     CONST & STORAGE KEYS
-  ------------------------------ */
-  const STORAGE_KEY = "gpp_tarefas_v2";
-  const FILTERS_KEY = "gpp_tarefas_filters_v2";
 
-  const consultores = [
-    "Rui Quelhas",
-    "Manuel Oliveira",
-    "João Sousa",
-    "Francisco dos Santos",
-    "Rosário Vasconcelos",
-    "Armanda Meireles",
-    "Audrey Lucas",
-    "Outro"
+/* ===========================================================
+   CONFIGURAÇÃO
+   =========================================================== */
+const STORAGE_KEY = "gpp_tarefas_v1";
+const FILTERS_KEY = "gpp_tarefas_filters_v1";
+const GLOBAL_FILTERS_KEY = "gpp_global_filters_v1";
+
+function $(id){ return document.getElementById(id); }
+
+/* Campos principais */
+const cardsGrid = $("cardsGrid");
+const emptyState = $("emptyState");
+const pipelineKpis = $("pipelineKpis");
+const summaryBadges = $("summaryBadges");
+const originFilterBanner = $("originFilterBanner");
+const originFilterLabel = $("originFilterLabel");
+
+/* Botões */
+const newTaskBtn = $("newTaskBtn");
+const toggleLockBtn = $("toggleLockBtn");
+const lockStateLabel = $("lockStateLabel");
+
+const exportCsvBtn = $("exportCsvBtn");
+const exportPdfBtn = $("exportPdfBtn");
+
+const applyFiltersBtn = $("applyFiltersBtn");
+const clearFiltersBtn = $("clearFiltersBtn");
+const clearOriginFilterBtn = $("clearOriginFilterBtn");
+
+/* Modal */
+const modalBackdrop = $("modalBackdrop");
+const modalTitle = $("modalTitle");
+const closeModalBtn = $("closeModalBtn");
+const cancelModalBtn = $("cancelModalBtn");
+const saveTaskBtn = $("saveTaskBtn");
+
+/* Form fields */
+const taskForm = $("taskForm");
+const responsavelSelect = $("responsavel");
+const apoioSelect = $("apoio");
+
+/* Filtros */
+const filterResponsavel = $("filterResponsavel");
+const filterEstado = $("filterEstado");
+const filterPrioridade = $("filterPrioridade");
+const filterDataDe = $("filterDataDe");
+const filterDataAte = $("filterDataAte");
+const filterShowCompleted = $("filterShowCompleted");
+
+/* Consultores padrão */
+const CONSULTOR_OPTIONS = [
+  "Rui Quelhas",
+  "Manuel Oliveira",
+  "João Sousa",
+  "Francisco dos Santos",
+  "Rosário Vasconcelos",
+  "Armanda Meireles",
+  "Audrey Lucas",
+  "Outro"
+];
+
+/* Estado global */
+let state = {
+  locked: true,
+  tasks: []
+};
+
+let FILTERS = {
+  responsavel: "",
+  estado: "",
+  prioridade: "",
+  de: "",
+  ate: "",
+  showCompleted: false,
+  origemTipo: "",
+  origemRef: ""
+};
+
+/* ===========================================================
+   FUNÇÕES BASE
+   =========================================================== */
+
+function todayISO(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const dd = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${dd}`;
+}
+
+function addDays(dateStr, n){
+  const d = new Date(dateStr);
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0,10);
+}
+
+/* ===========================================================
+   STORAGE
+   =========================================================== */
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(Array.isArray(parsed.tasks)) state.tasks = parsed.tasks;
+      if(typeof parsed.locked === "boolean") state.locked = parsed.locked;
+    }
+  }catch(err){ console.error(err); }
+  updateLockUI();
+}
+
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadFilters(){
+  try{
+    const raw = localStorage.getItem(FILTERS_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      FILTERS = Object.assign(FILTERS, parsed);
+    }
+  }catch(err){ console.error(err); }
+}
+
+function saveFilters(){
+  localStorage.setItem(FILTERS_KEY, JSON.stringify(FILTERS));
+}
+
+function syncGlobalFilters(){
+  const g = {
+    consultor: FILTERS.responsavel || "",
+    de: FILTERS.de || "",
+    ate: FILTERS.ate || ""
+  };
+  localStorage.setItem(GLOBAL_FILTERS_KEY, JSON.stringify(g));
+}
+
+/* ===========================================================
+   UI — LOCK STATE
+   =========================================================== */
+function updateLockUI(){
+  if(state.locked){
+    lockStateLabel.textContent = "Bloqueado";
+    toggleLockBtn.textContent = "🔒";
+    newTaskBtn.disabled = true;
+  } else {
+    lockStateLabel.textContent = "Edição ativa";
+    toggleLockBtn.textContent = "🔓";
+    newTaskBtn.disabled = false;
+  }
+}
+
+/* ===========================================================
+   CONSULTORES
+   =========================================================== */
+function initConsultores(){
+  CONSULTOR_OPTIONS.forEach(c=>{
+    const opt1 = document.createElement("option");
+    opt1.value = c; opt1.textContent = c;
+    responsavelSelect.appendChild(opt1);
+
+    const opt2 = document.createElement("option");
+    opt2.value = c; opt2.textContent = c;
+    apoioSelect.appendChild(opt2);
+
+    const opt3 = document.createElement("option");
+    opt3.value = c; opt3.textContent = c;
+    filterResponsavel.appendChild(opt3);
+  });
+}
+
+/* ===========================================================
+   FILTROS — APLICAR
+   =========================================================== */
+function applyFilterControls(){
+  filterResponsavel.value = FILTERS.responsavel;
+  filterEstado.value = FILTERS.estado;
+  filterPrioridade.value = FILTERS.prioridade;
+  filterDataDe.value = FILTERS.de;
+  filterDataAte.value = FILTERS.ate;
+  filterShowCompleted.checked = FILTERS.showCompleted;
+}
+
+function updateFiltersFromControls(){
+  FILTERS.responsavel = filterResponsavel.value;
+  FILTERS.estado = filterEstado.value;
+  FILTERS.prioridade = filterPrioridade.value;
+  FILTERS.de = filterDataDe.value;
+  FILTERS.ate = filterDataAte.value;
+  FILTERS.showCompleted = filterShowCompleted.checked;
+}
+
+function clearAllFilters(){
+  FILTERS = {
+    responsavel:"",
+    estado:"",
+    prioridade:"",
+    de:"",
+    ate:"",
+    showCompleted:false,
+    origemTipo:"",
+    origemRef:""
+  };
+  applyFilterControls();
+  saveFilters();
+}
+
+/* ===========================================================
+   RENDER VIA FILTROS
+   =========================================================== */
+function applyFiltersToTasks(tasks){
+  return tasks.filter(t=>{
+    if(FILTERS.responsavel && t.responsavel !== FILTERS.responsavel) return false;
+    if(FILTERS.estado && t.estado !== FILTERS.estado) return false;
+    if(FILTERS.prioridade && t.prioridade !== FILTERS.prioridade) return false;
+
+    if(!FILTERS.showCompleted && (t.estado==="concluida" || t.estado==="cancelada"))
+      return false;
+
+    if(FILTERS.de && t.dataLimite && t.dataLimite < FILTERS.de) return false;
+    if(FILTERS.ate && t.dataLimite && t.dataLimite > FILTERS.ate) return false;
+
+    if(FILTERS.origemTipo && t.origemTipo !== FILTERS.origemTipo) return false;
+
+    if(FILTERS.origemRef){
+      const r = (t.origemRef || "").toLowerCase();
+      if(!r.includes(FILTERS.origemRef.toLowerCase())) return false;
+    }
+
+    return true;
+  });
+}
+
+/* ===========================================================
+   RENDER CARDS (VISUAL PREMIUM ORIGINAL)
+   =========================================================== */
+function estadoLabel(x){
+  return {
+    por_fazer:"Por fazer",
+    em_curso:"Em curso",
+    concluida:"Concluída",
+    adiada:"Adiada",
+    cancelada:"Cancelada"
+  }[x] || x;
+}
+
+function prioridadeLabel(x){
+  return {
+    baixa:"Baixa",
+    normal:"Normal",
+    alta:"Alta",
+    critica:"Crítica"
+  }[x] || x;
+}
+
+function tipoLabel(x){
+  return {
+    chamada:"Chamada",
+    email:"Email",
+    visita:"Visita",
+    reuniao:"Reunião",
+    followup:"Follow-up",
+    outro:"Outro"
+  }[x] || x;
+}
+
+function origemLabel(x){
+  return {
+    lead:"Lead",
+    angariacao:"Angariação",
+    venda:"Venda",
+    interna:"Interna"
+  }[x] || x;
+}
+
+function renderCards(){
+  const tasks = [...state.tasks];
+
+  /* Ordenar por Data limite (urgência) */
+  tasks.sort((a,b)=>{
+    if(a.dataLimite && b.dataLimite){
+      return a.dataLimite.localeCompare(b.dataLimite);
+    }
+    if(a.dataLimite) return -1;
+    if(b.dataLimite) return 1;
+    return (a.createdAtMs||0) - (b.createdAtMs||0);
+  });
+
+  const filtered = applyFiltersToTasks(tasks);
+
+  cardsGrid.innerHTML = "";
+  emptyState.style.display = filtered.length ? "none" : "block";
+
+  /* KPIs */
+  const estados = {por_fazer:0,em_curso:0,concluida:0,adiada:0,cancelada:0};
+  state.tasks.forEach(t=>{
+    if(estados[t.estado] !== undefined) estados[t.estado]++;
+  });
+
+  pipelineKpis.innerHTML = "";
+  Object.keys(estados).forEach(k=>{
+    const div = document.createElement("div");
+    div.className = "kpi-chip";
+    div.innerHTML = estadoLabel(k) + `<span class="value">${estados[k]}</span>`;
+    pipelineKpis.appendChild(div);
+  });
+
+  /* Badges resumo */
+  summaryBadges.innerHTML = "";
+  const b1 = document.createElement("div");
+  b1.className = "badge";
+  b1.innerHTML = `Total tarefas <strong>${state.tasks.length}</strong>`;
+  summaryBadges.appendChild(b1);
+
+  const abertas = state.tasks.filter(t=>t.estado!=="concluida" && t.estado!=="cancelada").length;
+  const b2 = document.createElement("div");
+  b2.className = "badge";
+  b2.innerHTML = `Em aberto <strong>${abertas}</strong>`;
+  summaryBadges.appendChild(b2);
+
+  /* Cartões */
+  filtered.forEach(t=>{
+    const card = document.createElement("div");
+    card.className = "card";
+    if(t.estado==="concluida" || t.estado==="cancelada"){
+      card.classList.add("completed");
+    }
+
+    /* URGÊNCIA → cor do painel conforme data */
+    if(t.dataLimite){
+      const hoje = todayISO();
+      const diff = (new Date(t.dataLimite) - new Date(hoje)) / (1000*60*60*24);
+      if(diff < 0){
+        card.style.borderColor = "rgba(255,0,0,.6)";
+        card.style.boxShadow = "0 0 12px rgba(255,0,0,.4)";
+      }
+      else if(diff <= 2){
+        card.style.borderColor = "rgba(255,80,80,.5)";
+      }
+      else if(diff <= 5){
+        card.style.borderColor = "rgba(255,200,87,.5)";
+      }
+    }
+
+    /* ----- TÍTULO ----- */
+    const top = document.createElement("div");
+    top.className = "card-top-row";
+
+    const titleBlock = document.createElement("div");
+    titleBlock.className = "card-title-block";
+
+    const h3 = document.createElement("h3");
+    h3.className = "card-title";
+    h3.textContent = t.titulo || "(Sem título)";
+    titleBlock.appendChild(h3);
+
+    const subtitle = document.createElement("div");
+    subtitle.className = "card-subtitle";
+    subtitle.textContent = [
+      t.responsavel || "",
+      prioridadeLabel(t.prioridade),
+      estadoLabel(t.estado)
+    ].filter(Boolean).join(" · ");
+    titleBlock.appendChild(subtitle);
+
+    const chips = document.createElement("div");
+    chips.className = "chip-row";
+
+    const c1 = document.createElement("span");
+    c1.className = "chip";
+    c1.textContent = estadoLabel(t.estado);
+    chips.appendChild(c1);
+
+    const c2 = document.createElement("span");
+    c2.className = "chip";
+    c2.textContent = prioridadeLabel(t.prioridade);
+    chips.appendChild(c2);
+
+    if(t.tipoTarefa){
+      const c3 = document.createElement("span");
+      c3.className = "chip";
+      c3.textContent = tipoLabel(t.tipoTarefa);
+      chips.appendChild(c3);
+    }
+
+    if(t.origemTipo){
+      const c4 = document.createElement("span");
+      c4.className = "chip";
+      c4.textContent = origemLabel(t.origemTipo);
+      chips.appendChild(c4);
+    }
+
+    titleBlock.appendChild(chips);
+    top.appendChild(titleBlock);
+    card.appendChild(top);
+
+    /* ORIGEM */
+    if(t.origemTipo || t.origemRef){
+      const sec = document.createElement("div");
+      sec.className = "card-section";
+      sec.innerHTML = `<strong>Origem:</strong> ${origemLabel(t.origemTipo)} · ${t.origemRef || ""}`;
+      card.appendChild(sec);
+    }
+
+    /* DATAS */
+    const secDat = document.createElement("div");
+    secDat.className = "card-section";
+    secDat.textContent =
+      `Criada: ${t.dataCriacao || ""} · Limite: ${t.dataLimite || ""} ${t.horaLimite || ""}`;
+    card.appendChild(secDat);
+
+    /* DESCRIÇÃO */
+    if(t.descricao){
+      const secDesc = document.createElement("div");
+      secDesc.className = "card-section";
+      secDesc.textContent = t.descricao.length > 160 ? t.descricao.slice(0,157)+"…" : t.descricao;
+      card.appendChild(secDesc);
+    }
+
+    /* FOOTER (Ações) */
+    const foot = document.createElement("div");
+    foot.className = "card-footer";
+
+    const left = document.createElement("div");
+    left.className = "card-footer-left";
+    left.textContent = t.responsavel;
+    foot.appendChild(left);
+
+    const right = document.createElement("div");
+    right.className = "card-footer-right";
+
+    /* Ver ficha original + Editar + Apagar */
+    const btnView = document.createElement("button");
+    btnView.className = "btn-xs";
+    btnView.textContent = "Ver ficha original";
+    btnView.addEventListener("click",()=>openModal(t));
+    right.appendChild(btnView);
+
+    const btnEdit = document.createElement("button");
+    btnEdit.className = "btn-xs";
+    btnEdit.textContent = "Editar";
+    btnEdit.addEventListener("click",()=>openModal(t));
+    right.appendChild(btnEdit);
+
+    const btnDel = document.createElement("button");
+    btnDel.className = "btn-xs danger";
+    btnDel.textContent = "Apagar";
+    btnDel.addEventListener("click",()=>{
+      if(state.locked) return;
+      if(confirm("Apagar esta tarefa?")){
+        state.tasks = state.tasks.filter(x=>x.id !== t.id);
+        saveState();
+        renderCards();
+      }
+    });
+    right.appendChild(btnDel);
+
+    foot.appendChild(right);
+    card.appendChild(foot);
+
+    cardsGrid.appendChild(card);
+  });
+}
+
+/* ===========================================================
+   MODAL
+   =========================================================== */
+function openModal(task){
+  modalBackdrop.classList.add("open");
+
+  if(task){
+    modalTitle.textContent = "Editar Tarefa";
+    $("taskId").value = task.id;
+    $("titulo").value = task.titulo || "";
+    $("descricao").value = task.descricao || "";
+    $("tags").value = task.tags || "";
+    $("estado").value = task.estado || "";
+    $("prioridade").value = task.prioridade || "";
+    $("tipoTarefa").value = task.tipoTarefa || "";
+    $("origemTipo").value = task.origemTipo || "";
+    $("origemRef").value = task.origemRef || "";
+    $("dataCriacao").value = task.dataCriacao || todayISO();
+    $("dataLimite").value = task.dataLimite || addDays(todayISO(),8);
+    $("horaLimite").value = task.horaLimite || "";
+
+    responsavelSelect.value = task.responsavel || "";
+    apoioSelect.value = task.apoio || "";
+  }
+  else{
+    modalTitle.textContent = "Nova Tarefa";
+    taskForm.reset();
+    $("taskId").value = "";
+    $("dataCriacao").value = todayISO();
+    $("dataLimite").value = addDays(todayISO(),8);
+  }
+}
+
+function closeModal(){
+  modalBackdrop.classList.remove("open");
+}
+
+/* ===========================================================
+   GUARDAR TAREFA
+   =========================================================== */
+function saveTask(){
+  if(state.locked){
+    alert("Desbloqueie o cadeado para editar.");
+    return;
+  }
+
+  const id = $("taskId").value || ("task_"+Date.now());
+
+  const data = {
+    id,
+    titulo: $("titulo").value,
+    descricao: $("descricao").value,
+    tags: $("tags").value,
+    estado: $("estado").value,
+    prioridade: $("prioridade").value,
+    tipoTarefa: $("tipoTarefa").value,
+    origemTipo: $("origemTipo").value,
+    origemRef: $("origemRef").value,
+    dataCriacao: $("dataCriacao").value || todayISO(),
+    dataLimite: $("dataLimite").value,
+    horaLimite: $("horaLimite").value,
+    responsavel: responsavelSelect.value,
+    apoio: apoioSelect.value,
+    createdAtMs: Date.now()
+  };
+
+  /* Validar datas */
+  if(data.dataLimite < data.dataCriacao){
+    alert("A data limite não pode ser inferior à data de criação.");
+    return;
+  }
+
+  const idx = state.tasks.findIndex(x=>x.id === id);
+  if(idx >= 0){
+    state.tasks[idx] = data;
+  } else {
+    state.tasks.push(data);
+  }
+
+  saveState();
+  closeModal();
+  renderCards();
+}
+
+/* ===========================================================
+   EXPORTAR CSV
+   =========================================================== */
+function exportCsv(){
+  if(!state.tasks.length){
+    alert("Sem tarefas.");
+    return;
+  }
+
+  const cols = [
+    "id","titulo","descricao","responsavel","apoio",
+    "origemTipo","origemRef","estado","prioridade",
+    "tipoTarefa","tags","dataCriacao","dataLimite","horaLimite"
   ];
 
-  /* -----------------------------
-     DOM SHORTCUT
-  ------------------------------ */
-  function $(id){ return document.getElementById(id); }
+  let csv = cols.join(";") + "\n";
 
-  const cardsGrid = $("cardsGrid");
-  const emptyState = $("emptyState");
-
-  /* Filtros */
-  const fConsultor = $("filterConsultor");
-  const fDataDe = $("filterDataDe");
-  const fDataAte = $("filterDataAte");
-  const fEstado = $("filterEstado");
-  const fVis = $("filterVisibilidade");
-  const btnAplicar = $("btnAplicarFiltros");
-  const btnLimpar = $("btnLimparFiltros");
-
-  /* Modal */
-  const modalBackdrop = $("modalBackdrop");
-  const modalBody = $("modalBody");
-  const modalTitle = $("modalTitle");
-  const modalClose = $("modalClose");
-  const btnGuardarModal = $("btnGuardarModal");
-
-  /* Nova tarefa */
-  const btnNovaTarefa = $("btnNovaTarefa");
-
-  /* -----------------------------
-     ESTADO PRINCIPAL
-  ------------------------------ */
-  let state = {
-    tarefas: [],
-    filtros: {
-      consultor: "",
-      de: "",
-      ate: "",
-      estado: "",
-      vis: ""
-    }
-  };
-
-  /* -----------------------------
-     LOAD & SAVE STATE
-  ------------------------------ */
-  function loadState(){
-    try{
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if(raw){
-        const parsed = JSON.parse(raw);
-        state.tarefas = parsed.tarefas || [];
-      }
-    }catch(e){
-      console.error("Erro a carregar tarefas", e);
-    }
-
-    try{
-      const rawF = localStorage.getItem(FILTERS_KEY);
-      if(rawF){
-        state.filtros = Object.assign(state.filtros, JSON.parse(rawF));
-      }
-    }catch(e){
-      console.error("Erro a carregar filtros", e);
-    }
-  }
-
-  function saveState(){
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }
-
-  function saveFilters(){
-    localStorage.setItem(FILTERS_KEY, JSON.stringify(state.filtros));
-  }
-
-  /* -----------------------------
-     INIT FILTROS UI
-  ------------------------------ */
-  function initFiltersUI(){
-    consultores.forEach(c=>{
-      const opt = document.createElement("option");
-      opt.value = c;
-      opt.textContent = c;
-      fConsultor.appendChild(opt);
-    });
-
-    fConsultor.value = state.filtros.consultor || "";
-    fDataDe.value = state.filtros.de || "";
-    fDataAte.value = state.filtros.ate || "";
-    fEstado.value = state.filtros.estado || "";
-    fVis.value = state.filtros.vis || "";
-  }
-
-  /* -----------------------------
-     CÁLCULO — URGÊNCIA / CORES
-  ------------------------------ */
-  function urgenciaClass(tarefa){
-    if(!tarefa.dataLimite) return "";
-
-    const hoje = new Date();
-    const limite = new Date(tarefa.dataLimite + "T00:00:00");
-
-    const diff = limite - hoje;
-    const dias = diff / (1000*60*60*24);
-
-    if(dias < 0){
-      return "urg-critical";       // atrasada
-    }else if(dias <= 1){
-      return "urg-red";            // muito urgente
-    }else if(dias <= 3){
-      return "urg-orange";         // moderada
-    }else if(dias <= 7){
-      return "urg-yellow";         // suave
-    }
-    return "";
-  }
-
-  /* -----------------------------
-     FILTRAGEM
-  ------------------------------ */
-  function aplicarFiltrosLista(lista){
-    return lista.filter(t=>{
-      if(state.filtros.consultor && t.responsavel !== state.filtros.consultor){
-        return false;
-      }
-      if(state.filtros.de && t.dataLimite && t.dataLimite < state.filtros.de){
-        return false;
-      }
-      if(state.filtros.ate && t.dataLimite && t.dataLimite > state.filtros.ate){
-        return false;
-      }
-      if(state.filtros.estado){
-        if(state.filtros.estado === "atrasada"){
-          const cl = urgenciaClass(t);
-          if(cl !== "urg-critical") return false;
-        }else{
-          if(t.estado !== state.filtros.estado) return false;
-        }
-      }
-      if(state.filtros.vis === "invisiveis" && !t.invisivel){
-        return false;
-      }
-      return true;
-    });
-  }
-
-  /* -----------------------------
-     RENDER CARTÕES
-  ------------------------------ */
-  function renderCards(){
-    cardsGrid.innerHTML = "";
-
-    let lista = state.tarefas.slice();
-
-    // Ordenação automática por urgência e data limite
-    lista.sort((a,b)=>{
-      const clA = urgenciaClass(a);
-      const clB = urgenciaClass(b);
-
-      const prioridade = {"urg-critical":4,"urg-red":3,"urg-orange":2,"urg-yellow":1,"":0};
-
-      const pA = prioridade[clA] || 0;
-      const pB = prioridade[clB] || 0;
-
-      if(pA !== pB) return pB - pA;
-
-      if(a.dataLimite && b.dataLimite){
-        return a.dataLimite.localeCompare(b.dataLimite);
-      }
-      return (a.createdAt || 0) - (b.createdAt || 0);
-    });
-
-    lista = aplicarFiltrosLista(lista);
-
-    if(lista.length === 0){
-      emptyState.style.display = "block";
-      return;
-    }
-    emptyState.style.display = "none";
-
-    lista.forEach(t=>{
-      const card = document.createElement("div");
-      card.classList.add("card");
-
-      const urg = urgenciaClass(t);
-      if(urg) card.classList.add(urg);
-
-      card.innerHTML = `
-        <div class="card-header">
-          <h3>${t.titulo || "(sem título)"}</h3>
-          <p>${t.responsavel || ""} · ${t.estado}</p>
-        </div>
-
-        <div class="card-info">
-          ${
-            t.dataLimite
-            ? `<div class="info-line"><strong>Limite:</strong> ${t.dataLimite}</div>`
-            : ""
-          }
-          ${
-            t.origemTipo
-            ? `<div class="info-line"><strong>Origem:</strong> ${t.origemTipo} — ${t.origemRef || ""}</div>`
-            : ""
-          }
-        </div>
-
-        <div class="card-footer">
-          <button class="btn-card ver">Ver ficha</button>
-          <button class="btn-card editar">Editar</button>
-        </div>
-      `;
-
-      card.querySelector(".ver").addEventListener("click",()=>{
-        abrirModalFicha(t);
-      });
-
-      card.querySelector(".editar").addEventListener("click",()=>{
-        abrirModalEdicao(t);
-      });
-
-      cardsGrid.appendChild(card);
-    });
-  }
-
-  /* -----------------------------
-     NOVA TAREFA
-  ------------------------------ */
-  btnNovaTarefa.addEventListener("click",()=>{
-    abrirModalEdicao(null);
+  state.tasks.forEach(t=>{
+    csv += cols.map(c => `"${(t[c]||"").replace(/"/g,'""')}"`).join(";") + "\n";
   });
 
-  /* -----------------------------
-     APLICAR / LIMPAR FILTROS
-  ------------------------------ */
-  btnAplicar.addEventListener("click",()=>{
-    state.filtros.consultor = fConsultor.value;
-    state.filtros.de = fDataDe.value;
-    state.filtros.ate = fDataAte.value;
-    state.filtros.estado = fEstado.value;
-    state.filtros.vis = fVis.value;
-
-    saveFilters();
-    renderCards();
-  });
-
-  btnLimpar.addEventListener("click",()=>{
-    state.filtros = {consultor:"",de:"",ate:"",estado:"",vis:""};
-    saveFilters();
-    initFiltersUI();
-    renderCards();
-  });
-
-  /* -----------------------------
-     MODAL (apenas parte base — PARTE D irá completar)
-  ------------------------------ */
-  function abrirModalBase(titulo,conteudoHtml){
-    modalTitle.textContent = titulo;
-    modalBody.innerHTML = conteudoHtml;
-    modalBackdrop.classList.add("open");
-  }
-
-  modalClose.addEventListener("click",()=>{
-    modalBackdrop.classList.remove("open");
-  });
-
-  /* PLACEHOLDERS — serão substituídos na PARTE D */
-  function abrirModalEdicao(tarefa){
-    abrirModalBase("Editar tarefa","<p>A carregar editor...</p>");
-  }
-
-  function abrirModalFicha(tarefa){
-    abrirModalBase("Ficha completa","<p>A carregar ficha...</p>");
-  }
-
-  /* -----------------------------
-     INIT
-  ------------------------------ */
-  loadState();
-  initFiltersUI();
-  renderCards();
-
-})();
-</script>
-<script>
-/* ============================================================
-   TAREFAS — MÓDULO PREMIUM (JS - PARTE 2/3)
-   ============================================================ */
-
-(function(){
-
-  /* ============================================================
-     1) OBTÉM LEAD OU ANGARIAÇÃO DO LOCALSTORAGE
-     ============================================================ */
-
-  function getLeadByRef(ref){
-    try{
-      const raw = localStorage.getItem("gpp_leads_v3");
-      if(!raw) return null;
-      const arr = JSON.parse(raw);
-      return arr.find(l => (l.ref || "").toLowerCase() === ref.toLowerCase()) || null;
-    }catch(e){
-      console.error("Erro ao carregar leads", e);
-      return null;
-    }
-  }
-
-  function getAngByRef(ref){
-    try{
-      const raw = localStorage.getItem("gpp_ang_v3");
-      if(!raw) return null;
-      const arr = JSON.parse(raw);
-      return arr.find(a => (a.ref || "").toLowerCase() === ref.toLowerCase()) || null;
-    }catch(e){
-      console.error("Erro ao carregar angariações", e);
-      return null;
-    }
-  }
-
-  /* ============================================================
-     2) HISTÓRICO DE TAREFAS RELACIONADAS
-     ============================================================ */
-
-  function getHistoricoTarefas(ref){
-    try{
-      const raw = localStorage.getItem("gpp_tarefas_v2");
-      if(!raw) return [];
-      const arr = JSON.parse(raw).tarefas || [];
-      return arr.filter(t => 
-        (t.origemRef || "").toLowerCase().includes((ref||"").toLowerCase())
-      );
-    }catch(e){
-      console.error("Erro histórico tarefas", e);
-      return [];
-    }
-  }
-
-  /* ============================================================
-     3) BLOCO — PRÓXIMOS PASSOS (lógica automática)
-     ============================================================ */
-
-  function gerarProximosPassos(leadOuAng){
-    if(!leadOuAng) return [];
-
-    const passos = [];
-
-    // Estado pipeline
-    switch((leadOuAng.estado || "").toLowerCase()){
-      case "proposta":
-        passos.push("Follow-up à proposta enviada nas últimas 24h");
-        break;
-      case "visita":
-        passos.push("Contactar cliente para feedback da visita");
-        break;
-      case "qualificado":
-        passos.push("Apresentar shortlist de imóveis alinhados ao perfil");
-        break;
-    }
-
-    // Classificação
-    if(leadOuAng.classificacao == 5){
-      passos.push("Agendar visita imediata — lead quente (classificação 5)");
-    }
-
-    // Sem imóvel definido
-    if(!leadOuAng.imovel || leadOuAng.imovel === ""){
-      passos.push("Definir imóvel preferencial com o cliente");
-    }
-
-    if(passos.length === 0){
-      passos.push("Sem próximos passos automáticos — analisar manualmente.");
-    }
-
-    return passos;
-  }
-
-  /* ============================================================
-     4) TIMELINE (eventos clicáveis — visual premium)
-     ============================================================ */
-
-  function gerarTimeline(leadOuAng, historico){
-    const eventos = [];
-
-    if(leadOuAng){
-      eventos.push({
-        tipo:"criado",
-        data:leadOuAng.dataCriacao || "",
-        label:"Lead criada"
-      });
-    }
-
-    // Estado pipeline
-    if(leadOuAng.estado){
-      eventos.push({
-        tipo:"estado",
-        data:leadOuAng.dataAtualizacao || "",
-        label:"Estado atual: " + leadOuAng.estado
-      });
-    }
-
-    // Tarefas associadas
-    historico.forEach(t=>{
-      eventos.push({
-        tipo:"tarefa",
-        data:t.dataCriacao,
-        label:"Tarefa: " + (t.titulo || "(sem título)"),
-        id:t.id
-      });
-    });
-
-    // Ordenação por data
-    eventos.sort((a,b)=> (a.data||"").localeCompare(b.data||""));
-
-    let html = `<div class="timeline">`;
-
-    eventos.forEach(ev=>{
-      html += `
-        <div class="tl-item ${ev.tipo}">
-          <div class="tl-dot"></div>
-          <div class="tl-content">
-            <div class="tl-date">${ev.data || ""}</div>
-            <div class="tl-label">${ev.label}</div>
-            ${
-              ev.tipo === "tarefa"
-              ? `<button class="tl-btn" data-id="${ev.id}">Ver tarefa</button>`
-              : ``
-            }
-          </div>
-        </div>
-      `;
-    });
-
-    html += `</div>`;
-    return html;
-  }
-
-  /* ============================================================
-     5) FICHA ORIGINAL — Layout premium (idêntico ao módulo Leads)
-     ============================================================ */
-
-  function renderFichaOriginal(data){
-    if(!data){
-      return `<p style="color:#F25F5C;">Ficha original não encontrada.</p>`;
-    }
-
-    return `
-      <div class="ficha-original">
-        <h3 class="fo-title">${data.nome || data.proprietario || "Sem nome"}</h3>
-
-        <div class="fo-grid">
-          <div>
-            <label>Contacto</label>
-            <div>${data.telefone||""}</div>
-          </div>
-          <div>
-            <label>Email</label>
-            <div>${data.email||""}</div>
-          </div>
-          <div>
-            <label>Estado</label>
-            <div>${data.estado||""}</div>
-          </div>
-          <div>
-            <label>Classificação</label>
-            <div>${data.classificacao||""}</div>
-          </div>
-          <div>
-            <label>Tipo negócio</label>
-            <div>${data.tipoNegocio||""}</div>
-          </div>
-          <div>
-            <label>Imóvel</label>
-            <div>${data.imovel||""}</div>
-          </div>
-        </div>
-
-        <div class="fo-notas">
-          <label>Notas internas</label>
-          <textarea id="foNotasEdit">${data.notas||""}</textarea>
-        </div>
-
-        <div style="text-align:right;margin-top:10px;">
-          <button class="btn-primary" id="btnGuardarFichaOriginal">Guardar alterações</button>
-        </div>
-      </div>
-    `;
-  }
-
-  /* ============================================================
-     6) MODAL — ABRIR FICHA COMPLETA
-     ============================================================ */
-
-  window.abrirModalFicha = function(tarefa){
-    const ref = tarefa.origemRef;
-    const tipo = tarefa.origemTipo;
-
-    let ficha = null;
-
-    if(tipo === "lead") ficha = getLeadByRef(ref);
-    if(tipo === "angariacao") ficha = getAngByRef(ref);
-
-    const historico = getHistoricoTarefas(ref);
-    const passos = gerarProximosPassos(ficha);
-    const timeline = gerarTimeline(ficha, historico);
-
-    const conteudo = `
-      <div class="modal-section">
-        <h2 class="sec-title">Ficha Original</h2>
-        ${renderFichaOriginal(ficha)}
-      </div>
-
-      <details class="modal-section" open>
-        <summary><span>Histórico de Tarefas</span></summary>
-        <div class="historico-list">
-          ${
-            historico.length
-            ? historico.map(h=>`
-                <div class="hist-item">
-                  <strong>${h.titulo||""}</strong>
-                  <div>${h.dataCriacao || ""}</div>
-                </div>
-              `).join("")
-            : `<p>Sem tarefas associadas.</p>`
-          }
-        </div>
-      </details>
-
-      <details class="modal-section">
-        <summary><span>Próximos Passos</span></summary>
-        <ul class="pp-list">
-          ${passos.map(p=>`<li>${p}</li>`).join("")}
-        </ul>
-      </details>
-
-      <details class="modal-section">
-        <summary><span>Timeline</span></summary>
-        ${timeline}
-      </details>
-    `;
-
-    document.getElementById("modalTitle").textContent = "Ficha completa";
-    document.getElementById("modalBody").innerHTML = conteudo;
-    document.getElementById("modalBackdrop").classList.add("open");
-
-    // Guardar notas da ficha original
-    const btnGuardar = document.getElementById("btnGuardarFichaOriginal");
-    if(btnGuardar){
-      btnGuardar.onclick = ()=>{
-        ficha.notas = document.getElementById("foNotasEdit").value;
-        if(tipo === "lead"){
-          salvarLead(ficha);
-        }else{
-          salvarAng(ficha);
-        }
-        alert("Ficha original atualizada.");
-      };
-    }
-  };
-
-  /* ============================================================
-     7) MODAL — ABRIR PARA EDIÇÃO DA TAREFA
-     ============================================================ */
-
-  window.abrirModalEdicao = function(tarefa){
-    const novo = !tarefa;
-
-    const t = tarefa || {
-      id:"t_"+Date.now(),
-      titulo:"",
-      descricao:"",
-      dataCriacao: new Date().toISOString().slice(0,10),
-      dataLimite: new Date(Date.now()+8*86400000).toISOString().slice(0,10),
-      estado:"por_fazer",
-      prioridade:"normal",
-      responsavel:"",
-      origemTipo:"",
-      origemRef:""
-    };
-
-    const html = `
-      <div class="form">
-        <label>Título</label>
-        <input id="tTitulo" type="text" value="${t.titulo}">
-        <label>Descrição</label>
-        <textarea id="tDesc">${t.descricao||""}</textarea>
-
-        <label>Responsável</label>
-        <select id="tResp">
-          ${consultores.map(c=>`<option ${c===t.responsavel?"selected":""}>${c}</option>`).join("")}
-        </select>
-
-        <label>Data limite</label>
-        <input id="tDataLimite" type="date" value="${t.dataLimite||""}">
-
-        <label>Estado</label>
-        <select id="tEstado">
-          <option value="por_fazer" ${t.estado==="por_fazer"?"selected":""}>Por fazer</option>
-          <option value="em_curso" ${t.estado==="em_curso"?"selected":""}>Em curso</option>
-          <option value="concluida" ${t.estado==="concluida"?"selected":""}>Concluída</option>
-        </select>
-      </div>
-    `;
-
-    document.getElementById("modalTitle").textContent = novo ? "Nova tarefa" : "Editar tarefa";
-    document.getElementById("modalBody").innerHTML = html;
-    document.getElementById("modalBackdrop").classList.add("open");
-
-    document.getElementById("btnGuardarModal").onclick = ()=>{
-
-      t.titulo = document.getElementById("tTitulo").value;
-      t.descricao = document.getElementById("tDesc").value;
-      t.responsavel = document.getElementById("tResp").value;
-
-      const novaData = document.getElementById("tDataLimite").value;
-      if(novaData < t.dataCriacao){
-        alert("A data limite não pode ser inferior à data de criação.");
-        return;
-      }
-
-      t.dataLimite = novaData;
-      t.estado = document.getElementById("tEstado").value;
-
-      if(novo){
-        t.createdAt = Date.now();
-        state.tarefas.push(t);
-      }
-
-      localStorage.setItem("gpp_tarefas_v2", JSON.stringify(state));
-      document.getElementById("modalBackdrop").classList.remove("open");
-      location.reload();
-    };
-  };
-
-
-  /* ============================================================
-     8) SALVAR LEAD / ANGARIAÇÃO (COM notas & info atualizada)
-     ============================================================ */
-
-  function salvarLead(lead){
-    try{
-      const raw = localStorage.getItem("gpp_leads_v3");
-      if(!raw) return;
-      let arr = JSON.parse(raw);
-      const idx = arr.findIndex(l=>l.ref===lead.ref);
-      if(idx>=0){
-        arr[idx] = lead;
-        localStorage.setItem("gpp_leads_v3", JSON.stringify(arr));
-      }
-    }catch(e){
-      console.error("Erro guardar lead", e);
-    }
-  }
-
-  function salvarAng(ang){
-    try{
-      const raw = localStorage.getItem("gpp_ang_v3");
-      if(!raw) return;
-      let arr = JSON.parse(raw);
-      const idx = arr.findIndex(a=>a.ref===ang.ref);
-      if(idx>=0){
-        arr[idx] = ang;
-        localStorage.setItem("gpp_ang_v3", JSON.stringify(arr));
-      }
-    }catch(e){
-      console.error("Erro guardar angariação", e);
-    }
-  }
-
-})();
-</script>
-/* ============================================================
-   CSS PREMIUM — Modal Ficha, Timeline, Histórico, Próximos Passos
-   ============================================================ */
-
-.modal-section{
-  background:rgba(0,0,0,.55);
-  border:1px solid rgba(163,139,99,.35);
-  border-radius:18px;
-  padding:14px 16px;
-  margin-bottom:14px;
+  const blob = new Blob([csv],{type:"text/csv"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "tarefas.csv";
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
-.modal-section h2.sec-title{
-  margin:0 0 10px;
-  font-size:15px;
-  text-transform:uppercase;
-  letter-spacing:.14em;
-  color:var(--gold);
+/* ===========================================================
+   EXPORTAR PDF (SIMPLIFICADO)
+   =========================================================== */
+function exportPdfList(){
+  window.print();
 }
 
-/* ----------------------------------------------
-   Ficha Original
-   ---------------------------------------------- */
-
-.ficha-original{
-  background:rgba(0,0,0,.55);
-  border:1px solid rgba(163,139,99,.25);
-  padding:14px;
-  border-radius:16px;
-}
-
-.fo-title{
-  margin:0 0 10px;
-  font-size:16px;
-  font-weight:600;
-  color:#fff;
-}
-
-.fo-grid{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:10px;
-  margin-bottom:14px;
-}
-
-.fo-grid label{
-  font-size:11px;
-  color:var(--muted);
-  text-transform:uppercase;
-  letter-spacing:.12em;
-}
-
-.fo-grid div{
-  font-size:13px;
-  color:#fff;
-}
-
-.fo-notas{
-  margin-top:10px;
-}
-
-.fo-notas label{
-  display:block;
-  font-size:11px;
-  color:var(--muted);
-  text-transform:uppercase;
-  margin-bottom:4px;
-}
-
-#foNotasEdit{
-  width:100%;
-  min-height:70px;
-  border-radius:12px;
-  border:1px solid rgba(163,139,99,.25);
-  background:#111;
-  color:#fff;
-  padding:8px;
-}
-
-/* ----------------------------------------------
-   Histórico
-   ---------------------------------------------- */
-
-.historico-list{
-  margin-top:10px;
-}
-
-.hist-item{
-  border:1px solid rgba(163,139,99,.25);
-  padding:8px 10px;
-  border-radius:12px;
-  background:rgba(0,0,0,.45);
-  margin-bottom:6px;
-  color:#ddd;
-}
-
-.hist-item strong{
-  color:#fff;
-  font-size:13px;
-}
-
-/* ----------------------------------------------
-   Próximos Passos
-   ---------------------------------------------- */
-
-.pp-list{
-  padding-left:20px;
-  margin-top:8px;
-  color:#ddd;
-}
-
-.pp-list li{
-  margin-bottom:6px;
-}
-
-/* ----------------------------------------------
-   Timeline
-   ---------------------------------------------- */
-
-.timeline{
-  border-left:2px solid var(--gold);
-  padding-left:14px;
-  margin-top:10px;
-}
-
-.tl-item{
-  margin-bottom:14px;
-  position:relative;
-  padding-left:4px;
-}
-
-.tl-dot{
-  width:12px;
-  height:12px;
-  background:var(--gold);
-  border-radius:50%;
-  position:absolute;
-  left:-19px;
-  top:2px;
-  box-shadow:0 0 6px rgba(163,139,99,.8);
-}
-
-.tl-content{
-  color:#ddd;
-}
-
-.tl-date{
-  font-size:11px;
-  color:var(--muted);
-}
-
-.tl-label{
-  font-size:13px;
-  margin-top:2px;
-  color:#fff;
-}
-
-.tl-btn{
-  margin-top:4px;
-  border-radius:999px;
-  border:1px solid rgba(163,139,99,.35);
-  background:rgba(0,0,0,.55);
-  padding:3px 10px;
-  font-size:11px;
-  color:var(--gold);
-  cursor:pointer;
-}
-
-.tl-btn:hover{
-  border-color:var(--gold);
-  background:rgba(163,139,99,.12);
-}
-
-/* ----------------------------------------------
-   Details (colapsáveis premium)
-   ---------------------------------------------- */
-
-details{
-  border-radius:16px;
-  border:1px solid rgba(163,139,99,.25);
-  background:rgba(0,0,0,.45);
-  padding:8px 10px;
-}
-
-details summary{
-  cursor:pointer;
-  list-style:none;
-  font-size:12px;
-  text-transform:uppercase;
-  letter-spacing:.12em;
-  color:var(--gold);
-}
-
-details summary::-webkit-details-marker{
-  display:none;
-}
-
-details[open]{
-  border-color:var(--gold);
-}
-
-/* ----------------------------------------------
-   Modal Premium
-   ---------------------------------------------- */
-
-#modalBody{
-  max-height:70vh;
-  overflow-y:auto;
-  padding-right:4px;
-}
-
-#modalBody::-webkit-scrollbar{
-  width:8px;
-}
-#modalBody::-webkit-scrollbar-thumb{
-  background:rgba(163,139,99,.35);
-  border-radius:4px;
-}
-#modalBody::-webkit-scrollbar-thumb:hover{
-  background:var(--gold);
-}
-
-/* ----------------------------------------------
-   Botão Guardar
-   ---------------------------------------------- */
-
-#btnGuardarFichaOriginal,
-#btnGuardarModal{
-  padding:7px 14px;
-  border-radius:999px;
-  background:var(--gold);
-  border:1px solid var(--gold);
-  color:#111;
-  cursor:pointer;
-  font-weight:600;
-}
-
-#btnGuardarFichaOriginal:hover,
-#btnGuardarModal:hover{
-  background:#c9ae78;
-  border-color:#c9ae78;
-}
-/* ============================================================
-   PARTE F — JS Premium
-   Modal Ficha Original + Timeline + Histórico + Próximos Passos
-   ============================================================ */
-
-// ======= Elementos Globais =======
-let modalFichaBackdrop = null;
-let modalFicha = null;
-let modalFichaBody = null;
-let btnFecharFicha = null;
-
-
-// ======= Criar Modal Ficha Original =======
-function initModalFichaOriginal() {
-  // Evitar criar 2x
-  if (document.getElementById('modalFichaWrapper')) return;
-
-  const html = `
-    <div class="modal-backdrop" id="modalFichaBackdrop">
-      <div class="modal" id="modalFichaWrapper" style="max-width:960px;">
-        <div class="modal-header">
-          <h2 id="modalFichaTitle">Ficha Original</h2>
-          <button class="btn btn-icon btn-ghost" id="btnFecharFicha">✕</button>
-        </div>
-
-        <div id="modalFichaBody" class="modal-body">
-          <!-- Conteúdo é injetado dinamicamente -->
-        </div>
-
-        <div class="modal-footer">
-          <div></div>
-          <div>
-            <button id="btnGuardarFichaOriginal" class="btn btn-primary">
-              Guardar alterações
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-  document.body.insertAdjacentHTML('beforeend', html);
-
-  modalFichaBackdrop = document.getElementById('modalFichaBackdrop');
-  modalFicha = document.getElementById('modalFichaWrapper');
-  modalFichaBody = document.getElementById('modalFichaBody');
-  btnFecharFicha = document.getElementById('btnFecharFicha');
-
-  btnFecharFicha.addEventListener('click', closeFichaOriginal);
-}
-
-
-// ======= Abrir o modal =======
-function openFichaOriginal(tipo, ref) {
-  initModalFichaOriginal();
-
-  // 1. Buscar dados reais
-  let dados = null;
-  if (tipo === 'lead') {
-    const raw = JSON.parse(localStorage.getItem('gpp_leads_v1') || '[]');
-    dados = raw.find(l => (l.id === ref || l.ref === ref));
-  } else if (tipo === 'angariacao') {
-    const raw = JSON.parse(localStorage.getItem('gpp_angariacoes_v1') || '[]');
-    dados = raw.find(a => (a.id === ref || a.referencia === ref));
-  }
-
-  if (!dados) {
-    alert("Ficha não encontrada.");
-    return;
-  }
-
-  // 2. Construir HTML completo
-  modalFichaBody.innerHTML = buildFichaHTML(tipo, dados);
-
-  // 3. Abrir modal
-  modalFichaBackdrop.classList.add('open');
-}
-
-
-// ======= Fechar modal =======
-function closeFichaOriginal() {
-  if (modalFichaBackdrop) {
-    modalFichaBackdrop.classList.remove('open');
-  }
-}
-
-
-// ======= Guardar alterações =======
-function guardarFichaOriginal() {
-  const tipo = document.getElementById("foTipo").value;
-  const id = document.getElementById("foId").value;
-
-  // Buscar storage correto
-  const key = (tipo === 'lead') ? 'gpp_leads_v1' : 'gpp_angariacoes_v1';
-  const raw = JSON.parse(localStorage.getItem(key) || '[]');
-
-  const idx = raw.findIndex(x => x.id === id);
-  if (idx < 0) {
-    alert("Erro: Ficha não encontrada.");
-    return;
-  }
-
-  // Atualizar campos editados
-  const camposEditaveis = document.querySelectorAll("[data-fo-edit]");
-  camposEditaveis.forEach(c => {
-    const campo = c.dataset.foEdit;
-    raw[idx][campo] = c.value;
-  });
-
-  // Guardar notas internas
-  const notas = document.getElementById("foNotasEdit").value;
-  raw[idx].notasInternas = notas;
-
-  localStorage.setItem(key, JSON.stringify(raw));
-  alert("Alterações guardadas com sucesso.");
-
-  closeFichaOriginal();
-}
-
-
-// ======= HTML Completo da Ficha Original =======
-function buildFichaHTML(tipo, d) {
-
-  const nomeCliente =
-    d.nome ||
-    d.nomeCliente ||
-    d.cliente ||
-    d.proprietario ||
-    "Sem nome";
-
-  const ref = d.ref || d.referencia || d.id || "—";
-
-  // Gera histórico de tarefas
-  const timelineHTML = buildTimelineHTML(ref, nomeCliente, tipo);
-
-  // Próximos passos
-  const passosHTML = buildProximosPassos(d);
-
-  // Histórico
-  const historicoHTML = buildHistoricoHTML(ref, nomeCliente);
-
-  // Secção principal da ficha original
-  const dadosPrincipaisHTML = buildDadosOriginais(tipo, d);
-
-  return `
-    <div class="modal-section">
-      <h2 class="sec-title">Identificação</h2>
-      <div class="ficha-original">
-        <input type="hidden" id="foTipo" value="${tipo}">
-        <input type="hidden" id="foId" value="${d.id}">
-        <div class="fo-grid">
-          <div>
-            <label>Nome</label>
-            <input data-fo-edit="nome" value="${nomeCliente}" class="fo-edit">
-          </div>
-          <div>
-            <label>Referência</label>
-            <div>${ref}</div>
-          </div>
-          <div>
-            <label>Contacto</label>
-            <input data-fo-edit="contacto" value="${d.contacto || ''}">
-          </div>
-          <div>
-            <label>Email</label>
-            <input data-fo-edit="email" value="${d.email || ''}">
-          </div>
-        </div>
-
-        <div class="fo-notas">
-          <label>Notas Internas</label>
-          <textarea id="foNotasEdit">${d.notasInternas || ''}</textarea>
-        </div>
-      </div>
-    </div>
-
-    <details>
-      <summary>Ficha Completa</summary>
-      <div style="margin-top:12px;">
-        ${dadosPrincipaisHTML}
-      </div>
-    </details>
-
-    <details>
-      <summary>Histórico de tarefas</summary>
-      <div class="historico-list">
-        ${historicoHTML}
-      </div>
-    </details>
-
-    <details>
-      <summary>Próximos passos</summary>
-      ${passosHTML}
-    </details>
-
-    <details>
-      <summary>Timeline</summary>
-      <div class="timeline">
-        ${timelineHTML}
-      </div>
-    </details>
-  `;
-}
-
-
-// ======= Ficha Original (dados avançados) =======
-function buildDadosOriginais(tipo, d) {
-
-  const linhas = Object.keys(d)
-    .filter(k => !['id', 'notasInternas'].includes(k))
-    .map(k => `
-      <div class="hist-item">
-        <strong>${k}</strong><br>
-        ${d[k]}
-      </div>
-    `).join("");
-
-  return `
-    <div>
-      ${linhas || "<i>Sem dados adicionais.</i>"}
-    </div>
-  `;
-}
-
-
-// ======= Próximos Passos Automáticos =======
-function buildProximosPassos(d) {
-
-  const passos = [];
-
-  // Classificação alta
-  if (d.classificacao == 5) {
-    passos.push("Agendar visita imediata — lead muito quente.");
-  }
-
-  // Proposta
-  if (d.estado === "Proposta") {
-    passos.push("Ligar para follow-up da proposta.");
-  }
-
-  // Falta imóvel
-  if (!d.imovel && d.tipoNegocio !== "investidor") {
-    passos.push("Associar imóvel à lead.");
-  }
-
-  return `
-    <ul class="pp-list">
-      ${passos.length ? passos.map(p => `<li>${p}</li>`).join("") : "<i>Sem recomendações automáticas.</i>"}
-    </ul>
-  `;
-}
-
-
-// ======= Timeline =======
-function buildTimelineHTML(ref, nomeCliente, tipo) {
-
-  const raw = JSON.parse(localStorage.getItem('gpp_tarefas_v1') || '[]');
-
-  const relevantes = raw.tasks.filter(t =>
-    t.origemRef &&
-    (
-      t.origemRef.toLowerCase().includes(nomeCliente.toLowerCase()) ||
-      t.origemRef.toLowerCase().includes(ref.toLowerCase())
-    )
-  );
-
-  if (!relevantes.length) {
-    return `<i>Sem eventos registados.</i>`;
-  }
-
-  return relevantes.map(t => `
-    <div class="tl-item">
-      <div class="tl-dot"></div>
-      <div class="tl-content">
-        <div class="tl-date">${t.dataLimite || t.dataCriacao || '—'}</div>
-        <div class="tl-label">${t.titulo || '(Sem título)'}</div>
-        <button class="tl-btn" onclick="javascript:openTaskFromTimeline('${t.id}')">Ver tarefa</button>
-      </div>
-    </div>
-  `).join("");
-}
-
-
-// ======= Histórico =======
-function buildHistoricoHTML(ref, nomeCliente) {
-  const raw = JSON.parse(localStorage.getItem('gpp_tarefas_v1') || '[]');
-  const relevantes = raw.tasks.filter(t =>
-    t.origemRef &&
-    (
-      t.origemRef.toLowerCase().includes(nomeCliente.toLowerCase()) ||
-      t.origemRef.toLowerCase().includes(ref.toLowerCase())
-    )
-  );
-
-  if (!relevantes.length) {
-    return `<i>Sem histórico registado.</i>`;
-  }
-
-  return relevantes.map(t => `
-    <div class="hist-item">
-      <strong>${t.titulo}</strong><br>
-      Estado: ${t.estado}<br>
-      Responsável: ${t.responsavel}<br>
-      Prazo: ${t.dataLimite || '—'}
-    </div>
-  `).join("");
-}
-
-
-// ======= Abrir tarefa diretamente pelo timeline =======
-function openTaskFromTimeline(taskId) {
-  const btn = document.querySelector(`[data-id="${taskId}"] .btn-xs`);
-  if (btn) btn.click();
-  closeFichaOriginal();
-}
-
-
-// ======= Ligar botão Guardar =======
-document.addEventListener("click", function(e){
-  if (e.target && e.target.id === "btnGuardarFichaOriginal") {
-    guardarFichaOriginal();
-  }
+/* ===========================================================
+   EVENTOS
+   =========================================================== */
+
+toggleLockBtn.addEventListener("click",()=>{
+  state.locked = !state.locked;
+  updateLockUI();
+  saveState();
 });
+
+newTaskBtn.addEventListener("click",()=>openModal(null));
+closeModalBtn.addEventListener("click",closeModal);
+cancelModalBtn.addEventListener("click",closeModal);
+saveTaskBtn.addEventListener("click",(e)=>{
+  e.preventDefault();
+  saveTask();
+});
+
+applyFiltersBtn.addEventListener("click",()=>{
+  updateFiltersFromControls();
+  saveFilters();
+  syncGlobalFilters();
+  renderCards();
+});
+
+clearFiltersBtn.addEventListener("click",()=>{
+  clearAllFilters();
+  syncGlobalFilters();
+  renderCards();
+});
+
+clearOriginFilterBtn.addEventListener("click",()=>{
+  FILTERS.origemTipo = "";
+  FILTERS.origemRef = "";
+  saveFilters();
+  renderCards();
+});
+
+exportCsvBtn.addEventListener("click",exportCsv);
+exportPdfBtn.addEventListener("click",exportPdfList);
+
+/* ===========================================================
+   LOAD INICIAL
+   =========================================================== */
+
+initConsultores();
+loadState();
+loadFilters();
+applyFilterControls();
+renderCards();
+
+})();
+</script>
+
+</body>
+</html>
