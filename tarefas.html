@@ -1,1122 +1,2096 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <title>Garvetur Porto Pro — Tarefas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --gold:#A38B63;
+      --gold-soft:rgba(163,139,99,.35);
+      --bg:#0B0B0B;
+      --panel:#141414;
+      --panel-soft:#181818;
+      --border:rgba(255,255,255,.14);
+      --text:#FFFFFF;
+      --muted:#A0A0A0;
+      --danger:#F25F5C;
+      --success:#4CAF50;
+      --warning:#FFC857;
+      --radius-lg:18px;
+      --radius-md:14px;
+      --shadow-soft:0 18px 35px rgba(0,0,0,.6);
+    }
+    *{box-sizing:border-box;}
+    html,body{
+      margin:0;
+      height:100%;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      background:radial-gradient(circle at top,#1c1c1c 0,#050505 55%,#000 100%);
+      color:var(--text);
+    }
+    body{display:flex;flex-direction:column;}
+    .app-shell{display:grid;grid-template-rows:64px auto;height:100%;}
 
+    header.app-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:10px 18px;
+      border-bottom:1px solid rgba(163,139,99,.35);
+      background:linear-gradient(90deg,#050505,#111,#050505);
+      gap:16px;
+      flex-wrap:wrap;
+      position:sticky;
+      top:0;
+      z-index:20;
+    }
+    .brand{display:flex;align-items:center;gap:10px;}
+    .brand-icon{
+      width:26px;height:26px;border-radius:999px;
+      border:1px solid var(--gold);
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 0 0 1px rgba(163,139,99,.3);
+    }
+    .brand h1{
+      margin:0;font-size:17px;letter-spacing:.04em;
+      text-transform:uppercase;color:var(--gold);
+    }
+    .brand span.sub{
+      display:block;font-size:11px;color:var(--muted);
+      letter-spacing:.12em;text-transform:uppercase;
+    }
+    .nav-tabs{
+      display:flex;flex-wrap:wrap;align-items:center;gap:4px;
+      background:rgba(0,0,0,.35);padding:4px;
+      border-radius:999px;border:1px solid rgba(163,139,99,.35);
+    }
+    .nav-tab{
+      padding:5px 10px;border-radius:999px;font-size:11px;
+      text-decoration:none;color:var(--muted);
+      letter-spacing:.12em;text-transform:uppercase;
+      border:1px solid transparent;
+      transition:.16s background,.16s color,.16s border-color,.16s transform;
+    }
+    .nav-tab:hover{
+      color:#fff;border-color:rgba(163,139,99,.6);
+      transform:translateY(-1px);
+    }
+    .nav-tab.active{
+      background:var(--gold);color:#0A0A0A;
+      border-color:var(--gold);font-weight:600;
+    }
+    .header-actions{
+      display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    }
+    .btn{
+      border-radius:999px;border:1px solid var(--gold-soft);
+      background:rgba(12,12,12,.9);color:var(--text);
+      padding:7px 12px;font-size:13px;display:inline-flex;
+      align-items:center;gap:6px;cursor:pointer;
+      transition:.18s border-color,.18s background,.18s transform;
+    }
+    .btn-primary{
+      background:var(--gold);
+      color:#0A0A0A;
+      border-color:var(--gold);
+      font-weight:500;
+    }
+    .btn-ghost{
+      background:transparent;
+    }
+    .btn-icon{
+      width:32px;
+      height:32px;
+      padding:0;
+      border-radius:999px;
+      justify-content:center;
+    }
+    .btn:hover{border-color:var(--gold);transform:translateY(-1px);}
+    .btn:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+      transform:none;
+    }
+
+    .pill-lock{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-size:12px;
+      padding:4px 9px;
+      border-radius:999px;
+      background:rgba(0,0,0,.45);
+      border:1px solid rgba(255,255,255,.14);
+      color:var(--muted);
+    }
+    .pill-lock span.state{
+      font-weight:500;
+      color:var(--gold);
+    }
+    .pill-lock button{
+      all:unset;
+      cursor:pointer;
+      padding:2px 6px;
+      border-radius:999px;
+      background:rgba(255,255,255,.05);
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns:320px minmax(0,1fr);
+      height:calc(100vh - 64px);
+      max-height:calc(100vh - 64px);
+      overflow:hidden;
+    }
+    @media (max-width: 960px){
+      .layout{
+        grid-template-columns:1fr;
+        grid-template-rows:auto auto;
+        height:auto;
+        max-height:none;
+      }
+      .sidebar{
+        max-height:none;
+      }
+    }
+
+    .sidebar{
+      border-right:1px solid rgba(163,139,99,.24);
+      background:radial-gradient(circle at top left,#141414,#060606);
+      padding:12px 14px;
+      overflow-y:auto;
+    }
+    .sidebar-section{
+      border-radius:var(--radius-md);
+      padding:10px 11px;
+      background:rgba(0,0,0,.45);
+      border:1px solid rgba(163,139,99,.18);
+      margin-bottom:10px;
+    }
+    .sidebar-section h3{
+      margin:0 0 6px;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      color:var(--muted);
+    }
+    .sidebar-section p{
+      margin:2px 0 6px;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      margin-bottom:8px;
+    }
+    .field-row{
+      display:flex;
+      gap:6px;
+    }
+    label.field-label{
+      font-size:11px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.12em;
+    }
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    input[type="time"],
+    input[type="email"],
+    select,
+    textarea{
+      background:rgba(0,0,0,.7);
+      color:var(--text);
+      border-radius:10px;
+      border:1px solid rgba(163,139,99,.22);
+      padding:6px 8px;
+      font-size:13px;
+      outline:none;
+      width:100%;
+    }
+    input:focus, select:focus, textarea:focus{
+      border-color:var(--gold);
+      box-shadow:0 0 0 1px rgba(163,139,99,.35);
+    }
+    textarea{
+      resize:vertical;
+      min-height:60px;
+    }
+
+    .filters-badges{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:4px;
+    }
+    .badge{
+      font-size:11px;
+      border-radius:999px;
+      padding:3px 7px;
+      border:1px solid rgba(163,139,99,.35);
+      background:rgba(8,8,8,.8);
+      color:var(--muted);
+    }
+    .badge strong{color:var(--gold);}
+
+    .toggle-line{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      font-size:12px;
+      margin-top:4px;
+    }
+    .toggle-line span{
+      color:var(--muted);
+    }
+
+    .cards-area{
+      padding:14px 16px 18px;
+      overflow-y:auto;
+      background:radial-gradient(circle at top,#1a1a1a,#050505 55%,#000 100%);
+    }
+
+    .cards-header{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      margin-bottom:8px;
+      gap:10px;
+    }
+    .cards-header-left h2{
+      margin:0;
+      font-size:15px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+    .cards-header-left p{
+      margin:2px 0 0;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .pipeline-kpis{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:4px;
+    }
+    .kpi-chip{
+      border-radius:999px;
+      padding:4px 9px;
+      border:1px solid rgba(163,139,99,.32);
+      font-size:11px;
+      color:var(--muted);
+      background:rgba(8,8,8,.9);
+    }
+    .kpi-chip span.value{
+      color:var(--gold);
+      font-weight:600;
+      margin-left:4px;
+    }
+
+    .origin-banner{
+      margin-bottom:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--gold-soft);
+      background:rgba(163,139,99,.12);
+      font-size:12px;
+      color:var(--muted);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .origin-banner strong{
+      color:var(--gold);
+    }
+    .origin-banner button{
+      border-radius:999px;
+      border:1px solid rgba(163,139,99,.4);
+      background:rgba(0,0,0,.6);
+      color:var(--muted);
+      padding:3px 8px;
+      font-size:11px;
+      cursor:pointer;
+    }
+    .origin-banner button:hover{
+      border-color:var(--gold);
+      color:#fff;
+    }
+
+    .cards-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+      gap:10px;
+    }
+
+    .card{
+      border-radius:var(--radius-lg);
+      border:1px solid rgba(163,139,99,.3);
+      padding:10px 11px 9px;
+      background:radial-gradient(circle at top left,#181818,#070707);
+      box-shadow:var(--shadow-soft);
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      position:relative;
+    }
+    .card.completed{
+      opacity:.6;
+      border-style:dashed;
+    }
+
+    .card-top-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:8px;
+    }
+    .card-title-block{
+      flex:1;
+      min-width:0;
+    }
+    .card-title{
+      margin:0;
+      font-size:14px;
+      font-weight:600;
+      color:#fff;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      overflow:hidden;
+    }
+    .card-subtitle{
+      margin:1px 0 0;
+      font-size:11px;
+      color:var(--muted);
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      overflow:hidden;
+    }
+
+    .chip-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
+      margin-top:4px;
+    }
+    .chip{
+      border-radius:999px;
+      padding:2px 7px;
+      font-size:10px;
+      border:1px solid rgba(163,139,99,.4);
+      background:#1E1E1E;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+    .chip-primary{
+      border-color:var(--gold);
+      color:var(--gold);
+    }
+    .chip-green{
+      border-color:rgba(76,175,80,.7);
+      color:#A5D6A7;
+    }
+    .chip-red{
+      border-color:rgba(242,95,92,.8);
+      color:#FFABAB;
+    }
+    .chip-yellow{
+      border-color:rgba(255,200,87,.8);
+      color:#FFE082;
+    }
+
+    .card-section{
+      border-top:1px solid rgba(163,139,99,.18);
+      padding-top:4px;
+      margin-top:2px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .card-section strong{
+      color:#f5f5f5;
+      font-weight:500;
+    }
+
+    .card-footer{
+      margin-top:6px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:6px;
+      font-size:11px;
+      color:var(--muted);
+    }
+    .card-footer-left{
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
+      align-items:center;
+    }
+    .card-footer-right{
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
+      justify-content:flex-end;
+    }
+
+    .btn-xs{
+      border-radius:999px;
+      padding:3px 7px;
+      border:1px solid rgba(163,139,99,.35);
+      background:rgba(5,5,5,.9);
+      color:var(--muted);
+      font-size:10px;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+    }
+    .btn-xs.primary{
+      border-color:var(--gold);
+      color:var(--gold);
+    }
+    .btn-xs.danger{
+      border-color:var(--danger);
+      color:#FFB3B0;
+    }
+
+    .empty{
+      font-size:12px;
+      color:var(--muted);
+      padding:16px 4px;
+    }
+
+    .modal-backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.7);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:40;
+    }
+    .modal-backdrop.open{
+      display:flex;
+    }
+    .modal{
+      width:min(900px,96vw);
+      max-height:90vh;
+      background:radial-gradient(circle at top,#151515,#050505);
+      border-radius:22px;
+      border:1px solid rgba(163,139,99,.5);
+      box-shadow:0 24px 45px rgba(0,0,0,.8);
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+    }
+    .modal-header{
+      padding:10px 16px 8px;
+      border-bottom:1px solid rgba(163,139,99,.25);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      background:linear-gradient(90deg,#050505,#111,#050505);
+    }
+    .modal-header h2{
+      margin:0;
+      font-size:15px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--gold);
+    }
+    .modal-body{
+      padding:10px 14px 12px;
+      overflow-y:auto;
+    }
+    .form-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+    }
+    @media (max-width: 900px){
+      .form-grid{
+        grid-template-columns:1fr;
+      }
+    }
+    .form-section{
+      border-radius:var(--radius-md);
+      border:1px solid rgba(163,139,99,.22);
+      background:rgba(0,0,0,.55);
+      padding:8px 9px;
+    }
+    .form-section h3{
+      margin:0 0 6px;
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:var(--muted);
+    }
+    .form-section small{
+      font-size:11px;
+      color:var(--muted);
+    }
+
+    .modal-footer{
+      padding:8px 14px 10px;
+      border-top:1px solid rgba(163,139,99,.25);
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      background:#050505;
+    }
+    .modal-footer-left{
+      font-size:11px;
+      color:var(--muted);
+    }
+
+    .switch{
+      position:relative;
+      display:inline-block;
+      width:34px;
+      height:18px;
+    }
+    .switch input{
+      opacity:0;
+      width:0;
+      height:0;
+    }
+    .slider{
+      position:absolute;
+      cursor:pointer;
+      inset:0;
+      background-color:#444;
+      transition:.2s;
+      border-radius:34px;
+    }
+    .slider:before{
+      position:absolute;
+      content:"";
+      height:14px;
+      width:14px;
+      left:3px;
+      bottom:2px;
+      background-color:white;
+      transition:.2s;
+      border-radius:50%;
+    }
+    .switch input:checked + .slider{
+      background-color:var(--gold);
+    }
+    .switch input:checked + .slider:before{
+      transform:translateX(14px);
+    }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M8 12.5l2.5 2.5L16 9"></path>
+        </svg>
+      </div>
+      <div>
+        <h1>Garvetur Porto Pro — Tarefas</h1>
+        <span class="sub">Follow-up, compromissos e rotina comercial</span>
+      </div>
+    </div>
+
+    <nav class="nav-tabs">
+      <a href="index.html" class="nav-tab">Início</a>
+      <a href="mapa.html" class="nav-tab">Mapa</a>
+      <a href="kanban.html" class="nav-tab">Leads</a>
+      <a href="angariacoes.html" class="nav-tab">Angariações</a>
+      <a href="dashboard.html" class="nav-tab">Dashboard</a>
+      <a href="vendas.html" class="nav-tab">Vendas</a>
+      <a href="tarefas.html" class="nav-tab active">Tarefas</a>
+    </nav>
+
+    <div class="header-actions">
+      <div class="pill-lock" id="lockPill">
+        <span>Modo</span>
+        <span class="state" id="lockStateLabel">Bloqueado</span>
+        <button id="toggleLockBtn" title="Alternar entre edição bloqueada e ativa">
+          🔒
+        </button>
+      </div>
+      <button class="btn btn-ghost" id="exportCsvBtn" title="Exportar tarefas para CSV">⤓ CSV</button>
+      <button class="btn btn-ghost" id="exportPdfBtn" title="Imprimir / PDF (lista atual)">⤓ PDF</button>
+      <button class="btn btn-primary" id="newTaskBtn">+ Nova Tarefa</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <h3>Filtros</h3>
+        <div class="field">
+          <label class="field-label" for="filterResponsavel">Responsável</label>
+          <select id="filterResponsavel">
+            <option value="">Todos</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label" for="filterEstado">Estado</label>
+            <select id="filterEstado">
+              <option value="">Todos</option>
+              <option value="por_fazer">Por fazer</option>
+              <option value="em_curso">Em curso</option>
+              <option value="concluida">Concluída</option>
+              <option value="adiada">Adiada</option>
+              <option value="cancelada">Cancelada</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label" for="filterPrioridade">Prioridade</label>
+            <select id="filterPrioridade">
+              <option value="">Todas</option>
+              <option value="baixa">Baixa</option>
+              <option value="normal">Normal</option>
+              <option value="alta">Alta</option>
+              <option value="critica">Crítica</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label" for="filterDataDe">De (data limite)</label>
+            <input type="date" id="filterDataDe" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="filterDataAte">Até (data limite)</label>
+            <input type="date" id="filterDataAte" />
+          </div>
+        </div>
+        <div class="toggle-line">
+          <span>Mostrar concluídas</span>
+          <label class="switch">
+            <input type="checkbox" id="filterShowCompleted">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <button class="btn" id="applyFiltersBtn" style="margin-top:6px;width:100%;">Aplicar filtros</button>
+        <button class="btn" id="clearFiltersBtn" style="margin-top:4px;width:100%;background:transparent;border-color:rgba(255,255,255,.2);">Limpar</button>
+        <p style="margin-top:6px;">Use os filtros para organizar o dia, reuniões de pipeline e follow-up por consultor.</p>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Resumo rápido</h3>
+        <div class="filters-badges" id="summaryBadges"></div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Notas</h3>
+        <p>Quando o cadeado está em <strong>Bloqueado</strong>, não há risco de alterar tarefas por engano.</p>
+        <p>Quando está <strong>Edição ativa</strong>, pode criar, editar, concluir e apagar tarefas.</p>
+      </div>
+    </aside>
+
+    <main class="cards-area">
+      <div class="cards-header">
+        <div class="cards-header-left">
+          <h2>Tarefas</h2>
+          <p>Visão das ações comerciais: chamadas, visitas, follow-ups e compromissos ligados ao negócio.</p>
+          <div class="pipeline-kpis" id="pipelineKpis"></div>
+        </div>
+      </div>
+
+      <div id="originFilterBanner" class="origin-banner" style="display:none;">
+        <div>
+          🔗 <strong id="originFilterLabel"></strong>
+        </div>
+        <button type="button" id="clearOriginFilterBtn">Limpar filtro de origem</button>
+      </div>
+
+      <div id="cardsGrid" class="cards-grid"></div>
+      <div id="emptyState" class="empty" style="display:none;">
+        Ainda não existem tarefas registadas com os filtros atuais.
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- MODAL TAREFA -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Nova Tarefa</h2>
+      <button class="btn btn-icon btn-ghost" id="closeModalBtn" title="Fechar">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="taskForm">
+        <input type="hidden" id="taskId" />
+        <div class="form-grid">
+          <div class="form-section">
+            <h3>Envolvidos & Origem</h3>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="responsavel">Responsável</label>
+                <select id="responsavel"></select>
+              </div>
+              <div class="field">
+                <label class="field-label" for="apoio">Apoio / Gestor</label>
+                <select id="apoio"></select>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="origemTipo">Origem</label>
+                <select id="origemTipo">
+                  <option value="">—</option>
+                  <option value="lead">Lead</option>
+                  <option value="angariacao">Angariação</option>
+                  <option value="venda">Venda</option>
+                  <option value="interna">Interna</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="field-label" for="origemRef">Ref. associada</label>
+                <input type="text" id="origemRef" placeholder="Ex.: REF-123, nome cliente..." />
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="estado">Estado</label>
+                <select id="estado">
+                  <option value="por_fazer">Por fazer</option>
+                  <option value="em_curso">Em curso</option>
+                  <option value="concluida">Concluída</option>
+                  <option value="adiada">Adiada</option>
+                  <option value="cancelada">Cancelada</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="field-label" for="prioridade">Prioridade</label>
+                <select id="prioridade">
+                  <option value="baixa">Baixa</option>
+                  <option value="normal" selected>Normal</option>
+                  <option value="alta">Alta</option>
+                  <option value="critica">Crítica</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="tipoTarefa">Tipo de tarefa</label>
+              <select id="tipoTarefa">
+                <option value="chamada">Chamada telefónica</option>
+                <option value="email">Email</option>
+                <option value="visita">Visita</option>
+                <option value="reuniao">Reunião</option>
+                <option value="followup">Follow-up</option>
+                <option value="outro">Outro</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="tags">Tags / etiquetas</label>
+              <input type="text" id="tags" placeholder="Ex.: empreendimento X, frio, urgente" />
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Detalhes & Datas</h3>
+
+            <div class="field">
+              <label class="field-label" for="titulo">Título</label>
+              <input type="text" id="titulo" placeholder="Ex.: Agendar visita com proprietários" />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="descricao">Descrição</label>
+              <textarea id="descricao" placeholder="Notas rápidas sobre o objetivo da tarefa, contexto, acordo com o cliente..."></textarea>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="dataCriacao">Data criação</label>
+                <input type="date" id="dataCriacao" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="dataLimite">Data limite</label>
+                <input type="date" id="dataLimite" />
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="horaLimite">Hora</label>
+                <input type="time" id="horaLimite" />
+              </div>
+              <div class="field">
+                <label class="field-label">&nbsp;</label>
+                <small>Use a data limite e hora para organizar visitas, chamadas e follow-ups do dia.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-footer-left">
+        Dados guardados apenas neste navegador (localStorage). Use exportações para backup/partilha.
+      </div>
+      <div>
+        <button class="btn btn-ghost" id="cancelModalBtn">Cancelar</button>
+        <button class="btn btn-primary" id="saveTaskBtn">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FICHA ORIGINAL (Lead / Angariação / Venda) -->
+<div class="modal-backdrop" id="fichaBackdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="fichaTitle">Ficha original</h2>
+      <button class="btn btn-icon btn-ghost" id="closeFichaBtn" title="Fechar">✕</button>
+    </div>
+    <div class="modal-body" id="fichaBody">
+      <div class="form-section" id="fichaTopPanel" style="margin-bottom:8px;">
+        <h3>Resumo rápido</h3>
+        <small id="fichaSummaryLine">
+          Selecionará automaticamente os principais dados da lead / angariação / venda associada à tarefa.
+        </small>
+      </div>
+
+      <div class="form-section">
+        <h3>Campos principais</h3>
+        <small>Os campos abaixo são carregados diretamente do registo original no localStorage.</small>
+        <div id="fichaFieldsGrid" style="margin-top:6px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;"></div>
+      </div>
+
+      <div class="form-section" style="margin-top:8px;">
+        <h3>Extras</h3>
+
+        <details id="fichaTimeline" style="margin-bottom:4px;">
+          <summary style="cursor:pointer;font-size:12px;">Timeline (colapsada por defeito)</summary>
+          <div id="fichaTimelineBody" style="margin-top:4px;font-size:12px;color:var(--muted);"></div>
+        </details>
+
+        <details id="fichaTarefasAssoc" style="margin-bottom:4px;">
+          <summary style="cursor:pointer;font-size:12px;">Histórico de tarefas associadas</summary>
+          <div id="fichaTarefasBody" style="margin-top:4px;font-size:12px;color:var(--muted);"></div>
+        </details>
+
+        <details id="fichaNotas" style="margin-bottom:4px;">
+          <summary style="cursor:pointer;font-size:12px;">Notas internas</summary>
+          <div id="fichaNotasBody" style="margin-top:4px;font-size:12px;color:var(--muted);"></div>
+        </details>
+
+        <details id="fichaAlerta">
+          <summary style="cursor:pointer;font-size:12px;">Alerta inteligente</summary>
+          <div id="fichaAlertBody" style="margin-top:4px;font-size:12px;color:var(--muted);"></div>
+        </details>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-footer-left" id="fichaInfoLabel">
+        Ligado ao registo original (lead / angariação / venda) guardado neste navegador.
+      </div>
+      <div>
+        <button class="btn btn-ghost" id="cancelFichaBtn">Fechar</button>
+        <button class="btn btn-primary" id="saveFichaBtn">Guardar alterações</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'gpp_tarefas_v1';
+  const FILTERS_STORAGE_KEY = 'gpp_tarefas_filters_v1';
+  const GLOBAL_FILTERS_KEY = 'gpp_global_filters_v1';
+
+  const FICHA_STORAGE_KEYS = {
+    lead: 'gpp_leads_v1',
+    angariacao: 'gpp_angariacoes_v1',
+    venda: 'gpp_vendas_v1'
+  };
+
+  const CONSULTOR_OPTIONS = [
+    "Rui Quelhas",
+    "Manuel Oliveira",
+    "João Sousa",
+    "Francisco dos Santos",
+    "Rosário Vasconcelos",
+    "Armanda Meireles",
+    "Audrey Lucas",
+    "Outro"
+  ];
+
+  function $(id){ return document.getElementById(id); }
+
+  const lockStateLabel = $('lockStateLabel');
+  const toggleLockBtn = $('toggleLockBtn');
+  const newTaskBtn = $('newTaskBtn');
+  const exportCsvBtn = $('exportCsvBtn');
+  const exportPdfBtn = $('exportPdfBtn');
+  const cardsGrid = $('cardsGrid');
+  const emptyState = $('emptyState');
+  const pipelineKpis = $('pipelineKpis');
+  const summaryBadges = $('summaryBadges');
+
+  const filterResponsavel = $('filterResponsavel');
+  const filterEstado = $('filterEstado');
+  const filterPrioridade = $('filterPrioridade');
+  const filterDataDe = $('filterDataDe');
+  const filterDataAte = $('filterDataAte');
+  const filterShowCompleted = $('filterShowCompleted');
+  const applyFiltersBtn = $('applyFiltersBtn');
+  const clearFiltersBtn = $('clearFiltersBtn');
+
+  const originFilterBanner = $('originFilterBanner');
+  const originFilterLabel = $('originFilterLabel');
+  const clearOriginFilterBtn = $('clearOriginFilterBtn');
+
+  const modalBackdrop = $('modalBackdrop');
+  const modalTitle = $('modalTitle');
+  const closeModalBtn = $('closeModalBtn');
+  const cancelModalBtn = $('cancelModalBtn');
+  const saveTaskBtn = $('saveTaskBtn');
+  const taskForm = $('taskForm');
+
+  const responsavelSelect = $('responsavel');
+  const apoioSelect = $('apoio');
+
+  const fichaBackdrop = $('fichaBackdrop');
+  const fichaTitle = $('fichaTitle');
+  const closeFichaBtn = $('closeFichaBtn');
+  const cancelFichaBtn = $('cancelFichaBtn');
+  const saveFichaBtn = $('saveFichaBtn');
+  const fichaSummaryLine = $('fichaSummaryLine');
+  const fichaFieldsGrid = $('fichaFieldsGrid');
+  const fichaTimelineBody = $('fichaTimelineBody');
+  const fichaTarefasBody = $('fichaTarefasBody');
+  const fichaNotasBody = $('fichaNotasBody');
+  const fichaAlertBody = $('fichaAlertBody');
+  const fichaInfoLabel = $('fichaInfoLabel');
+
+  let state = {
+    locked:true,
+    tasks:[]
+  };
+
+  let fichaContext = {
+    tipo: '',
+    storageKey: '',
+    root: null,
+    propName: null,
+    arr: null,
+    index: -1,
+    record: null
+  };
+
+  let FILTERS = {
+    responsavel:'',
+    estado:'',
+    prioridade:'',
+    de:'',
+    ate:'',
+    showCompleted:false,
+    origemTipo:'',
+    origemRef:''
+  };
+
+  function todayISO(){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return y + '-' + m + '-' + day;
+  }
+
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        const parsed = JSON.parse(raw);
+        if(Array.isArray(parsed)){
+          state.tasks = parsed;
+          state.locked = true;
+        }else if(parsed && Array.isArray(parsed.tasks)){
+          state.tasks = parsed.tasks;
+          state.locked = parsed.locked !== false;
+        }else{
+          state.tasks = Array.isArray(parsed && parsed.items) ? parsed.items : [];
+          state.locked = true;
+        }
+      }
+    }catch(e){
+      console.error('Erro ao carregar storage tarefas', e);
+    }
+    updateLockUI();
+  }
+
+  function saveState(){
+    try{
+      const payload = {
+        locked: state.locked,
+        tasks: state.tasks
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    }catch(e){
+      console.error('Erro ao guardar storage tarefas', e);
+    }
+  }
+
+  function loadFiltersFromStorage(){
+    try{
+      const raw = localStorage.getItem(FILTERS_STORAGE_KEY);
+      if(!raw) return;
+      const parsed = JSON.parse(raw);
+      if(parsed && typeof parsed === 'object'){
+        FILTERS = Object.assign({}, FILTERS, parsed);
+      }
+    }catch(e){
+      console.error('Erro a carregar filtros de tarefas', e);
+    }
+  }
+
+  function loadGlobalFiltersFallback(){
+    if(FILTERS.responsavel || FILTERS.de || FILTERS.ate) return;
+    try{
+      const raw = localStorage.getItem(GLOBAL_FILTERS_KEY);
+      if(!raw) return;
+      const g = JSON.parse(raw) || {};
+      if(!FILTERS.responsavel && g.consultor) FILTERS.responsavel = g.consultor;
+      if(!FILTERS.de && g.de) FILTERS.de = g.de;
+      if(!FILTERS.ate && g.ate) FILTERS.ate = g.ate;
+    }catch(e){
+      console.error('Erro a carregar filtros globais', e);
+    }
+  }
+
+  function applyUrlContext(){
+    try{
+      const params = new URLSearchParams(window.location.search);
+      const origem = (params.get('origem') || '').trim();
+      const ref    = (params.get('ref') || '').trim();
+      const consultor = (params.get('consultor') || '').trim();
+      const nova   = (params.get('nova') || '').trim();
+
+      if(consultor && !FILTERS.responsavel){
+        FILTERS.responsavel = consultor;
+      }
+
+      if(origem || ref){
+        FILTERS.origemTipo = origem || '';
+        FILTERS.origemRef  = ref || '';
+      }
+
+      if(nova === '1'){
+        if(state.locked){
+          setTimeout(()=>{
+            alert('Para criar uma nova tarefa associada, ative "Edição ativa" (cadeado no topo).');
+          }, 300);
+        }else{
+          openModal(null);
+          if(origem){
+            $('origemTipo').value = origem;
+          }
+          if(ref){
+            $('origemRef').value = ref;
+          }
+          if(consultor){
+            responsavelSelect.value = consultor;
+          }
+        }
+      }
+    }catch(e){
+      console.error('Erro a interpretar parâmetros da URL em tarefas', e);
+    }
+  }
+
+  function applyFiltersToControls(){
+    filterResponsavel.value = FILTERS.responsavel || '';
+    filterEstado.value = FILTERS.estado || '';
+    filterPrioridade.value = FILTERS.prioridade || '';
+    filterDataDe.value = FILTERS.de || '';
+    filterDataAte.value = FILTERS.ate || '';
+    filterShowCompleted.checked = !!FILTERS.showCompleted;
+  }
+
+  function updateFiltersFromControls(){
+    FILTERS.responsavel = filterResponsavel.value || '';
+    FILTERS.estado = filterEstado.value || '';
+    FILTERS.prioridade = filterPrioridade.value || '';
+    FILTERS.de = filterDataDe.value || '';
+    FILTERS.ate = filterDataAte.value || '';
+    FILTERS.showCompleted = filterShowCompleted.checked;
+  }
+
+  function saveFiltersToStorage(){
+    try{
+      localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(FILTERS));
+    }catch(e){
+      console.error('Erro a guardar filtros de tarefas', e);
+    }
+  }
+
+  function syncGlobalFiltersFromTasks(){
+    const g = {
+      consultor: FILTERS.responsavel || '',
+      de: FILTERS.de || '',
+      ate: FILTERS.ate || ''
+    };
+    try{
+      localStorage.setItem(GLOBAL_FILTERS_KEY, JSON.stringify(g));
+    }catch(e){
+      console.error('Erro a guardar filtros globais', e);
+    }
+  }
+
+  function clearFilters(){
+    FILTERS = {
+      responsavel:'',
+      estado:'',
+      prioridade:'',
+      de:'',
+      ate:'',
+      showCompleted:false,
+      origemTipo:'',
+      origemRef:''
+    };
+    applyFiltersToControls();
+    saveFiltersToStorage();
+    syncGlobalFiltersFromTasks();
+  }
+
+  function updateLockUI(){
+    if(state.locked){
+      lockStateLabel.textContent = 'Bloqueado';
+      toggleLockBtn.textContent = '🔒';
+      newTaskBtn.disabled = true;
+    }else{
+      lockStateLabel.textContent = 'Edição ativa';
+      toggleLockBtn.textContent = '🔓';
+      newTaskBtn.disabled = false;
+    }
+  }
+
+  function initConsultores(){
+    CONSULTOR_OPTIONS.forEach(name=>{
+      const opt1 = document.createElement('option');
+      opt1.value = name;
+      opt1.textContent = name;
+      responsavelSelect.appendChild(opt1);
+
+      const opt2 = document.createElement('option');
+      opt2.value = name;
+      opt2.textContent = name;
+      apoioSelect.appendChild(opt2);
+
+      const opt3 = document.createElement('option');
+      opt3.value = name;
+      opt3.textContent = name;
+      filterResponsavel.appendChild(opt3);
+    });
+  }
+
+  function openModal(task){
+    modalBackdrop.classList.add('open');
+    if(task){
+      modalTitle.textContent = 'Editar Tarefa';
+      $('taskId').value = task.id || '';
+      responsavelSelect.value = task.responsavel || '';
+      apoioSelect.value = task.apoio || '';
+      $('origemTipo').value = task.origemTipo || '';
+      $('origemRef').value = task.origemRef || '';
+      $('estado').value = task.estado || 'por_fazer';
+      $('prioridade').value = task.prioridade || 'normal';
+      $('tipoTarefa').value = task.tipoTarefa || 'chamada';
+      $('tags').value = task.tags || '';
+      $('titulo').value = task.titulo || '';
+      $('descricao').value = task.descricao || '';
+      $('dataCriacao').value = task.dataCriacao || '';
+      $('dataLimite').value = task.dataLimite || '';
+      $('horaLimite').value = task.horaLimite || '';
+    }else{
+      modalTitle.textContent = 'Nova Tarefa';
+      taskForm.reset();
+      $('taskId').value = '';
+      $('dataCriacao').value = todayISO();
+    }
+  }
+
+  function closeModal(){
+    modalBackdrop.classList.remove('open');
+  }
+
+  function collectFormData(){
+    const id = $('taskId').value || 'task_' + Date.now();
+
+    let dataCriacao = $('dataCriacao').value;
+    if(!dataCriacao){
+      dataCriacao = todayISO();
+    }
+
+    return {
+      id,
+      responsavel: responsavelSelect.value || '',
+      apoio: apoioSelect.value || '',
+      origemTipo: $('origemTipo').value || '',
+      origemRef: $('origemRef').value || '',
+      estado: $('estado').value || 'por_fazer',
+      prioridade: $('prioridade').value || 'normal',
+      tipoTarefa: $('tipoTarefa').value || 'chamada',
+      tags: $('tags').value || '',
+      titulo: $('titulo').value || '',
+      descricao: $('descricao').value || '',
+      dataCriacao: dataCriacao,
+      dataLimite: $('dataLimite').value || '',
+      horaLimite: $('horaLimite').value || '',
+      createdAtMs: Date.now()
+    };
+  }
+
+  function applyFilters(tasks){
+    const resp = FILTERS.responsavel || '';
+    const est = FILTERS.estado || '';
+    const prio = FILTERS.prioridade || '';
+    const from = FILTERS.de || '';
+    const to = FILTERS.ate || '';
+    const showCompleted = !!FILTERS.showCompleted;
+    const oTipo = FILTERS.origemTipo || '';
+    const oRef = FILTERS.origemRef || '';
+
+    return tasks.filter(t=>{
+      if(resp && t.responsavel !== resp) return false;
+      if(est && t.estado !== est) return false;
+      if(prio && t.prioridade !== prio) return false;
+
+      if(!showCompleted && (t.estado === 'concluida' || t.estado === 'cancelada')){
+        return false;
+      }
+
+      if(from && t.dataLimite && t.dataLimite < from) return false;
+      if(to && t.dataLimite && t.dataLimite > to) return false;
+
+      if(oTipo && t.origemTipo !== oTipo) return false;
+      if(oRef){
+        const tref = (t.origemRef || '').toLowerCase();
+        if(!tref.includes(oRef.toLowerCase())) return false;
+      }
+
+      return true;
+    });
+  }
+
+  function estadoLabel(e){
+    return {
+      por_fazer:'Por fazer',
+      em_curso:'Em curso',
+      concluida:'Concluída',
+      adiada:'Adiada',
+      cancelada:'Cancelada'
+    }[e] || '—';
+  }
+
+  function prioridadeLabel(p){
+    return {
+      baixa:'Baixa',
+      normal:'Normal',
+      alta:'Alta',
+      critica:'Crítica'
+    }[p] || '—';
+  }
+
+  function tipoLabel(t){
+    return {
+      chamada:'Chamada',
+      email:'Email',
+      visita:'Visita',
+      reuniao:'Reunião',
+      followup:'Follow-up',
+      outro:'Outro'
+    }[t] || '—';
+  }
+
+  function origemLabel(tipo){
+    return {
+      lead:'Lead',
+      angariacao:'Angariação',
+      venda:'Venda',
+      interna:'Interna'
+    }[tipo] || '';
+  }
+
+  function prioridadeClass(p){
+    if(p === 'critica') return 'chip-red';
+    if(p === 'alta') return 'chip-yellow';
+    if(p === 'baixa') return 'chip';
+    return 'chip-primary';
+  }
+
+  function estadoClass(e){
+    if(e === 'concluida') return 'chip-green';
+    if(e === 'adiada' || e === 'cancelada') return 'chip-red';
+    if(e === 'em_curso') return 'chip-yellow';
+    return 'chip-primary';
+  }
+
+  function renderOriginBanner(){
+    if(FILTERS.origemTipo || FILTERS.origemRef){
+      const parts = [];
+      if(FILTERS.origemTipo){
+        parts.push('Origem: ' + origemLabel(FILTERS.origemTipo));
+      }
+      if(FILTERS.origemRef){
+        parts.push('Ref.: ' + FILTERS.origemRef);
+      }
+      originFilterLabel.textContent = parts.join(' · ');
+      originFilterBanner.style.display = 'flex';
+    }else{
+      originFilterBanner.style.display = 'none';
+    }
+  }
+
+  function prettyLabel(key){
+    return key
+      .replace(/_/g,' ')
+      .replace(/([a-z])([A-Z])/g,'$1 $2')
+      .replace(/\b(id|Id)\b/,'ID')
+      .replace(/\bref\b/i,'Ref.')
+      .replace(/\bnif\b/i,'NIF')
+      .replace(/\s+/g,' ')
+      .replace(/^./,c=>c.toUpperCase());
+  }
+
+  function loadArrayFromRoot(parsed){
+    if(Array.isArray(parsed)) return {root:parsed, propName:null, arr:parsed};
+    if(parsed && Array.isArray(parsed.leads)) return {root:parsed, propName:'leads', arr:parsed.leads};
+    if(parsed && Array.isArray(parsed.angariacoes)) return {root:parsed, propName:'angariacoes', arr:parsed.angariacoes};
+    if(parsed && Array.isArray(parsed.vendas)) return {root:parsed, propName:'vendas', arr:parsed.vendas};
+    if(parsed && Array.isArray(parsed.items)) return {root:parsed, propName:'items', arr:parsed.items};
+    return {root:parsed, propName:null, arr:[]};
+  }
+
+  function matchRecordByRef(rec, refStr){
+    if(!rec) return false;
+    const r = (refStr || '').toString().trim().toLowerCase();
+    if(!r) return false;
+
+    const candidates = [
+      rec.id,
+      rec.ref,
+      rec.referencia,
+      rec.codigo,
+      rec.codigoInterno,
+      rec.codigo_imovel,
+      rec.codigoImovel
+    ].filter(Boolean).map(x=>String(x).toLowerCase());
+
+    for(const c of candidates){
+      if(c === r) return true;
+      if(c.includes(r)) return true;
+      if(r.includes(c)) return true;
+    }
+    return false;
+  }
+
+  function findFichaOriginal(tipo, origemRef){
+    const storageKey = FICHA_STORAGE_KEYS[tipo];
+    if(!storageKey) return null;
+
+    try{
+      const raw = localStorage.getItem(storageKey);
+      if(!raw) return null;
+      const parsed = JSON.parse(raw);
+      const {root, propName, arr} = loadArrayFromRoot(parsed);
+      if(!Array.isArray(arr) || !arr.length) return null;
+
+      let index = -1;
+      for(let i=0;i<arr.length;i++){
+        if(matchRecordByRef(arr[i], origemRef)){
+          index = i;
+          break;
+        }
+      }
+      if(index === -1) return null;
+
+      return {
+        storageKey,
+        root,
+        propName,
+        arr,
+        index,
+        record: arr[index]
+      };
+    }catch(e){
+      console.error('Erro ao carregar ficha original', e);
+      return null;
+    }
+  }
+
+  function openFichaModal(task){
+    if(!task || !task.origemTipo){
+      alert('Esta tarefa não tem origem associada (lead / angariação / venda).');
+      return;
+    }
+    if(task.origemTipo === 'interna'){
+      alert('Tarefas internas não têm ficha original externa.');
+      return;
+    }
+    if(!task.origemRef){
+      alert('A tarefa não tem "Ref. associada" preenchida.');
+      return;
+    }
+
+    const tipo = task.origemTipo;
+    const ctx = findFichaOriginal(tipo, task.origemRef);
+    if(!ctx){
+      alert('Não foi possível encontrar a ficha original no armazenamento local.\n\nVerifique se a referência coincide exatamente com a usada em Leads/Angariações/Vendas.');
+      return;
+    }
+
+    fichaContext = Object.assign({tipo}, ctx);
+
+    const r = ctx.record || {};
+    const nome = r.nome || r.nomeCliente || r.cliente || r.proprietario || '';
+    const consultor = r.consultor || r.responsavel || task.responsavel || '';
+    const estado = r.estado || r.status || '';
+    const fase = r.fase || r.etapa || r.funnel || '';
+    const dataEntrada = r.dataEntrada || r.dataCriacao || r.createdAt || '';
+
+    const parts = [];
+    if(nome) parts.push('<strong>' + nome + '</strong>');
+    if(consultor) parts.push('Consultor: ' + consultor);
+    if(estado) parts.push('Estado: ' + estado);
+    if(fase) parts.push('Fase: ' + fase);
+    if(dataEntrada) parts.push('Entrada: ' + dataEntrada);
+
+    fichaSummaryLine.innerHTML = parts.join(' · ') || 'Registo encontrado. Pode editar os campos em baixo e gravar.';
+
+    fichaFieldsGrid.innerHTML = '';
+    const recordKeys = Object.keys(r);
+
+    recordKeys.forEach(key=>{
+      const value = r[key];
+      if(typeof value === 'object') return;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'field';
+
+      const label = document.createElement('label');
+      label.className = 'field-label';
+      label.textContent = prettyLabel(key);
+      wrapper.appendChild(label);
+
+      const isLong = value && String(value).length > 120;
+      let control;
+      if(isLong){
+        control = document.createElement('textarea');
+        control.rows = 3;
+      }else{
+        control = document.createElement('input');
+        control.type = 'text';
+      }
+      control.value = value != null ? String(value) : '';
+      control.dataset.key = key;
+      wrapper.appendChild(control);
+
+      fichaFieldsGrid.appendChild(wrapper);
+    });
+
+    fichaTimelineBody.innerHTML = '';
+    if(Array.isArray(r.timeline) && r.timeline.length){
+      const ul = document.createElement('ul');
+      ul.style.listStyle = 'disc';
+      ul.style.marginLeft = '18px';
+      r.timeline.forEach(ev=>{
+        const li = document.createElement('li');
+        li.textContent = typeof ev === 'string' ? ev : JSON.stringify(ev);
+        ul.appendChild(li);
+      });
+      fichaTimelineBody.appendChild(ul);
+    }else{
+      fichaTimelineBody.textContent = 'Sem registos de timeline neste momento.';
+    }
+
+    fichaTarefasBody.innerHTML = '';
+    const ligadas = state.tasks.filter(t=>{
+      return t.origemTipo === task.origemTipo &&
+             t.origemRef &&
+             task.origemRef &&
+             t.origemRef.toLowerCase() === task.origemRef.toLowerCase();
+    });
+
+    if(ligadas.length){
+      const ul = document.createElement('ul');
+      ul.style.listStyle = 'disc';
+      ul.style.marginLeft = '18px';
+      ligadas.forEach(t=>{
+        const li = document.createElement('li');
+        li.textContent = (t.dataLimite || '') + ' — ' + (t.titulo || '(Sem título)') + ' [' + estadoLabel(t.estado) + ']';
+        ul.appendChild(li);
+      });
+      fichaTarefasBody.appendChild(ul);
+    }else{
+      fichaTarefasBody.textContent = 'Nenhuma outra tarefa associada foi encontrada.';
+    }
+
+    fichaNotasBody.innerHTML = '';
+    if(r.notasInternas || r.notas){
+      const txt = r.notasInternas || r.notas;
+      const p = document.createElement('p');
+      p.textContent = txt;
+      fichaNotasBody.appendChild(p);
+    }else{
+      fichaNotasBody.textContent = 'Sem notas internas registadas na ficha original.';
+    }
+
+    fichaAlertBody.innerHTML = '';
+    const alertLines = [];
+    if(task.prioridade === 'critica' || task.prioridade === 'alta'){
+      alertLines.push('⚠ Tarefa marcada com prioridade elevada.');
+    }
+    if(task.estado !== 'concluida'){
+      alertLines.push('➡ Recomendado confirmar próximos passos com o cliente/proprietário.');
+    }
+    if(!alertLines.length){
+      alertLines.push('Nenhum alerta relevante detetado neste momento.');
+    }
+    fichaAlertBody.innerHTML = alertLines.join('<br>');
+
+    fichaInfoLabel.textContent = 'Ligado a "' + origemLabel(tipo) + '" no storage: ' + ctx.storageKey;
+
+    fichaBackdrop.classList.add('open');
+  }
+
+  function closeFichaModal(){
+    fichaBackdrop.classList.remove('open');
+    fichaContext = {
+      tipo:'',
+      storageKey:'',
+      root:null,
+      propName:null,
+      arr:null,
+      index:-1,
+      record:null
+    };
+  }
+
+  function saveFichaChanges(){
+    if(!fichaContext || !fichaContext.arr || fichaContext.index < 0){
+      alert('Não há ficha carregada para guardar.');
+      return;
+    }
+
+    const rec = Object.assign({}, fichaContext.record);
+    const inputs = fichaFieldsGrid.querySelectorAll('input,textarea');
+    inputs.forEach(el=>{
+      const key = el.dataset.key;
+      if(!key) return;
+      rec[key] = el.value;
+    });
+
+    fichaContext.arr[fichaContext.index] = rec;
+    fichaContext.record = rec;
+
+    try{
+      let toSave;
+      if(fichaContext.propName){
+        fichaContext.root[fichaContext.propName] = fichaContext.arr;
+        toSave = fichaContext.root;
+      }else{
+        toSave = fichaContext.arr;
+      }
+      localStorage.setItem(fichaContext.storageKey, JSON.stringify(toSave));
+      alert('Ficha original atualizada com sucesso.');
+    }catch(e){
+      console.error('Erro ao guardar ficha original', e);
+      alert('Ocorreu um erro ao guardar as alterações.');
+    }
+  }
+
+  function renderCards(){
+    const tasks = state.tasks.slice().sort((a,b)=>{
+      const da = a.dataLimite || '';
+      const db = b.dataLimite || '';
+      if(da && db){
+        return da.localeCompare(db);
+      }
+      if(da && !db) return -1;
+      if(!da && db) return 1;
+      return (a.createdAtMs || 0) - (b.createdAtMs || 0);
+    });
+
+    const filtered = applyFilters(tasks);
+    cardsGrid.innerHTML = '';
+
+    renderOriginBanner();
+
+    if(!filtered.length){
+      emptyState.style.display = 'block';
+    }else{
+      emptyState.style.display = 'none';
+    }
+
+    let total = tasks.length;
+    let porEstado = {por_fazer:0,em_curso:0,concluida:0,adiada:0,cancelada:0};
+    tasks.forEach(t=>{
+      if(porEstado[t.estado] !== undefined) porEstado[t.estado]++;
+    });
+
+    summaryBadges.innerHTML = '';
+    const badge1 = document.createElement('div');
+    badge1.className = 'badge';
+    badge1.innerHTML = 'Total tarefas <strong>' + total + '</strong>';
+    summaryBadges.appendChild(badge1);
+
+    const badge2 = document.createElement('div');
+    const abertas = tasks.filter(t=>t.estado!=='concluida' && t.estado!=='cancelada').length;
+    badge2.className = 'badge';
+    badge2.innerHTML = 'Em aberto <strong>' + abertas + '</strong>';
+    summaryBadges.appendChild(badge2);
+
+    const porRespFiltrado = {};
+    filtered.forEach(t=>{
+      if(!t.responsavel) return;
+      porRespFiltrado[t.responsavel] = (porRespFiltrado[t.responsavel]||0)+1;
+    });
+    Object.keys(porRespFiltrado).sort().forEach(n=>{
+      const b = document.createElement('div');
+      b.className = 'badge';
+      b.innerHTML = '<strong>'+n+':</strong> ' + porRespFiltrado[n];
+      summaryBadges.appendChild(b);
+    });
+
+    pipelineKpis.innerHTML = '';
+    const estadosOrdem = ['por_fazer','em_curso','concluida','adiada','cancelada'];
+    estadosOrdem.forEach(k=>{
+      const chip = document.createElement('div');
+      chip.className = 'kpi-chip';
+      chip.innerHTML = estadoLabel(k) + '<span class="value">'+porEstado[k]+'</span>';
+      pipelineKpis.appendChild(chip);
+    });
+
+    filtered.forEach(t=>{
+      const card = document.createElement('div');
+      card.className = 'card' + ((t.estado === 'concluida' || t.estado === 'cancelada') ? ' completed':'');
+      card.dataset.id = t.id;
+
+      const topRow = document.createElement('div');
+      topRow.className = 'card-top-row';
+
+      const titleBlock = document.createElement('div');
+      titleBlock.className = 'card-title-block';
+
+      const h3 = document.createElement('h3');
+      h3.className = 'card-title';
+      h3.textContent = t.titulo || '(Sem título)';
+      titleBlock.appendChild(h3);
+
+      const subtitle = document.createElement('div');
+      subtitle.className = 'card-subtitle';
+      const linhaSub = [
+        t.responsavel || '',
+        prioridadeLabel(t.prioridade),
+        estadoLabel(t.estado)
+      ].filter(Boolean).join(' · ');
+      subtitle.textContent = linhaSub;
+      titleBlock.appendChild(subtitle);
+
+      const chipsRow = document.createElement('div');
+      chipsRow.className = 'chip-row';
+
+      const chipEst = document.createElement('span');
+      chipEst.className = 'chip ' + estadoClass(t.estado);
+      chipEst.textContent = estadoLabel(t.estado);
+      chipsRow.appendChild(chipEst);
+
+      const chipPrio = document.createElement('span');
+      chipPrio.className = 'chip ' + prioridadeClass(t.prioridade);
+      chipPrio.textContent = prioridadeLabel(t.prioridade);
+      chipsRow.appendChild(chipPrio);
+
+      if(t.tipoTarefa){
+        const ch = document.createElement('span');
+        ch.className = 'chip';
+        ch.textContent = tipoLabel(t.tipoTarefa);
+        chipsRow.appendChild(ch);
+      }
+
+      if(t.origemTipo){
+        const ch = document.createElement('span');
+        ch.className = 'chip';
+        ch.textContent = origemLabel(t.origemTipo);
+        chipsRow.appendChild(ch);
+      }
+
+      if(t.tags){
+        const ch = document.createElement('span');
+        ch.className = 'chip';
+        ch.textContent = t.tags;
+        chipsRow.appendChild(ch);
+      }
+
+      titleBlock.appendChild(chipsRow);
+      topRow.appendChild(titleBlock);
+      card.appendChild(topRow);
+
+      if(t.origemTipo || t.origemRef){
+        const sec = document.createElement('div');
+        sec.className = 'card-section';
+        const span = document.createElement('span');
+        const parts = [];
+        if(t.origemTipo) parts.push(origemLabel(t.origemTipo));
+        if(t.origemRef) parts.push(t.origemRef);
+        span.innerHTML = '<strong>Origem:</strong> ' + parts.join(' · ');
+        sec.appendChild(span);
+        card.appendChild(sec);
+      }
+
+      if(t.dataCriacao || t.dataLimite || t.horaLimite){
+        const sec = document.createElement('div');
+        sec.className = 'card-section';
+        const span = document.createElement('span');
+        const parts = [];
+        if(t.dataCriacao) parts.push('Criada em ' + t.dataCriacao);
+        if(t.dataLimite) parts.push('Limite ' + t.dataLimite + (t.horaLimite ? ' ' + t.horaLimite : ''));
+        span.innerHTML = parts.join(' · ');
+        sec.appendChild(span);
+        card.appendChild(sec);
+      }
+
+      if(t.descricao){
+        const sec = document.createElement('div');
+        sec.className = 'card-section';
+        const span = document.createElement('span');
+        let txt = t.descricao;
+        if(txt.length > 180){
+          txt = txt.slice(0,177) + '…';
+        }
+        span.textContent = txt;
+        sec.appendChild(span);
+        card.appendChild(sec);
+      }
+
+      const foot = document.createElement('div');
+      foot.className = 'card-footer';
+      const left = document.createElement('div');
+      left.className = 'card-footer-left';
+
+      const partes = [];
+      if(t.responsavel) partes.push(t.responsavel);
+      if(t.apoio && t.apoio !== t.responsavel) partes.push('Apoio: ' + t.apoio);
+      left.textContent = partes.join(' · ');
+      foot.appendChild(left);
+
+      const right = document.createElement('div');
+      right.className = 'card-footer-right';
+
+      const btnDone = document.createElement('button');
+      btnDone.className = 'btn-xs primary';
+      btnDone.textContent = (t.estado === 'concluida') ? 'Reabrir' : 'Concluir';
+      btnDone.addEventListener('click',()=>{
+        if(state.locked) return;
+        if(t.estado === 'concluida'){
+          t.estado = 'por_fazer';
+        }else{
+          t.estado = 'concluida';
+        }
+        saveState();
+        renderCards();
+      });
+      right.appendChild(btnDone);
+
+      const btnEdit = document.createElement('button');
+      btnEdit.className = 'btn-xs';
+      btnEdit.textContent = 'Editar';
+      btnEdit.addEventListener('click',()=>{
+        if(state.locked) return;
+        openModal(t);
+      });
+      right.appendChild(btnEdit);
+
+      const btnFicha = document.createElement('button');
+      btnFicha.className = 'btn-xs';
+      btnFicha.textContent = 'Ver ficha original';
+      btnFicha.addEventListener('click',()=>{
+        openFichaModal(t);
+      });
+      right.appendChild(btnFicha);
+
+      const btnDel = document.createElement('button');
+      btnDel.className = 'btn-xs danger';
+      btnDel.textContent = 'Apagar';
+      btnDel.addEventListener('click',()=>{
+        if(state.locked) return;
+        if(confirm('Tem a certeza que pretende apagar esta tarefa?')){
+          state.tasks = state.tasks.filter(x=>x.id !== t.id);
+          saveState();
+          renderCards();
+        }
+      });
+      right.appendChild(btnDel);
+
+      foot.appendChild(right);
+      card.appendChild(foot);
+
+      cardsGrid.appendChild(card);
+    });
+  }
+
+  function exportCsv(){
+    if(!state.tasks.length){
+      alert('Não existem tarefas para exportar.');
+      return;
+    }
+
+    const cols = [
+      'id','titulo','descricao','responsavel','apoio',
+      'origemTipo','origemRef',
+      'estado','prioridade','tipoTarefa',
+      'tags','dataCriacao','dataLimite','horaLimite'
+    ];
+
+    function esc(v){
+      if(v==null) return '';
+      const s = String(v).replace(/"/g,'""');
+      return '"' + s + '"';
+    }
+
+    let csv = cols.map(esc).join(';') + '\n';
+    state.tasks.forEach(t=>{
+      const row = cols.map(c=>esc(t[c]));
+      csv += row.join(';') + '\n';
+    });
+
+    const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'tarefas_garvetur_porto_pro.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function exportPdfList(){
+    const filtered = applyFilters(state.tasks);
+    if(!filtered.length){
+      alert('Não existem tarefas com os filtros atuais para exportar.');
+      return;
+    }
+
+    const w = window.open('', '_blank');
+    if(!w){
+      alert('O navegador bloqueou a abertura da janela de impressão.\n\nPor favor permita pop-ups para este site ou use a opção de imprimir diretamente no browser.');
+      return;
+    }
+
+    let rowsHtml = '';
+    filtered.forEach(t=>{
+      rowsHtml += `
+      <tr>
+        <td>${t.dataLimite || ''} ${t.horaLimite || ''}</td>
+        <td>${t.titulo || ''}</td>
+        <td>${t.responsavel || ''}</td>
+        <td>${estadoLabel(t.estado)}</td>
+        <td>${prioridadeLabel(t.prioridade)}</td>
+        <td>${tipoLabel(t.tipoTarefa)}</td>
+      </tr>`;
+    });
+
+    const html = `
 <!doctype html>
 <html lang="pt-PT">
 <head>
 <meta charset="utf-8" />
-<title>Garvetur Porto Pro — Tarefas</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-
+<title>Lista de Tarefas — Garvetur Porto Pro</title>
 <style>
-:root{
- --gold:#A38B63;
- --gold-soft:rgba(163,139,99,.35);
- --bg:#0B0B0B;
- --panel:#141414;
- --panel-soft:#181818;
- --border:rgba(255,255,255,.12);
- --text:#FFFFFF;
- --muted:#A0A0A0;
- --danger:#F25F5C;
- --success:#4CAF50;
- --warning:#FFC857;
- --radius-lg:20px;
- --radius-md:14px;
- --shadow-soft:0 18px 35px rgba(0,0,0,.55);
-}
-
-/* Reset + Base */
-*{box-sizing:border-box;}
-html,body{margin:0;padding:0;height:100%;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:radial-gradient(circle at top,#1c1c1c,#050505 55%,#000);color:var(--text);}
-body{display:flex;flex-direction:column;}
-.app-shell{display:grid;grid-template-rows:64px auto;height:100%;}
-
-/* HEADER */
-header.app-header{
- display:flex;align-items:center;justify-content:space-between;
- padding:10px 18px;
- border-bottom:1px solid rgba(163,139,99,.35);
- background:linear-gradient(90deg,#050505,#111,#050505);
- gap:16px;flex-wrap:wrap;
- position:sticky;top:0;z-index:20;
-}
-.brand{display:flex;align-items:center;gap:10px;}
-.brand-icon{
- width:26px;height:26px;border-radius:999px;border:1px solid var(--gold);
- display:flex;align-items:center;justify-content:center;
- box-shadow:0 0 0 1px rgba(163,139,99,.3);
-}
-.brand h1{margin:0;font-size:17px;letter-spacing:.04em;text-transform:uppercase;color:var(--gold);}
-.brand span.sub{display:block;font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;}
-
-/* NAV TABS */
-.nav-tabs{
- display:flex;flex-wrap:wrap;align-items:center;gap:4px;
- background:rgba(0,0,0,.35);padding:4px;
- border-radius:999px;border:1px solid rgba(163,139,99,.35);
-}
-.nav-tab{
- padding:5px 10px;border-radius:999px;font-size:11px;text-decoration:none;
- color:var(--muted);letter-spacing:.12em;text-transform:uppercase;border:1px solid transparent;
- transition:.16s background,.16s color,.16s border-color,.16s transform;
-}
-.nav-tab:hover{color:#fff;border-color:rgba(163,139,99,.6);transform:translateY(-1px);}
-.nav-tab.active{background:var(--gold);color:#0A0A0A;border-color:var(--gold);font-weight:600;}
-
-/* HEADER ACTIONS */
-.header-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.btn{
- border-radius:999px;border:1px solid var(--gold-soft);
- background:rgba(12,12,12,.9);color:var(--text);
- padding:7px 12px;font-size:13px;display:inline-flex;align-items:center;gap:6px;
- cursor:pointer;transition:.18s border-color,.18s background,.18s transform;
-}
-.btn:hover{border-color:var(--gold);transform:translateY(-1px);}
-.btn-primary{background:var(--gold);color:#0A0A0A;border-color:var(--gold);font-weight:500;}
-.btn-ghost{background:transparent;}
-.btn-icon{width:34px;height:34px;padding:0;border-radius:999px;justify-content:center;}
-.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
-
-.pill-lock{
- display:inline-flex;align-items:center;gap:6px;font-size:12px;
- padding:4px 9px;border-radius:999px;background:rgba(0,0,0,.45);
- border:1px solid rgba(255,255,255,.14);color:var(--muted);
-}
-.pill-lock span.state{font-weight:500;color:var(--gold);}
-.pill-lock button{all:unset;cursor:pointer;padding:2px 6px;border-radius:999px;background:rgba(255,255,255,.05);}
-
-/* LAYOUT */
-.layout{
- display:grid;grid-template-columns:320px minmax(0,1fr);
- height:calc(100vh - 64px);max-height:calc(100vh - 64px);overflow:hidden;
-}
-@media(max-width:960px){
- .layout{grid-template-columns:1fr;grid-template-rows:auto auto;height:auto;max-height:none;}
-}
-
-/* SIDEBAR */
-.sidebar{
- border-right:1px solid rgba(163,139,99,.24);
- background:radial-gradient(circle at top left,#141414,#060606);
- padding:12px 14px;overflow-y:auto;
-}
-.sidebar-section{
- border-radius:var(--radius-md);padding:10px 11px;background:rgba(0,0,0,.45);
- border:1px solid rgba(163,139,99,.18);margin-bottom:10px;
-}
-.sidebar-section h3{
- margin:0 0 6px;font-size:11px;text-transform:uppercase;
- letter-spacing:.16em;color:var(--muted);
-}
-.sidebar-section p{margin:2px 0 6px;font-size:12px;color:var(--muted);}
-
-.field{display:flex;flex-direction:column;gap:4px;margin-bottom:8px;}
-.field-row{display:flex;gap:6px;}
-label.field-label{
- font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;
-}
-input,select,textarea{
- background:rgba(0,0,0,.7);color:var(--text);border-radius:10px;border:1px solid rgba(163,139,99,.22);
- padding:6px 8px;font-size:13px;outline:none;width:100%;
-}
-input:focus,select:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 0 1px rgba(163,139,99,.35);}
-textarea{resize:vertical;min-height:60px;}
-
-.filters-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
-.badge{
- font-size:11px;border-radius:999px;padding:3px 7px;border:1px solid rgba(163,139,99,.35);
- background:rgba(8,8,8,.9);color:var(--muted);
-}
-.badge strong{color:var(--gold);}
-
-/* SWITCH */
-.toggle-line{display:flex;align-items:center;justify-content:space-between;font-size:12px;margin-top:4px;}
-.switch{position:relative;display:inline-block;width:34px;height:18px;}
-.switch input{opacity:0;width:0;height:0;}
-.slider{
- position:absolute;cursor:pointer;inset:0;background:#444;transition:.2s;border-radius:34px;
-}
-.slider:before{
- position:absolute;content:"";height:14px;width:14px;left:3px;bottom:2px;
- background:white;transition:.2s;border-radius:50%;
-}
-.switch input:checked + .slider{background:var(--gold);}
-.switch input:checked + .slider:before{transform:translateX(14px);}
-
-/* MAIN AREA — CARDS */
-.cards-area{
- padding:14px 16px 18px;overflow-y:auto;
- background:radial-gradient(circle at top,#1a1a1a,#050505 55%,#000 100%);
-}
-.cards-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:8px;gap:10px;}
-.cards-header-left h2{
- margin:0;font-size:15px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
-}
-.cards-header-left p{margin:2px 0 0;font-size:12px;color:var(--muted);}
-.pipeline-kpis{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
-.kpi-chip{
- border-radius:999px;padding:4px 9px;border:1px solid rgba(163,139,99,.32);
- font-size:11px;color:var(--muted);background:rgba(8,8,8,.9);
-}
-.kpi-chip span.value{color:var(--gold);font-weight:600;margin-left:4px;}
-
-.origin-banner{
- margin-bottom:8px;padding:6px 10px;border-radius:999px;
- border:1px solid var(--gold-soft);background:rgba(163,139,99,.12);
- font-size:12px;color:var(--muted);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
-}
-.origin-banner strong{color:var(--gold);}
-.origin-banner button{
- border-radius:999px;border:1px solid rgba(163,139,99,.4);
- background:rgba(0,0,0,.6);color:var(--muted);padding:3px 8px;
- font-size:11px;cursor:pointer;
-}
-.origin-banner button:hover{border-color:var(--gold);color:#fff;}
-
-.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px;}
-.card{
- border-radius:var(--radius-lg);border:1px solid rgba(163,139,99,.3);
- padding:10px 11px 9px;background:radial-gradient(circle at top left,#181818,#070707);
- box-shadow:var(--shadow-soft);display:flex;flex-direction:column;gap:6px;position:relative;
-}
-.card.completed{opacity:.6;border-style:dashed;}
-
-.card-title{margin:0;font-size:14px;font-weight:600;color:#fff;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;}
-.card-subtitle{margin:1px 0 0;font-size:11px;color:var(--muted);white-space:nowrap;text-overflow:ellipsis;overflow:hidden;}
-.chip-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
-.chip{
- border-radius:999px;padding:2px 7px;font-size:10px;
- border:1px solid rgba(163,139,99,.4);background:#1E1E1E;color:var(--muted);
- text-transform:uppercase;letter-spacing:.08em;
-}
-.chip-primary{border-color:var(--gold);color:var(--gold);}
-.chip-green{border-color:rgba(76,175,80,.7);color:#A5D6A7;}
-.chip-red{border-color:rgba(242,95,92,.8);color:#FFABAB;}
-.chip-yellow{border-color:rgba(255,200,87,.8);color:#FFE082;}
-
-.card-section{
- border-top:1px solid rgba(163,139,99,.18);
- padding-top:4px;margin-top:2px;font-size:12px;color:var(--muted);
-}
-.card-section strong{color:#f5f5f5;font-weight:500;}
-
-.card-footer{margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:11px;color:var(--muted);}
-.card-footer-left{display:flex;flex-wrap:wrap;gap:4px;align-items:center;}
-.card-footer-right{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;}
-
-.btn-xs{
- border-radius:999px;padding:3px 7px;border:1px solid rgba(163,139,99,.35);
- background:rgba(5,5,5,.9);color:var(--muted);font-size:10px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;
-}
-.btn-xs.primary{border-color:var(--gold);color:var(--gold);}
-.btn-xs.danger{border-color:var(--danger);color:#FFB3B0;}
-
-.empty{font-size:12px;color:var(--muted);padding:16px 4px;text-align:center;}
-
-/* MODAL — BASE */
-.modal-backdrop{
- position:fixed;inset:0;background:rgba(0,0,0,.75);
- display:none;align-items:center;justify-content:center;z-index:40;
-}
-.modal-backdrop.open{display:flex;}
-/* MODAL — CONTAINER */
-.modal{
- width:820px;max-width:95%;max-height:88vh;
- background:radial-gradient(circle at top left,#1b1b1b,#0c0c0c);
- border:1px solid rgba(163,139,99,.35);
- border-radius:var(--radius-lg);
- box-shadow:0 22px 45px rgba(0,0,0,.65);
- display:flex;flex-direction:column;overflow:hidden;
-}
-
-/* MODAL HEADER */
-.modal-header{
- padding:12px 16px;
- border-bottom:1px solid rgba(163,139,99,.25);
- display:flex;align-items:center;justify-content:space-between;gap:10px;
- background:rgba(0,0,0,.45);
-}
-.modal-header h2{
- margin:0;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);
-}
-.modal-close{
- cursor:pointer;border:none;background:transparent;color:var(--muted);
- font-size:20px;line-height:1;padding:2px 8px;
-}
-.modal-close:hover{color:#fff;}
-
-/* MODAL BODY */
-.modal-body{
- padding:14px 16px;overflow-y:auto;
- display:flex;flex-direction:column;gap:14px;
-}
-
-/* SECÇÃO DO MODAL */
-.modal-section{
- background:rgba(0,0,0,.35);
- border:1px solid rgba(163,139,99,.22);
- border-radius:var(--radius-md);
- padding:12px 14px;
-}
-.modal-section h3{
- margin:0 0 8px;font-size:13px;letter-spacing:.12em;
- text-transform:uppercase;color:var(--muted);
- display:flex;align-items:center;justify-content:space-between;
-}
-
-/* Colapsáveis */
-.collapse-toggle{
- cursor:pointer;font-size:12px;color:var(--gold);text-decoration:underline;
-}
-.collapse-content{margin-top:6px;}
-.collapse-content.hidden{display:none;}
-
-/* Tabela de histórico */
-.history-table{
- width:100%;border-collapse:collapse;font-size:12px;margin-top:6px;
-}
-.history-table th, .history-table td{
- padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;
-}
-.history-table th{color:var(--gold);font-weight:500;text-transform:uppercase;font-size:11px;}
-
-/* Timeline */
-.timeline{
- border-left:2px solid var(--gold-soft);
- margin-top:10px;padding-left:14px;
- display:flex;flex-direction:column;gap:12px;
-}
-.timeline-item{position:relative;}
-.timeline-item::before{
- content:'';position:absolute;left:-10px;top:4px;
- width:8px;height:8px;border-radius:50%;background:var(--gold);
-}
-.timeline-item strong{color:#fff;}
-.timeline-item small{color:var(--muted);display:block;margin-top:2px;}
-
-/* Notas */
-.note-box{
- margin-top:6px;border-radius:var(--radius-md);padding:8px 10px;
- background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
-}
-.add-note-btn{
- margin-top:8px;font-size:12px;color:var(--gold);cursor:pointer;
- text-decoration:underline;
-}
-.add-note-area{
- margin-top:6px;display:flex;flex-direction:column;gap:6px;
-}
-.add-note-area textarea{
- min-height:60px;resize:vertical;
-}
-.add-note-area button{
- align-self:flex-end;border-radius:999px;padding:6px 12px;
- background:var(--gold);border:none;color:#000;font-size:12px;cursor:pointer;
-}
-
-/* MODAL FOOTER */
-.modal-footer{
- padding:12px 16px;border-top:1px solid rgba(163,139,99,.25);
- display:flex;justify-content:flex-end;gap:8px;
- background:rgba(0,0,0,.45);
-}
-.modal-footer .btn-small{
- border-radius:999px;padding:6px 14px;border:1px solid rgba(163,139,99,.3);
- background:rgba(0,0,0,.6);color:var(--muted);font-size:12px;cursor:pointer;
-}
-.modal-footer .btn-small:hover{border-color:var(--gold);color:#fff;}
-.modal-footer .btn-save{
- background:var(--gold);border-color:var(--gold);color:#000;font-weight:600;
-}
+  @page { size: A4; margin: 1.5cm; }
+  body{
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    margin:0;
+    padding:0;
+    color:#222;
+    background:#fff;
+  }
+  h1{
+    font-size:18px;
+    margin:0 0 4px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:#333;
+  }
+  .sub{
+    font-size:11px;
+    color:#777;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+  }
+  header{
+    border-bottom:2px solid #A38B63;
+    padding-bottom:6px;
+    margin-bottom:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+  }
+  .brand-block{
+    max-width:70%;
+  }
+  .info-block{
+    font-size:11px;
+    color:#555;
+    text-align:right;
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:10px;
+    margin-top:6px;
+  }
+  th,td{
+    border-bottom:1px solid #ddd;
+    padding:4px 3px;
+    text-align:left;
+  }
+  th{
+    background:#f5f5f5;
+    font-weight:600;
+  }
+  tbody tr:nth-child(even){
+    background:#fafafa;
+  }
 </style>
 </head>
-
 <body>
-<div class="app-shell">
-
-<!-- HEADER -->
-<header class="app-header">
- <div class="brand">
-  <div class="brand-icon">
-   <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
-     <circle cx="12" cy="12" r="9"></circle>
-     <path d="M8 12.5l2.5 2.5L16 9"></path>
-   </svg>
-  </div>
-  <div>
-   <h1>Garvetur Porto Pro — Tarefas</h1>
-   <span class="sub">Gestão Operacional</span>
-  </div>
- </div>
-
- <nav class="nav-tabs">
-   <a href="index.html" class="nav-tab">Início</a>
-   <a href="mapa.html" class="nav-tab">Mapa</a>
-   <a href="kanban.html" class="nav-tab">Leads</a>
-   <a href="angariacoes.html" class="nav-tab">Angariações</a>
-   <a href="dashboard.html" class="nav-tab">Dashboard</a>
-   <a href="vendas.html" class="nav-tab">Vendas</a>
-   <a href="tarefas.html" class="nav-tab active">Tarefas</a>
- </nav>
-
- <div class="header-actions">
-   <div class="pill-lock">
-     <svg width="13" height="13" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="2">
-       <rect x="6" y="11" width="12" height="9" rx="2"></rect>
-       <path d="M8 11V8a4 4 0 118 0v3"></path>
-     </svg>
-     <span class="state" id="lockStateLabel">Bloqueado</span>
-     <button id="toggleLockBtn">Alternar</button>
-   </div>
-   <button id="newTaskBtn" class="btn btn-primary" disabled>NOVA TAREFA</button>
- </div>
-</header>
-<!-- LAYOUT PRINCIPAL -->
-<div class="layout">
-
-<!-- ===== SIDEBAR (FILTROS) ===== -->
-<aside class="sidebar">
-  <div class="sidebar-section">
-    <h3>Filtros</h3>
-
-    <div class="field">
-      <label class="field-label">Responsável</label>
-      <select id="filterResponsavel">
-        <option value="">Todos</option>
-      </select>
+  <header>
+    <div class="brand-block">
+      <h1>Garvetur Porto Pro</h1>
+      <div class="sub">Lista de tarefas</div>
     </div>
-
-    <div class="field-row">
-      <div class="field">
-        <label class="field-label">Estado</label>
-        <select id="filterEstado">
-          <option value="">Todos</option>
-          <option value="por_fazer">Por fazer</option>
-          <option value="em_curso">Em curso</option>
-          <option value="concluida">Concluída</option>
-          <option value="adiada">Adiada</option>
-          <option value="cancelada">Cancelada</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label class="field-label">Prioridade</label>
-        <select id="filterPrioridade">
-          <option value="">Todas</option>
-          <option value="baixa">Baixa</option>
-          <option value="normal">Normal</option>
-          <option value="alta">Alta</option>
-          <option value="critica">Crítica</option>
-        </select>
-      </div>
+    <div class="info-block">
+      <div>Data emissão: ${new Date().toLocaleDateString('pt-PT')}</div>
+      <div>Total tarefas: ${filtered.length}</div>
     </div>
+  </header>
 
-    <div class="field-row">
-      <div class="field">
-        <label class="field-label">De (data limite)</label>
-        <input type="date" id="filterDataDe">
-      </div>
-
-      <div class="field">
-        <label class="field-label">Até (data limite)</label>
-        <input type="date" id="filterDataAte">
-      </div>
-    </div>
-
-    <div class="toggle-line">
-      <span>Mostrar concluídas</span>
-      <label class="switch">
-        <input type="checkbox" id="filterShowCompleted">
-        <span class="slider"></span>
-      </label>
-    </div>
-
-    <button id="applyFiltersBtn" class="btn" style="margin-top:8px;width:100%;">Aplicar Filtros</button>
-    <button id="clearFiltersBtn" class="btn" style="margin-top:4px;width:100%;background:transparent;border-color:rgba(255,255,255,.2);">Limpar</button>
-
-  </div>
-
-  <div class="sidebar-section">
-    <h3>Resumo</h3>
-    <div id="summaryBadges" class="filters-badges"></div>
-  </div>
-
-  <div class="sidebar-section">
-    <h3>Nota</h3>
-    <p>Com o cadeado bloqueado não é possível editar tarefas.</p>
-    <p>Desbloqueie para criar, editar e apagar.</p>
-  </div>
-</aside>
-
-
-<!-- ===== ÁREA DOS CARTÕES ===== -->
-<main class="cards-area">
-
-  <div class="cards-header">
-    <div class="cards-header-left">
-      <h2>Tarefas</h2>
-      <p>Follow-up comercial, visitas e compromissos</p>
-      <div id="pipelineKpis" class="pipeline-kpis"></div>
-    </div>
-  </div>
-
-  <!-- Banner quando vem de Leads / Vendas -->
-  <div id="originFilterBanner" class="origin-banner" style="display:none;">
-    <div>🔗 <strong id="originFilterLabel"></strong></div>
-    <button id="clearOriginFilterBtn">Limpar filtro</button>
-  </div>
-
-  <div id="cardsGrid" class="cards-grid"></div>
-  <div id="emptyState" class="empty" style="display:none;">Não existem tarefas com estes filtros.</div>
-
-</main>
-
-</div> <!-- /layout -->
-<!-- ======================== -->
-<!--  SCRIPT FINAL COMPLETO   -->
-<!-- ======================== -->
+  <table>
+    <thead>
+      <tr>
+        <th style="width:16%;">Data / Hora</th>
+        <th style="width:32%;">Tarefa</th>
+        <th style="width:18%;">Responsável</th>
+        <th style="width:14%;">Estado</th>
+        <th style="width:10%;">Prioridade</th>
+        <th style="width:10%;">Tipo</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rowsHtml}
+    </tbody>
+  </table>
 
 <script>
-(function(){
-
-/* ===========================================================
-   CONFIGURAÇÃO
-   =========================================================== */
-const STORAGE_KEY = "gpp_tarefas_v1";
-const FILTERS_KEY = "gpp_tarefas_filters_v1";
-const GLOBAL_FILTERS_KEY = "gpp_global_filters_v1";
-
-function $(id){ return document.getElementById(id); }
-
-/* Campos principais */
-const cardsGrid = $("cardsGrid");
-const emptyState = $("emptyState");
-const pipelineKpis = $("pipelineKpis");
-const summaryBadges = $("summaryBadges");
-const originFilterBanner = $("originFilterBanner");
-const originFilterLabel = $("originFilterLabel");
-
-/* Botões */
-const newTaskBtn = $("newTaskBtn");
-const toggleLockBtn = $("toggleLockBtn");
-const lockStateLabel = $("lockStateLabel");
-
-const exportCsvBtn = $("exportCsvBtn");
-const exportPdfBtn = $("exportPdfBtn");
-
-const applyFiltersBtn = $("applyFiltersBtn");
-const clearFiltersBtn = $("clearFiltersBtn");
-const clearOriginFilterBtn = $("clearOriginFilterBtn");
-
-/* Modal */
-const modalBackdrop = $("modalBackdrop");
-const modalTitle = $("modalTitle");
-const closeModalBtn = $("closeModalBtn");
-const cancelModalBtn = $("cancelModalBtn");
-const saveTaskBtn = $("saveTaskBtn");
-
-/* Form fields */
-const taskForm = $("taskForm");
-const responsavelSelect = $("responsavel");
-const apoioSelect = $("apoio");
-
-/* Filtros */
-const filterResponsavel = $("filterResponsavel");
-const filterEstado = $("filterEstado");
-const filterPrioridade = $("filterPrioridade");
-const filterDataDe = $("filterDataDe");
-const filterDataAte = $("filterDataAte");
-const filterShowCompleted = $("filterShowCompleted");
-
-/* Consultores padrão */
-const CONSULTOR_OPTIONS = [
-  "Rui Quelhas",
-  "Manuel Oliveira",
-  "João Sousa",
-  "Francisco dos Santos",
-  "Rosário Vasconcelos",
-  "Armanda Meireles",
-  "Audrey Lucas",
-  "Outro"
-];
-
-/* Estado global */
-let state = {
-  locked: true,
-  tasks: []
-};
-
-let FILTERS = {
-  responsavel: "",
-  estado: "",
-  prioridade: "",
-  de: "",
-  ate: "",
-  showCompleted: false,
-  origemTipo: "",
-  origemRef: ""
-};
-
-/* ===========================================================
-   FUNÇÕES BASE
-   =========================================================== */
-
-function todayISO(){
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth()+1).padStart(2,"0");
-  const dd = String(d.getDate()).padStart(2,"0");
-  return `${y}-${m}-${dd}`;
-}
-
-function addDays(dateStr, n){
-  const d = new Date(dateStr);
-  d.setDate(d.getDate() + n);
-  return d.toISOString().slice(0,10);
-}
-
-/* ===========================================================
-   STORAGE
-   =========================================================== */
-function loadState(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw){
-      const parsed = JSON.parse(raw);
-      if(Array.isArray(parsed.tasks)) state.tasks = parsed.tasks;
-      if(typeof parsed.locked === "boolean") state.locked = parsed.locked;
-    }
-  }catch(err){ console.error(err); }
-  updateLockUI();
-}
-
-function saveState(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
-
-function loadFilters(){
-  try{
-    const raw = localStorage.getItem(FILTERS_KEY);
-    if(raw){
-      const parsed = JSON.parse(raw);
-      FILTERS = Object.assign(FILTERS, parsed);
-    }
-  }catch(err){ console.error(err); }
-}
-
-function saveFilters(){
-  localStorage.setItem(FILTERS_KEY, JSON.stringify(FILTERS));
-}
-
-function syncGlobalFilters(){
-  const g = {
-    consultor: FILTERS.responsavel || "",
-    de: FILTERS.de || "",
-    ate: FILTERS.ate || ""
-  };
-  localStorage.setItem(GLOBAL_FILTERS_KEY, JSON.stringify(g));
-}
-
-/* ===========================================================
-   UI — LOCK STATE
-   =========================================================== */
-function updateLockUI(){
-  if(state.locked){
-    lockStateLabel.textContent = "Bloqueado";
-    toggleLockBtn.textContent = "🔒";
-    newTaskBtn.disabled = true;
-  } else {
-    lockStateLabel.textContent = "Edição ativa";
-    toggleLockBtn.textContent = "🔓";
-    newTaskBtn.disabled = false;
-  }
-}
-
-/* ===========================================================
-   CONSULTORES
-   =========================================================== */
-function initConsultores(){
-  CONSULTOR_OPTIONS.forEach(c=>{
-    const opt1 = document.createElement("option");
-    opt1.value = c; opt1.textContent = c;
-    responsavelSelect.appendChild(opt1);
-
-    const opt2 = document.createElement("option");
-    opt2.value = c; opt2.textContent = c;
-    apoioSelect.appendChild(opt2);
-
-    const opt3 = document.createElement("option");
-    opt3.value = c; opt3.textContent = c;
-    filterResponsavel.appendChild(opt3);
-  });
-}
-
-/* ===========================================================
-   FILTROS — APLICAR
-   =========================================================== */
-function applyFilterControls(){
-  filterResponsavel.value = FILTERS.responsavel;
-  filterEstado.value = FILTERS.estado;
-  filterPrioridade.value = FILTERS.prioridade;
-  filterDataDe.value = FILTERS.de;
-  filterDataAte.value = FILTERS.ate;
-  filterShowCompleted.checked = FILTERS.showCompleted;
-}
-
-function updateFiltersFromControls(){
-  FILTERS.responsavel = filterResponsavel.value;
-  FILTERS.estado = filterEstado.value;
-  FILTERS.prioridade = filterPrioridade.value;
-  FILTERS.de = filterDataDe.value;
-  FILTERS.ate = filterDataAte.value;
-  FILTERS.showCompleted = filterShowCompleted.checked;
-}
-
-function clearAllFilters(){
-  FILTERS = {
-    responsavel:"",
-    estado:"",
-    prioridade:"",
-    de:"",
-    ate:"",
-    showCompleted:false,
-    origemTipo:"",
-    origemRef:""
-  };
-  applyFilterControls();
-  saveFilters();
-}
-
-/* ===========================================================
-   RENDER VIA FILTROS
-   =========================================================== */
-function applyFiltersToTasks(tasks){
-  return tasks.filter(t=>{
-    if(FILTERS.responsavel && t.responsavel !== FILTERS.responsavel) return false;
-    if(FILTERS.estado && t.estado !== FILTERS.estado) return false;
-    if(FILTERS.prioridade && t.prioridade !== FILTERS.prioridade) return false;
-
-    if(!FILTERS.showCompleted && (t.estado==="concluida" || t.estado==="cancelada"))
-      return false;
-
-    if(FILTERS.de && t.dataLimite && t.dataLimite < FILTERS.de) return false;
-    if(FILTERS.ate && t.dataLimite && t.dataLimite > FILTERS.ate) return false;
-
-    if(FILTERS.origemTipo && t.origemTipo !== FILTERS.origemTipo) return false;
-
-    if(FILTERS.origemRef){
-      const r = (t.origemRef || "").toLowerCase();
-      if(!r.includes(FILTERS.origemRef.toLowerCase())) return false;
-    }
-
-    return true;
-  });
-}
-
-/* ===========================================================
-   RENDER CARDS (VISUAL PREMIUM ORIGINAL)
-   =========================================================== */
-function estadoLabel(x){
-  return {
-    por_fazer:"Por fazer",
-    em_curso:"Em curso",
-    concluida:"Concluída",
-    adiada:"Adiada",
-    cancelada:"Cancelada"
-  }[x] || x;
-}
-
-function prioridadeLabel(x){
-  return {
-    baixa:"Baixa",
-    normal:"Normal",
-    alta:"Alta",
-    critica:"Crítica"
-  }[x] || x;
-}
-
-function tipoLabel(x){
-  return {
-    chamada:"Chamada",
-    email:"Email",
-    visita:"Visita",
-    reuniao:"Reunião",
-    followup:"Follow-up",
-    outro:"Outro"
-  }[x] || x;
-}
-
-function origemLabel(x){
-  return {
-    lead:"Lead",
-    angariacao:"Angariação",
-    venda:"Venda",
-    interna:"Interna"
-  }[x] || x;
-}
-
-function renderCards(){
-  const tasks = [...state.tasks];
-
-  /* Ordenar por Data limite (urgência) */
-  tasks.sort((a,b)=>{
-    if(a.dataLimite && b.dataLimite){
-      return a.dataLimite.localeCompare(b.dataLimite);
-    }
-    if(a.dataLimite) return -1;
-    if(b.dataLimite) return 1;
-    return (a.createdAtMs||0) - (b.createdAtMs||0);
-  });
-
-  const filtered = applyFiltersToTasks(tasks);
-
-  cardsGrid.innerHTML = "";
-  emptyState.style.display = filtered.length ? "none" : "block";
-
-  /* KPIs */
-  const estados = {por_fazer:0,em_curso:0,concluida:0,adiada:0,cancelada:0};
-  state.tasks.forEach(t=>{
-    if(estados[t.estado] !== undefined) estados[t.estado]++;
-  });
-
-  pipelineKpis.innerHTML = "";
-  Object.keys(estados).forEach(k=>{
-    const div = document.createElement("div");
-    div.className = "kpi-chip";
-    div.innerHTML = estadoLabel(k) + `<span class="value">${estados[k]}</span>`;
-    pipelineKpis.appendChild(div);
-  });
-
-  /* Badges resumo */
-  summaryBadges.innerHTML = "";
-  const b1 = document.createElement("div");
-  b1.className = "badge";
-  b1.innerHTML = `Total tarefas <strong>${state.tasks.length}</strong>`;
-  summaryBadges.appendChild(b1);
-
-  const abertas = state.tasks.filter(t=>t.estado!=="concluida" && t.estado!=="cancelada").length;
-  const b2 = document.createElement("div");
-  b2.className = "badge";
-  b2.innerHTML = `Em aberto <strong>${abertas}</strong>`;
-  summaryBadges.appendChild(b2);
-
-  /* Cartões */
-  filtered.forEach(t=>{
-    const card = document.createElement("div");
-    card.className = "card";
-    if(t.estado==="concluida" || t.estado==="cancelada"){
-      card.classList.add("completed");
-    }
-
-    /* URGÊNCIA → cor do painel conforme data */
-    if(t.dataLimite){
-      const hoje = todayISO();
-      const diff = (new Date(t.dataLimite) - new Date(hoje)) / (1000*60*60*24);
-      if(diff < 0){
-        card.style.borderColor = "rgba(255,0,0,.6)";
-        card.style.boxShadow = "0 0 12px rgba(255,0,0,.4)";
-      }
-      else if(diff <= 2){
-        card.style.borderColor = "rgba(255,80,80,.5)";
-      }
-      else if(diff <= 5){
-        card.style.borderColor = "rgba(255,200,87,.5)";
-      }
-    }
-
-    /* ----- TÍTULO ----- */
-    const top = document.createElement("div");
-    top.className = "card-top-row";
-
-    const titleBlock = document.createElement("div");
-    titleBlock.className = "card-title-block";
-
-    const h3 = document.createElement("h3");
-    h3.className = "card-title";
-    h3.textContent = t.titulo || "(Sem título)";
-    titleBlock.appendChild(h3);
-
-    const subtitle = document.createElement("div");
-    subtitle.className = "card-subtitle";
-    subtitle.textContent = [
-      t.responsavel || "",
-      prioridadeLabel(t.prioridade),
-      estadoLabel(t.estado)
-    ].filter(Boolean).join(" · ");
-    titleBlock.appendChild(subtitle);
-
-    const chips = document.createElement("div");
-    chips.className = "chip-row";
-
-    const c1 = document.createElement("span");
-    c1.className = "chip";
-    c1.textContent = estadoLabel(t.estado);
-    chips.appendChild(c1);
-
-    const c2 = document.createElement("span");
-    c2.className = "chip";
-    c2.textContent = prioridadeLabel(t.prioridade);
-    chips.appendChild(c2);
-
-    if(t.tipoTarefa){
-      const c3 = document.createElement("span");
-      c3.className = "chip";
-      c3.textContent = tipoLabel(t.tipoTarefa);
-      chips.appendChild(c3);
-    }
-
-    if(t.origemTipo){
-      const c4 = document.createElement("span");
-      c4.className = "chip";
-      c4.textContent = origemLabel(t.origemTipo);
-      chips.appendChild(c4);
-    }
-
-    titleBlock.appendChild(chips);
-    top.appendChild(titleBlock);
-    card.appendChild(top);
-
-    /* ORIGEM */
-    if(t.origemTipo || t.origemRef){
-      const sec = document.createElement("div");
-      sec.className = "card-section";
-      sec.innerHTML = `<strong>Origem:</strong> ${origemLabel(t.origemTipo)} · ${t.origemRef || ""}`;
-      card.appendChild(sec);
-    }
-
-    /* DATAS */
-    const secDat = document.createElement("div");
-    secDat.className = "card-section";
-    secDat.textContent =
-      `Criada: ${t.dataCriacao || ""} · Limite: ${t.dataLimite || ""} ${t.horaLimite || ""}`;
-    card.appendChild(secDat);
-
-    /* DESCRIÇÃO */
-    if(t.descricao){
-      const secDesc = document.createElement("div");
-      secDesc.className = "card-section";
-      secDesc.textContent = t.descricao.length > 160 ? t.descricao.slice(0,157)+"…" : t.descricao;
-      card.appendChild(secDesc);
-    }
-
-    /* FOOTER (Ações) */
-    const foot = document.createElement("div");
-    foot.className = "card-footer";
-
-    const left = document.createElement("div");
-    left.className = "card-footer-left";
-    left.textContent = t.responsavel;
-    foot.appendChild(left);
-
-    const right = document.createElement("div");
-    right.className = "card-footer-right";
-
-    /* Ver ficha original + Editar + Apagar */
-    const btnView = document.createElement("button");
-    btnView.className = "btn-xs";
-    btnView.textContent = "Ver ficha original";
-    btnView.addEventListener("click",()=>openModal(t));
-    right.appendChild(btnView);
-
-    const btnEdit = document.createElement("button");
-    btnEdit.className = "btn-xs";
-    btnEdit.textContent = "Editar";
-    btnEdit.addEventListener("click",()=>openModal(t));
-    right.appendChild(btnEdit);
-
-    const btnDel = document.createElement("button");
-    btnDel.className = "btn-xs danger";
-    btnDel.textContent = "Apagar";
-    btnDel.addEventListener("click",()=>{
-      if(state.locked) return;
-      if(confirm("Apagar esta tarefa?")){
-        state.tasks = state.tasks.filter(x=>x.id !== t.id);
-        saveState();
-        renderCards();
-      }
-    });
-    right.appendChild(btnDel);
-
-    foot.appendChild(right);
-    card.appendChild(foot);
-
-    cardsGrid.appendChild(card);
-  });
-}
-
-/* ===========================================================
-   MODAL
-   =========================================================== */
-function openModal(task){
-  modalBackdrop.classList.add("open");
-
-  if(task){
-    modalTitle.textContent = "Editar Tarefa";
-    $("taskId").value = task.id;
-    $("titulo").value = task.titulo || "";
-    $("descricao").value = task.descricao || "";
-    $("tags").value = task.tags || "";
-    $("estado").value = task.estado || "";
-    $("prioridade").value = task.prioridade || "";
-    $("tipoTarefa").value = task.tipoTarefa || "";
-    $("origemTipo").value = task.origemTipo || "";
-    $("origemRef").value = task.origemRef || "";
-    $("dataCriacao").value = task.dataCriacao || todayISO();
-    $("dataLimite").value = task.dataLimite || addDays(todayISO(),8);
-    $("horaLimite").value = task.horaLimite || "";
-
-    responsavelSelect.value = task.responsavel || "";
-    apoioSelect.value = task.apoio || "";
-  }
-  else{
-    modalTitle.textContent = "Nova Tarefa";
-    taskForm.reset();
-    $("taskId").value = "";
-    $("dataCriacao").value = todayISO();
-    $("dataLimite").value = addDays(todayISO(),8);
-  }
-}
-
-function closeModal(){
-  modalBackdrop.classList.remove("open");
-}
-
-/* ===========================================================
-   GUARDAR TAREFA
-   =========================================================== */
-function saveTask(){
-  if(state.locked){
-    alert("Desbloqueie o cadeado para editar.");
-    return;
-  }
-
-  const id = $("taskId").value || ("task_"+Date.now());
-
-  const data = {
-    id,
-    titulo: $("titulo").value,
-    descricao: $("descricao").value,
-    tags: $("tags").value,
-    estado: $("estado").value,
-    prioridade: $("prioridade").value,
-    tipoTarefa: $("tipoTarefa").value,
-    origemTipo: $("origemTipo").value,
-    origemRef: $("origemRef").value,
-    dataCriacao: $("dataCriacao").value || todayISO(),
-    dataLimite: $("dataLimite").value,
-    horaLimite: $("horaLimite").value,
-    responsavel: responsavelSelect.value,
-    apoio: apoioSelect.value,
-    createdAtMs: Date.now()
-  };
-
-  /* Validar datas */
-  if(data.dataLimite < data.dataCriacao){
-    alert("A data limite não pode ser inferior à data de criação.");
-    return;
-  }
-
-  const idx = state.tasks.findIndex(x=>x.id === id);
-  if(idx >= 0){
-    state.tasks[idx] = data;
-  } else {
-    state.tasks.push(data);
-  }
-
-  saveState();
-  closeModal();
-  renderCards();
-}
-
-/* ===========================================================
-   EXPORTAR CSV
-   =========================================================== */
-function exportCsv(){
-  if(!state.tasks.length){
-    alert("Sem tarefas.");
-    return;
-  }
-
-  const cols = [
-    "id","titulo","descricao","responsavel","apoio",
-    "origemTipo","origemRef","estado","prioridade",
-    "tipoTarefa","tags","dataCriacao","dataLimite","horaLimite"
-  ];
-
-  let csv = cols.join(";") + "\n";
-
-  state.tasks.forEach(t=>{
-    csv += cols.map(c => `"${(t[c]||"").replace(/"/g,'""')}"`).join(";") + "\n";
-  });
-
-  const blob = new Blob([csv],{type:"text/csv"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "tarefas.csv";
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-/* ===========================================================
-   EXPORTAR PDF (SIMPLIFICADO)
-   =========================================================== */
-function exportPdfList(){
   window.print();
-}
+<\/script>
+</body>
+</html>
+    `;
 
-/* ===========================================================
-   EVENTOS
-   =========================================================== */
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+  }
 
-toggleLockBtn.addEventListener("click",()=>{
-  state.locked = !state.locked;
-  updateLockUI();
-  saveState();
-});
+  toggleLockBtn.addEventListener('click',()=>{
+    state.locked = !state.locked;
+    updateLockUI();
+    saveState();
+  });
 
-newTaskBtn.addEventListener("click",()=>openModal(null));
-closeModalBtn.addEventListener("click",closeModal);
-cancelModalBtn.addEventListener("click",closeModal);
-saveTaskBtn.addEventListener("click",(e)=>{
-  e.preventDefault();
-  saveTask();
-});
+  newTaskBtn.addEventListener('click',()=>{
+    if(state.locked) return;
+    openModal(null);
+  });
 
-applyFiltersBtn.addEventListener("click",()=>{
-  updateFiltersFromControls();
-  saveFilters();
-  syncGlobalFilters();
+  closeModalBtn.addEventListener('click', closeModal);
+  cancelModalBtn.addEventListener('click', closeModal);
+
+  applyFiltersBtn.addEventListener('click', ()=>{
+    updateFiltersFromControls();
+    saveFiltersToStorage();
+    syncGlobalFiltersFromTasks();
+    renderCards();
+  });
+
+  clearFiltersBtn.addEventListener('click', ()=>{
+    clearFilters();
+    renderCards();
+  });
+
+  clearOriginFilterBtn.addEventListener('click', ()=>{
+    FILTERS.origemTipo = '';
+    FILTERS.origemRef  = '';
+    saveFiltersToStorage();
+    renderCards();
+  });
+
+  saveTaskBtn.addEventListener('click',(e)=>{
+    e.preventDefault();
+    if(state.locked){
+      alert('O modo de edição está bloqueado. Desbloqueie o cadeado no topo para guardar alterações.');
+      return;
+    }
+    const data = collectFormData();
+    const idx = state.tasks.findIndex(t=>t.id === data.id);
+    if(idx>=0){
+      state.tasks[idx] = data;
+    }else{
+      state.tasks.push(data);
+    }
+    saveState();
+    renderCards();
+    closeModal();
+  });
+
+  exportCsvBtn.addEventListener('click', exportCsv);
+  exportPdfBtn.addEventListener('click', exportPdfList);
+
+  window.addEventListener('keydown',(e)=>{
+    if(e.key==='Escape'){
+      if(modalBackdrop.classList.contains('open')){
+        closeModal();
+      }
+      if(fichaBackdrop.classList.contains('open')){
+        closeFichaModal();
+      }
+    }
+  });
+
+  closeFichaBtn.addEventListener('click', closeFichaModal);
+  cancelFichaBtn.addEventListener('click', closeFichaModal);
+  saveFichaBtn.addEventListener('click', saveFichaChanges);
+
+  initConsultores();
+  loadState();
+  loadFiltersFromStorage();
+  loadGlobalFiltersFallback();
+  applyUrlContext();
+  applyFiltersToControls();
   renderCards();
-});
-
-clearFiltersBtn.addEventListener("click",()=>{
-  clearAllFilters();
-  syncGlobalFilters();
-  renderCards();
-});
-
-clearOriginFilterBtn.addEventListener("click",()=>{
-  FILTERS.origemTipo = "";
-  FILTERS.origemRef = "";
-  saveFilters();
-  renderCards();
-});
-
-exportCsvBtn.addEventListener("click",exportCsv);
-exportPdfBtn.addEventListener("click",exportPdfList);
-
-/* ===========================================================
-   LOAD INICIAL
-   =========================================================== */
-
-initConsultores();
-loadState();
-loadFilters();
-applyFilterControls();
-renderCards();
 
 })();
 </script>
-
 </body>
 </html>
