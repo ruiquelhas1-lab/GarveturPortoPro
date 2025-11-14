@@ -1268,7 +1268,7 @@
     const to = FILTERS.ate || '';
     const showCompleted = !!FILTERS.showCompleted;
     const oTipo = FILTERS.origemTipo || '';
-    const oRef = FILTERS.origemRef || '';
+       const oRef = FILTERS.origemRef || '';
 
     return tasks.filter(t=>{
       if(resp && t.responsavel !== resp) return false;
@@ -1375,7 +1375,7 @@
     }
   }
 
-  // Abre ficha original no módulo Leads (kanban.html)
+  // Abre ficha original no módulo Leads (kanban.html) com instrução para abrir modal em edição
   function openOriginalModal(task){
     if(!task){
       alert('Não foi possível identificar a tarefa selecionada.');
@@ -1392,8 +1392,10 @@
       return;
     }
 
-    const url = 'kanban.html?ref=' + encodeURIComponent(task.origemRef.trim());
-    window.open(url, '_blank');
+    const ref = encodeURIComponent(task.origemRef.trim());
+    // adicionamos &abrir=1 para o Kanban saber que deve abrir a ficha em modo edição
+    const url = 'kanban.html?ref=' + ref + '&abrir=1&origem=tarefas';
+    window.location.href = url;
   }
 
   function renderCards(){
