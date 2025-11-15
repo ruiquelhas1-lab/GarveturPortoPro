@@ -621,6 +621,7 @@
     onlyHidden:false
   };
 
+  /* ========= HELPERS NUMÉRICOS ========= */
   function parseNum(v){
     if(v===null || v===undefined || v==='') return 0;
     const n = parseFloat(String(v).replace(/\./g,'').replace(',','.'));
@@ -647,7 +648,22 @@
     return v.toFixed(1).replace('.',',') + '%';
   }
 
-  // Procura datas em campos cujo nome contenha o token (ex.: 'cpcv' ou 'escritura')
+  /* ========= HELPERS DE DATA ========= */
+  function normalizeDateToISO(v){
+    if(!v) return '';
+    let s = String(v).trim();
+
+    if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+
+    const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(s);
+    if(m){
+      const dd = m[1], mm = m[2], yyyy = m[3];
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    return s.slice(0,10);
+  }
+
   function findDateWithToken(objs, token){
     const tk = String(token).toLowerCase();
     for(const obj of objs){
@@ -656,19 +672,16 @@
         const lk = k.toLowerCase();
         if(!lk.includes(tk)) continue;
         const v = obj[k];
-        if(typeof v === 'string'){
-          const s = v.trim().slice(0,10);
-          // Aceitar tanto YYYY-MM-DD como formatos com '/'
-          if(/^\d{4}-\d{2}-\d{2}$/.test(s) || /^\d{2}\/\d{2}\/\d{4}$/.test(s)){
-            // Se vier em DD/MM/AAAA, não vamos converter; guardamos como está
-            return /^\d{2}\//.test(s) ? s : s;
-          }
+        if(typeof v === 'string' || typeof v === 'number'){
+          const iso = normalizeDateToISO(v);
+          if(/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
         }
       }
     }
     return '';
   }
 
+  /* ========= HELPERS DE AGRUPAMENTO ========= */
   function groupCount(arr, labelFn){
     const map = {};
     arr.forEach(item=>{
@@ -695,6 +708,7 @@
     return top;
   }
 
+  /* ========= HELPERS GENÉRICOS ========= */
   function findDeep(obj, matcher){
     const visited = new Set();
     function _search(o){
@@ -728,6 +742,7 @@
     return '';
   }
 
+  /* ========= LOAD DE STORAGE ========= */
   function loadLeads(){
     try{
       const raw = localStorage.getItem(STORAGE_LEADS);
@@ -766,6 +781,7 @@
     }
   }
 
+  /* ========= FILTROS (LOCAL STORAGE) ========= */
   function loadFiltersState(){
     try{
       const raw = localStorage.getItem(STORAGE_FILTERS);
@@ -817,66 +833,61 @@
     }
   }
 
-  function resolveDataFechoFromLead(l){
-    // 1) procurar explicitamente "Data do CPCV" e variantes
-    let direto = resolveFromFecho(l, [
-      'Data do CPCV','dataCpcv','data_cpcv','dataCPCV',
-      'dataCpcvFecho','dataFechoCpcv'
-    ]);
-    if(direto && typeof direto === 'string'){
-      const s = direto.trim().slice(0,10);
-      return s;
-    }
+  /* ========= RESOLUÇÃO DE DATAS/COMISSÕES (FECHOS) ========= */
 
-    // 2) fallback: qualquer campo que contenha "cpcv" e pareça uma data
+  function resolveDataFechoFromLead(l){
+    const fecho = l.fecho || {};
+
+    let d = fecho['Data do CPCV'] ||
+            fecho['dataCpcv'] ||
+            fecho['data_cpcv'] ||
+            fecho['dataCPCV'] ||
+            fecho['dataCpcvFecho'] ||
+            fecho['dataFechoCpcv'];
+    if(d) return normalizeDateToISO(d);
+
     const deep = findDeep(l,(k,v)=>{
       const kl = k.toLowerCase();
       if(!kl.includes('cpcv')) return false;
-      if(typeof v !== 'string') return false;
-      const s = v.trim().slice(0,10);
-      return /^\d{4}-\d{2}-\d{2}$/.test(s) || /^\d{2}\/\d{2}\/\d{4}$/.test(s);
+      const iso = normalizeDateToISO(v);
+      return /^\d{4}-\d{2}-\d{2}$/.test(iso);
     });
-    if(deep && typeof deep === 'string'){
-      return deep.trim().slice(0,10);
-    }
+    if(deep) return normalizeDateToISO(deep);
 
-    // 3) fallback final: outras datas já existentes
-    return (
+    const fallback =
       l.dataFechoNegocio ||
       l.dataFecho ||
       l.dataVenda ||
       l.data ||
-      ''
-    );
+      '';
+    return normalizeDateToISO(fallback);
   }
 
   function resolveDataFechoFromAng(a){
-    let direto = resolveFromFecho(a, [
-      'Data do CPCV','dataCpcv','data_cpcv','dataCPCV',
-      'dataCpcvFecho','dataFechoCpcv'
-    ]);
-    if(direto && typeof direto === 'string'){
-      const s = direto.trim().slice(0,10);
-      return s;
-    }
+    const fecho = a.fecho || {};
+
+    let d = fecho['Data do CPCV'] ||
+            fecho['dataCpcv'] ||
+            fecho['data_cpcv'] ||
+            fecho['dataCPCV'] ||
+            fecho['dataCpcvFecho'] ||
+            fecho['dataFechoCpcv'];
+    if(d) return normalizeDateToISO(d);
 
     const deep = findDeep(a,(k,v)=>{
       const kl = k.toLowerCase();
       if(!kl.includes('cpcv')) return false;
-      if(typeof v !== 'string') return false;
-      const s = v.trim().slice(0,10);
-      return /^\d{4}-\d{2}-\d{2}$/.test(s) || /^\d{2}\/\d{2}\/\d{4}$/.test(s);
+      const iso = normalizeDateToISO(v);
+      return /^\d{4}-\d{2}-\d{2}$/.test(iso);
     });
-    if(deep && typeof deep === 'string'){
-      return deep.trim().slice(0,10);
-    }
+    if(deep) return normalizeDateToISO(deep);
 
-    return (
+    const fallback =
       a.dataVenda ||
       a.dataFecho ||
       a.dataAngariacao ||
-      ''
-    );
+      '';
+    return normalizeDateToISO(fallback);
   }
 
   function resolveTipoNegocioFromLead(l){
@@ -984,6 +995,7 @@
     return NaN;
   }
 
+  /* ========= APLICAÇÃO DE FILTROS ========= */
   function applyFilters(){
     const cons = FILTERS.consultor;
     const de   = FILTERS.de;
@@ -1039,9 +1051,11 @@
     return {leads, angs, negocios, tasks};
   }
 
+  /* ========= CONSTRUÇÃO DE NEGÓCIOS (FECHOS) ========= */
   function buildNegocios(leads, angs){
     const list = [];
 
+    // LEADS EM FECHO
     leads.forEach(l=>{
       if(l.estado !== 'Fecho') return;
 
@@ -1064,8 +1078,8 @@
         consultor: l.consultor || '',
         cliente: l.nome || '',
         titulo: l.imovel ? (l.imovel + (l.tipologia? ' ' + l.tipologia : '')) : (l.imovel || 'Lead'),
-        data: l.data || '',
-        dataFecho: dataFecho || l.data || '',
+        data: normalizeDateToISO(l.data || ''),
+        dataFecho: dataFecho || normalizeDateToISO(l.data || ''),
         dataCpcv: dataCpcv || '',
         dataEscritura: dataEscritura || '',
         valor: valorNegocio,
@@ -1078,6 +1092,7 @@
       });
     });
 
+    // ANGARIAÇÕES APROVADAS
     angs.forEach(a=>{
       if(a.estadoAng !== 'aprovado') return;
 
@@ -1103,8 +1118,8 @@
         consultor:a.consultor || '',
         cliente: a.isEmpreendimento ? (a.promotor || '') : (a.nomeProp || ''),
         titulo,
-        data:a.dataAngariacao || '',
-        dataFecho: dataFecho || a.dataAngariacao || '',
+        data: normalizeDateToISO(a.dataAngariacao || ''),
+        dataFecho: dataFecho || normalizeDateToISO(a.dataAngariacao || ''),
         dataCpcv: dataCpcv || '',
         dataEscritura: dataEscritura || '',
         valor:precoPedido,
@@ -1125,6 +1140,7 @@
     return list;
   }
 
+  /* ========= KPIs GLOBAIS ========= */
   function renderGlobalKpis(leads, angs, negocios, tasks){
     kpiGrid.innerHTML = '';
 
@@ -1192,6 +1208,7 @@
     });
   }
 
+  /* ========= RENDER DE GRÁFICOS GENÉRICO ========= */
   function renderBarChart(container, opts){
     const {title, subtitle, items, formatter, responsive} = opts;
     if(!items || !items.length){
@@ -1265,6 +1282,7 @@
     container.appendChild(card);
   }
 
+  /* ========= ÁREA LEADS ========= */
   function renderLeadsArea(leads){
     leadsCharts.innerHTML = '';
     const hasData = leads.length>0;
@@ -1346,6 +1364,7 @@
     });
   }
 
+  /* ========= ÁREA ANGARIAÇÕES ========= */
   function renderAngsArea(angs, leads){
     angsCharts.innerHTML = '';
     const hasData = angs.length>0;
@@ -1470,6 +1489,7 @@
     }
   }
 
+  /* ========= ÁREA FECHOS & VENDAS ========= */
   function renderFechosArea(negocios){
     fechosCharts.innerHTML = '';
     const hasData = negocios.length>0;
@@ -1549,7 +1569,6 @@
       responsive:false
     });
 
-    /* === RANKING DE COMISSÕES POR CONSULTOR · DIVIDIDO POR TIPO DE NEGÓCIO === */
     const comPorTipo = {};
     comNegocios.forEach(n=>{
       const raw = (n.tipoNegocio || 'Outro').toLowerCase();
@@ -1695,6 +1714,7 @@
     });
   }
 
+  /* ========= ÁREA TAREFAS ========= */
   function renderTarefasArea(tasks){
     tarefasCharts.innerHTML = '';
     const hasData = tasks.length>0;
@@ -1768,6 +1788,7 @@
     });
   }
 
+  /* ========= CONTEXTO ========= */
   function updateContextLabel(){
     const cons = FILTERS.consultor;
     const de   = FILTERS.de;
@@ -1785,6 +1806,7 @@
     contextLabel.textContent = parts.length ? parts.join(' | ') : 'Sem filtros — visão global';
   }
 
+  /* ========= TABS ========= */
   areaTabs.forEach(btn=>{
     btn.addEventListener('click',()=>{
       const area = btn.dataset.area;
@@ -1795,6 +1817,7 @@
     });
   });
 
+  /* ========= CICLO PRINCIPAL ========= */
   function refresh(){
     loadLeads();
     loadAngs();
