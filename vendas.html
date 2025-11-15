@@ -742,6 +742,26 @@
     }
   }
 
+  function pickFirst(obj, keys){
+    for(const k of keys){
+      if(obj && obj[k] != null && obj[k] !== '') return obj[k];
+    }
+    return '';
+  }
+
+  function findDateLikeField(obj, token){
+    if(!obj) return '';
+    const t = String(token).toLowerCase();
+    for(const k of Object.keys(obj)){
+      const lk = k.toLowerCase();
+      if(lk.includes('data') && lk.includes(t)){
+        const v = obj[k];
+        if(typeof v === 'string' && v.trim()) return v;
+      }
+    }
+    return '';
+  }
+
   /* ===== Integração com Tarefas (localStorage partilhado) ===== */
   function loadTarefasState(){
     try{
@@ -848,30 +868,39 @@
     const angs  = loadAngariacoes();
     const list = [];
 
-    // Leads em Fecho (inclui visíveis e invisíveis; visibilidade tratada nos filtros)
+    // Leads em Fecho
     leads.forEach(l=>{
       if(l.estado !== 'Fecho') return;
 
       const valorNegocio = parseNumber(l.fecho_negocio || l.valor || 0);
-      const comissaoPct = (l.fecho_comissao_pct!=='' && l.fecho_comissao_pct!=null)
-        ? l.fecho_comissao_pct
-        : '';
 
-      // Datas de fecho (CPCV / Escritura) para cronologia
-      const dataCpcv =
-        l.fecho_data_cpcv ||
-        l.fecho_dataCpcv ||
-        l.dataCpcv ||
-        l.data_cpcv ||
-        '';
-      const dataEscritura =
-        l.fecho_data_escritura ||
-        l.fecho_dataEscritura ||
-        l.dataEscritura ||
-        l.data_escritura ||
-        '';
+      const comissaoPct = pickFirst(l, [
+        'fecho_comissao_pct',
+        'fecho_comissaoPct',
+        'fecho_comissao',
+        'fecho_pct_comissao',
+        'comissaoPct',
+        'comissao_pct'
+      ]);
 
-      // Data base do negócio: CPCV -> Escritura -> data original
+      // Datas CPCV / Escritura (tentativa explícita + procura genérica)
+      let dataCpcv = pickFirst(l, [
+        'fecho_data_cpcv',
+        'fecho_dataCpcv',
+        'dataCpcv',
+        'data_cpcv'
+      ]);
+      if(!dataCpcv) dataCpcv = findDateLikeField(l,'cpcv');
+
+      let dataEscritura = pickFirst(l, [
+        'fecho_data_escritura',
+        'fecho_dataEscritura',
+        'dataEscritura',
+        'data_escritura'
+      ]);
+      if(!dataEscritura) dataEscritura = findDateLikeField(l,'escritura');
+
+      // Data base: CPCV -> Escritura -> data original
       let dataBase = dataCpcv || dataEscritura || (l.data || '');
 
       list.push({
@@ -898,7 +927,7 @@
       });
     });
 
-    // Angariações aprovadas (inclui visíveis e invisíveis; filtramos depois)
+    // Angariações aprovadas
     angs.forEach(a=>{
       if(a.estadoAng !== 'aprovado') return;
 
@@ -1070,7 +1099,6 @@
   function renderComissoesChart(lista){
     chartComissoesContainer.innerHTML = '';
 
-    // Construir eventos de recebimento por mês
     const mapa = {}; // key YYYY-MM -> total comissões
     lista.forEach(n=>{
       const pct = parsePct(n.comissaoPct);
