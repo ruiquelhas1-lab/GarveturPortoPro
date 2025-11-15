@@ -306,7 +306,7 @@
       border-radius:999px;
       border:1px solid rgba(163,139,99,.4);
       font-size:10px;
-     	color:var(--muted);
+      color:var(--muted);
       text-transform:uppercase;
       letter-spacing:.08em;
     }
@@ -649,7 +649,6 @@
 
   // Procura datas em campos cujo nome contenha o token (ex.: 'cpcv' ou 'escritura')
   function findDateWithToken(objs, token){
-    const re = /^\d{4}-\d{2}-\d{2}$/;
     const tk = String(token).toLowerCase();
     for(const obj of objs){
       if(!obj || typeof obj!=='object') continue;
@@ -659,7 +658,11 @@
         const v = obj[k];
         if(typeof v === 'string'){
           const s = v.trim().slice(0,10);
-          if(re.test(s)) return s;
+          // Aceitar tanto YYYY-MM-DD como formatos com '/'
+          if(/^\d{4}-\d{2}-\d{2}$/.test(s) || /^\d{2}\/\d{2}\/\d{4}$/.test(s)){
+            // Se vier em DD/MM/AAAA, não vamos converter; guardamos como está
+            return /^\d{2}\//.test(s) ? s : s;
+          }
         }
       }
     }
@@ -814,15 +817,31 @@
     }
   }
 
-  // (mantemos estas funções como fallback, embora a lógica principal vá usar findDateWithToken directamente)
   function resolveDataFechoFromLead(l){
-    const fechoObj = l.fecho || {};
-    const dataCpcv = findDateWithToken([l, fechoObj], 'cpcv');
-    const dataEscritura = findDateWithToken([l, fechoObj], 'escritura');
+    // 1) procurar explicitamente "Data do CPCV" e variantes
+    let direto = resolveFromFecho(l, [
+      'Data do CPCV','dataCpcv','data_cpcv','dataCPCV',
+      'dataCpcvFecho','dataFechoCpcv'
+    ]);
+    if(direto && typeof direto === 'string'){
+      const s = direto.trim().slice(0,10);
+      return s;
+    }
 
+    // 2) fallback: qualquer campo que contenha "cpcv" e pareça uma data
+    const deep = findDeep(l,(k,v)=>{
+      const kl = k.toLowerCase();
+      if(!kl.includes('cpcv')) return false;
+      if(typeof v !== 'string') return false;
+      const s = v.trim().slice(0,10);
+      return /^\d{4}-\d{2}-\d{2}$/.test(s) || /^\d{2}\/\d{2}\/\d{4}$/.test(s);
+    });
+    if(deep && typeof deep === 'string'){
+      return deep.trim().slice(0,10);
+    }
+
+    // 3) fallback final: outras datas já existentes
     return (
-      dataCpcv ||
-      dataEscritura ||
       l.dataFechoNegocio ||
       l.dataFecho ||
       l.dataVenda ||
@@ -832,13 +851,27 @@
   }
 
   function resolveDataFechoFromAng(a){
-    const fechoObj = a.fecho || {};
-    const dataCpcv = findDateWithToken([a, fechoObj], 'cpcv');
-    const dataEscritura = findDateWithToken([a, fechoObj], 'escritura');
+    let direto = resolveFromFecho(a, [
+      'Data do CPCV','dataCpcv','data_cpcv','dataCPCV',
+      'dataCpcvFecho','dataFechoCpcv'
+    ]);
+    if(direto && typeof direto === 'string'){
+      const s = direto.trim().slice(0,10);
+      return s;
+    }
+
+    const deep = findDeep(a,(k,v)=>{
+      const kl = k.toLowerCase();
+      if(!kl.includes('cpcv')) return false;
+      if(typeof v !== 'string') return false;
+      const s = v.trim().slice(0,10);
+      return /^\d{4}-\d{2}-\d{2}$/.test(s) || /^\d{2}\/\d{2}\/\d{4}$/.test(s);
+    });
+    if(deep && typeof deep === 'string'){
+      return deep.trim().slice(0,10);
+    }
 
     return (
-      dataCpcv ||
-      dataEscritura ||
       a.dataVenda ||
       a.dataFecho ||
       a.dataAngariacao ||
@@ -1017,13 +1050,7 @@
       const fechoObj = l.fecho || {};
       const dataCpcv = findDateWithToken([l, fechoObj], 'cpcv');
       const dataEscritura = findDateWithToken([l, fechoObj], 'escritura');
-      const dataFecho = dataCpcv ||
-                        dataEscritura ||
-                        l.dataFechoNegocio ||
-                        l.dataFecho ||
-                        l.dataVenda ||
-                        l.data ||
-                        '';
+      const dataFecho = resolveDataFechoFromLead(l);
 
       const tipoNegocio = resolveTipoNegocioFromLead(l);
       const zona = resolveZonaFromLead(l);
@@ -1038,7 +1065,7 @@
         cliente: l.nome || '',
         titulo: l.imovel ? (l.imovel + (l.tipologia? ' ' + l.tipologia : '')) : (l.imovel || 'Lead'),
         data: l.data || '',
-        dataFecho: dataFecho,
+        dataFecho: dataFecho || l.data || '',
         dataCpcv: dataCpcv || '',
         dataEscritura: dataEscritura || '',
         valor: valorNegocio,
@@ -1059,12 +1086,7 @@
       const fechoObj = a.fecho || {};
       const dataCpcv = findDateWithToken([a, fechoObj], 'cpcv');
       const dataEscritura = findDateWithToken([a, fechoObj], 'escritura');
-      const dataFecho = dataCpcv ||
-                        dataEscritura ||
-                        a.dataVenda ||
-                        a.dataFecho ||
-                        a.dataAngariacao ||
-                        '';
+      const dataFecho = resolveDataFechoFromAng(a);
 
       const titulo = a.isEmpreendimento && a.nomeEmp
         ? a.nomeEmp
@@ -1082,7 +1104,7 @@
         cliente: a.isEmpreendimento ? (a.promotor || '') : (a.nomeProp || ''),
         titulo,
         data:a.dataAngariacao || '',
-        dataFecho: dataFecho,
+        dataFecho: dataFecho || a.dataAngariacao || '',
         dataCpcv: dataCpcv || '',
         dataEscritura: dataEscritura || '',
         valor:precoPedido,
