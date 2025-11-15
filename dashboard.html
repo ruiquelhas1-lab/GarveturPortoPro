@@ -621,7 +621,7 @@
     onlyHidden:false
   };
 
-  /* ========= HELPERS NUMÉRICOS ========= */
+  /* === Helpers numéricos & formatação === */
   function parseNum(v){
     if(v===null || v===undefined || v==='') return 0;
     const n = parseFloat(String(v).replace(/\./g,'').replace(',','.'));
@@ -648,40 +648,6 @@
     return v.toFixed(1).replace('.',',') + '%';
   }
 
-  /* ========= HELPERS DE DATA ========= */
-  function normalizeDateToISO(v){
-    if(!v) return '';
-    let s = String(v).trim();
-
-    if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-
-    const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(s);
-    if(m){
-      const dd = m[1], mm = m[2], yyyy = m[3];
-      return `${yyyy}-${mm}-${dd}`;
-    }
-
-    return s.slice(0,10);
-  }
-
-  function findDateWithToken(objs, token){
-    const tk = String(token).toLowerCase();
-    for(const obj of objs){
-      if(!obj || typeof obj!=='object') continue;
-      for(const k of Object.keys(obj)){
-        const lk = k.toLowerCase();
-        if(!lk.includes(tk)) continue;
-        const v = obj[k];
-        if(typeof v === 'string' || typeof v === 'number'){
-          const iso = normalizeDateToISO(v);
-          if(/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
-        }
-      }
-    }
-    return '';
-  }
-
-  /* ========= HELPERS DE AGRUPAMENTO ========= */
   function groupCount(arr, labelFn){
     const map = {};
     arr.forEach(item=>{
@@ -708,7 +674,7 @@
     return top;
   }
 
-  /* ========= HELPERS GENÉRICOS ========= */
+  /* === Utilidades para procurar dados “profundos” nas fichas === */
   function findDeep(obj, matcher){
     const visited = new Set();
     function _search(o){
@@ -742,7 +708,7 @@
     return '';
   }
 
-  /* ========= LOAD DE STORAGE ========= */
+  /* === Carregamento de dados do localStorage === */
   function loadLeads(){
     try{
       const raw = localStorage.getItem(STORAGE_LEADS);
@@ -781,7 +747,7 @@
     }
   }
 
-  /* ========= FILTROS (LOCAL STORAGE) ========= */
+  /* === Persistência de filtros do Dashboard === */
   function loadFiltersState(){
     try{
       const raw = localStorage.getItem(STORAGE_FILTERS);
@@ -833,61 +799,63 @@
     }
   }
 
-  /* ========= RESOLUÇÃO DE DATAS/COMISSÕES (FECHOS) ========= */
+  /* === Resolvedores de dados de fecho, tipo negócio, zona, tipologia, comissão === */
 
   function resolveDataFechoFromLead(l){
-    const fecho = l.fecho || {};
-
-    let d = fecho['Data do CPCV'] ||
-            fecho['dataCpcv'] ||
-            fecho['data_cpcv'] ||
-            fecho['dataCPCV'] ||
-            fecho['dataCpcvFecho'] ||
-            fecho['dataFechoCpcv'];
-    if(d) return normalizeDateToISO(d);
+    let direto = resolveFromFecho(l, [
+      'Data do CPCV','dataCpcv','data_cpcv','dataCPCV',
+      'dataCpcvFecho','dataFechoCpcv'
+    ]);
+    if(direto && typeof direto === 'string'){
+      return direto.trim().slice(0,10);
+    }
 
     const deep = findDeep(l,(k,v)=>{
       const kl = k.toLowerCase();
       if(!kl.includes('cpcv')) return false;
-      const iso = normalizeDateToISO(v);
-      return /^\d{4}-\d{2}-\d{2}$/.test(iso);
+      if(typeof v !== 'string') return false;
+      const s = v.trim().slice(0,10);
+      return /^\d{4}-\d{2}-\d{2}$/.test(s);
     });
-    if(deep) return normalizeDateToISO(deep);
+    if(deep && typeof deep === 'string'){
+      return deep.trim().slice(0,10);
+    }
 
-    const fallback =
+    return (
       l.dataFechoNegocio ||
       l.dataFecho ||
       l.dataVenda ||
       l.data ||
-      '';
-    return normalizeDateToISO(fallback);
+      ''
+    );
   }
 
   function resolveDataFechoFromAng(a){
-    const fecho = a.fecho || {};
-
-    let d = fecho['Data do CPCV'] ||
-            fecho['dataCpcv'] ||
-            fecho['data_cpcv'] ||
-            fecho['dataCPCV'] ||
-            fecho['dataCpcvFecho'] ||
-            fecho['dataFechoCpcv'];
-    if(d) return normalizeDateToISO(d);
+    let direto = resolveFromFecho(a, [
+      'Data do CPCV','dataCpcv','data_cpcv','dataCPCV',
+      'dataCpcvFecho','dataFechoCpcv'
+    ]);
+    if(direto && typeof direto === 'string'){
+      return direto.trim().slice(0,10);
+    }
 
     const deep = findDeep(a,(k,v)=>{
       const kl = k.toLowerCase();
       if(!kl.includes('cpcv')) return false;
-      const iso = normalizeDateToISO(v);
-      return /^\d{4}-\d{2}-\d{2}$/.test(iso);
+      if(typeof v !== 'string') return false;
+      const s = v.trim().slice(0,10);
+      return /^\d{4}-\d{2}-\d{2}$/.test(s);
     });
-    if(deep) return normalizeDateToISO(deep);
+    if(deep && typeof deep === 'string'){
+      return deep.trim().slice(0,10);
+    }
 
-    const fallback =
+    return (
       a.dataVenda ||
       a.dataFecho ||
       a.dataAngariacao ||
-      '';
-    return normalizeDateToISO(fallback);
+      ''
+    );
   }
 
   function resolveTipoNegocioFromLead(l){
@@ -903,6 +871,7 @@
             a.naturezaNegocio ||
             '').trim();
   }
+
   function resolveZonaFromLead(l){
     return (resolveFromFecho(l, ['zonaFecho','zona']) ||
             l.zona ||
@@ -916,6 +885,7 @@
             a.localizacao ||
             '').trim();
   }
+
   function resolveTipologiaFromLead(l){
     return (resolveFromFecho(l, ['tipologiaFecho','tipologia']) ||
             l.tipologia ||
@@ -933,8 +903,7 @@
 
     const rawFecho = resolveFromFecho(l, [
       'Comissão','Comissão (%)','Percentagem comissão',
-      'percentComissao','comissao_percent','taxaComissao','comissao',
-      'fecho_comissao_pct','fechoComissaoPct','comissaoPct'
+      'percentComissao','comissao_percent','taxaComissao','comissao'
     ]);
     pct = parsePct(rawFecho);
     if(isFinite(pct) && pct>0 && pct<=100) return pct;
@@ -995,99 +964,7 @@
     return NaN;
   }
 
-  /* ========= CONSTRUÇÃO DE NEGÓCIOS (FECHOS) ========= */
-  function buildNegocios(leads, angs){
-    const list = [];
-
-    // LEADS EM FECHO
-    leads.forEach(l=>{
-      if(l.estado !== 'Fecho') return;
-
-      const valorNegocio = parseNum(l.fecho_negocio || l.valor || 0);
-
-      const fechoObj = l.fecho || {};
-      const dataCpcv = findDateWithToken([l, fechoObj], 'cpcv');
-      const dataEscritura = findDateWithToken([l, fechoObj], 'escritura');
-      const dataFecho = resolveDataFechoFromLead(l);
-
-      const tipoNegocio = resolveTipoNegocioFromLead(l);
-      const zona = resolveZonaFromLead(l);
-      const tipologia = resolveTipologiaFromLead(l);
-      const pctCom = resolvePctComissaoFromLead(l);
-      const comValor = (isFinite(pctCom) && valorNegocio>0) ? (pctCom/100)*valorNegocio : 0;
-
-      list.push({
-        tipo: 'lead',
-        id: l.id || '',
-        consultor: l.consultor || '',
-        cliente: l.nome || '',
-        titulo: l.imovel ? (l.imovel + (l.tipologia? ' ' + l.tipologia : '')) : (l.imovel || 'Lead'),
-        data: normalizeDateToISO(l.data || ''),
-        dataFecho: dataFecho || normalizeDateToISO(l.data || ''),
-        dataCpcv: dataCpcv || '',
-        dataEscritura: dataEscritura || '',
-        valor: valorNegocio,
-        origem: (l.papel || '') ? ('Lead — '+l.papel) : 'Lead',
-        tipoNegocio: tipoNegocio,
-        zona: zona,
-        tipologia: tipologia,
-        comPercent: pctCom,
-        comValor: comValor
-      });
-    });
-
-    // ANGARIAÇÕES APROVADAS
-    angs.forEach(a=>{
-      if(a.estadoAng !== 'aprovado') return;
-
-      const precoPedido = parseNum(a.precoPedido || 0);
-
-      const fechoObj = a.fecho || {};
-      const dataCpcv = findDateWithToken([a, fechoObj], 'cpcv');
-      const dataEscritura = findDateWithToken([a, fechoObj], 'escritura');
-      const dataFecho = resolveDataFechoFromAng(a);
-
-      const titulo = a.isEmpreendimento && a.nomeEmp
-        ? a.nomeEmp
-        : (a.tituloImovel || 'Angariação');
-      const tipoNegocio = resolveTipoNegocioFromAng(a);
-      const zona = resolveZonaFromAng(a);
-      const tipologia = resolveTipologiaFromAng(a);
-      const pctCom = resolvePctComissaoFromAng(a);
-      const comValor = (isFinite(pctCom) && precoPedido>0) ? (pctCom/100)*precoPedido : 0;
-
-      list.push({
-        tipo:'ang',
-        id:a.id || '',
-        consultor:a.consultor || '',
-        cliente: a.isEmpreendimento ? (a.promotor || '') : (a.nomeProp || ''),
-        titulo,
-        data: normalizeDateToISO(a.dataAngariacao || ''),
-        dataFecho: dataFecho || normalizeDateToISO(a.dataAngariacao || ''),
-        dataCpcv: dataCpcv || '',
-        dataEscritura: dataEscritura || '',
-        valor:precoPedido,
-        origem:a.isEmpreendimento ? 'Angariação — Empreendimento' : 'Angariação',
-        tipoNegocio: tipoNegocio,
-        zona: zona,
-        tipologia: tipologia,
-        comPercent: pctCom,
-        comValor: comValor
-      });
-    });
-
-    list.sort((a,b)=>{
-      const da = a.dataFecho || a.data || '';
-      const db = b.dataFecho || b.data || '';
-      return db.localeCompare(da);
-    });
-    return list;
-  }
-
-  /* ========= APLICAÇÃO DE FILTROS =========
-     - Leads / Angariações: filtradas pelo período com base na data de criação
-     - Negócios (Fechos): filtrados pelo período com base na dataFecho (CPCV / fecho)
-  ========================================= */
+  /* === Aplicar filtros às listas === */
   function applyFilters(){
     const cons = FILTERS.consultor;
     const de   = FILTERS.de;
@@ -1095,7 +972,6 @@
     const showHidden = FILTERS.showHidden;
     const onlyHidden = FILTERS.onlyHidden;
 
-    /* ---- Leads para área de Leads (filtradas pela data de criação) ---- */
     let leads = allLeads.slice().filter(l=>l);
     if(cons){
       leads = leads.filter(l=> (l.consultor || '') === cons);
@@ -1112,7 +988,6 @@
       leads = leads.filter(l=> l.visivel !== false);
     }
 
-    /* ---- Angariações para área de Angariações (data de angariação) ---- */
     let angs = allAngs.slice().filter(d=>d);
     if(cons){
       angs = angs.filter(d=> (d.consultor || '') === cons);
@@ -1129,31 +1004,8 @@
       angs = angs.filter(d=> d.visible !== false);
     }
 
-    /* ---- Negócios (Fechos) // base: todos, filtro por CPCV/Fecho ---- */
-    let baseLeads = allLeads.slice().filter(l=>l);
-    let baseAngs  = allAngs.slice().filter(a=>a);
+    const negocios = buildNegocios(leads, angs);
 
-    if(cons){
-      baseLeads = baseLeads.filter(l=> (l.consultor || '') === cons);
-      baseAngs  = baseAngs.filter(a=> (a.consultor || '') === cons);
-    }
-    if(onlyHidden){
-      baseLeads = baseLeads.filter(l=> l.visivel === false);
-      baseAngs  = baseAngs.filter(a=> a.visible === false);
-    }else if(!showHidden){
-      baseLeads = baseLeads.filter(l=> l.visivel !== false);
-      baseAngs  = baseAngs.filter(a=> a.visible !== false);
-    }
-
-    const allNegocios = buildNegocios(baseLeads, baseAngs);
-    const negocios = allNegocios.filter(n=>{
-      const dFecho = n.dataFecho || n.data || '';
-      if(de && dFecho && dFecho < de) return false;
-      if(ate && dFecho && dFecho > ate) return false;
-      return true;
-    });
-
-    /* ---- Tarefas (mantém lógica anterior) ---- */
     let tasks = allTasks.slice().filter(t=>t);
     if(cons){
       tasks = tasks.filter(t=> (t.responsavel || '') === cons);
@@ -1168,7 +1020,81 @@
     return {leads, angs, negocios, tasks};
   }
 
-  /* ========= KPIs GLOBAIS ========= */
+  /* === Construção da lista de negócios (Fechos) === */
+  function buildNegocios(leads, angs){
+    const list = [];
+
+    // Leads em Fecho
+    leads.forEach(l=>{
+      if(l.estado !== 'Fecho') return;
+      const valorNegocio = parseNum(l.fecho_negocio || l.valor || 0);
+      const dataFecho = resolveDataFechoFromLead(l);
+      const tipoNegocio = resolveTipoNegocioFromLead(l);
+      const zona = resolveZonaFromLead(l);
+      const tipologia = resolveTipologiaFromLead(l);
+      const pctCom = resolvePctComissaoFromLead(l);
+      const comValor = (isFinite(pctCom) && valorNegocio>0) ? (pctCom/100)*valorNegocio : 0;
+
+      list.push({
+        tipo: 'lead',
+        id: l.id || '',
+        consultor: l.consultor || '',
+        cliente: l.nome || '',
+        titulo: l.imovel ? (l.imovel + (l.tipologia? ' ' + l.tipologia : '')) : (l.imovel || 'Lead'),
+        data: l.data || '',
+        dataFecho: dataFecho || l.data || '',
+        valor: valorNegocio,
+        origem: (l.papel || '') ? ('Lead — '+l.papel) : 'Lead',
+        tipoNegocio: tipoNegocio,
+        zona: zona,
+        tipologia: tipologia,
+        comPercent: pctCom,
+        comValor: comValor
+      });
+    });
+
+    // Angariações aprovadas
+    angs.forEach(a=>{
+      if(a.estadoAng !== 'aprovado') return;
+      const precoPedido = parseNum(a.precoPedido || 0);
+      const titulo = a.isEmpreendimento && a.nomeEmp
+        ? a.nomeEmp
+        : (a.tituloImovel || 'Angariação');
+      const dataFecho = resolveDataFechoFromAng(a);
+      const tipoNegocio = resolveTipoNegocioFromAng(a);
+      const zona = resolveZonaFromAng(a);
+      const tipologia = resolveTipologiaFromAng(a);
+      const pctCom = resolvePctComissaoFromAng(a);
+      const comValor = (isFinite(pctCom) && precoPedido>0) ? (pctCom/100)*precoPedido : 0;
+
+      list.push({
+        tipo:'ang',
+        id:a.id || '',
+        consultor:a.consultor || '',
+        cliente: a.isEmpreendimento ? (a.promotor || '') : (a.nomeProp || ''),
+        titulo,
+        data:a.dataAngariacao || '',
+        dataFecho: dataFecho || a.dataAngariacao || '',
+        valor:precoPedido,
+        origem:a.isEmpreendimento ? 'Angariação — Empreendimento' : 'Angariação',
+        tipoNegocio: tipoNegocio,
+        zona: zona,
+        tipologia: tipologia,
+        comPercent: pctCom,
+        comValor: comValor
+      });
+    });
+
+    // Ordenado por data de fecho (CPCV) desc
+    list.sort((a,b)=>{
+      const da = a.dataFecho || a.data || '';
+      const db = b.dataFecho || b.data || '';
+      return db.localeCompare(da);
+    });
+    return list;
+  }
+
+  /* === KPIs globais === */
   function renderGlobalKpis(leads, angs, negocios, tasks){
     kpiGrid.innerHTML = '';
 
@@ -1197,7 +1123,7 @@
       {
         label:'Negócios (Fechos/Vendas)',
         value: formatInt(negociosCount),
-        sub:'Leads em Fecho + Angariações aprovadas (por CPCV/fecho).',
+        sub:'Leads em Fecho + Angariações aprovadas.',
         badge: negociosVolume ? 'Volume: ' + formatMoney(negociosVolume) : ''
       },
       {
@@ -1236,7 +1162,7 @@
     });
   }
 
-  /* ========= RENDER DE GRÁFICOS GENÉRICO ========= */
+  /* === Componente genérico de gráfico === */
   function renderBarChart(container, opts){
     const {title, subtitle, items, formatter, responsive} = opts;
     if(!items || !items.length){
@@ -1310,7 +1236,7 @@
     container.appendChild(card);
   }
 
-  /* ========= ÁREA LEADS ========= */
+  /* === Área: Leads === */
   function renderLeadsArea(leads){
     leadsCharts.innerHTML = '';
     const hasData = leads.length>0;
@@ -1392,7 +1318,7 @@
     });
   }
 
-  /* ========= ÁREA ANGARIAÇÕES ========= */
+  /* === Área: Angariações & Mix de negócio === */
   function renderAngsArea(angs, leads){
     angsCharts.innerHTML = '';
     const hasData = angs.length>0;
@@ -1488,6 +1414,7 @@
       });
     }
 
+    // Mix de negócio Leads + Angariações em %
     const mixMap = {};
     const addTipo = (raw)=>{
       const t = (raw || '').trim();
@@ -1517,13 +1444,14 @@
     }
   }
 
-  /* ========= ÁREA FECHOS & VENDAS ========= */
+  /* === Área: Fechos & Vendas (inclui CPCV e comissões) === */
   function renderFechosArea(negocios){
     fechosCharts.innerHTML = '';
     const hasData = negocios.length>0;
     fechosEmpty.style.display = hasData ? 'none':'block';
     if(!hasData) return;
 
+    // Volume mensal com base na data de fecho (CPCV) + total global
     const mapaMensal = {};
     negocios.forEach(n=>{
       const dataBase = n.dataFecho || n.data;
@@ -1539,14 +1467,17 @@
         const [y,m] = key.split('-');
         return {label: m+'/'+y.slice(-2), value:val};
       });
+    const totalVolumeMensal = arrMensal.reduce((acc,it)=>acc + (it.value || 0),0);
+
     renderBarChart(fechosCharts,{
       title:'Volume Mensal de Negócios',
-      subtitle:'Baseado na data de CPCV / fecho.',
+      subtitle:'Baseado na data de CPCV / fecho · Total: ' + formatMoney(totalVolumeMensal),
       items:arrMensal,
       formatter:formatMoney,
       responsive:false
     });
 
+    // Negócios por consultor (contagem)
     const consMap = groupCount(negocios, n=>n.consultor || '(sem consultor)');
     const consArr = mapToSortedArray(consMap);
     renderBarChart(fechosCharts,{
@@ -1557,6 +1488,7 @@
       responsive:false
     });
 
+    // Origem dos negócios (Lead Fecho vs Angariação aprovada)
     const volTipoMap = {};
     negocios.forEach(n=>{
       const label = n.tipo === 'lead' ? 'Leads · Fecho' : 'Angariações aprovadas';
@@ -1571,8 +1503,10 @@
       responsive:true
     });
 
+    // Negócios com comissão válida
     const comNegocios = negocios.filter(n=>isFinite(n.comPercent) && n.comPercent>0 && n.valor>0);
 
+    // Comissões mensais da agência (em €)
     const comMensalMap = {};
     comNegocios.forEach(n=>{
       const dataBase = n.dataFecho || n.data;
@@ -1597,6 +1531,7 @@
       responsive:false
     });
 
+    /* === RANKING DE COMISSÕES POR CONSULTOR · POR TIPO DE NEGÓCIO === */
     const comPorTipo = {};
     comNegocios.forEach(n=>{
       const raw = (n.tipoNegocio || 'Outro').toLowerCase();
@@ -1669,6 +1604,7 @@
       });
     });
 
+    // Média da % de comissão por tipo de negócio
     const comTipoPctMap = {};
     comNegocios.forEach(n=>{
       const tipo = (n.tipoNegocio || 'Outro').trim() || 'Outro';
@@ -1690,6 +1626,7 @@
       responsive:true
     });
 
+    // Ticket médio por tipologia (apenas compra/venda)
     const mapTipTicket = {};
     negocios.forEach(n=>{
       const tipoRaw = (n.tipoNegocio || '').toLowerCase();
@@ -1719,6 +1656,7 @@
       responsive:true
     });
 
+    // Ticket médio por zona
     const mapZonaTicket = {};
     negocios.forEach(n=>{
       const zona = (n.zona || 'Sem zona').trim() || 'Sem zona';
@@ -1742,7 +1680,7 @@
     });
   }
 
-  /* ========= ÁREA TAREFAS ========= */
+  /* === Área: Tarefas === */
   function renderTarefasArea(tasks){
     tarefasCharts.innerHTML = '';
     const hasData = tasks.length>0;
@@ -1816,7 +1754,7 @@
     });
   }
 
-  /* ========= CONTEXTO ========= */
+  /* === Contexto textual (topo) === */
   function updateContextLabel(){
     const cons = FILTERS.consultor;
     const de   = FILTERS.de;
@@ -1834,7 +1772,7 @@
     contextLabel.textContent = parts.length ? parts.join(' | ') : 'Sem filtros — visão global';
   }
 
-  /* ========= TABS ========= */
+  /* === Tabs das áreas === */
   areaTabs.forEach(btn=>{
     btn.addEventListener('click',()=>{
       const area = btn.dataset.area;
@@ -1845,7 +1783,7 @@
     });
   });
 
-  /* ========= CICLO PRINCIPAL ========= */
+  /* === Ciclo principal === */
   function refresh(){
     loadLeads();
     loadAngs();
