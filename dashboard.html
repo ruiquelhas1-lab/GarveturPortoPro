@@ -1238,7 +1238,7 @@
 
   /* ========= RENDER DE GRÁFICOS GENÉRICO ========= */
   function renderBarChart(container, opts){
-    const {title, subtitle, items, formatter, responsive, badge} = opts;
+    const {title, subtitle, items, formatter, responsive} = opts;
     if(!items || !items.length){
       const card = document.createElement('div');
       card.className = 'chart-card' + (responsive ? ' responsive':'');
@@ -1252,18 +1252,10 @@
       s.textContent = subtitle || '';
       header.appendChild(t);
       header.appendChild(s);
-      card.appendChild(header);
-
-      if(badge){
-        const b = document.createElement('div');
-        b.className = 'kpi-badge';
-        b.textContent = badge;
-        card.appendChild(b);
-      }
-
       const empty = document.createElement('div');
       empty.className = 'chart-empty';
       empty.textContent = 'Sem dados suficientes para este gráfico.';
+      card.appendChild(header);
       card.appendChild(empty);
       container.appendChild(card);
       return;
@@ -1284,13 +1276,6 @@
     header.appendChild(t);
     header.appendChild(s);
     card.appendChild(header);
-
-    if(badge){
-      const b = document.createElement('div');
-      b.className = 'kpi-badge';
-      b.textContent = badge;
-      card.appendChild(b);
-    }
 
     const rows = document.createElement('div');
     rows.className = 'chart-rows';
@@ -1539,6 +1524,7 @@
     fechosEmpty.style.display = hasData ? 'none':'block';
     if(!hasData) return;
 
+    // Volume mensal (por data de fecho/CPCV)
     const mapaMensal = {};
     negocios.forEach(n=>{
       const dataBase = n.dataFecho || n.data;
@@ -1555,15 +1541,15 @@
         return {label: m+'/'+y.slice(-2), value:val};
       });
 
-    const totalVolume = negocios.reduce((acc,n)=>acc + (n.valor || 0), 0);
+    // 🔹 Total global do volume de negócios no período filtrado
+    const totalVolume = negocios.reduce((acc,n)=>acc+(n.valor || 0),0);
 
     renderBarChart(fechosCharts,{
       title:'Volume Mensal de Negócios',
-      subtitle:'Baseado na data de CPCV / fecho.',
+      subtitle:'Baseado na data de CPCV / fecho · Total: ' + formatMoney(totalVolume),
       items:arrMensal,
       formatter:formatMoney,
-      responsive:false,
-      badge: totalVolume ? 'Total global: ' + formatMoney(totalVolume) : ''
+      responsive:false
     });
 
     const consMap = groupCount(negocios, n=>n.consultor || '(sem consultor)');
@@ -1608,9 +1594,16 @@
         const [y,m] = key.split('-');
         return {label: m+'/'+y.slice(-2), value:val};
       });
+
+    // 🔹 Total global de comissões no período filtrado
+    const totalComissoes = comNegocios.reduce((acc,n)=>{
+      const comVal = n.comValor || (n.valor * (n.comPercent/100));
+      return acc + (comVal || 0);
+    },0);
+
     renderBarChart(fechosCharts,{
       title:'Comissões da Agência (Mensal)',
-      subtitle:'Sobre negócios fechados no período filtrado (inclui arrendamentos).',
+      subtitle:'Sobre negócios fechados no período filtrado (inclui arrendamentos) · Total: ' + formatMoney(totalComissoes),
       items:comMensalArr,
       formatter:formatMoney,
       responsive:false
