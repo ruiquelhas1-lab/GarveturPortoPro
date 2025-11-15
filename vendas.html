@@ -858,11 +858,21 @@
         : '';
 
       // Datas de fecho (CPCV / Escritura) para cronologia
-      const dataCpcv = l.fecho_data_cpcv || '';
-      const dataEscritura = l.fecho_data_escritura || '';
+      const dataCpcv =
+        l.fecho_data_cpcv ||
+        l.fecho_dataCpcv ||
+        l.dataCpcv ||
+        l.data_cpcv ||
+        '';
+      const dataEscritura =
+        l.fecho_data_escritura ||
+        l.fecho_dataEscritura ||
+        l.dataEscritura ||
+        l.data_escritura ||
+        '';
 
       // Data base do negócio: CPCV -> Escritura -> data original
-      let dataBase = dataCpcv || dataEscritura || l.data || '';
+      let dataBase = dataCpcv || dataEscritura || (l.data || '');
 
       list.push({
         tipo: 'lead',
@@ -918,8 +928,8 @@
         titulo: titulo,
         zona: zona,
         data: dataAng,
-        dataCpcv: '',       // normalmente ainda não existe à data de aprovação
-        dataEscritura: '',  // idem
+        dataCpcv: '',
+        dataEscritura: '',
         valor: isFinite(precoPedido)? precoPedido : 0,
         comissaoPct: comPerc,
         origem: a.isEmpreendimento ? 'Angariação — Empreendimento' : 'Angariação',
@@ -1093,8 +1103,10 @@
         // 100% Escritura
         addEvento(dataEscritura, comissaoTotal);
       }else{
-        // Sem datas de fecho – não entra na cronologia de recebimentos
-        return;
+        // Sem datas de CPCV / Escritura: usar a data base do negócio como fallback
+        if(n.data){
+          addEvento(n.data, comissaoTotal);
+        }
       }
     });
 
