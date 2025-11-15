@@ -306,7 +306,7 @@
       border-radius:999px;
       border:1px solid rgba(163,139,99,.4);
       font-size:10px;
-      color:var(--muted);
+     	color:var(--muted);
       text-transform:uppercase;
       letter-spacing:.08em;
     }
@@ -647,6 +647,25 @@
     return v.toFixed(1).replace('.',',') + '%';
   }
 
+  // Procura datas em campos cujo nome contenha o token (ex.: 'cpcv' ou 'escritura')
+  function findDateWithToken(objs, token){
+    const re = /^\d{4}-\d{2}-\d{2}$/;
+    const tk = String(token).toLowerCase();
+    for(const obj of objs){
+      if(!obj || typeof obj!=='object') continue;
+      for(const k of Object.keys(obj)){
+        const lk = k.toLowerCase();
+        if(!lk.includes(tk)) continue;
+        const v = obj[k];
+        if(typeof v === 'string'){
+          const s = v.trim().slice(0,10);
+          if(re.test(s)) return s;
+        }
+      }
+    }
+    return '';
+  }
+
   function groupCount(arr, labelFn){
     const map = {};
     arr.forEach(item=>{
@@ -795,27 +814,15 @@
     }
   }
 
+  // (mantemos estas funções como fallback, embora a lógica principal vá usar findDateWithToken directamente)
   function resolveDataFechoFromLead(l){
-    let direto = resolveFromFecho(l, [
-      'Data do CPCV','dataCpcv','data_cpcv','dataCPCV',
-      'dataCpcvFecho','dataFechoCpcv'
-    ]);
-    if(direto && typeof direto === 'string'){
-      return direto.trim().slice(0,10);
-    }
-
-    const deep = findDeep(l,(k,v)=>{
-      const kl = k.toLowerCase();
-      if(!kl.includes('cpcv')) return false;
-      if(typeof v !== 'string') return false;
-      const s = v.trim().slice(0,10);
-      return /^\d{4}-\d{2}-\d{2}$/.test(s);
-    });
-    if(deep && typeof deep === 'string'){
-      return deep.trim().slice(0,10);
-    }
+    const fechoObj = l.fecho || {};
+    const dataCpcv = findDateWithToken([l, fechoObj], 'cpcv');
+    const dataEscritura = findDateWithToken([l, fechoObj], 'escritura');
 
     return (
+      dataCpcv ||
+      dataEscritura ||
       l.dataFechoNegocio ||
       l.dataFecho ||
       l.dataVenda ||
@@ -825,26 +832,13 @@
   }
 
   function resolveDataFechoFromAng(a){
-    let direto = resolveFromFecho(a, [
-      'Data do CPCV','dataCpcv','data_cpcv','dataCPCV',
-      'dataCpcvFecho','dataFechoCpcv'
-    ]);
-    if(direto && typeof direto === 'string'){
-      return direto.trim().slice(0,10);
-    }
-
-    const deep = findDeep(a,(k,v)=>{
-      const kl = k.toLowerCase();
-      if(!kl.includes('cpcv')) return false;
-      if(typeof v !== 'string') return false;
-      const s = v.trim().slice(0,10);
-      return /^\d{4}-\d{2}-\d{2}$/.test(s);
-    });
-    if(deep && typeof deep === 'string'){
-      return deep.trim().slice(0,10);
-    }
+    const fechoObj = a.fecho || {};
+    const dataCpcv = findDateWithToken([a, fechoObj], 'cpcv');
+    const dataEscritura = findDateWithToken([a, fechoObj], 'escritura');
 
     return (
+      dataCpcv ||
+      dataEscritura ||
       a.dataVenda ||
       a.dataFecho ||
       a.dataAngariacao ||
@@ -895,7 +889,8 @@
 
     const rawFecho = resolveFromFecho(l, [
       'Comissão','Comissão (%)','Percentagem comissão',
-      'percentComissao','comissao_percent','taxaComissao','comissao'
+      'percentComissao','comissao_percent','taxaComissao','comissao',
+      'fecho_comissao_pct','fechoComissaoPct','comissaoPct'
     ]);
     pct = parsePct(rawFecho);
     if(isFinite(pct) && pct>0 && pct<=100) return pct;
@@ -1016,8 +1011,20 @@
 
     leads.forEach(l=>{
       if(l.estado !== 'Fecho') return;
+
       const valorNegocio = parseNum(l.fecho_negocio || l.valor || 0);
-      const dataFecho = resolveDataFechoFromLead(l);
+
+      const fechoObj = l.fecho || {};
+      const dataCpcv = findDateWithToken([l, fechoObj], 'cpcv');
+      const dataEscritura = findDateWithToken([l, fechoObj], 'escritura');
+      const dataFecho = dataCpcv ||
+                        dataEscritura ||
+                        l.dataFechoNegocio ||
+                        l.dataFecho ||
+                        l.dataVenda ||
+                        l.data ||
+                        '';
+
       const tipoNegocio = resolveTipoNegocioFromLead(l);
       const zona = resolveZonaFromLead(l);
       const tipologia = resolveTipologiaFromLead(l);
@@ -1031,7 +1038,9 @@
         cliente: l.nome || '',
         titulo: l.imovel ? (l.imovel + (l.tipologia? ' ' + l.tipologia : '')) : (l.imovel || 'Lead'),
         data: l.data || '',
-        dataFecho: dataFecho || l.data || '',
+        dataFecho: dataFecho,
+        dataCpcv: dataCpcv || '',
+        dataEscritura: dataEscritura || '',
         valor: valorNegocio,
         origem: (l.papel || '') ? ('Lead — '+l.papel) : 'Lead',
         tipoNegocio: tipoNegocio,
@@ -1044,11 +1053,22 @@
 
     angs.forEach(a=>{
       if(a.estadoAng !== 'aprovado') return;
+
       const precoPedido = parseNum(a.precoPedido || 0);
+
+      const fechoObj = a.fecho || {};
+      const dataCpcv = findDateWithToken([a, fechoObj], 'cpcv');
+      const dataEscritura = findDateWithToken([a, fechoObj], 'escritura');
+      const dataFecho = dataCpcv ||
+                        dataEscritura ||
+                        a.dataVenda ||
+                        a.dataFecho ||
+                        a.dataAngariacao ||
+                        '';
+
       const titulo = a.isEmpreendimento && a.nomeEmp
         ? a.nomeEmp
         : (a.tituloImovel || 'Angariação');
-      const dataFecho = resolveDataFechoFromAng(a);
       const tipoNegocio = resolveTipoNegocioFromAng(a);
       const zona = resolveZonaFromAng(a);
       const tipologia = resolveTipologiaFromAng(a);
@@ -1062,7 +1082,9 @@
         cliente: a.isEmpreendimento ? (a.promotor || '') : (a.nomeProp || ''),
         titulo,
         data:a.dataAngariacao || '',
-        dataFecho: dataFecho || a.dataAngariacao || '',
+        dataFecho: dataFecho,
+        dataCpcv: dataCpcv || '',
+        dataEscritura: dataEscritura || '',
         valor:precoPedido,
         origem:a.isEmpreendimento ? 'Angariação — Empreendimento' : 'Angariação',
         tipoNegocio: tipoNegocio,
