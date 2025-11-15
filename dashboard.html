@@ -1505,52 +1505,77 @@
       responsive:false
     });
 
-    const comPorConsultor = {};
-    let somaPctEquipa = 0;
-    let countPctEquipa = 0;
-
+    /* === RANKING DE COMISSÕES POR CONSULTOR · DIVIDIDO POR TIPO DE NEGÓCIO === */
+    const comPorTipo = {};
     comNegocios.forEach(n=>{
-      if(!isFinite(n.comPercent)) return;
-      const cons = n.consultor || '(sem consultor)';
-      const pctRounded = Math.round(n.comPercent * 10) / 10; // 1 casa decimal
+      const raw = (n.tipoNegocio || 'Outro').toLowerCase();
+      let bucket = 'Outro';
+      if(raw.includes('arrend')) bucket = 'Arrendamento';
+      else if(raw.includes('venda')) bucket = 'Venda';
+      else if(raw.includes('compra')) bucket = 'Compra';
 
-      if(!comPorConsultor[cons]){
-        comPorConsultor[cons] = {freq:{}, bestPct:null};
+      if(!comPorTipo[bucket]){
+        comPorTipo[bucket] = {
+          porConsultor:{},
+          somaPct:0,
+          countPct:0
+        };
       }
+      const info = comPorTipo[bucket];
 
-      const bucket = pctRounded;
-      comPorConsultor[cons].freq[bucket] = (comPorConsultor[cons].freq[bucket] || 0) + 1;
+      const cons = n.consultor || '(sem consultor)';
+      const pctRounded = Math.round(n.comPercent * 10) / 10;
 
-      somaPctEquipa += n.comPercent;
-      countPctEquipa++;
+      if(!info.porConsultor[cons]){
+        info.porConsultor[cons] = {freq:{}};
+      }
+      info.porConsultor[cons].freq[pctRounded] =
+        (info.porConsultor[cons].freq[pctRounded] || 0) + 1;
+
+      info.somaPct  += n.comPercent;
+      info.countPct += 1;
     });
 
-    Object.keys(comPorConsultor).forEach(cons=>{
-      const entry = comPorConsultor[cons];
-      let bestPct = null;
-      let bestCount = -1;
-      Object.entries(entry.freq).forEach(([pctStr,count])=>{
-        const pct = parseFloat(pctStr);
-        if(count > bestCount || (count === bestCount && pct > bestPct)){
-          bestCount = count;
-          bestPct = pct;
+    const ordemTiposBase = ['Compra','Venda','Arrendamento','Outro'];
+    const tiposExistentes = Object.keys(comPorTipo);
+    const ordemTipos = ordemTiposBase
+      .filter(t=>tiposExistentes.includes(t))
+      .concat(tiposExistentes.filter(t=>!ordemTiposBase.includes(t)));
+
+    ordemTipos.forEach(tipo=>{
+      const info = comPorTipo[tipo];
+      if(!info) return;
+
+      const arrConsultores = [];
+
+      Object.entries(info.porConsultor).forEach(([cons,dataCons])=>{
+        let bestPct = null;
+        let bestCount = -1;
+        Object.entries(dataCons.freq).forEach(([pctStr,count])=>{
+          const pct = parseFloat(pctStr);
+          if(count > bestCount || (count === bestCount && pct > bestPct)){
+            bestCount = count;
+            bestPct = pct;
+          }
+        });
+        if(isFinite(bestPct)){
+          arrConsultores.push({label:cons, value:bestPct});
         }
       });
-      entry.bestPct = bestPct;
-    });
 
-    const comConsArr = Object.entries(comPorConsultor)
-      .filter(([,obj])=>isFinite(obj.bestPct))
-      .map(([label,obj])=>({label,value: obj.bestPct}))
-      .sort((a,b)=>b.value-a.value);
+      if(!arrConsultores.length) return;
 
-    const mediaPctEquipa = countPctEquipa ? (somaPctEquipa / countPctEquipa) : NaN;
-    renderBarChart(fechosCharts,{
-      title:'Ranking de Comissões por Consultor',
-      subtitle:'Mostra a comissão mais usada por consultor · Média equipa: ' + formatPct(mediaPctEquipa),
-      items:comConsArr,
-      formatter:formatPct,
-      responsive:false
+      arrConsultores.sort((a,b)=>b.value-a.value);
+      const mediaPct = info.countPct ? (info.somaPct / info.countPct) : NaN;
+
+      renderBarChart(fechosCharts,{
+        title:'Ranking de Comissões por Consultor — ' + tipo,
+        subtitle:'Comissão mais usada em negócios de ' + tipo.toLowerCase() +
+                 ' · Média equipa: ' + formatPct(mediaPct),
+        items:arrConsultores,
+        formatter:formatPct,
+        responsive:false
+      });
     });
 
     const comTipoPctMap = {};
@@ -1561,7 +1586,7 @@
         comTipoPctMap[tipo] = {sumPct:0,count:0};
       }
       comTipoPctMap[tipo].sumPct += n.comPercent;
-      comTipoPctMap[tipo].count += 1;
+      comTipoPctMap[tipo].count  += 1;
     });
     const comTipoPctArr = Object.entries(comTipoPctMap)
       .map(([label,obj])=>({label,value: obj.count ? obj.sumPct/obj.count : 0}))
@@ -1581,14 +1606,14 @@
         tipoRaw.includes('compra') ||
         tipoRaw.includes('venda');
 
-      if(!isCompraVenda) return;          // exclui arrendamentos, permutas, etc.
+      if(!isCompraVenda) return;
       if(!n.valor) return;
 
       const tip = (n.tipologia || 'Sem tipologia').trim() || 'Sem tipologia';
       if(!mapTipTicket[tip]){
         mapTipTicket[tip] = {sum:0,count:0};
       }
-      mapTipTicket[tip].sum += n.valor;
+      mapTipTicket[tip].sum  += n.valor;
       mapTipTicket[tip].count += 1;
     });
     const tipTicketArr = Object.entries(mapTipTicket)
@@ -1610,7 +1635,7 @@
       if(!mapZonaTicket[zona]){
         mapZonaTicket[zona] = {sum:0,count:0};
       }
-      mapZonaTicket[zona].sum += n.valor;
+      mapZonaTicket[zona].sum  += n.valor;
       mapZonaTicket[zona].count += 1;
     });
     const zonaTicketArr = Object.entries(mapZonaTicket)
