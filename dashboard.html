@@ -641,7 +641,8 @@
     return isFinite(n) ? n : NaN;
   }
   function formatMoney(n){
-    const v = parseNum(n);
+    if(n===null || n===undefined || n===0) return '€ 0';
+    const v = (typeof n === 'number') ? n : parseNum(n);
     if(!isFinite(v) || v === 0) return '€ 0';
     return v.toLocaleString('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
   }
@@ -650,7 +651,7 @@
     return v.toLocaleString('pt-PT');
   }
   function formatPct(n){
-    const v = typeof n === 'number' ? n : parsePct(n);
+    const v = (typeof n === 'number') ? n : parsePct(n);
     if(!isFinite(v)) return '—';
     return v.toFixed(1).replace('.',',') + '%';
   }
@@ -679,6 +680,24 @@
       top.push({label:'Outros',value:somaResto});
     }
     return top;
+  }
+
+  /* ===== Helper genérico para buscar campos no "Fecho" ===== */
+  function resolveFromFecho(obj, keys){
+    if(!obj || typeof obj !== 'object') return '';
+    // 1) direto na raiz
+    for(const k of keys){
+      if(obj[k]) return obj[k];
+    }
+    // 2) dentro de possíveis sub-objetos de fecho
+    const candidatos = [obj.fecho, obj.Fecho, obj.fechos, obj.dadosFecho, obj.fechar];
+    for(const sub of candidatos){
+      if(!sub || typeof sub !== 'object') continue;
+      for(const k of keys){
+        if(sub[k]) return sub[k];
+      }
+    }
+    return '';
   }
 
   /* ===== Leitura de dados ===== */
@@ -799,49 +818,86 @@
     return {leads, angs, negocios, tasks};
   }
 
-  /* ===== Construção de Negócios (Fechos & Vendas) ===== */
+  /* ===== Resolvers específicos (CPCV, tipos, zonas, comissões) ===== */
+
   function resolveDataFechoFromLead(l){
+    // 1) Procurar explicitamente "Data do CPCV" na ficha / fecho
+    const direto = resolveFromFecho(l, [
+      'Data do CPCV','dataCpcv','data_cpcv','dataCPCV',
+      'dataCpcvFecho','dataFechoCpcv'
+    ]);
+    if(direto) return direto;
+    // 2) Fallbacks habituais
     return (
-      l.dataCpcv ||
-      l.data_cpcv ||
-      l.dataCPCV ||
-      l.dataFecho ||
       l.dataFechoNegocio ||
-      l.data || 
+      l.dataFecho ||
+      l.dataVenda ||
+      l.data ||
       ''
     );
   }
   function resolveDataFechoFromAng(a){
+    const direto = resolveFromFecho(a, [
+      'Data do CPCV','dataCpcv','data_cpcv','dataCPCV',
+      'dataCpcvFecho','dataFechoCpcv'
+    ]);
+    if(direto) return direto;
     return (
-      a.dataCpcv ||
-      a.data_cpcv ||
-      a.dataCPCV ||
       a.dataVenda ||
       a.dataFecho ||
       a.dataAngariacao ||
       ''
     );
   }
+
   function resolveTipoNegocioFromLead(l){
-    return (l.tipo_negocio || l.tipoNegocio || '').trim();
+    return (resolveFromFecho(l, ['tipo_negocio','tipoNegocio','Natureza negócio']) ||
+            l.tipo_negocio ||
+            l.tipoNegocio ||
+            '').trim();
   }
   function resolveTipoNegocioFromAng(a){
-    return (a.tipoNegocio || a.tipo_negocio || a.naturezaNegocio || '').trim();
+    return (resolveFromFecho(a, ['tipo_negocio','tipoNegocio','naturezaNegocio']) ||
+            a.tipoNegocio ||
+            a.tipo_negocio ||
+            a.naturezaNegocio ||
+            '').trim();
   }
   function resolveZonaFromLead(l){
-    return (l.zona || l.zonaPreferencial || '').trim();
+    return (resolveFromFecho(l, ['zonaFecho','zona']) ||
+            l.zona ||
+            l.zonaPreferencial ||
+            '').trim();
   }
   function resolveZonaFromAng(a){
-    return (a.zona || a.zonaImovel || a.localizacao || '').trim();
+    return (resolveFromFecho(a, ['zonaImovel','zona']) ||
+            a.zona ||
+            a.zonaImovel ||
+            a.localizacao ||
+            '').trim();
   }
   function resolveTipologiaFromLead(l){
-    return (l.tipologia || '').trim();
+    return (resolveFromFecho(l, ['tipologiaFecho','tipologia']) ||
+            l.tipologia ||
+            '').trim();
   }
   function resolveTipologiaFromAng(a){
-    return (a.tipologia || a.tipologiaImovel || '').trim();
+    return (resolveFromFecho(a, ['tipologiaImovel','tipologia']) ||
+            a.tipologia ||
+            a.tipologiaImovel ||
+            '').trim();
   }
+
   function resolvePctComissaoFromLead(l){
-    let pct = NaN;
+    // 1) tentar no FECHO com vários nomes possíveis
+    const rawFecho = resolveFromFecho(l, [
+      'Comissão','Comissão (%)','Percentagem comissão',
+      'percentComissao','comissao_percent','taxaComissao','comissao'
+    ]);
+    let pct = parsePct(rawFecho);
+    if(isFinite(pct)) return pct;
+
+    // 2) fallback para o que já existia
     if(l.comissao === 'outro' && l.comissaoOutro){
       pct = parsePct(l.comissaoOutro);
     }else if(l.comissao){
@@ -853,8 +909,15 @@
     }
     return pct;
   }
+
   function resolvePctComissaoFromAng(a){
-    let pct = NaN;
+    const rawFecho = resolveFromFecho(a, [
+      'Comissão','Comissão (%)','Percentagem comissão',
+      'percentComissao','comissao_percent','taxaComissao','comissao'
+    ]);
+    let pct = parsePct(rawFecho);
+    if(isFinite(pct)) return pct;
+
     if(a.comissao === 'outro' && a.comissaoOutro){
       pct = parsePct(a.comissaoOutro);
     }else if(a.comissao){
@@ -867,6 +930,7 @@
     return pct;
   }
 
+  /* ===== Construção de Negócios (Fechos & Vendas) ===== */
   function buildNegocios(leads, angs){
     const list = [];
 
@@ -879,7 +943,7 @@
       const zona = resolveZonaFromLead(l);
       const tipologia = resolveTipologiaFromLead(l);
       const pctCom = resolvePctComissaoFromLead(l);
-      const comValor = isFinite(pctCom) ? (pctCom/100)*valorNegocio : 0;
+      const comValor = (isFinite(pctCom) && valorNegocio>0) ? (pctCom/100)*valorNegocio : 0;
 
       list.push({
         tipo: 'lead',
@@ -911,7 +975,7 @@
       const zona = resolveZonaFromAng(a);
       const tipologia = resolveTipologiaFromAng(a);
       const pctCom = resolvePctComissaoFromAng(a);
-      const comValor = isFinite(pctCom) ? (pctCom/100)*precoPedido : 0;
+      const comValor = (isFinite(pctCom) && precoPedido>0) ? (pctCom/100)*precoPedido : 0;
 
       list.push({
         tipo:'ang',
@@ -931,7 +995,7 @@
       });
     });
 
-    // Ordenar por data de fecho (CPCV) decrescente
+    // Ordenar por data de CPCV/fecho decrescente
     list.sort((a,b)=>{
       const da = a.dataFecho || a.data || '';
       const db = b.dataFecho || b.data || '';
@@ -1246,7 +1310,7 @@
         responsive:true
       });
 
-      // 6) Comissão (distribuição por intervalos) + valor médio
+      // 6) Comissão (distribuição por intervalos) + valor médio de carteira
       const comBuckets = {
         '<=3%':0,
         '3–5%':0,
@@ -1366,7 +1430,6 @@
 
     // Filtrar negócios com % de comissão válida
     const comNegocios = negocios.filter(n=>isFinite(n.comPercent) && n.comPercent>0 && n.valor>0);
-    const totalComValor = comNegocios.reduce((acc,n)=>acc+(n.comValor || 0),0);
 
     // 4) Comissões mensais da agência
     const comMensalMap = {};
