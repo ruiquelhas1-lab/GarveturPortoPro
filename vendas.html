@@ -570,10 +570,16 @@
         </div>
       </div>
 
-      <!-- Chart -->
+      <!-- Chart volume mensal -->
       <div class="chart">
         <div class="chart-title">Volume mensal (todos os consultores)</div>
         <div id="chartContainer"></div>
+      </div>
+
+      <!-- Chart cronologia comissões -->
+      <div class="chart" style="margin-top:10px;">
+        <div class="chart-title">Cronologia de recebimentos (comissões)</div>
+        <div id="chartComissoesContainer"></div>
       </div>
 
       <!-- Secções separadas -->
@@ -619,6 +625,7 @@
   const emptyState = document.getElementById('emptyState');
 
   const chartContainer = document.getElementById('chartContainer');
+  const chartComissoesContainer = document.getElementById('chartComissoesContainer');
 
   const exportCsvBtn = document.getElementById('exportCsvBtn');
   const applyFiltersBtn = document.getElementById('applyFiltersBtn');
@@ -688,7 +695,13 @@
   /* ===== Helpers comuns ===== */
   function parseNumber(v){
     if(v==null || v==='') return NaN;
-    const s = String(v).replace('.','').replace(',','.');
+    const s = String(v).replace(/\./g,'').replace(',','.');
+    const n = parseFloat(s);
+    return isFinite(n) ? n : NaN;
+  }
+  function parsePct(v){
+    if(v==null || v==='') return NaN;
+    const s = String(v).toString().replace('%','').replace(',','.');
     const n = parseFloat(s);
     return isFinite(n) ? n : NaN;
   }
@@ -712,13 +725,21 @@
     const day = String(d.getDate()).padStart(2,'0');
     return y + '-' + m + '-' + day;
   }
-  function offsetDateISO(days){
-    const d = new Date();
-    d.setDate(d.getDate()+days);
-    const y = d.getFullYear();
-    const m = String(d.getMonth()+1).padStart(2,'0');
-    const day = String(d.getDate()).padStart(2,'0');
-    return y + '-' + m + '-' + day;
+  function addDaysISO(baseISO, days){
+    try{
+      if(!baseISO) baseISO = todayISO();
+      const parts = baseISO.split('-').map(Number);
+      if(parts.length!==3) return baseISO;
+      const dt = new Date(parts[0], parts[1]-1, parts[2]);
+      dt.setDate(dt.getDate() + (days||0));
+      const y = dt.getFullYear();
+      const m = String(dt.getMonth()+1).padStart(2,'0');
+      const d = String(dt.getDate()).padStart(2,'0');
+      return y + '-' + m + '-' + d;
+    }catch(e){
+      console.error('Erro em addDaysISO', e);
+      return baseISO;
+    }
   }
 
   /* ===== Integração com Tarefas (localStorage partilhado) ===== */
@@ -766,7 +787,7 @@
       titulo: 'Follow-up pós-venda — ' + tituloBase,
       descricao: 'Tarefa criada a partir do módulo Vendas (negócio fechado/carteira).',
       dataCriacao: todayISO(),
-      dataLimite: offsetDateISO(1),
+      dataLimite: addDaysISO(todayISO(), 1),
       horaLimite: '',
       createdAtMs: Date.now()
     };
@@ -836,6 +857,13 @@
         ? l.fecho_comissao_pct
         : '';
 
+      // Datas de fecho (CPCV / Escritura) para cronologia
+      const dataCpcv = l.fecho_data_cpcv || '';
+      const dataEscritura = l.fecho_data_escritura || '';
+
+      // Data base do negócio: CPCV -> Escritura -> data original
+      let dataBase = dataCpcv || dataEscritura || l.data || '';
+
       list.push({
         tipo: 'lead',
         id: l.id || '',
@@ -845,7 +873,9 @@
         email: l.email || '',
         titulo: l.imovel ? (l.imovel + (l.tipologia? ' ' + l.tipologia : '')) : (l.imovel || 'Lead'),
         zona: l.zona || '',
-        data: l.data || '',
+        data: dataBase,
+        dataCpcv: dataCpcv,
+        dataEscritura: dataEscritura,
         valor: isFinite(valorNegocio)? valorNegocio : 0,
         comissaoPct: comissaoPct,
         origem: (l.papel || '') ? ('Lead — '+l.papel) : 'Lead',
@@ -876,6 +906,8 @@
 
       const zona = [a.concelho || '', a.zona || ''].filter(Boolean).join(' · ');
 
+      const dataAng = a.dataAngariacao || '';
+
       list.push({
         tipo:'ang',
         id: a.id || '',
@@ -885,7 +917,9 @@
         email: a.isEmpreendimento ? (a.emailPromotor || '') : (a.emailProp || ''),
         titulo: titulo,
         zona: zona,
-        data: a.dataAngariacao || '',
+        data: dataAng,
+        dataCpcv: '',       // normalmente ainda não existe à data de aprovação
+        dataEscritura: '',  // idem
         valor: isFinite(precoPedido)? precoPedido : 0,
         comissaoPct: comPerc,
         origem: a.isEmpreendimento ? 'Angariação — Empreendimento' : 'Angariação',
@@ -1023,6 +1057,85 @@
     });
   }
 
+  function renderComissoesChart(lista){
+    chartComissoesContainer.innerHTML = '';
+
+    // Construir eventos de recebimento por mês
+    const mapa = {}; // key YYYY-MM -> total comissões
+    lista.forEach(n=>{
+      const pct = parsePct(n.comissaoPct);
+      const valor = n.valor || 0;
+      if(!isFinite(pct) || pct<=0 || !valor) return;
+
+      const comissaoTotal = valor * (pct/100);
+      const dataCpcv = n.dataCpcv || '';
+      const dataEscritura = n.dataEscritura || '';
+
+      function addEvento(dateISO, montante){
+        if(!dateISO || !montante) return;
+        const d = new Date(dateISO);
+        if(isNaN(d.getTime())) return;
+        const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+        if(!mapa[key]) mapa[key] = 0;
+        mapa[key] += montante;
+      }
+
+      if(dataCpcv && dataEscritura){
+        // 50% CPCV + 50% Escritura
+        addEvento(dataCpcv, comissaoTotal * 0.5);
+        addEvento(dataEscritura, comissaoTotal * 0.5);
+      }else if(dataCpcv && !dataEscritura){
+        // 50% CPCV + 50% previsão Escritura (CPCV + 90 dias)
+        addEvento(dataCpcv, comissaoTotal * 0.5);
+        const dataPrevista = addDaysISO(dataCpcv, 90);
+        addEvento(dataPrevista, comissaoTotal * 0.5);
+      }else if(!dataCpcv && dataEscritura){
+        // 100% Escritura
+        addEvento(dataEscritura, comissaoTotal);
+      }else{
+        // Sem datas de fecho – não entra na cronologia de recebimentos
+        return;
+      }
+    });
+
+    const entries = Object.entries(mapa).sort((a,b)=>a[0].localeCompare(b[0]));
+    if(!entries.length){
+      const div = document.createElement('div');
+      div.className = 'chart-empty';
+      div.textContent = 'Sem dados de comissões (CPCV/Escritura) para este período.';
+      chartComissoesContainer.appendChild(div);
+      return;
+    }
+
+    const max = Math.max(...entries.map(([,total])=>total));
+    entries.forEach(([key,total])=>{
+      const row = document.createElement('div');
+      row.className = 'chart-row';
+
+      const label = document.createElement('div');
+      label.className = 'chart-label';
+      const [y,m] = key.split('-');
+      label.textContent = m+'/'+y.slice(-2);
+
+      const barWrap = document.createElement('div');
+      barWrap.className = 'chart-bar-wrap';
+      const bar = document.createElement('div');
+      bar.className = 'chart-bar';
+      const pct = max>0 ? (total/max*100) : 0;
+      bar.style.width = pct.toFixed(1)+'%';
+      barWrap.appendChild(bar);
+
+      const val = document.createElement('div');
+      val.className = 'chart-value';
+      val.textContent = formatMoney(total);
+
+      row.appendChild(label);
+      row.appendChild(barWrap);
+      row.appendChild(val);
+      chartComissoesContainer.appendChild(row);
+    });
+  }
+
   function renderCards(listaLeads, listaAng){
     cardsLeadsGrid.innerHTML = '';
     cardsAngGrid.innerHTML = '';
@@ -1157,6 +1270,7 @@
 
     renderKpis(lista);
     renderChart(lista);
+    renderComissoesChart(lista);
     renderCards(listaLeads, listaAng);
   }
 
@@ -1169,7 +1283,8 @@
     }
     const headers = [
       'Tipo','ID','Consultor','Cliente/Proprietário','Contacto','Email',
-      'Título','Zona','Data','ValorNegocio','ComissaoPct','Origem'
+      'Título','Zona','DataBase','DataCPCV','DataEscritura',
+      'ValorNegocio','ComissaoPct','Origem'
     ];
     const rows = lista.map(n=>[
       n.tipo,
@@ -1181,6 +1296,8 @@
       n.titulo || '',
       n.zona || '',
       n.data || '',
+      n.dataCpcv || '',
+      n.dataEscritura || '',
       n.valor || '',
       n.comissaoPct || '',
       n.origem || ''
