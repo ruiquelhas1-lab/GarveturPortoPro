@@ -515,7 +515,7 @@
         </div>
         <button class="btn" id="applyFiltersBtn" style="margin-top:6px;width:100%;">Aplicar filtros</button>
         <button class="btn" id="clearFiltersBtn" style="margin-top:4px;width:100%;background:transparent;border-color:rgba(255,255,255,.2);">Limpar</button>
-        <p style="margin-top:6px;">Período aplica-se à <strong>data da Lead</strong>, <strong>data da Angariação</strong>, datas de Fecho & tarefas (data limite).</p>
+        <p style="margin-top:6px;">Período aplica-se à <strong>data da Lead</strong>, <strong>data da Angariação</strong>, datas de Fecho & tarefas (data limite / CPCV para negócios).</p>
       </div>
 
       <div class="sidebar-section">
@@ -650,7 +650,7 @@
     return v.toLocaleString('pt-PT');
   }
   function formatPct(n){
-    const v = parsePct(n);
+    const v = typeof n === 'number' ? n : parsePct(n);
     if(!isFinite(v)) return '—';
     return v.toFixed(1).replace('.',',') + '%';
   }
@@ -799,6 +799,74 @@
     return {leads, angs, negocios, tasks};
   }
 
+  /* ===== Construção de Negócios (Fechos & Vendas) ===== */
+  function resolveDataFechoFromLead(l){
+    return (
+      l.dataCpcv ||
+      l.data_cpcv ||
+      l.dataCPCV ||
+      l.dataFecho ||
+      l.dataFechoNegocio ||
+      l.data || 
+      ''
+    );
+  }
+  function resolveDataFechoFromAng(a){
+    return (
+      a.dataCpcv ||
+      a.data_cpcv ||
+      a.dataCPCV ||
+      a.dataVenda ||
+      a.dataFecho ||
+      a.dataAngariacao ||
+      ''
+    );
+  }
+  function resolveTipoNegocioFromLead(l){
+    return (l.tipo_negocio || l.tipoNegocio || '').trim();
+  }
+  function resolveTipoNegocioFromAng(a){
+    return (a.tipoNegocio || a.tipo_negocio || a.naturezaNegocio || '').trim();
+  }
+  function resolveZonaFromLead(l){
+    return (l.zona || l.zonaPreferencial || '').trim();
+  }
+  function resolveZonaFromAng(a){
+    return (a.zona || a.zonaImovel || a.localizacao || '').trim();
+  }
+  function resolveTipologiaFromLead(l){
+    return (l.tipologia || '').trim();
+  }
+  function resolveTipologiaFromAng(a){
+    return (a.tipologia || a.tipologiaImovel || '').trim();
+  }
+  function resolvePctComissaoFromLead(l){
+    let pct = NaN;
+    if(l.comissao === 'outro' && l.comissaoOutro){
+      pct = parsePct(l.comissaoOutro);
+    }else if(l.comissao){
+      pct = parsePct(l.comissao);
+    }else if(l.taxaComissao){
+      pct = parsePct(l.taxaComissao);
+    }else if(l.comissao_percent){
+      pct = parsePct(l.comissao_percent);
+    }
+    return pct;
+  }
+  function resolvePctComissaoFromAng(a){
+    let pct = NaN;
+    if(a.comissao === 'outro' && a.comissaoOutro){
+      pct = parsePct(a.comissaoOutro);
+    }else if(a.comissao){
+      pct = parsePct(a.comissao);
+    }else if(a.taxaComissao){
+      pct = parsePct(a.taxaComissao);
+    }else if(a.comissao_percent){
+      pct = parsePct(a.comissao_percent);
+    }
+    return pct;
+  }
+
   function buildNegocios(leads, angs){
     const list = [];
 
@@ -806,6 +874,13 @@
     leads.forEach(l=>{
       if(l.estado !== 'Fecho') return;
       const valorNegocio = parseNum(l.fecho_negocio || l.valor || 0);
+      const dataFecho = resolveDataFechoFromLead(l);
+      const tipoNegocio = resolveTipoNegocioFromLead(l);
+      const zona = resolveZonaFromLead(l);
+      const tipologia = resolveTipologiaFromLead(l);
+      const pctCom = resolvePctComissaoFromLead(l);
+      const comValor = isFinite(pctCom) ? (pctCom/100)*valorNegocio : 0;
+
       list.push({
         tipo: 'lead',
         id: l.id || '',
@@ -813,8 +888,14 @@
         cliente: l.nome || '',
         titulo: l.imovel ? (l.imovel + (l.tipologia? ' ' + l.tipologia : '')) : (l.imovel || 'Lead'),
         data: l.data || '',
+        dataFecho: dataFecho || l.data || '',
         valor: valorNegocio,
-        origem: (l.papel || '') ? ('Lead — '+l.papel) : 'Lead'
+        origem: (l.papel || '') ? ('Lead — '+l.papel) : 'Lead',
+        tipoNegocio: tipoNegocio,
+        zona: zona,
+        tipologia: tipologia,
+        comPercent: pctCom,
+        comValor: comValor
       });
     });
 
@@ -825,6 +906,13 @@
       const titulo = a.isEmpreendimento && a.nomeEmp
         ? a.nomeEmp
         : (a.tituloImovel || 'Angariação');
+      const dataFecho = resolveDataFechoFromAng(a);
+      const tipoNegocio = resolveTipoNegocioFromAng(a);
+      const zona = resolveZonaFromAng(a);
+      const tipologia = resolveTipologiaFromAng(a);
+      const pctCom = resolvePctComissaoFromAng(a);
+      const comValor = isFinite(pctCom) ? (pctCom/100)*precoPedido : 0;
+
       list.push({
         tipo:'ang',
         id:a.id || '',
@@ -832,15 +920,21 @@
         cliente: a.isEmpreendimento ? (a.promotor || '') : (a.nomeProp || ''),
         titulo,
         data:a.dataAngariacao || '',
+        dataFecho: dataFecho || a.dataAngariacao || '',
         valor:precoPedido,
-        origem:a.isEmpreendimento ? 'Angariação — Empreendimento' : 'Angariação'
+        origem:a.isEmpreendimento ? 'Angariação — Empreendimento' : 'Angariação',
+        tipoNegocio: tipoNegocio,
+        zona: zona,
+        tipologia: tipologia,
+        comPercent: pctCom,
+        comValor: comValor
       });
     });
 
-    // Ordenar por data decrescente
+    // Ordenar por data de fecho (CPCV) decrescente
     list.sort((a,b)=>{
-      const da = a.data || '';
-      const db = b.data || '';
+      const da = a.dataFecho || a.data || '';
+      const db = b.dataFecho || b.data || '';
       return db.localeCompare(da);
     });
     return list;
@@ -997,7 +1091,7 @@
     leadsEmpty.style.display = hasData ? 'none':'block';
     if(!hasData) return;
 
-    const visibles = leads; // já filtrados por visibilidade conforme filtros
+    const visibles = leads; // já filtrados
 
     // 1) Leads por estado
     const estadosOrden = ["Novo","Em Contacto","Qualificado","Visita","Proposta","Fecho","Perdido"];
@@ -1011,12 +1105,12 @@
       responsive:false
     });
 
-    // 2) Tipo de negócio
-    const tipoMap = groupCount(visibles, l=>l.tipo_negocio || '');
+    // 2) Tipo de negócio (contagem simples nas leads)
+    const tipoMap = groupCount(visibles, l=> (l.tipo_negocio || l.tipoNegocio || '').trim());
     const tipoArr = mapToSortedArray(tipoMap);
     renderBarChart(leadsCharts,{
-      title:'Tipo de Negócio',
-      subtitle:'Venda · Compra · Arrendamento · Permuta.',
+      title:'Tipo de Negócio (Leads)',
+      subtitle:'Venda · Compra · Arrendamento · Permuta (contagem).',
       items:tipoArr,
       formatter:formatInt,
       responsive:false
@@ -1079,124 +1173,151 @@
     });
   }
 
-  // ANGARIAÇÕES
-  function renderAngsArea(angs){
+  // ANGARIAÇÕES (inclui mix % de negócio Leads+Angs)
+  function renderAngsArea(angs, leads){
     angsCharts.innerHTML = '';
     const hasData = angs.length>0;
     angsEmpty.style.display = hasData ? 'none':'block';
-    if(!hasData) return;
+    if(!hasData && (!leads || !leads.length)) return;
 
     const vis = angs;
 
-    // 1) Estado da angariação
-    const estadosOrder = ['novo','negociacao','aprovado','perdido'];
-    const labelEstado = {novo:'Novo',negociacao:'Negociação',aprovado:'Aprovado',perdido:'Perdido'};
-    const estMap = groupCount(vis, a=>a.estadoAng || '');
-    const estArr = estadosOrder.map(k=>({label:labelEstado[k], value:estMap[k] || 0}));
-    renderBarChart(angsCharts,{
-      title:'Angariações por Estado',
-      subtitle:'Pipeline de produto.',
-      items:estArr,
-      formatter:formatInt,
-      responsive:false
-    });
+    if(hasData){
+      // 1) Estado da angariação
+      const estadosOrder = ['novo','negociacao','aprovado','perdido'];
+      const labelEstado = {novo:'Novo',negociacao:'Negociação',aprovado:'Aprovado',perdido:'Perdido'};
+      const estMap = groupCount(vis, a=>a.estadoAng || '');
+      const estArr = estadosOrder.map(k=>({label:labelEstado[k], value:estMap[k] || 0}));
+      renderBarChart(angsCharts,{
+        title:'Angariações por Estado',
+        subtitle:'Pipeline de produto.',
+        items:estArr,
+        formatter:formatInt,
+        responsive:false
+      });
 
-    // 2) Exclusivo vs Não exclusivo
-    const exclMap = {
-      'Exclusivo': vis.filter(a=>a.exclusivo).length,
-      'Não exclusivo': vis.filter(a=>a.naoExclusivo).length
+      // 2) Exclusivo vs Não exclusivo
+      const exclMap = {
+        'Exclusivo': vis.filter(a=>a.exclusivo).length,
+        'Não exclusivo': vis.filter(a=>a.naoExclusivo).length
+      };
+      const exclArr = mapToSortedArray(exclMap);
+      renderBarChart(angsCharts,{
+        title:'Exclusivo vs Não exclusivo',
+        subtitle:'Posicionamento dos imóveis.',
+        items:exclArr,
+        formatter:formatInt,
+        responsive:false
+      });
+
+      // 3) Empreendimento vs Unidade isolada
+      const empMap = {
+        'Empreendimento': vis.filter(a=>a.isEmpreendimento).length,
+        'Unidade isolada': vis.filter(a=>!a.isEmpreendimento).length
+      };
+      const empArr = mapToSortedArray(empMap);
+      renderBarChart(angsCharts,{
+        title:'Empreendimentos',
+        subtitle:'Carteira de empreendimentos vs unidades isoladas.',
+        items:empArr,
+        formatter:formatInt,
+        responsive:false
+      });
+
+      // 4) Natureza do imóvel
+      const natMap = groupCount(vis, a=>a.natureza || '');
+      const natArr = topN(mapToSortedArray(natMap), 6);
+      renderBarChart(angsCharts,{
+        title:'Natureza do Imóvel',
+        subtitle:'Apartamento, Moradia, Loja, etc.',
+        items:natArr,
+        formatter:formatInt,
+        responsive:true
+      });
+
+      // 5) Estado do imóvel
+      const estImovelMap = groupCount(vis, a=>a.estadoImovel || '');
+      const estImovelArr = topN(mapToSortedArray(estImovelMap), 6);
+      renderBarChart(angsCharts,{
+        title:'Estado do Imóvel',
+        subtitle:'Novo, usado, em construção...',
+        items:estImovelArr,
+        formatter:formatInt,
+        responsive:true
+      });
+
+      // 6) Comissão (distribuição por intervalos) + valor médio
+      const comBuckets = {
+        '<=3%':0,
+        '3–5%':0,
+        '>=5%':0
+      };
+      let somaValor = 0;
+      let countValor = 0;
+      vis.forEach(a=>{
+        const preco = parseNum(a.precoPedido || 0);
+        if(preco>0){ somaValor += preco; countValor++; }
+
+        let pct = resolvePctComissaoFromAng(a);
+        if(!isFinite(pct)) return;
+        if(pct <= 3) comBuckets['<=3%']++;
+        else if(pct <5) comBuckets['3–5%']++;
+        else comBuckets['>=5%']++;
+      });
+      const comArr = mapToSortedArray(comBuckets);
+      const valorMedio = countValor ? somaValor/countValor : 0;
+      renderBarChart(angsCharts,{
+        title:'Comissão (intervalos)',
+        subtitle:'Valor médio de carteira: ' + formatMoney(valorMedio),
+        items:comArr,
+        formatter:formatInt,
+        responsive:true
+      });
+    }
+
+    // 7) Mix de negócio Leads + Angariações (percentagens)
+    const mixMap = {};
+    const addTipo = (raw)=>{
+      const t = (raw || '').trim();
+      if(!t) return;
+      mixMap[t] = (mixMap[t] || 0) + 1;
     };
-    const exclArr = mapToSortedArray(exclMap);
-    renderBarChart(angsCharts,{
-      title:'Exclusivo vs Não exclusivo',
-      subtitle:'Posicionamento dos imóveis.',
-      items:exclArr,
-      formatter:formatInt,
-      responsive:false
-    });
+    (leads || []).forEach(l=> addTipo(resolveTipoNegocioFromLead(l)));
+    (angs  || []).forEach(a=> addTipo(resolveTipoNegocioFromAng(a)));
 
-    // 3) Empreendimento vs Unidade isolada
-    const empMap = {
-      'Empreendimento': vis.filter(a=>a.isEmpreendimento).length,
-      'Unidade isolada': vis.filter(a=>!a.isEmpreendimento).length
-    };
-    const empArr = mapToSortedArray(empMap);
-    renderBarChart(angsCharts,{
-      title:'Empreendimentos',
-      subtitle:'Carteira de empreendimentos vs unidades isoladas.',
-      items:empArr,
-      formatter:formatInt,
-      responsive:false
-    });
+    const totalMix = Object.values(mixMap).reduce((a,b)=>a+b,0);
+    const mixArr = Object.entries(mixMap)
+      .filter(([,v])=>v>0)
+      .map(([label,value])=>({
+        label,
+        value: totalMix ? (value/totalMix*100) : 0
+      }))
+      .sort((a,b)=>b.value-a.value);
 
-    // 4) Natureza do imóvel
-    const natMap = groupCount(vis, a=>a.natureza || '');
-    const natArr = topN(mapToSortedArray(natMap), 6);
-    renderBarChart(angsCharts,{
-      title:'Natureza do Imóvel',
-      subtitle:'Apartamento, Moradia, Loja, etc.',
-      items:natArr,
-      formatter:formatInt,
-      responsive:true
-    });
-
-    // 5) Estado do imóvel
-    const estImovelMap = groupCount(vis, a=>a.estadoImovel || '');
-    const estImovelArr = topN(mapToSortedArray(estImovelMap), 6);
-    renderBarChart(angsCharts,{
-      title:'Estado do Imóvel',
-      subtitle:'Novo, usado, em construção...',
-      items:estImovelArr,
-      formatter:formatInt,
-      responsive:true
-    });
-
-    // 6) Comissão (distribuição por intervalos) + valor médio
-    const comBuckets = {
-      '<=3%':0,
-      '3–5%':0,
-      '>=5%':0
-    };
-    let somaValor = 0;
-    let countValor = 0;
-    vis.forEach(a=>{
-      const preco = parseNum(a.precoPedido || 0);
-      if(preco>0){ somaValor += preco; countValor++; }
-
-      let pct = NaN;
-      if(a.comissao === 'outro' && a.comissaoOutro){
-        pct = parsePct(a.comissaoOutro);
-      }else if(a.comissao){
-        pct = parsePct(a.comissao);
-      }
-      if(!isFinite(pct)) return;
-      if(pct <= 3) comBuckets['<=3%']++;
-      else if(pct <5) comBuckets['3–5%']++;
-      else comBuckets['>=5%']++;
-    });
-    const comArr = mapToSortedArray(comBuckets);
-    const valorMedio = countValor ? somaValor/countValor : 0;
-    renderBarChart(angsCharts,{
-      title:'Comissão (intervalos)',
-      subtitle:'Valor médio: ' + formatMoney(valorMedio),
-      items:comArr,
-      formatter:formatInt,
-      responsive:true
-    });
+    if(mixArr.length){
+      renderBarChart(angsCharts,{
+        title:'Mix de Negócio (Leads + Angariações)',
+        subtitle:'Percentagem de vendas, arrendamentos, permutas, etc.',
+        items:mixArr,
+        formatter:formatPct,
+        responsive:true
+      });
+    }
   }
 
-  // FECHOS & VENDAS
+  // FECHOS & VENDAS (inclui comissões e ticket médio)
   function renderFechosArea(negocios){
     fechosCharts.innerHTML = '';
     const hasData = negocios.length>0;
     fechosEmpty.style.display = hasData ? 'none':'block';
     if(!hasData) return;
 
-    // 1) Volume mensal (todos consultores)
+    // 1) Volume mensal (por data de CPCV / fecho)
     const mapaMensal = {};
     negocios.forEach(n=>{
-      if(!n.data) return;
-      const d = new Date(n.data);
+      const dataBase = n.dataFecho || n.data;
+      if(!dataBase) return;
+      const d = new Date(dataBase);
       if(isNaN(d.getTime())) return;
       const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
       mapaMensal[key] = (mapaMensal[key] || 0) + (n.valor || 0);
@@ -1209,13 +1330,13 @@
       });
     renderBarChart(fechosCharts,{
       title:'Volume Mensal de Negócios',
-      subtitle:'Somatório do valor de negócio por mês.',
+      subtitle:'Baseado na data de CPCV / fecho.',
       items:arrMensal,
       formatter:formatMoney,
       responsive:false
     });
 
-    // 2) Negócios por consultor
+    // 2) Negócios por consultor (contagem)
     const consMap = groupCount(negocios, n=>n.consultor || '(sem consultor)');
     const consArr = mapToSortedArray(consMap);
     renderBarChart(fechosCharts,{
@@ -1237,6 +1358,131 @@
       title:'Origem dos Negócios',
       subtitle:'Peso de Leads vs Angariações nos negócios fechados.',
       items:volTipoArr,
+      formatter:formatMoney,
+      responsive:true
+    });
+
+    /* === QUADRO DE COMISSÕES === */
+
+    // Filtrar negócios com % de comissão válida
+    const comNegocios = negocios.filter(n=>isFinite(n.comPercent) && n.comPercent>0 && n.valor>0);
+    const totalComValor = comNegocios.reduce((acc,n)=>acc+(n.comValor || 0),0);
+
+    // 4) Comissões mensais da agência
+    const comMensalMap = {};
+    comNegocios.forEach(n=>{
+      const dataBase = n.dataFecho || n.data;
+      if(!dataBase) return;
+      const d = new Date(dataBase);
+      if(isNaN(d.getTime())) return;
+      const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+      const comVal = n.comValor || (n.valor * (n.comPercent/100));
+      comMensalMap[key] = (comMensalMap[key] || 0) + comVal;
+    });
+    const comMensalArr = Object.entries(comMensalMap)
+      .sort((a,b)=>a[0].localeCompare(b[0]))
+      .map(([key,val])=>{
+        const [y,m] = key.split('-');
+        return {label: m+'/'+y.slice(-2), value:val};
+      });
+    renderBarChart(fechosCharts,{
+      title:'Comissões da Agência (Mensal)',
+      subtitle:'Sobre negócios fechados no período filtrado.',
+      items:comMensalArr,
+      formatter:formatMoney,
+      responsive:false
+    });
+
+    // 5) Ranking de comissões por consultor + média % equipa
+    const comPorConsultorMap = {};
+    let somaPctEquipa = 0;
+    let countPctEquipa = 0;
+    comNegocios.forEach(n=>{
+      const cons = n.consultor || '(sem consultor)';
+      const comVal = n.comValor || (n.valor * (n.comPercent/100));
+      comPorConsultorMap[cons] = (comPorConsultorMap[cons] || 0) + comVal;
+
+      if(isFinite(n.comPercent)){
+        somaPctEquipa += n.comPercent;
+        countPctEquipa++;
+      }
+    });
+    const comConsArr = mapToSortedArray(comPorConsultorMap);
+    const mediaPctEquipa = countPctEquipa ? (somaPctEquipa / countPctEquipa) : NaN;
+    renderBarChart(fechosCharts,{
+      title:'Ranking de Comissões por Consultor',
+      subtitle:'Média % equipa: ' + formatPct(mediaPctEquipa),
+      items:comConsArr,
+      formatter:formatMoney,
+      responsive:false
+    });
+
+    // 6) Média % de comissão por tipo de negócio (venda / arrendamento / etc.)
+    const comTipoPctMap = {};
+    comNegocios.forEach(n=>{
+      const tipo = (n.tipoNegocio || 'Outro').trim() || 'Outro';
+      if(!isFinite(n.comPercent)) return;
+      if(!comTipoPctMap[tipo]){
+        comTipoPctMap[tipo] = {sumPct:0,count:0};
+      }
+      comTipoPctMap[tipo].sumPct += n.comPercent;
+      comTipoPctMap[tipo].count += 1;
+    });
+    const comTipoPctArr = Object.entries(comTipoPctMap)
+      .map(([label,obj])=>({label,value: obj.count ? obj.sumPct/obj.count : 0}))
+      .sort((a,b)=>b.value-a.value);
+    renderBarChart(fechosCharts,{
+      title:'Média % Comissão por Tipo de Negócio',
+      subtitle:'Comparação entre vendas, arrendamentos, etc.',
+      items:comTipoPctArr,
+      formatter:formatPct,
+      responsive:true
+    });
+
+    /* === TICKET MÉDIO (VALOR TOTAL DE FECHO) === */
+
+    // Ticket médio por tipologia
+    const mapTipTicket = {};
+    negocios.forEach(n=>{
+      const tip = (n.tipologia || 'Sem tipologia').trim() || 'Sem tipologia';
+      if(!n.valor) return;
+      if(!mapTipTicket[tip]){
+        mapTipTicket[tip] = {sum:0,count:0};
+      }
+      mapTipTicket[tip].sum += n.valor;
+      mapTipTicket[tip].count += 1;
+    });
+    const tipTicketArr = Object.entries(mapTipTicket)
+      .map(([label,obj])=>({label,value: obj.count ? obj.sum/obj.count : 0}))
+      .sort((a,b)=>b.value-a.value);
+    const tipTicketTop = topN(tipTicketArr,6);
+    renderBarChart(fechosCharts,{
+      title:'Ticket Médio por Tipologia',
+      subtitle:'Valor médio de fecho por tipologia.',
+      items:tipTicketTop,
+      formatter:formatMoney,
+      responsive:true
+    });
+
+    // Ticket médio por zona
+    const mapZonaTicket = {};
+    negocios.forEach(n=>{
+      const zona = (n.zona || 'Sem zona').trim() || 'Sem zona';
+      if(!n.valor) return;
+      if(!mapZonaTicket[zona]){
+        mapZonaTicket[zona] = {sum:0,count:0};
+      }
+      mapZonaTicket[zona].sum += n.valor;
+      mapZonaTicket[zona].count += 1;
+    });
+    const zonaTicketArr = Object.entries(mapZonaTicket)
+      .map(([label,obj])=>({label,value: obj.count ? obj.sum/obj.count : 0}))
+      .sort((a,b)=>b.value-a.value);
+    const zonaTicketTop = topN(zonaTicketArr,6);
+    renderBarChart(fechosCharts,{
+      title:'Ticket Médio por Zona (Top)',
+      subtitle:'Valor médio de fecho por zona/geografia.',
+      items:zonaTicketTop,
       formatter:formatMoney,
       responsive:true
     });
@@ -1360,7 +1606,7 @@
 
     renderGlobalKpis(leads, angs, negocios, tasks);
     renderLeadsArea(leads);
-    renderAngsArea(angs);
+    renderAngsArea(angs, leads);
     renderFechosArea(negocios);
     renderTarefasArea(tasks);
     updateContextLabel();
