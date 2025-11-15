@@ -570,16 +570,16 @@
         </div>
       </div>
 
-      <!-- Chart volume mensal -->
+      <!-- Chart Volume Negócios -->
       <div class="chart">
-        <div class="chart-title">Volume mensal (todos os consultores)</div>
+        <div class="chart-title">Volume mensal de negócios (todos os consultores)</div>
         <div id="chartContainer"></div>
       </div>
 
-      <!-- Chart cronologia comissões -->
-      <div class="chart" style="margin-top:10px;">
+      <!-- Cronologia de Recebimentos -->
+      <div class="chart">
         <div class="chart-title">Cronologia de recebimentos (comissões)</div>
-        <div id="chartComissoesContainer"></div>
+        <div id="chartComissoes"></div>
       </div>
 
       <!-- Secções separadas -->
@@ -600,12 +600,10 @@
 (function(){
   const LS_LEADS_KEY = 'gpp_leads_v5';
   const LS_ANG_KEY   = 'gpp_angariacoes_v2';
+  const LS_TAREFAS_KEY = 'gpp_tarefas_v1';
 
   const LS_VENDAS_FILTERS_KEY = 'gpp_vendas_filters_v1';
   const LS_GLOBAL_FILTERS_KEY = 'gpp_filtros_globais';
-
-  /* Integração com tarefas (mesmo storage do módulo Tarefas) */
-  const LS_TAREFAS_KEY = 'gpp_tarefas_v1';
 
   const fConsultor = document.getElementById('fConsultor');
   const fOrigem = document.getElementById('fOrigem');
@@ -625,7 +623,7 @@
   const emptyState = document.getElementById('emptyState');
 
   const chartContainer = document.getElementById('chartContainer');
-  const chartComissoesContainer = document.getElementById('chartComissoesContainer');
+  const chartComissoes = document.getElementById('chartComissoes');
 
   const exportCsvBtn = document.getElementById('exportCsvBtn');
   const applyFiltersBtn = document.getElementById('applyFiltersBtn');
@@ -640,7 +638,7 @@
     incluirInvisiveis:false
   };
 
-  /* ===== Helpers de storage (globais + locais) ===== */
+  /* ===== Storage filtros globais/locais ===== */
   function loadGlobalFilters(){
     try{
       const raw = localStorage.getItem(LS_GLOBAL_FILTERS_KEY);
@@ -684,7 +682,6 @@
     FILTERS.origem    = local.origem    || '';
     FILTERS.incluirInvisiveis = !!local.incluirInvisiveis;
 
-    // Aplicar nos campos da UI
     if(FILTERS.consultor) fConsultor.value = FILTERS.consultor;
     if(FILTERS.de) fDe.value = FILTERS.de;
     if(FILTERS.ate) fAte.value = FILTERS.ate;
@@ -692,7 +689,7 @@
     fIncluirInvisiveis.checked = FILTERS.incluirInvisiveis;
   }
 
-  /* ===== Helpers comuns ===== */
+  /* ===== Helpers ===== */
   function parseNumber(v){
     if(v==null || v==='') return NaN;
     const s = String(v).replace(/\./g,'').replace(',','.');
@@ -701,7 +698,7 @@
   }
   function parsePct(v){
     if(v==null || v==='') return NaN;
-    const s = String(v).toString().replace('%','').replace(',','.');
+    const s = String(v).replace('%','').replace(',','.');
     const n = parseFloat(s);
     return isFinite(n) ? n : NaN;
   }
@@ -725,44 +722,35 @@
     const day = String(d.getDate()).padStart(2,'0');
     return y + '-' + m + '-' + day;
   }
-  function addDaysISO(baseISO, days){
-    try{
-      if(!baseISO) baseISO = todayISO();
-      const parts = baseISO.split('-').map(Number);
-      if(parts.length!==3) return baseISO;
-      const dt = new Date(parts[0], parts[1]-1, parts[2]);
-      dt.setDate(dt.getDate() + (days||0));
-      const y = dt.getFullYear();
-      const m = String(dt.getMonth()+1).padStart(2,'0');
-      const d = String(dt.getDate()).padStart(2,'0');
-      return y + '-' + m + '-' + d;
-    }catch(e){
-      console.error('Erro em addDaysISO', e);
-      return baseISO;
-    }
+  function offsetDateISO(days){
+    const d = new Date();
+    d.setDate(d.getDate()+days);
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return y + '-' + m + '-' + day;
   }
 
-  function pickFirst(obj, keys){
-    for(const k of keys){
-      if(obj && obj[k] != null && obj[k] !== '') return obj[k];
-    }
-    return '';
-  }
-
-  function findDateLikeField(obj, token){
-    if(!obj) return '';
-    const t = String(token).toLowerCase();
-    for(const k of Object.keys(obj)){
-      const lk = k.toLowerCase();
-      if(lk.includes('data') && lk.includes(t)){
-        const v = obj[k];
-        if(typeof v === 'string' && v.trim()) return v;
+  // Procura campos de data com token (ex.: "cpcv", "escritura") em l e l.fecho
+  function findDateWithToken(objs, token){
+    const re = /^\d{4}-\d{2}-\d{2}$/;
+    const tk = String(token).toLowerCase();
+    for(const obj of objs){
+      if(!obj || typeof obj!=='object') continue;
+      for(const k of Object.keys(obj)){
+        const lk = k.toLowerCase();
+        if(lk.includes(tk)){
+          const v = obj[k];
+          if(typeof v === 'string' && re.test(v.trim())){
+            return v.trim();
+          }
+        }
       }
     }
     return '';
   }
 
-  /* ===== Integração com Tarefas (localStorage partilhado) ===== */
+  /* ===== Integração com Tarefas ===== */
   function loadTarefasState(){
     try{
       const raw = localStorage.getItem(LS_TAREFAS_KEY);
@@ -786,7 +774,6 @@
 
   function createTaskFromNegocio(neg){
     const state = loadTarefasState();
-
     const id = 'task_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
     const tituloBase = neg.cliente || neg.titulo || 'cliente';
 
@@ -807,7 +794,7 @@
       titulo: 'Follow-up pós-venda — ' + tituloBase,
       descricao: 'Tarefa criada a partir do módulo Vendas (negócio fechado/carteira).',
       dataCriacao: todayISO(),
-      dataLimite: addDaysISO(todayISO(), 1),
+      dataLimite: offsetDateISO(1),
       horaLimite: '',
       createdAtMs: Date.now()
     };
@@ -873,35 +860,19 @@
       if(l.estado !== 'Fecho') return;
 
       const valorNegocio = parseNumber(l.fecho_negocio || l.valor || 0);
+      const comissaoPctStr = (l.fecho_comissao_pct!=='' && l.fecho_comissao_pct!=null)
+        ? String(l.fecho_comissao_pct)
+        : (l.fecho && l.fecho.comissaoPct ? String(l.fecho.comissaoPct) : '');
 
-      const comissaoPct = pickFirst(l, [
-        'fecho_comissao_pct',
-        'fecho_comissaoPct',
-        'fecho_comissao',
-        'fecho_pct_comissao',
-        'comissaoPct',
-        'comissao_pct'
-      ]);
+      const comPctNum = parsePct(comissaoPctStr);
+      const comissaoValorTotal = isFinite(comPctNum)
+        ? (valorNegocio * comPctNum / 100)
+        : 0;
 
-      // Datas CPCV / Escritura (tentativa explícita + procura genérica)
-      let dataCpcv = pickFirst(l, [
-        'fecho_data_cpcv',
-        'fecho_dataCpcv',
-        'dataCpcv',
-        'data_cpcv'
-      ]);
-      if(!dataCpcv) dataCpcv = findDateLikeField(l,'cpcv');
-
-      let dataEscritura = pickFirst(l, [
-        'fecho_data_escritura',
-        'fecho_dataEscritura',
-        'dataEscritura',
-        'data_escritura'
-      ]);
-      if(!dataEscritura) dataEscritura = findDateLikeField(l,'escritura');
-
-      // Data base: CPCV -> Escritura -> data original
-      let dataBase = dataCpcv || dataEscritura || (l.data || '');
+      const fechoObj = l.fecho || {};
+      const dataCpcv      = findDateWithToken([l, fechoObj], 'cpcv');
+      const dataEscritura = findDateWithToken([l, fechoObj], 'escritura');
+      const dataFecho     = dataCpcv || dataEscritura || (l.data || '');
 
       list.push({
         tipo: 'lead',
@@ -912,11 +883,13 @@
         email: l.email || '',
         titulo: l.imovel ? (l.imovel + (l.tipologia? ' ' + l.tipologia : '')) : (l.imovel || 'Lead'),
         zona: l.zona || '',
-        data: dataBase,
-        dataCpcv: dataCpcv,
-        dataEscritura: dataEscritura,
+        data: dataFecho,
         valor: isFinite(valorNegocio)? valorNegocio : 0,
-        comissaoPct: comissaoPct,
+        comissaoPct: comissaoPctStr || '',
+        comissaoPctNum: isFinite(comPctNum)? comPctNum : NaN,
+        comissaoValorTotal: comissaoValorTotal,
+        dataCpcv: dataCpcv || '',
+        dataEscritura: dataEscritura || '',
         origem: (l.papel || '') ? ('Lead — '+l.papel) : 'Lead',
         visivel: l.visivel !== false,
         detalheFecho: {
@@ -938,14 +911,16 @@
       }else if(a.comissao){
         comPerc = a.comissao;
       }
+      const comAngNum = parsePct(comPerc);
+      const comAngValor = isFinite(comAngNum)
+        ? (precoPedido * comAngNum / 100)
+        : 0;
 
       const titulo = a.isEmpreendimento && a.nomeEmp
         ? a.nomeEmp
         : (a.tituloImovel || 'Angariação');
 
       const zona = [a.concelho || '', a.zona || ''].filter(Boolean).join(' · ');
-
-      const dataAng = a.dataAngariacao || '';
 
       list.push({
         tipo:'ang',
@@ -956,11 +931,13 @@
         email: a.isEmpreendimento ? (a.emailPromotor || '') : (a.emailProp || ''),
         titulo: titulo,
         zona: zona,
-        data: dataAng,
-        dataCpcv: '',
-        dataEscritura: '',
+        data: a.dataAngariacao || '',
         valor: isFinite(precoPedido)? precoPedido : 0,
-        comissaoPct: comPerc,
+        comissaoPct: comPerc || '',
+        comissaoPctNum: isFinite(comAngNum)? comAngNum : NaN,
+        comissaoValorTotal: comAngValor,
+        dataCpcv: '',         // normalmente não aplicável aqui
+        dataEscritura: '',
         origem: a.isEmpreendimento ? 'Angariação — Empreendimento' : 'Angariação',
         visivel: a.visible !== false,
         detalheFecho: null
@@ -1096,44 +1073,63 @@
     });
   }
 
-  function renderComissoesChart(lista){
-    chartComissoesContainer.innerHTML = '';
+  // Cronologia de Recebimentos (comissões)
+  function renderComissoesTimeline(lista){
+    chartComissoes.innerHTML = '';
 
-    const mapa = {}; // key YYYY-MM -> total comissões
-    lista.forEach(n=>{
-      const pct = parsePct(n.comissaoPct);
-      const valor = n.valor || 0;
-      if(!isFinite(pct) || pct<=0 || !valor) return;
+    // Só faz sentido para negócios de Lead com comissão definida
+    const apenasLeads = lista.filter(n=>n.tipo==='lead' && isFinite(n.comissaoValorTotal) && n.comissaoValorTotal>0);
+    if(!apenasLeads.length){
+      const div = document.createElement('div');
+      div.className = 'chart-empty';
+      div.textContent = 'Sem dados de comissões (verifique se existem CPCV / Escritura e % de comissão).';
+      chartComissoes.appendChild(div);
+      return;
+    }
 
-      const comissaoTotal = valor * (pct/100);
-      const dataCpcv = n.dataCpcv || '';
-      const dataEscritura = n.dataEscritura || '';
+    const mapa = {}; // chave YYYY-MM -> valor comissão nesse mês
 
-      function addEvento(dateISO, montante){
-        if(!dateISO || !montante) return;
-        const d = new Date(dateISO);
-        if(isNaN(d.getTime())) return;
-        const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
-        if(!mapa[key]) mapa[key] = 0;
-        mapa[key] += montante;
+    apenasLeads.forEach(n=>{
+      const total = n.comissaoValorTotal || 0;
+      if(total <= 0) return;
+
+      const hasCpcv = !!n.dataCpcv;
+      const hasEsc  = !!n.dataEscritura;
+
+      let valorCpcv = 0;
+      let valorEsc  = 0;
+
+      if(hasCpcv && hasEsc){
+        valorCpcv = total/2;
+        valorEsc  = total/2;
+      }else if(hasCpcv && !hasEsc){
+        valorCpcv = total;
+      }else if(!hasCpcv && hasEsc){
+        valorEsc = total;
+      }else{
+        // Sem datas específicas -> usa data do negócio
+        if(n.data){
+          const d = new Date(n.data);
+          if(!isNaN(d.getTime())){
+            const k = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+            mapa[k] = (mapa[k] || 0) + total;
+          }
+        }
+        return;
       }
 
-      if(dataCpcv && dataEscritura){
-        // 50% CPCV + 50% Escritura
-        addEvento(dataCpcv, comissaoTotal * 0.5);
-        addEvento(dataEscritura, comissaoTotal * 0.5);
-      }else if(dataCpcv && !dataEscritura){
-        // 50% CPCV + 50% previsão Escritura (CPCV + 90 dias)
-        addEvento(dataCpcv, comissaoTotal * 0.5);
-        const dataPrevista = addDaysISO(dataCpcv, 90);
-        addEvento(dataPrevista, comissaoTotal * 0.5);
-      }else if(!dataCpcv && dataEscritura){
-        // 100% Escritura
-        addEvento(dataEscritura, comissaoTotal);
-      }else{
-        // Sem datas de CPCV / Escritura: usar a data base do negócio como fallback
-        if(n.data){
-          addEvento(n.data, comissaoTotal);
+      if(valorCpcv>0 && hasCpcv){
+        const d = new Date(n.dataCpcv);
+        if(!isNaN(d.getTime())){
+          const k = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+          mapa[k] = (mapa[k] || 0) + valorCpcv;
+        }
+      }
+      if(valorEsc>0 && hasEsc){
+        const d = new Date(n.dataEscritura);
+        if(!isNaN(d.getTime())){
+          const k = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+          mapa[k] = (mapa[k] || 0) + valorEsc;
         }
       }
     });
@@ -1142,21 +1138,19 @@
     if(!entries.length){
       const div = document.createElement('div');
       div.className = 'chart-empty';
-      div.textContent = 'Sem dados de comissões (CPCV/Escritura) para este período.';
-      chartComissoesContainer.appendChild(div);
+      div.textContent = 'Sem dados de comissões distribuídas por CPCV/Escritura.';
+      chartComissoes.appendChild(div);
       return;
     }
 
-    const max = Math.max(...entries.map(([,total])=>total));
+    const max = Math.max(...entries.map(e=>e[1]));
     entries.forEach(([key,total])=>{
       const row = document.createElement('div');
       row.className = 'chart-row';
-
       const label = document.createElement('div');
       label.className = 'chart-label';
       const [y,m] = key.split('-');
       label.textContent = m+'/'+y.slice(-2);
-
       const barWrap = document.createElement('div');
       barWrap.className = 'chart-bar-wrap';
       const bar = document.createElement('div');
@@ -1164,15 +1158,13 @@
       const pct = max>0 ? (total/max*100) : 0;
       bar.style.width = pct.toFixed(1)+'%';
       barWrap.appendChild(bar);
-
       const val = document.createElement('div');
       val.className = 'chart-value';
       val.textContent = formatMoney(total);
-
       row.appendChild(label);
       row.appendChild(barWrap);
       row.appendChild(val);
-      chartComissoesContainer.appendChild(row);
+      chartComissoes.appendChild(row);
     });
   }
 
@@ -1260,8 +1252,7 @@
       foot.appendChild(rightF);
       card.appendChild(foot);
 
-      /* Linha de ações para integração com Tarefas */
-      const actions = new DocumentFragment();
+      // Ações com Tarefas
       const actionsRow = document.createElement('div');
       actionsRow.className = 'card-footer';
       actionsRow.style.justifyContent = 'flex-end';
@@ -1284,8 +1275,7 @@
 
       actionsRow.appendChild(btnAddTask);
       actionsRow.appendChild(btnViewTasks);
-      actions.appendChild(actionsRow);
-      card.appendChild(actions);
+      card.appendChild(actionsRow);
 
       card.addEventListener('click', (e)=>{
         if(e.target.tagName === 'BUTTON' || e.target.tagName === 'A') return;
@@ -1310,7 +1300,7 @@
 
     renderKpis(lista);
     renderChart(lista);
-    renderComissoesChart(lista);
+    renderComissoesTimeline(lista);
     renderCards(listaLeads, listaAng);
   }
 
@@ -1323,8 +1313,7 @@
     }
     const headers = [
       'Tipo','ID','Consultor','Cliente/Proprietário','Contacto','Email',
-      'Título','Zona','DataBase','DataCPCV','DataEscritura',
-      'ValorNegocio','ComissaoPct','Origem'
+      'Título','Zona','DataNegocio','ValorNegocio','ComissaoPct','ComissaoValor','Origem','DataCPCV','DataEscritura'
     ];
     const rows = lista.map(n=>[
       n.tipo,
@@ -1336,11 +1325,12 @@
       n.titulo || '',
       n.zona || '',
       n.data || '',
-      n.dataCpcv || '',
-      n.dataEscritura || '',
       n.valor || '',
       n.comissaoPct || '',
-      n.origem || ''
+      n.comissaoValorTotal || '',
+      n.origem || '',
+      n.dataCpcv || '',
+      n.dataEscritura || ''
     ]);
     const csv = [headers, ...rows].map(r => r.map(v => `"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\n');
     const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
@@ -1354,7 +1344,7 @@
     URL.revokeObjectURL(url);
   });
 
-  /* ===== Filtros: aplicar / limpar (com persistência local + global) ===== */
+  /* ===== Filtros ===== */
   applyFiltersBtn.addEventListener('click', ()=>{
     FILTERS.consultor = fConsultor.value || '';
     FILTERS.origem = fOrigem.value || '';
