@@ -621,7 +621,6 @@
     onlyHidden:false
   };
 
-  /* ===== Helpers numéricos & formatação ===== */
   function parseNum(v){
     if(v===null || v===undefined || v==='') return 0;
     const n = parseFloat(String(v).replace(/\./g,'').replace(',','.'));
@@ -674,7 +673,6 @@
     return top;
   }
 
-  /* ===== Procura profunda em objetos (para CPCV / Comissões) ===== */
   function findDeep(obj, matcher){
     const visited = new Set();
     function _search(o){
@@ -693,7 +691,6 @@
     return _search(obj);
   }
 
-  /* ===== Helper genérico para buscar campos no "Fecho" ===== */
   function resolveFromFecho(obj, keys){
     if(!obj || typeof obj !== 'object') return '';
     for(const k of keys){
@@ -709,7 +706,6 @@
     return '';
   }
 
-  /* ===== Leitura de dados ===== */
   function loadLeads(){
     try{
       const raw = localStorage.getItem(STORAGE_LEADS);
@@ -748,7 +744,6 @@
     }
   }
 
-  /* ===== Filtros – guardar e recuperar estado ===== */
   function loadFiltersState(){
     try{
       const raw = localStorage.getItem(STORAGE_FILTERS);
@@ -799,8 +794,6 @@
       filterConsultor.value = current;
     }
   }
-
-  /* ===== Resolvers específicos (CPCV, tipos, zonas, tipologias, comissões) ===== */
 
   function resolveDataFechoFromLead(l){
     let direto = resolveFromFecho(l, [
@@ -963,7 +956,6 @@
     return NaN;
   }
 
-  /* ===== Aplicar filtros ===== */
   function applyFilters(){
     const cons = FILTERS.consultor;
     const de   = FILTERS.de;
@@ -1019,7 +1011,6 @@
     return {leads, angs, negocios, tasks};
   }
 
-  /* ===== Construção de Negócios (Fechos & Vendas) ===== */
   function buildNegocios(leads, angs){
     const list = [];
 
@@ -1090,7 +1081,6 @@
     return list;
   }
 
-  /* ===== KPIs globais ===== */
   function renderGlobalKpis(leads, angs, negocios, tasks){
     kpiGrid.innerHTML = '';
 
@@ -1158,7 +1148,6 @@
     });
   }
 
-  /* ===== Componente de gráfico (barras horizontais) ===== */
   function renderBarChart(container, opts){
     const {title, subtitle, items, formatter, responsive} = opts;
     if(!items || !items.length){
@@ -1231,8 +1220,6 @@
     card.appendChild(rows);
     container.appendChild(card);
   }
-
-  /* ===== Dashboards por área ===== */
 
   function renderLeadsArea(leads){
     leadsCharts.innerHTML = '';
@@ -1518,30 +1505,49 @@
       responsive:false
     });
 
-    const comPorConsultorPct = {};
+    const comPorConsultor = {};
     let somaPctEquipa = 0;
     let countPctEquipa = 0;
+
     comNegocios.forEach(n=>{
       if(!isFinite(n.comPercent)) return;
       const cons = n.consultor || '(sem consultor)';
-      if(!comPorConsultorPct[cons]){
-        comPorConsultorPct[cons] = {sumPct:0,count:0};
+      const pctRounded = Math.round(n.comPercent * 10) / 10; // 1 casa decimal
+
+      if(!comPorConsultor[cons]){
+        comPorConsultor[cons] = {freq:{}, bestPct:null};
       }
-      comPorConsultorPct[cons].sumPct += n.comPercent;
-      comPorConsultorPct[cons].count += 1;
+
+      const bucket = pctRounded;
+      comPorConsultor[cons].freq[bucket] = (comPorConsultor[cons].freq[bucket] || 0) + 1;
 
       somaPctEquipa += n.comPercent;
       countPctEquipa++;
     });
 
-    const comConsArr = Object.entries(comPorConsultorPct)
-      .map(([label,obj])=>({label,value: obj.count ? obj.sumPct/obj.count : 0}))
+    Object.keys(comPorConsultor).forEach(cons=>{
+      const entry = comPorConsultor[cons];
+      let bestPct = null;
+      let bestCount = -1;
+      Object.entries(entry.freq).forEach(([pctStr,count])=>{
+        const pct = parseFloat(pctStr);
+        if(count > bestCount || (count === bestCount && pct > bestPct)){
+          bestCount = count;
+          bestPct = pct;
+        }
+      });
+      entry.bestPct = bestPct;
+    });
+
+    const comConsArr = Object.entries(comPorConsultor)
+      .filter(([,obj])=>isFinite(obj.bestPct))
+      .map(([label,obj])=>({label,value: obj.bestPct}))
       .sort((a,b)=>b.value-a.value);
 
     const mediaPctEquipa = countPctEquipa ? (somaPctEquipa / countPctEquipa) : NaN;
     renderBarChart(fechosCharts,{
       title:'Ranking de Comissões por Consultor',
-      subtitle:'Média % equipa: ' + formatPct(mediaPctEquipa),
+      subtitle:'Mostra a comissão mais usada por consultor · Média equipa: ' + formatPct(mediaPctEquipa),
       items:comConsArr,
       formatter:formatPct,
       responsive:false
@@ -1570,8 +1576,15 @@
 
     const mapTipTicket = {};
     negocios.forEach(n=>{
-      const tip = (n.tipologia || 'Sem tipologia').trim() || 'Sem tipologia';
+      const tipoRaw = (n.tipoNegocio || '').toLowerCase();
+      const isCompraVenda =
+        tipoRaw.includes('compra') ||
+        tipoRaw.includes('venda');
+
+      if(!isCompraVenda) return;          // exclui arrendamentos, permutas, etc.
       if(!n.valor) return;
+
+      const tip = (n.tipologia || 'Sem tipologia').trim() || 'Sem tipologia';
       if(!mapTipTicket[tip]){
         mapTipTicket[tip] = {sum:0,count:0};
       }
@@ -1584,7 +1597,7 @@
     const tipTicketTop = topN(tipTicketArr,6);
     renderBarChart(fechosCharts,{
       title:'Ticket Médio por Tipologia',
-      subtitle:'Valor médio de fecho por tipologia.',
+      subtitle:'Só negócios de compra/venda.',
       items:tipTicketTop,
       formatter:formatMoney,
       responsive:true
@@ -1767,7 +1780,6 @@
   clearFiltersBtn.addEventListener('click', clearFilters);
   reloadBtn.addEventListener('click', refresh);
 
-  // Arranque: carregar filtros anteriores e depois renderizar
   loadFiltersState();
   refresh();
 })();
