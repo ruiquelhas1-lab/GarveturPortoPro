@@ -314,7 +314,6 @@
     .kpi-badge.warn{border-color:rgba(255,200,87,.8);color:#FFE082;}
     .kpi-badge.bad{border-color:rgba(242,95,92,.8);color:#FFABAB;}
 
-    /* TABS DAS ÁREAS */
     .area-tabs{
       display:flex;
       flex-wrap:wrap;
@@ -359,7 +358,6 @@
       to{opacity:1;transform:none;}
     }
 
-    /* GRÁFICOS */
     .charts-grid{
       display:grid;
       grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
@@ -576,9 +574,10 @@
 
 <script>
 (function(){
-  const STORAGE_LEADS = 'gpp_leads_v5';
-  const STORAGE_ANG   = 'gpp_angariacoes_v2';
-  const STORAGE_TASKS = 'gpp_tarefas_v1';
+  const STORAGE_LEADS    = 'gpp_leads_v5';
+  const STORAGE_ANG      = 'gpp_angariacoes_v2';
+  const STORAGE_TASKS    = 'gpp_tarefas_v1';
+  const STORAGE_FILTERS  = 'gpp_dashboard_filters_v1';
 
   const filterConsultor   = document.getElementById('filterConsultor');
   const filterDataDe      = document.getElementById('filterDataDe');
@@ -749,6 +748,39 @@
     }
   }
 
+  /* ===== Filtros – guardar e recuperar estado ===== */
+  function loadFiltersState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_FILTERS);
+      if(!raw) return;
+      const f = JSON.parse(raw);
+      if(!f || typeof f !== 'object') return;
+      FILTERS.consultor  = f.consultor  || '';
+      FILTERS.de         = f.de         || '';
+      FILTERS.ate        = f.ate        || '';
+      FILTERS.showHidden = !!f.showHidden;
+      FILTERS.onlyHidden = !!f.onlyHidden;
+    }catch(e){
+      console.error('Erro a ler filtros do dashboard:',e);
+    }
+  }
+
+  function saveFiltersState(){
+    try{
+      localStorage.setItem(STORAGE_FILTERS, JSON.stringify(FILTERS));
+    }catch(e){
+      console.error('Erro a gravar filtros do dashboard:',e);
+    }
+  }
+
+  function syncFiltersToUI(){
+    filterConsultor.value      = FILTERS.consultor || '';
+    filterDataDe.value         = FILTERS.de || '';
+    filterDataAte.value        = FILTERS.ate || '';
+    filterShowHidden.checked   = FILTERS.showHidden;
+    filterOnlyHidden.checked   = FILTERS.onlyHidden;
+  }
+
   function buildConsultorOptions(){
     const set = new Set();
     allLeads.forEach(l=>{ if(l && l.consultor) set.add(l.consultor); });
@@ -873,7 +905,7 @@
       'percentComissao','comissao_percent','taxaComissao','comissao'
     ]);
     pct = parsePct(rawFecho);
-    if(isFinite(pct) && pct>0 && pct<=20) return pct;
+    if(isFinite(pct) && pct>0 && pct<=100) return pct;
 
     if(l.comissao === 'outro' && l.comissaoOutro){
       pct = parsePct(l.comissaoOutro);
@@ -884,16 +916,16 @@
     }else if(l.comissao_percent){
       pct = parsePct(l.comissao_percent);
     }
-    if(isFinite(pct) && pct>0 && pct<=20) return pct;
+    if(isFinite(pct) && pct>0 && pct<=100) return pct;
 
     const deepVal = findDeep(l,(k,v)=>{
       const kl = k.toLowerCase();
       if(!kl.includes('comiss')) return false;
       const p = parsePct(v);
-      return isFinite(p) && p>0 && p<=20;
+      return isFinite(p) && p>0 && p<=100;
     });
     const deepPct = parsePct(deepVal);
-    if(isFinite(deepPct) && deepPct>0 && deepPct<=20) return deepPct;
+    if(isFinite(deepPct) && deepPct>0 && deepPct<=100) return deepPct;
 
     return NaN;
   }
@@ -906,7 +938,7 @@
       'percentComissao','comissao_percent','taxaComissao','comissao'
     ]);
     pct = parsePct(rawFecho);
-    if(isFinite(pct) && pct>0 && pct<=20) return pct;
+    if(isFinite(pct) && pct>0 && pct<=100) return pct;
 
     if(a.comissao === 'outro' && a.comissaoOutro){
       pct = parsePct(a.comissaoOutro);
@@ -917,16 +949,16 @@
     }else if(a.comissao_percent){
       pct = parsePct(a.comissao_percent);
     }
-    if(isFinite(pct) && pct>0 && pct<=20) return pct;
+    if(isFinite(pct) && pct>0 && pct<=100) return pct;
 
     const deepVal = findDeep(a,(k,v)=>{
       const kl = k.toLowerCase();
       if(!kl.includes('comiss')) return false;
       const p = parsePct(v);
-      return isFinite(p) && p>0 && p<=20;
+      return isFinite(p) && p>0 && p<=100;
     });
     const deepPct = parsePct(deepVal);
-    if(isFinite(deepPct) && deepPct>0 && deepPct<=20) return deepPct;
+    if(isFinite(deepPct) && deepPct>0 && deepPct<=100) return deepPct;
 
     return NaN;
   }
@@ -1480,32 +1512,38 @@
       });
     renderBarChart(fechosCharts,{
       title:'Comissões da Agência (Mensal)',
-      subtitle:'Sobre negócios fechados no período filtrado.',
+      subtitle:'Sobre negócios fechados no período filtrado (inclui arrendamentos).',
       items:comMensalArr,
       formatter:formatMoney,
       responsive:false
     });
 
-    const comPorConsultorMap = {};
+    const comPorConsultorPct = {};
     let somaPctEquipa = 0;
     let countPctEquipa = 0;
     comNegocios.forEach(n=>{
+      if(!isFinite(n.comPercent)) return;
       const cons = n.consultor || '(sem consultor)';
-      const comVal = n.comValor || (n.valor * (n.comPercent/100));
-      comPorConsultorMap[cons] = (comPorConsultorMap[cons] || 0) + comVal;
-
-      if(isFinite(n.comPercent)){
-        somaPctEquipa += n.comPercent;
-        countPctEquipa++;
+      if(!comPorConsultorPct[cons]){
+        comPorConsultorPct[cons] = {sumPct:0,count:0};
       }
+      comPorConsultorPct[cons].sumPct += n.comPercent;
+      comPorConsultorPct[cons].count += 1;
+
+      somaPctEquipa += n.comPercent;
+      countPctEquipa++;
     });
-    const comConsArr = mapToSortedArray(comPorConsultorMap);
+
+    const comConsArr = Object.entries(comPorConsultorPct)
+      .map(([label,obj])=>({label,value: obj.count ? obj.sumPct/obj.count : 0}))
+      .sort((a,b)=>b.value-a.value);
+
     const mediaPctEquipa = countPctEquipa ? (somaPctEquipa / countPctEquipa) : NaN;
     renderBarChart(fechosCharts,{
       title:'Ranking de Comissões por Consultor',
       subtitle:'Média % equipa: ' + formatPct(mediaPctEquipa),
       items:comConsArr,
-      formatter:formatMoney,
+      formatter:formatPct,
       responsive:false
     });
 
@@ -1680,6 +1718,7 @@
     loadAngs();
     loadTasks();
     buildConsultorOptions();
+    syncFiltersToUI();
 
     const {leads, angs, negocios, tasks} = applyFilters();
 
@@ -1703,15 +1742,16 @@
       filterShowHidden.checked = true;
     }
 
+    saveFiltersState();
     refresh();
   }
 
   function clearFilters(){
-    filterConsultor.value = '';
-    filterDataDe.value    = '';
-    filterDataAte.value   = '';
-    filterShowHidden.checked = false;
-    filterOnlyHidden.checked = false;
+    filterConsultor.value       = '';
+    filterDataDe.value          = '';
+    filterDataAte.value         = '';
+    filterShowHidden.checked    = false;
+    filterOnlyHidden.checked    = false;
 
     FILTERS.consultor  = '';
     FILTERS.de         = '';
@@ -1719,6 +1759,7 @@
     FILTERS.showHidden = false;
     FILTERS.onlyHidden = false;
 
+    saveFiltersState();
     refresh();
   }
 
@@ -1726,6 +1767,8 @@
   clearFiltersBtn.addEventListener('click', clearFilters);
   reloadBtn.addEventListener('click', refresh);
 
+  // Arranque: carregar filtros anteriores e depois renderizar
+  loadFiltersState();
   refresh();
 })();
 </script>
