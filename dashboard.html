@@ -995,62 +995,6 @@
     return NaN;
   }
 
-  /* ========= APLICAÇÃO DE FILTROS ========= */
-  function applyFilters(){
-    const cons = FILTERS.consultor;
-    const de   = FILTERS.de;
-    const ate  = FILTERS.ate;
-    const showHidden = FILTERS.showHidden;
-    const onlyHidden = FILTERS.onlyHidden;
-
-    let leads = allLeads.slice().filter(l=>l);
-    if(cons){
-      leads = leads.filter(l=> (l.consultor || '') === cons);
-    }
-    if(de){
-      leads = leads.filter(l=> !l.data || l.data >= de);
-    }
-    if(ate){
-      leads = leads.filter(l=> !l.data || l.data <= ate);
-    }
-    if(onlyHidden){
-      leads = leads.filter(l=> l.visivel === false);
-    }else if(!showHidden){
-      leads = leads.filter(l=> l.visivel !== false);
-    }
-
-    let angs = allAngs.slice().filter(d=>d);
-    if(cons){
-      angs = angs.filter(d=> (d.consultor || '') === cons);
-    }
-    if(de){
-      angs = angs.filter(d=> !d.dataAngariacao || d.dataAngariacao >= de);
-    }
-    if(ate){
-      angs = angs.filter(d=> !d.dataAngariacao || d.dataAngariacao <= ate);
-    }
-    if(onlyHidden){
-      angs = angs.filter(d=> d.visible === false);
-    }else if(!showHidden){
-      angs = angs.filter(d=> d.visible !== false);
-    }
-
-    const negocios = buildNegocios(leads, angs);
-
-    let tasks = allTasks.slice().filter(t=>t);
-    if(cons){
-      tasks = tasks.filter(t=> (t.responsavel || '') === cons);
-    }
-    if(de){
-      tasks = tasks.filter(t=> !t.dataLimite || t.dataLimite >= de);
-    }
-    if(ate){
-      tasks = tasks.filter(t=> !t.dataLimite || t.dataLimite <= ate);
-    }
-
-    return {leads, angs, negocios, tasks};
-  }
-
   /* ========= CONSTRUÇÃO DE NEGÓCIOS (FECHOS) ========= */
   function buildNegocios(leads, angs){
     const list = [];
@@ -1140,6 +1084,90 @@
     return list;
   }
 
+  /* ========= APLICAÇÃO DE FILTROS =========
+     - Leads / Angariações: filtradas pelo período com base na data de criação
+     - Negócios (Fechos): filtrados pelo período com base na dataFecho (CPCV / fecho)
+  ========================================= */
+  function applyFilters(){
+    const cons = FILTERS.consultor;
+    const de   = FILTERS.de;
+    const ate  = FILTERS.ate;
+    const showHidden = FILTERS.showHidden;
+    const onlyHidden = FILTERS.onlyHidden;
+
+    /* ---- Leads para área de Leads (filtradas pela data de criação) ---- */
+    let leads = allLeads.slice().filter(l=>l);
+    if(cons){
+      leads = leads.filter(l=> (l.consultor || '') === cons);
+    }
+    if(de){
+      leads = leads.filter(l=> !l.data || l.data >= de);
+    }
+    if(ate){
+      leads = leads.filter(l=> !l.data || l.data <= ate);
+    }
+    if(onlyHidden){
+      leads = leads.filter(l=> l.visivel === false);
+    }else if(!showHidden){
+      leads = leads.filter(l=> l.visivel !== false);
+    }
+
+    /* ---- Angariações para área de Angariações (data de angariação) ---- */
+    let angs = allAngs.slice().filter(d=>d);
+    if(cons){
+      angs = angs.filter(d=> (d.consultor || '') === cons);
+    }
+    if(de){
+      angs = angs.filter(d=> !d.dataAngariacao || d.dataAngariacao >= de);
+    }
+    if(ate){
+      angs = angs.filter(d=> !d.dataAngariacao || d.dataAngariacao <= ate);
+    }
+    if(onlyHidden){
+      angs = angs.filter(d=> d.visible === false);
+    }else if(!showHidden){
+      angs = angs.filter(d=> d.visible !== false);
+    }
+
+    /* ---- Negócios (Fechos) // base: todos, filtro por CPCV/Fecho ---- */
+    let baseLeads = allLeads.slice().filter(l=>l);
+    let baseAngs  = allAngs.slice().filter(a=>a);
+
+    if(cons){
+      baseLeads = baseLeads.filter(l=> (l.consultor || '') === cons);
+      baseAngs  = baseAngs.filter(a=> (a.consultor || '') === cons);
+    }
+    if(onlyHidden){
+      baseLeads = baseLeads.filter(l=> l.visivel === false);
+      baseAngs  = baseAngs.filter(a=> a.visible === false);
+    }else if(!showHidden){
+      baseLeads = baseLeads.filter(l=> l.visivel !== false);
+      baseAngs  = baseAngs.filter(a=> a.visible !== false);
+    }
+
+    const allNegocios = buildNegocios(baseLeads, baseAngs);
+    const negocios = allNegocios.filter(n=>{
+      const dFecho = n.dataFecho || n.data || '';
+      if(de && dFecho && dFecho < de) return false;
+      if(ate && dFecho && dFecho > ate) return false;
+      return true;
+    });
+
+    /* ---- Tarefas (mantém lógica anterior) ---- */
+    let tasks = allTasks.slice().filter(t=>t);
+    if(cons){
+      tasks = tasks.filter(t=> (t.responsavel || '') === cons);
+    }
+    if(de){
+      tasks = tasks.filter(t=> !t.dataLimite || t.dataLimite >= de);
+    }
+    if(ate){
+      tasks = tasks.filter(t=> !t.dataLimite || t.dataLimite <= ate);
+    }
+
+    return {leads, angs, negocios, tasks};
+  }
+
   /* ========= KPIs GLOBAIS ========= */
   function renderGlobalKpis(leads, angs, negocios, tasks){
     kpiGrid.innerHTML = '';
@@ -1169,7 +1197,7 @@
       {
         label:'Negócios (Fechos/Vendas)',
         value: formatInt(negociosCount),
-        sub:'Leads em Fecho + Angariações aprovadas.',
+        sub:'Leads em Fecho + Angariações aprovadas (por CPCV/fecho).',
         badge: negociosVolume ? 'Volume: ' + formatMoney(negociosVolume) : ''
       },
       {
