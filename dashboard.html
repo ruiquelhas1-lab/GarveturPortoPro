@@ -444,7 +444,6 @@
       margin-top:4px;
     }
 
-    /* Gráficos complementares escondidos em ecrãs menores */
     @media(max-width:1100px){
       .chart-card.responsive{
         display:none;
@@ -535,10 +534,8 @@
         <div id="contextLabel" class="context-label"></div>
       </div>
 
-      <!-- KPIs GLOBAIS -->
       <section class="kpi-grid" id="kpiGrid"></section>
 
-      <!-- Tabs das áreas -->
       <div class="area-tabs">
         <button class="area-tab active" data-area="leads">
           <span class="icon">📊</span> Leads
@@ -554,25 +551,21 @@
         </button>
       </div>
 
-      <!-- ÁREA: LEADS -->
       <section class="area-panel active" id="areaLeads">
         <div class="charts-grid" id="leadsCharts"></div>
         <div class="empty" id="leadsEmpty" style="display:none;">Sem leads nos filtros atuais.</div>
       </section>
 
-      <!-- ÁREA: ANGARIAÇÕES -->
       <section class="area-panel" id="areaAngs">
         <div class="charts-grid" id="angsCharts"></div>
         <div class="empty" id="angsEmpty" style="display:none;">Sem angariações nos filtros atuais.</div>
       </section>
 
-      <!-- ÁREA: FECHOS & VENDAS -->
       <section class="area-panel" id="areaFechos">
         <div class="charts-grid" id="fechosCharts"></div>
         <div class="empty" id="fechosEmpty" style="display:none;">Sem negócios de fecho nos filtros atuais.</div>
       </section>
 
-      <!-- ÁREA: TAREFAS -->
       <section class="area-panel" id="areaTarefas">
         <div class="charts-grid" id="tarefasCharts"></div>
         <div class="empty" id="tarefasEmpty" style="display:none;">Sem tarefas nos filtros atuais.</div>
@@ -682,14 +675,31 @@
     return top;
   }
 
+  /* ===== Procura profunda em objetos (para CPCV / Comissões) ===== */
+  function findDeep(obj, matcher){
+    const visited = new Set();
+    function _search(o){
+      if(!o || typeof o !== 'object' || visited.has(o)) return undefined;
+      visited.add(o);
+      for(const k in o){
+        const v = o[k];
+        if(matcher(k,v)) return v;
+        if(v && typeof v === 'object'){
+          const r = _search(v);
+          if(r !== undefined) return r;
+        }
+      }
+      return undefined;
+    }
+    return _search(obj);
+  }
+
   /* ===== Helper genérico para buscar campos no "Fecho" ===== */
   function resolveFromFecho(obj, keys){
     if(!obj || typeof obj !== 'object') return '';
-    // 1) direto na raiz
     for(const k of keys){
       if(obj[k]) return obj[k];
     }
-    // 2) dentro de possíveis sub-objetos de fecho
     const candidatos = [obj.fecho, obj.Fecho, obj.fechos, obj.dadosFecho, obj.fechar];
     for(const sub of candidatos){
       if(!sub || typeof sub !== 'object') continue;
@@ -758,76 +768,28 @@
     }
   }
 
-  /* ===== Aplicar filtros ===== */
-  function applyFilters(){
-    const cons = FILTERS.consultor;
-    const de   = FILTERS.de;
-    const ate  = FILTERS.ate;
-    const showHidden = FILTERS.showHidden;
-    const onlyHidden = FILTERS.onlyHidden;
-
-    // Leads
-    let leads = allLeads.slice().filter(l=>l);
-    if(cons){
-      leads = leads.filter(l=> (l.consultor || '') === cons);
-    }
-    if(de){
-      leads = leads.filter(l=> !l.data || l.data >= de);
-    }
-    if(ate){
-      leads = leads.filter(l=> !l.data || l.data <= ate);
-    }
-    if(onlyHidden){
-      leads = leads.filter(l=> l.visivel === false);
-    }else if(!showHidden){
-      leads = leads.filter(l=> l.visivel !== false);
-    }
-
-    // Angariações
-    let angs = allAngs.slice().filter(d=>d);
-    if(cons){
-      angs = angs.filter(d=> (d.consultor || '') === cons);
-    }
-    if(de){
-      angs = angs.filter(d=> !d.dataAngariacao || d.dataAngariacao >= de);
-    }
-    if(ate){
-      angs = angs.filter(d=> !d.dataAngariacao || d.dataAngariacao <= ate);
-    }
-    if(onlyHidden){
-      angs = angs.filter(d=> d.visible === false);
-    }else if(!showHidden){
-      angs = angs.filter(d=> d.visible !== false);
-    }
-
-    // Negócios (Fechos) — Leads em Fecho + Angariações aprovadas
-    const negocios = buildNegocios(leads, angs);
-
-    // Tarefas — período e consultor (não há invisíveis)
-    let tasks = allTasks.slice().filter(t=>t);
-    if(cons){
-      tasks = tasks.filter(t=> (t.responsavel || '') === cons);
-    }
-    if(de){
-      tasks = tasks.filter(t=> !t.dataLimite || t.dataLimite >= de);
-    }
-    if(ate){
-      tasks = tasks.filter(t=> !t.dataLimite || t.dataLimite <= ate);
-    }
-
-    return {leads, angs, negocios, tasks};
-  }
-
-  /* ===== Resolvers específicos (CPCV, tipos, zonas, comissões) ===== */
+  /* ===== Resolvers específicos (CPCV, tipos, zonas, tipologias, comissões) ===== */
 
   function resolveDataFechoFromLead(l){
-    // 1) Procurar explicitamente "Data do CPCV" na ficha / fecho
-    const direto = resolveFromFecho(l, [
+    let direto = resolveFromFecho(l, [
       'Data do CPCV','dataCpcv','data_cpcv','dataCPCV',
       'dataCpcvFecho','dataFechoCpcv'
     ]);
-    if(direto) return direto;
-    // 2) Fallbacks habituais
+    if(direto && typeof direto === 'string'){
+      return direto.trim().slice(0,10);
+    }
+
+    const deep = findDeep(l,(k,v)=>{
+      const kl = k.toLowerCase();
+      if(!kl.includes('cpcv')) return false;
+      if(typeof v !== 'string') return false;
+      const s = v.trim().slice(0,10);
+      return /^\d{4}-\d{2}-\d{2}$/.test(s);
+    });
+    if(deep && typeof deep === 'string'){
+      return deep.trim().slice(0,10);
+    }
+
     return (
       l.dataFechoNegocio ||
       l.dataFecho ||
@@ -836,12 +798,27 @@
       ''
     );
   }
+
   function resolveDataFechoFromAng(a){
-    const direto = resolveFromFecho(a, [
+    let direto = resolveFromFecho(a, [
       'Data do CPCV','dataCpcv','data_cpcv','dataCPCV',
       'dataCpcvFecho','dataFechoCpcv'
     ]);
-    if(direto) return direto;
+    if(direto && typeof direto === 'string'){
+      return direto.trim().slice(0,10);
+    }
+
+    const deep = findDeep(a,(k,v)=>{
+      const kl = k.toLowerCase();
+      if(!kl.includes('cpcv')) return false;
+      if(typeof v !== 'string') return false;
+      const s = v.trim().slice(0,10);
+      return /^\d{4}-\d{2}-\d{2}$/.test(s);
+    });
+    if(deep && typeof deep === 'string'){
+      return deep.trim().slice(0,10);
+    }
+
     return (
       a.dataVenda ||
       a.dataFecho ||
@@ -889,15 +866,15 @@
   }
 
   function resolvePctComissaoFromLead(l){
-    // 1) tentar no FECHO com vários nomes possíveis
+    let pct;
+
     const rawFecho = resolveFromFecho(l, [
       'Comissão','Comissão (%)','Percentagem comissão',
       'percentComissao','comissao_percent','taxaComissao','comissao'
     ]);
-    let pct = parsePct(rawFecho);
-    if(isFinite(pct)) return pct;
+    pct = parsePct(rawFecho);
+    if(isFinite(pct) && pct>0 && pct<=20) return pct;
 
-    // 2) fallback para o que já existia
     if(l.comissao === 'outro' && l.comissaoOutro){
       pct = parsePct(l.comissaoOutro);
     }else if(l.comissao){
@@ -907,16 +884,29 @@
     }else if(l.comissao_percent){
       pct = parsePct(l.comissao_percent);
     }
-    return pct;
+    if(isFinite(pct) && pct>0 && pct<=20) return pct;
+
+    const deepVal = findDeep(l,(k,v)=>{
+      const kl = k.toLowerCase();
+      if(!kl.includes('comiss')) return false;
+      const p = parsePct(v);
+      return isFinite(p) && p>0 && p<=20;
+    });
+    const deepPct = parsePct(deepVal);
+    if(isFinite(deepPct) && deepPct>0 && deepPct<=20) return deepPct;
+
+    return NaN;
   }
 
   function resolvePctComissaoFromAng(a){
+    let pct;
+
     const rawFecho = resolveFromFecho(a, [
       'Comissão','Comissão (%)','Percentagem comissão',
       'percentComissao','comissao_percent','taxaComissao','comissao'
     ]);
-    let pct = parsePct(rawFecho);
-    if(isFinite(pct)) return pct;
+    pct = parsePct(rawFecho);
+    if(isFinite(pct) && pct>0 && pct<=20) return pct;
 
     if(a.comissao === 'outro' && a.comissaoOutro){
       pct = parsePct(a.comissaoOutro);
@@ -927,14 +917,80 @@
     }else if(a.comissao_percent){
       pct = parsePct(a.comissao_percent);
     }
-    return pct;
+    if(isFinite(pct) && pct>0 && pct<=20) return pct;
+
+    const deepVal = findDeep(a,(k,v)=>{
+      const kl = k.toLowerCase();
+      if(!kl.includes('comiss')) return false;
+      const p = parsePct(v);
+      return isFinite(p) && p>0 && p<=20;
+    });
+    const deepPct = parsePct(deepVal);
+    if(isFinite(deepPct) && deepPct>0 && deepPct<=20) return deepPct;
+
+    return NaN;
+  }
+
+  /* ===== Aplicar filtros ===== */
+  function applyFilters(){
+    const cons = FILTERS.consultor;
+    const de   = FILTERS.de;
+    const ate  = FILTERS.ate;
+    const showHidden = FILTERS.showHidden;
+    const onlyHidden = FILTERS.onlyHidden;
+
+    let leads = allLeads.slice().filter(l=>l);
+    if(cons){
+      leads = leads.filter(l=> (l.consultor || '') === cons);
+    }
+    if(de){
+      leads = leads.filter(l=> !l.data || l.data >= de);
+    }
+    if(ate){
+      leads = leads.filter(l=> !l.data || l.data <= ate);
+    }
+    if(onlyHidden){
+      leads = leads.filter(l=> l.visivel === false);
+    }else if(!showHidden){
+      leads = leads.filter(l=> l.visivel !== false);
+    }
+
+    let angs = allAngs.slice().filter(d=>d);
+    if(cons){
+      angs = angs.filter(d=> (d.consultor || '') === cons);
+    }
+    if(de){
+      angs = angs.filter(d=> !d.dataAngariacao || d.dataAngariacao >= de);
+    }
+    if(ate){
+      angs = angs.filter(d=> !d.dataAngariacao || d.dataAngariacao <= ate);
+    }
+    if(onlyHidden){
+      angs = angs.filter(d=> d.visible === false);
+    }else if(!showHidden){
+      angs = angs.filter(d=> d.visible !== false);
+    }
+
+    const negocios = buildNegocios(leads, angs);
+
+    let tasks = allTasks.slice().filter(t=>t);
+    if(cons){
+      tasks = tasks.filter(t=> (t.responsavel || '') === cons);
+    }
+    if(de){
+      tasks = tasks.filter(t=> !t.dataLimite || t.dataLimite >= de);
+    }
+    if(ate){
+      tasks = tasks.filter(t=> !t.dataLimite || t.dataLimite <= ate);
+    }
+
+    return {leads, angs, negocios, tasks};
   }
 
   /* ===== Construção de Negócios (Fechos & Vendas) ===== */
   function buildNegocios(leads, angs){
     const list = [];
 
-    // Leads em Fecho
     leads.forEach(l=>{
       if(l.estado !== 'Fecho') return;
       const valorNegocio = parseNum(l.fecho_negocio || l.valor || 0);
@@ -963,7 +1019,6 @@
       });
     });
 
-    // Angariações aprovadas
     angs.forEach(a=>{
       if(a.estadoAng !== 'aprovado') return;
       const precoPedido = parseNum(a.precoPedido || 0);
@@ -995,7 +1050,6 @@
       });
     });
 
-    // Ordenar por data de CPCV/fecho decrescente
     list.sort((a,b)=>{
       const da = a.dataFecho || a.data || '';
       const db = b.dataFecho || b.data || '';
@@ -1148,16 +1202,14 @@
 
   /* ===== Dashboards por área ===== */
 
-  // LEADS
   function renderLeadsArea(leads){
     leadsCharts.innerHTML = '';
     const hasData = leads.length>0;
     leadsEmpty.style.display = hasData ? 'none':'block';
     if(!hasData) return;
 
-    const visibles = leads; // já filtrados
+    const visibles = leads;
 
-    // 1) Leads por estado
     const estadosOrden = ["Novo","Em Contacto","Qualificado","Visita","Proposta","Fecho","Perdido"];
     const byEstado = groupCount(visibles, l=>l.estado && estadosOrden.includes(l.estado) ? l.estado : '');
     const arrEstados = estadosOrden.map(e=>({label:e, value: byEstado[e] || 0}));
@@ -1169,7 +1221,6 @@
       responsive:false
     });
 
-    // 2) Tipo de negócio (contagem simples nas leads)
     const tipoMap = groupCount(visibles, l=> (l.tipo_negocio || l.tipoNegocio || '').trim());
     const tipoArr = mapToSortedArray(tipoMap);
     renderBarChart(leadsCharts,{
@@ -1180,7 +1231,6 @@
       responsive:false
     });
 
-    // 3) Classificação (1–5)
     const classMap = groupCount(visibles, l=>l.classificacao || '');
     const classOrder = ['1','2','3','4','5'];
     const classArr = classOrder.map(c=>({label:'Nível '+c, value:classMap[c] || 0}));
@@ -1192,7 +1242,6 @@
       responsive:false
     });
 
-    // 4) Perfil (Investidor / Cliente final)
     const perfilMap = groupCount(visibles, l=>l.perfil || '');
     const perfilArr = mapToSortedArray(perfilMap);
     renderBarChart(leadsCharts,{
@@ -1203,7 +1252,6 @@
       responsive:true
     });
 
-    // 5) Tipologia
     const tipoLogMap = groupCount(visibles, l=>l.tipologia || '');
     const tipArr = topN(mapToSortedArray(tipoLogMap), 6);
     renderBarChart(leadsCharts,{
@@ -1214,7 +1262,6 @@
       responsive:true
     });
 
-    // 6) Imóvel
     const imovelMap = groupCount(visibles, l=>l.imovel || '');
     const imovelArr = topN(mapToSortedArray(imovelMap), 6);
     renderBarChart(leadsCharts,{
@@ -1225,7 +1272,6 @@
       responsive:true
     });
 
-    // 7) Zona preferencial
     const zonaMap = groupCount(visibles, l=>l.zona || '');
     const zonaArr = topN(mapToSortedArray(zonaMap), 6);
     renderBarChart(leadsCharts,{
@@ -1237,7 +1283,6 @@
     });
   }
 
-  // ANGARIAÇÕES (inclui mix % de negócio Leads+Angs)
   function renderAngsArea(angs, leads){
     angsCharts.innerHTML = '';
     const hasData = angs.length>0;
@@ -1247,7 +1292,6 @@
     const vis = angs;
 
     if(hasData){
-      // 1) Estado da angariação
       const estadosOrder = ['novo','negociacao','aprovado','perdido'];
       const labelEstado = {novo:'Novo',negociacao:'Negociação',aprovado:'Aprovado',perdido:'Perdido'};
       const estMap = groupCount(vis, a=>a.estadoAng || '');
@@ -1260,7 +1304,6 @@
         responsive:false
       });
 
-      // 2) Exclusivo vs Não exclusivo
       const exclMap = {
         'Exclusivo': vis.filter(a=>a.exclusivo).length,
         'Não exclusivo': vis.filter(a=>a.naoExclusivo).length
@@ -1274,7 +1317,6 @@
         responsive:false
       });
 
-      // 3) Empreendimento vs Unidade isolada
       const empMap = {
         'Empreendimento': vis.filter(a=>a.isEmpreendimento).length,
         'Unidade isolada': vis.filter(a=>!a.isEmpreendimento).length
@@ -1288,7 +1330,6 @@
         responsive:false
       });
 
-      // 4) Natureza do imóvel
       const natMap = groupCount(vis, a=>a.natureza || '');
       const natArr = topN(mapToSortedArray(natMap), 6);
       renderBarChart(angsCharts,{
@@ -1299,7 +1340,6 @@
         responsive:true
       });
 
-      // 5) Estado do imóvel
       const estImovelMap = groupCount(vis, a=>a.estadoImovel || '');
       const estImovelArr = topN(mapToSortedArray(estImovelMap), 6);
       renderBarChart(angsCharts,{
@@ -1310,7 +1350,6 @@
         responsive:true
       });
 
-      // 6) Comissão (distribuição por intervalos) + valor médio de carteira
       const comBuckets = {
         '<=3%':0,
         '3–5%':0,
@@ -1339,7 +1378,6 @@
       });
     }
 
-    // 7) Mix de negócio Leads + Angariações (percentagens)
     const mixMap = {};
     const addTipo = (raw)=>{
       const t = (raw || '').trim();
@@ -1369,14 +1407,12 @@
     }
   }
 
-  // FECHOS & VENDAS (inclui comissões e ticket médio)
   function renderFechosArea(negocios){
     fechosCharts.innerHTML = '';
     const hasData = negocios.length>0;
     fechosEmpty.style.display = hasData ? 'none':'block';
     if(!hasData) return;
 
-    // 1) Volume mensal (por data de CPCV / fecho)
     const mapaMensal = {};
     negocios.forEach(n=>{
       const dataBase = n.dataFecho || n.data;
@@ -1400,7 +1436,6 @@
       responsive:false
     });
 
-    // 2) Negócios por consultor (contagem)
     const consMap = groupCount(negocios, n=>n.consultor || '(sem consultor)');
     const consArr = mapToSortedArray(consMap);
     renderBarChart(fechosCharts,{
@@ -1411,7 +1446,6 @@
       responsive:false
     });
 
-    // 3) Volume por tipo (Lead Fecho vs Angariação aprovada)
     const volTipoMap = {};
     negocios.forEach(n=>{
       const label = n.tipo === 'lead' ? 'Leads · Fecho' : 'Angariações aprovadas';
@@ -1426,12 +1460,8 @@
       responsive:true
     });
 
-    /* === QUADRO DE COMISSÕES === */
-
-    // Filtrar negócios com % de comissão válida
     const comNegocios = negocios.filter(n=>isFinite(n.comPercent) && n.comPercent>0 && n.valor>0);
 
-    // 4) Comissões mensais da agência
     const comMensalMap = {};
     comNegocios.forEach(n=>{
       const dataBase = n.dataFecho || n.data;
@@ -1456,7 +1486,6 @@
       responsive:false
     });
 
-    // 5) Ranking de comissões por consultor + média % equipa
     const comPorConsultorMap = {};
     let somaPctEquipa = 0;
     let countPctEquipa = 0;
@@ -1480,7 +1509,6 @@
       responsive:false
     });
 
-    // 6) Média % de comissão por tipo de negócio (venda / arrendamento / etc.)
     const comTipoPctMap = {};
     comNegocios.forEach(n=>{
       const tipo = (n.tipoNegocio || 'Outro').trim() || 'Outro';
@@ -1502,9 +1530,6 @@
       responsive:true
     });
 
-    /* === TICKET MÉDIO (VALOR TOTAL DE FECHO) === */
-
-    // Ticket médio por tipologia
     const mapTipTicket = {};
     negocios.forEach(n=>{
       const tip = (n.tipologia || 'Sem tipologia').trim() || 'Sem tipologia';
@@ -1527,7 +1552,6 @@
       responsive:true
     });
 
-    // Ticket médio por zona
     const mapZonaTicket = {};
     negocios.forEach(n=>{
       const zona = (n.zona || 'Sem zona').trim() || 'Sem zona';
@@ -1551,14 +1575,12 @@
     });
   }
 
-  // TAREFAS
   function renderTarefasArea(tasks){
     tarefasCharts.innerHTML = '';
     const hasData = tasks.length>0;
     tarefasEmpty.style.display = hasData ? 'none':'block';
     if(!hasData) return;
 
-    // 1) Tarefas por estado
     const estOrder = ['por_fazer','em_curso','concluida','adiada','cancelada'];
     const estLabel = {
       por_fazer:'Por fazer',
@@ -1577,7 +1599,6 @@
       responsive:false
     });
 
-    // 2) Tarefas por prioridade
     const prioOrder = ['baixa','normal','alta','critica'];
     const prioLabel = {
       baixa:'Baixa',
@@ -1595,7 +1616,6 @@
       responsive:false
     });
 
-    // 3) Tarefas por tipo
     const tipoLabel = {
       chamada:'Chamada',
       email:'Email',
@@ -1617,7 +1637,6 @@
       responsive:true
     });
 
-    // 4) Tarefas por responsável
     const respMap = groupCount(tasks, t=>t.responsavel || '(sem responsável)');
     const respArr = mapToSortedArray(respMap);
     renderBarChart(tarefasCharts,{
@@ -1629,7 +1648,6 @@
     });
   }
 
-  /* ===== Contexto (texto) ===== */
   function updateContextLabel(){
     const cons = FILTERS.consultor;
     const de   = FILTERS.de;
@@ -1647,7 +1665,6 @@
     contextLabel.textContent = parts.length ? parts.join(' | ') : 'Sem filtros — visão global';
   }
 
-  /* ===== Tabs das áreas ===== */
   areaTabs.forEach(btn=>{
     btn.addEventListener('click',()=>{
       const area = btn.dataset.area;
@@ -1658,7 +1675,6 @@
     });
   });
 
-  /* ===== Ciclo principal ===== */
   function refresh(){
     loadLeads();
     loadAngs();
@@ -1710,7 +1726,6 @@
   clearFiltersBtn.addEventListener('click', clearFilters);
   reloadBtn.addEventListener('click', refresh);
 
-  // Arranque
   refresh();
 })();
 </script>
