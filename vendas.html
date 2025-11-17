@@ -311,6 +311,11 @@
       margin:3px 0;
       font-size:11px;
       color:var(--muted);
+      cursor:pointer;
+    }
+    .chart-row.selected{
+      background:rgba(163,139,99,.12);
+      border-radius:8px;
     }
     .chart-label{
       width:70px;
@@ -580,6 +585,7 @@
       <div class="chart">
         <div class="chart-title">Cronologia de recebimentos (comissões)</div>
         <div id="chartComissoes"></div>
+        <div id="chartComissoesDetalhe" style="margin-top:8px;font-size:11px;color:var(--muted);"></div>
       </div>
 
       <!-- Secções separadas -->
@@ -624,12 +630,14 @@
 
   const chartContainer = document.getElementById('chartContainer');
   const chartComissoes = document.getElementById('chartComissoes');
+  const chartComissoesDetalhe = document.getElementById('chartComissoesDetalhe');
 
   const exportCsvBtn = document.getElementById('exportCsvBtn');
   const applyFiltersBtn = document.getElementById('applyFiltersBtn');
   const clearFiltersBtn = document.getElementById('clearFiltersBtn');
 
   let NEGOCIOS = []; // lista combinada
+  let COMISSOES_DETALHE_MAP = {}; // por mês (YYYY-MM) -> lista de parcelas
   let FILTERS = {
     consultor:'',
     origem:'',
@@ -1073,9 +1081,69 @@
     });
   }
 
+  // Detalhe das comissões por mês
+  function renderComissoesDetalhe(mesKey, mesLabel){
+    chartComissoesDetalhe.innerHTML = '';
+    const lista = COMISSOES_DETALHE_MAP[mesKey];
+    if(!lista || !lista.length){
+      const div = document.createElement('div');
+      div.className = 'chart-empty';
+      div.textContent = 'Sem detalhe de negócios para ' + mesLabel + '.';
+      chartComissoesDetalhe.appendChild(div);
+      return;
+    }
+
+    const totalMes = lista.reduce((acc,it)=>acc + (it.valor || 0),0);
+
+    const title = document.createElement('div');
+    title.style.marginBottom = '4px';
+    title.textContent = 'Negócios que compõem ' + mesLabel + ' (' + lista.length + ' parcela(s) de comissão)';
+    chartComissoesDetalhe.appendChild(title);
+
+    const subt = document.createElement('div');
+    subt.style.marginBottom = '4px';
+    subt.style.fontSize = '11px';
+    subt.style.color = 'var(--muted)';
+    subt.textContent = 'Total de comissões no mês: ' + formatMoney(totalMes);
+    chartComissoesDetalhe.appendChild(subt);
+
+    lista
+      .slice()
+      .sort((a,b)=> (a.data || '').localeCompare(b.data || ''))
+      .forEach(it=>{
+        const row = document.createElement('div');
+        row.className = 'chart-row';
+
+        const left = document.createElement('div');
+        left.className = 'chart-label';
+        left.textContent = formatDate(it.data);
+
+        const mid = document.createElement('div');
+        mid.style.flex = '1';
+        mid.style.fontSize = '11px';
+        mid.innerHTML =
+          '<strong>' + (it.cliente || it.titulo || 'Negócio') + '</strong><br>' +
+          (it.titulo ? it.titulo + ' · ' : '') +
+          (it.consultor || '') +
+          (it.comissaoPct ? ' · Comissão ' + it.comissaoPct + '%' : '') +
+          ' · ' + it.tipoParcela;
+
+        const right = document.createElement('div');
+        right.className = 'chart-value';
+        right.textContent = formatMoney(it.valor);
+
+        row.appendChild(left);
+        row.appendChild(mid);
+        row.appendChild(right);
+        chartComissoesDetalhe.appendChild(row);
+      });
+  }
+
   // Cronologia de Recebimentos (comissões)
   function renderComissoesTimeline(lista){
     chartComissoes.innerHTML = '';
+    chartComissoesDetalhe.innerHTML = '';
+    COMISSOES_DETALHE_MAP = {};
 
     // Só faz sentido para negócios de Lead com comissão definida
     const apenasLeads = lista.filter(n=>n.tipo==='lead' && isFinite(n.comissaoValorTotal) && n.comissaoValorTotal>0);
@@ -1089,6 +1157,25 @@
 
     const mapa = {}; // chave YYYY-MM -> valor comissão nesse mês
 
+    function addParcela(dateStr, valorParcela, neg, tipoParcela){
+      if(!dateStr || !valorParcela || valorParcela <= 0) return;
+      const d = new Date(dateStr);
+      if(isNaN(d.getTime())) return;
+      const k = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+      mapa[k] = (mapa[k] || 0) + valorParcela;
+      if(!COMISSOES_DETALHE_MAP[k]) COMISSOES_DETALHE_MAP[k] = [];
+      COMISSOES_DETALHE_MAP[k].push({
+        negocioId: neg.id,
+        cliente: neg.cliente,
+        titulo: neg.titulo,
+        consultor: neg.consultor,
+        tipoParcela,
+        data: dateStr,
+        valor: valorParcela,
+        comissaoPct: neg.comissaoPct
+      });
+    }
+
     apenasLeads.forEach(n=>{
       const total = n.comissaoValorTotal || 0;
       if(total <= 0) return;
@@ -1096,40 +1183,19 @@
       const hasCpcv = !!n.dataCpcv;
       const hasEsc  = !!n.dataEscritura;
 
-      let valorCpcv = 0;
-      let valorEsc  = 0;
-
       if(hasCpcv && hasEsc){
-        valorCpcv = total/2;
-        valorEsc  = total/2;
+        const valorCpcv = total/2;
+        const valorEsc  = total/2;
+        addParcela(n.dataCpcv, valorCpcv, n, 'CPCV');
+        addParcela(n.dataEscritura, valorEsc, n, 'Escritura');
       }else if(hasCpcv && !hasEsc){
-        valorCpcv = total;
+        addParcela(n.dataCpcv, total, n, 'CPCV');
       }else if(!hasCpcv && hasEsc){
-        valorEsc = total;
+        addParcela(n.dataEscritura, total, n, 'Escritura');
       }else{
         // Sem datas específicas -> usa data do negócio
         if(n.data){
-          const d = new Date(n.data);
-          if(!isNaN(d.getTime())){
-            const k = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
-            mapa[k] = (mapa[k] || 0) + total;
-          }
-        }
-        return;
-      }
-
-      if(valorCpcv>0 && hasCpcv){
-        const d = new Date(n.dataCpcv);
-        if(!isNaN(d.getTime())){
-          const k = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
-          mapa[k] = (mapa[k] || 0) + valorCpcv;
-        }
-      }
-      if(valorEsc>0 && hasEsc){
-        const d = new Date(n.dataEscritura);
-        if(!isNaN(d.getTime())){
-          const k = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
-          mapa[k] = (mapa[k] || 0) + valorEsc;
+          addParcela(n.data, total, n, 'Pagamento');
         }
       }
     });
@@ -1150,7 +1216,8 @@
       const label = document.createElement('div');
       label.className = 'chart-label';
       const [y,m] = key.split('-');
-      label.textContent = m+'/'+y.slice(-2);
+      const mesLabel = m+'/'+y.slice(-2);
+      label.textContent = mesLabel;
       const barWrap = document.createElement('div');
       barWrap.className = 'chart-bar-wrap';
       const bar = document.createElement('div');
@@ -1164,8 +1231,26 @@
       row.appendChild(label);
       row.appendChild(barWrap);
       row.appendChild(val);
+
+      row.addEventListener('click', ()=>{
+        Array.from(chartComissoes.querySelectorAll('.chart-row')).forEach(r=>r.classList.remove('selected'));
+        row.classList.add('selected');
+        renderComissoesDetalhe(key, mesLabel);
+      });
+
       chartComissoes.appendChild(row);
     });
+
+    // Seleciona automaticamente o último mês para mostrar detalhe inicial
+    const rows = chartComissoes.querySelectorAll('.chart-row');
+    if(rows.length){
+      const lastRow = rows[rows.length-1];
+      lastRow.classList.add('selected');
+      const [lastKey] = entries[entries.length-1];
+      const [y,m] = lastKey.split('-');
+      const mesLabel = m+'/'+y.slice(-2);
+      renderComissoesDetalhe(lastKey, mesLabel);
+    }
   }
 
   function renderCards(listaLeads, listaAng){
