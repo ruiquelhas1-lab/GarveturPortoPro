@@ -1731,10 +1731,18 @@
       responsive:true
     });
 
+    // 🔹 Ticket médio por zona — AGORA só compra/venda
     const mapZonaTicket = {};
     negocios.forEach(n=>{
-      const zona = (n.zona || 'Sem zona').trim() || 'Sem zona';
+      const tipoRaw = (n.tipoNegocio || '').toLowerCase();
+      const isCompraVenda =
+        tipoRaw.includes('compra') ||
+        tipoRaw.includes('venda');
+
+      if(!isCompraVenda) return;
       if(!n.valor) return;
+
+      const zona = (n.zona || 'Sem zona').trim() || 'Sem zona';
       if(!mapZonaTicket[zona]){
         mapZonaTicket[zona] = {sum:0,count:0};
       }
@@ -1747,7 +1755,7 @@
     const zonaTicketTop = topN(zonaTicketArr,6);
     renderBarChart(fechosCharts,{
       title:'Ticket Médio por Zona (Top)',
-      subtitle:'Valor médio de fecho por zona/geografia.',
+      subtitle:'Só negócios de compra/venda · Valor médio de fecho por zona/geografia.',
       items:zonaTicketTop,
       formatter:formatMoney,
       responsive:true
