@@ -766,6 +766,18 @@
         <div class="form-field"><label>Data do CPCV</label><input id="ld_fecho_cpcv_date" type="date"></div>
         <div class="form-field"><label>Data da Escritura</label><input id="ld_fecho_escritura_date" type="date"></div>
 
+        <!-- NOVO: Pagamento de Comissões -->
+        <div class="form-field" style="grid-column:1 / span 2">
+          <label>Pagamento de Comissões</label>
+          <select id="ld_fecho_pagamento_tipo">
+            <option value="">—</option>
+            <option value="50_50">50% CPCV - 50% Escritura</option>
+            <option value="100_escritura">100% Escritura</option>
+            <option value="outro">Outro</option>
+          </select>
+          <input id="ld_fecho_pagamento_outro" placeholder="Descreva a regra (ex.: 30% CPCV / 70% Escritura)" style="margin-top:6px;display:none">
+        </div>
+
         <div class="form-field" style="grid-column:1 / span 2"><label>Observações</label><textarea id="ld_fecho_obs" rows="3"></textarea></div>
       </div>
     </div>
@@ -1028,6 +1040,9 @@ function resetFechoBox(){
   $('ld_fecho_cpcv_date').value='';
   $('ld_fecho_escritura_date').value='';
   $('ld_fecho_obs').value='';
+  $('ld_fecho_pagamento_tipo').value='';
+  $('ld_fecho_pagamento_outro').value='';
+  $('ld_fecho_pagamento_outro').style.display='none';
   INTERCALAres=[]; drawIntercalares();
   updateIntercalaresTotal();
 }
@@ -1053,6 +1068,14 @@ $('ld_fecho_comissao').addEventListener('change', (e)=>{
   const isOutro = e.target.value==='outro';
   const input=$('ld_fecho_comissao_outro');
   input.style.display = isOutro? 'block':'none';
+  if(!isOutro) input.value='';
+});
+
+// NOVO: mostrar/esconder campo "Outro" em Pagamento de Comissões
+$('ld_fecho_pagamento_tipo').addEventListener('change', (e)=>{
+  const isOutro = e.target.value==='outro';
+  const input = $('ld_fecho_pagamento_outro');
+  input.style.display = isOutro ? 'block' : 'none';
   if(!isOutro) input.value='';
 });
 
@@ -1131,6 +1154,16 @@ function openModal(edit=null){
     $('ld_fecho_cpcv_date').value = edit.fecho_cpcv_date || '';
     $('ld_fecho_escritura_date').value = edit.fecho_escritura_date || '';
     $('ld_fecho_obs').value = edit.fecho_obs || '';
+
+    // NOVO: pagamento de comissões
+    $('ld_fecho_pagamento_tipo').value = edit.fecho_pagamento_tipo || '';
+    if(edit.fecho_pagamento_tipo === 'outro'){
+      $('ld_fecho_pagamento_outro').style.display = 'block';
+      $('ld_fecho_pagamento_outro').value = edit.fecho_pagamento_outro || '';
+    }else{
+      $('ld_fecho_pagamento_outro').style.display = 'none';
+      $('ld_fecho_pagamento_outro').value = edit.fecho_pagamento_outro || '';
+    }
   }
 
   $('leadModal').classList.add('show');
@@ -1147,10 +1180,16 @@ $('saveLead').addEventListener('click',()=>{
   const estadoFinal = PICKED_STATE || $('saveLead').dataset.editEstado || 'Novo';
 
   let comissaoPct = '';
+  let pagamentoTipo = '';
+  let pagamentoOutro = '';
+
   if(estadoFinal==='Fecho'){
     const cSel = $('ld_fecho_comissao').value;
     if(cSel==='outro'){ comissaoPct = parsePercent($('ld_fecho_comissao_outro').value); }
     else if(cSel){ comissaoPct = Number(cSel); }
+
+    pagamentoTipo = $('ld_fecho_pagamento_tipo').value.trim();
+    pagamentoOutro = pagamentoTipo === 'outro' ? $('ld_fecho_pagamento_outro').value.trim() : '';
   }
 
   const lead={
@@ -1191,7 +1230,9 @@ $('saveLead').addEventListener('click',()=>{
     fecho_valor_escritura: estadoFinal==='Fecho' ? get('ld_fecho_valor_escritura') : '',
     fecho_cpcv_date: estadoFinal==='Fecho' ? get('ld_fecho_cpcv_date') : '',
     fecho_escritura_date: estadoFinal==='Fecho' ? get('ld_fecho_escritura_date') : '',
-    fecho_obs: estadoFinal==='Fecho' ? get('ld_fecho_obs') : ''
+    fecho_obs: estadoFinal==='Fecho' ? get('ld_fecho_obs') : '',
+    fecho_pagamento_tipo: estadoFinal==='Fecho' ? pagamentoTipo : '',
+    fecho_pagamento_outro: estadoFinal==='Fecho' ? pagamentoOutro : ''
   };
 
   if(lead.visivel===undefined) lead.visivel=true;
@@ -1232,6 +1273,25 @@ function fechoSummary(l){
   if(l.fecho_valor_escritura) parts.push(`Escritura: ${Number(l.fecho_valor_escritura).toLocaleString('pt-PT')}€`);
   if(l.fecho_cpcv_date) parts.push(`CPCV em ${fmtDate(l.fecho_cpcv_date)}`);
   if(l.fecho_escritura_date) parts.push(`Escritura em ${fmtDate(l.fecho_escritura_date)}`);
+
+  if(l.fecho_pagamento_tipo){
+    let label;
+    switch(l.fecho_pagamento_tipo){
+      case '50_50':
+        label = '50% CPCV / 50% Escritura';
+        break;
+      case '100_escritura':
+        label = '100% Escritura';
+        break;
+      case 'outro':
+        label = l.fecho_pagamento_outro || 'Outro';
+        break;
+      default:
+        label = l.fecho_pagamento_tipo;
+    }
+    parts.push(`Pag. comissões: ${label}`);
+  }
+
   return parts.join(' · ');
 }
 
@@ -1406,7 +1466,15 @@ function filterForExport(arr){
 function toCSV(rows){ return rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n'); }
 
 $('exportCsv').addEventListener('click',()=>{
-  const headers=["ID","Estado","Data","Consultor","Nome","Contacto","Email","TipoNegócio","Imóvel","Tipologia","Zona","Capitais","Valor","Financiamento","Simulação","Banco","Comprador/Vend.","Perfil","Classificação","RefInterna","URL","Urgente","Planta","1ªHab","TemImóvel","JáVenda","Notas","Visível","Negócio","Comissão(%)","SinalReserva","ValorCPCV","Intercalares","ValorEscritura","DataCPCV","DataEscritura","FechoObs"];
+  const headers=[
+    "ID","Estado","Data","Consultor","Nome","Contacto","Email","TipoNegócio",
+    "Imóvel","Tipologia","Zona","Capitais","Valor","Financiamento","Simulação",
+    "Banco","Comprador/Vend.","Perfil","Classificação","RefInterna","URL",
+    "Urgente","Planta","1ªHab","TemImóvel","JáVenda","Notas","Visível",
+    "Negócio","Comissão(%)","SinalReserva","ValorCPCV","Intercalares",
+    "ValorEscritura","DataCPCV","DataEscritura","PagamentoComissoesTipo",
+    "PagamentoComissoesOutro","FechoObs"
+  ];
   const rows = filterForExport(LEADS).map(l=>[
     l.id,l.estado,l.data||'',l.consultor||'',l.nome||'',l.contacto||'',l.email||'',
     l.tipo_negocio||'',l.imovel||'',l.tipologia||'',l.zona||'',l.capitais||'',l.valor||'',
@@ -1416,7 +1484,8 @@ $('exportCsv').addEventListener('click',()=>{
     l.fecho_negocio||'', (l.fecho_comissao_pct!==''&&l.fecho_comissao_pct!=null? l.fecho_comissao_pct : ''),
     l.fecho_sinal_reserva||'', l.fecho_valor_cpcv||'',
     (Array.isArray(l.fecho_intercalares)? l.fecho_intercalares.join(' | ') : ''),
-    l.fecho_valor_escritura||'', l.fecho_cpcv_date||'', l.fecho_escritura_date||'', l.fecho_obs||''
+    l.fecho_valor_escritura||'', l.fecho_cpcv_date||'', l.fecho_escritura_date||'',
+    l.fecho_pagamento_tipo||'', l.fecho_pagamento_outro||'', l.fecho_obs||''
   ]);
   const csv=toCSV([headers,...rows]);
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob);
@@ -1425,14 +1494,33 @@ $('exportCsv').addEventListener('click',()=>{
 
 $('exportXlsx').addEventListener('click',()=>{
   const data = filterForExport(LEADS).map(l=>({
-    ID:l.id, Estado:l.estado, Data:l.data||'', Consultor:l.consultor||'', Nome:l.nome||'',
-    Contacto:l.contacto||'', Email:l.email||'', TipoNegócio:l.tipo_negocio||'',
-    Imóvel:l.imovel||'', Tipologia:l.tipologia||'', Zona:l.zona||'',
-    Capitais:+(l.capitais||0), Valor:+(l.valor||0), Financiamento:l.financiamento||'',
-    Simulação:l.simulacao||'', Banco:l.banco||'', "Comprador/Vend.":l.papel||'',
-    Perfil:l.perfil||'', Classificação:l.classificacao||'', "Ref. Interna":l.ref_interna||'',
-    URL:l.url||'', Urgente:l.urgente||'', Planta:l.planta||'', "1ª Hab.":l.primeira_hab||'',
-    "Tem Imóvel":l.tem_imovel||'', "Já à venda":l.ja_venda||'', Notas:l.notas||'',
+    ID:l.id,
+    Estado:l.estado,
+    Data:l.data||'',
+    Consultor:l.consultor||'',
+    Nome:l.nome||'',
+    Contacto:l.contacto||'',
+    Email:l.email||'',
+    TipoNegócio:l.tipo_negocio||'',
+    Imóvel:l.imovel||'',
+    Tipologia:l.tipologia||'',
+    Zona:l.zona||'',
+    Capitais:+(l.capitais||0),
+    Valor:+(l.valor||0),
+    Financiamento:l.financiamento||'',
+    Simulação:l.simulacao||'',
+    Banco:l.banco||'',
+    "Comprador/Vend.":l.papel||'',
+    Perfil:l.perfil||'',
+    Classificação:l.classificacao||'',
+    "Ref. Interna":l.ref_interna||'',
+    URL:l.url||'',
+    Urgente:l.urgente||'',
+    Planta:l.planta||'',
+    "1ª Hab.":l.primeira_hab||'',
+    "Tem Imóvel":l.tem_imovel||'',
+    "Já à venda":l.ja_venda||'',
+    Notas:l.notas||'',
     Visível:(l.visivel!==false?'Sim':'Não'),
     Negócio:+(l.fecho_negocio||0),
     "Comissão(%)":(l.fecho_comissao_pct!==''&&l.fecho_comissao_pct!=null? +l.fecho_comissao_pct : ''),
@@ -1442,6 +1530,8 @@ $('exportXlsx').addEventListener('click',()=>{
     ValorEscritura:+(l.fecho_valor_escritura||0),
     DataCPCV:l.fecho_cpcv_date||'',
     DataEscritura:l.fecho_escritura_date||'',
+    PagamentoComissoesTipo:l.fecho_pagamento_tipo||'',
+    PagamentoComissoesOutro:l.fecho_pagamento_outro||'',
     FechoObs:l.fecho_obs||''
   }));
   const ws=XLSX.utils.json_to_sheet(data);
