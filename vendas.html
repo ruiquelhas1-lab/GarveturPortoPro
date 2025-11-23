@@ -635,6 +635,8 @@
 
   // Registo de lembretes automáticos de comissões para não duplicar tarefas
   const LS_COMISSAO_REM_KEY = 'gpp_comissoes_reminders_v1';
+  // Flag de migração para correr limpeza apenas uma vez
+  const LS_COM_MIGRATION_KEY = 'gpp_comissoes_migration_v2_done';
 
   const fConsultor = document.getElementById('fConsultor');
   const fOrigem = document.getElementById('fOrigem');
@@ -774,9 +776,7 @@
   function addMonthsISO(dateStr, deltaMonths){
     const d = new Date(dateStr);
     if(isNaN(d.getTime())) return '';
-    const day = d.getDate();
     d.setMonth(d.getMonth() + deltaMonths);
-    // JS ajusta automaticamente para fim de mês quando necessário
     const y = d.getFullYear();
     const m = String(d.getMonth()+1).padStart(2,'0');
     const dd = String(d.getDate()).padStart(2,'0');
@@ -844,6 +844,57 @@
   function parcelaKey(neg, tipoParcela, dateStr, valorParcela){
     const v = Math.round(Number(valorParcela || 0));
     return [neg.id || '', tipoParcela || '', dateStr || '', String(v)].join('|');
+  }
+
+  // MIGRAÇÃO: limpar tarefas antigas de comissão (> 1 mês) e resetar registo de lembretes uma única vez
+  function runComissaoMigrationOnce(){
+    try{
+      const done = localStorage.getItem(LS_COM_MIGRATION_KEY);
+      if(done === '1') return;
+
+      const hoje = todayISO();
+      const hojeDate = new Date(hoje);
+
+      const st = loadTarefasState();
+      const kept = [];
+
+      (st.tasks || []).forEach(t=>{
+        const isCom = (t.tipoTarefa === 'comissao' || t.origemTipo === 'comissao');
+        if(!isCom){
+          kept.push(t);
+          return;
+        }
+        if(!t.dataLimite){
+          kept.push(t);
+          return;
+        }
+        const dLim = new Date(t.dataLimite);
+        if(isNaN(dLim.getTime())){
+          kept.push(t);
+          return;
+        }
+        const diffMs = dLim.getTime() - hojeDate.getTime();
+        const diffDays = diffMs / (1000*60*60*24);
+
+        // Se a comissão está a mais de 31 dias no futuro, consideramos tarefa "legacy" e removemos
+        if(diffDays > 31){
+          // não voltar a colocar em kept -> elimina
+        }else{
+          kept.push(t);
+        }
+      });
+
+      st.tasks = kept;
+      saveTarefasState(st);
+
+      // Limpar registo de lembretes para permitir recriação futura com a nova lógica
+      localStorage.removeItem(LS_COMISSAO_REM_KEY);
+
+      // Marcar migração como concluída
+      localStorage.setItem(LS_COM_MIGRATION_KEY, '1');
+    }catch(e){
+      console.error('Erro na migração de comissões', e);
+    }
   }
 
   // Cria automaticamente tarefas de comissão:
@@ -1015,6 +1066,7 @@
         id: l.id || '',
         consultor: l.consultor || '',
         cliente: l.nome || '',
+        contato: l.contacto || '',
         contacto: l.contacto || '',
         email: l.email || '',
         titulo: l.imovel ? (l.imovel + (l.tipologia? ' ' + l.tipologia : '')) : (l.imovel || 'Lead'),
@@ -1586,10 +1638,13 @@
   }
 
   function applyAndRender(){
-    // 1) Garante criação de tarefas de comissão (independente dos filtros)
+    // 1) MIGRAÇÃO (apenas uma vez): limpar tarefas antigas e resetar lembretes
+    runComissaoMigrationOnce();
+
+    // 2) Garante criação de tarefas de comissão (independente dos filtros)
     processComissoesTasksAll();
 
-    // 2) Aplica filtros e renderiza dashboards
+    // 3) Aplica filtros e renderiza dashboards
     const lista = applyFilters();
     const listaLeads = lista.filter(n=>n.tipo==='lead');
     const listaAng   = lista.filter(n=>n.tipo==='ang');
