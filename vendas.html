@@ -588,6 +588,28 @@
         <div id="chartComissoesDetalhe" style="margin-top:8px;font-size:11px;color:var(--muted);"></div>
       </div>
 
+      <!-- NOVO QUADRO: Resumo de Comissões -->
+      <div class="chart">
+        <div class="chart-title">Resumo de comissões</div>
+        <div class="kpi-row">
+          <div class="kpi-card">
+            <div class="kpi-label">Comissões no período</div>
+            <div class="kpi-value" id="kpiComPeriodo">€ 0</div>
+            <div class="kpi-sub">Soma das parcelas de comissão (CPCV/Escritura) entre as datas filtradas.</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Comissões já recebidas</div>
+            <div class="kpi-value" id="kpiComRecebido">€ 0</div>
+            <div class="kpi-sub">Parcelas de comissão com data até hoje.</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Comissões por receber</div>
+            <div class="kpi-value" id="kpiComPorReceber">€ 0</div>
+            <div class="kpi-sub">Comissão total dos negócios fechados menos o já recebido.</div>
+          </div>
+        </div>
+      </div>
+
       <!-- Secções separadas -->
       <h3 class="section-title">Negócios fechados (Leads)</h3>
       <div id="cardsLeadsGrid" class="cards-grid"></div>
@@ -636,8 +658,14 @@
   const applyFiltersBtn = document.getElementById('applyFiltersBtn');
   const clearFiltersBtn = document.getElementById('clearFiltersBtn');
 
+  // NOVOS KPI de comissões
+  const kpiComPeriodo   = document.getElementById('kpiComPeriodo');
+  const kpiComRecebido  = document.getElementById('kpiComRecebido');
+  const kpiComPorReceber = document.getElementById('kpiComPorReceber');
+
   let NEGOCIOS = []; // lista combinada
   let COMISSOES_DETALHE_MAP = {}; // por mês (YYYY-MM) -> lista de parcelas
+  let COMISSOES_RESUMO = { totalPeriodo:0, totalRecebido:0, totalPorReceber:0 };
   let FILTERS = {
     consultor:'',
     origem:'',
@@ -1139,11 +1167,21 @@
       });
   }
 
+  // Resumo de Comissões (novo quadro)
+  function renderComissoesResumo(){
+    kpiComPeriodo.textContent    = formatMoney(COMISSOES_RESUMO.totalPeriodo || 0);
+    kpiComRecebido.textContent   = formatMoney(COMISSOES_RESUMO.totalRecebido || 0);
+    kpiComPorReceber.textContent = formatMoney(COMISSOES_RESUMO.totalPorReceber || 0);
+  }
+
   // Cronologia de Recebimentos (comissões)
   function renderComissoesTimeline(lista){
     chartComissoes.innerHTML = '';
     chartComissoesDetalhe.innerHTML = '';
     COMISSOES_DETALHE_MAP = {};
+    COMISSOES_RESUMO = { totalPeriodo:0, totalRecebido:0, totalPorReceber:0 };
+
+    const hoje = todayISO();
 
     // Só faz sentido para negócios de Lead com comissão definida
     const apenasLeads = lista.filter(n=>n.tipo==='lead' && isFinite(n.comissaoValorTotal) && n.comissaoValorTotal>0);
@@ -1152,16 +1190,34 @@
       div.className = 'chart-empty';
       div.textContent = 'Sem dados de comissões (verifique se existem CPCV / Escritura e % de comissão).';
       chartComissoes.appendChild(div);
+      renderComissoesResumo();
       return;
     }
 
     const mapa = {}; // chave YYYY-MM -> valor comissão nesse mês
 
+    let totalComissoesTodas = 0;
+    let totalPeriodo = 0;
+    let totalRecebido = 0;
+
+    function dataDentroFiltros(dateStr){
+      if(!dateStr) return false;
+      if(FILTERS.de && dateStr < FILTERS.de) return false;
+      if(FILTERS.ate && dateStr > FILTERS.ate) return false;
+      return true;
+    }
+
     function addParcela(dateStr, valorParcela, neg, tipoParcela){
       if(!dateStr || !valorParcela || valorParcela <= 0) return;
+
+      // Aplica filtros de datas às parcelas (período definido na sidebar)
+      if(FILTERS.de && dateStr < FILTERS.de) return;
+      if(FILTERS.ate && dateStr > FILTERS.ate) return;
+
       const d = new Date(dateStr);
       if(isNaN(d.getTime())) return;
       const k = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+
       mapa[k] = (mapa[k] || 0) + valorParcela;
       if(!COMISSOES_DETALHE_MAP[k]) COMISSOES_DETALHE_MAP[k] = [];
       COMISSOES_DETALHE_MAP[k].push({
@@ -1174,11 +1230,20 @@
         valor: valorParcela,
         comissaoPct: neg.comissaoPct
       });
+
+      // Acumula comissões no período
+      totalPeriodo += valorParcela;
+
+      // Se a data da parcela já passou (ou é hoje), considera como "recebido"
+      if(dateStr <= hoje){
+        totalRecebido += valorParcela;
+      }
     }
 
     apenasLeads.forEach(n=>{
       const total = n.comissaoValorTotal || 0;
       if(total <= 0) return;
+      totalComissoesTodas += total;
 
       const hasCpcv = !!n.dataCpcv;
       const hasEsc  = !!n.dataEscritura;
@@ -1193,8 +1258,8 @@
       }else if(!hasCpcv && hasEsc){
         addParcela(n.dataEscritura, total, n, 'Escritura');
       }else{
-        // Sem datas específicas -> usa data do negócio
-        if(n.data){
+        // Sem datas específicas -> usa data do negócio (se estiver no período)
+        if(n.data && dataDentroFiltros(n.data)){
           addParcela(n.data, total, n, 'Pagamento');
         }
       }
@@ -1204,53 +1269,62 @@
     if(!entries.length){
       const div = document.createElement('div');
       div.className = 'chart-empty';
-      div.textContent = 'Sem dados de comissões distribuídas por CPCV/Escritura.';
+      div.textContent = 'Sem dados de comissões distribuídas por CPCV/Escritura no período selecionado.';
       chartComissoes.appendChild(div);
-      return;
-    }
+    }else{
+      const max = Math.max(...entries.map(e=>e[1]));
+      entries.forEach(([key,total])=>{
+        const row = document.createElement('div');
+        row.className = 'chart-row';
+        const label = document.createElement('div');
+        label.className = 'chart-label';
+        const [y,m] = key.split('-');
+        const mesLabel = m+'/'+y.slice(-2);
+        label.textContent = mesLabel;
+        const barWrap = document.createElement('div');
+        barWrap.className = 'chart-bar-wrap';
+        const bar = document.createElement('div');
+        bar.className = 'chart-bar';
+        const pct = max>0 ? (total/max*100) : 0;
+        bar.style.width = pct.toFixed(1)+'%';
+        barWrap.appendChild(bar);
+        const val = document.createElement('div');
+        val.className = 'chart-value';
+        val.textContent = formatMoney(total);
+        row.appendChild(label);
+        row.appendChild(barWrap);
+        row.appendChild(val);
 
-    const max = Math.max(...entries.map(e=>e[1]));
-    entries.forEach(([key,total])=>{
-      const row = document.createElement('div');
-      row.className = 'chart-row';
-      const label = document.createElement('div');
-      label.className = 'chart-label';
-      const [y,m] = key.split('-');
-      const mesLabel = m+'/'+y.slice(-2);
-      label.textContent = mesLabel;
-      const barWrap = document.createElement('div');
-      barWrap.className = 'chart-bar-wrap';
-      const bar = document.createElement('div');
-      bar.className = 'chart-bar';
-      const pct = max>0 ? (total/max*100) : 0;
-      bar.style.width = pct.toFixed(1)+'%';
-      barWrap.appendChild(bar);
-      const val = document.createElement('div');
-      val.className = 'chart-value';
-      val.textContent = formatMoney(total);
-      row.appendChild(label);
-      row.appendChild(barWrap);
-      row.appendChild(val);
+        row.addEventListener('click', ()=>{
+          Array.from(chartComissoes.querySelectorAll('.chart-row')).forEach(r=>r.classList.remove('selected'));
+          row.classList.add('selected');
+          renderComissoesDetalhe(key, mesLabel);
+        });
 
-      row.addEventListener('click', ()=>{
-        Array.from(chartComissoes.querySelectorAll('.chart-row')).forEach(r=>r.classList.remove('selected'));
-        row.classList.add('selected');
-        renderComissoesDetalhe(key, mesLabel);
+        chartComissoes.appendChild(row);
       });
 
-      chartComissoes.appendChild(row);
-    });
-
-    // Seleciona automaticamente o último mês para mostrar detalhe inicial
-    const rows = chartComissoes.querySelectorAll('.chart-row');
-    if(rows.length){
-      const lastRow = rows[rows.length-1];
-      lastRow.classList.add('selected');
-      const [lastKey] = entries[entries.length-1];
-      const [y,m] = lastKey.split('-');
-      const mesLabel = m+'/'+y.slice(-2);
-      renderComissoesDetalhe(lastKey, mesLabel);
+      // Seleciona automaticamente o último mês para mostrar detalhe inicial
+      const rows = chartComissoes.querySelectorAll('.chart-row');
+      if(rows.length){
+        const lastRow = rows[rows.length-1];
+        lastRow.classList.add('selected');
+        const [lastKey] = entries[entries.length-1];
+        const [y,m] = lastKey.split('-');
+        const mesLabel = m+'/'+y.slice(-2);
+        renderComissoesDetalhe(lastKey, mesLabel);
+      }
     }
+
+    // Calcula total por receber com base em todos os negócios filtrados
+    const totalPorReceber = totalComissoesTodas - totalRecebido;
+
+    COMISSOES_RESUMO = {
+      totalPeriodo: totalPeriodo,
+      totalRecebido: totalRecebido,
+      totalPorReceber: totalPorReceber
+    };
+    renderComissoesResumo();
   }
 
   function renderCards(listaLeads, listaAng){
