@@ -588,7 +588,7 @@
         <div id="chartComissoesDetalhe" style="margin-top:8px;font-size:11px;color:var(--muted);"></div>
       </div>
 
-      <!-- NOVO QUADRO: Resumo de Comissões -->
+      <!-- Resumo de Comissões -->
       <div class="chart">
         <div class="chart-title">Resumo de comissões</div>
         <div class="kpi-row">
@@ -633,6 +633,9 @@
   const LS_VENDAS_FILTERS_KEY = 'gpp_vendas_filters_v1';
   const LS_GLOBAL_FILTERS_KEY = 'gpp_filtros_globais';
 
+  // NOVO: registo de lembretes automáticos de comissões para não duplicar tarefas
+  const LS_COMISSAO_REM_KEY = 'gpp_comissoes_reminders_v1';
+
   const fConsultor = document.getElementById('fConsultor');
   const fOrigem = document.getElementById('fOrigem');
   const fDe = document.getElementById('fDe');
@@ -658,7 +661,7 @@
   const applyFiltersBtn = document.getElementById('applyFiltersBtn');
   const clearFiltersBtn = document.getElementById('clearFiltersBtn');
 
-  // NOVOS KPI de comissões
+  // KPI de comissões
   const kpiComPeriodo   = document.getElementById('kpiComPeriodo');
   const kpiComRecebido  = document.getElementById('kpiComRecebido');
   const kpiComPorReceber = document.getElementById('kpiComPorReceber');
@@ -806,6 +809,74 @@
     }catch(e){
       console.error('Erro ao guardar tarefas (vendas)', e);
     }
+  }
+
+  // NOVO: registo de lembretes já criados para parcelas de comissão
+  function loadComRemState(){
+    try{
+      const raw = localStorage.getItem(LS_COMISSAO_REM_KEY);
+      if(!raw) return {created:[]};
+      const obj = JSON.parse(raw);
+      if(!obj || !Array.isArray(obj.created)) return {created:[]};
+      return obj;
+    }catch{
+      return {created:[]};
+    }
+  }
+  function saveComRemState(st){
+    try{
+      localStorage.setItem(LS_COMISSAO_REM_KEY, JSON.stringify(st));
+    }catch{}
+  }
+  function parcelaKey(neg, tipoParcela, dateStr, valorParcela){
+    const v = Math.round(Number(valorParcela || 0));
+    return [neg.id || '', tipoParcela || '', dateStr || '', String(v)].join('|');
+  }
+
+  // NOVO: cria automaticamente tarefas para comissões futuras
+  function ensureTaskForParcela(neg, tipoParcela, dateStr, valorParcela){
+    const hoje = todayISO();
+    if(!dateStr || dateStr <= hoje) return; // só futuras
+
+    const st = loadComRemState();
+    const key = parcelaKey(neg, tipoParcela, dateStr, valorParcela);
+    if(st.created.includes(key)) return; // já criada
+
+    const tarefasState = loadTarefasState();
+
+    const id = 'task_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+    const tituloBase = neg.cliente || neg.titulo || 'Negócio';
+
+    const origemRefParts = [];
+    if(neg.titulo) origemRefParts.push(neg.titulo);
+    if(neg.cliente) origemRefParts.push(neg.cliente);
+    origemRefParts.push(tipoParcela, dateStr);
+
+    const nova = {
+      id,
+      responsavel: neg.consultor || '',
+      apoio: '',
+      origemTipo: 'comissao',
+      origemRef: origemRefParts.filter(Boolean).join(' — '),
+      estado: 'por_fazer',
+      prioridade: 'normal',
+      tipoTarefa: 'comissao',
+      tags: 'comissão, pipeline',
+      titulo: 'Comissão ' + tipoParcela + ' — ' + tituloBase,
+      descricao:
+        'Lembrete automático de comissão (' + tipoParcela + ') associada ao negócio "' +
+        (neg.titulo || '') + '" do cliente "' + (neg.cliente || '') + '".',
+      dataCriacao: todayISO(),
+      dataLimite: dateStr,
+      horaLimite: '',
+      createdAtMs: Date.now()
+    };
+
+    tarefasState.tasks.push(nova);
+    saveTarefasState(tarefasState);
+
+    st.created.push(key);
+    saveComRemState(st);
   }
 
   function createTaskFromNegocio(neg){
@@ -1167,14 +1238,14 @@
       });
   }
 
-  // Resumo de Comissões (novo quadro)
+  // Resumo de Comissões
   function renderComissoesResumo(){
     kpiComPeriodo.textContent    = formatMoney(COMISSOES_RESUMO.totalPeriodo || 0);
     kpiComRecebido.textContent   = formatMoney(COMISSOES_RESUMO.totalRecebido || 0);
     kpiComPorReceber.textContent = formatMoney(COMISSOES_RESUMO.totalPorReceber || 0);
   }
 
-  // Cronologia de Recebimentos (comissões)
+  // Cronologia de Recebimentos (comissões) + criação automática de tarefas
   function renderComissoesTimeline(lista){
     chartComissoes.innerHTML = '';
     chartComissoesDetalhe.innerHTML = '';
@@ -1210,7 +1281,7 @@
     function addParcela(dateStr, valorParcela, neg, tipoParcela){
       if(!dateStr || !valorParcela || valorParcela <= 0) return;
 
-      // Aplica filtros de datas às parcelas (período definido na sidebar)
+      // Aplicar filtros de datas às parcelas (período definido na sidebar)
       if(FILTERS.de && dateStr < FILTERS.de) return;
       if(FILTERS.ate && dateStr > FILTERS.ate) return;
 
@@ -1238,6 +1309,9 @@
       if(dateStr <= hoje){
         totalRecebido += valorParcela;
       }
+
+      // NOVO: criar automaticamente tarefa para comissões futuras
+      ensureTaskForParcela(neg, tipoParcela, dateStr, valorParcela);
     }
 
     apenasLeads.forEach(n=>{
