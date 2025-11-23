@@ -590,24 +590,8 @@
 
       <!-- Resumo de Comissões -->
       <div class="chart">
-        <div class="chart-title">Resumo de comissões</div>
-        <div class="kpi-row">
-          <div class="kpi-card">
-            <div class="kpi-label">Comissões no período</div>
-            <div class="kpi-value" id="kpiComPeriodo">€ 0</div>
-            <div class="kpi-sub">Soma das parcelas de comissão (CPCV/Escritura) entre as datas filtradas.</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Comissões já recebidas</div>
-            <div class="kpi-value" id="kpiComRecebido">€ 0</div>
-            <div class="kpi-sub">Parcelas de comissão com data até hoje.</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Comissões por receber</div>
-            <div class="kpi-value" id="kpiComPorReceber">€ 0</div>
-            <div class="kpi-sub">Comissão total dos negócios fechados menos o já recebido.</div>
-          </div>
-        </div>
+        <div class="chart-title">Resumo de comissões (filtros atuais)</div>
+        <div id="comissoesResumo"></div>
       </div>
 
       <!-- Secções separadas -->
@@ -632,9 +616,7 @@
 
   const LS_VENDAS_FILTERS_KEY = 'gpp_vendas_filters_v1';
   const LS_GLOBAL_FILTERS_KEY = 'gpp_filtros_globais';
-
-  // NOVO: registo de lembretes automáticos de comissões para não duplicar tarefas
-  const LS_COMISSAO_REM_KEY = 'gpp_comissoes_reminders_v1';
+  const LS_COM_REM_KEY = 'gpp_comissoes_reminders_v1'; // para não criar tarefas duplicadas
 
   const fConsultor = document.getElementById('fConsultor');
   const fOrigem = document.getElementById('fOrigem');
@@ -656,19 +638,14 @@
   const chartContainer = document.getElementById('chartContainer');
   const chartComissoes = document.getElementById('chartComissoes');
   const chartComissoesDetalhe = document.getElementById('chartComissoesDetalhe');
+  const comissoesResumo = document.getElementById('comissoesResumo');
 
   const exportCsvBtn = document.getElementById('exportCsvBtn');
   const applyFiltersBtn = document.getElementById('applyFiltersBtn');
   const clearFiltersBtn = document.getElementById('clearFiltersBtn');
 
-  // KPI de comissões
-  const kpiComPeriodo   = document.getElementById('kpiComPeriodo');
-  const kpiComRecebido  = document.getElementById('kpiComRecebido');
-  const kpiComPorReceber = document.getElementById('kpiComPorReceber');
-
   let NEGOCIOS = []; // lista combinada
   let COMISSOES_DETALHE_MAP = {}; // por mês (YYYY-MM) -> lista de parcelas
-  let COMISSOES_RESUMO = { totalPeriodo:0, totalRecebido:0, totalPorReceber:0 };
   let FILTERS = {
     consultor:'',
     origem:'',
@@ -811,74 +788,6 @@
     }
   }
 
-  // NOVO: registo de lembretes já criados para parcelas de comissão
-  function loadComRemState(){
-    try{
-      const raw = localStorage.getItem(LS_COMISSAO_REM_KEY);
-      if(!raw) return {created:[]};
-      const obj = JSON.parse(raw);
-      if(!obj || !Array.isArray(obj.created)) return {created:[]};
-      return obj;
-    }catch{
-      return {created:[]};
-    }
-  }
-  function saveComRemState(st){
-    try{
-      localStorage.setItem(LS_COMISSAO_REM_KEY, JSON.stringify(st));
-    }catch{}
-  }
-  function parcelaKey(neg, tipoParcela, dateStr, valorParcela){
-    const v = Math.round(Number(valorParcela || 0));
-    return [neg.id || '', tipoParcela || '', dateStr || '', String(v)].join('|');
-  }
-
-  // NOVO: cria automaticamente tarefas para comissões futuras
-  function ensureTaskForParcela(neg, tipoParcela, dateStr, valorParcela){
-    const hoje = todayISO();
-    if(!dateStr || dateStr <= hoje) return; // só futuras
-
-    const st = loadComRemState();
-    const key = parcelaKey(neg, tipoParcela, dateStr, valorParcela);
-    if(st.created.includes(key)) return; // já criada
-
-    const tarefasState = loadTarefasState();
-
-    const id = 'task_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
-    const tituloBase = neg.cliente || neg.titulo || 'Negócio';
-
-    const origemRefParts = [];
-    if(neg.titulo) origemRefParts.push(neg.titulo);
-    if(neg.cliente) origemRefParts.push(neg.cliente);
-    origemRefParts.push(tipoParcela, dateStr);
-
-    const nova = {
-      id,
-      responsavel: neg.consultor || '',
-      apoio: '',
-      origemTipo: 'comissao',
-      origemRef: origemRefParts.filter(Boolean).join(' — '),
-      estado: 'por_fazer',
-      prioridade: 'normal',
-      tipoTarefa: 'comissao',
-      tags: 'comissão, pipeline',
-      titulo: 'Comissão ' + tipoParcela + ' — ' + tituloBase,
-      descricao:
-        'Lembrete automático de comissão (' + tipoParcela + ') associada ao negócio "' +
-        (neg.titulo || '') + '" do cliente "' + (neg.cliente || '') + '".',
-      dataCriacao: todayISO(),
-      dataLimite: dateStr,
-      horaLimite: '',
-      createdAtMs: Date.now()
-    };
-
-    tarefasState.tasks.push(nova);
-    saveTarefasState(tarefasState);
-
-    st.created.push(key);
-    saveComRemState(st);
-  }
-
   function createTaskFromNegocio(neg){
     const state = loadTarefasState();
     const id = 'task_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
@@ -928,6 +837,87 @@
     }
 
     window.location.href = 'tarefas.html?' + params.toString();
+  }
+
+  /* ===== Lembretes automáticos de comissões (sem encher o quadro) ===== */
+  function loadComRemState(){
+    try{
+      const raw = localStorage.getItem(LS_COM_REM_KEY);
+      if(!raw) return {created:[]};
+      const parsed = JSON.parse(raw);
+      if(!Array.isArray(parsed.created)) parsed.created = [];
+      return parsed;
+    }catch(e){
+      console.error('Erro ao carregar estado de comissões/reminders', e);
+      return {created:[]};
+    }
+  }
+  function saveComRemState(st){
+    try{
+      localStorage.setItem(LS_COM_REM_KEY, JSON.stringify(st));
+    }catch(e){
+      console.error('Erro ao guardar estado de comissões/reminders', e);
+    }
+  }
+  function parcelaKey(neg, tipoParcela, dateStr, valorParcela){
+    return [
+      neg.id || '',
+      tipoParcela || '',
+      dateStr || '',
+      String(valorParcela || 0)
+    ].join('|');
+  }
+
+  // Cria tarefas automáticas apenas no MÊS em que a comissão vence
+  function ensureTaskForParcela(neg, tipoParcela, dateStr, valorParcela){
+    if(!dateStr || !valorParcela || valorParcela <= 0) return;
+
+    const hoje = todayISO();
+    const hojeYM = hoje.slice(0,7);         // "YYYY-MM"
+    const parcelaYM = dateStr.slice(0,7);   // "YYYY-MM" da comissão
+
+    // Só criar tarefa quando estamos no MESMO mês/ano da comissão
+    if(parcelaYM !== hojeYM) return;
+
+    const st = loadComRemState();
+    const key = parcelaKey(neg, tipoParcela, dateStr, valorParcela);
+    if(st.created.includes(key)) return; // já criada para esta parcela neste mês
+
+    const tarefasState = loadTarefasState();
+
+    const id = 'task_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+    const tituloBase = neg.cliente || neg.titulo || 'Negócio';
+
+    const origemRefParts = [];
+    if(neg.titulo) origemRefParts.push(neg.titulo);
+    if(neg.cliente) origemRefParts.push(neg.cliente);
+    origemRefParts.push(tipoParcela, dateStr);
+
+    const nova = {
+      id,
+      responsavel: neg.consultor || '',
+      apoio: '',
+      origemTipo: 'comissao',
+      origemRef: origemRefParts.filter(Boolean).join(' — '),
+      estado: 'por_fazer',
+      prioridade: 'normal',
+      tipoTarefa: 'comissao',
+      tags: 'comissão, pipeline',
+      titulo: 'Comissão ' + tipoParcela + ' — ' + tituloBase,
+      descricao:
+        'Lembrete automático de comissão (' + tipoParcela + ') associada ao negócio "' +
+        (neg.titulo || '') + '" do cliente "' + (neg.cliente || '') + '".',
+      dataCriacao: hoje,
+      dataLimite: dateStr,
+      horaLimite: '',
+      createdAtMs: Date.now()
+    };
+
+    tarefasState.tasks.push(nova);
+    saveTarefasState(tarefasState);
+
+    st.created.push(key);
+    saveComRemState(st);
   }
 
   /* ===== Load Leads & Angariações ===== */
@@ -1180,6 +1170,35 @@
     });
   }
 
+  // Constrói lista de parcelas de comissão a partir dos negócios filtrados
+  function computeParcelasComissao(lista){
+    const result = [];
+    const apenasLeads = lista.filter(
+      n => n.tipo==='lead' && isFinite(n.comissaoValorTotal) && n.comissaoValorTotal>0
+    );
+    apenasLeads.forEach(n=>{
+      const total = n.comissaoValorTotal || 0;
+      if(total <= 0) return;
+
+      const hasCpcv = !!n.dataCpcv;
+      const hasEsc  = !!n.dataEscritura;
+
+      if(hasCpcv && hasEsc){
+        const valorCpcv = total/2;
+        const valorEsc  = total/2;
+        result.push({neg:n, tipoParcela:'CPCV', data:n.dataCpcv, valor:valorCpcv});
+        result.push({neg:n, tipoParcela:'Escritura', data:n.dataEscritura, valor:valorEsc});
+      }else if(hasCpcv && !hasEsc){
+        result.push({neg:n, tipoParcela:'CPCV', data:n.dataCpcv, valor:total});
+      }else if(!hasCpcv && hasEsc){
+        result.push({neg:n, tipoParcela:'Escritura', data:n.dataEscritura, valor:total});
+      }else if(n.data){
+        result.push({neg:n, tipoParcela:'Pagamento', data:n.data, valor:total});
+      }
+    });
+    return result;
+  }
+
   // Detalhe das comissões por mês
   function renderComissoesDetalhe(mesKey, mesLabel){
     chartComissoesDetalhe.innerHTML = '';
@@ -1238,57 +1257,28 @@
       });
   }
 
-  // Resumo de Comissões
-  function renderComissoesResumo(){
-    kpiComPeriodo.textContent    = formatMoney(COMISSOES_RESUMO.totalPeriodo || 0);
-    kpiComRecebido.textContent   = formatMoney(COMISSOES_RESUMO.totalRecebido || 0);
-    kpiComPorReceber.textContent = formatMoney(COMISSOES_RESUMO.totalPorReceber || 0);
-  }
-
-  // Cronologia de Recebimentos (comissões) + criação automática de tarefas
+  // Cronologia de Recebimentos (comissões)
   function renderComissoesTimeline(lista){
     chartComissoes.innerHTML = '';
     chartComissoesDetalhe.innerHTML = '';
     COMISSOES_DETALHE_MAP = {};
-    COMISSOES_RESUMO = { totalPeriodo:0, totalRecebido:0, totalPorReceber:0 };
 
-    const hoje = todayISO();
-
-    // Só faz sentido para negócios de Lead com comissão definida
-    const apenasLeads = lista.filter(n=>n.tipo==='lead' && isFinite(n.comissaoValorTotal) && n.comissaoValorTotal>0);
-    if(!apenasLeads.length){
+    const parcelas = computeParcelasComissao(lista);
+    if(!parcelas.length){
       const div = document.createElement('div');
       div.className = 'chart-empty';
       div.textContent = 'Sem dados de comissões (verifique se existem CPCV / Escritura e % de comissão).';
       chartComissoes.appendChild(div);
-      renderComissoesResumo();
       return;
     }
 
     const mapa = {}; // chave YYYY-MM -> valor comissão nesse mês
 
-    let totalComissoesTodas = 0;
-    let totalPeriodo = 0;
-    let totalRecebido = 0;
-
-    function dataDentroFiltros(dateStr){
-      if(!dateStr) return false;
-      if(FILTERS.de && dateStr < FILTERS.de) return false;
-      if(FILTERS.ate && dateStr > FILTERS.ate) return false;
-      return true;
-    }
-
     function addParcela(dateStr, valorParcela, neg, tipoParcela){
       if(!dateStr || !valorParcela || valorParcela <= 0) return;
-
-      // Aplicar filtros de datas às parcelas (período definido na sidebar)
-      if(FILTERS.de && dateStr < FILTERS.de) return;
-      if(FILTERS.ate && dateStr > FILTERS.ate) return;
-
       const d = new Date(dateStr);
       if(isNaN(d.getTime())) return;
       const k = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
-
       mapa[k] = (mapa[k] || 0) + valorParcela;
       if(!COMISSOES_DETALHE_MAP[k]) COMISSOES_DETALHE_MAP[k] = [];
       COMISSOES_DETALHE_MAP[k].push({
@@ -1302,103 +1292,118 @@
         comissaoPct: neg.comissaoPct
       });
 
-      // Acumula comissões no período
-      totalPeriodo += valorParcela;
-
-      // Se a data da parcela já passou (ou é hoje), considera como "recebido"
-      if(dateStr <= hoje){
-        totalRecebido += valorParcela;
-      }
-
-      // NOVO: criar automaticamente tarefa para comissões futuras
+      // criar (se for o mês certo) a tarefa automática desta parcela
       ensureTaskForParcela(neg, tipoParcela, dateStr, valorParcela);
     }
 
-    apenasLeads.forEach(n=>{
-      const total = n.comissaoValorTotal || 0;
-      if(total <= 0) return;
-      totalComissoesTodas += total;
-
-      const hasCpcv = !!n.dataCpcv;
-      const hasEsc  = !!n.dataEscritura;
-
-      if(hasCpcv && hasEsc){
-        const valorCpcv = total/2;
-        const valorEsc  = total/2;
-        addParcela(n.dataCpcv, valorCpcv, n, 'CPCV');
-        addParcela(n.dataEscritura, valorEsc, n, 'Escritura');
-      }else if(hasCpcv && !hasEsc){
-        addParcela(n.dataCpcv, total, n, 'CPCV');
-      }else if(!hasCpcv && hasEsc){
-        addParcela(n.dataEscritura, total, n, 'Escritura');
-      }else{
-        // Sem datas específicas -> usa data do negócio (se estiver no período)
-        if(n.data && dataDentroFiltros(n.data)){
-          addParcela(n.data, total, n, 'Pagamento');
-        }
-      }
+    parcelas.forEach(p=>{
+      addParcela(p.data, p.valor, p.neg, p.tipoParcela);
     });
 
     const entries = Object.entries(mapa).sort((a,b)=>a[0].localeCompare(b[0]));
     if(!entries.length){
       const div = document.createElement('div');
       div.className = 'chart-empty';
-      div.textContent = 'Sem dados de comissões distribuídas por CPCV/Escritura no período selecionado.';
+      div.textContent = 'Sem dados de comissões distribuídas por CPCV/Escritura.';
       chartComissoes.appendChild(div);
-    }else{
-      const max = Math.max(...entries.map(e=>e[1]));
-      entries.forEach(([key,total])=>{
-        const row = document.createElement('div');
-        row.className = 'chart-row';
-        const label = document.createElement('div');
-        label.className = 'chart-label';
-        const [y,m] = key.split('-');
-        const mesLabel = m+'/'+y.slice(-2);
-        label.textContent = mesLabel;
-        const barWrap = document.createElement('div');
-        barWrap.className = 'chart-bar-wrap';
-        const bar = document.createElement('div');
-        bar.className = 'chart-bar';
-        const pct = max>0 ? (total/max*100) : 0;
-        bar.style.width = pct.toFixed(1)+'%';
-        barWrap.appendChild(bar);
-        const val = document.createElement('div');
-        val.className = 'chart-value';
-        val.textContent = formatMoney(total);
-        row.appendChild(label);
-        row.appendChild(barWrap);
-        row.appendChild(val);
-
-        row.addEventListener('click', ()=>{
-          Array.from(chartComissoes.querySelectorAll('.chart-row')).forEach(r=>r.classList.remove('selected'));
-          row.classList.add('selected');
-          renderComissoesDetalhe(key, mesLabel);
-        });
-
-        chartComissoes.appendChild(row);
-      });
-
-      // Seleciona automaticamente o último mês para mostrar detalhe inicial
-      const rows = chartComissoes.querySelectorAll('.chart-row');
-      if(rows.length){
-        const lastRow = rows[rows.length-1];
-        lastRow.classList.add('selected');
-        const [lastKey] = entries[entries.length-1];
-        const [y,m] = lastKey.split('-');
-        const mesLabel = m+'/'+y.slice(-2);
-        renderComissoesDetalhe(lastKey, mesLabel);
-      }
+      return;
     }
 
-    // Calcula total por receber com base em todos os negócios filtrados
-    const totalPorReceber = totalComissoesTodas - totalRecebido;
+    const max = Math.max(...entries.map(e=>e[1]));
+    entries.forEach(([key,total])=>{
+      const row = document.createElement('div');
+      row.className = 'chart-row';
+      const label = document.createElement('div');
+      label.className = 'chart-label';
+      const [y,m] = key.split('-');
+      const mesLabel = m+'/'+y.slice(-2);
+      label.textContent = mesLabel;
+      const barWrap = document.createElement('div');
+      barWrap.className = 'chart-bar-wrap';
+      const bar = document.createElement('div');
+      bar.className = 'chart-bar';
+      const pct = max>0 ? (total/max*100) : 0;
+      bar.style.width = pct.toFixed(1)+'%';
+      barWrap.appendChild(bar);
+      const val = document.createElement('div');
+      val.className = 'chart-value';
+      val.textContent = formatMoney(total);
+      row.appendChild(label);
+      row.appendChild(barWrap);
+      row.appendChild(val);
 
-    COMISSOES_RESUMO = {
-      totalPeriodo: totalPeriodo,
-      totalRecebido: totalRecebido,
-      totalPorReceber: totalPorReceber
-    };
-    renderComissoesResumo();
+      row.addEventListener('click', ()=>{
+        Array.from(chartComissoes.querySelectorAll('.chart-row')).forEach(r=>r.classList.remove('selected'));
+        row.classList.add('selected');
+        renderComissoesDetalhe(key, mesLabel);
+      });
+
+      chartComissoes.appendChild(row);
+    });
+
+    // Seleciona automaticamente o último mês para mostrar detalhe inicial
+    const rows = chartComissoes.querySelectorAll('.chart-row');
+    if(rows.length){
+      const lastRow = rows[rows.length-1];
+      lastRow.classList.add('selected');
+      const [lastKey] = entries[entries.length-1];
+      const [y,m] = lastKey.split('-');
+      const mesLabel = m+'/'+y.slice(-2);
+      renderComissoesDetalhe(lastKey, mesLabel);
+    }
+  }
+
+  // Resumo de comissões: no período dos filtros e futuras pendentes
+  function renderComissoesResumo(lista){
+    comissoesResumo.innerHTML = '';
+
+    const parcelas = computeParcelasComissao(lista);
+    if(!parcelas.length){
+      const div = document.createElement('div');
+      div.className = 'chart-empty';
+      div.textContent = 'Sem dados de comissões nos filtros atuais.';
+      comissoesResumo.appendChild(div);
+      return;
+    }
+
+    const de = FILTERS.de || '';
+    const ate = FILTERS.ate || '';
+    const hoje = todayISO();
+    const corteFuturo = ate || hoje;
+
+    let totalPeriodo = 0;
+    let totalFuturo  = 0;
+
+    parcelas.forEach(p=>{
+      if(!p.data) return;
+      const d = p.data;
+
+      const inPeriodo =
+        (!de || d >= de) &&
+        (!ate || d <= ate);
+
+      if(inPeriodo){
+        totalPeriodo += p.valor || 0;
+      }
+
+      if(d > corteFuturo){
+        totalFuturo += p.valor || 0;
+      }
+    });
+
+    const linha1 = document.createElement('div');
+    linha1.style.fontSize = '12px';
+    linha1.style.marginBottom = '4px';
+    linha1.innerHTML = '<strong>Comissões no período</strong>: ' + formatMoney(totalPeriodo) +
+      (de || ate ? ' (entre as datas de filtro)' : ' (com base nos negócios filtrados)');
+
+    const linha2 = document.createElement('div');
+    linha2.style.fontSize = '12px';
+    linha2.innerHTML = '<strong>Comissões futuras pendentes</strong>: ' + formatMoney(totalFuturo) +
+      ' (parcelas com data posterior a ' + formatDate(corteFuturo) + ').';
+
+    comissoesResumo.appendChild(linha1);
+    comissoesResumo.appendChild(linha2);
   }
 
   function renderCards(listaLeads, listaAng){
@@ -1534,6 +1539,7 @@
     renderKpis(lista);
     renderChart(lista);
     renderComissoesTimeline(lista);
+    renderComissoesResumo(lista);
     renderCards(listaLeads, listaAng);
   }
 
