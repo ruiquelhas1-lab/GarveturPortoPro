@@ -109,7 +109,7 @@
     }
     .nav-tab.active{
       background:var(--gold);
-      color:#0A0AA0;
+      color:#0A0A0A;
       border-color:var(--gold);
       font-weight:600;
     }
@@ -157,29 +157,6 @@
       transform:none;
     }
     .move-select[disabled]{opacity:.45;cursor:not-allowed;}
-
-    /* Botão pequeno (para usar na Proposta & Contra-propostas) */
-    .btn-xs{
-      border-radius:999px;
-      border:1px solid rgba(163,139,99,.35);
-      background:rgba(12,12,12,.9);
-      color:var(--muted);
-      padding:3px 8px;
-      font-size:11px;
-      display:inline-flex;
-      align-items:center;
-      gap:4px;
-      cursor:pointer;
-      transition:.16s border-color,.16s background,.16s transform;
-    }
-    .btn-xs:hover{
-      border-color:var(--gold);
-      transform:translateY(-1px);
-    }
-    .btn-xs.primary{
-      border-color:var(--gold);
-      color:var(--gold);
-    }
 
     /* LAYOUT PRINCIPAL (sidebar + board) */
     .layout{
@@ -357,10 +334,10 @@
 
     .card{
       background:#0E0E0E;
-      border:1px solid rgba(163,139,99,.65); /* borda mais marcada para destacar das colunas */
-      border-radius:14px;
+      border:1px solid rgba(163,139,99,.35); /* ligeiramente mais visível */
+      border-radius:12px;
       padding:10px;
-      box-shadow:0 14px 24px rgba(0,0,0,.65);
+      box-shadow:0 10px 18px rgba(0,0,0,.55);
     }
     .card .top{
       display:flex;
@@ -502,7 +479,7 @@
       border-radius:999px;
       padding:6px 10px;
       font-size:12px;
-      background:#0E0EE;
+      background:#0E0E0E;
       cursor:pointer;
     }
     .state-pill input{
@@ -532,37 +509,6 @@
       margin-top:6px;
       font-size:12px;
       color:#dcdcdc;
-    }
-
-    /* BLOCO PROPOSTA & CONTRA-PROPOSTAS */
-    .section-block{
-      margin-top:10px;
-      padding:10px 10px 12px;
-      border-radius:12px;
-      border:1px solid rgba(163,139,99,.35);
-      background:rgba(10,10,10,.9);
-    }
-    .section-title-small{
-      font-size:11px;
-      text-transform:uppercase;
-      letter-spacing:.16em;
-      color:var(--muted);
-      margin-bottom:6px;
-    }
-    .field-grid-2{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:8px;
-    }
-    @media (max-width:900px){
-      .field-grid-2{grid-template-columns:1fr;}
-    }
-    .contraprop-item{
-      border-radius:10px;
-      border:1px solid rgba(255,255,255,.14);
-      padding:8px;
-      margin-top:6px;
-      background:#111;
     }
   </style>
 </head>
@@ -606,7 +552,7 @@
       <div class="sidebar-section">
         <h3>Pesquisa</h3>
         <div class="field">
-          <input id="q" placeholder="Pesquisar: nome, consultor, email, ref., notas">
+          <input id="q" placeholder="Pesquisar: nome, consultor, telefone, email, ref., notas">
         </div>
       </div>
 
@@ -788,58 +734,6 @@
         <div class="help">Se selecionar um estado, o cartão será gravado diretamente nessa coluna. Se nada selecionar, fica em <b>Novo</b>.</div>
       </div>
 
-      <!-- BLOCO PROPOSTA & NEGOCIAÇÃO -->
-      <div id="propostaBox" class="section-block" style="display:none">
-        <div class="section-title-small">Proposta & Negociação</div>
-
-        <div class="field-grid-2">
-          <div class="form-field">
-            <label>Nome do proponente</label>
-            <input id="ld_prop_nome" type="text">
-          </div>
-          <div class="form-field">
-            <label>Contacto</label>
-            <input id="ld_prop_contacto" type="text">
-          </div>
-        </div>
-
-        <div class="form-field">
-          <label>Email</label>
-          <input id="ld_prop_email" type="text">
-        </div>
-
-        <div class="field-grid-2">
-          <div class="form-field">
-            <label>Valor da proposta</label>
-            <input id="ld_prop_valor" type="text" placeholder="Ex.: 350.000 €">
-          </div>
-          <div class="form-field">
-            <label>Data da proposta</label>
-            <input id="ld_prop_data" type="date">
-          </div>
-        </div>
-
-        <div class="form-field">
-          <label>Termos da proposta</label>
-          <textarea id="ld_prop_termos" rows="3" placeholder="Condições, prazos, mobiliário incluído, necessidade de crédito, etc."></textarea>
-        </div>
-
-        <div class="form-field">
-          <label>
-            Contra-propostas
-            <button type="button" class="btn-xs primary" id="btnAddContraProp" style="margin-left:6px;">+ Adicionar contra-proposta</button>
-          </label>
-          <div id="prop_contra_list"></div>
-        </div>
-
-        <div class="field-grid-2">
-          <div class="form-field">
-            <label>Data da proposta aceite</label>
-            <input id="ld_prop_aceite" type="date">
-          </div>
-        </div>
-      </div>
-
       <!-- FECHO -->
       <div id="fechoBox" class="grid2" style="margin-top:8px; display:none">
         <div class="form-field"><label>Valor do Negócio (€)</label><input id="ld_fecho_negocio" type="number" min="0" step="1000"></div>
@@ -913,11 +807,15 @@ let LEADS=[];
 let FILTER={ consultor:'', estado:'', ini:'', fim:'', q:'', showHidden:false, onlyHidden:false };
 let PICKED_STATE='';
 let INTERCALAres=[];
-let PROPOSTA_CONTRAS=[];
 let EDIT_MODE=false;
 
 const $=id=>document.getElementById(id);
 const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+
+// NOVO: normalizador de telefone (apenas dígitos)
+function digitsOnly(s){
+  return String(s||'').replace(/\D/g,'');
+}
 
 function todayISO(){
   const d = new Date();
@@ -1154,66 +1052,6 @@ function resetFechoBox(){
   updateIntercalaresTotal();
 }
 function setFechoBox(show){ $('fechoBox').style.display = show? 'grid':'none'; }
-
-/* PROPOSTA & CONTRA-PROPOSTAS */
-function resetPropostaBox(){
-  $('ld_prop_nome').value='';
-  $('ld_prop_contacto').value='';
-  $('ld_prop_email').value='';
-  $('ld_prop_valor').value='';
-  $('ld_prop_data').value='';
-  $('ld_prop_termos').value='';
-  $('ld_prop_aceite').value='';
-  PROPOSTA_CONTRAS = [];
-  drawContraPropostas();
-}
-function setPropostaBox(show){
-  $('propostaBox').style.display = show ? 'block' : 'none';
-}
-function drawContraPropostas(){
-  const container = $('prop_contra_list');
-  container.innerHTML = '';
-  (PROPOSTA_CONTRAS || []).forEach((item, idx)=>{
-    const div = document.createElement('div');
-    div.className = 'contraprop-item';
-    div.innerHTML = `
-      <div class="field-grid-2">
-        <div class="form-field">
-          <label>Data da contra-proposta</label>
-          <input type="date" class="inp-contraprop-data" data-idx="${idx}" value="${item.data||''}">
-        </div>
-        <div class="form-field">
-          <label>Valor</label>
-          <input type="text" class="inp-contraprop-valor" data-idx="${idx}" value="${item.valor||''}">
-        </div>
-      </div>
-      <div class="form-field">
-        <label>Termos</label>
-        <textarea class="inp-contraprop-termos" rows="2" data-idx="${idx}">${item.termos||''}</textarea>
-      </div>
-      <button type="button" class="btn-xs" data-del="${idx}">Remover</button>
-    `;
-    div.querySelector('.inp-contraprop-data').addEventListener('input',e=>{
-      PROPOSTA_CONTRAS[idx].data = e.target.value;
-    });
-    div.querySelector('.inp-contraprop-valor').addEventListener('input',e=>{
-      PROPOSTA_CONTRAS[idx].valor = e.target.value;
-    });
-    div.querySelector('.inp-contraprop-termos').addEventListener('input',e=>{
-      PROPOSTA_CONTRAS[idx].termos = e.target.value;
-    });
-    div.querySelector('[data-del]').addEventListener('click',()=>{
-      PROPOSTA_CONTRAS.splice(idx,1);
-      drawContraPropostas();
-    });
-    container.appendChild(div);
-  });
-}
-$('btnAddContraProp').addEventListener('click', ()=>{
-  PROPOSTA_CONTRAS.push({data:'',valor:'',termos:''});
-  drawContraPropostas();
-});
-
 function drawIntercalares(){
   const box=$('intercalaresBox'); box.innerHTML='';
   INTERCALAres.forEach((val,idx)=>{
@@ -1260,7 +1098,6 @@ function initStatePicker(){
         cb.closest('.state-pill')?.classList.add('active');
       }else{ PICKED_STATE=''; }
       setFechoBox(PICKED_STATE==='Fecho');
-      setPropostaBox(PICKED_STATE==='Proposta' || PICKED_STATE==='Fecho');
     });
   });
 }
@@ -1300,20 +1137,12 @@ function openModal(edit=null){
   f('ld_notas', v.notas||'');
 
   initStatePicker();
-  setFechoBox(false);
-  setPropostaBox(false);
-
   if(edit && COLS.includes(edit.estado) && edit.estado!=='Novo'){
     const sel = Array.from(document.querySelectorAll('.cb_estado')).find(x=>x.value===edit.estado);
-    if(sel){
-      sel.checked=true;
-      sel.dispatchEvent(new Event('change'));
-    }
-  }
+    if(sel){ sel.checked=true; sel.dispatchEvent(new Event('change')); }
+  } else { setFechoBox(false); }
 
   resetFechoBox();
-  resetPropostaBox();
-
   if(edit && edit.estado==='Fecho'){
     $('ld_fecho_negocio').value = edit.fecho_negocio || '';
     if(edit.fecho_comissao_pct!=='' && edit.fecho_comissao_pct!=null){
@@ -1342,25 +1171,6 @@ function openModal(edit=null){
     }
   }
 
-  // Proposta & negociação (se já existir no registo)
-  if(edit && edit.proposta){
-    const p = edit.proposta;
-    $('ld_prop_nome').value = p.nomeProponente || '';
-    $('ld_prop_contacto').value = p.contactoProponente || '';
-    $('ld_prop_email').value = p.emailProponente || '';
-    $('ld_prop_valor').value = p.valorProposta || '';
-    $('ld_prop_data').value = p.dataProposta || '';
-    $('ld_prop_termos').value = p.termosProposta || '';
-    $('ld_prop_aceite').value = p.dataPropostaAceite || '';
-    PROPOSTA_CONTRAS = Array.isArray(p.contraPropostas) ? p.contraPropostas.map(c=>({
-      data:c.data||'',
-      valor:c.valor||'',
-      termos:c.termos||''
-    })) : [];
-    drawContraPropostas();
-    setPropostaBox(true);
-  }
-
   $('leadModal').classList.add('show');
 }
 $('cancelLead').addEventListener('click',()=> $('leadModal').classList.remove('show'));
@@ -1386,27 +1196,6 @@ $('saveLead').addEventListener('click',()=>{
     pagamentoTipo = $('ld_fecho_pagamento_tipo').value.trim();
     pagamentoOutro = pagamentoTipo === 'outro' ? $('ld_fecho_pagamento_outro').value.trim() : '';
   }
-
-  // Proposta & negociação
-  const propostaObj = {
-    nomeProponente: get('ld_prop_nome'),
-    contactoProponente: get('ld_prop_contacto'),
-    emailProponente: get('ld_prop_email'),
-    valorProposta: get('ld_prop_valor'),
-    termosProposta: get('ld_prop_termos'),
-    dataProposta: get('ld_prop_data'),
-    contraPropostas: (PROPOSTA_CONTRAS || []).filter(cp=>cp && (cp.data || cp.valor || cp.termos)),
-    dataPropostaAceite: get('ld_prop_aceite')
-  };
-  const hasPropostaData =
-    propostaObj.nomeProponente ||
-    propostaObj.contactoProponente ||
-    propostaObj.emailProponente ||
-    propostaObj.valorProposta ||
-    propostaObj.termosProposta ||
-    propostaObj.dataProposta ||
-    propostaObj.dataPropostaAceite ||
-    (propostaObj.contraPropostas && propostaObj.contraPropostas.length>0);
 
   const lead={
     id: $('saveLead').dataset.editId || uid(),
@@ -1450,16 +1239,6 @@ $('saveLead').addEventListener('click',()=>{
     fecho_pagamento_tipo: estadoFinal==='Fecho' ? pagamentoTipo : '',
     fecho_pagamento_outro: estadoFinal==='Fecho' ? pagamentoOutro : ''
   };
-
-  if(hasPropostaData){
-    lead.proposta = propostaObj;
-  }else{
-    // se já existia proposta numa edição, limpamos
-    if($('saveLead').dataset.editId){
-      const existing = LEADS.find(l=>l.id===$('saveLead').dataset.editId);
-      if(existing) delete existing.proposta;
-    }
-  }
 
   if(lead.visivel===undefined) lead.visivel=true;
 
@@ -1521,18 +1300,6 @@ function fechoSummary(l){
   return parts.join(' · ');
 }
 
-function propostaSummary(l){
-  const p = l.proposta;
-  if(!p) return '';
-  const parts = [];
-  if(p.valorProposta) parts.push(`Valor: ${p.valorProposta}`);
-  if(p.dataProposta) parts.push(`em ${fmtDate(p.dataProposta)}`);
-  if(p.dataPropostaAceite) parts.push(`Aceite em ${fmtDate(p.dataPropostaAceite)}`);
-  const contraCount = Array.isArray(p.contraPropostas) ? p.contraPropostas.length : 0;
-  if(contraCount) parts.push(`${contraCount} contra-propost${contraCount>1?'as':'a'}`);
-  return parts.join(' · ');
-}
-
 function renderSummary(byEstado){
   const el = $('pipelineSummary');
   const total = byEstado.reduce((s,b)=>s+b.items.length,0);
@@ -1561,12 +1328,35 @@ function renderBoard(){
   const board=$('board'); board.innerHTML='';
 
   const term = norm(FILTER.q||'');
+  const termDigits = (FILTER.q||'').replace(/\D/g,'');
+
   const byEstado = COLS.map(col=>{
     let arr=LEADS.filter(l=>l.estado===col);
 
     if(term){
       arr=arr.filter(l=>{
-        const blob = [l.nome,l.consultor,l.email,l.ref_interna,l.notas].map(x=>norm(x)).join(' ');
+        // Texto abrangente: inclui contacto, zona, tipo de negócio, imóvel, tipologia, etc.
+        const blob = [
+          l.nome,
+          l.consultor,
+          l.email,
+          l.ref_interna,
+          l.notas,
+          l.contacto,
+          l.zona,
+          l.tipo_negocio,
+          l.imovel,
+          l.tipologia
+        ].map(x=>norm(x)).join(' ');
+
+        // Match por telefone usando apenas dígitos (suporta internacionais e formatos diferentes)
+        if(termDigits && termDigits.length >= 4){
+          const phoneDigits = digitsOnly(l.contacto);
+          if(phoneDigits && phoneDigits.includes(termDigits)){
+            return true;
+          }
+        }
+
         return blob.includes(term);
       });
     }
@@ -1596,8 +1386,6 @@ function renderBoard(){
         ? `⭐ Classificação: ${classNum}${classDesc ? ' - '+classDesc : ''}`
         : '';
 
-      const propLine = lead.proposta ? propostaSummary(lead) : '';
-
       card.innerHTML=`
         <div class="top">
           <div>
@@ -1611,7 +1399,6 @@ function renderBoard(){
         <div class="row"><b>Tipo:</b> ${lead.tipo_negocio||'—'} · <b>Imóvel:</b> ${lead.imovel||'—'} · <b>Tipologia:</b> ${lead.tipologia||'—'}</div>
         <div class="row"><b>Zona:</b> ${lead.zona||'—'} · <b>Valor:</b> ${lead.valor? Number(lead.valor).toLocaleString('pt-PT'): '—'}</div>
         <div class="row"><b>Data:</b> ${fmtDate(lead.data)} ${lead.url? ' · <a href="'+lead.url+'" target="_blank" rel="noreferrer">URL</a>':''}</div>
-        ${propLine ? `<div class="row"><b>Proposta:</b> ${propLine}</div>` : ''}
         ${lead.estado==='Fecho' ? `<div class="row">${fechoSummary(lead)}</div>` : ''}
         <div class="actions actions-main">
           <button class="btn btn-ghost" data-act="edit" ${disabledAttr}>Editar</button>
@@ -1690,9 +1477,30 @@ function renderBoard(){
 function filterForExport(arr){
   let out=[...arr];
   const term = norm(FILTER.q||'');
+  const termDigits = (FILTER.q||'').replace(/\D/g,'');
+
   if(term){
     out=out.filter(l=>{
-      const blob=[l.nome,l.consultor,l.email,l.ref_interna,l.notas].map(x=>norm(x)).join(' ');
+      const blob = [
+        l.nome,
+        l.consultor,
+        l.email,
+        l.ref_interna,
+        l.notas,
+        l.contacto,
+        l.zona,
+        l.tipo_negocio,
+        l.imovel,
+        l.tipologia
+      ].map(x=>norm(x)).join(' ');
+
+      if(termDigits && termDigits.length >= 4){
+        const phoneDigits = digitsOnly(l.contacto);
+        if(phoneDigits && phoneDigits.includes(termDigits)){
+          return true;
+        }
+      }
+
       return blob.includes(term);
     });
   }
@@ -1714,90 +1522,67 @@ $('exportCsv').addEventListener('click',()=>{
     "Urgente","Planta","1ªHab","TemImóvel","JáVenda","Notas","Visível",
     "Negócio","Comissão(%)","SinalReserva","ValorCPCV","Intercalares",
     "ValorEscritura","DataCPCV","DataEscritura","PagamentoComissoesTipo",
-    "PagamentoComissoesOutro","FechoObs",
-    "Prop_NomeProponente","Prop_Contacto","Prop_Email","Prop_Valor","Prop_Termos","Prop_Data","Prop_DataAceite","Prop_ContraPropostas"
+    "PagamentoComissoesOutro","FechoObs"
   ];
-  const rows = filterForExport(LEADS).map(l=>{
-    const p = l.proposta || {};
-    const contra = Array.isArray(p.contraPropostas)
-      ? p.contraPropostas.map(cp=>`${cp.data||''} :: ${cp.valor||''} :: ${cp.termos||''}`).join(' || ')
-      : '';
-    return [
-      l.id,l.estado,l.data||'',l.consultor||'',l.nome||'',l.contacto||'',l.email||'',
-      l.tipo_negocio||'',l.imovel||'',l.tipologia||'',l.zona||'',l.capitais||'',l.valor||'',
-      l.financiamento||'',l.simulacao||'',l.banco||'',l.papel||'',l.perfil||'',
-      l.classificacao||'',l.ref_interna||'',l.url||'',l.urgente||'',l.planta||'',l.primeira_hab||'',
-      l.tem_imovel||'',l.ja_venda||'',l.notas||'', (l.visivel!==false?'Sim':'Não'),
-      l.fecho_negocio||'', (l.fecho_comissao_pct!==''&&l.fecho_comissao_pct!=null? l.fecho_comissao_pct : ''),
-      l.fecho_sinal_reserva||'', l.fecho_valor_cpcv||'',
-      (Array.isArray(l.fecho_intercalares)? l.fecho_intercalares.join(' | ') : ''),
-      l.fecho_valor_escritura||'', l.fecho_cpcv_date||'', l.fecho_escritura_date||'',
-      l.fecho_pagamento_tipo||'', l.fecho_pagamento_outro||'', l.fecho_obs||'',
-      p.nomeProponente||'',p.contactoProponente||'',p.emailProponente||'',p.valorProposta||'',
-      p.termosProposta||'',p.dataProposta||'',p.dataPropostaAceite||'',contra
-    ];
-  });
+  const rows = filterForExport(LEADS).map(l=>[
+    l.id,l.estado,l.data||'',l.consultor||'',l.nome||'',l.contacto||'',l.email||'',
+    l.tipo_negocio||'',l.imovel||'',l.tipologia||'',l.zona||'',l.capitais||'',l.valor||'',
+    l.financiamento||'',l.simulacao||'',l.banco||'',l.papel||'',l.perfil||'',
+    l.classificacao||'',l.ref_interna||'',l.url||'',l.urgente||'',l.planta||'',l.primeira_hab||'',
+    l.tem_imovel||'',l.ja_venda||'',l.notas||'', (l.visivel!==false?'Sim':'Não'),
+    l.fecho_negocio||'', (l.fecho_comissao_pct!==''&&l.fecho_comissao_pct!=null? l.fecho_comissao_pct : ''),
+    l.fecho_sinal_reserva||'', l.fecho_valor_cpcv||'',
+    (Array.isArray(l.fecho_intercalares)? l.fecho_intercalares.join(' | ') : ''),
+    l.fecho_valor_escritura||'', l.fecho_cpcv_date||'', l.fecho_escritura_date||'',
+    l.fecho_pagamento_tipo||'', l.fecho_pagamento_outro||'', l.fecho_obs||''
+  ]);
   const csv=toCSV([headers,...rows]);
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob);
   const a=document.createElement('a'); a.href=url; a.download='leads.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 });
 
 $('exportXlsx').addEventListener('click',()=>{
-  const data = filterForExport(LEADS).map(l=>{
-    const p = l.proposta || {};
-    const contra = Array.isArray(p.contraPropostas)
-      ? p.contraPropostas.map(cp=>`${cp.data||''} :: ${cp.valor||''} :: ${cp.termos||''}`).join(' || ')
-      : '';
-    return {
-      ID:l.id,
-      Estado:l.estado,
-      Data:l.data||'',
-      Consultor:l.consultor||'',
-      Nome:l.nome||'',
-      Contacto:l.contacto||'',
-      Email:l.email||'',
-      TipoNegócio:l.tipo_negocio||'',
-      Imóvel:l.imovel||'',
-      Tipologia:l.tipologia||'',
-      Zona:l.zona||'',
-      Capitais:+(l.capitais||0),
-      Valor:+(l.valor||0),
-      Financiamento:l.financiamento||'',
-      Simulação:l.simulacao||'',
-      Banco:l.banco||'',
-      "Comprador/Vend.":l.papel||'',
-      Perfil:l.perfil||'',
-      Classificação:l.classificacao||'',
-      "Ref. Interna":l.ref_interna||'',
-      URL:l.url||'',
-      Urgente:l.urgente||'',
-      Planta:l.planta||'',
-      "1ª Hab.":l.primeira_hab||'',
-      "Tem Imóvel":l.tem_imovel||'',
-      "Já à venda":l.ja_venda||'',
-      Notas:l.notas||'',
-      Visível:(l.visivel!==false?'Sim':'Não'),
-      Negócio:+(l.fecho_negocio||0),
-      "Comissão(%)":(l.fecho_comissao_pct!==''&&l.fecho_comissao_pct!=null? +l.fecho_comissao_pct : ''),
-      SinalReserva:+(l.fecho_sinal_reserva||0),
-      ValorCPCV:+(l.fecho_valor_cpcv||0),
-      Intercalares:(Array.isArray(l.fecho_intercalares)? l.fecho_intercalares.join(' | ') : ''),
-      ValorEscritura:+(l.fecho_valor_escritura||0),
-      DataCPCV:l.fecho_cpcv_date||'',
-      DataEscritura:l.fecho_escritura_date||'',
-      PagamentoComissoesTipo:l.fecho_pagamento_tipo||'',
-      PagamentoComissoesOutro:l.fecho_pagamento_outro||'',
-      FechoObs:l.fecho_obs||'',
-      "Prop_NomeProponente":p.nomeProponente||'',
-      "Prop_Contacto":p.contactoProponente||'',
-      "Prop_Email":p.emailProponente||'',
-      "Prop_Valor":p.valorProposta||'',
-      "Prop_Termos":p.termosProposta||'',
-      "Prop_Data":p.dataProposta||'',
-      "Prop_DataAceite":p.dataPropostaAceite||'',
-      "Prop_ContraPropostas":contra
-    };
-  });
+  const data = filterForExport(LEADS).map(l=>({
+    ID:l.id,
+    Estado:l.estado,
+    Data:l.data||'',
+    Consultor:l.consultor||'',
+    Nome:l.nome||'',
+    Contacto:l.contacto||'',
+    Email:l.email||'',
+    TipoNegócio:l.tipo_negocio||'',
+    Imóvel:l.imovel||'',
+    Tipologia:l.tipologia||'',
+    Zona:l.zona||'',
+    Capitais:+(l.capitais||0),
+    Valor:+(l.valor||0),
+    Financiamento:l.financiamento||'',
+    Simulação:l.simulacao||'',
+    Banco:l.banco||'',
+    "Comprador/Vend.":l.papel||'',
+    Perfil:l.perfil||'',
+    Classificação:l.classificacao||'',
+    "Ref. Interna":l.ref_interna||'',
+    URL:l.url||'',
+    Urgente:l.urgente||'',
+    Planta:l.planta||'',
+    "1ª Hab.":l.primeira_hab||'',
+    "Tem Imóvel":l.tem_imovel||'',
+    "Já à venda":l.ja_venda||'',
+    Notas:l.notas||'',
+    Visível:(l.visivel!==false?'Sim':'Não'),
+    Negócio:+(l.fecho_negocio||0),
+    "Comissão(%)":(l.fecho_comissao_pct!==''&&l.fecho_comissao_pct!=null? +l.fecho_comissao_pct : ''),
+    SinalReserva:+(l.fecho_sinal_reserva||0),
+    ValorCPCV:+(l.fecho_valor_cpcv||0),
+    Intercalares:(Array.isArray(l.fecho_intercalares)? l.fecho_intercalares.join(' | ') : ''),
+    ValorEscritura:+(l.fecho_valor_escritura||0),
+    DataCPCV:l.fecho_cpcv_date||'',
+    DataEscritura:l.fecho_escritura_date||'',
+    PagamentoComissoesTipo:l.fecho_pagamento_tipo||'',
+    PagamentoComissoesOutro:l.fecho_pagamento_outro||'',
+    FechoObs:l.fecho_obs||''
+  }));
   const ws=XLSX.utils.json_to_sheet(data);
   const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Leads');
   XLSX.writeFile(wb, 'leads.xlsx');
