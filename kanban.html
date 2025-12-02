@@ -40,7 +40,7 @@
       height:100%;
     }
 
-    /* HEADER / BRAND / NAV TABS (coerente com tarefas/angariações) */
+    /* HEADER / BRAND / NAV TABS */
     header.app-header{
       display:flex;
       align-items:center;
@@ -158,7 +158,7 @@
     }
     .move-select[disabled]{opacity:.45;cursor:not-allowed;}
 
-    /* Botão pequeno (para usar na Proposta & Contra-propostas) */
+    /* Botão pequeno */
     .btn-xs{
       border-radius:999px;
       border:1px solid rgba(163,139,99,.35);
@@ -181,7 +181,7 @@
       color:var(--gold);
     }
 
-    /* LAYOUT PRINCIPAL (sidebar + board) */
+    /* LAYOUT PRINCIPAL */
     .layout{
       display:grid;
       grid-template-columns:320px minmax(0,1fr);
@@ -357,7 +357,7 @@
 
     .card{
       background:#0E0E0E;
-      border:1px solid rgba(163,139,99,.65); /* borda mais marcada para destacar das colunas */
+      border:1px solid rgba(163,139,99,.65);
       border-radius:14px;
       padding:10px;
       box-shadow:0 14px 24px rgba(0,0,0,.65);
@@ -564,6 +564,11 @@
       margin-top:6px;
       background:#111;
     }
+
+    /* input file escondido para importação */
+    #importCsvInput{
+      display:none;
+    }
   </style>
 </head>
 <body>
@@ -597,6 +602,8 @@
       <button class="btn btn-ghost" id="toggleEdit"><span id="lockEmoji">🔒</span> Edição bloqueada</button>
       <button class="btn btn-ghost" id="exportCsv">⤓ CSV</button>
       <button class="btn btn-ghost" id="exportXlsx">⤓ Excel</button>
+      <button class="btn btn-ghost" id="importCsvBtn">⤒ Importar CSV</button>
+      <input type="file" id="importCsvInput" accept=".csv" />
     </div>
   </header>
 
@@ -606,8 +613,7 @@
       <div class="sidebar-section">
         <h3>Pesquisa</h3>
         <div class="field">
-          <!-- placeholder atualizado -->
-          <input id="q" placeholder="Pesquisar: nome, consultor, telefone, email, zona, ref., notas…">
+          <input id="q" placeholder="Pesquisar: nome, contacto, consultor, email, ref., zona, notas">
         </div>
       </div>
 
@@ -873,7 +879,7 @@
         <div class="form-field"><label>Data do CPCV</label><input id="ld_fecho_cpcv_date" type="date"></div>
         <div class="form-field"><label>Data da Escritura</label><input id="ld_fecho_escritura_date" type="date"></div>
 
-        <!-- NOVO: Pagamento de Comissões -->
+        <!-- Pagamento de Comissões -->
         <div class="form-field" style="grid-column:1 / span 2">
           <label>Pagamento de Comissões</label>
           <select id="ld_fecho_pagamento_tipo">
@@ -1013,7 +1019,6 @@ function createTaskFromLead(lead){
 
   const titulo = 'Follow-up lead: ' + (lead.nome || 'sem nome');
 
-  // nova regra: dataCriacao = hoje, dataLimite = hoje + 8 dias
   const agora = new Date();
   const dataCriacaoISO = todayISO();
   const limite = new Date(agora);
@@ -1048,7 +1053,7 @@ function createTaskFromLead(lead){
   }
 }
 
-/* ===== Deep link vindo de Tarefas (abrir ficha original) ===== */
+/* ===== Deep link vindo de Tarefas ===== */
 function applyDeepLinkFromTarefas(){
   try{
     const params = new URLSearchParams(window.location.search);
@@ -1066,15 +1071,12 @@ function applyDeepLinkFromTarefas(){
       const nomeNorm = norm(l.nome || '');
       let score = 0;
 
-      // coincidência forte pela ref interna
       if(refIntNorm && (refNorm.includes(refIntNorm) || refIntNorm.includes(refNorm))){
         score += 4;
       }
-      // coincidência pelo nome
       if(nomeNorm && (refNorm.includes(nomeNorm) || nomeNorm.includes(refNorm))){
         score += 2;
       }
-      // combinação "ref — nome"
       if(refIntNorm && nomeNorm){
         const combo = (refIntNorm + ' — ' + nomeNorm);
         if(combo === refNorm){
@@ -1094,7 +1096,6 @@ function applyDeepLinkFromTarefas(){
       return;
     }
 
-    // garantir que a ficha abre em modo editável
     if(!EDIT_MODE){
       setEditMode(true);
     }
@@ -1110,7 +1111,8 @@ function applyDeepLinkFromTarefas(){
 
 /* ===== Lateral ===== */
 function buildFilters(){
-  const sel=$('f_consultor'); sel.innerHTML='<option value="">(Todos)</option>'+CONSULT_RESOLVE.map(c=>`<option>${c}</option>`).join('');
+  const sel=$('f_consultor');
+  sel.innerHTML='<option value="">(Todos)</option>'+CONSULT_RESOLVE.map(c=>`<option>${c}</option>`).join('');
 }
 $('applyFilters').addEventListener('click',()=>{
   FILTER.consultor=$('f_consultor').value; FILTER.estado=$('f_estado').value;
@@ -1239,7 +1241,7 @@ $('ld_fecho_comissao').addEventListener('change', (e)=>{
   if(!isOutro) input.value='';
 });
 
-// NOVO: mostrar/esconder campo "Outro" em Pagamento de Comissões
+// Pagamento de Comissões
 $('ld_fecho_pagamento_tipo').addEventListener('change', (e)=>{
   const isOutro = e.target.value==='outro';
   const input = $('ld_fecho_pagamento_outro');
@@ -1332,7 +1334,6 @@ function openModal(edit=null){
     $('ld_fecho_escritura_date').value = edit.fecho_escritura_date || '';
     $('ld_fecho_obs').value = edit.fecho_obs || '';
 
-    // NOVO: pagamento de comissões
     $('ld_fecho_pagamento_tipo').value = edit.fecho_pagamento_tipo || '';
     if(edit.fecho_pagamento_tipo === 'outro'){
       $('ld_fecho_pagamento_outro').style.display = 'block';
@@ -1343,7 +1344,6 @@ function openModal(edit=null){
     }
   }
 
-  // Proposta & negociação (se já existir no registo)
   if(edit && edit.proposta){
     const p = edit.proposta;
     $('ld_prop_nome').value = p.nomeProponente || '';
@@ -1388,7 +1388,6 @@ $('saveLead').addEventListener('click',()=>{
     pagamentoOutro = pagamentoTipo === 'outro' ? $('ld_fecho_pagamento_outro').value.trim() : '';
   }
 
-  // Proposta & negociação
   const propostaObj = {
     nomeProponente: get('ld_prop_nome'),
     contactoProponente: get('ld_prop_contacto'),
@@ -1455,7 +1454,6 @@ $('saveLead').addEventListener('click',()=>{
   if(hasPropostaData){
     lead.proposta = propostaObj;
   }else{
-    // se já existia proposta numa edição, limpamos
     if($('saveLead').dataset.editId){
       const existing = LEADS.find(l=>l.id===$('saveLead').dataset.editId);
       if(existing) delete existing.proposta;
@@ -1577,12 +1575,6 @@ function renderBoard(){
           l.tipo_negocio,
           l.imovel,
           l.tipologia,
-          l.perfil,
-          l.papel,
-          l.banco,
-          l.capitais,
-          l.valor,
-          l.url,
           l.notas
         ].map(x=>norm(x)).join(' ');
         return blob.includes(term);
@@ -1607,7 +1599,6 @@ function renderBoard(){
       const moveOptions = COLS.map(c=>`<option value="${c}" ${c===lead.estado?'disabled':''}>${c}</option>`).join('');
       const disabledAttr = EDIT_MODE ? '' : 'disabled';
 
-      // linha de classificação legível
       const classNum = Number(lead.classificacao || 0);
       const classDesc = LEAD_CLASSIFICACAO_MAP[classNum];
       const classLine = classNum
@@ -1647,7 +1638,6 @@ function renderBoard(){
         </div>
       `;
 
-      // Ações de lead
       card.querySelector('[data-act="edit"]').addEventListener('click',()=>{
         if(!EDIT_MODE){ alert('Modo de edição bloqueado. Ative "🔓 Edição ativa" para editar.'); return; }
         $('saveLead').dataset.editId = lead.id;
@@ -1680,7 +1670,6 @@ function renderBoard(){
         saveLS(); renderBoard();
       });
 
-      // Ações de tarefas (independentes do lock das leads)
       card.querySelector('[data-act="add-task"]').addEventListener('click',()=>{
         createTaskFromLead(lead);
       });
@@ -1693,14 +1682,12 @@ function renderBoard(){
     });
   });
 
-  // atualizar contadores
   Array.from(document.querySelectorAll('.col')).forEach(col=>{
     const name=col.getAttribute('data-col');
     const count=byEstado.find(x=>x.estado===name)?.items.length||0;
     col.querySelector('.counter').textContent=count;
   });
 
-  // sumário topo
   renderSummary(byEstado);
 }
 
@@ -1710,7 +1697,7 @@ function filterForExport(arr){
   const term = norm(FILTER.q||'');
   if(term){
     out=out.filter(l=>{
-      const blob = [
+      const blob=[
         l.nome,
         l.consultor,
         l.contacto,
@@ -1720,12 +1707,6 @@ function filterForExport(arr){
         l.tipo_negocio,
         l.imovel,
         l.tipologia,
-        l.perfil,
-        l.papel,
-        l.banco,
-        l.capitais,
-        l.valor,
-        l.url,
         l.notas
       ].map(x=>norm(x)).join(' ');
       return blob.includes(term);
@@ -1838,6 +1819,150 @@ $('exportXlsx').addEventListener('click',()=>{
   XLSX.writeFile(wb, 'leads.xlsx');
 });
 
+/* ===== Importação CSV ===== */
+$('importCsvBtn').addEventListener('click', ()=>{
+  $('importCsvInput').click();
+});
+
+$('importCsvInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    try{
+      const data = new Uint8Array(ev.target.result);
+      const wb = XLSX.read(data, {type:'array'});
+      const wsName = wb.SheetNames[0];
+      const ws = wb.Sheets[wsName];
+      const json = XLSX.utils.sheet_to_json(ws, {defval:''});
+
+      if(!json.length){
+        alert('O ficheiro CSV está vazio ou não foi possível ler dados.');
+        return;
+      }
+
+      const importedLeads = json.map(row=>{
+        const pContraStr = row["Prop_ContraPropostas"] || '';
+        const contraPropostas = pContraStr
+          ? pContraStr.split('||').map(chunk=>{
+              const parts = chunk.split('::').map(s=>s.trim());
+              if(parts.every(x=>!x)) return null;
+              return {
+                data: parts[0] || '',
+                valor: parts[1] || '',
+                termos: parts[2] || ''
+              };
+            }).filter(x=>x)
+          : [];
+
+        const propostaHasData =
+          row["Prop_NomeProponente"] ||
+          row["Prop_Contacto"] ||
+          row["Prop_Email"] ||
+          row["Prop_Valor"] ||
+          row["Prop_Termos"] ||
+          row["Prop_Data"] ||
+          row["Prop_DataAceite"] ||
+          (contraPropostas.length>0);
+
+        const proposta = propostaHasData ? {
+          nomeProponente: row["Prop_NomeProponente"] || '',
+          contactoProponente: row["Prop_Contacto"] || '',
+          emailProponente: row["Prop_Email"] || '',
+          valorProposta: row["Prop_Valor"] || '',
+          termosProposta: row["Prop_Termos"] || '',
+          dataProposta: row["Prop_Data"] || '',
+          dataPropostaAceite: row["Prop_DataAceite"] || '',
+          contraPropostas
+        } : undefined;
+
+        const visivelStr = String(row["Visível"] || '').toLowerCase();
+        const visivel = visivelStr === 'não' || visivelStr === 'nao' ? false : true;
+
+        const interStr = row["Intercalares"] || '';
+        const interArr = interStr
+          ? interStr.split('|').map(s=>s.trim()).filter(s=>s!=='')
+          : [];
+
+        return {
+          id: row["ID"] || uid(),
+          estado: row["Estado"] || 'Novo',
+          data: row["Data"] || '',
+          consultor: row["Consultor"] || '',
+          nome: row["Nome"] || '',
+          contacto: row["Contacto"] || '',
+          email: row["Email"] || '',
+          tipo_negocio: row["TipoNegócio"] || '',
+          imovel: row["Imóvel"] || '',
+          tipologia: row["Tipologia"] || '',
+          zona: row["Zona"] || '',
+          capitais: row["Capitais"] || '',
+          valor: row["Valor"] || '',
+          financiamento: row["Financiamento"] || '',
+          simulacao: row["Simulação"] || '',
+          banco: row["Banco"] || '',
+          papel: row["Comprador/Vend."] || '',
+          perfil: row["Perfil"] || '',
+          classificacao: row["Classificação"] || '',
+          ref_interna: row["RefInterna"] || row["Ref. Interna"] || '',
+          url: row["URL"] || '',
+          urgente: row["Urgente"] || '',
+          planta: row["Planta"] || '',
+          primeira_hab: row["1ªHab"] || row["1ª Hab."] || '',
+          tem_imovel: row["TemImóvel"] || row["Tem Imóvel"] || '',
+          ja_venda: row["JáVenda"] || row["Já à venda"] || '',
+          notas: row["Notas"] || '',
+          visivel,
+
+          fecho_negocio: row["Negócio"] || '',
+          fecho_comissao_pct: row["Comissão(%)"] !== '' ? row["Comissão(%)"] : '',
+          fecho_sinal_reserva: row["SinalReserva"] || '',
+          fecho_valor_cpcv: row["ValorCPCV"] || '',
+          fecho_intercalares: interArr,
+          fecho_valor_escritura: row["ValorEscritura"] || '',
+          fecho_cpcv_date: row["DataCPCV"] || '',
+          fecho_escritura_date: row["DataEscritura"] || '',
+          fecho_pagamento_tipo: row["PagamentoComissoesTipo"] || '',
+          fecho_pagamento_outro: row["PagamentoComissoesOutro"] || '',
+          fecho_obs: row["FechoObs"] || '',
+          proposta
+        };
+      });
+
+      const replace = confirm(
+        'Deseja SUBSTITUIR todas as leads atuais pelas do ficheiro?\n\n' +
+        'OK = substituir tudo\n' +
+        'Cancelar = acrescentar às existentes (atualizando apenas IDs coincidentes).'
+      );
+
+      if(replace){
+        LEADS = [];
+      }
+
+      importedLeads.forEach(imp=>{
+        const idx = LEADS.findIndex(l=>l.id===imp.id);
+        if(idx>=0){
+          LEADS[idx] = imp;
+        }else{
+          LEADS.push(imp);
+        }
+      });
+
+      saveLS();
+      renderBoard();
+      alert('Importação de CSV concluída com sucesso.');
+
+    }catch(err){
+      console.error('Erro ao importar CSV de leads', err);
+      alert('Ocorreu um erro ao importar o ficheiro CSV. Verifique se foi exportado a partir desta aplicação.');
+    }finally{
+      e.target.value='';
+    }
+  };
+  reader.readAsArrayBuffer(file);
+});
+
 /* ===== Boot ===== */
 (function init(){
   LEADS = loadLS();
@@ -1853,7 +1978,7 @@ $('exportXlsx').addEventListener('click',()=>{
   });
 
   renderBoard();
-  applyDeepLinkFromTarefas(); // <- abre automaticamente a ficha se vier de Tarefas com ?ref=
+  applyDeepLinkFromTarefas();
 })();
 </script>
 </body>
