@@ -668,8 +668,10 @@
         </button>
       </div>
       <button class="btn btn-ghost" id="exportCsvBtn" title="Exportar tarefas para CSV">⤓ CSV</button>
+      <button class="btn btn-ghost" id="importCsvBtn" title="Importar tarefas de CSV">⤒ Importar CSV</button>
       <button class="btn btn-ghost" id="exportPdfBtn" title="Imprimir / PDF (lista atual)">⤓ PDF</button>
       <button class="btn btn-primary" id="newTaskBtn">+ Nova Tarefa</button>
+      <input type="file" id="importCsvInput" accept=".csv" style="display:none;" />
     </div>
   </header>
 
@@ -919,6 +921,8 @@
   const toggleLockBtn = $('toggleLockBtn');
   const newTaskBtn = $('newTaskBtn');
   const exportCsvBtn = $('exportCsvBtn');
+  const importCsvBtn = $('importCsvBtn');
+  const importCsvInput = $('importCsvInput');
   const exportPdfBtn = $('exportPdfBtn');
   const cardsGrid = $('cardsGrid');
   const emptyState = $('emptyState');
@@ -1375,7 +1379,7 @@
     }
   }
 
-  // *** ALTERADO: agora suporta Lead E Angariação ***
+  // Abre ficha original em Leads ou Angariações
   function openOriginalModal(task){
     if(!task){
       alert('Não foi possível identificar a tarefa selecionada.');
@@ -1389,14 +1393,14 @@
 
     const ref = encodeURIComponent(task.origemRef.trim());
 
-    // Lead ➜ Kanban, com instrução para abrir modal em edição
+    // Lead ➜ Kanban
     if(task.origemTipo === 'lead'){
       const url = 'kanban.html?ref=' + ref + '&abrir=1&origem=tarefas';
       window.location.href = url;
       return;
     }
 
-    // Angariação ➜ módulo Angariações, também com instrução para abrir modal em edição
+    // Angariação ➜ módulo Angariações
     if(task.origemTipo === 'angariacao'){
       const url = 'angariacoes.html?ref=' + ref + '&abrir=1&origem=tarefas';
       window.location.href = url;
@@ -1705,6 +1709,149 @@
     URL.revokeObjectURL(url);
   }
 
+  // Parser simples de uma linha CSV com separador ; e aspas
+  function parseCsvLine(line){
+    const res = [];
+    let cur = '';
+    let inQuotes = false;
+    for(let i=0;i<line.length;i++){
+      const ch = line[i];
+      if(ch === '"'){
+        if(inQuotes && line[i+1] === '"'){
+          // aspas escapadas
+          cur += '"';
+          i++;
+        }else{
+          inQuotes = !inQuotes;
+        }
+      }else if(ch === ';' && !inQuotes){
+        res.push(cur);
+        cur = '';
+      }else{
+        cur += ch;
+      }
+    }
+    res.push(cur);
+    return res;
+  }
+
+  function importCsv(){
+    if(state.locked){
+      alert('O modo de edição está bloqueado. Desbloqueie o cadeado no topo para importar tarefas.');
+      return;
+    }
+    importCsvInput.click();
+  }
+
+  importCsvInput.addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      try{
+        const text = ev.target.result;
+        const lines = text.split(/\r?\n/).filter(l=>l.trim()!=='');
+        if(lines.length < 2){
+          alert('O ficheiro CSV está vazio ou não foi possível ler dados.');
+          return;
+        }
+
+        const headerCells = parseCsvLine(lines[0]);
+        const colIndexMap = {};
+        headerCells.forEach((name, idx)=>{
+          const key = String(name || '').trim().toLowerCase();
+          if(!key) return;
+          colIndexMap[key] = idx;
+        });
+
+        function getField(cells, logicalName){
+          // logicalName é o nome original da coluna de exportCsv
+          const k = logicalName.toLowerCase();
+          const idx = colIndexMap[k];
+          if(idx == null) return '';
+          return cells[idx] ?? '';
+        }
+
+        const importedTasks = [];
+
+        for(let li = 1; li < lines.length; li++){
+          const line = lines[li];
+          if(!line.trim()) continue;
+          const cells = parseCsvLine(line);
+
+          const id          = getField(cells,'id') || ('task_' + Date.now() + '_' + li);
+          const titulo      = getField(cells,'titulo');
+          const descricao   = getField(cells,'descricao');
+          const responsavel = getField(cells,'responsavel');
+          const apoio       = getField(cells,'apoio');
+          const origemTipo  = getField(cells,'origemTipo') || getField(cells,'origemtipo');
+          const origemRef   = getField(cells,'origemRef') || getField(cells,'origemref');
+          const estado      = getField(cells,'estado') || 'por_fazer';
+          const prioridade  = getField(cells,'prioridade') || 'normal';
+          const tipoTarefa  = getField(cells,'tipoTarefa') || getField(cells,'tipotarefa') || 'chamada';
+          const tags        = getField(cells,'tags');
+          const dataCriacao = getField(cells,'dataCriacao') || getField(cells,'datacriacao') || todayISO();
+          const dataLimite  = getField(cells,'dataLimite') || getField(cells,'datalimite');
+          const horaLimite  = getField(cells,'horaLimite') || getField(cells,'horalimite');
+
+          importedTasks.push({
+            id,
+            titulo,
+            descricao,
+            responsavel,
+            apoio,
+            origemTipo,
+            origemRef,
+            estado,
+            prioridade,
+            tipoTarefa,
+            tags,
+            dataCriacao,
+            dataLimite,
+            horaLimite,
+            createdAtMs: Date.now()
+          });
+        }
+
+        if(!importedTasks.length){
+          alert('Não foram detetadas tarefas válidas no ficheiro.');
+          return;
+        }
+
+        const replace = confirm(
+          'Deseja SUBSTITUIR todas as tarefas atuais pelas do ficheiro?\n\n' +
+          'OK = substituir tudo\n' +
+          'Cancelar = acrescentar às existentes (atualizando apenas IDs coincidentes).'
+        );
+
+        if(replace){
+          state.tasks = [];
+        }
+
+        importedTasks.forEach(imp=>{
+          const idx = state.tasks.findIndex(t=>t.id === imp.id);
+          if(idx >= 0){
+            state.tasks[idx] = imp;
+          }else{
+            state.tasks.push(imp);
+          }
+        });
+
+        saveState();
+        renderCards();
+        alert('Importação de CSV concluída com sucesso.');
+
+      }catch(err){
+        console.error('Erro ao importar CSV de tarefas', err);
+        alert('Ocorreu um erro ao importar o ficheiro CSV. Verifique se foi exportado a partir desta aplicação de Tarefas.');
+      }finally{
+        e.target.value = '';
+      }
+    };
+    reader.readAsText(file, 'utf-8');
+  });
+
   function exportPdfList(){
     const filtered = applyFilters(state.tasks);
     if(!filtered.length){
@@ -1889,6 +2036,7 @@
   });
 
   exportCsvBtn.addEventListener('click', exportCsv);
+  importCsvBtn.addEventListener('click', importCsv);
   exportPdfBtn.addEventListener('click', exportPdfList);
 
   window.addEventListener('keydown',(e)=>{
