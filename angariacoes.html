@@ -707,6 +707,12 @@
           </select>
         </div>
 
+        <!-- PESQUISA RÁPIDA / ABRANGENTE -->
+        <div class="field">
+          <label class="field-label" for="filterSearchText">Pesquisa rápida</label>
+          <input type="text" id="filterSearchText" placeholder="Ref., título, zona, promotor, proprietário…" />
+        </div>
+
         <!-- PERÍODO -->
         <div class="field">
           <label class="field-label">Período</label>
@@ -744,7 +750,7 @@
           <button class="btn btn-ghost" id="filterClearBtn" style="flex:1;border-color:rgba(255,255,255,.2);">Limpar</button>
         </div>
 
-        <p style="margin-top:6px;">Use estes filtros (período, consultor e visibilidade) para preparar reuniões e análises. O botão <strong>Aplicar</strong> guarda os filtros neste navegador.</p>
+        <p style="margin-top:6px;">Use estes filtros (consultor, pesquisa rápida, período e visibilidade) para preparar reuniões e análises. O botão <strong>Aplicar</strong> guarda os filtros neste navegador.</p>
       </div>
 
       <div class="sidebar-section">
@@ -1338,6 +1344,7 @@
   const summaryBadges = $('summaryBadges');
 
   const filterConsultor = $('filterConsultor');
+  const filterSearchText = $('filterSearchText');
   const filterDataDe = $('filterDataDe');
   const filterDataAte = $('filterDataAte');
   const filterShowHidden = $('filterShowHidden');
@@ -1671,6 +1678,7 @@
       if(obj.consultor && filterConsultor.querySelector('option[value="'+obj.consultor+'"]')){
         filterConsultor.value = obj.consultor;
       }
+      filterSearchText.value = obj.searchText || '';
       filterDataDe.value = obj.de || '';
       filterDataAte.value = obj.ate || '';
       filterShowHidden.checked = !!obj.mostrarInvisiveis;
@@ -1683,6 +1691,7 @@
   function saveFilterStateFromUI(){
     const data = {
       consultor: filterConsultor.value || '',
+      searchText: filterSearchText.value || '',
       de: filterDataDe.value || '',
       ate: filterDataAte.value || '',
       mostrarInvisiveis: filterShowHidden.checked,
@@ -1697,6 +1706,7 @@
 
   function applyFilters(deals){
     const cons = filterConsultor.value;
+    const search = (filterSearchText.value || '').trim().toLowerCase();
     const from = filterDataDe.value;
     const to = filterDataAte.value;
     const showHidden = filterShowHidden.checked;
@@ -1713,6 +1723,28 @@
 
       if(from && d.dataAngariacao && d.dataAngariacao < from) return false;
       if(to && d.dataAngariacao && d.dataAngariacao > to) return false;
+
+      if(search){
+        const texto = [
+          d.refInterna,
+          d.tituloImovel,
+          d.nomeEmp,
+          d.nomeProp,
+          d.consultor,
+          d.gestor,
+          d.concelho,
+          d.zona,
+          d.localizacao,
+          d.promotor,
+          d.origemCliente,
+          d.natureza,
+          d.tipoNegocio,
+          d.estadoImovel
+        ].filter(Boolean).join(' ').toLowerCase();
+
+        if(!texto.includes(search)) return false;
+      }
+
       return true;
     });
   }
@@ -2559,6 +2591,7 @@
 
   filterClearBtn.addEventListener('click', ()=>{
     filterConsultor.value = '';
+    filterSearchText.value = '';
     filterDataDe.value = '';
     filterDataAte.value = '';
     filterShowHidden.checked = false;
@@ -2611,4 +2644,3 @@
 </script>
 </body>
 </html>
-
