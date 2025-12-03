@@ -688,6 +688,7 @@
           🔒
         </button>
       </div>
+      <button class="btn btn-ghost" id="importCsvBtn" title="Importar angariações de CSV">⤒ CSV</button>
       <button class="btn btn-ghost" id="exportCsvBtn" title="Exportar angariações para CSV">⤓ CSV</button>
       <button class="btn btn-ghost" id="exportPdfBtn" title="Imprimir / PDF">⤓ PDF</button>
       <button class="btn btn-primary" id="newDealBtn">+ Nova Angariação</button>
@@ -773,7 +774,6 @@
     </main>
   </div>
 </div>
-
 <!-- MODAL -->
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal">
@@ -1267,7 +1267,6 @@
     </div>
   </div>
 </div>
-
 <script>
 (function(){
   const STORAGE_KEY = 'gpp_angariacoes_v2';
@@ -1330,6 +1329,7 @@
   const lockStateLabel = $('lockStateLabel');
   const toggleLockBtn = $('toggleLockBtn');
   const newDealBtn = $('newDealBtn');
+  const importCsvBtn = $('importCsvBtn');
   const exportCsvBtn = $('exportCsvBtn');
   const exportPdfBtn = $('exportPdfBtn');
   const cardsGrid = $('cardsGrid');
@@ -2050,7 +2050,6 @@
       cardsGrid.appendChild(card);
     });
   }
-
   function exportCsv(){
     if(!state.deals.length){
       alert('Não existem angariações para exportar.');
@@ -2093,6 +2092,172 @@
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  }
+
+  // --- Importação de CSV (migração/backup controlado) ---
+
+  // Pequeno parser para CSV com separador ";" e campos entre aspas
+  function parseCsv(text){
+    const rows = [];
+    let row = [];
+    let cur = '';
+    let inQuotes = false;
+
+    for(let i=0; i<text.length; i++){
+      const ch = text[i];
+
+      if(ch === '"'){
+        if(inQuotes && text[i+1] === '"'){
+          cur += '"';
+          i++;
+        }else{
+          inQuotes = !inQuotes;
+        }
+      }else if(ch === ';' && !inQuotes){
+        row.push(cur);
+        cur = '';
+      }else if((ch === '\n' || ch === '\r') && !inQuotes){
+        if(ch === '\r' && text[i+1] === '\n') i++;
+        row.push(cur);
+        rows.push(row);
+        row = [];
+        cur = '';
+      }else{
+        cur += ch;
+      }
+    }
+    if(cur.length>0 || row.length>0){
+      row.push(cur);
+      rows.push(row);
+    }
+    return rows;
+  }
+
+  function importFromCsvContent(text){
+    const rows = parseCsv(text.trim());
+    if(!rows.length){
+      alert('Ficheiro CSV vazio ou não reconhecido.');
+      return;
+    }
+
+    const headerRaw = rows[0];
+    const headers = headerRaw.map(h=>{
+      return String(h || '').trim().replace(/^"|"$/g,'');
+    });
+
+    const KNOWN_FIELDS = new Set([
+      'id','consultor','gestor','coordenador','interveniente','refInterna','linkUrl',
+      'dataAngariacao','estadoAng','duracaoContrato','duracaoOutro',
+      'isEmpreendimento','nomeEmp','totalFracoes','tipologiasEmp','anoConstrEmp','anoConclEmp',
+      'promotor','telPromotor','emailPromotor',
+      'nomeProp','telProp','emailProp','moradaProp','estadoCivil','regimeCasamento',
+      'tituloImovel','localizacao','distrito','concelho','freguesia','zona','gps',
+      'anoConstrucao','anoConclusao','certEnerg','condominioValor',
+      'natureza','estadoImovel','tipoNegocio','origemCliente',
+      'areaUtil','areaBruta','areaABP','areaABD','areaTerreno','areaImplantacao',
+      'precoPedido','precoSugerido','comissao','comissaoOutro','percentAjust',
+      'numSalas','numSalasJantar','numSuites','numClosets','numCozinhas','numDespensas',
+      'numMarquises','numLavandarias','numSotaos','numVarandas','numPisos','numQuartos',
+      'exclusivo','naoExclusivo','visible'
+    ]);
+
+    let imported = 0;
+    let created = 0;
+    let updated = 0;
+
+    for(let i=1;i<rows.length;i++){
+      const row = rows[i];
+      if(!row || row.length===0) continue;
+
+      const record = {};
+      headers.forEach((h,idx)=>{
+        if(!h) return;
+        let val = row[idx] || '';
+        val = String(val).trim();
+        val = val.replace(/^"|"$/g,'').replace(/""/g,'"');
+        if(!KNOWN_FIELDS.has(h)) return;
+
+        if(h === 'exclusivo' || h === 'naoExclusivo' || h === 'isEmpreendimento' || h === 'visible'){
+          const low = val.toLowerCase();
+          record[h] = (low === 'true' || low === '1' || low === 'sim');
+        }else{
+          record[h] = val;
+        }
+      });
+
+      if(Object.keys(record).length === 0) continue;
+
+      let id = record.id;
+      if(!id){
+        id = 'ang_' + Date.now() + '_' + i;
+        record.id = id;
+      }
+
+      const idxExisting = state.deals.findIndex(d=>d.id === id);
+      if(idxExisting >= 0){
+        // Atualiza angariação existente preservando campos que não vêm no CSV
+        const existing = state.deals[idxExisting];
+        const merged = Object.assign({}, existing, record, { id });
+        state.deals[idxExisting] = merged;
+        updated++;
+      }else{
+        // Nova angariação
+        const novo = Object.assign({
+          zonaEnvolvente: [],
+          infraestruturas: [],
+          equipamentos: [],
+          seguranca: [],
+          documentacao: []
+        }, record);
+        state.deals.push(novo);
+        created++;
+      }
+      imported++;
+    }
+
+    saveState();
+    renderCards();
+
+    alert(
+      'Importação concluída.\n\n' +
+      'Registos lidos: ' + imported +
+      '\nNovos: ' + created +
+      '\nAtualizados: ' + updated
+    );
+  }
+
+  function handleImportCsv(){
+    if(state.locked){
+      alert('O modo de edição está bloqueado. Desbloqueie o cadeado no topo para importar dados.');
+      return;
+    }
+
+    if(!confirm('Esta operação vai importar/atualizar angariações a partir de um ficheiro CSV (exportado do Garvetur Porto Pro).\n\nOs dados existentes com o mesmo ID serão atualizados, os restantes serão adicionados.\n\nPretende continuar?')){
+      return;
+    }
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.csv,text/csv';
+
+    input.addEventListener('change', (e)=>{
+      const file = e.target.files && e.target.files[0];
+      if(!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (ev)=>{
+        try{
+          const text = ev.target.result;
+          importFromCsvContent(text);
+        }catch(err){
+          console.error('Erro a importar CSV', err);
+          alert('Ocorreu um erro ao ler o ficheiro CSV. Verifique se foi exportado a partir do Garvetur Porto Pro.');
+        }
+      };
+      reader.readAsText(file,'utf-8');
+    });
+
+    input.click();
   }
 
   function exportOnePdf(deal){
@@ -2325,9 +2490,6 @@
       const abrir = (params.get('abrir') || '').trim();
       if(!refRaw) return;
 
-      // Normalizar referência:
-      //  - refCompleta  = string total (ex.: "A1 - António")
-      //  - refBase      = primeira parte antes de "-" / "–" / "|" (ex.: "A1")
       const refCompleta = refRaw.toLowerCase();
       const refBase = refRaw.split(/[-–|]/)[0].trim().toLowerCase();
 
@@ -2390,7 +2552,6 @@
 
   isEmpreendimento.addEventListener('change', updateEmpBlockVisibility);
 
-  // Filtros: aplicar/limpar
   filterApplyBtn.addEventListener('click', ()=>{
     saveFilterStateFromUI();
     renderCards();
@@ -2425,6 +2586,7 @@
   });
 
   exportCsvBtn.addEventListener('click', exportCsv);
+  importCsvBtn.addEventListener('click', handleImportCsv);
   exportPdfBtn.addEventListener('click', exportPdfAll);
 
   window.addEventListener('keydown', (e)=>{
@@ -2449,3 +2611,4 @@
 </script>
 </body>
 </html>
+
