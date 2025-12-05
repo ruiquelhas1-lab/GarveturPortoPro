@@ -643,7 +643,7 @@ input[type="file"]{display:none}
         </div>
         <div class="form-field"><label>Promotor</label><input id="f_promotor_e"></div>
         <div class="form-field"><label>Tipologias</label><input id="f_tipologias"></div>
-        <!-- Conclusão mês/ano -->
+        <!-- Conclusão (mês/ano) -->
         <div class="form-field">
           <label>Conclusão (mês/ano)</label>
           <div style="display:flex; gap:6px;">
@@ -1325,21 +1325,61 @@ function saveLS(){
   }
 }
 function loadLS(){
-  try{
-    const x=localStorage.getItem(LS_KEY);
-    if(!x) return null;
-    // Proteção contra datasets gigantes (ex.: data: URLs enormes)
-    if(x.length > 500000){ // ~0.5 MB
-      console.warn('Dataset local demasiado grande, a ignorar para evitar bloqueios.');
-      LS_SKIPPED=true;
-      return null;
+  const CANDIDATES = [
+    LS_KEY,                    // "gpp_dataset_v1" - mapa padrão
+    'gpp_angariacoes_v1',      // provável chave usada em Angariações
+    'gpp_empreendimentos_v1'   // fallback extra
+  ];
+
+  let foundHeavy = false;
+  let anyError  = false;
+
+  for (const key of CANDIDATES){
+    try{
+      const raw = localStorage.getItem(key);
+      if(!raw) continue;
+
+      // Proteção contra datasets gigantes para não bloquear o mapa
+      if(raw.length > 2000000){ // ~2 MB
+        console.warn('Dataset local muito grande em', key, '- a ignorar para evitar bloqueios.');
+        foundHeavy = true;
+        continue;
+      }
+
+      const parsed = JSON.parse(raw);
+
+      // 1) Caso clássico: array na raiz
+      if (Array.isArray(parsed)) {
+        console.info('Dataset carregado de', key, 'com', parsed.length, 'registos.');
+        return parsed;
+      }
+
+      // 2) Objetos do tipo { empreendimentos: [...] } ou equivalentes
+      if (parsed && typeof parsed === 'object') {
+        if (Array.isArray(parsed.empreendimentos)) {
+          console.info('Dataset (empreendimentos) carregado de', key, 'com', parsed.empreendimentos.length, 'registos.');
+          return parsed.empreendimentos;
+        }
+        if (Array.isArray(parsed.items)) {
+          console.info('Dataset (items) carregado de', key, 'com', parsed.items.length, 'registos.');
+          return parsed.items;
+        }
+        if (Array.isArray(parsed.rows)) {
+          console.info('Dataset (rows) carregado de', key, 'com', parsed.rows.length, 'registos.');
+          return parsed.rows;
+        }
+      }
+    }catch(e){
+      console.warn('Falha a ler dados locais da chave', key, e);
+      anyError = true;
+      continue;
     }
-    return JSON.parse(x);
-  }catch(e){
-    console.warn('Falha a ler dados locais, a iniciar base vazia.', e);
-    LS_ERROR=true;
-    return null;
   }
+
+  if(foundHeavy) LS_SKIPPED = true;
+  if(anyError)  LS_ERROR   = true;
+
+  return null;
 }
 
 /* ===== Conclusão (mês/ano) + auto-update de estado ===== */
