@@ -563,7 +563,7 @@ input[type="file"]{display:none}
           <div class="chip active" data-v="">Todos</div>
           <div class="chip" data-v="em_construcao">Em construção</div>
           <div class="chip" data-v="licenciado">Licenciado</div>
-          <div class="chip" data-v="concluido">Concluído</div>
+          <div class="chip" data-v="concluido">Concluído</</div>
         </div>
       </div>
       <div class="section">
@@ -955,15 +955,15 @@ function renderList(){
     return;
   }
   FILT.forEach(p=>{
+    const nameLine = `${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||'—'}`;
     const div=document.createElement('div');
     div.className='card';
     div.innerHTML=`
       <div class="row">
         <div>
-          <div class="name">${p.nome||'—'}</div>
+          <div class="name">${nameLine}</div>
           <div class="meta">
             ${p.concelho||'—'}
-            ${p.refInterna ? ' · Ref. ' + p.refInterna : ''}
           </div>
         </div>
         ${stateLabel(p.estado)}
@@ -1017,8 +1017,9 @@ function renderMarkers(){
     if(lat===null||lng===null) return;
     pts.push([lat,lng]);
     const m=L.marker([lat,lng],{icon:makeDivIcon(p.estado)});
+    const tooltip = p.refInterna ? `[${p.refInterna}] ${p.nome||''}` : (p.nome||'');
     m.on('click',()=>openFicha(p,true));
-    m.bindTooltip(`${p.nome||''}`,{direction:'top',offset:[0,-8],opacity:.9});
+    m.bindTooltip(tooltip,{direction:'top',offset:[0,-8],opacity:.9});
     (CLUSTER||LAYER).addLayer ? (CLUSTER||LAYER).addLayer(m) : m.addTo(LAYER);
   });
   if(pts.length && MAP){
@@ -1198,13 +1199,13 @@ async function renderDocPreview(container, rawUrl, type){
 /* ===== Painel lateral (Ficha) ===== */
 function openFicha(p,focus=false){
   ACTIVE=p;
+  const titleLine = `${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||'—'}`;
   const html=`
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
       <div>
-        <div style="font-weight:800;font-size:16px">${p.nome||'—'}</div>
+        <div style="font-weight:800;font-size:16px">${titleLine}</div>
         <div style="font-size:12px;color:#bbb">
           ${p.concelho||'—'}
-          ${p.refInterna ? ' · Ref. ' + p.refInterna : ''}
           · ${stateLabel(p.estado)}
         </div>
       </div>
@@ -1250,13 +1251,13 @@ function openFicha(p,focus=false){
     if(numPT(p._lat)!==null && numPT(p._lng)!==null) MAP?.setView([p._lat,p._lng],16,{animate:true});
   });
   el('panelInner').querySelector('[data-act="copy"]')?.addEventListener('click',async ()=>{
-    const resumo=`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${formatConclusao(p)} · Ref. ${p.refInterna || '-'} · ${p.link||''}`.trim();
+    const resumo=`${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${formatConclusao(p)} · Ref. ${p.refInterna || '-'} · ${p.link||''}`.trim();
     try{ await navigator.clipboard.writeText(resumo);}catch{}
   });
   el('panelInner').querySelector('[data-act="share"]')?.addEventListener('click',async ()=>{
     const shareData={
       title:p.nome||'Empreendimento',
-      text:`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${formatConclusao(p)}${p.refInterna ? ' · Ref. ' + p.refInterna : ''}`,
+      text:`${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${formatConclusao(p)}${p.refInterna ? ' · Ref. ' + p.refInterna : ''}`,
       url: location.href
     };
     if(navigator.share){
@@ -1404,23 +1405,35 @@ function mergeAngariacoesIntoRAW(){
 
   deals.forEach(d=>{
     if(!d) return;
-    if(!d.isEmpreendimento) return; // só empreendimentos
+
+    // Agora aceita empreendimentos e imóveis isolados — desde que tenham GPS
     const gps = d.gps || '';
     const coords = parseGps(gps);
     if(coords.lat===null || coords.lng===null) return; // sem coordenadas, não entra no mapa
 
-    const nome = d.nomeEmp || d.tituloImovel || d.refInterna || 'Empreendimento';
-    const slug = 'ang-' + (d.id || slugify(nome));
+    const isEmp = !!d.isEmpreendimento;
+
+    const nome = d.nomeEmp || d.tituloImovel || d.refInterna || (isEmp ? 'Empreendimento' : 'Imóvel');
+
+    const baseId = d.id || slugify(nome);
+    const slug = 'ang-' + baseId;
 
     let ano = d.anoConclEmp || d.anoConclusao || '';
     ano = ano ? Number(ano) : '';
     let mes = d.mesConclEmp || d.mesConclusao || '';
     mes = mes ? Number(mes) : '';
 
+    // Mapeamento de estado a partir de estadoImovel:
+    // novo → concluido (verde)
+    // usado → concluido (verde)
+    // recuperado → concluido (verde)
+    // construcao → em_construcao (vermelho)
+    // projeto → licenciado (azul)
     const estado = (function(){
       const e = d.estadoImovel;
-      if(e === 'construcao' || e === 'projeto') return 'em_construcao';
-      if(e === 'novo') return 'licenciado';
+      if(e === 'construcao') return 'em_construcao';
+      if(e === 'projeto') return 'licenciado';
+      if(e === 'novo' || e === 'usado' || e === 'recuperado') return 'concluido';
       return '';
     })();
 
@@ -1448,6 +1461,7 @@ function mergeAngariacoesIntoRAW(){
       _lng: coords.lng,
       docs: [],
       _fromAngariacoes: true,
+      isEmpreendimento: isEmp,
       refInterna: d.refInterna || ''
     };
 
@@ -1868,7 +1882,7 @@ function applyUrlContext(){
   const mem=loadLS();
   RAW=Array.isArray(mem)? mem : [];
 
-  // NOVO: incorporar automaticamente empreendimentos das Angariações
+  // Incorporar automaticamente empreendimentos e imóveis isolados das Angariações
   mergeAngariacoesIntoRAW();
 
   // Normalizar dados e auto-update de estado
