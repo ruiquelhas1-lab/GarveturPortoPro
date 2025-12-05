@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Garvetur Porto Pro — Mapa (PDF inteligente)</title>
 
 <link rel="preconnect" href="https://unpkg.com" crossorigin>
@@ -256,6 +256,11 @@ input[type="file"]{display:none}
   border:1px solid var(--border);
   font-size:11px;
 }
+.badge-type{
+  border-color:var(--gold);
+  color:var(--gold);
+  margin-left:4px;
+}
 .empty{
   padding:10px;
   color:#bbb;
@@ -365,6 +370,8 @@ input[type="file"]{display:none}
   font-size:12px;
   position:relative;
 }
+.pin.emp{border-color:var(--gold);}
+.pin.iso{border-color:#111;opacity:0.92;}
 .pin.c{ background:#E53935 }
 .pin.l{ background:#1E88E5 }
 .pin.f{ background:#43A047 }
@@ -498,7 +505,7 @@ input[type="file"]{display:none}
 
 .hidden{display:none !important}
 
-@media (max-width: 1000px){
+@media (max-width:1000px){
   .app{
     grid-template-columns:1fr;
     grid-template-rows:56px 40px 280px 1fr;
@@ -510,114 +517,113 @@ input[type="file"]{display:none}
 </style>
 </head>
 <body>
-  <div class="app">
-    <header>
-      <div class="brand">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--gold)">
-          <circle cx="12" cy="12" r="10" stroke-width="1.5"/>
-          <path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/>
-        </svg>
-        <h1>Garvetur Porto Pro — Mapa</h1>
-      </div>
-      <div class="nav">
-        <a href="./index.html">Início</a>
-        <a class="active" href="./mapa.html">Mapa</a>
-        <a href="./kanban.html">Leads</a>
-        <a href="./angariacoes.html">Angariações</a>
-        <a href="./dashboard.html">Dashboard</a>
-        <a href="./vendas.html">Vendas</a>
-        <a href="./tarefas.html">Tarefas</a>
-      </div>
-    </header>
-
-    <div class="kpis">
-      <div class="kpi"><span class="dot"></span>Total: <b id="k_total">0</b></div>
-      <div class="kpi"><span class="dot c"></span>Em construção: <b id="k_c">0</b></div>
-      <div class="kpi"><span class="dot l"></span>Licenciado: <b id="k_l">0</b></div>
-      <div class="kpi"><span class="dot f"></span>Concluído: <b id="k_f">0</b></div>
-      <div class="toolbar">
-        <button class="btn" id="focusAmp">Focar AMP/Porto</button>
-        <button class="btn" id="exportCsv">Exportar CSV</button>
-        <button class="btn" id="exportGeo">Exportar GeoJSON</button>
-        <button class="btn ghost" id="toggleEdit" title="Modo Edição">🔒 Editar</button>
-
-        <label class="btn" for="csvFile" id="btnImport" style="display:none">Importar CSV</label>
-        <input id="csvFile" type="file" accept=".csv" />
-        <button class="btn primary" id="btnNew" style="display:none">+ Novo</button>
-        <button class="btn ghost" id="btnSave" style="display:none">Guardar</button>
-        <button class="btn ghost" id="btnClearAll" style="display:none">Limpar Tudo</button>
-      </div>
+<div class="app">
+  <header>
+    <div class="brand">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--gold)">
+        <circle cx="12" cy="12" r="10" stroke-width="1.5"/>
+        <path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/>
+      </svg>
+      <h1>Garvetur Porto Pro — Mapa</h1>
     </div>
+    <div class="nav">
+      <a href="./index.html">Início</a>
+      <a class="active" href="./mapa.html">Mapa</a>
+      <a href="./kanban.html">Leads</a>
+      <a href="./angariacoes.html">Angariações</a>
+      <a href="./dashboard.html">Dashboard</a>
+      <a href="./vendas.html">Vendas</a>
+      <a href="./tarefas.html">Tarefas</a>
+    </div>
+  </header>
 
-    <aside class="sidebar">
-      <div class="section">
-        <div class="label">Pesquisa global</div>
-        <div class="field"><input id="q" placeholder="Ex.: 'Gaia licenciado 2027 promotor X'"></div>
-        <div class="hint">
-          Pesquisa por ref. interna, nome, concelho, promotor, tipologias, estado, conclusão, notas, €/m²,
-          <b>proprietário, telefone/telemóvel e email</b>.
-        </div>
-      </div>
-      <div class="section">
-        <div class="label">Concelho</div>
-        <div class="field"><select id="f_concelho"><option value="">(Todos)</option></select></div>
-        <div class="label">Estado</div>
-        <div class="chips" id="estadoChips">
-          <div class="chip active" data-v="">Todos</div>
-          <div class="chip" data-v="em_construcao">Em construção</div>
-          <div class="chip" data-v="licenciado">Licenciado</div>
-          <div class="chip" data-v="concluido">Concluído</div>
-        </div>
-      </div>
-      <div class="section">
-        <div class="label">Conclusão (ano)</div>
-        <div class="field">
-          <input id="f_cmin" type="number" placeholder="Mín. ex.: 2025">
-          <input id="f_cmax" type="number" placeholder="Máx. ex.: 2029">
-        </div>
-        <div class="label" style="margin-top:6px">Preço €/m²</div>
-        <div class="field">
-          <input id="f_pmin" type="number" placeholder="Mín.">
-          <input id="f_pmax" type="number" placeholder="Máx.">
-        </div>
-      </div>
-      <div class="section">
-        <div class="label">Promotor</div>
-        <div class="field"><select id="f_promotor"><option value="">(Todos)</option></select></div>
-        <div class="label" style="margin-top:6px">Tipologias (texto)</div>
-        <div class="field"><input id="f_tipos" placeholder="Ex.: T1,T2"></div>
-      </div>
-      <div class="section">
-        <div class="actions">
-          <button class="btn primary" id="apply">Aplicar</button>
-          <button class="btn ghost" id="clear">Limpar</button>
-        </div>
-      </div>
-      <div class="section"><div class="label">Resultados</div></div>
-      <div class="list" id="list"></div>
-    </aside>
+  <div class="kpis">
+    <div class="kpi"><span class="dot"></span>Total: <b id="k_total">0</b></div>
+    <div class="kpi"><span class="dot c"></span>Em construção: <b id="k_c">0</b></div>
+    <div class="kpi"><span class="dot l"></span>Licenciado: <b id="k_l">0</b></div>
+    <div class="kpi"><span class="dot f"></span>Concluído: <b id="k_f">0</b></div>
+    <div class="toolbar">
+      <button class="btn" id="focusAmp">Focar AMP/Porto</button>
+      <button class="btn" id="exportCsv">Exportar CSV</button>
+      <button class="btn" id="exportGeo">Exportar GeoJSON</button>
+      <button class="btn ghost" id="toggleEdit" title="Modo Edição">🔒 Editar</button>
 
-    <div style="position:relative">
-      <div id="map"></div>
-
-      <!-- Barra discreta de estado / carregamento -->
-      <div id="statusBar" class="status-bar"></div>
-
-      <div class="legend">
-        <div class="row"><span class="swatch c"></span> Em construção</div>
-        <div class="row"><span class="swatch l"></span> Licenciado</div>
-        <div class="row"><span class="swatch f"></span> Concluído</div>
-      </div>
-
-      <div id="side-panel">
-        <div class="panel-head">
-          <div style="font-weight:700">Detalhes</div>
-          <button class="btn" id="closePanel">Fechar ✕</button>
-        </div>
-        <div class="panel-inner" id="panelInner"></div>
-      </div>
+      <label class="btn" for="csvFile" id="btnImport" style="display:none">Importar CSV</label>
+      <input id="csvFile" type="file" accept=".csv" />
+      <button class="btn primary" id="btnNew" style="display:none">+ Novo</button>
+      <button class="btn ghost" id="btnSave" style="display:none">Guardar</button>
+      <button class="btn ghost" id="btnClearAll" style="display:none">Limpar Tudo</button>
     </div>
   </div>
+
+  <aside class="sidebar">
+    <div class="section">
+      <div class="label">Pesquisa global</div>
+      <div class="field"><input id="q" placeholder="Ex.: 'Gaia licenciado 2027 promotor X'"></div>
+      <div class="hint">
+        Pesquisa por ref. interna, nome, concelho, promotor, tipologias, estado, conclusão, notas, €/m²,
+        proprietário, telefone/telemóvel, email e restantes campos de texto.
+      </div>
+    </div>
+    <div class="section">
+      <div class="label">Concelho</div>
+      <div class="field"><select id="f_concelho"><option value="">(Todos)</option></select></div>
+      <div class="label">Estado</div>
+      <div class="chips" id="estadoChips">
+        <div class="chip active" data-v="">Todos</div>
+        <div class="chip" data-v="em_construcao">Em construção</div>
+        <div class="chip" data-v="licenciado">Licenciado</div>
+        <div class="chip" data-v="concluido">Concluído</div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="label">Conclusão (ano)</div>
+      <div class="field">
+        <input id="f_cmin" type="number" placeholder="Mín. ex.: 2025">
+        <input id="f_cmax" type="number" placeholder="Máx. ex.: 2029">
+      </div>
+      <div class="label" style="margin-top:6px">Preço €/m²</div>
+      <div class="field">
+        <input id="f_pmin" type="number" placeholder="Mín.">
+        <input id="f_pmax" type="number" placeholder="Máx.">
+      </div>
+    </div>
+    <div class="section">
+      <div class="label">Promotor</div>
+      <div class="field"><select id="f_promotor"><option value="">(Todos)</option></select></div>
+      <div class="label" style="margin-top:6px">Tipologias (texto)</div>
+      <div class="field"><input id="f_tipos" placeholder="Ex.: T1,T2"></div>
+    </div>
+    <div class="section">
+      <div class="actions">
+        <button class="btn primary" id="apply">Aplicar</button>
+        <button class="btn ghost" id="clear">Limpar</button>
+      </div>
+    </div>
+    <div class="section"><div class="label">Resultados</div></div>
+    <div class="list" id="list"></div>
+  </aside>
+
+  <div style="position:relative">
+    <div id="map"></div>
+
+    <div id="statusBar" class="status-bar"></div>
+
+    <div class="legend">
+      <div class="row"><span class="swatch c"></span> Em construção</div>
+      <div class="row"><span class="swatch l"></span> Licenciado</div>
+      <div class="row"><span class="swatch f"></span> Concluído</div>
+    </div>
+
+    <div id="side-panel">
+      <div class="panel-head">
+        <div style="font-weight:700">Detalhes</div>
+        <button class="btn" id="closePanel">Fechar ✕</button>
+      </div>
+      <div class="panel-inner" id="panelInner"></div>
+    </div>
+  </div>
+</div>
 
 <!-- Modal Empreendimento -->
 <div id="editModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Empreendimento">
@@ -636,6 +642,7 @@ input[type="file"]{display:none}
       <div class="grid2">
         <div class="form-field"><label>Nome</label><input id="f_nome"></div>
         <div class="form-field"><label>Concelho</label><input id="f_concelho_e"></div>
+
         <div class="form-field"><label>Estado</label>
           <select id="f_estado">
             <option value="">—</option>
@@ -645,8 +652,14 @@ input[type="file"]{display:none}
           </select>
         </div>
         <div class="form-field"><label>Promotor</label><input id="f_promotor_e"></div>
+
+        <div class="form-field"><label>Proprietário</label><input id="f_proprietario"></div>
+        <div class="form-field"><label>Telemóvel</label><input id="f_telemovel"></div>
+        <div class="form-field"><label>Telefone</label><input id="f_telefone"></div>
+        <div class="form-field"><label>Email</label><input id="f_email"></div>
+
         <div class="form-field"><label>Tipologias</label><input id="f_tipologias"></div>
-        <!-- Conclusão mês/ano -->
+
         <div class="form-field">
           <label>Conclusão (mês/ano)</label>
           <div style="display:flex; gap:6px;">
@@ -704,7 +717,6 @@ input[type="file"]{display:none}
 <div id="loadingMask"><div>⏳ A guardar anexo…</div></div>
 
 <script>
-/* ===== Helpers de carregamento dinâmico ===== */
 function loadScript(src){
   return new Promise((res,rej)=>{
     const s=document.createElement('script');
@@ -716,11 +728,10 @@ function loadScript(src){
 </script>
 
 <script>
-/* ===== Estado global ===== */
 const AMP_CENTER=[41.15,-8.61], AMP_ZOOM=12;
 const LS_KEY='gpp_dataset_v1';
 const FILTERS_KEY='gpp_mapa_filters_v1';
-const PDF_INLINE_LIMIT=4*1024*1024; // 4 MB
+const PDF_INLINE_LIMIT=4*1024*1024;
 
 let MAP, CLUSTER, LAYER, CLUSTER_OK=false;
 let RAW=[], FILT=[];
@@ -748,11 +759,12 @@ function colorByState(k){
   if(k==='concluido')return '#43A047';
   return '#A38B63';
 }
-function pinClass(k){
-  if(k==='em_construcao')return 'pin c';
-  if(k==='licenciado')return 'pin l';
-  if(k==='concluido')return 'pin f';
-  return 'pin';
+function pinClass(k,isEmp){
+  let base='pin ' + (isEmp ? 'emp' : 'iso');
+  if(k==='em_construcao')return base+' c';
+  if(k==='licenciado')return base+' l';
+  if(k==='concluido')return base+' f';
+  return base;
 }
 function toCSV(rows){
   return rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n');
@@ -763,8 +775,6 @@ function numPT(v){
   const n=Number(String(v).replace(',','.'));
   return Number.isFinite(n)? n : null;
 }
-
-/* Parser de coordenadas GPS vindas das angariações */
 function parseGps(gps){
   if(!gps) return {lat:null,lng:null};
   const m = String(gps).match(/-?\d+(?:[.,]\d+)?/g);
@@ -774,7 +784,7 @@ function parseGps(gps){
   return {lat,lng};
 }
 
-/* ===== Formatação conclusão (mês/ano) ===== */
+/* Conclusão (mês/ano) */
 function formatConclusao(p){
   const ano = p.conclusaoAno || p.conclusao;
   const mes = p.conclusaoMes;
@@ -785,7 +795,7 @@ function formatConclusao(p){
   return `${m}/${ano}`;
 }
 
-/* ===== Barra de estado ===== */
+/* Barra estado */
 function setStatus(msg){
   const bar = el('statusBar');
   if(!bar) return;
@@ -798,7 +808,7 @@ function setStatus(msg){
   bar.classList.add('show');
 }
 
-/* ===== Leaflet & Cluster ===== */
+/* Leaflet */
 async function loadLeafletAndCluster(){
   if(!window.L){
     try{ await loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'); }
@@ -831,7 +841,7 @@ function initMap(){
   el('focusAmp').addEventListener('click',()=>MAP.setView(AMP_CENTER,AMP_ZOOM,{animate:true}));
 }
 
-/* ===== Filtros: persistência ===== */
+/* Filtros: persistência */
 function loadFilterState(){
   try{
     const raw = localStorage.getItem(FILTERS_KEY);
@@ -885,7 +895,7 @@ function saveFilterStateFromUI(){
   }
 }
 
-/* ===== Facetas / Filtros ===== */
+/* Facetas */
 function buildFacetOptions(){
   const concelhos=[...new Set(RAW.map(x=>x.concelho).filter(Boolean))].sort();
   const promotores=[...new Set(RAW.map(x=>x.promotor).filter(Boolean))].sort();
@@ -893,45 +903,29 @@ function buildFacetOptions(){
   el('f_promotor').innerHTML='<option value="">(Todos)</option>'+promotores.map(c=>`<option>${c}</option>`).join('');
 }
 
-/* 🔍 Pesquisa agora inclui proprietário e contactos (nome e dígitos do telefone) */
+/* 🔍 Pesquisa global: varre todos os campos simples + dígitos de contactos */
 function matchTokens(obj,tokens){
   if(!tokens.length) return true;
 
-  const phones = [
-    obj.telefone,
-    obj.telemovel,
-    obj.telefone1,
-    obj.telefone2,
-    obj.telefoneProprietario,
-    obj.telemovelProprietario,
-    obj.contactoTelefone,
-    obj.contactoTelemovel
-  ].filter(Boolean).map(String);
-
-  const phoneDigits = phones.map(p=>p.replace(/\D+/g,'')).join(' ');
-
-  const hay=norm([
-    obj.refInterna,
-    obj.nome,
-    obj.concelho,
-    obj.promotor,
-    obj.tipologias,
-    obj.estado,
-    obj.notas,
-    obj.conclusao,
-    obj.preco_m2,
-    obj.proprietario,
-    obj.nomeProprietario,
-    obj.clienteNome,
-    obj.email,
-    phoneDigits
-  ].join(' '));
+  const hayParts=[];
+  const digitParts=[];
+  for(const key in obj){
+    const v=obj[key];
+    if(v===null || v===undefined) continue;
+    if(typeof v==='object' || typeof v==='function') continue;
+    const s=String(v);
+    hayParts.push(norm(s));
+    const d=s.replace(/\D+/g,'');
+    if(d) digitParts.push(d);
+  }
+  const hayText = hayParts.join(' ');
+  const hayDigits = digitParts.join(' ');
 
   return tokens.every(tok=>{
     const tnorm = norm(tok);
     const tdigits = tok.replace(/\D+/g,'');
-    if(tnorm && hay.includes(tnorm)) return true;
-    if(tdigits && hay.includes(tdigits)) return true;
+    if(tnorm && hayText.includes(tnorm)) return true;
+    if(tdigits && hayDigits.includes(tdigits)) return true;
     return false;
   });
 }
@@ -972,7 +966,7 @@ function renderKPIs(){
   el('k_f').textContent=f;
 }
 
-/* ===== Lista ===== */
+/* Lista */
 function stateLabel(s){
   const c=colorByState(s);
   return `<span class="badge" style="border-color:${c};color:${c}">${s||'—'}</span>`;
@@ -986,6 +980,7 @@ function renderList(){
   }
   FILT.forEach(p=>{
     const nameLine = `${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||'—'}`;
+    const typeLabel = p.isEmpreendimento ? 'Empreendimento' : 'Imóvel isolado';
 
     const contactParts=[];
     if(p.proprietario) contactParts.push('Prop.: '+p.proprietario);
@@ -1003,7 +998,10 @@ function renderList(){
             ${p.concelho||'—'}
           </div>
         </div>
-        ${stateLabel(p.estado)}
+        <div>
+          ${stateLabel(p.estado)}
+          <span class="badge badge-type">${typeLabel}</span>
+        </div>
       </div>
       <div class="state">Conclusão: ${formatConclusao(p)} · €/m²: ${
         p.preco_m2? Number(String(p.preco_m2).replace(',','.')).toLocaleString('pt-PT') : '—'
@@ -1035,10 +1033,10 @@ function renderList(){
   });
 }
 
-/* ===== Mapa (marcadores) ===== */
-function makeDivIcon(state){
+/* Mapa (marcadores) */
+function makeDivIcon(state,isEmp){
   return L.divIcon({
-    className: pinClass(state),
+    className: pinClass(state,isEmp),
     html:'',
     iconSize:[28,28],
     iconAnchor:[14,14],
@@ -1054,7 +1052,7 @@ function renderMarkers(){
     const lat=numPT(p._lat), lng=numPT(p._lng);
     if(lat===null||lng===null) return;
     pts.push([lat,lng]);
-    const m=L.marker([lat,lng],{icon:makeDivIcon(p.estado)});
+    const m=L.marker([lat,lng],{icon:makeDivIcon(p.estado, !!p.isEmpreendimento)});
     const tooltip = p.refInterna ? `[${p.refInterna}] ${p.nome||''}` : (p.nome||'');
     m.on('click',()=>openFicha(p,true));
     m.bindTooltip(tooltip,{direction:'top',offset:[0,-8],opacity:.9});
@@ -1066,9 +1064,9 @@ function renderMarkers(){
   }
 }
 
-/* ===== Documentos & pré-visualização ===== */
+/* Documentos & preview */
 const IS_SAFARI=/^((?!chrome|android).)*safari/i.test(navigator.userAgent||'');
-let STORAGE_MODE='idb'; // 'idb' | 'dataurl'
+let STORAGE_MODE='idb';
 const DB_PREFIX='gpp_docs_';
 const TEMP_URLS=new Set();
 
@@ -1096,9 +1094,7 @@ async function saveLocalBlob(file, slug){
         blob
       });
       return 'idb://'+key;
-    }catch{
-      // fallback
-    }
+    }catch{}
   }
   const dataUrl=await new Promise((res,rej)=>{
     const fr=new FileReader();
@@ -1177,7 +1173,7 @@ async function renderDocPreview(container, rawUrl, type){
         const resolved = await resolveLocalUrl(rawUrl);
         container.innerHTML = `
           <div class="hint" style="line-height:1.5">
-            Ficheiro grande (${(size/1024/1024).toFixed(1)} MB). Para pré-visualizar sem bloqueios, hospede num URL HTTPS (ex.: <code>docs/</code> no repositório) e use o link aqui.<br>
+            Ficheiro grande (${(size/1024/1024).toFixed(1)} MB). Para pré-visualizar sem bloqueios, hospede num URL HTTPS e use o link aqui.<br>
             Ainda assim, pode <a class="btn-sm" href="${resolved}" target="_blank" rel="noreferrer noopener">Abrir em nova aba</a> ou <a class="btn-sm" href="${resolved}" download>Transferir</a>.
           </div>`;
         return;
@@ -1234,10 +1230,11 @@ async function renderDocPreview(container, rawUrl, type){
   container.innerHTML=`<a class="btn-sm" href="${url}" target="_blank" rel="noreferrer noopener">Abrir</a>`;
 }
 
-/* ===== Painel lateral (Ficha) ===== */
+/* Painel lateral (Ficha) */
 function openFicha(p,focus=false){
   ACTIVE=p;
   const titleLine = `${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||'—'}`;
+  const typeLabel = p.isEmpreendimento ? 'Empreendimento' : 'Imóvel isolado';
 
   const html=`
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
@@ -1246,6 +1243,7 @@ function openFicha(p,focus=false){
         <div style="font-size:12px;color:#bbb">
           ${p.concelho||'—'}
           · ${stateLabel(p.estado)}
+          · <span class="badge badge-type">${typeLabel}</span>
         </div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
@@ -1343,7 +1341,7 @@ el('closePanel').addEventListener('click',()=>{
   revokeTempUrls();
 });
 
-/* ===== Exportações ===== */
+/* Exportações */
 function exportCSV(){
   const headers=["nome","concelho","estado","promotor","tipologias","conclusao","preco_m2","notas","link","latitude","longitude"];
   const rows=FILT.map(p=>[
@@ -1397,7 +1395,7 @@ function exportGeo(){
 el('exportCsv').addEventListener('click', exportCSV);
 el('exportGeo').addEventListener('click', exportGeo);
 
-/* ===== Persistência (robusta) ===== */
+/* Persistência */
 function saveLS(){
   try{
     localStorage.setItem(LS_KEY, JSON.stringify(RAW));
@@ -1422,7 +1420,7 @@ function loadLS(){
   }
 }
 
-/* ===== Integração com Angariações (gpp_angariacoes_v2) ===== */
+/* Integração Angariações */
 function mergeAngariacoesIntoRAW(){
   let raw=null;
   try{
@@ -1515,7 +1513,7 @@ function mergeAngariacoesIntoRAW(){
   });
 }
 
-/* ===== Conclusão (mês/ano) + auto-update de estado ===== */
+/* Conclusão + auto-update estado */
 function normalizeConclusaoFields(){
   RAW.forEach(p=>{
     const anoStored = p.conclusaoAno || p.conclusao;
@@ -1530,29 +1528,24 @@ function normalizeConclusaoFields(){
     }
   });
 }
-
 function autoUpdateEstadosByConclusao(){
   const today = new Date();
   let changed=false;
-
   RAW.forEach(p=>{
     const ano = Number(p.conclusaoAno || p.conclusao || '');
     const mes = Number(p.conclusaoMes || '');
     if(!ano || !mes) return;
-
     if(p.estado !== 'em_construcao') return;
-
     const lastDay = new Date(ano, mes, 0);
     if(today >= lastDay){
       p.estado = 'concluido';
       changed = true;
     }
   });
-
   return changed;
 }
 
-/* ===== Modo Edição ===== */
+/* Modo edição */
 function setEditMode(on){
   EDIT_MODE=on;
   el('toggleEdit').textContent= on? '🔓 Edição ON' : '🔒 Editar';
@@ -1576,7 +1569,7 @@ el('btnSave').addEventListener('click',()=>{
   alert('Dados guardados localmente.');
 });
 
-/* ===== CSV Import ===== */
+/* CSV Import */
 el('csvFile').addEventListener('change', async (ev)=>{
   const file=ev.target.files?.[0]; if(!file) return;
   if(!window.Papa){ alert('Leitor CSV indisponível.'); return; }
@@ -1631,11 +1624,7 @@ el('csvFile').addEventListener('change', async (ev)=>{
   });
 });
 
-/* ===== Modal Edição ===== */
-function updateLocalAttachVisibility(){
-  const lab=el('attachLocalLabel');
-  if(lab) lab.style.display= EDIT_MODE ? 'inline-block' : 'none';
-}
+/* Modal edição */
 function addDocRow(d){
   const row=document.createElement('div');
   row.className='doc-row';
@@ -1664,8 +1653,13 @@ function fillEditForm(p){
   el('f_concelho_e').value=p.concelho||'';
   el('f_estado').value=p.estado||'';
   el('f_promotor_e').value=p.promotor||'';
-  el('f_tipologias').value=p.tipologias||'';
 
+  el('f_proprietario').value=p.proprietario||'';
+  el('f_telemovel').value=p.telemovel||'';
+  el('f_telefone').value=p.telefone||'';
+  el('f_email').value=p.email||'';
+
+  el('f_tipologias').value=p.tipologias||'';
   el('f_conclusao_mes').value = p.conclusaoMes || '';
   el('f_conclusao_ano').value = p.conclusaoAno || p.conclusao || '';
 
@@ -1683,6 +1677,7 @@ el('btnNew').addEventListener('click',()=>{
   EDIT_INDEX=-1;
   fillEditForm({
     nome:'',concelho:'',estado:'',promotor:'',
+    proprietario:'',telemovel:'',telefone:'',email:'',
     tipologias:'',conclusao:'',conclusaoAno:'',conclusaoMes:'',
     preco_m2:'',
     notas:'',link:'',_lat:'',_lng:'',docs:[]
@@ -1731,6 +1726,12 @@ el('saveEdit').addEventListener('click',()=>{
     concelho:el('f_concelho_e').value.trim(),
     estado:el('f_estado').value,
     promotor:el('f_promotor_e').value.trim(),
+
+    proprietario:el('f_proprietario').value.trim(),
+    telemovel:el('f_telemovel').value.trim(),
+    telefone:el('f_telefone').value.trim(),
+    email:el('f_email').value.trim(),
+
     tipologias:el('f_tipologias').value.trim(),
     conclusaoAno: anoC,
     conclusaoMes: mesC,
@@ -1756,6 +1757,8 @@ el('saveEdit').addEventListener('click',()=>{
     return;
   }
   p.slug=slugify(p.nome);
+  p.isEmpreendimento = true; // registos criados aqui são tratados como empreendimentos
+
   if(EDIT_INDEX>=0){
     RAW[EDIT_INDEX]=Object.assign(RAW[EDIT_INDEX],p);
   } else {
@@ -1778,7 +1781,7 @@ el('saveEdit').addEventListener('click',()=>{
   run();
 });
 
-/* ===== Apagar por slug ===== */
+/* Apagar */
 function deleteBySlug(slug){
   if(!EDIT_MODE) return;
   const idx = RAW.findIndex(p => p.slug === slug);
@@ -1797,7 +1800,7 @@ function deleteBySlug(slug){
   }
 }
 
-/* ===== UI filtros ===== */
+/* UI filtros */
 document.querySelectorAll('#estadoChips .chip').forEach(ch=>{
   ch.addEventListener('click',()=>{
     document.querySelectorAll('#estadoChips .chip').forEach(c=>c.classList.remove('active'));
@@ -1827,8 +1830,6 @@ el('clear').addEventListener('click',()=>{
   saveFilterStateFromUI();
   run();
 });
-
-/* ===== Eventos diversos ===== */
 function setEditModeVisibility(){
   ['btnImport','btnNew','btnSave','btnClearAll','attachLocalLabel'].forEach(id=>{
     const b=el(id);
@@ -1838,7 +1839,7 @@ function setEditModeVisibility(){
 }
 el('toggleEdit').addEventListener('click',()=> setTimeout(setEditModeVisibility,0));
 
-/* ===== Ciclo render ===== */
+/* Ciclo render */
 function run(){
   applyFilters();
   renderKPIs();
@@ -1846,7 +1847,7 @@ function run(){
   renderMarkers();
 }
 
-/* ===== Picking coordenadas ===== */
+/* Picking coordenadas */
 document.addEventListener('click',(e)=>{
   if(!PICKING || !MAP) return;
   if(!e.target.closest('#map')) return;
@@ -1864,7 +1865,7 @@ el('pickCoord').addEventListener('click',()=>{
   b.classList.toggle('primary',PICKING);
 });
 
-/* ===== Contexto vindo de outras páginas ===== */
+/* Contexto URL */
 function applyUrlContext(){
   try{
     const params = new URLSearchParams(window.location.search);
@@ -1903,7 +1904,7 @@ function applyUrlContext(){
   }
 }
 
-/* ===== Arranque ===== */
+/* Arranque */
 (async function init(){
   setStatus('A iniciar mapa…');
 
