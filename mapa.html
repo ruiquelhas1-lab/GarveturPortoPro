@@ -643,7 +643,28 @@ input[type="file"]{display:none}
         </div>
         <div class="form-field"><label>Promotor</label><input id="f_promotor_e"></div>
         <div class="form-field"><label>Tipologias</label><input id="f_tipologias"></div>
-        <div class="form-field"><label>Conclusão (ano)</label><input id="f_conclusao" type="number" min="1900" max="2100"></div>
+        <!-- NOVO: Conclusão mês/ano -->
+        <div class="form-field">
+          <label>Conclusão (mês/ano)</label>
+          <div style="display:flex; gap:6px;">
+            <select id="f_conclusao_mes">
+              <option value="">Mês</option>
+              <option value="1">Jan</option>
+              <option value="2">Fev</option>
+              <option value="3">Mar</option>
+              <option value="4">Abr</option>
+              <option value="5">Mai</option>
+              <option value="6">Jun</option>
+              <option value="7">Jul</option>
+              <option value="8">Ago</option>
+              <option value="9">Set</option>
+              <option value="10">Out</option>
+              <option value="11">Nov</option>
+              <option value="12">Dez</option>
+            </select>
+            <input id="f_conclusao_ano" type="number" min="1900" max="2100" placeholder="Ano">
+          </div>
+        </div>
         <div class="form-field"><label>€/m²</label><input id="f_preco" type="number" min="0" step="1"></div>
         <div class="form-field"><label>Link</label><input id="f_link"></div>
         <div class="form-field"><label>Latitude</label><input id="f_lat" type="number" step="0.000001"></div>
@@ -739,6 +760,17 @@ function numPT(v){
   return Number.isFinite(n)? n : null;
 }
 
+/* ===== Formatação conclusão (mês/ano) ===== */
+function formatConclusao(p){
+  const ano = p.conclusaoAno || p.conclusao;
+  const mes = p.conclusaoMes;
+  if(!ano && !mes) return '—';
+  if(!ano) return '—';
+  if(!mes) return String(ano);
+  const m = String(mes).padStart(2,'0');
+  return `${m}/${ano}`;
+}
+
 /* ===== Barra de estado ===== */
 function setStatus(msg){
   const bar = el('statusBar');
@@ -804,9 +836,12 @@ function applyFilters(){
     if(!matchTokens(p,tokens)) return false;
     if(UIState.concelho && p.concelho!==UIState.concelho) return false;
     if(UIState.estado && p.estado!==UIState.estado) return false;
-    const c=numPT(p.conclusao);
+
+    const ano = p.conclusaoAno || p.conclusao;
+    const c = numPT(ano);
     if(UIState.cmin && c!==null && c<Number(UIState.cmin)) return false;
     if(UIState.cmax && c!==null && c>Number(UIState.cmax)) return false;
+
     const m2=numPT(p.preco_m2);
     if(UIState.pmin && m2!==null && m2<Number(UIState.pmin)) return false;
     if(UIState.pmax && m2!==null && m2>Number(UIState.pmax)) return false;
@@ -853,7 +888,7 @@ function renderList(){
         </div>
         ${stateLabel(p.estado)}
       </div>
-      <div class="state">Conclusão: ${p.conclusao||'—'} · €/m²: ${
+      <div class="state">Conclusão: ${formatConclusao(p)} · €/m²: ${
         p.preco_m2? Number(String(p.preco_m2).replace(',','.')).toLocaleString('pt-PT') : '—'
       }</div>
       <div class="actions">
@@ -1097,7 +1132,7 @@ function openFicha(p,focus=false){
       <div>
         <div class="meta-line"><b>Promotor:</b> ${p.promotor||'—'}</div>
         <div class="meta-line"><b>Tipologias:</b> ${p.tipologias||'—'}</div>
-        <div class="meta-line"><b>Conclusão:</b> ${p.conclusao||'—'}</div>
+        <div class="meta-line"><b>Conclusão:</b> ${formatConclusao(p)}</div>
         <div class="meta-line"><b>€/m²:</b> ${
           p.preco_m2? Number(String(p.preco_m2).replace(',','.')).toLocaleString('pt-PT') : '—'
         }</div>
@@ -1120,13 +1155,13 @@ function openFicha(p,focus=false){
     if(numPT(p._lat)!==null && numPT(p._lng)!==null) MAP?.setView([p._lat,p._lng],16,{animate:true});
   });
   el('panelInner').querySelector('[data-act="copy"]')?.addEventListener('click',async ()=>{
-    const resumo=`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${p.conclusao||'—'} · ${p.link||''}`.trim();
+    const resumo=`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${formatConclusao(p)} · ${p.link||''}`.trim();
     try{ await navigator.clipboard.writeText(resumo);}catch{}
   });
   el('panelInner').querySelector('[data-act="share"]')?.addEventListener('click',async ()=>{
     const shareData={
       title:p.nome||'Empreendimento',
-      text:`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${p.conclusao||'—'}`,
+      text:`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${formatConclusao(p)}`,
       url: location.href
     };
     if(navigator.share){
@@ -1174,7 +1209,7 @@ el('closePanel').addEventListener('click',()=>{
 function exportCSV(){
   const headers=["nome","concelho","estado","promotor","tipologias","conclusao","preco_m2","notas","link","latitude","longitude"];
   const rows=FILT.map(p=>[
-    p.nome,p.concelho,p.estado,p.promotor,p.tipologias,p.conclusao,
+    p.nome,p.concelho,p.estado,p.promotor,p.tipologias,(p.conclusaoAno||p.conclusao||''),
     p.preco_m2||'',p.notas||'',p.link||'',p._lat||'',p._lng||''
   ]);
   const csv=toCSV([headers,...rows]);
@@ -1202,6 +1237,8 @@ function exportGeo(){
         promotor:p.promotor,
         tipologias:p.tipologias,
         conclusao:p.conclusao,
+        conclusaoAno:p.conclusaoAno,
+        conclusaoMes:p.conclusaoMes,
         preco_m2:p.preco_m2,
         notas:p.notas,
         link:p.link,
@@ -1246,6 +1283,46 @@ function loadLS(){
     LS_ERROR=true;
     return null;
   }
+}
+
+/* ===== Conclusão (mês/ano) + auto-update de estado ===== */
+function normalizeConclusaoFields(){
+  RAW.forEach(p=>{
+    const anoStored = p.conclusaoAno || p.conclusao;
+    if(anoStored && !p.conclusaoAno){
+      p.conclusaoAno = Number(anoStored);
+    }
+    if(p.conclusaoAno && !p.conclusao){
+      p.conclusao = p.conclusaoAno;
+    }
+    // Para dados antigos sem mês, assumimos dezembro (mais conservador)
+    if(p.conclusaoAno && (p.conclusaoMes === undefined || p.conclusaoMes === null || p.conclusaoMes === '')){
+      p.conclusaoMes = 12;
+    }
+  });
+}
+
+function autoUpdateEstadosByConclusao(){
+  const today = new Date();
+  let changed=false;
+
+  RAW.forEach(p=>{
+    const ano = Number(p.conclusaoAno || p.conclusao || '');
+    const mes = Number(p.conclusaoMes || '');
+    if(!ano || !mes) return;
+
+    // Apenas avançar automaticamente o que está em construção
+    if(p.estado !== 'em_construcao') return;
+
+    // Último dia do mês de conclusão
+    const lastDay = new Date(ano, mes, 0);
+    if(today >= lastDay){
+      p.estado = 'concluido';
+      changed = true;
+    }
+  });
+
+  return changed;
 }
 
 /* ===== Modo Edição ===== */
@@ -1313,7 +1390,12 @@ el('csvFile').addEventListener('change', async (ev)=>{
           RAW.push(n);
         }
       });
-      saveLS();
+
+      // Normalizar novos dados (ano→ano+dezembro) e auto-update
+      normalizeConclusaoFields();
+      const changed = autoUpdateEstadosByConclusao();
+      if(changed) saveLS(); else saveLS();
+
       buildFacetOptions();
       run();
       alert(`Importação concluída: ${incoming.length} registos processados.`);
@@ -1357,7 +1439,10 @@ function fillEditForm(p){
   el('f_estado').value=p.estado||'';
   el('f_promotor_e').value=p.promotor||'';
   el('f_tipologias').value=p.tipologias||'';
-  el('f_conclusao').value=p.conclusao||'';
+
+  el('f_conclusao_mes').value = p.conclusaoMes || '';
+  el('f_conclusao_ano').value = p.conclusaoAno || p.conclusao || '';
+
   el('f_preco').value=p.preco_m2||'';
   el('f_link').value=p.link||'';
   el('f_lat').value=p._lat!=null? p._lat : '';
@@ -1372,7 +1457,8 @@ el('btnNew').addEventListener('click',()=>{
   EDIT_INDEX=-1;
   fillEditForm({
     nome:'',concelho:'',estado:'',promotor:'',
-    tipologias:'',conclusao:'',preco_m2:'',
+    tipologias:'',conclusao:'',conclusaoAno:'',conclusaoMes:'',
+    preco_m2:'',
     notas:'',link:'',_lat:'',_lng:'',docs:[]
   });
   el('editTitle').textContent='Novo Empreendimento';
@@ -1411,13 +1497,18 @@ el('attachLocalInput').addEventListener('change', async (ev)=>{
 el('addDoc').addEventListener('click',()=> addDocRow({title:'', type:'pdf', url:''}));
 
 el('saveEdit').addEventListener('click',()=>{
+  const anoC = el('f_conclusao_ano').value ? Number(el('f_conclusao_ano').value) : '';
+  const mesC = el('f_conclusao_mes').value ? Number(el('f_conclusao_mes').value) : '';
+
   const p={
     nome:el('f_nome').value.trim(),
     concelho:el('f_concelho_e').value.trim(),
     estado:el('f_estado').value,
     promotor:el('f_promotor_e').value.trim(),
     tipologias:el('f_tipologias').value.trim(),
-    conclusao:el('f_conclusao').value? Number(el('f_conclusao').value): '',
+    conclusaoAno: anoC,
+    conclusaoMes: mesC,
+    conclusao: anoC || '',
     preco_m2:el('f_preco').value? Number(el('f_preco').value): '',
     notas:el('f_notas').value.trim(),
     link:el('f_link').value.trim(),
@@ -1450,14 +1541,19 @@ el('saveEdit').addEventListener('click',()=>{
       RAW.push(p);
     }
   }
+
+  // Normalizar e aplicar auto-update imediato (caso tenha data já no passado)
+  normalizeConclusaoFields();
+  const changed = autoUpdateEstadosByConclusao();
   saveLS();
+
   el('editModal').classList.remove('show');
   PICKING=false;
   buildFacetOptions();
   run();
 });
 
-/* ===== 🚩 NOVO: função para apagar por slug (botão "Apagar" da lista) ===== */
+/* ===== 🚩 Apagar por slug (botão "Apagar" da lista) ===== */
 function deleteBySlug(slug){
   if(!EDIT_MODE) return;
   const idx = RAW.findIndex(p => p.slug === slug);
@@ -1555,6 +1651,12 @@ el('pickCoord').addEventListener('click',()=>{
 
   const mem=loadLS();
   RAW=Array.isArray(mem)? mem : [];
+
+  // Normalizar dados antigos e aplicar auto-update de estado
+  normalizeConclusaoFields();
+  const changed = autoUpdateEstadosByConclusao();
+  if(changed) saveLS();
+
   buildFacetOptions();
   run();
 
