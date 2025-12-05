@@ -553,7 +553,7 @@ input[type="file"]{display:none}
       <div class="section">
         <div class="label">Pesquisa global</div>
         <div class="field"><input id="q" placeholder="Ex.: 'Gaia licenciado 2027 promotor X'"></div>
-        <div class="hint">Pesquisa por nome, concelho, promotor, tipologias, estado, conclusão, notas e €/m².</div>
+        <div class="hint">Pesquisa por ref. interna, nome, concelho, promotor, tipologias, estado, conclusão, notas e €/m².</div>
       </div>
       <div class="section">
         <div class="label">Concelho</div>
@@ -893,7 +893,17 @@ function buildFacetOptions(){
 }
 function matchTokens(obj,tokens){
   if(!tokens.length) return true;
-  const hay=norm([obj.nome,obj.concelho,obj.promotor,obj.tipologias,obj.estado,obj.notas,obj.conclusao,obj.preco_m2].join(' '));
+  const hay=norm([
+    obj.refInterna,
+    obj.nome,
+    obj.concelho,
+    obj.promotor,
+    obj.tipologias,
+    obj.estado,
+    obj.notas,
+    obj.conclusao,
+    obj.preco_m2
+  ].join(' '));
   return tokens.every(tok=>hay.includes(tok));
 }
 function applyFilters(){
@@ -951,7 +961,10 @@ function renderList(){
       <div class="row">
         <div>
           <div class="name">${p.nome||'—'}</div>
-          <div class="meta">${p.concelho||'—'}</div>
+          <div class="meta">
+            ${p.concelho||'—'}
+            ${p.refInterna ? ' · Ref. ' + p.refInterna : ''}
+          </div>
         </div>
         ${stateLabel(p.estado)}
       </div>
@@ -962,6 +975,11 @@ function renderList(){
         <button class="btn" data-act="zoom">Abrir no mapa</button>
         ${p.link? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>` : ''}
         <button class="btn" data-act="open">Detalhes</button>
+        ${p._fromAngariacoes && p.refInterna ? `
+          <a class="btn" data-act="ang" href="./angariacoes.html?ref=${encodeURIComponent(p.refInterna)}&abrir=1" target="_blank" rel="noreferrer">
+            Ficha angariação
+          </a>` : ''
+        }
         ${EDIT_MODE ? `
           <button class="btn ghost" data-act="edit">Editar</button>
           <button class="btn" style="border-color:#cc4b4b;color:#ffdddd" data-act="del">Apagar</button>` : ''
@@ -1184,12 +1202,21 @@ function openFicha(p,focus=false){
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
       <div>
         <div style="font-weight:800;font-size:16px">${p.nome||'—'}</div>
-        <div style="font-size:12px;color:#bbb">${p.concelho||'—'} · ${stateLabel(p.estado)}</div>
+        <div style="font-size:12px;color:#bbb">
+          ${p.concelho||'—'}
+          ${p.refInterna ? ' · Ref. ' + p.refInterna : ''}
+          · ${stateLabel(p.estado)}
+        </div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn" data-act="center">Centrar</button>
         <a class="btn" href="https://www.google.com/maps?q=${p._lat},${p._lng}" target="_blank" rel="noreferrer">Google Maps</a>
         ${p.link? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>`:''}
+        ${p._fromAngariacoes && p.refInterna ? `
+          <a class="btn" href="./angariacoes.html?ref=${encodeURIComponent(p.refInterna)}&abrir=1" target="_blank" rel="noreferrer">
+            Ficha angariação
+          </a>` : ''
+        }
         <button class="btn" data-act="copy">Copiar resumo</button>
         <button class="btn" data-act="share">Partilhar</button>
         ${EDIT_MODE? `<button class="btn ghost" data-act="edit">Editar</button>`:''}
@@ -1198,6 +1225,7 @@ function openFicha(p,focus=false){
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
       <div>
         <div class="meta-line"><b>Promotor:</b> ${p.promotor||'—'}</div>
+        <div class="meta-line"><b>Ref. interna:</b> ${p.refInterna || '—'}</div>
         <div class="meta-line"><b>Tipologias:</b> ${p.tipologias||'—'}</div>
         <div class="meta-line"><b>Conclusão:</b> ${formatConclusao(p)}</div>
         <div class="meta-line"><b>€/m²:</b> ${
@@ -1222,13 +1250,13 @@ function openFicha(p,focus=false){
     if(numPT(p._lat)!==null && numPT(p._lng)!==null) MAP?.setView([p._lat,p._lng],16,{animate:true});
   });
   el('panelInner').querySelector('[data-act="copy"]')?.addEventListener('click',async ()=>{
-    const resumo=`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${formatConclusao(p)} · ${p.link||''}`.trim();
+    const resumo=`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${formatConclusao(p)} · Ref. ${p.refInterna || '-'} · ${p.link||''}`.trim();
     try{ await navigator.clipboard.writeText(resumo);}catch{}
   });
   el('panelInner').querySelector('[data-act="share"]')?.addEventListener('click',async ()=>{
     const shareData={
       title:p.nome||'Empreendimento',
-      text:`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${formatConclusao(p)}`,
+      text:`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${formatConclusao(p)}${p.refInterna ? ' · Ref. ' + p.refInterna : ''}`,
       url: location.href
     };
     if(navigator.share){
@@ -1419,7 +1447,8 @@ function mergeAngariacoesIntoRAW(){
       _lat: coords.lat,
       _lng: coords.lng,
       docs: [],
-      _fromAngariacoes: true
+      _fromAngariacoes: true,
+      refInterna: d.refInterna || ''
     };
 
     if(bySlug.has(slug)){
@@ -1807,7 +1836,8 @@ function applyUrlContext(){
       const busc = norm(nomeParam);
       target = RAW.find(p=>{
         const n = norm(p.nome||'');
-        return n === busc || n.includes(busc) || busc.includes(n);
+        const r = norm(p.refInterna || '');
+        return n === busc || n.includes(busc) || busc.includes(n) || (r && (r === busc || r.includes(busc) || busc.includes(r)));
       });
     }
 
