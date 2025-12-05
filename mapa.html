@@ -643,7 +643,7 @@ input[type="file"]{display:none}
         </div>
         <div class="form-field"><label>Promotor</label><input id="f_promotor_e"></div>
         <div class="form-field"><label>Tipologias</label><input id="f_tipologias"></div>
-        <!-- Conclusão (mês/ano) -->
+        <!-- Conclusão mês/ano -->
         <div class="form-field">
           <label>Conclusão (mês/ano)</label>
           <div style="display:flex; gap:6px;">
@@ -759,6 +759,16 @@ function numPT(v){
   if(v===null||v===undefined||v==='') return null;
   const n=Number(String(v).replace(',','.'));
   return Number.isFinite(n)? n : null;
+}
+
+/* Novo: parser simples de coordenadas GPS vindas das angariações */
+function parseGps(gps){
+  if(!gps) return {lat:null,lng:null};
+  const m = String(gps).match(/-?\d+(?:[.,]\d+)?/g);
+  if(!m || m.length<2) return {lat:null,lng:null};
+  const lat = numPT(m[0]);
+  const lng = numPT(m[1]);
+  return {lat,lng};
 }
 
 /* ===== Formatação conclusão (mês/ano) ===== */
@@ -1325,61 +1335,99 @@ function saveLS(){
   }
 }
 function loadLS(){
-  const CANDIDATES = [
-    LS_KEY,                    // "gpp_dataset_v1" - mapa padrão
-    'gpp_angariacoes_v1',      // provável chave usada em Angariações
-    'gpp_empreendimentos_v1'   // fallback extra
-  ];
-
-  let foundHeavy = false;
-  let anyError  = false;
-
-  for (const key of CANDIDATES){
-    try{
-      const raw = localStorage.getItem(key);
-      if(!raw) continue;
-
-      // Proteção contra datasets gigantes para não bloquear o mapa
-      if(raw.length > 2000000){ // ~2 MB
-        console.warn('Dataset local muito grande em', key, '- a ignorar para evitar bloqueios.');
-        foundHeavy = true;
-        continue;
-      }
-
-      const parsed = JSON.parse(raw);
-
-      // 1) Caso clássico: array na raiz
-      if (Array.isArray(parsed)) {
-        console.info('Dataset carregado de', key, 'com', parsed.length, 'registos.');
-        return parsed;
-      }
-
-      // 2) Objetos do tipo { empreendimentos: [...] } ou equivalentes
-      if (parsed && typeof parsed === 'object') {
-        if (Array.isArray(parsed.empreendimentos)) {
-          console.info('Dataset (empreendimentos) carregado de', key, 'com', parsed.empreendimentos.length, 'registos.');
-          return parsed.empreendimentos;
-        }
-        if (Array.isArray(parsed.items)) {
-          console.info('Dataset (items) carregado de', key, 'com', parsed.items.length, 'registos.');
-          return parsed.items;
-        }
-        if (Array.isArray(parsed.rows)) {
-          console.info('Dataset (rows) carregado de', key, 'com', parsed.rows.length, 'registos.');
-          return parsed.rows;
-        }
-      }
-    }catch(e){
-      console.warn('Falha a ler dados locais da chave', key, e);
-      anyError = true;
-      continue;
+  try{
+    const x=localStorage.getItem(LS_KEY);
+    if(!x) return null;
+    // Proteção contra datasets gigantes (ex.: data: URLs enormes)
+    if(x.length > 500000){ // ~0.5 MB
+      console.warn('Dataset local demasiado grande, a ignorar para evitar bloqueios.');
+      LS_SKIPPED=true;
+      return null;
     }
+    return JSON.parse(x);
+  }catch(e){
+    console.warn('Falha a ler dados locais, a iniciar base vazia.', e);
+    LS_ERROR=true;
+    return null;
   }
+}
 
-  if(foundHeavy) LS_SKIPPED = true;
-  if(anyError)  LS_ERROR   = true;
+/* ===== Integração com Angariações (gpp_angariacoes_v2) ===== */
+function mergeAngariacoesIntoRAW(){
+  let raw=null;
+  try{
+    raw = localStorage.getItem('gpp_angariacoes_v2');
+  }catch(e){
+    console.warn('Sem acesso ao localStorage de angariações', e);
+    return;
+  }
+  if(!raw) return;
+  let store;
+  try{
+    store = JSON.parse(raw);
+  }catch(e){
+    console.warn('JSON inválido em gpp_angariacoes_v2', e);
+    return;
+  }
+  if(!store || !Array.isArray(store.deals)) return;
 
-  return null;
+  const deals = store.deals;
+  const bySlug = new Map(RAW.map(p=>[p.slug || slugify(p.nome||''), p]));
+
+  deals.forEach(d=>{
+    if(!d) return;
+    if(!d.isEmpreendimento) return; // só empreendimentos
+    const gps = d.gps || '';
+    const coords = parseGps(gps);
+    if(coords.lat===null || coords.lng===null) return; // sem coordenadas, não entra no mapa
+
+    const nome = d.nomeEmp || d.tituloImovel || d.refInterna || 'Empreendimento';
+    const slug = 'ang-' + (d.id || slugify(nome));
+
+    let ano = d.anoConclEmp || d.anoConclusao || '';
+    ano = ano ? Number(ano) : '';
+    let mes = d.mesConclEmp || d.mesConclusao || '';
+    mes = mes ? Number(mes) : '';
+
+    const estado = (function(){
+      const e = d.estadoImovel;
+      if(e === 'construcao' || e === 'projeto') return 'em_construcao';
+      if(e === 'novo') return 'licenciado';
+      return '';
+    })();
+
+    let preco_m2 = '';
+    const preco = numPT(d.precoPedido);
+    const areaABP = numPT(d.areaABP || d.areaBruta);
+    if(preco !== null && areaABP && areaABP>0){
+      preco_m2 = Math.round(preco/areaABP);
+    }
+
+    const obj = {
+      slug,
+      nome,
+      concelho: d.concelho || '',
+      estado,
+      promotor: d.promotor || '',
+      tipologias: d.tipologiasEmp || '',
+      conclusaoAno: ano || '',
+      conclusaoMes: mes || '',
+      conclusao: ano || '',
+      preco_m2: preco_m2 || '',
+      notas: d.observacoes || '',
+      link: d.linkUrl || '',
+      _lat: coords.lat,
+      _lng: coords.lng,
+      docs: [],
+      _fromAngariacoes: true
+    };
+
+    if(bySlug.has(slug)){
+      Object.assign(bySlug.get(slug), obj);
+    }else{
+      RAW.push(obj);
+    }
+  });
 }
 
 /* ===== Conclusão (mês/ano) + auto-update de estado ===== */
@@ -1790,7 +1838,10 @@ function applyUrlContext(){
   const mem=loadLS();
   RAW=Array.isArray(mem)? mem : [];
 
-  // Normalizar dados antigos e aplicar auto-update de estado
+  // NOVO: incorporar automaticamente empreendimentos das Angariações
+  mergeAngariacoesIntoRAW();
+
+  // Normalizar dados e auto-update de estado
   normalizeConclusaoFields();
   const changed = autoUpdateEstadosByConclusao();
   if(changed) saveLS();
