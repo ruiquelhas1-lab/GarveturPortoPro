@@ -1457,6 +1457,25 @@ el('saveEdit').addEventListener('click',()=>{
   run();
 });
 
+/* ===== 🚩 NOVO: função para apagar por slug (botão "Apagar" da lista) ===== */
+function deleteBySlug(slug){
+  if(!EDIT_MODE) return;
+  const idx = RAW.findIndex(p => p.slug === slug);
+  if(idx === -1) return;
+
+  if(!confirm('Tem a certeza que pretende apagar este empreendimento do mapa? Esta ação não pode ser anulada.')) return;
+
+  const wasActive = ACTIVE && ACTIVE.slug === slug;
+  RAW.splice(idx, 1);
+  saveLS();
+  run();
+
+  if(wasActive){
+    el('side-panel').classList.remove('show');
+    revokeTempUrls();
+  }
+}
+
 /* ===== UI filtros ===== */
 document.querySelectorAll('#estadoChips .chip').forEach(ch=>{
   ch.addEventListener('click',()=>{
