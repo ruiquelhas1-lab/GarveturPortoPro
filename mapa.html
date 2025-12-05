@@ -553,7 +553,10 @@ input[type="file"]{display:none}
       <div class="section">
         <div class="label">Pesquisa global</div>
         <div class="field"><input id="q" placeholder="Ex.: 'Gaia licenciado 2027 promotor X'"></div>
-        <div class="hint">Pesquisa por ref. interna, nome, concelho, promotor, tipologias, estado, conclusão, notas e €/m².</div>
+        <div class="hint">
+          Pesquisa por ref. interna, nome, concelho, promotor, tipologias, estado, conclusão, notas, €/m²,
+          <b>proprietário, telefone/telemóvel e email</b>.
+        </div>
       </div>
       <div class="section">
         <div class="label">Concelho</div>
@@ -563,7 +566,7 @@ input[type="file"]{display:none}
           <div class="chip active" data-v="">Todos</div>
           <div class="chip" data-v="em_construcao">Em construção</div>
           <div class="chip" data-v="licenciado">Licenciado</div>
-          <div class="chip" data-v="concluido">Concluído</</div>
+          <div class="chip" data-v="concluido">Concluído</div>
         </div>
       </div>
       <div class="section">
@@ -761,7 +764,7 @@ function numPT(v){
   return Number.isFinite(n)? n : null;
 }
 
-/* Novo: parser simples de coordenadas GPS vindas das angariações */
+/* Parser de coordenadas GPS vindas das angariações */
 function parseGps(gps){
   if(!gps) return {lat:null,lng:null};
   const m = String(gps).match(/-?\d+(?:[.,]\d+)?/g);
@@ -846,7 +849,6 @@ function loadFilterState(){
     UIState.promotor = obj.promotor || '';
     UIState.tipos    = obj.tipos    || '';
 
-    // Repõe nos campos
     if(el('q'))           el('q').value           = UIState.q;
     if(el('f_concelho'))  el('f_concelho').value  = UIState.concelho;
     if(el('f_cmin'))      el('f_cmin').value      = UIState.cmin;
@@ -856,7 +858,6 @@ function loadFilterState(){
     if(el('f_promotor'))  el('f_promotor').value  = UIState.promotor;
     if(el('f_tipos'))     el('f_tipos').value     = UIState.tipos;
 
-    // Estado (chips)
     const chips = document.querySelectorAll('#estadoChips .chip');
     chips.forEach(c => c.classList.remove('active'));
     let matched = false;
@@ -891,8 +892,24 @@ function buildFacetOptions(){
   el('f_concelho').innerHTML='<option value="">(Todos)</option>'+concelhos.map(c=>`<option>${c}</option>`).join('');
   el('f_promotor').innerHTML='<option value="">(Todos)</option>'+promotores.map(c=>`<option>${c}</option>`).join('');
 }
+
+/* 🔍 Pesquisa agora inclui proprietário e contactos (nome e dígitos do telefone) */
 function matchTokens(obj,tokens){
   if(!tokens.length) return true;
+
+  const phones = [
+    obj.telefone,
+    obj.telemovel,
+    obj.telefone1,
+    obj.telefone2,
+    obj.telefoneProprietario,
+    obj.telemovelProprietario,
+    obj.contactoTelefone,
+    obj.contactoTelemovel
+  ].filter(Boolean).map(String);
+
+  const phoneDigits = phones.map(p=>p.replace(/\D+/g,'')).join(' ');
+
   const hay=norm([
     obj.refInterna,
     obj.nome,
@@ -902,10 +919,23 @@ function matchTokens(obj,tokens){
     obj.estado,
     obj.notas,
     obj.conclusao,
-    obj.preco_m2
+    obj.preco_m2,
+    obj.proprietario,
+    obj.nomeProprietario,
+    obj.clienteNome,
+    obj.email,
+    phoneDigits
   ].join(' '));
-  return tokens.every(tok=>hay.includes(tok));
+
+  return tokens.every(tok=>{
+    const tnorm = norm(tok);
+    const tdigits = tok.replace(/\D+/g,'');
+    if(tnorm && hay.includes(tnorm)) return true;
+    if(tdigits && hay.includes(tdigits)) return true;
+    return false;
+  });
 }
+
 function applyFilters(){
   const tokens=norm(UIState.q).split(/\s+/).filter(Boolean);
   const tiposTokens=norm(UIState.tipos||'').split(/[,\s]+/).filter(Boolean);
@@ -956,6 +986,13 @@ function renderList(){
   }
   FILT.forEach(p=>{
     const nameLine = `${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||'—'}`;
+
+    const contactParts=[];
+    if(p.proprietario) contactParts.push('Prop.: '+p.proprietario);
+    const telShow = p.telemovel || p.telefone;
+    if(telShow) contactParts.push('Tlm/Tel: '+telShow);
+    const contactHtml = contactParts.length ? `<div class="state">${contactParts.join(' · ')}</div>` : '';
+
     const div=document.createElement('div');
     div.className='card';
     div.innerHTML=`
@@ -971,6 +1008,7 @@ function renderList(){
       <div class="state">Conclusão: ${formatConclusao(p)} · €/m²: ${
         p.preco_m2? Number(String(p.preco_m2).replace(',','.')).toLocaleString('pt-PT') : '—'
       }</div>
+      ${contactHtml}
       <div class="actions">
         <button class="btn" data-act="zoom">Abrir no mapa</button>
         ${p.link? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>` : ''}
@@ -1200,6 +1238,7 @@ async function renderDocPreview(container, rawUrl, type){
 function openFicha(p,focus=false){
   ACTIVE=p;
   const titleLine = `${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||'—'}`;
+
   const html=`
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
       <div>
@@ -1226,6 +1265,9 @@ function openFicha(p,focus=false){
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
       <div>
         <div class="meta-line"><b>Promotor:</b> ${p.promotor||'—'}</div>
+        <div class="meta-line"><b>Proprietário:</b> ${p.proprietario || '—'}</div>
+        <div class="meta-line"><b>Tlm/Tel:</b> ${p.telemovel || p.telefone || '—'}</div>
+        <div class="meta-line"><b>Email:</b> ${p.email || '—'}</div>
         <div class="meta-line"><b>Ref. interna:</b> ${p.refInterna || '—'}</div>
         <div class="meta-line"><b>Tipologias:</b> ${p.tipologias||'—'}</div>
         <div class="meta-line"><b>Conclusão:</b> ${formatConclusao(p)}</div>
@@ -1367,8 +1409,7 @@ function loadLS(){
   try{
     const x=localStorage.getItem(LS_KEY);
     if(!x) return null;
-    // Proteção contra datasets gigantes (ex.: data: URLs enormes)
-    if(x.length > 500000){ // ~0.5 MB
+    if(x.length > 500000){
       console.warn('Dataset local demasiado grande, a ignorar para evitar bloqueios.');
       LS_SKIPPED=true;
       return null;
@@ -1406,15 +1447,13 @@ function mergeAngariacoesIntoRAW(){
   deals.forEach(d=>{
     if(!d) return;
 
-    // Agora aceita empreendimentos e imóveis isolados — desde que tenham GPS
     const gps = d.gps || '';
     const coords = parseGps(gps);
-    if(coords.lat===null || coords.lng===null) return; // sem coordenadas, não entra no mapa
+    if(coords.lat===null || coords.lng===null) return;
 
     const isEmp = !!d.isEmpreendimento;
 
     const nome = d.nomeEmp || d.tituloImovel || d.refInterna || (isEmp ? 'Empreendimento' : 'Imóvel');
-
     const baseId = d.id || slugify(nome);
     const slug = 'ang-' + baseId;
 
@@ -1423,12 +1462,6 @@ function mergeAngariacoesIntoRAW(){
     let mes = d.mesConclEmp || d.mesConclusao || '';
     mes = mes ? Number(mes) : '';
 
-    // Mapeamento de estado a partir de estadoImovel:
-    // novo → concluido (verde)
-    // usado → concluido (verde)
-    // recuperado → concluido (verde)
-    // construcao → em_construcao (vermelho)
-    // projeto → licenciado (azul)
     const estado = (function(){
       const e = d.estadoImovel;
       if(e === 'construcao') return 'em_construcao';
@@ -1443,6 +1476,11 @@ function mergeAngariacoesIntoRAW(){
     if(preco !== null && areaABP && areaABP>0){
       preco_m2 = Math.round(preco/areaABP);
     }
+
+    const proprietario = d.nomeProprietario || d.proprietario || d.clienteNome || d.nomeCliente || '';
+    const telefone    = d.telefoneProprietario || d.telefone || d.contactoTelefone || d.telefone1 || '';
+    const telemovel   = d.telemovelProprietario || d.telemovel || d.contactoTelemovel || d.telefone2 || '';
+    const email       = d.emailProprietario || d.email || d.contactoEmail || '';
 
     const obj = {
       slug,
@@ -1462,7 +1500,11 @@ function mergeAngariacoesIntoRAW(){
       docs: [],
       _fromAngariacoes: true,
       isEmpreendimento: isEmp,
-      refInterna: d.refInterna || ''
+      refInterna: d.refInterna || '',
+      proprietario,
+      telefone,
+      telemovel,
+      email
     };
 
     if(bySlug.has(slug)){
@@ -1483,7 +1525,6 @@ function normalizeConclusaoFields(){
     if(p.conclusaoAno && !p.conclusao){
       p.conclusao = p.conclusaoAno;
     }
-    // Para dados antigos sem mês, assumimos dezembro (mais conservador)
     if(p.conclusaoAno && (p.conclusaoMes === undefined || p.conclusaoMes === null || p.conclusaoMes === '')){
       p.conclusaoMes = 12;
     }
@@ -1499,10 +1540,8 @@ function autoUpdateEstadosByConclusao(){
     const mes = Number(p.conclusaoMes || '');
     if(!ano || !mes) return;
 
-    // Apenas avançar automaticamente o que está em construção
     if(p.estado !== 'em_construcao') return;
 
-    // Último dia do mês de conclusão
     const lastDay = new Date(ano, mes, 0);
     if(today >= lastDay){
       p.estado = 'concluido';
@@ -1579,7 +1618,6 @@ el('csvFile').addEventListener('change', async (ev)=>{
         }
       });
 
-      // Normalizar novos dados (ano→ano+dezembro) e auto-update
       normalizeConclusaoFields();
       const changed = autoUpdateEstadosByConclusao();
       if(changed) saveLS(); else saveLS();
@@ -1730,7 +1768,6 @@ el('saveEdit').addEventListener('click',()=>{
     }
   }
 
-  // Normalizar e aplicar auto-update imediato (caso tenha data já no passado)
   normalizeConclusaoFields();
   const changed = autoUpdateEstadosByConclusao();
   saveLS();
@@ -1741,7 +1778,7 @@ el('saveEdit').addEventListener('click',()=>{
   run();
 });
 
-/* ===== 🚩 Apagar por slug (botão "Apagar" da lista) ===== */
+/* ===== Apagar por slug ===== */
 function deleteBySlug(slug){
   if(!EDIT_MODE) return;
   const idx = RAW.findIndex(p => p.slug === slug);
@@ -1827,7 +1864,7 @@ el('pickCoord').addEventListener('click',()=>{
   b.classList.toggle('primary',PICKING);
 });
 
-/* ===== Contexto vindo de outras páginas (ex.: Tarefas) ===== */
+/* ===== Contexto vindo de outras páginas ===== */
 function applyUrlContext(){
   try{
     const params = new URLSearchParams(window.location.search);
@@ -1882,10 +1919,8 @@ function applyUrlContext(){
   const mem=loadLS();
   RAW=Array.isArray(mem)? mem : [];
 
-  // Incorporar automaticamente empreendimentos e imóveis isolados das Angariações
   mergeAngariacoesIntoRAW();
 
-  // Normalizar dados e auto-update de estado
   normalizeConclusaoFields();
   const changed = autoUpdateEstadosByConclusao();
   if(changed) saveLS();
