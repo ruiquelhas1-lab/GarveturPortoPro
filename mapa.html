@@ -355,7 +355,7 @@ input[type="file"]{display:none}
   color:#ddd;
 }
 
-/* Pins */
+/* Pins — círculo (Empreendimentos) vs triângulo (Imóveis isolados) */
 .pin{
   width:28px;
   height:28px;
@@ -370,11 +370,27 @@ input[type="file"]{display:none}
   font-size:12px;
   position:relative;
 }
-.pin.emp{border-color:var(--gold);}
-.pin.iso{border-color:#111;opacity:0.92;}
-.pin.c{ background:#E53935 }
-.pin.l{ background:#1E88E5 }
-.pin.f{ background:#43A047 }
+.pin.emp{
+  border-color:var(--gold);
+}
+.pin.iso{
+  width:0;
+  height:0;
+  border-radius:0;
+  border:0;
+  border-left:14px solid transparent;
+  border-right:14px solid transparent;
+  border-bottom:28px solid #A38B63;
+  box-shadow:0 2px 6px rgba(0,0,0,.35);
+}
+.pin.emp.c{ background:#E53935; }
+.pin.emp.l{ background:#1E88E5; }
+.pin.emp.f{ background:#43A047; }
+
+.pin.iso.c{ border-bottom-color:#E53935; }
+.pin.iso.l{ border-bottom-color:#1E88E5; }
+.pin.iso.f{ border-bottom-color:#43A047; }
+
 .pin.c::after{
   content:"";
   position:absolute;
@@ -383,6 +399,10 @@ input[type="file"]{display:none}
   border-radius:50%;
   box-shadow:0 0 0 0 rgba(229,57,53,.55);
   animation:pulse 1.8s ease-out infinite;
+}
+.pin.iso.c::after{
+  /* não aplicar o pulso no triângulo (opcional) */
+  box-shadow:none;
 }
 @keyframes pulse{
   0%{ box-shadow:0 0 0 0 rgba(229,57,53,.55)}
@@ -562,7 +582,7 @@ input[type="file"]{display:none}
       <div class="field"><input id="q" placeholder="Ex.: 'Gaia licenciado 2027 promotor X'"></div>
       <div class="hint">
         Pesquisa por ref. interna, nome, concelho, promotor, tipologias, estado, conclusão, notas, €/m²,
-        proprietário, telefone/telemóvel, email e restantes campos de texto.
+        <b>proprietário, telefone/telemóvel, email</b> e restantes campos de texto.
       </div>
     </div>
     <div class="section">
@@ -1039,7 +1059,7 @@ function makeDivIcon(state,isEmp){
     className: pinClass(state,isEmp),
     html:'',
     iconSize:[28,28],
-    iconAnchor:[14,14],
+    iconAnchor:[14,22],
     popupAnchor:[0,-12]
   });
 }
@@ -1420,6 +1440,20 @@ function loadLS(){
   }
 }
 
+/* Helper para detetar campos em Angariações que contenham proprietários / contactos */
+function findFirstByKeyPattern(obj, regex){
+  for(const k in obj){
+    if(!regex.test(k)) continue;
+    const v=obj[k];
+    if(v===null || v===undefined) continue;
+    if(typeof v !== 'string') continue;
+    const s=v.trim();
+    if(!s) continue;
+    return s;
+  }
+  return '';
+}
+
 /* Integração Angariações */
 function mergeAngariacoesIntoRAW(){
   let raw=null;
@@ -1449,7 +1483,8 @@ function mergeAngariacoesIntoRAW(){
     const coords = parseGps(gps);
     if(coords.lat===null || coords.lng===null) return;
 
-    const isEmp = !!d.isEmpreendimento;
+    // Regra: só é isolado se isEmpreendimento === false
+    const isEmp = (d.isEmpreendimento === false) ? false : true;
 
     const nome = d.nomeEmp || d.tituloImovel || d.refInterna || (isEmp ? 'Empreendimento' : 'Imóvel');
     const baseId = d.id || slugify(nome);
@@ -1475,10 +1510,21 @@ function mergeAngariacoesIntoRAW(){
       preco_m2 = Math.round(preco/areaABP);
     }
 
-    const proprietario = d.nomeProprietario || d.proprietario || d.clienteNome || d.nomeCliente || '';
-    const telefone    = d.telefoneProprietario || d.telefone || d.contactoTelefone || d.telefone1 || '';
-    const telemovel   = d.telemovelProprietario || d.telemovel || d.contactoTelemovel || d.telefone2 || '';
-    const email       = d.emailProprietario || d.email || d.contactoEmail || '';
+    const proprietario =
+      d.nomeProprietario || d.proprietario || d.clienteNome || d.nomeCliente ||
+      findFirstByKeyPattern(d, /propriet|dono|owner|cliente/i);
+
+    const telefone =
+      d.telefoneProprietario || d.telefone || d.contactoTelefone || d.telefone1 ||
+      findFirstByKeyPattern(d, /telefone|phone|tel_fixo/i);
+
+    const telemovel =
+      d.telemovelProprietario || d.telemovel || d.contactoTelemovel || d.telefone2 ||
+      findFirstByKeyPattern(d, /telem|tlm|mobile/i);
+
+    const email =
+      d.emailProprietario || d.email || d.contactoEmail ||
+      findFirstByKeyPattern(d, /mail/i);
 
     const obj = {
       slug,
@@ -1545,6 +1591,15 @@ function autoUpdateEstadosByConclusao(){
   return changed;
 }
 
+/* Garantir que tudo o que não tem isEmpreendimento definido é Empreendimento (registos antigos) */
+function fixIsEmpDefaults(){
+  RAW.forEach(p=>{
+    if(p.isEmpreendimento === undefined || p.isEmpreendimento === null){
+      p.isEmpreendimento = true;
+    }
+  });
+}
+
 /* Modo edição */
 function setEditMode(on){
   EDIT_MODE=on;
@@ -1593,7 +1648,8 @@ el('csvFile').addEventListener('change', async (ev)=>{
           link: row.link||row.url||'',
           _lat: numPT(row.latitude||row.Lat||row.lat),
           _lng: numPT(row.longitude||row.Lng||row.lng),
-          docs:[]
+          docs:[],
+          isEmpreendimento:true
         };
         return p;
       }).filter(p=>p.nome);
@@ -1680,7 +1736,8 @@ el('btnNew').addEventListener('click',()=>{
     proprietario:'',telemovel:'',telefone:'',email:'',
     tipologias:'',conclusao:'',conclusaoAno:'',conclusaoMes:'',
     preco_m2:'',
-    notas:'',link:'',_lat:'',_lng:'',docs:[]
+    notas:'',link:'',_lat:'',_lng:'',docs:[],
+    isEmpreendimento:true
   });
   el('editTitle').textContent='Novo Empreendimento';
   el('editModal').classList.add('show');
@@ -1757,7 +1814,7 @@ el('saveEdit').addEventListener('click',()=>{
     return;
   }
   p.slug=slugify(p.nome);
-  p.isEmpreendimento = true; // registos criados aqui são tratados como empreendimentos
+  p.isEmpreendimento = true; // criados aqui são empreendimentos por defeito
 
   if(EDIT_INDEX>=0){
     RAW[EDIT_INDEX]=Object.assign(RAW[EDIT_INDEX],p);
@@ -1921,7 +1978,7 @@ function applyUrlContext(){
   RAW=Array.isArray(mem)? mem : [];
 
   mergeAngariacoesIntoRAW();
-
+  fixIsEmpDefaults();
   normalizeConclusaoFields();
   const changed = autoUpdateEstadosByConclusao();
   if(changed) saveLS();
