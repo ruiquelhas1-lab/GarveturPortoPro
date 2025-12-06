@@ -1613,6 +1613,177 @@ function exportGeo(){
 
 el('exportCsv').addEventListener('click', exportCSV);
 el('exportGeo').addEventListener('click', exportGeo);
+  
+  /* ===== Backup OneDrive / Restauro (Mapa) ===== */
+
+function backupOneDrive(){
+  if(!Array.isArray(RAW) || !RAW.length){
+    const proceed = confirm('Não existem registos no mapa. Pretende ainda assim gerar um ficheiro de backup vazio?');
+    if(!proceed) return;
+  }
+
+  const headers = [
+    "slug","refInterna","nome","concelho","estado","promotor","tipologias",
+    "conclusaoAno","conclusaoMes","conclusao",
+    "preco_m2","precoPedido","notas","link",
+    "lat","lng","isEmpreendimento",
+    "docs","ownerNome","ownerTelefone","ownerTelemovel","contactos"
+  ];
+
+  const rows = RAW.map(p=>[
+    p.slug || slugify(p.nome||''),
+    p.refInterna || '',
+    p.nome || '',
+    p.concelho || '',
+    p.estado || '',
+    p.promotor || '',
+    p.tipologias || '',
+    p.conclusaoAno || '',
+    p.conclusaoMes || '',
+    p.conclusao || '',
+    p.preco_m2 || '',
+    p.precoPedido || '',
+    p.notas || '',
+    p.link || '',
+    p._lat != null ? p._lat : '',
+    p._lng != null ? p._lng : '',
+    (p.isEmpreendimento === false ? '0' : '1'),
+    JSON.stringify(p.docs || []),
+    p._ownerNome || '',
+    p._ownerTelefone || '',
+    p._ownerTelemovel || '',
+    p._contactos || ''
+  ]);
+
+  const csv = toCSV([headers, ...rows]);
+
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm   = String(now.getMonth()+1).padStart(2,'0');
+  const dd   = String(now.getDate()).padStart(2,'0');
+  const hh   = String(now.getHours()).padStart(2,'0');
+  const mi   = String(now.getMinutes()).padStart(2,'0');
+
+  const filename = `gpp-mapa-backup-${yyyy}${mm}${dd}-${hh}${mi}.csv`;
+
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+
+  alert('Backup criado. Guarde o ficheiro na pasta OneDrive: Garvetur Porto Pro / Backups / Mapa.');
+}
+
+function restoreFromBackup(file){
+  if(!file) return;
+  if(!window.Papa){
+    alert('Leitor CSV indisponível (PapaParse).');
+    return;
+  }
+
+  Papa.parse(file,{
+    header:true,
+    dynamicTyping:false,
+    skipEmptyLines:true,
+    complete:res=>{
+      const data = res.data || [];
+      if(!data.length){
+        alert('O ficheiro de backup está vazio ou não tem linhas válidas.');
+        return;
+      }
+
+      const next = [];
+
+      data.forEach(row=>{
+        const nome = row.nome || row.Nome || '';
+        if(!nome) return;
+
+        const obj = {
+          slug: row.slug || slugify(nome),
+          refInterna: row.refInterna || row["refInterna"] || '',
+          nome,
+          concelho: row.concelho || row["concelho"] || row.Concelho || '',
+          estado: stateKey(row.estado || row["estado"] || ''),
+          promotor: row.promotor || '',
+          tipologias: row.tipologias || '',
+          conclusaoAno: row.conclusaoAno ? Number(row.conclusaoAno) : (row.conclusao ? Number(row.conclusao) : ''),
+          conclusaoMes: row.conclusaoMes ? Number(row.conclusaoMes) : '',
+          conclusao: row.conclusao || '',
+          preco_m2: row.preco_m2 || '',
+          precoPedido: row.precoPedido || '',
+          notas: row.notas || '',
+          link: row.link || '',
+          _lat: row.lat ? numPT(row.lat) : (row.latitude ? numPT(row.latitude) : null),
+          _lng: row.lng ? numPT(row.lng) : (row.longitude ? numPT(row.longitude) : null),
+          isEmpreendimento: (String(row.isEmpreendimento||'1') === '0' || String(row.isEmpreendimento).toLowerCase()==='false')
+            ? false
+            : true,
+          docs: [],
+          _ownerNome: row.ownerNome || '',
+          _ownerTelefone: row.ownerTelefone || '',
+          _ownerTelemovel: row.ownerTelemovel || '',
+          _contactos: row.contactos || ''
+        };
+
+        if(row.docs){
+          try{
+            obj.docs = JSON.parse(row.docs);
+          }catch(e){
+            obj.docs = [];
+          }
+        }
+
+        next.push(obj);
+      });
+
+      if(!next.length){
+        alert('Não foi possível extrair registos válidos do ficheiro de backup.');
+        return;
+      }
+
+      const ok = confirm(
+        'Este restauro vai substituir TODOS os registos atuais do mapa pelos registos do backup. Pretende continuar?'
+      );
+      if(!ok) return;
+
+      RAW = next;
+      normalizeConclusaoFields();
+      const changed = autoUpdateEstadosByConclusao();
+      saveLS();
+      buildFacetOptions();
+      run();
+
+      alert('Backup restaurado com sucesso.');
+    },
+    error:()=>{
+      alert('Falha a ler o ficheiro de backup.');
+    }
+  });
+}
+
+/* Ligar botões da toolbar ao backup/restauro */
+const btnBackup = el('btnBackup');
+if(btnBackup){
+  btnBackup.addEventListener('click', backupOneDrive);
+}
+
+const btnRestore = el('btnRestore');
+const backupInput = el('backupFile');
+if(btnRestore && backupInput){
+  btnRestore.addEventListener('click', ()=>{
+    backupInput.value = '';
+    backupInput.click();
+  });
+  backupInput.addEventListener('change',(ev)=>{
+    const file = ev.target.files && ev.target.files[0];
+    if(file) restoreFromBackup(file);
+  });
+}
 
 /* ===== Backup / Restauro (ficheiro JSON) ===== */
 function doBackupToFile(){
