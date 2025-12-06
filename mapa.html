@@ -218,23 +218,22 @@ input[type="file"]{display:none}
 .list{
   padding:8px 12px;
 }
-
-/* Cartões de resultados */
 .card{
   border:1px solid rgba(163,139,99,.25);
   border-radius:12px;
-  padding:12px 12px 10px;
-  margin-bottom:12px;
+  padding:12px 10px;
+  margin-bottom:10px;
   background:#0E0E0E;
 }
 .card .row{
   display:flex;
   justify-content:space-between;
-  gap:8px;
-  align-items:center; /* garante alinhamento vertical entre título e badge de estado */
+  align-items:flex-start;
+  gap:12px;
 }
 .card .name{
   font-weight:700;
+  font-size:13px;
 }
 .card .meta{
   font-size:11px;
@@ -242,25 +241,25 @@ input[type="file"]{display:none}
   text-transform:uppercase;
   letter-spacing:.05em;
   margin-top:4px;
-  display:flex;          /* mantém concelho + badge de tipo na mesma linha */
-  align-items:center;
-  gap:6px;
+  display:flex;
   flex-wrap:wrap;
+  gap:6px;
+}
+.card .meta span{
+  display:inline-flex;
+  align-items:center;
 }
 .card .state{
   font-size:12px;
   color:#bbb;
   margin-top:6px;
-  line-height:1.4;
 }
 .card .actions{
   display:flex;
-  gap:8px;
+  gap:6px;
   margin-top:10px;
   flex-wrap:wrap;
 }
-
-/* Badges genéricos */
 .badge{
   display:inline-flex;
   align-items:center;
@@ -269,17 +268,9 @@ input[type="file"]{display:none}
   border-radius:999px;
   border:1px solid var(--border);
   font-size:11px;
-  line-height:1;
-  white-space:nowrap;   /* não quebra a meio da palavra */
+  line-height:1.2;
+  white-space:nowrap;
 }
-
-/* Badges específicos de ESTADO — tamanho uniforme */
-.badge-estado{
-  min-width:100px;       /* largura fixa para “Em construção / Licenciado / Concluído” */
-  justify-content:center;
-  text-transform:uppercase;
-}
-
 .empty{
   padding:10px;
   color:#bbb;
@@ -354,7 +345,6 @@ input[type="file"]{display:none}
   border:1px solid var(--border);
   border-radius:12px;
   overflow:auto;
-  display:none;
 }
 #side-panel.show{display:block}
 .panel-head{
@@ -1063,7 +1053,7 @@ function renderKPIs(){
 /* ===== Helpers de apresentação ===== */
 function stateLabel(s){
   const c=colorByState(s);
-  return `<span class="badge badge-estado" style="border-color:${c};color:${c}">${s||'—'}</span>`;
+  return `<span class="badge" style="border-color:${c};color:${c}">${s||'—'}</span>`;
 }
 function tipoLabel(p){
   if(p.isEmpreendimento === false) return 'Imóvel isolado';
@@ -1084,7 +1074,7 @@ function renderList(){
     return;
   }
   FILT.forEach(p=>{
-    const nameLine = `${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||'—'}`;
+    const nameLine = p.nome || '—';
     const div=document.createElement('div');
     div.className='card';
     const precoPedidoStr = formatPrecoPedido(p);
@@ -1093,11 +1083,14 @@ function renderList(){
         <div>
           <div class="name">${nameLine}</div>
           <div class="meta">
+            ${p.refInterna ? `<span>Ref. interna: ${p.refInterna}</span>` : ''}
             <span>${p.concelho||'—'}</span>
             ${tipoBadge(p)}
           </div>
         </div>
-        ${stateLabel(p.estado)}
+        <div style="display:flex;align-items:flex-start;justify-content:flex-end;min-width:0">
+          ${stateLabel(p.estado)}
+        </div>
       </div>
       <div class="state">
         Conclusão: ${formatConclusao(p)}
@@ -1343,13 +1336,14 @@ async function renderDocPreview(container, rawUrl, type){
 /* ===== Painel lateral (Ficha) ===== */
 function openFicha(p,focus=false){
   ACTIVE=p;
-  const titleLine = `${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||'—'}`;
+  const titleLine = p.nome || '—';
   const precoPedidoStr = formatPrecoPedido(p);
   const html=`
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
       <div>
         <div style="font-weight:800;font-size:16px">${titleLine}</div>
         <div style="font-size:12px;color:#bbb">
+          ${p.refInterna ? `Ref. interna: ${p.refInterna} · ` : ''}
           ${p.concelho||'—'}
           · ${stateLabel(p.estado)}
           ${tipoBadge(p)}
@@ -1399,13 +1393,13 @@ function openFicha(p,focus=false){
     if(numPT(p._lat)!==null && numPT(p._lng)!==null) MAP?.setView([p._lat,p._lng],16,{animate:true});
   });
   el('panelInner').querySelector('[data-act="copy"]')?.addEventListener('click',async ()=>{
-    const resumo=`${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · ${tipoLabel(p)} · Conclusão ${formatConclusao(p)} · Preço: ${precoPedidoStr} · Ref. ${p.refInterna || '-'} · ${p.link||''}`.trim();
+    const resumo=`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · ${tipoLabel(p)} · Conclusão ${formatConclusao(p)} · Preço: ${precoPedidoStr} · Ref. ${p.refInterna || '-'} · ${p.link||''}`.trim();
     try{ await navigator.clipboard.writeText(resumo);}catch{}
   });
   el('panelInner').querySelector('[data-act="share"]')?.addEventListener('click',async ()=>{
     const shareData={
       title:p.nome||'Empreendimento',
-      text:`${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · ${tipoLabel(p)} · Conclusão ${formatConclusao(p)} · Preço: ${precoPedidoStr}${p.refInterna ? ' · Ref. ' + p.refInterna : ''}`,
+      text:`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · ${tipoLabel(p)} · Conclusão ${formatConclusao(p)} · Preço: ${precoPedidoStr}${p.refInterna ? ' · Ref. ' + p.refInterna : ''}`,
       url: location.href
     };
     if(navigator.share){
