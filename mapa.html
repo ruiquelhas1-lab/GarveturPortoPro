@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="pt">
 <head>
@@ -218,22 +219,23 @@ input[type="file"]{display:none}
 .list{
   padding:8px 12px;
 }
+
+/* Cartões de resultados */
 .card{
   border:1px solid rgba(163,139,99,.25);
   border-radius:12px;
-  padding:12px 10px;
-  margin-bottom:10px;
+  padding:12px 12px 10px;
+  margin-bottom:12px;
   background:#0E0E0E;
 }
 .card .row{
   display:flex;
   justify-content:space-between;
-  align-items:flex-start;
-  gap:12px;
+  gap:8px;
+  align-items:center; /* garante alinhamento vertical entre título e badge de estado */
 }
 .card .name{
   font-weight:700;
-  font-size:13px;
 }
 .card .meta{
   font-size:11px;
@@ -241,25 +243,25 @@ input[type="file"]{display:none}
   text-transform:uppercase;
   letter-spacing:.05em;
   margin-top:4px;
-  display:flex;
-  flex-wrap:wrap;
-  gap:6px;
-}
-.card .meta span{
-  display:inline-flex;
+  display:flex;          /* mantém concelho + badge de tipo na mesma linha */
   align-items:center;
+  gap:6px;
+  flex-wrap:wrap;
 }
 .card .state{
   font-size:12px;
   color:#bbb;
   margin-top:6px;
+  line-height:1.4;
 }
 .card .actions{
   display:flex;
-  gap:6px;
+  gap:8px;
   margin-top:10px;
   flex-wrap:wrap;
 }
+
+/* Badges genéricos */
 .badge{
   display:inline-flex;
   align-items:center;
@@ -268,9 +270,17 @@ input[type="file"]{display:none}
   border-radius:999px;
   border:1px solid var(--border);
   font-size:11px;
-  line-height:1.2;
-  white-space:nowrap;
+  line-height:1;
+  white-space:nowrap;   /* não quebra a meio da palavra */
 }
+
+/* Badges específicos de ESTADO — tamanho uniforme */
+.badge-estado{
+  min-width:100px;       /* largura fixa para “Em construção / Licenciado / Concluído” */
+  justify-content:center;
+  text-transform:uppercase;
+}
+
 .empty{
   padding:10px;
   color:#bbb;
@@ -345,6 +355,7 @@ input[type="file"]{display:none}
   border:1px solid var(--border);
   border-radius:12px;
   overflow:auto;
+  display:none;
 }
 #side-panel.show{display:block}
 .panel-head{
@@ -1053,7 +1064,7 @@ function renderKPIs(){
 /* ===== Helpers de apresentação ===== */
 function stateLabel(s){
   const c=colorByState(s);
-  return `<span class="badge" style="border-color:${c};color:${c}">${s||'—'}</span>`;
+  return `<span class="badge badge-estado" style="border-color:${c};color:${c}">${s||'—'}</span>`;
 }
 function tipoLabel(p){
   if(p.isEmpreendimento === false) return 'Imóvel isolado';
@@ -1074,7 +1085,8 @@ function renderList(){
     return;
   }
   FILT.forEach(p=>{
-    const nameLine = p.nome || '—';
+    // Título apenas com o nome
+    const nameLine = `${p.nome||'—'}`;
     const div=document.createElement('div');
     div.className='card';
     const precoPedidoStr = formatPrecoPedido(p);
@@ -1083,15 +1095,33 @@ function renderList(){
         <div>
           <div class="name">${nameLine}</div>
           <div class="meta">
-            ${p.refInterna ? `<span>Ref. interna: ${p.refInterna}</span>` : ''}
+            ${p.refInterna ? `<span>${p.refInterna}</span> · ` : ''}
             <span>${p.concelho||'—'}</span>
             ${tipoBadge(p)}
           </div>
         </div>
-        <div style="display:flex;align-items:flex-start;justify-content:flex-end;min-width:0">
-          ${stateLabel(p.estado)}
-        </div>
+        ${stateLabel(p.estado)}
       </div>
+      <div class="state">
+        Conclusão: ${formatConclusao(p)}
+        · €/m²: ${p.preco_m2? Number(String(p.preco_m2).replace(',','.')).toLocaleString('pt-PT') : '—'}
+        · Preço: ${precoPedidoStr}
+      </div>
+      <div class="actions">
+        <button class="btn" data-act="zoom">Abrir no mapa</button>
+        ${p.link? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>` : ''}
+        <button class="btn" data-act="open">Detalhes</button>
+        ${p._fromAngariacoes && p.refInterna ? `
+          <a class="btn" data-act="ang" href="./angariacoes.html?ref=${encodeURIComponent(p.refInterna)}&abrir=1" target="_blank" rel="noreferrer">
+            Ficha angariação
+          </a>` : ''
+        }
+        ${EDIT_MODE ? `
+          <button class="btn ghost" data-act="edit">Editar</button>
+          <button class="btn" style="border-color:#cc4b4b;color:#ffdddd" data-act="del">Apagar</button>` : ''
+        }
+      </div>`;
+    ...
       <div class="state">
         Conclusão: ${formatConclusao(p)}
         · €/m²: ${p.preco_m2? Number(String(p.preco_m2).replace(',','.')).toLocaleString('pt-PT') : '—'}
@@ -1336,19 +1366,36 @@ async function renderDocPreview(container, rawUrl, type){
 /* ===== Painel lateral (Ficha) ===== */
 function openFicha(p,focus=false){
   ACTIVE=p;
-  const titleLine = p.nome || '—';
+  // Título apenas com o nome
+  const titleLine = `${p.nome||'—'}`;
   const precoPedidoStr = formatPrecoPedido(p);
   const html=`
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
       <div>
         <div style="font-weight:800;font-size:16px">${titleLine}</div>
         <div style="font-size:12px;color:#bbb">
-          ${p.refInterna ? `Ref. interna: ${p.refInterna} · ` : ''}
+          ${p.refInterna ? p.refInterna + ' · ' : ''}
           ${p.concelho||'—'}
           · ${stateLabel(p.estado)}
           ${tipoBadge(p)}
         </div>
       </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn" data-act="center">Centrar</button>
+        <a class="btn" href="https://www.google.com/maps?q=${p._lat},${p._lng}" target="_blank" rel="noreferrer">Google Maps</a>
+        ${p.link? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>`:''}
+        ${p._fromAngariacoes && p.refInterna ? `
+          <a class="btn" href="./angariacoes.html?ref=${encodeURIComponent(p.refInterna)}&abrir=1" target="_blank" rel="noreferrer">
+            Ficha angariação
+          </a>` : ''
+        }
+        <button class="btn" data-act="copy">Copiar resumo</button>
+        <button class="btn" data-act="share">Partilhar</button>
+        ${EDIT_MODE? `<button class="btn ghost" data-act="edit">Editar</button>`:''}
+      </div>
+    </div>
+    ...
+`;
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn" data-act="center">Centrar</button>
         <a class="btn" href="https://www.google.com/maps?q=${p._lat},${p._lng}" target="_blank" rel="noreferrer">Google Maps</a>
@@ -1393,13 +1440,13 @@ function openFicha(p,focus=false){
     if(numPT(p._lat)!==null && numPT(p._lng)!==null) MAP?.setView([p._lat,p._lng],16,{animate:true});
   });
   el('panelInner').querySelector('[data-act="copy"]')?.addEventListener('click',async ()=>{
-    const resumo=`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · ${tipoLabel(p)} · Conclusão ${formatConclusao(p)} · Preço: ${precoPedidoStr} · Ref. ${p.refInterna || '-'} · ${p.link||''}`.trim();
+    const resumo=`${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · ${tipoLabel(p)} · Conclusão ${formatConclusao(p)} · Preço: ${precoPedidoStr} · Ref. ${p.refInterna || '-'} · ${p.link||''}`.trim();
     try{ await navigator.clipboard.writeText(resumo);}catch{}
   });
   el('panelInner').querySelector('[data-act="share"]')?.addEventListener('click',async ()=>{
     const shareData={
       title:p.nome||'Empreendimento',
-      text:`${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · ${tipoLabel(p)} · Conclusão ${formatConclusao(p)} · Preço: ${precoPedidoStr}${p.refInterna ? ' · Ref. ' + p.refInterna : ''}`,
+      text:`${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · ${tipoLabel(p)} · Conclusão ${formatConclusao(p)} · Preço: ${precoPedidoStr}${p.refInterna ? ' · Ref. ' + p.refInterna : ''}`,
       url: location.href
     };
     if(navigator.share){
