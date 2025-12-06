@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Garvetur Porto Pro — Mapa (PDF inteligente)</title>
 
 <link rel="preconnect" href="https://unpkg.com" crossorigin>
@@ -355,7 +355,7 @@ input[type="file"]{display:none}
   color:#ddd;
 }
 
-/* Pins — círculo (Empreendimentos) vs triângulo (Imóveis isolados) */
+/* Pins base */
 .pin{
   width:28px;
   height:28px;
@@ -370,27 +370,13 @@ input[type="file"]{display:none}
   font-size:12px;
   position:relative;
 }
-.pin.emp{
-  border-color:var(--gold);
-}
-.pin.iso{
-  width:0;
-  height:0;
-  border-radius:0;
-  border:0;
-  border-left:14px solid transparent;
-  border-right:14px solid transparent;
-  border-bottom:28px solid #A38B63;
-  box-shadow:0 2px 6px rgba(0,0,0,.35);
-}
-.pin.emp.c{ background:#E53935; }
-.pin.emp.l{ background:#1E88E5; }
-.pin.emp.f{ background:#43A047; }
 
-.pin.iso.c{ border-bottom-color:#E53935; }
-.pin.iso.l{ border-bottom-color:#1E88E5; }
-.pin.iso.f{ border-bottom-color:#43A047; }
+/* Cor por estado */
+.pin.c{ background:#E53935 }
+.pin.l{ background:#1E88E5 }
+.pin.f{ background:#43A047 }
 
+/* Animação construção */
 .pin.c::after{
   content:"";
   position:absolute;
@@ -400,10 +386,23 @@ input[type="file"]{display:none}
   box-shadow:0 0 0 0 rgba(229,57,53,.55);
   animation:pulse 1.8s ease-out infinite;
 }
-.pin.iso.c::after{
-  /* não aplicar o pulso no triângulo (opcional) */
-  box-shadow:none;
+
+/* Empreendimentos: círculo padrão */
+.pin.emp{
+  border-radius:50%;
 }
+
+/* Isolados: losango (quadrado rodado) */
+.pin.iso{
+  border-radius:6px;
+  transform:rotate(45deg);
+}
+
+/* reset tooltip orientation do conteúdo interno (se algum dia tiver ícone/texto) */
+.pin.iso > *{
+  transform:rotate(-45deg);
+}
+
 @keyframes pulse{
   0%{ box-shadow:0 0 0 0 rgba(229,57,53,.55)}
   70%{ box-shadow:0 0 0 18px rgba(229,57,53,0)}
@@ -525,7 +524,7 @@ input[type="file"]{display:none}
 
 .hidden{display:none !important}
 
-@media (max-width:1000px){
+@media (max-width: 1000px){
   .app{
     grid-template-columns:1fr;
     grid-template-rows:56px 40px 280px 1fr;
@@ -537,113 +536,111 @@ input[type="file"]{display:none}
 </style>
 </head>
 <body>
-<div class="app">
-  <header>
-    <div class="brand">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--gold)">
-        <circle cx="12" cy="12" r="10" stroke-width="1.5"/>
-        <path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/>
-      </svg>
-      <h1>Garvetur Porto Pro — Mapa</h1>
-    </div>
-    <div class="nav">
-      <a href="./index.html">Início</a>
-      <a class="active" href="./mapa.html">Mapa</a>
-      <a href="./kanban.html">Leads</a>
-      <a href="./angariacoes.html">Angariações</a>
-      <a href="./dashboard.html">Dashboard</a>
-      <a href="./vendas.html">Vendas</a>
-      <a href="./tarefas.html">Tarefas</a>
-    </div>
-  </header>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--gold)">
+          <circle cx="12" cy="12" r="10" stroke-width="1.5"/>
+          <path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/>
+        </svg>
+        <h1>Garvetur Porto Pro — Mapa</h1>
+      </div>
+      <div class="nav">
+        <a href="./index.html">Início</a>
+        <a class="active" href="./mapa.html">Mapa</a>
+        <a href="./kanban.html">Leads</a>
+        <a href="./angariacoes.html">Angariações</a>
+        <a href="./dashboard.html">Dashboard</a>
+        <a href="./vendas.html">Vendas</a>
+        <a href="./tarefas.html">Tarefas</a>
+      </div>
+    </header>
 
-  <div class="kpis">
-    <div class="kpi"><span class="dot"></span>Total: <b id="k_total">0</b></div>
-    <div class="kpi"><span class="dot c"></span>Em construção: <b id="k_c">0</b></div>
-    <div class="kpi"><span class="dot l"></span>Licenciado: <b id="k_l">0</b></div>
-    <div class="kpi"><span class="dot f"></span>Concluído: <b id="k_f">0</b></div>
-    <div class="toolbar">
-      <button class="btn" id="focusAmp">Focar AMP/Porto</button>
-      <button class="btn" id="exportCsv">Exportar CSV</button>
-      <button class="btn" id="exportGeo">Exportar GeoJSON</button>
-      <button class="btn ghost" id="toggleEdit" title="Modo Edição">🔒 Editar</button>
+    <div class="kpis">
+      <div class="kpi"><span class="dot"></span>Total: <b id="k_total">0</b></div>
+      <div class="kpi"><span class="dot c"></span>Em construção: <b id="k_c">0</b></div>
+      <div class="kpi"><span class="dot l"></span>Licenciado: <b id="k_l">0</b></div>
+      <div class="kpi"><span class="dot f"></span>Concluído: <b id="k_f">0</b></div>
+      <div class="toolbar">
+        <button class="btn" id="focusAmp">Focar AMP/Porto</button>
+        <button class="btn" id="exportCsv">Exportar CSV</button>
+        <button class="btn" id="exportGeo">Exportar GeoJSON</button>
+        <button class="btn ghost" id="toggleEdit" title="Modo Edição">🔒 Editar</button>
 
-      <label class="btn" for="csvFile" id="btnImport" style="display:none">Importar CSV</label>
-      <input id="csvFile" type="file" accept=".csv" />
-      <button class="btn primary" id="btnNew" style="display:none">+ Novo</button>
-      <button class="btn ghost" id="btnSave" style="display:none">Guardar</button>
-      <button class="btn ghost" id="btnClearAll" style="display:none">Limpar Tudo</button>
+        <label class="btn" for="csvFile" id="btnImport" style="display:none">Importar CSV</label>
+        <input id="csvFile" type="file" accept=".csv" />
+        <button class="btn primary" id="btnNew" style="display:none">+ Novo</button>
+        <button class="btn ghost" id="btnSave" style="display:none">Guardar</button>
+        <button class="btn ghost" id="btnClearAll" style="display:none">Limpar Tudo</button>
+      </div>
+    </div>
+
+    <aside class="sidebar">
+      <div class="section">
+        <div class="label">Pesquisa global</div>
+        <div class="field"><input id="q" placeholder="Ex.: 'Gaia licenciado 2027 promotor X'"></div>
+        <div class="hint">Pesquisa por ref. interna, nome, concelho, promotor, tipologias, estado, conclusão, notas, €/m², proprietário, telefones, email.</div>
+      </div>
+      <div class="section">
+        <div class="label">Concelho</div>
+        <div class="field"><select id="f_concelho"><option value="">(Todos)</option></select></div>
+        <div class="label">Estado</div>
+        <div class="chips" id="estadoChips">
+          <div class="chip active" data-v="">Todos</div>
+          <div class="chip" data-v="em_construcao">Em construção</div>
+          <div class="chip" data-v="licenciado">Licenciado</div>
+          <div class="chip" data-v="concluido">Concluído</div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="label">Conclusão (ano)</div>
+        <div class="field">
+          <input id="f_cmin" type="number" placeholder="Mín. ex.: 2025">
+          <input id="f_cmax" type="number" placeholder="Máx. ex.: 2029">
+        </div>
+        <div class="label" style="margin-top:6px">Preço €/m²</div>
+        <div class="field">
+          <input id="f_pmin" type="number" placeholder="Mín.">
+          <input id="f_pmax" type="number" placeholder="Máx.">
+        </div>
+      </div>
+      <div class="section">
+        <div class="label">Promotor</div>
+        <div class="field"><select id="f_promotor"><option value="">(Todos)</option></select></div>
+        <div class="label" style="margin-top:6px">Tipologias (texto)</div>
+        <div class="field"><input id="f_tipos" placeholder="Ex.: T1,T2"></div>
+      </div>
+      <div class="section">
+        <div class="actions">
+          <button class="btn primary" id="apply">Aplicar</button>
+          <button class="btn ghost" id="clear">Limpar</button>
+        </div>
+      </div>
+      <div class="section"><div class="label">Resultados</div></div>
+      <div class="list" id="list"></div>
+    </aside>
+
+    <div style="position:relative">
+      <div id="map"></div>
+
+      <!-- Barra discreta de estado / carregamento -->
+      <div id="statusBar" class="status-bar"></div>
+
+      <div class="legend">
+        <div class="row"><span class="swatch c"></span> Em construção</div>
+        <div class="row"><span class="swatch l"></span> Licenciado</div>
+        <div class="row"><span class="swatch f"></span> Concluído</div>
+      </div>
+
+      <div id="side-panel">
+        <div class="panel-head">
+          <div style="font-weight:700">Detalhes</div>
+          <button class="btn" id="closePanel">Fechar ✕</button>
+        </div>
+        <div class="panel-inner" id="panelInner"></div>
+      </div>
     </div>
   </div>
-
-  <aside class="sidebar">
-    <div class="section">
-      <div class="label">Pesquisa global</div>
-      <div class="field"><input id="q" placeholder="Ex.: 'Gaia licenciado 2027 promotor X'"></div>
-      <div class="hint">
-        Pesquisa por ref. interna, nome, concelho, promotor, tipologias, estado, conclusão, notas, €/m²,
-        <b>proprietário, telefone/telemóvel, email</b> e restantes campos de texto.
-      </div>
-    </div>
-    <div class="section">
-      <div class="label">Concelho</div>
-      <div class="field"><select id="f_concelho"><option value="">(Todos)</option></select></div>
-      <div class="label">Estado</div>
-      <div class="chips" id="estadoChips">
-        <div class="chip active" data-v="">Todos</div>
-        <div class="chip" data-v="em_construcao">Em construção</div>
-        <div class="chip" data-v="licenciado">Licenciado</div>
-        <div class="chip" data-v="concluido">Concluído</div>
-      </div>
-    </div>
-    <div class="section">
-      <div class="label">Conclusão (ano)</div>
-      <div class="field">
-        <input id="f_cmin" type="number" placeholder="Mín. ex.: 2025">
-        <input id="f_cmax" type="number" placeholder="Máx. ex.: 2029">
-      </div>
-      <div class="label" style="margin-top:6px">Preço €/m²</div>
-      <div class="field">
-        <input id="f_pmin" type="number" placeholder="Mín.">
-        <input id="f_pmax" type="number" placeholder="Máx.">
-      </div>
-    </div>
-    <div class="section">
-      <div class="label">Promotor</div>
-      <div class="field"><select id="f_promotor"><option value="">(Todos)</option></select></div>
-      <div class="label" style="margin-top:6px">Tipologias (texto)</div>
-      <div class="field"><input id="f_tipos" placeholder="Ex.: T1,T2"></div>
-    </div>
-    <div class="section">
-      <div class="actions">
-        <button class="btn primary" id="apply">Aplicar</button>
-        <button class="btn ghost" id="clear">Limpar</button>
-      </div>
-    </div>
-    <div class="section"><div class="label">Resultados</div></div>
-    <div class="list" id="list"></div>
-  </aside>
-
-  <div style="position:relative">
-    <div id="map"></div>
-
-    <div id="statusBar" class="status-bar"></div>
-
-    <div class="legend">
-      <div class="row"><span class="swatch c"></span> Em construção</div>
-      <div class="row"><span class="swatch l"></span> Licenciado</div>
-      <div class="row"><span class="swatch f"></span> Concluído</div>
-    </div>
-
-    <div id="side-panel">
-      <div class="panel-head">
-        <div style="font-weight:700">Detalhes</div>
-        <button class="btn" id="closePanel">Fechar ✕</button>
-      </div>
-      <div class="panel-inner" id="panelInner"></div>
-    </div>
-  </div>
-</div>
 
 <!-- Modal Empreendimento -->
 <div id="editModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Empreendimento">
@@ -662,7 +659,6 @@ input[type="file"]{display:none}
       <div class="grid2">
         <div class="form-field"><label>Nome</label><input id="f_nome"></div>
         <div class="form-field"><label>Concelho</label><input id="f_concelho_e"></div>
-
         <div class="form-field"><label>Estado</label>
           <select id="f_estado">
             <option value="">—</option>
@@ -672,14 +668,8 @@ input[type="file"]{display:none}
           </select>
         </div>
         <div class="form-field"><label>Promotor</label><input id="f_promotor_e"></div>
-
-        <div class="form-field"><label>Proprietário</label><input id="f_proprietario"></div>
-        <div class="form-field"><label>Telemóvel</label><input id="f_telemovel"></div>
-        <div class="form-field"><label>Telefone</label><input id="f_telefone"></div>
-        <div class="form-field"><label>Email</label><input id="f_email"></div>
-
         <div class="form-field"><label>Tipologias</label><input id="f_tipologias"></div>
-
+        <!-- Conclusão mês/ano -->
         <div class="form-field">
           <label>Conclusão (mês/ano)</label>
           <div style="display:flex; gap:6px;">
@@ -737,6 +727,7 @@ input[type="file"]{display:none}
 <div id="loadingMask"><div>⏳ A guardar anexo…</div></div>
 
 <script>
+/* ===== Helpers de carregamento dinâmico ===== */
 function loadScript(src){
   return new Promise((res,rej)=>{
     const s=document.createElement('script');
@@ -748,10 +739,11 @@ function loadScript(src){
 </script>
 
 <script>
+/* ===== Estado global ===== */
 const AMP_CENTER=[41.15,-8.61], AMP_ZOOM=12;
 const LS_KEY='gpp_dataset_v1';
 const FILTERS_KEY='gpp_mapa_filters_v1';
-const PDF_INLINE_LIMIT=4*1024*1024;
+const PDF_INLINE_LIMIT=4*1024*1024; // 4 MB
 
 let MAP, CLUSTER, LAYER, CLUSTER_OK=false;
 let RAW=[], FILT=[];
@@ -779,13 +771,17 @@ function colorByState(k){
   if(k==='concluido')return '#43A047';
   return '#A38B63';
 }
-function pinClass(k,isEmp){
-  let base='pin ' + (isEmp ? 'emp' : 'iso');
-  if(k==='em_construcao')return base+' c';
-  if(k==='licenciado')return base+' l';
-  if(k==='concluido')return base+' f';
-  return base;
+
+function pinClass(p){
+  const k = p.estado;
+  const isEmp = (p.isEmpreendimento !== false); // por defeito é Empreendimento
+  const tClass = isEmp ? 'emp' : 'iso';
+  if(k==='em_construcao')return 'pin c '+tClass;
+  if(k==='licenciado')return 'pin l '+tClass;
+  if(k==='concluido')return 'pin f '+tClass;
+  return 'pin '+tClass;
 }
+
 function toCSV(rows){
   return rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n');
 }
@@ -795,6 +791,8 @@ function numPT(v){
   const n=Number(String(v).replace(',','.'));
   return Number.isFinite(n)? n : null;
 }
+
+/* Novo: parser simples de coordenadas GPS vindas das angariações */
 function parseGps(gps){
   if(!gps) return {lat:null,lng:null};
   const m = String(gps).match(/-?\d+(?:[.,]\d+)?/g);
@@ -804,7 +802,7 @@ function parseGps(gps){
   return {lat,lng};
 }
 
-/* Conclusão (mês/ano) */
+/* ===== Formatação conclusão (mês/ano) ===== */
 function formatConclusao(p){
   const ano = p.conclusaoAno || p.conclusao;
   const mes = p.conclusaoMes;
@@ -815,7 +813,7 @@ function formatConclusao(p){
   return `${m}/${ano}`;
 }
 
-/* Barra estado */
+/* ===== Barra de estado ===== */
 function setStatus(msg){
   const bar = el('statusBar');
   if(!bar) return;
@@ -828,7 +826,7 @@ function setStatus(msg){
   bar.classList.add('show');
 }
 
-/* Leaflet */
+/* ===== Leaflet & Cluster ===== */
 async function loadLeafletAndCluster(){
   if(!window.L){
     try{ await loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'); }
@@ -861,7 +859,7 @@ function initMap(){
   el('focusAmp').addEventListener('click',()=>MAP.setView(AMP_CENTER,AMP_ZOOM,{animate:true}));
 }
 
-/* Filtros: persistência */
+/* ===== Filtros: persistência ===== */
 function loadFilterState(){
   try{
     const raw = localStorage.getItem(FILTERS_KEY);
@@ -879,6 +877,7 @@ function loadFilterState(){
     UIState.promotor = obj.promotor || '';
     UIState.tipos    = obj.tipos    || '';
 
+    // Repõe nos campos
     if(el('q'))           el('q').value           = UIState.q;
     if(el('f_concelho'))  el('f_concelho').value  = UIState.concelho;
     if(el('f_cmin'))      el('f_cmin').value      = UIState.cmin;
@@ -888,6 +887,7 @@ function loadFilterState(){
     if(el('f_promotor'))  el('f_promotor').value  = UIState.promotor;
     if(el('f_tipos'))     el('f_tipos').value     = UIState.tipos;
 
+    // Estado (chips)
     const chips = document.querySelectorAll('#estadoChips .chip');
     chips.forEach(c => c.classList.remove('active'));
     let matched = false;
@@ -915,7 +915,7 @@ function saveFilterStateFromUI(){
   }
 }
 
-/* Facetas */
+/* ===== Facetas / Filtros ===== */
 function buildFacetOptions(){
   const concelhos=[...new Set(RAW.map(x=>x.concelho).filter(Boolean))].sort();
   const promotores=[...new Set(RAW.map(x=>x.promotor).filter(Boolean))].sort();
@@ -923,31 +923,25 @@ function buildFacetOptions(){
   el('f_promotor').innerHTML='<option value="">(Todos)</option>'+promotores.map(c=>`<option>${c}</option>`).join('');
 }
 
-/* 🔍 Pesquisa global: varre todos os campos simples + dígitos de contactos */
+/* pesquisa global: agora inclui proprietário, telefones, email e _rawSearch (JSON completo da angariação) */
 function matchTokens(obj,tokens){
   if(!tokens.length) return true;
-
-  const hayParts=[];
-  const digitParts=[];
-  for(const key in obj){
-    const v=obj[key];
-    if(v===null || v===undefined) continue;
-    if(typeof v==='object' || typeof v==='function') continue;
-    const s=String(v);
-    hayParts.push(norm(s));
-    const d=s.replace(/\D+/g,'');
-    if(d) digitParts.push(d);
-  }
-  const hayText = hayParts.join(' ');
-  const hayDigits = digitParts.join(' ');
-
-  return tokens.every(tok=>{
-    const tnorm = norm(tok);
-    const tdigits = tok.replace(/\D+/g,'');
-    if(tnorm && hayText.includes(tnorm)) return true;
-    if(tdigits && hayDigits.includes(tdigits)) return true;
-    return false;
-  });
+  const hay=norm([
+    obj.refInterna,
+    obj.nome,
+    obj.concelho,
+    obj.promotor,
+    obj.tipologias,
+    obj.estado,
+    obj.notas,
+    obj.conclusao,
+    obj.preco_m2,
+    obj.proprietario,
+    obj.telefone,
+    obj.email,
+    obj._rawSearch
+  ].join(' '));
+  return tokens.every(tok=>hay.includes(tok));
 }
 
 function applyFilters(){
@@ -986,11 +980,15 @@ function renderKPIs(){
   el('k_f').textContent=f;
 }
 
-/* Lista */
+/* ===== Lista ===== */
 function stateLabel(s){
   const c=colorByState(s);
   return `<span class="badge" style="border-color:${c};color:${c}">${s||'—'}</span>`;
 }
+function typeLabel(p){
+  return p.isEmpreendimento === false ? 'Imóvel isolado' : 'Empreendimento';
+}
+
 function renderList(){
   const box=el('list');
   box.innerHTML='';
@@ -1000,14 +998,6 @@ function renderList(){
   }
   FILT.forEach(p=>{
     const nameLine = `${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||'—'}`;
-    const typeLabel = p.isEmpreendimento ? 'Empreendimento' : 'Imóvel isolado';
-
-    const contactParts=[];
-    if(p.proprietario) contactParts.push('Prop.: '+p.proprietario);
-    const telShow = p.telemovel || p.telefone;
-    if(telShow) contactParts.push('Tlm/Tel: '+telShow);
-    const contactHtml = contactParts.length ? `<div class="state">${contactParts.join(' · ')}</div>` : '';
-
     const div=document.createElement('div');
     div.className='card';
     div.innerHTML=`
@@ -1016,17 +1006,20 @@ function renderList(){
           <div class="name">${nameLine}</div>
           <div class="meta">
             ${p.concelho||'—'}
+            <span class="badge badge-type">${typeLabel(p)}</span>
           </div>
         </div>
-        <div>
-          ${stateLabel(p.estado)}
-          <span class="badge badge-type">${typeLabel}</span>
-        </div>
+        ${stateLabel(p.estado)}
       </div>
-      <div class="state">Conclusão: ${formatConclusao(p)} · €/m²: ${
-        p.preco_m2? Number(String(p.preco_m2).replace(',','.')).toLocaleString('pt-PT') : '—'
-      }</div>
-      ${contactHtml}
+      <div class="state">
+        Conclusão: ${formatConclusao(p)} · €/m²: ${
+          p.preco_m2? Number(String(p.preco_m2).replace(',','.')).toLocaleString('pt-PT') : '—'
+        }
+      </div>
+      <div class="state">
+        ${p.proprietario ? '<b>Proprietário:</b> '+p.proprietario+' · ' : ''}
+        ${p.telefone ? '<b>Tel:</b> '+p.telefone : ''}
+      </div>
       <div class="actions">
         <button class="btn" data-act="zoom">Abrir no mapa</button>
         ${p.link? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>` : ''}
@@ -1053,13 +1046,13 @@ function renderList(){
   });
 }
 
-/* Mapa (marcadores) */
-function makeDivIcon(state,isEmp){
+/* ===== Mapa (marcadores) ===== */
+function makeDivIcon(p){
   return L.divIcon({
-    className: pinClass(state,isEmp),
+    className: pinClass(p),
     html:'',
     iconSize:[28,28],
-    iconAnchor:[14,22],
+    iconAnchor:[14,14],
     popupAnchor:[0,-12]
   });
 }
@@ -1072,7 +1065,7 @@ function renderMarkers(){
     const lat=numPT(p._lat), lng=numPT(p._lng);
     if(lat===null||lng===null) return;
     pts.push([lat,lng]);
-    const m=L.marker([lat,lng],{icon:makeDivIcon(p.estado, !!p.isEmpreendimento)});
+    const m=L.marker([lat,lng],{icon:makeDivIcon(p)});
     const tooltip = p.refInterna ? `[${p.refInterna}] ${p.nome||''}` : (p.nome||'');
     m.on('click',()=>openFicha(p,true));
     m.bindTooltip(tooltip,{direction:'top',offset:[0,-8],opacity:.9});
@@ -1084,9 +1077,9 @@ function renderMarkers(){
   }
 }
 
-/* Documentos & preview */
+/* ===== Documentos & pré-visualização ===== */
 const IS_SAFARI=/^((?!chrome|android).)*safari/i.test(navigator.userAgent||'');
-let STORAGE_MODE='idb';
+let STORAGE_MODE='idb'; // 'idb' | 'dataurl'
 const DB_PREFIX='gpp_docs_';
 const TEMP_URLS=new Set();
 
@@ -1114,7 +1107,9 @@ async function saveLocalBlob(file, slug){
         blob
       });
       return 'idb://'+key;
-    }catch{}
+    }catch{
+      // fallback
+    }
   }
   const dataUrl=await new Promise((res,rej)=>{
     const fr=new FileReader();
@@ -1193,7 +1188,7 @@ async function renderDocPreview(container, rawUrl, type){
         const resolved = await resolveLocalUrl(rawUrl);
         container.innerHTML = `
           <div class="hint" style="line-height:1.5">
-            Ficheiro grande (${(size/1024/1024).toFixed(1)} MB). Para pré-visualizar sem bloqueios, hospede num URL HTTPS e use o link aqui.<br>
+            Ficheiro grande (${(size/1024/1024).toFixed(1)} MB). Para pré-visualizar sem bloqueios, hospede num URL HTTPS (ex.: <code>docs/</code> no repositório) e use o link aqui.<br>
             Ainda assim, pode <a class="btn-sm" href="${resolved}" target="_blank" rel="noreferrer noopener">Abrir em nova aba</a> ou <a class="btn-sm" href="${resolved}" download>Transferir</a>.
           </div>`;
         return;
@@ -1250,12 +1245,10 @@ async function renderDocPreview(container, rawUrl, type){
   container.innerHTML=`<a class="btn-sm" href="${url}" target="_blank" rel="noreferrer noopener">Abrir</a>`;
 }
 
-/* Painel lateral (Ficha) */
+/* ===== Painel lateral (Ficha) ===== */
 function openFicha(p,focus=false){
   ACTIVE=p;
   const titleLine = `${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||'—'}`;
-  const typeLabel = p.isEmpreendimento ? 'Empreendimento' : 'Imóvel isolado';
-
   const html=`
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
       <div>
@@ -1263,7 +1256,7 @@ function openFicha(p,focus=false){
         <div style="font-size:12px;color:#bbb">
           ${p.concelho||'—'}
           · ${stateLabel(p.estado)}
-          · <span class="badge badge-type">${typeLabel}</span>
+          · <span class="badge-type">${typeLabel(p)}</span>
         </div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
@@ -1283,10 +1276,10 @@ function openFicha(p,focus=false){
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
       <div>
         <div class="meta-line"><b>Promotor:</b> ${p.promotor||'—'}</div>
-        <div class="meta-line"><b>Proprietário:</b> ${p.proprietario || '—'}</div>
-        <div class="meta-line"><b>Tlm/Tel:</b> ${p.telemovel || p.telefone || '—'}</div>
-        <div class="meta-line"><b>Email:</b> ${p.email || '—'}</div>
         <div class="meta-line"><b>Ref. interna:</b> ${p.refInterna || '—'}</div>
+        <div class="meta-line"><b>Proprietário:</b> ${p.proprietario || '—'}</div>
+        <div class="meta-line"><b>Telefone:</b> ${p.telefone || '—'}</div>
+        <div class="meta-line"><b>Email:</b> ${p.email || '—'}</div>
         <div class="meta-line"><b>Tipologias:</b> ${p.tipologias||'—'}</div>
         <div class="meta-line"><b>Conclusão:</b> ${formatConclusao(p)}</div>
         <div class="meta-line"><b>€/m²:</b> ${
@@ -1311,13 +1304,13 @@ function openFicha(p,focus=false){
     if(numPT(p._lat)!==null && numPT(p._lng)!==null) MAP?.setView([p._lat,p._lng],16,{animate:true});
   });
   el('panelInner').querySelector('[data-act="copy"]')?.addEventListener('click',async ()=>{
-    const resumo=`${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${formatConclusao(p)} · Ref. ${p.refInterna || '-'} · ${p.link||''}`.trim();
+    const resumo=`${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${formatConclusao(p)} · ${typeLabel(p)} · Ref. ${p.refInterna || '-'} · ${p.link||''}`.trim();
     try{ await navigator.clipboard.writeText(resumo);}catch{}
   });
   el('panelInner').querySelector('[data-act="share"]')?.addEventListener('click',async ()=>{
     const shareData={
       title:p.nome||'Empreendimento',
-      text:`${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${formatConclusao(p)}${p.refInterna ? ' · Ref. ' + p.refInterna : ''}`,
+      text:`${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · ${typeLabel(p)} · Conclusão ${formatConclusao(p)}${p.refInterna ? ' · Ref. ' + p.refInterna : ''}`,
       url: location.href
     };
     if(navigator.share){
@@ -1361,7 +1354,7 @@ el('closePanel').addEventListener('click',()=>{
   revokeTempUrls();
 });
 
-/* Exportações */
+/* ===== Exportações ===== */
 function exportCSV(){
   const headers=["nome","concelho","estado","promotor","tipologias","conclusao","preco_m2","notas","link","latitude","longitude"];
   const rows=FILT.map(p=>[
@@ -1398,7 +1391,11 @@ function exportGeo(){
         preco_m2:p.preco_m2,
         notas:p.notas,
         link:p.link,
-        docs:p.docs||[]
+        docs:p.docs||[],
+        proprietario:p.proprietario||'',
+        telefone:p.telefone||'',
+        email:p.email||'',
+        isEmpreendimento:(p.isEmpreendimento!==false)
       }
     }))
   };
@@ -1415,7 +1412,7 @@ function exportGeo(){
 el('exportCsv').addEventListener('click', exportCSV);
 el('exportGeo').addEventListener('click', exportGeo);
 
-/* Persistência */
+/* ===== Persistência (robusta) ===== */
 function saveLS(){
   try{
     localStorage.setItem(LS_KEY, JSON.stringify(RAW));
@@ -1427,7 +1424,8 @@ function loadLS(){
   try{
     const x=localStorage.getItem(LS_KEY);
     if(!x) return null;
-    if(x.length > 500000){
+    // Proteção contra datasets gigantes (ex.: data: URLs enormes)
+    if(x.length > 500000){ // ~0.5 MB
       console.warn('Dataset local demasiado grande, a ignorar para evitar bloqueios.');
       LS_SKIPPED=true;
       return null;
@@ -1440,21 +1438,7 @@ function loadLS(){
   }
 }
 
-/* Helper para detetar campos em Angariações que contenham proprietários / contactos */
-function findFirstByKeyPattern(obj, regex){
-  for(const k in obj){
-    if(!regex.test(k)) continue;
-    const v=obj[k];
-    if(v===null || v===undefined) continue;
-    if(typeof v !== 'string') continue;
-    const s=v.trim();
-    if(!s) continue;
-    return s;
-  }
-  return '';
-}
-
-/* Integração Angariações */
+/* ===== Integração com Angariações (gpp_angariacoes_v2) ===== */
 function mergeAngariacoesIntoRAW(){
   let raw=null;
   try{
@@ -1483,10 +1467,10 @@ function mergeAngariacoesIntoRAW(){
     const coords = parseGps(gps);
     if(coords.lat===null || coords.lng===null) return;
 
-    // Regra: só é isolado se isEmpreendimento === false
-    const isEmp = (d.isEmpreendimento === false) ? false : true;
+    const isEmp = !!d.isEmpreendimento;
 
     const nome = d.nomeEmp || d.tituloImovel || d.refInterna || (isEmp ? 'Empreendimento' : 'Imóvel');
+
     const baseId = d.id || slugify(nome);
     const slug = 'ang-' + baseId;
 
@@ -1510,22 +1494,6 @@ function mergeAngariacoesIntoRAW(){
       preco_m2 = Math.round(preco/areaABP);
     }
 
-    const proprietario =
-      d.nomeProprietario || d.proprietario || d.clienteNome || d.nomeCliente ||
-      findFirstByKeyPattern(d, /propriet|dono|owner|cliente/i);
-
-    const telefone =
-      d.telefoneProprietario || d.telefone || d.contactoTelefone || d.telefone1 ||
-      findFirstByKeyPattern(d, /telefone|phone|tel_fixo/i);
-
-    const telemovel =
-      d.telemovelProprietario || d.telemovel || d.contactoTelemovel || d.telefone2 ||
-      findFirstByKeyPattern(d, /telem|tlm|mobile/i);
-
-    const email =
-      d.emailProprietario || d.email || d.contactoEmail ||
-      findFirstByKeyPattern(d, /mail/i);
-
     const obj = {
       slug,
       nome,
@@ -1545,10 +1513,10 @@ function mergeAngariacoesIntoRAW(){
       _fromAngariacoes: true,
       isEmpreendimento: isEmp,
       refInterna: d.refInterna || '',
-      proprietario,
-      telefone,
-      telemovel,
-      email
+      proprietario: d.nomeProprietario || d.proprietario || '',
+      telefone: d.telefone || d.telemovel || d.telefone1 || d.telefone2 || '',
+      email: d.email || d.emailProprietario || '',
+      _rawSearch: JSON.stringify(d || {})
     };
 
     if(bySlug.has(slug)){
@@ -1559,7 +1527,7 @@ function mergeAngariacoesIntoRAW(){
   });
 }
 
-/* Conclusão + auto-update estado */
+/* ===== Conclusão (mês/ano) + auto-update de estado ===== */
 function normalizeConclusaoFields(){
   RAW.forEach(p=>{
     const anoStored = p.conclusaoAno || p.conclusao;
@@ -1574,33 +1542,29 @@ function normalizeConclusaoFields(){
     }
   });
 }
+
 function autoUpdateEstadosByConclusao(){
   const today = new Date();
   let changed=false;
+
   RAW.forEach(p=>{
     const ano = Number(p.conclusaoAno || p.conclusao || '');
     const mes = Number(p.conclusaoMes || '');
     if(!ano || !mes) return;
+
     if(p.estado !== 'em_construcao') return;
+
     const lastDay = new Date(ano, mes, 0);
     if(today >= lastDay){
       p.estado = 'concluido';
       changed = true;
     }
   });
+
   return changed;
 }
 
-/* Garantir que tudo o que não tem isEmpreendimento definido é Empreendimento (registos antigos) */
-function fixIsEmpDefaults(){
-  RAW.forEach(p=>{
-    if(p.isEmpreendimento === undefined || p.isEmpreendimento === null){
-      p.isEmpreendimento = true;
-    }
-  });
-}
-
-/* Modo edição */
+/* ===== Modo Edição ===== */
 function setEditMode(on){
   EDIT_MODE=on;
   el('toggleEdit').textContent= on? '🔓 Edição ON' : '🔒 Editar';
@@ -1624,7 +1588,7 @@ el('btnSave').addEventListener('click',()=>{
   alert('Dados guardados localmente.');
 });
 
-/* CSV Import */
+/* ===== CSV Import ===== */
 el('csvFile').addEventListener('change', async (ev)=>{
   const file=ev.target.files?.[0]; if(!file) return;
   if(!window.Papa){ alert('Leitor CSV indisponível.'); return; }
@@ -1680,7 +1644,11 @@ el('csvFile').addEventListener('change', async (ev)=>{
   });
 });
 
-/* Modal edição */
+/* ===== Modal Edição ===== */
+function updateLocalAttachVisibility(){
+  const lab=el('attachLocalLabel');
+  if(lab) lab.style.display= EDIT_MODE ? 'inline-block' : 'none';
+}
 function addDocRow(d){
   const row=document.createElement('div');
   row.className='doc-row';
@@ -1709,13 +1677,8 @@ function fillEditForm(p){
   el('f_concelho_e').value=p.concelho||'';
   el('f_estado').value=p.estado||'';
   el('f_promotor_e').value=p.promotor||'';
-
-  el('f_proprietario').value=p.proprietario||'';
-  el('f_telemovel').value=p.telemovel||'';
-  el('f_telefone').value=p.telefone||'';
-  el('f_email').value=p.email||'';
-
   el('f_tipologias').value=p.tipologias||'';
+
   el('f_conclusao_mes').value = p.conclusaoMes || '';
   el('f_conclusao_ano').value = p.conclusaoAno || p.conclusao || '';
 
@@ -1733,11 +1696,9 @@ el('btnNew').addEventListener('click',()=>{
   EDIT_INDEX=-1;
   fillEditForm({
     nome:'',concelho:'',estado:'',promotor:'',
-    proprietario:'',telemovel:'',telefone:'',email:'',
     tipologias:'',conclusao:'',conclusaoAno:'',conclusaoMes:'',
     preco_m2:'',
-    notas:'',link:'',_lat:'',_lng:'',docs:[],
-    isEmpreendimento:true
+    notas:'',link:'',_lat:'',_lng:'',docs:[]
   });
   el('editTitle').textContent='Novo Empreendimento';
   el('editModal').classList.add('show');
@@ -1783,12 +1744,6 @@ el('saveEdit').addEventListener('click',()=>{
     concelho:el('f_concelho_e').value.trim(),
     estado:el('f_estado').value,
     promotor:el('f_promotor_e').value.trim(),
-
-    proprietario:el('f_proprietario').value.trim(),
-    telemovel:el('f_telemovel').value.trim(),
-    telefone:el('f_telefone').value.trim(),
-    email:el('f_email').value.trim(),
-
     tipologias:el('f_tipologias').value.trim(),
     conclusaoAno: anoC,
     conclusaoMes: mesC,
@@ -1814,8 +1769,6 @@ el('saveEdit').addEventListener('click',()=>{
     return;
   }
   p.slug=slugify(p.nome);
-  p.isEmpreendimento = true; // criados aqui são empreendimentos por defeito
-
   if(EDIT_INDEX>=0){
     RAW[EDIT_INDEX]=Object.assign(RAW[EDIT_INDEX],p);
   } else {
@@ -1824,6 +1777,7 @@ el('saveEdit').addEventListener('click',()=>{
       if(!confirm('Já existe um empreendimento com este nome. Substituir?')) return;
       Object.assign(exist,p);
     } else {
+      p.isEmpreendimento = true; // novos criados manualmente assumem Empreendimento
       RAW.push(p);
     }
   }
@@ -1838,7 +1792,7 @@ el('saveEdit').addEventListener('click',()=>{
   run();
 });
 
-/* Apagar */
+/* ===== 🚩 Apagar por slug (botão "Apagar" da lista) ===== */
 function deleteBySlug(slug){
   if(!EDIT_MODE) return;
   const idx = RAW.findIndex(p => p.slug === slug);
@@ -1857,7 +1811,7 @@ function deleteBySlug(slug){
   }
 }
 
-/* UI filtros */
+/* ===== UI filtros ===== */
 document.querySelectorAll('#estadoChips .chip').forEach(ch=>{
   ch.addEventListener('click',()=>{
     document.querySelectorAll('#estadoChips .chip').forEach(c=>c.classList.remove('active'));
@@ -1887,6 +1841,8 @@ el('clear').addEventListener('click',()=>{
   saveFilterStateFromUI();
   run();
 });
+
+/* ===== Eventos diversos ===== */
 function setEditModeVisibility(){
   ['btnImport','btnNew','btnSave','btnClearAll','attachLocalLabel'].forEach(id=>{
     const b=el(id);
@@ -1896,7 +1852,7 @@ function setEditModeVisibility(){
 }
 el('toggleEdit').addEventListener('click',()=> setTimeout(setEditModeVisibility,0));
 
-/* Ciclo render */
+/* ===== Ciclo render ===== */
 function run(){
   applyFilters();
   renderKPIs();
@@ -1904,7 +1860,7 @@ function run(){
   renderMarkers();
 }
 
-/* Picking coordenadas */
+/* ===== Picking coordenadas ===== */
 document.addEventListener('click',(e)=>{
   if(!PICKING || !MAP) return;
   if(!e.target.closest('#map')) return;
@@ -1922,7 +1878,7 @@ el('pickCoord').addEventListener('click',()=>{
   b.classList.toggle('primary',PICKING);
 });
 
-/* Contexto URL */
+/* ===== Contexto vindo de outras páginas (ex.: Tarefas) ===== */
 function applyUrlContext(){
   try{
     const params = new URLSearchParams(window.location.search);
@@ -1961,7 +1917,7 @@ function applyUrlContext(){
   }
 }
 
-/* Arranque */
+/* ===== Arranque ===== */
 (async function init(){
   setStatus('A iniciar mapa…');
 
@@ -1977,8 +1933,17 @@ function applyUrlContext(){
   const mem=loadLS();
   RAW=Array.isArray(mem)? mem : [];
 
+  // tudo o que já existia é assumido como Empreendimento por defeito
+  RAW.forEach(p=>{
+    if(p.isEmpreendimento === undefined || p.isEmpreendimento === null){
+      p.isEmpreendimento = true;
+    }
+  });
+
+  // Incorporar automaticamente empreendimentos e imóveis isolados das Angariações
   mergeAngariacoesIntoRAW();
-  fixIsEmpDefaults();
+
+  // Normalizar dados e auto-update de estado
   normalizeConclusaoFields();
   const changed = autoUpdateEstadosByConclusao();
   if(changed) saveLS();
@@ -2001,4 +1966,3 @@ function applyUrlContext(){
 </script>
 </body>
 </html>
-   
