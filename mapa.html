@@ -1,5 +1,3 @@
-
-
 <!doctype html>
 <html lang="pt">
 <head>
@@ -233,7 +231,7 @@ input[type="file"]{display:none}
   display:flex;
   justify-content:space-between;
   gap:8px;
-  align-items:center; /* garante alinhamento vertical entre título e badge de estado */
+  align-items:center;
 }
 .card .name{
   font-weight:700;
@@ -244,7 +242,7 @@ input[type="file"]{display:none}
   text-transform:uppercase;
   letter-spacing:.05em;
   margin-top:4px;
-  display:flex;          /* mantém concelho + badge de tipo na mesma linha */
+  display:flex;
   align-items:center;
   gap:6px;
   flex-wrap:wrap;
@@ -272,12 +270,12 @@ input[type="file"]{display:none}
   border:1px solid var(--border);
   font-size:11px;
   line-height:1;
-  white-space:nowrap;   /* não quebra a meio da palavra */
+  white-space:nowrap;
 }
 
 /* Badges específicos de ESTADO — tamanho uniforme */
 .badge-estado{
-  min-width:100px;       /* largura fixa para “Em construção / Licenciado / Concluído” */
+  min-width:100px;
   justify-content:center;
   text-transform:uppercase;
 }
@@ -413,23 +411,19 @@ input[type="file"]{display:none}
   width:28px;
   height:28px;
   border-radius:50%;
-  border:3px solid currentColor;   /* cor do estado (verde, azul, vermelho) */
-  background:transparent;          /* interior transparente */
+  border:3px solid currentColor;
+  background:transparent;
   box-shadow:0 2px 6px rgba(0,0,0,.35);
   position:relative;
 }
-
-/* círculo interior só para dar “espessura” ao anel e contraste */
 .pin.iso::before{
   content:"";
   position:absolute;
-  inset:6px;                       /* controla a espessura do anel */
+  inset:6px;
   border-radius:50%;
-  border:2px solid rgba(0,0,0,.65); /* ligeiro aro interior escuro */
+  border:2px solid rgba(0,0,0,.65);
   background:transparent;
 }
-
-/* nenhum ::after para os isolados — sem pulso */
 
 @keyframes pulse{
   0%{ box-shadow:0 0 0 0 rgba(229,57,53,.55)}
@@ -584,7 +578,7 @@ input[type="file"]{display:none}
       </div>
     </header>
 
-       <div class="kpis">
+    <div class="kpis">
       <div class="kpi"><span class="dot"></span>Total: <b id="k_total">0</b></div>
       <div class="kpi"><span class="dot c"></span>Em construção: <b id="k_c">0</b></div>
       <div class="kpi"><span class="dot l"></span>Licenciado: <b id="k_l">0</b></div>
@@ -604,6 +598,7 @@ input[type="file"]{display:none}
         <!-- Botões de backup OneDrive -->
         <button class="btn" id="backupOneDrive">Backup OneDrive</button>
         <button class="btn ghost" id="restoreBackup">Restaurar</button>
+        <input id="backupFile" type="file" accept=".csv" />
       </div>
     </div>
 
@@ -1027,7 +1022,6 @@ function applyFilters(){
 
     // Filtro por tipo (Empreendimento vs Isolado)
     if(UIState.tipo === 'emp'){
-      // Empreendimento = tudo o que não for explicitamente isolado
       if(p.isEmpreendimento === false) return false;
     }else if(UIState.tipo === 'iso'){
       if(p.isEmpreendimento !== false) return false;
@@ -1082,7 +1076,6 @@ function tipoBadge(p){
 }
 
 /* ===== Lista ===== */
-/* ===== Lista ===== */
 function renderList(){
   const box = el('list');
   box.innerHTML = '';
@@ -1093,7 +1086,6 @@ function renderList(){
   }
 
   FILT.forEach(p => {
-    // TÍTULO: apenas o nome
     const nameLine = `${p.nome || '—'}`;
     const div = document.createElement('div');
     div.className = 'card';
@@ -1149,7 +1141,6 @@ function renderList(){
       </div>
     `;
 
-    // Ações dos botões
     const btnZoom = div.querySelector('[data-act="zoom"]');
     if (btnZoom) {
       btnZoom.addEventListener('click', () => {
@@ -1387,7 +1378,6 @@ async function renderDocPreview(container, rawUrl, type){
 function openFicha(p,focus=false){
   ACTIVE = p;
 
-  // Título: apenas o nome
   const titleLine = `${p.nome || '—'}`;
   const precoPedidoStr = formatPrecoPedido(p);
 
@@ -1457,7 +1447,6 @@ function openFicha(p,focus=false){
     MAP?.setView([numPT(p._lat), numPT(p._lng)], 16, { animate: true });
   }
 
-  // Botão "Centrar"
   const btnCenter = el('panelInner').querySelector('[data-act="center"]');
   if (btnCenter) {
     btnCenter.addEventListener('click', () => {
@@ -1467,7 +1456,6 @@ function openFicha(p,focus=false){
     });
   }
 
-  // Copiar resumo (mantemos a Ref. na frase, apenas muda o título visual)
   const btnCopy = el('panelInner').querySelector('[data-act="copy"]');
   if (btnCopy) {
     btnCopy.addEventListener('click', async () => {
@@ -1480,7 +1468,6 @@ function openFicha(p,focus=false){
     });
   }
 
-  // Partilhar
   const btnShare = el('panelInner').querySelector('[data-act="share"]');
   if (btnShare) {
     btnShare.addEventListener('click', async () => {
@@ -1507,7 +1494,6 @@ function openFicha(p,focus=false){
     });
   }
 
-  // Clique nos documentos
   const ul = el('panelInner').querySelector('#docList');
   if (ul) {
     ul.querySelectorAll('li').forEach(li => {
@@ -1769,12 +1755,12 @@ function restoreFromBackup(file){
 }
 
 /* Ligar botões da toolbar ao backup/restauro */
-const btnBackup = el('btnBackup');
+const btnBackup = el('backupOneDrive');
 if(btnBackup){
   btnBackup.addEventListener('click', backupOneDrive);
 }
 
-const btnRestore = el('btnRestore');
+const btnRestore = el('restoreBackup');
 const backupInput = el('backupFile');
 if(btnRestore && backupInput){
   btnRestore.addEventListener('click', ()=>{
@@ -2374,4 +2360,3 @@ function applyUrlContext(){
 </script>
 </body>
 </html>
-
