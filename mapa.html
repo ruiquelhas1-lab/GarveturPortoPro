@@ -1380,92 +1380,142 @@ async function renderDocPreview(container, rawUrl, type){
 
 /* ===== Painel lateral (Ficha) ===== */
 function openFicha(p,focus=false){
-  ACTIVE=p;
-  const titleLine = `${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||'—'}`;
+  ACTIVE = p;
+
+  // Título: apenas o nome
+  const titleLine = `${p.nome || '—'}`;
   const precoPedidoStr = formatPrecoPedido(p);
-  const html=`
+
+  const html = `
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
       <div>
         <div style="font-weight:800;font-size:16px">${titleLine}</div>
         <div style="font-size:12px;color:#bbb">
-          ${p.concelho||'—'}
+          ${p.refInterna ? `Ref. ${p.refInterna} · ` : ''}${p.concelho || '—'}
           · ${stateLabel(p.estado)}
           ${tipoBadge(p)}
         </div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn" data-act="center">Centrar</button>
-        <a class="btn" href="https://www.google.com/maps?q=${p._lat},${p._lng}" target="_blank" rel="noreferrer">Google Maps</a>
-        ${p.link? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>`:''}
-        ${p._fromAngariacoes && p.refInterna ? `
-          <a class="btn" href="./angariacoes.html?ref=${encodeURIComponent(p.refInterna)}&abrir=1" target="_blank" rel="noreferrer">
-            Ficha angariação
-          </a>` : ''
+        <a class="btn"
+           href="https://www.google.com/maps?q=${p._lat},${p._lng}"
+           target="_blank"
+           rel="noreferrer">Google Maps</a>
+        ${p.link
+          ? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>`
+          : ''
+        }
+        ${
+          p._fromAngariacoes && p.refInterna
+            ? `
+        <a class="btn"
+           href="./angariacoes.html?ref=${encodeURIComponent(p.refInterna)}&abrir=1"
+           target="_blank"
+           rel="noreferrer">
+          Ficha angariação
+        </a>`
+            : ''
         }
         <button class="btn" data-act="copy">Copiar resumo</button>
         <button class="btn" data-act="share">Partilhar</button>
-        ${EDIT_MODE? `<button class="btn ghost" data-act="edit">Editar</button>`:''}
+        ${EDIT_MODE ? `<button class="btn ghost" data-act="edit">Editar</button>` : ''}
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
       <div>
         <div class="meta-line"><b>Tipo:</b> ${tipoLabel(p)}</div>
-        <div class="meta-line"><b>Promotor:</b> ${p.promotor||'—'}</div>
+        <div class="meta-line"><b>Promotor:</b> ${p.promotor || '—'}</div>
         <div class="meta-line"><b>Ref. interna:</b> ${p.refInterna || '—'}</div>
-        <div class="meta-line"><b>Tipologias:</b> ${p.tipologias||'—'}</div>
+        <div class="meta-line"><b>Tipologias:</b> ${p.tipologias || '—'}</div>
         <div class="meta-line"><b>Conclusão:</b> ${formatConclusao(p)}</div>
         <div class="meta-line"><b>€/m²:</b> ${
-          p.preco_m2? Number(String(p.preco_m2).replace(',','.')).toLocaleString('pt-PT') : '—'
+          p.preco_m2
+            ? Number(String(p.preco_m2).replace(',', '.')).toLocaleString('pt-PT')
+            : '—'
         }</div>
         <div class="meta-line"><b>Preço pedido:</b> ${precoPedidoStr}</div>
-        <div class="meta-line"><b>Notas:</b> ${p.notas||'—'}</div>
-        <div class="meta-line"><b>Coordenadas:</b> ${numPT(p._lat)??'—'}, ${numPT(p._lng)??'—'}</div>
+        <div class="meta-line"><b>Notas:</b> ${p.notas || '—'}</div>
+        <div class="meta-line"><b>Coordenadas:</b> ${numPT(p._lat) ?? '—'}, ${numPT(p._lng) ?? '—'}</div>
       </div>
       <div>
         <div class="label">Documentos & Media</div>
-        ${buildDocsHTML(p.docs||[])}
+        ${buildDocsHTML(p.docs || [])}
       </div>
     </div>
   `;
-  el('panelInner').innerHTML=html;
+
+  el('panelInner').innerHTML = html;
   el('side-panel').classList.add('show');
-  if(focus && numPT(p._lat)!==null && numPT(p._lng)!==null){
-    MAP?.setView([numPT(p._lat),numPT(p._lng)],16,{animate:true});
+
+  if (focus && numPT(p._lat) !== null && numPT(p._lng) !== null) {
+    MAP?.setView([numPT(p._lat), numPT(p._lng)], 16, { animate: true });
   }
 
-  el('panelInner').querySelector('[data-act="center"]')?.addEventListener('click',()=>{
-    if(numPT(p._lat)!==null && numPT(p._lng)!==null) MAP?.setView([p._lat,p._lng],16,{animate:true});
-  });
-  el('panelInner').querySelector('[data-act="copy"]')?.addEventListener('click',async ()=>{
-    const resumo=`${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · ${tipoLabel(p)} · Conclusão ${formatConclusao(p)} · Preço: ${precoPedidoStr} · Ref. ${p.refInterna || '-'} · ${p.link||''}`.trim();
-    try{ await navigator.clipboard.writeText(resumo);}catch{}
-  });
-  el('panelInner').querySelector('[data-act="share"]')?.addEventListener('click',async ()=>{
-    const shareData={
-      title:p.nome||'Empreendimento',
-      text:`${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · ${tipoLabel(p)} · Conclusão ${formatConclusao(p)} · Preço: ${precoPedidoStr}${p.refInterna ? ' · Ref. ' + p.refInterna : ''}`,
-      url: location.href
-    };
-    if(navigator.share){
-      try{ await navigator.share(shareData);}catch{}
-    } else {
-      try{ await navigator.clipboard.writeText(shareData.text+' '+(p.link||location.href));}catch{}
-    }
-  });
+  // Botão "Centrar"
+  const btnCenter = el('panelInner').querySelector('[data-act="center"]');
+  if (btnCenter) {
+    btnCenter.addEventListener('click', () => {
+      if (numPT(p._lat) !== null && numPT(p._lng) !== null) {
+        MAP?.setView([p._lat, p._lng], 16, { animate: true });
+      }
+    });
+  }
 
-  const ul=el('panelInner').querySelector('#docList');
-  if(ul){
-    ul.querySelectorAll('li').forEach(li=>{
-      li.addEventListener('click', async ()=>{
-        const rawUrl=li.getAttribute('data-url');
-        const tp=li.getAttribute('data-type');
-        const view=el('panelInner').querySelector('#docView');
+  // Copiar resumo (mantemos a Ref. na frase, apenas muda o título visual)
+  const btnCopy = el('panelInner').querySelector('[data-act="copy"]');
+  if (btnCopy) {
+    btnCopy.addEventListener('click', async () => {
+      const resumo = `${
+        p.refInterna ? '[' + p.refInterna + '] ' : ''
+      }${p.nome || ''} — ${p.concelho || ''} (${p.estado || ''}) · ${tipoLabel(p)} · Conclusão ${
+        formatConclusao(p)
+      } · Preço: ${precoPedidoStr} · Ref. ${p.refInterna || '-'} · ${p.link || ''}`.trim();
+      try { await navigator.clipboard.writeText(resumo); } catch {}
+    });
+  }
+
+  // Partilhar
+  const btnShare = el('panelInner').querySelector('[data-act="share"]');
+  if (btnShare) {
+    btnShare.addEventListener('click', async () => {
+      const shareData = {
+        title: p.nome || 'Empreendimento',
+        text: `${
+          p.refInterna ? '[' + p.refInterna + '] ' : ''
+        }${p.nome || ''} — ${p.concelho || ''} (${p.estado || ''}) · ${tipoLabel(p)} · Conclusão ${
+          formatConclusao(p)
+        } · Preço: ${precoPedidoStr}${
+          p.refInterna ? ' · Ref. ' + p.refInterna : ''
+        }`,
+        url: location.href
+      };
+      if (navigator.share) {
+        try { await navigator.share(shareData); } catch {}
+      } else {
+        try {
+          await navigator.clipboard.writeText(
+            shareData.text + ' ' + (p.link || location.href)
+          );
+        } catch {}
+      }
+    });
+  }
+
+  // Clique nos documentos
+  const ul = el('panelInner').querySelector('#docList');
+  if (ul) {
+    ul.querySelectorAll('li').forEach(li => {
+      li.addEventListener('click', async () => {
+        const rawUrl = li.getAttribute('data-url');
+        const tp = li.getAttribute('data-type');
+        const view = el('panelInner').querySelector('#docView');
         await renderDocPreview(view, rawUrl, tp);
       });
-      li.querySelector('[data-act="expand"]')?.addEventListener('click', async (e)=>{
+      li.querySelector('[data-act="expand"]')?.addEventListener('click', async e => {
         e.stopPropagation();
-        const raw=e.target.getAttribute('data-url');
-        const u=await resolveLocalUrl(raw);
+        const raw = e.target.getAttribute('data-url');
+        const u = await resolveLocalUrl(raw);
         openPDF(u);
       });
     });
