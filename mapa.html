@@ -365,9 +365,11 @@ input[type="file"]{display:none}
   font-size:12px;
   position:relative;
 }
-.pin.c{ background:#E53935 }
-.pin.l{ background:#1E88E5 }
-.pin.f{ background:#43A047 }
+
+/* ESTADOS — também definem "color" para os isolados usarem currentColor no anel */
+.pin.c{ background:#E53935; color:#E53935; }
+.pin.l{ background:#1E88E5; color:#1E88E5; }
+.pin.f{ background:#43A047; color:#43A047; }
 
 /* Pulso apenas para empreendimentos em construção (não aplica aos isolados) */
 .pin:not(.iso).c::after{
@@ -385,7 +387,7 @@ input[type="file"]{display:none}
   width:28px;
   height:28px;
   border-radius:50%;
-  border:3px solid currentColor;   /* cor do estado */
+  border:3px solid currentColor;   /* cor do estado (verde, azul, vermelho) */
   background:transparent;          /* interior transparente */
   box-shadow:0 2px 6px rgba(0,0,0,.35);
   position:relative;
@@ -401,7 +403,7 @@ input[type="file"]{display:none}
   background:transparent;
 }
 
-/* nenhum ::after para os isolados — sem porta/telhado */
+/* nenhum ::after para os isolados — sem pulso */
 
 @keyframes pulse{
   0%{ box-shadow:0 0 0 0 rgba(229,57,53,.55)}
