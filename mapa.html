@@ -1542,7 +1542,7 @@ el('closePanel').addEventListener('click',()=>{
   revokeTempUrls();
 });
 
-/* ===== Exportações ===== */
+/* ===== Exportações + Backup OneDrive ===== */
 function exportCSV(){
   const headers=[
     "nome","concelho","estado","promotor","tipologias",
@@ -1575,6 +1575,7 @@ function exportCSV(){
   a.remove();
   URL.revokeObjectURL(url);
 }
+
 function exportGeo(){
   const fc={
     type:"FeatureCollection",
@@ -1611,10 +1612,11 @@ function exportGeo(){
   URL.revokeObjectURL(url);
 }
 
+/* Ligações dos botões de exportação existentes */
 el('exportCsv').addEventListener('click', exportCSV);
 el('exportGeo').addEventListener('click', exportGeo);
-  
-  /* ===== Backup OneDrive / Restauro (Mapa) ===== */
+
+/* ===== Backup OneDrive / Restauro (Mapa) ===== */
 
 function backupOneDrive(){
   if(!Array.isArray(RAW) || !RAW.length){
@@ -1783,88 +1785,6 @@ if(btnRestore && backupInput){
     const file = ev.target.files && ev.target.files[0];
     if(file) restoreFromBackup(file);
   });
-}
-
-/* ===== Backup / Restauro (ficheiro JSON) ===== */
-function doBackupToFile(){
-  try{
-    const payload = {
-      version: 1,
-      ts: Date.now(),
-      data: RAW || []
-    };
-
-    const blob = new Blob(
-      [JSON.stringify(payload)],
-      { type:'application/json;charset=utf-8;' }
-    );
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'gpp-mapa-backup.json';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-
-    alert('Backup do mapa exportado com sucesso.\nGuarde o ficheiro na pasta OneDrive > Garvetur Porto Pro > Backups > Mapa.');
-  }catch(e){
-    console.error('Erro ao gerar backup', e);
-    alert('Não foi possível gerar o backup. Verifique a consola (F12).');
-  }
-}
-
-async function handleRestoreFile(ev){
-  const file = ev.target.files && ev.target.files[0];
-  if(!file) return;
-
-  try{
-    const text = await file.text();
-    let payload;
-    try{
-      payload = JSON.parse(text);
-    }catch{
-      alert('Ficheiro de backup inválido (não é JSON).');
-      return;
-    }
-
-    // Aceita dois formatos:
-    // 1) { version, ts, data: [...] }
-    // 2) [ ... ] diretamente
-    const data = Array.isArray(payload.data)
-      ? payload.data
-      : (Array.isArray(payload) ? payload : null);
-
-    if(!data){
-      alert('Ficheiro de backup não contém dados válidos.');
-      return;
-    }
-
-    // Substitui o RAW atual pelos dados do backup
-    RAW = data;
-    saveLS();               // Atualiza localStorage
-    buildFacetOptions();    // Refaz concelhos / promotores
-    run();                  // Re-renderiza KPIs, lista e mapa
-
-    alert('Backup restaurado com sucesso.');
-  }catch(e){
-    console.error('Erro a restaurar backup', e);
-    alert('Não foi possível restaurar o backup. Verifique se o ficheiro é o correto.');
-  }finally{
-    ev.target.value = '';
-  }
-}
-
-// Ligar eventos aos botões, se existirem
-const btnBackup = el('btnBackup');
-if(btnBackup){
-  btnBackup.addEventListener('click', doBackupToFile);
-}
-
-const inputRestore = el('restoreFile');
-if(inputRestore){
-  inputRestore.addEventListener('change', handleRestoreFile);
 }
 
 /* ===== Persistência (robusta) ===== */
