@@ -164,58 +164,63 @@ input[type="file"]{display:none}
 
 /* Sidebar */
 .sidebar{
-  background:
-    radial-gradient(circle at 0 0, rgba(163,139,99,.10), transparent 55%),
-    linear-gradient(180deg,#181818 0%,#121212 42%,#0C0C0C 100%);
+  background:var(--panel);
   border-right:1px solid var(--border);
-  box-shadow:8px 0 24px rgba(0,0,0,.65);
   overflow:auto;
+  padding-bottom:8px;
 }
+
+/* Cada grupo de filtros */
 .section{
-  padding:12px 12px 10px;
-  border-bottom:1px solid rgba(255,255,255,.04);
+  padding:10px 12px 12px;
+  border-bottom:1px solid rgba(255,255,255,.08);
 }
-.section:first-child{
-  padding-top:14px;
-}
+
+/* Textos de apoio */
 .hint{
   font-size:11px;
   color:#bdbdbd;
-  line-height:1.5;
+  line-height:1.4;
 }
+
+/* Rótulos dos campos */
 .label{
   font-size:12px;
-  color:#e0e0e0;
+  color:#cfcfcf;
   margin:6px 0 4px;
-  text-transform:uppercase;
-  letter-spacing:.09em;
+  font-weight:500;
 }
+
+/* Linha de campos – permite “quebrar” bem em ecrãs mais estreitos */
 .field{
   display:flex;
   gap:6px;
+  flex-wrap:wrap;
 }
-.field input,.field select{
-  flex:1;
-  background:#090909;
-  border:1px solid rgba(255,255,255,.12);
-  border-radius:9px;
-  padding:8px 10px;
+
+/* Inputs e selects – look escuro consistente, sem fundo branco */
+.field input,
+.field select{
+  flex:1 1 0;
+  min-width:0;
+  background:#0E0E0E;
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:8px;
+  padding:7px 10px;
   color:#fff;
   outline:none;
   font-size:12px;
-  transition:border-color .12s ease-out, box-shadow .12s ease-out, background .12s ease-out;
-}
-.field input::placeholder{
-  color:#666;
-}
-.field input:focus,
-.field select:focus{
-  border-color:rgba(163,139,99,.9);
-  box-shadow:0 0 0 1px rgba(163,139,99,.55);
-  background:#0F0F0F;
+  box-sizing:border-box;
 }
 
-/* Chips de filtros */
+/* Destaque premium ao focar */
+.field input:focus,
+.field select:focus{
+  border-color:var(--gold);
+  box-shadow:0 0 0 1px rgba(163,139,99,.35);
+}
+
+/* “Chips” (Estado / Tipo) */
 .chips{
   display:flex;
   flex-wrap:wrap;
@@ -223,68 +228,40 @@ input[type="file"]{display:none}
   margin-top:6px;
 }
 .chip{
-  font-size:11px;
-  padding:6px 11px;
+  font-size:12px;
+  padding:6px 10px;
   border-radius:999px;
-  border:1px solid rgba(255,255,255,.14);
-  background:rgba(0,0,0,.6);
+  border:1px solid rgba(255,255,255,.16);
+  background:#0E0E0E;
   color:#ddd;
   cursor:pointer;
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  transition:background .12s ease-out, border-color .12s ease-out, color .12s ease-out, transform .08s ease-out;
-}
-.chip::before{
-  content:"";
-  width:6px;
-  height:6px;
-  border-radius:50%;
-  border:1px solid rgba(255,255,255,.18);
-  background:rgba(255,255,255,.18);
+  white-space:nowrap;
 }
 .chip.active{
   background:var(--gold);
   color:#111;
   border-color:var(--gold);
   font-weight:700;
-  transform:translateY(-1px);
-}
-.chip.active::before{
-  background:rgba(0,0,0,.75);
-  border-color:rgba(0,0,0,.75);
 }
 
+/* Lista de resultados */
 .list{
-  padding:10px 12px 12px;
+  padding:8px 12px 12px;
 }
 
-/* Cartões de resultados — versão premium */
 .card{
-  border:1px solid rgba(163,139,99,.22);
-  border-radius:14px;
-  padding:10px 12px;
+  border:1px solid rgba(163,139,99,.25);
+  border-radius:12px;
+  padding:10px;
   margin-bottom:10px;
-  background:
-    radial-gradient(circle at 0 0, rgba(163,139,99,.10), transparent 55%),
-    linear-gradient(135deg,#141414 0%,#101010 50%,#0B0B0B 100%);
-  box-shadow:0 10px 24px rgba(0,0,0,.45);
-  transition:transform .12s ease-out, box-shadow .12s ease-out, border-color .12s ease-out, background .12s ease-out;
-}
-.card:hover{
-  transform:translateY(-1px);
-  box-shadow:0 14px 32px rgba(0,0,0,.55);
-  border-color:rgba(163,139,99,.55);
+  background:#0E0E0E;
 }
 .card .row{
   display:flex;
   justify-content:space-between;
   gap:8px;
 }
-.card .name{
-  font-weight:700;
-  font-size:13px;
-}
+.card .name{font-weight:700}
 .card .meta{
   font-size:11px;
   color:#bbb;
@@ -294,8 +271,8 @@ input[type="file"]{display:none}
 }
 .card .state{
   font-size:12px;
-  color:#c4c4c4;
-  margin-top:6px;
+  color:#bbb;
+  margin-top:4px;
 }
 .card .actions{
   display:flex;
@@ -303,32 +280,13 @@ input[type="file"]{display:none}
   margin-top:8px;
   flex-wrap:wrap;
 }
-
-/* Badges de estado/tipo — largura uniforme e aspeto minimalista */
 .badge{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:6px;
-  min-width:120px;                 /* garante alinhamento visual entre "Em construção", "Licenciado" e "Concluído" */
-  padding:4px 10px;
+  display:inline-block;
+  padding:2px 8px;
   border-radius:999px;
-  border:1px solid rgba(255,255,255,.18);
-  font-size:10px;
-  text-transform:uppercase;
-  letter-spacing:.08em;
-  background:rgba(0,0,0,.35);
-  color:inherit;                    /* usa a cor definida inline no HTML (vermelho/azul/verde/dourado) */
-  white-space:nowrap;
+  border:1px solid var(--border);
+  font-size:11px;
 }
-.badge::before{
-  content:"";
-  width:8px;
-  height:8px;
-  border-radius:50%;
-  background:currentColor;
-}
-
 .empty{
   padding:10px;
   color:#bbb;
@@ -758,7 +716,7 @@ input[type="file"]{display:none}
         </div>
         <div class="form-field"><label>Promotor</label><input id="f_promotor_e"></div>
         <div class="form-field"><label>Tipologias</label><input id="f_tipologias"></div>
-        <!-- Conclusão (mês/ano) -->
+        <!-- Conclusão mês/ano -->
         <div class="form-field">
           <label>Conclusão (mês/ano)</label>
           <div style="display:flex; gap:6px;">
@@ -1921,8 +1879,7 @@ el('saveEdit').addEventListener('click',()=>{
     docs:[]
   };
 
-  el('docsBox').querySelectorAll('.
-doc-row').forEach(r=>{
+  el('docsBox').querySelectorAll('.doc-row').forEach(r=>{
     const inputs=r.querySelectorAll('input,select');
     const d={
       title:inputs[0].value.trim(),
