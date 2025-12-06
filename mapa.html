@@ -167,60 +167,33 @@ input[type="file"]{display:none}
   background:var(--panel);
   border-right:1px solid var(--border);
   overflow:auto;
-  padding-bottom:8px;
 }
-
-/* Cada grupo de filtros */
 .section{
-  padding:10px 12px 12px;
+  padding:10px;
   border-bottom:1px solid rgba(255,255,255,.08);
 }
-
-/* Textos de apoio */
 .hint{
   font-size:11px;
   color:#bdbdbd;
-  line-height:1.4;
 }
-
-/* Rótulos dos campos */
 .label{
   font-size:12px;
   color:#cfcfcf;
   margin:6px 0 4px;
-  font-weight:500;
 }
-
-/* Linha de campos – permite “quebrar” bem em ecrãs mais estreitos */
 .field{
   display:flex;
   gap:6px;
-  flex-wrap:wrap;
 }
-
-/* Inputs e selects – look escuro consistente, sem fundo branco */
-.field input,
-.field select{
-  flex:1 1 0;
-  min-width:0;
+.field input,.field select{
+  flex:1;
   background:#0E0E0E;
   border:1px solid rgba(255,255,255,.15);
   border-radius:8px;
-  padding:7px 10px;
+  padding:8px 10px;
   color:#fff;
   outline:none;
-  font-size:12px;
-  box-sizing:border-box;
 }
-
-/* Destaque premium ao focar */
-.field input:focus,
-.field select:focus{
-  border-color:var(--gold);
-  box-shadow:0 0 0 1px rgba(163,139,99,.35);
-}
-
-/* “Chips” (Estado / Tipo) */
 .chips{
   display:flex;
   flex-wrap:wrap;
@@ -235,7 +208,6 @@ input[type="file"]{display:none}
   background:#0E0E0E;
   color:#ddd;
   cursor:pointer;
-  white-space:nowrap;
 }
 .chip.active{
   background:var(--gold);
@@ -243,50 +215,71 @@ input[type="file"]{display:none}
   border-color:var(--gold);
   font-weight:700;
 }
-
-/* Lista de resultados */
 .list{
-  padding:8px 12px 12px;
+  padding:8px 12px;
 }
 
+/* Cartões de resultados */
 .card{
   border:1px solid rgba(163,139,99,.25);
   border-radius:12px;
-  padding:10px;
-  margin-bottom:10px;
+  padding:12px 12px 10px;
+  margin-bottom:12px;
   background:#0E0E0E;
 }
 .card .row{
   display:flex;
   justify-content:space-between;
   gap:8px;
+  align-items:center; /* garante alinhamento vertical entre título e badge de estado */
 }
-.card .name{font-weight:700}
+.card .name{
+  font-weight:700;
+}
 .card .meta{
   font-size:11px;
   color:#bbb;
   text-transform:uppercase;
   letter-spacing:.05em;
-  margin-top:2px;
+  margin-top:4px;
+  display:flex;          /* mantém concelho + badge de tipo na mesma linha */
+  align-items:center;
+  gap:6px;
+  flex-wrap:wrap;
 }
 .card .state{
   font-size:12px;
   color:#bbb;
-  margin-top:4px;
+  margin-top:6px;
+  line-height:1.4;
 }
 .card .actions{
   display:flex;
-  gap:6px;
-  margin-top:8px;
+  gap:8px;
+  margin-top:10px;
   flex-wrap:wrap;
 }
+
+/* Badges genéricos */
 .badge{
-  display:inline-block;
-  padding:2px 8px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:3px 10px;
   border-radius:999px;
   border:1px solid var(--border);
   font-size:11px;
+  line-height:1;
+  white-space:nowrap;   /* não quebra a meio da palavra */
 }
+
+/* Badges específicos de ESTADO — tamanho uniforme */
+.badge-estado{
+  min-width:100px;       /* largura fixa para “Em construção / Licenciado / Concluído” */
+  justify-content:center;
+  text-transform:uppercase;
+}
+
 .empty{
   padding:10px;
   color:#bbb;
@@ -1070,7 +1063,7 @@ function renderKPIs(){
 /* ===== Helpers de apresentação ===== */
 function stateLabel(s){
   const c=colorByState(s);
-  return `<span class="badge" style="border-color:${c};color:${c}">${s||'—'}</span>`;
+  return `<span class="badge badge-estado" style="border-color:${c};color:${c}">${s||'—'}</span>`;
 }
 function tipoLabel(p){
   if(p.isEmpreendimento === false) return 'Imóvel isolado';
@@ -1100,7 +1093,7 @@ function renderList(){
         <div>
           <div class="name">${nameLine}</div>
           <div class="meta">
-            ${p.concelho||'—'}
+            <span>${p.concelho||'—'}</span>
             ${tipoBadge(p)}
           </div>
         </div>
