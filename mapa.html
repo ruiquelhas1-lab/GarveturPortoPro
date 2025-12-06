@@ -218,19 +218,33 @@ input[type="file"]{display:none}
 .list{
   padding:8px 12px;
 }
+
+/* Cartões de resultados — versão mais elegante e consistente */
 .card{
-  border:1px solid rgba(163,139,99,.25);
-  border-radius:12px;
-  padding:10px;
+  border:1px solid rgba(163,139,99,.22);
+  border-radius:14px;
+  padding:10px 12px;
   margin-bottom:10px;
-  background:#0E0E0E;
+  background:radial-gradient(circle at 0 0, rgba(163,139,99,.10), transparent 55%),
+             linear-gradient(135deg,#141414 0%,#0C0C0C 48%,#101010 100%);
+  box-shadow:0 10px 24px rgba(0,0,0,.45);
+  transition:transform .12s ease-out, box-shadow .12s ease-out, border-color .12s ease-out;
+}
+.card:hover{
+  transform:translateY(-1px);
+  box-shadow:0 14px 32px rgba(0,0,0,.55);
+  border-color:rgba(163,139,99,.55);
 }
 .card .row{
   display:flex;
   justify-content:space-between;
+  align-items:flex-start;
   gap:8px;
 }
-.card .name{font-weight:700}
+.card .name{
+  font-weight:700;
+  font-size:13px;
+}
 .card .meta{
   font-size:11px;
   color:#bbb;
@@ -241,7 +255,7 @@ input[type="file"]{display:none}
 .card .state{
   font-size:12px;
   color:#bbb;
-  margin-top:4px;
+  margin-top:6px;
 }
 .card .actions{
   display:flex;
@@ -249,13 +263,65 @@ input[type="file"]{display:none}
   margin-top:8px;
   flex-wrap:wrap;
 }
+
+/* Badges (estado / tipo) — visual uniforme */
 .badge{
-  display:inline-block;
-  padding:2px 8px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  min-width:120px;              /* largura consistente para os estados */
+  padding:4px 10px;
   border-radius:999px;
-  border:1px solid var(--border);
-  font-size:11px;
+  border:1px solid rgba(255,255,255,.16);
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  background:rgba(0,0,0,.35);
+  color:#e5e5e5;
+  white-space:nowrap;
 }
+.badge-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--muted);
+}
+
+/* Estados específicos */
+.badge--em_construcao{
+  border-color:rgba(229,57,53,.65);
+  background:rgba(229,57,53,.12);
+  color:var(--warn);
+}
+.badge--em_construcao .badge-dot{
+  background:var(--warn);
+}
+.badge--licenciado{
+  border-color:rgba(30,136,229,.65);
+  background:rgba(30,136,229,.12);
+  color:var(--info);
+}
+.badge--licenciado .badge-dot{
+  background:var(--info);
+}
+.badge--concluido{
+  border-color:rgba(67,160,71,.65);
+  background:rgba(67,160,71,.12);
+  color:var(--ok);
+}
+.badge--concluido .badge-dot{
+  background:var(--ok);
+}
+
+/* Para badges de tipo (Empreendimento / Imóvel isolado) mantém o estilo mas com ouro */
+.badge.badge-tipo{
+  min-width:auto;
+  border-color:rgba(163,139,99,.8);
+  background:rgba(163,139,99,.12);
+  color:var(--gold);
+}
+
 .empty{
   padding:10px;
   color:#bbb;
@@ -1038,8 +1104,15 @@ function renderKPIs(){
 
 /* ===== Helpers de apresentação ===== */
 function stateLabel(s){
-  const c=colorByState(s);
-  return `<span class="badge" style="border-color:${c};color:${c}">${s||'—'}</span>`;
+  const key = s || '';
+  const map = {
+    em_construcao: 'Em construção',
+    licenciado: 'Licenciado',
+    concluido: 'Concluído'
+  };
+  const label = map[key] || (key || '—');
+  const cls = key ? `badge badge--${key}` : 'badge';
+  return `<span class="${cls}"><span class="badge-dot"></span><span>${label}</span></span>`;
 }
 function tipoLabel(p){
   if(p.isEmpreendimento === false) return 'Imóvel isolado';
@@ -1048,7 +1121,7 @@ function tipoLabel(p){
 function tipoBadge(p){
   const t=tipoLabel(p);
   if(!t) return '';
-  return `<span class="badge" style="border-color:var(--gold);color:var(--gold);margin-left:4px">${t}</span>`;
+  return `<span class="badge badge-tipo" style="margin-left:4px">${t}</span>`;
 }
 
 /* ===== Lista ===== */
@@ -1136,7 +1209,7 @@ function renderMarkers(){
     const lat=numPT(p._lat), lng=numPT(p._lng);
     if(lat===null||lng===null) return;
     pts.push([lat,lng]);
-    const m=L.marker([lat,lng],{icon:makeDivIcon(p)});
+    const m=L.marker([lat,lng],{icon:makeDivIcon(p)]);
     const tooltip = p.refInterna ? `[${p.refInterna}] ${p.nome||''}` : (p.nome||'');
     m.on('click',()=>openFicha(p,true));
     m.bindTooltip(tooltip,{direction:'top',offset:[0,-8],opacity:.9});
