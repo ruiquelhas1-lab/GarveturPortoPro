@@ -1085,8 +1085,7 @@ function renderList(){
     return;
   }
   FILT.forEach(p=>{
-    // Título apenas com o nome
-    const nameLine = `${p.nome||'—'}`;
+    const nameLine = `${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||'—'}`;
     const div=document.createElement('div');
     div.className='card';
     const precoPedidoStr = formatPrecoPedido(p);
@@ -1095,33 +1094,12 @@ function renderList(){
         <div>
           <div class="name">${nameLine}</div>
           <div class="meta">
-            ${p.refInterna ? `<span>${p.refInterna}</span> · ` : ''}
             <span>${p.concelho||'—'}</span>
             ${tipoBadge(p)}
           </div>
         </div>
         ${stateLabel(p.estado)}
       </div>
-      <div class="state">
-        Conclusão: ${formatConclusao(p)}
-        · €/m²: ${p.preco_m2? Number(String(p.preco_m2).replace(',','.')).toLocaleString('pt-PT') : '—'}
-        · Preço: ${precoPedidoStr}
-      </div>
-      <div class="actions">
-        <button class="btn" data-act="zoom">Abrir no mapa</button>
-        ${p.link? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>` : ''}
-        <button class="btn" data-act="open">Detalhes</button>
-        ${p._fromAngariacoes && p.refInterna ? `
-          <a class="btn" data-act="ang" href="./angariacoes.html?ref=${encodeURIComponent(p.refInterna)}&abrir=1" target="_blank" rel="noreferrer">
-            Ficha angariação
-          </a>` : ''
-        }
-        ${EDIT_MODE ? `
-          <button class="btn ghost" data-act="edit">Editar</button>
-          <button class="btn" style="border-color:#cc4b4b;color:#ffdddd" data-act="del">Apagar</button>` : ''
-        }
-      </div>`;
-    ...
       <div class="state">
         Conclusão: ${formatConclusao(p)}
         · €/m²: ${p.preco_m2? Number(String(p.preco_m2).replace(',','.')).toLocaleString('pt-PT') : '—'}
@@ -1366,36 +1344,18 @@ async function renderDocPreview(container, rawUrl, type){
 /* ===== Painel lateral (Ficha) ===== */
 function openFicha(p,focus=false){
   ACTIVE=p;
-  // Título apenas com o nome
-  const titleLine = `${p.nome||'—'}`;
+  const titleLine = `${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||'—'}`;
   const precoPedidoStr = formatPrecoPedido(p);
   const html=`
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
       <div>
         <div style="font-weight:800;font-size:16px">${titleLine}</div>
         <div style="font-size:12px;color:#bbb">
-          ${p.refInterna ? p.refInterna + ' · ' : ''}
           ${p.concelho||'—'}
           · ${stateLabel(p.estado)}
           ${tipoBadge(p)}
         </div>
       </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn" data-act="center">Centrar</button>
-        <a class="btn" href="https://www.google.com/maps?q=${p._lat},${p._lng}" target="_blank" rel="noreferrer">Google Maps</a>
-        ${p.link? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>`:''}
-        ${p._fromAngariacoes && p.refInterna ? `
-          <a class="btn" href="./angariacoes.html?ref=${encodeURIComponent(p.refInterna)}&abrir=1" target="_blank" rel="noreferrer">
-            Ficha angariação
-          </a>` : ''
-        }
-        <button class="btn" data-act="copy">Copiar resumo</button>
-        <button class="btn" data-act="share">Partilhar</button>
-        ${EDIT_MODE? `<button class="btn ghost" data-act="edit">Editar</button>`:''}
-      </div>
-    </div>
-    ...
-`;
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn" data-act="center">Centrar</button>
         <a class="btn" href="https://www.google.com/maps?q=${p._lat},${p._lng}" target="_blank" rel="noreferrer">Google Maps</a>
