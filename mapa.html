@@ -1576,6 +1576,7 @@ function exportCSV(){
   a.remove();
   URL.revokeObjectURL(url);
 }
+
 function exportGeo(){
   const fc={
     type:"FeatureCollection",
@@ -1611,8 +1612,86 @@ function exportGeo(){
   a.remove();
   URL.revokeObjectURL(url);
 }
+
+/* ===== Master Backup (OneDrive-friendly) ===== */
+function buildMasterBackupPayload() {
+  return {
+    version: MASTER_VERSION,
+    updatedAt: new Date().toISOString(),
+    mapa: {
+      dataset: RAW
+    }
+    // No futuro:
+    // angariacoes: { ... },
+    // leads: { ... },
+    // tarefas: { ... }
+  };
+}
+
+function handleBackupMaster() {
+  try {
+    const payload = buildMasterBackupPayload();
+    const blob = new Blob(
+      [JSON.stringify(payload, null, 2)],
+      { type: 'application/json;charset=utf-8;' }
+    );
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'gpp_master_backup.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    alert('Backup criado. Guarde o ficheiro na pasta OneDrive/Garvetur/Backup.');
+  } catch (e) {
+    console.error(e);
+    alert('Falha ao gerar backup.');
+  }
+}
+
+function handleRestoreMaster(ev) {
+  const file = ev.target.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+
+      if (!data.mapa || !Array.isArray(data.mapa.dataset)) {
+        alert('O ficheiro não contém uma secção "mapa" válida.');
+        return;
+      }
+
+      // Carrega dataset do mapa a partir do backup
+      RAW = data.mapa.dataset;
+
+      // Garantir consistência interna
+      normalizeTipoImovel();
+      normalizeConclusaoFields();
+      const changed = autoUpdateEstadosByConclusao();
+      if (changed) saveLS(); else saveLS();
+
+      buildFacetOptions();
+      run();
+
+      alert('Backup restaurado com sucesso (secção mapa).');
+    } catch (err) {
+      console.error(err);
+      alert('Ficheiro de backup inválido.');
+    } finally {
+      ev.target.value = '';
+    }
+  };
+  reader.readAsText(file);
+}
+
+// Listeners dos botões de exportação e backup
 el('exportCsv').addEventListener('click', exportCSV);
 el('exportGeo').addEventListener('click', exportGeo);
+el('backupMaster').addEventListener('click', handleBackupMaster);
+el('backupMasterFile').addEventListener('change', handleRestoreMaster);
 
 /* ===== Persistência (robusta) ===== */
 function saveLS(){
