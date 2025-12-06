@@ -1077,24 +1077,30 @@ function tipoBadge(p){
 }
 
 /* ===== Lista ===== */
+/* ===== Lista ===== */
 function renderList(){
-  const box=el('list');
-  box.innerHTML='';
-  if(!FILT.length){
-    box.innerHTML='<div class="empty">Sem resultados com os filtros atuais.</div>';
+  const box = el('list');
+  box.innerHTML = '';
+
+  if (!FILT.length) {
+    box.innerHTML = '<div class="empty">Sem resultados com os filtros atuais.</div>';
     return;
   }
-  FILT.forEach(p=>{
-    const nameLine = `${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||'—'}`;
-    const div=document.createElement('div');
-    div.className='card';
+
+  FILT.forEach(p => {
+    // TÍTULO: apenas o nome
+    const nameLine = `${p.nome || '—'}`;
+    const div = document.createElement('div');
+    div.className = 'card';
     const precoPedidoStr = formatPrecoPedido(p);
-    div.innerHTML=`
+
+    div.innerHTML = `
       <div class="row">
         <div>
           <div class="name">${nameLine}</div>
           <div class="meta">
-            <span>${p.concelho||'—'}</span>
+            ${p.refInterna ? `<span>${p.refInterna}</span> · ` : ''}
+            <span>${p.concelho || '—'}</span>
             ${tipoBadge(p)}
           </div>
         </div>
@@ -1102,31 +1108,62 @@ function renderList(){
       </div>
       <div class="state">
         Conclusão: ${formatConclusao(p)}
-        · €/m²: ${p.preco_m2? Number(String(p.preco_m2).replace(',','.')).toLocaleString('pt-PT') : '—'}
+        · €/m²: ${
+          p.preco_m2
+            ? Number(String(p.preco_m2).replace(',', '.')).toLocaleString('pt-PT')
+            : '—'
+        }
         · Preço: ${precoPedidoStr}
       </div>
       <div class="actions">
         <button class="btn" data-act="zoom">Abrir no mapa</button>
-        ${p.link? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>` : ''}
+        ${p.link
+          ? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>`
+          : ''
+        }
         <button class="btn" data-act="open">Detalhes</button>
-        ${p._fromAngariacoes && p.refInterna ? `
-          <a class="btn" data-act="ang" href="./angariacoes.html?ref=${encodeURIComponent(p.refInterna)}&abrir=1" target="_blank" rel="noreferrer">
+        ${
+          p._fromAngariacoes && p.refInterna
+            ? `
+          <a class="btn" data-act="ang"
+             href="./angariacoes.html?ref=${encodeURIComponent(p.refInterna)}&abrir=1"
+             target="_blank" rel="noreferrer">
             Ficha angariação
-          </a>` : ''
+          </a>`
+            : ''
         }
-        ${EDIT_MODE ? `
+        ${
+          EDIT_MODE
+            ? `
           <button class="btn ghost" data-act="edit">Editar</button>
-          <button class="btn" style="border-color:#cc4b4b;color:#ffdddd" data-act="del">Apagar</button>` : ''
+          <button class="btn"
+                  style="border-color:#cc4b4b;color:#ffdddd"
+                  data-act="del">Apagar</button>`
+            : ''
         }
-      </div>`;
-    div.querySelector('[data-act="zoom"]').addEventListener('click',()=>{
-      if(p._lat&&p._lng) MAP?.setView([p._lat,p._lng],16,{animate:true});
-    });
-    div.querySelector('[data-act="open"]').addEventListener('click',()=>openFicha(p,true));
-    if(EDIT_MODE){
-      div.querySelector('[data-act="edit"]').addEventListener('click',()=>openEditBySlug(p.slug));
-      div.querySelector('[data-act="del"]').addEventListener('click',()=>deleteBySlug(p.slug));
+      </div>
+    `;
+
+    // Ações dos botões
+    const btnZoom = div.querySelector('[data-act="zoom"]');
+    if (btnZoom) {
+      btnZoom.addEventListener('click', () => {
+        if (p._lat && p._lng) MAP?.setView([p._lat, p._lng], 16, { animate: true });
+      });
     }
+
+    const btnOpen = div.querySelector('[data-act="open"]');
+    if (btnOpen) {
+      btnOpen.addEventListener('click', () => openFicha(p, true));
+    }
+
+    if (EDIT_MODE) {
+      const btnEdit = div.querySelector('[data-act="edit"]');
+      const btnDel  = div.querySelector('[data-act="del"]');
+      if (btnEdit) btnEdit.addEventListener('click', () => openEditBySlug(p.slug));
+      if (btnDel)  btnDel.addEventListener('click', () => deleteBySlug(p.slug));
+    }
+
     box.appendChild(div);
   });
 }
