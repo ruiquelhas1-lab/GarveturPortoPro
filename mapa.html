@@ -256,11 +256,6 @@ input[type="file"]{display:none}
   border:1px solid var(--border);
   font-size:11px;
 }
-.badge-type{
-  border-color:var(--gold);
-  color:var(--gold);
-  margin-left:4px;
-}
 .empty{
   padding:10px;
   color:#bbb;
@@ -355,7 +350,7 @@ input[type="file"]{display:none}
   color:#ddd;
 }
 
-/* Pins base */
+/* Pins base (empreendimentos) */
 .pin{
   width:28px;
   height:28px;
@@ -370,13 +365,9 @@ input[type="file"]{display:none}
   font-size:12px;
   position:relative;
 }
-
-/* Cor por estado */
 .pin.c{ background:#E53935 }
 .pin.l{ background:#1E88E5 }
 .pin.f{ background:#43A047 }
-
-/* Animação construção */
 .pin.c::after{
   content:"";
   position:absolute;
@@ -387,20 +378,44 @@ input[type="file"]{display:none}
   animation:pulse 1.8s ease-out infinite;
 }
 
-/* Empreendimentos: círculo padrão */
-.pin.emp{
-  border-radius:50%;
-}
-
-/* Isolados: losango (quadrado rodado) */
+/* Pins especiais para IMÓVEIS ISOLADOS: alfinete com bandeira */
 .pin.iso{
-  border-radius:6px;
-  transform:rotate(45deg);
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  border:2px solid #111;
+  box-shadow:0 2px 6px rgba(0,0,0,.35);
+  position:relative;
+  margin-top:8px;
+}
+.pin.iso.c{ background:#E53935; color:#E53935; }
+.pin.iso.l{ background:#1E88E5; color:#1E88E5; }
+.pin.iso.f{ background:#43A047; color:#43A047; }
+
+/* haste do alfinete */
+.pin.iso::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:10px;
+  width:2px;
+  height:16px;
+  background:#111;
+  transform:translateX(-50%);
 }
 
-/* reset tooltip orientation do conteúdo interno (se algum dia tiver ícone/texto) */
-.pin.iso > *{
-  transform:rotate(-45deg);
+/* bandeira no topo */
+.pin.iso::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:-10px;
+  width:16px;
+  height:9px;
+  border-radius:2px 2px 2px 0;
+  background:currentColor;
+  transform:translateX(0);
+  box-shadow:0 1px 3px rgba(0,0,0,.4);
 }
 
 @keyframes pulse{
@@ -579,7 +594,9 @@ input[type="file"]{display:none}
       <div class="section">
         <div class="label">Pesquisa global</div>
         <div class="field"><input id="q" placeholder="Ex.: 'Gaia licenciado 2027 promotor X'"></div>
-        <div class="hint">Pesquisa por ref. interna, nome, concelho, promotor, tipologias, estado, conclusão, notas, €/m², proprietário, telefones, email.</div>
+        <div class="hint">
+          Pesquisa por ref. interna, nome, concelho, promotor, tipologias, estado, proprietário, contactos, conclusão, notas e €/m².
+        </div>
       </div>
       <div class="section">
         <div class="label">Concelho</div>
@@ -590,6 +607,12 @@ input[type="file"]{display:none}
           <div class="chip" data-v="em_construcao">Em construção</div>
           <div class="chip" data-v="licenciado">Licenciado</div>
           <div class="chip" data-v="concluido">Concluído</div>
+        </div>
+        <div class="label" style="margin-top:6px">Tipo</div>
+        <div class="chips" id="tipoChips">
+          <div class="chip active" data-v="">Todos</div>
+          <div class="chip" data-v="emp">Empreendimentos</div>
+          <div class="chip" data-v="iso">Imóveis isolados</div>
         </div>
       </div>
       <div class="section">
@@ -751,7 +774,7 @@ let ACTIVE=null;
 let EDIT_MODE=false;
 let EDIT_INDEX=-1;
 let PICKING=false;
-let UIState={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'' };
+let UIState={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'', tipo:'' };
 
 let LS_SKIPPED=false;
 let LS_ERROR=false;
@@ -771,17 +794,6 @@ function colorByState(k){
   if(k==='concluido')return '#43A047';
   return '#A38B63';
 }
-
-function pinClass(p){
-  const k = p.estado;
-  const isEmp = (p.isEmpreendimento !== false); // por defeito é Empreendimento
-  const tClass = isEmp ? 'emp' : 'iso';
-  if(k==='em_construcao')return 'pin c '+tClass;
-  if(k==='licenciado')return 'pin l '+tClass;
-  if(k==='concluido')return 'pin f '+tClass;
-  return 'pin '+tClass;
-}
-
 function toCSV(rows){
   return rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n');
 }
@@ -792,7 +804,7 @@ function numPT(v){
   return Number.isFinite(n)? n : null;
 }
 
-/* Novo: parser simples de coordenadas GPS vindas das angariações */
+/* Parser simples de coordenadas GPS vindas das angariações */
 function parseGps(gps){
   if(!gps) return {lat:null,lng:null};
   const m = String(gps).match(/-?\d+(?:[.,]\d+)?/g);
@@ -876,8 +888,8 @@ function loadFilterState(){
     UIState.pmax     = obj.pmax     || '';
     UIState.promotor = obj.promotor || '';
     UIState.tipos    = obj.tipos    || '';
+    UIState.tipo     = obj.tipo     || '';
 
-    // Repõe nos campos
     if(el('q'))           el('q').value           = UIState.q;
     if(el('f_concelho'))  el('f_concelho').value  = UIState.concelho;
     if(el('f_cmin'))      el('f_cmin').value      = UIState.cmin;
@@ -902,6 +914,22 @@ function loadFilterState(){
       if(chipTodos) chipTodos.classList.add('active');
       UIState.estado = '';
     }
+
+    // Tipo (Empreendimento / Isolado)
+    const chipsTipo = document.querySelectorAll('#tipoChips .chip');
+    chipsTipo.forEach(c => c.classList.remove('active'));
+    matched = false;
+    chipsTipo.forEach(c=>{
+      if((c.dataset.v || '') === UIState.tipo){
+        c.classList.add('active');
+        matched = true;
+      }
+    });
+    if(!matched){
+      const chipT = document.querySelector('#tipoChips .chip[data-v=""]');
+      if(chipT) chipT.classList.add('active');
+      UIState.tipo = '';
+    }
   }catch(e){
     console.error('Erro a carregar filtros do mapa', e);
   }
@@ -923,9 +951,10 @@ function buildFacetOptions(){
   el('f_promotor').innerHTML='<option value="">(Todos)</option>'+promotores.map(c=>`<option>${c}</option>`).join('');
 }
 
-/* pesquisa global: agora inclui proprietário, telefones, email e _rawSearch (JSON completo da angariação) */
+/* ===== Match/Pesquisa (inclui proprietário e contactos) ===== */
 function matchTokens(obj,tokens){
   if(!tokens.length) return true;
+
   const hay=norm([
     obj.refInterna,
     obj.nome,
@@ -936,21 +965,31 @@ function matchTokens(obj,tokens){
     obj.notas,
     obj.conclusao,
     obj.preco_m2,
-    obj.proprietario,
-    obj.telefone,
-    obj.email,
-    obj._rawSearch
+    obj._ownerNome,
+    obj._ownerTelefone,
+    obj._ownerTelemovel,
+    obj._contactos
   ].join(' '));
+
   return tokens.every(tok=>hay.includes(tok));
 }
 
 function applyFilters(){
   const tokens=norm(UIState.q).split(/\s+/).filter(Boolean);
   const tiposTokens=norm(UIState.tipos||'').split(/[,\s]+/).filter(Boolean);
+
   FILT=RAW.filter(p=>{
     if(!matchTokens(p,tokens)) return false;
     if(UIState.concelho && p.concelho!==UIState.concelho) return false;
     if(UIState.estado && p.estado!==UIState.estado) return false;
+
+    // Filtro por tipo (Empreendimento vs Isolado)
+    if(UIState.tipo === 'emp'){
+      // Empreendimento = tudo o que não for explicitamente isolado
+      if(p.isEmpreendimento === false) return false;
+    }else if(UIState.tipo === 'iso'){
+      if(p.isEmpreendimento !== false) return false;
+    }
 
     const ano = p.conclusaoAno || p.conclusao;
     const c = numPT(ano);
@@ -980,15 +1019,22 @@ function renderKPIs(){
   el('k_f').textContent=f;
 }
 
-/* ===== Lista ===== */
+/* ===== Helpers de apresentação ===== */
 function stateLabel(s){
   const c=colorByState(s);
   return `<span class="badge" style="border-color:${c};color:${c}">${s||'—'}</span>`;
 }
-function typeLabel(p){
-  return p.isEmpreendimento === false ? 'Imóvel isolado' : 'Empreendimento';
+function tipoLabel(p){
+  if(p.isEmpreendimento === false) return 'Imóvel isolado';
+  return 'Empreendimento';
+}
+function tipoBadge(p){
+  const t=tipoLabel(p);
+  if(!t) return '';
+  return `<span class="badge" style="border-color:var(--gold);color:var(--gold);margin-left:4px">${t}</span>`;
 }
 
+/* ===== Lista ===== */
 function renderList(){
   const box=el('list');
   box.innerHTML='';
@@ -1006,20 +1052,14 @@ function renderList(){
           <div class="name">${nameLine}</div>
           <div class="meta">
             ${p.concelho||'—'}
-            <span class="badge badge-type">${typeLabel(p)}</span>
+            ${tipoBadge(p)}
           </div>
         </div>
         ${stateLabel(p.estado)}
       </div>
-      <div class="state">
-        Conclusão: ${formatConclusao(p)} · €/m²: ${
-          p.preco_m2? Number(String(p.preco_m2).replace(',','.')).toLocaleString('pt-PT') : '—'
-        }
-      </div>
-      <div class="state">
-        ${p.proprietario ? '<b>Proprietário:</b> '+p.proprietario+' · ' : ''}
-        ${p.telefone ? '<b>Tel:</b> '+p.telefone : ''}
-      </div>
+      <div class="state">Conclusão: ${formatConclusao(p)} · €/m²: ${
+        p.preco_m2? Number(String(p.preco_m2).replace(',','.')).toLocaleString('pt-PT') : '—'
+      }</div>
       <div class="actions">
         <button class="btn" data-act="zoom">Abrir no mapa</button>
         ${p.link? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>` : ''}
@@ -1047,13 +1087,24 @@ function renderList(){
 }
 
 /* ===== Mapa (marcadores) ===== */
+function pinClassFromState(p){
+  const st = p.estado;
+  let suffix='';
+  if(st==='em_construcao') suffix=' c';
+  else if(st==='licenciado') suffix=' l';
+  else if(st==='concluido') suffix=' f';
+
+  const iso = (p.isEmpreendimento === false) ? ' iso' : '';
+  return 'pin' + iso + suffix;
+}
 function makeDivIcon(p){
+  const iso = (p.isEmpreendimento === false);
   return L.divIcon({
-    className: pinClass(p),
+    className: pinClassFromState(p),
     html:'',
-    iconSize:[28,28],
-    iconAnchor:[14,14],
-    popupAnchor:[0,-12]
+    iconSize: iso ? [20,34] : [28,28],
+    iconAnchor: iso ? [10,28] : [14,14],
+    popupAnchor:[0,-14]
   });
 }
 function renderMarkers(){
@@ -1256,7 +1307,7 @@ function openFicha(p,focus=false){
         <div style="font-size:12px;color:#bbb">
           ${p.concelho||'—'}
           · ${stateLabel(p.estado)}
-          · <span class="badge-type">${typeLabel(p)}</span>
+          ${tipoBadge(p)}
         </div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
@@ -1275,11 +1326,9 @@ function openFicha(p,focus=false){
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
       <div>
+        <div class="meta-line"><b>Tipo:</b> ${tipoLabel(p)}</div>
         <div class="meta-line"><b>Promotor:</b> ${p.promotor||'—'}</div>
         <div class="meta-line"><b>Ref. interna:</b> ${p.refInterna || '—'}</div>
-        <div class="meta-line"><b>Proprietário:</b> ${p.proprietario || '—'}</div>
-        <div class="meta-line"><b>Telefone:</b> ${p.telefone || '—'}</div>
-        <div class="meta-line"><b>Email:</b> ${p.email || '—'}</div>
         <div class="meta-line"><b>Tipologias:</b> ${p.tipologias||'—'}</div>
         <div class="meta-line"><b>Conclusão:</b> ${formatConclusao(p)}</div>
         <div class="meta-line"><b>€/m²:</b> ${
@@ -1304,13 +1353,13 @@ function openFicha(p,focus=false){
     if(numPT(p._lat)!==null && numPT(p._lng)!==null) MAP?.setView([p._lat,p._lng],16,{animate:true});
   });
   el('panelInner').querySelector('[data-act="copy"]')?.addEventListener('click',async ()=>{
-    const resumo=`${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · Conclusão ${formatConclusao(p)} · ${typeLabel(p)} · Ref. ${p.refInterna || '-'} · ${p.link||''}`.trim();
+    const resumo=`${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · ${tipoLabel(p)} · Conclusão ${formatConclusao(p)} · Ref. ${p.refInterna || '-'} · ${p.link||''}`.trim();
     try{ await navigator.clipboard.writeText(resumo);}catch{}
   });
   el('panelInner').querySelector('[data-act="share"]')?.addEventListener('click',async ()=>{
     const shareData={
       title:p.nome||'Empreendimento',
-      text:`${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · ${typeLabel(p)} · Conclusão ${formatConclusao(p)}${p.refInterna ? ' · Ref. ' + p.refInterna : ''}`,
+      text:`${p.refInterna ? '['+p.refInterna+'] ' : ''}${p.nome||''} — ${p.concelho||''} (${p.estado||''}) · ${tipoLabel(p)} · Conclusão ${formatConclusao(p)}${p.refInterna ? ' · Ref. ' + p.refInterna : ''}`,
       url: location.href
     };
     if(navigator.share){
@@ -1356,10 +1405,10 @@ el('closePanel').addEventListener('click',()=>{
 
 /* ===== Exportações ===== */
 function exportCSV(){
-  const headers=["nome","concelho","estado","promotor","tipologias","conclusao","preco_m2","notas","link","latitude","longitude"];
+  const headers=["nome","concelho","estado","promotor","tipologias","conclusao","preco_m2","notas","link","latitude","longitude","isEmpreendimento"];
   const rows=FILT.map(p=>[
     p.nome,p.concelho,p.estado,p.promotor,p.tipologias,(p.conclusaoAno||p.conclusao||''),
-    p.preco_m2||'',p.notas||'',p.link||'',p._lat||'',p._lng||''
+    p.preco_m2||'',p.notas||'',p.link||'',p._lat||'',p._lng||'',(p.isEmpreendimento===false?'0':'1')
   ]);
   const csv=toCSV([headers,...rows]);
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
@@ -1392,10 +1441,7 @@ function exportGeo(){
         notas:p.notas,
         link:p.link,
         docs:p.docs||[],
-        proprietario:p.proprietario||'',
-        telefone:p.telefone||'',
-        email:p.email||'',
-        isEmpreendimento:(p.isEmpreendimento!==false)
+        isEmpreendimento:(p.isEmpreendimento===false?false:true)
       }
     }))
   };
@@ -1424,8 +1470,7 @@ function loadLS(){
   try{
     const x=localStorage.getItem(LS_KEY);
     if(!x) return null;
-    // Proteção contra datasets gigantes (ex.: data: URLs enormes)
-    if(x.length > 500000){ // ~0.5 MB
+    if(x.length > 500000){
       console.warn('Dataset local demasiado grande, a ignorar para evitar bloqueios.');
       LS_SKIPPED=true;
       return null;
@@ -1468,9 +1513,7 @@ function mergeAngariacoesIntoRAW(){
     if(coords.lat===null || coords.lng===null) return;
 
     const isEmp = !!d.isEmpreendimento;
-
     const nome = d.nomeEmp || d.tituloImovel || d.refInterna || (isEmp ? 'Empreendimento' : 'Imóvel');
-
     const baseId = d.id || slugify(nome);
     const slug = 'ang-' + baseId;
 
@@ -1479,6 +1522,10 @@ function mergeAngariacoesIntoRAW(){
     let mes = d.mesConclEmp || d.mesConclusao || '';
     mes = mes ? Number(mes) : '';
 
+    // Mapeamento de estado:
+    // novo/usado/recuperado -> concluido (verde)
+    // construcao           -> em_construcao (vermelho)
+    // projeto              -> licenciado (azul)
     const estado = (function(){
       const e = d.estadoImovel;
       if(e === 'construcao') return 'em_construcao';
@@ -1513,16 +1560,26 @@ function mergeAngariacoesIntoRAW(){
       _fromAngariacoes: true,
       isEmpreendimento: isEmp,
       refInterna: d.refInterna || '',
-      proprietario: d.nomeProprietario || d.proprietario || '',
-      telefone: d.telefone || d.telemovel || d.telefone1 || d.telefone2 || '',
-      email: d.email || d.emailProprietario || '',
-      _rawSearch: JSON.stringify(d || {})
+      _ownerNome: d.nomeProprietario || d.proprietario || '',
+      _ownerTelefone: d.telefoneProprietario || d.telefone || '',
+      _ownerTelemovel: d.telemovelProprietario || d.telemovel || '',
+      _contactos: d.contactos || ''
     };
 
     if(bySlug.has(slug)){
       Object.assign(bySlug.get(slug), obj);
     }else{
       RAW.push(obj);
+    }
+  });
+}
+
+/* ===== Normalização tipo (Empreendimento por defeito) ===== */
+function normalizeTipoImovel(){
+  RAW.forEach(p=>{
+    if(typeof p.isEmpreendimento === 'undefined'){
+      // Tudo o que vem do dataset inicial é tratado como Empreendimento por defeito
+      p.isEmpreendimento = true;
     }
   });
 }
@@ -1542,7 +1599,6 @@ function normalizeConclusaoFields(){
     }
   });
 }
-
 function autoUpdateEstadosByConclusao(){
   const today = new Date();
   let changed=false;
@@ -1551,9 +1607,7 @@ function autoUpdateEstadosByConclusao(){
     const ano = Number(p.conclusaoAno || p.conclusao || '');
     const mes = Number(p.conclusaoMes || '');
     if(!ano || !mes) return;
-
     if(p.estado !== 'em_construcao') return;
-
     const lastDay = new Date(ano, mes, 0);
     if(today >= lastDay){
       p.estado = 'concluido';
@@ -1739,6 +1793,8 @@ el('saveEdit').addEventListener('click',()=>{
   const anoC = el('f_conclusao_ano').value ? Number(el('f_conclusao_ano').value) : '';
   const mesC = el('f_conclusao_mes').value ? Number(el('f_conclusao_mes').value) : '';
 
+  const base = (EDIT_INDEX>=0 ? RAW[EDIT_INDEX] : null);
+
   const p={
     nome:el('f_nome').value.trim(),
     concelho:el('f_concelho_e').value.trim(),
@@ -1755,6 +1811,7 @@ el('saveEdit').addEventListener('click',()=>{
     _lng:el('f_lng').value? numPT(el('f_lng').value): null,
     docs:[]
   };
+
   el('docsBox').querySelectorAll('.doc-row').forEach(r=>{
     const inputs=r.querySelectorAll('input,select');
     const d={
@@ -1769,6 +1826,14 @@ el('saveEdit').addEventListener('click',()=>{
     return;
   }
   p.slug=slugify(p.nome);
+
+  // Regra de negócio: manualmente tudo é Empreendimento, excepto se já vier marcado em contrário
+  if(base && typeof base.isEmpreendimento === 'boolean'){
+    p.isEmpreendimento = base.isEmpreendimento;
+  }else{
+    p.isEmpreendimento = true;
+  }
+
   if(EDIT_INDEX>=0){
     RAW[EDIT_INDEX]=Object.assign(RAW[EDIT_INDEX],p);
   } else {
@@ -1777,7 +1842,6 @@ el('saveEdit').addEventListener('click',()=>{
       if(!confirm('Já existe um empreendimento com este nome. Substituir?')) return;
       Object.assign(exist,p);
     } else {
-      p.isEmpreendimento = true; // novos criados manualmente assumem Empreendimento
       RAW.push(p);
     }
   }
@@ -1792,13 +1856,13 @@ el('saveEdit').addEventListener('click',()=>{
   run();
 });
 
-/* ===== 🚩 Apagar por slug (botão "Apagar" da lista) ===== */
+/* ===== Apagar por slug ===== */
 function deleteBySlug(slug){
   if(!EDIT_MODE) return;
   const idx = RAW.findIndex(p => p.slug === slug);
   if(idx === -1) return;
 
-  if(!confirm('Tem a certeza que pretende apagar este empreendimento do mapa? Esta ação não pode ser anulada.')) return;
+  if(!confirm('Tem a certeza que pretende apagar este registo do mapa? Esta ação não pode ser anulada.')) return;
 
   const wasActive = ACTIVE && ACTIVE.slug === slug;
   RAW.splice(idx, 1);
@@ -1821,6 +1885,15 @@ document.querySelectorAll('#estadoChips .chip').forEach(ch=>{
     run();
   });
 });
+document.querySelectorAll('#tipoChips .chip').forEach(ch=>{
+  ch.addEventListener('click',()=>{
+    document.querySelectorAll('#tipoChips .chip').forEach(c=>c.classList.remove('active'));
+    ch.classList.add('active');
+    UIState.tipo=ch.dataset.v||'';
+    saveFilterStateFromUI();
+    run();
+  });
+});
 el('apply').addEventListener('click',()=>{
   UIState.q=el('q').value.trim();
   UIState.concelho=el('f_concelho').value;
@@ -1837,7 +1910,9 @@ el('clear').addEventListener('click',()=>{
   ['q','f_concelho','f_cmin','f_cmax','f_pmin','f_pmax','f_promotor','f_tipos'].forEach(id=>el(id).value='');
   document.querySelectorAll('#estadoChips .chip').forEach(c=>c.classList.remove('active'));
   document.querySelector('#estadoChips .chip[data-v=""]').classList.add('active');
-  UIState={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'' };
+  document.querySelectorAll('#tipoChips .chip').forEach(c=>c.classList.remove('active'));
+  document.querySelector('#tipoChips .chip[data-v=""]').classList.add('active');
+  UIState={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', promotor:'', tipos:'', tipo:'' };
   saveFilterStateFromUI();
   run();
 });
@@ -1902,7 +1977,8 @@ function applyUrlContext(){
       target = RAW.find(p=>{
         const n = norm(p.nome||'');
         const r = norm(p.refInterna || '');
-        return n === busc || n.includes(busc) || busc.includes(n) || (r && (r === busc || r.includes(busc) || busc.includes(r)));
+        return n === busc || n.includes(busc) || busc.includes(n) ||
+               (r && (r === busc || r.includes(busc) || busc.includes(r)));
       });
     }
 
@@ -1930,20 +2006,13 @@ function applyUrlContext(){
     return;
   }
 
+  await detectStorageMode();
+
   const mem=loadLS();
   RAW=Array.isArray(mem)? mem : [];
 
-  // tudo o que já existia é assumido como Empreendimento por defeito
-  RAW.forEach(p=>{
-    if(p.isEmpreendimento === undefined || p.isEmpreendimento === null){
-      p.isEmpreendimento = true;
-    }
-  });
-
-  // Incorporar automaticamente empreendimentos e imóveis isolados das Angariações
   mergeAngariacoesIntoRAW();
-
-  // Normalizar dados e auto-update de estado
+  normalizeTipoImovel();
   normalizeConclusaoFields();
   const changed = autoUpdateEstadosByConclusao();
   if(changed) saveLS();
