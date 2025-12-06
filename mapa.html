@@ -350,7 +350,7 @@ input[type="file"]{display:none}
   color:#ddd;
 }
 
-/* Pins base (empreendimentos) — círculo */
+/* Pins base (empreendimentos) — círculo cheio */
 .pin{
   width:28px;
   height:28px;
@@ -380,44 +380,28 @@ input[type="file"]{display:none}
   animation:pulse 1.8s ease-out infinite;
 }
 
-/* Pins especiais para IMÓVEIS ISOLADOS: casinha estilizada */
+/* Pins especiais para IMÓVEIS ISOLADOS: anel circular oco */
 .pin.iso{
-  width:24px;
-  height:16px;
-  border-radius:3px;
-  border:2px solid #111;
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  border:3px solid currentColor;   /* cor do estado */
+  background:transparent;          /* interior transparente */
   box-shadow:0 2px 6px rgba(0,0,0,.35);
   position:relative;
-  background:currentColor;
-  margin-top:6px;
 }
 
-/* Telhado da casa */
+/* círculo interior só para dar “espessura” ao anel e contraste */
 .pin.iso::before{
   content:"";
   position:absolute;
-  left:50%;
-  bottom:100%;
-  width:0;
-  height:0;
-  border-left:14px solid transparent;
-  border-right:14px solid transparent;
-  border-bottom:12px solid currentColor;
-  transform:translateX(-50%);
+  inset:6px;                       /* controla a espessura do anel */
+  border-radius:50%;
+  border:2px solid rgba(0,0,0,.65); /* ligeiro aro interior escuro */
+  background:transparent;
 }
 
-/* Porta da casa */
-.pin.iso::after{
-  content:"";
-  position:absolute;
-  left:50%;
-  bottom:2px;
-  width:6px;
-  height:8px;
-  background:#111;
-  border-radius:1px;
-  transform:translateX(-50%);
-}
+/* nenhum ::after para os isolados — sem porta/telhado */
 
 @keyframes pulse{
   0%{ box-shadow:0 0 0 0 rgba(229,57,53,.55)}
@@ -1136,8 +1120,8 @@ function makeDivIcon(p){
   return L.divIcon({
     className: pinClassFromState(p),
     html:'',
-    iconSize: iso ? [30,30] : [28,28],
-    iconAnchor: iso ? [15,22] : [14,14],
+    iconSize: [28,28],
+    iconAnchor:[14,14],
     popupAnchor:[0,-14]
   });
 }
@@ -1883,7 +1867,6 @@ el('saveEdit').addEventListener('click',()=>{
     p.isEmpreendimento = true;
   }
 
-  // Mantemos eventual preçoPedido já existente
   if(base && base.precoPedido !== undefined){
     p.precoPedido = base.precoPedido;
   }
