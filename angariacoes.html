@@ -1441,15 +1441,30 @@ const restoreBtn = $('restoreBtn');    // 👈 NOVO
     deals:[]
   };
 
-  function loadState(){
+   function loadState(){
     try{
       const raw = localStorage.getItem(STORAGE_KEY);
       if(raw){
         const parsed = JSON.parse(raw);
-        if(Array.isArray(parsed.deals)){
-          state.deals = parsed.deals;
+
+        // 🔁 CASO 1 — versão antiga: era só um array de angariações
+        if (Array.isArray(parsed)) {
+          state.deals = parsed;
+          state.locked = true; // por segurança, começa bloqueado
+          // migração automática para o novo formato { deals, locked }
+          saveState();
         }
-        state.locked = parsed.locked !== false;
+        // 🔁 CASO 2 — formato novo: { deals: [...], locked: true/false }
+        else if (parsed && typeof parsed === 'object') {
+          if (Array.isArray(parsed.deals)) {
+            state.deals = parsed.deals;
+          }
+          if (typeof parsed.locked === 'boolean') {
+            state.locked = parsed.locked;
+          } else {
+            state.locked = true;
+          }
+        }
       }
     }catch(e){
       console.error('Erro ao carregar storage', e);
