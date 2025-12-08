@@ -32,6 +32,7 @@
     body{display:flex;flex-direction:column;}
     .app-shell{display:grid;grid-template-rows:64px auto;height:100%;}
 
+    /* HEADER / BRAND / NAV TABS – alinhado com o Kanban */
     header.app-header{
       display:flex;
       align-items:center;
@@ -41,9 +42,6 @@
       background:linear-gradient(90deg,#050505,#111,#050505);
       gap:16px;
       flex-wrap:wrap;
-      position:sticky;
-      top:0;
-      z-index:20;
     }
     .brand{display:flex;align-items:center;gap:10px;}
     .brand-icon{
@@ -77,27 +75,45 @@
       transform:translateY(-1px);
     }
     .nav-tab.active{
-      background:var(--gold);color:0A0A0A;
-      border-color:var(--gold);font-weight:600;
-    }
-    .header-actions{
-      display:flex;align-items:center;gap:8px;flex-wrap:wrap;
-    }
-    .btn{
-      border-radius:999px;border:1px solid var(--gold-soft);
-      background:rgba(12,12,12,.9);color:var(--text);
-      padding:7px 12px;font-size:13px;display:inline-flex;
-      align-items:center;gap:6px;cursor:pointer;
-      transition:.18s border-color,.18s background,.18s transform;
-    }
-    .btn-primary{
       background:var(--gold);
       color:#0A0A0A;
       border-color:var(--gold);
-      font-weight:500;
+      font-weight:600;
     }
-    .btn-ghost{
+
+    .header-actions{
+      display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    }
+
+    .btn{
+      border-radius:999px;
+      border:1px solid var(--gold-soft);
+      background:rgba(12,12,12,.9);
+      color:var(--text);
+      padding:7px 12px;
+      font-size:13px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      cursor:pointer;
+      transition:.18s border-color,.18s background,.18s transform;
+    }
+    .btn:hover{
+      border-color:var(--gold);
+      transform:translateY(-1px);
+    }
+    .btn-primary,
+    .btn.primary{
+      background:var(--gold);
+      color:#0A0A0A;
+      border-color:var(--gold);
+      font-weight:600;
+    }
+    .btn-ghost,
+    .btn.ghost{
       background:transparent;
+      border-color:rgba(255,255,255,.24);
+      color:var(--muted);
     }
     .btn-icon{
       width:32px;
@@ -106,34 +122,10 @@
       border-radius:999px;
       justify-content:center;
     }
-    .btn:hover{border-color:var(--gold);transform:translateY(-1px);}
     .btn:disabled{
       opacity:.45;
       cursor:not-allowed;
       transform:none;
-    }
-
-    .pill-lock{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      font-size:12px;
-      padding:4px 9px;
-      border-radius:999px;
-      background:rgba(0,0,0,.45);
-      border:1px solid rgba(255,255,255,.14);
-      color:var(--muted);
-    }
-    .pill-lock span.state{
-      font-weight:500;
-      color:var(--gold);
-    }
-    .pill-lock button{
-      all:unset;
-      cursor:pointer;
-      padding:2px 6px;
-      border-radius:999px;
-      background:rgba(255,255,255,.05);
     }
 
     .layout{
@@ -660,17 +652,14 @@
     </nav>
 
     <div class="header-actions">
-      <div class="pill-lock" id="lockPill">
-        <span>Modo</span>
-        <span class="state" id="lockStateLabel">Bloqueado</span>
-        <button id="toggleLockBtn" title="Alternar entre edição bloqueada e ativa">
-          🔒
-        </button>
-      </div>
+      <!-- alinhado com o padrão do Kanban -->
+      <button class="btn primary" id="newTaskBtn" disabled>+ Nova Tarefa</button>
+      <button class="btn btn-ghost" id="toggleLockBtn">
+        <span id="lockEmoji">🔒</span> Edição bloqueada
+      </button>
       <button class="btn btn-ghost" id="exportCsvBtn" title="Exportar tarefas para CSV">⤓ CSV</button>
       <button class="btn btn-ghost" id="importCsvBtn" title="Importar tarefas de CSV">⤒ Importar CSV</button>
       <button class="btn btn-ghost" id="exportPdfBtn" title="Imprimir / PDF (lista atual)">⤓ PDF</button>
-      <button class="btn btn-primary" id="newTaskBtn">+ Nova Tarefa</button>
       <input type="file" id="importCsvInput" accept=".csv" style="display:none;" />
     </div>
   </header>
@@ -726,7 +715,7 @@
           </label>
         </div>
         <button class="btn" id="applyFiltersBtn" style="margin-top:6px;width:100%;">Aplicar filtros</button>
-        <button class="btn" id="clearFiltersBtn" style="margin-top:4px;width:100%;background:transparent;border-color:rgba(255,255,255,.2);">Limpar</button>
+        <button class="btn btn-ghost" id="clearFiltersBtn" style="margin-top:4px;width:100%;">Limpar</button>
         <p style="margin-top:6px;">Use os filtros para organizar o dia, reuniões de pipeline e follow-up por consultor.</p>
       </div>
 
@@ -737,8 +726,8 @@
 
       <div class="sidebar-section">
         <h3>Notas</h3>
-        <p>Quando o cadeado está em <strong>Bloqueado</strong>, não há risco de alterar tarefas por engano.</p>
-        <p>Quando está <strong>Edição ativa</strong>, pode criar, editar, concluir e apagar tarefas.</p>
+        <p>Quando o botão de edição está em <strong>Edição bloqueada</strong>, não há risco de alterar tarefas por engano.</p>
+        <p>Quando está em <strong>Edição ativa</strong>, pode criar, editar, concluir e apagar tarefas.</p>
       </div>
     </aside>
 
@@ -892,7 +881,7 @@
       </div>
       <div>
         <button class="btn btn-ghost" id="cancelModalBtn">Cancelar</button>
-        <button class="btn btn-primary" id="saveTaskBtn">Guardar</button>
+        <button class="btn primary" id="saveTaskBtn">Guardar</button>
       </div>
     </div>
   </div>
@@ -917,7 +906,6 @@
 
   function $(id){ return document.getElementById(id); }
 
-  const lockStateLabel = $('lockStateLabel');
   const toggleLockBtn = $('toggleLockBtn');
   const newTaskBtn = $('newTaskBtn');
   const exportCsvBtn = $('exportCsvBtn');
@@ -1087,7 +1075,7 @@
         // Só abrimos se o modo não estiver bloqueado
         if(state.locked){
           setTimeout(()=>{
-            alert('Para criar uma nova tarefa associada, ative "Edição ativa" (cadeado no topo).');
+            alert('Para criar uma nova tarefa associada, ative "Edição ativa".');
           }, 300);
         }else{
           openModal(null);
@@ -1164,15 +1152,22 @@
     syncGlobalFiltersFromTasks();
   }
 
+  /* Edit mode – alinhado com o comportamento do Kanban */
   function updateLockUI(){
     if(state.locked){
-      lockStateLabel.textContent = 'Bloqueado';
-      toggleLockBtn.textContent = '🔒';
+      toggleLockBtn.classList.remove('primary');
+      toggleLockBtn.classList.add('btn-ghost');
+      toggleLockBtn.innerHTML = '<span id="lockEmoji">🔒</span> Edição bloqueada';
       newTaskBtn.disabled = true;
+      newTaskBtn.classList.remove('primary');
+      newTaskBtn.classList.add('btn-ghost');
     }else{
-      lockStateLabel.textContent = 'Edição ativa';
-      toggleLockBtn.textContent = '🔓';
+      toggleLockBtn.classList.add('primary');
+      toggleLockBtn.classList.remove('btn-ghost');
+      toggleLockBtn.innerHTML = '<span id="lockEmoji">🔓</span> Edição ativa';
       newTaskBtn.disabled = false;
+      newTaskBtn.classList.add('primary');
+      newTaskBtn.classList.remove('btn-ghost');
     }
   }
 
@@ -1737,7 +1732,7 @@
 
   function importCsv(){
     if(state.locked){
-      alert('O modo de edição está bloqueado. Desbloqueie o cadeado no topo para importar tarefas.');
+      alert('O modo de edição está bloqueado. Desbloqueie "Edição ativa" para importar tarefas.');
       return;
     }
     importCsvInput.click();
@@ -2020,7 +2015,7 @@
   saveTaskBtn.addEventListener('click',(e)=>{
     e.preventDefault();
     if(state.locked){
-      alert('O modo de edição está bloqueado. Desbloqueie o cadeado no topo para guardar alterações.');
+      alert('O modo de edição está bloqueado. Ative "Edição ativa" para guardar alterações.');
       return;
     }
     const data = collectFormData();
