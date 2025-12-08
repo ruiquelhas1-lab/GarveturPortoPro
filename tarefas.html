@@ -30,7 +30,13 @@
       color:var(--text);
     }
     body{display:flex;flex-direction:column;}
-    .app-shell{display:grid;grid-template-rows:64px auto;height:100%;}
+
+    /* IMPORTANTE: header com altura dinâmica */
+    .app-shell{
+      display:grid;
+      grid-template-rows:auto minmax(0,1fr);
+      height:100%;
+    }
 
     /* HEADER / BRAND / NAV TABS – alinhado com o Kanban */
     header.app-header{
@@ -42,6 +48,9 @@
       background:linear-gradient(90deg,#050505,#111,#050505);
       gap:16px;
       flex-wrap:wrap;
+      position:sticky;
+      top:0;
+      z-index:20;
     }
     .brand{display:flex;align-items:center;gap:10px;}
     .brand-icon{
@@ -82,7 +91,10 @@
     }
 
     .header-actions{
-      display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
     }
 
     .btn{
@@ -660,7 +672,12 @@
       <button class="btn btn-ghost" id="exportCsvBtn" title="Exportar tarefas para CSV">⤓ CSV</button>
       <button class="btn btn-ghost" id="importCsvBtn" title="Importar tarefas de CSV">⤒ Importar CSV</button>
       <button class="btn btn-ghost" id="exportPdfBtn" title="Imprimir / PDF (lista atual)">⤓ PDF</button>
+      <!-- NOVOS: backup / restore JSON -->
+      <button class="btn btn-ghost" id="backupBtn" title="Backup local (JSON)">💾 Backup</button>
+      <button class="btn btn-ghost" id="restoreBtn" title="Restaurar de backup JSON">⤒ Restore</button>
+
       <input type="file" id="importCsvInput" accept=".csv" style="display:none;" />
+      <input type="file" id="restoreInput" accept=".json" style="display:none;" />
     </div>
   </header>
 
@@ -912,6 +929,11 @@
   const importCsvBtn = $('importCsvBtn');
   const importCsvInput = $('importCsvInput');
   const exportPdfBtn = $('exportPdfBtn');
+
+  const backupBtn = $('backupBtn');
+  const restoreBtn = $('restoreBtn');
+  const restoreInput = $('restoreInput');
+
   const cardsGrid = $('cardsGrid');
   const emptyState = $('emptyState');
   const pipelineKpis = $('pipelineKpis');
@@ -1977,6 +1999,98 @@
     w.document.close();
   }
 
+  /* BACKUP / RESTORE JSON */
+
+  function exportBackup(){
+    if(!state.tasks.length){
+      const proceed = confirm('Não existem tarefas registadas. Pretende ainda assim gerar um ficheiro de backup com a configuração atual?');
+      if(!proceed) return;
+    }
+
+    const payload = {
+      version:1,
+      generatedAt:new Date().toISOString(),
+      storageKey:STORAGE_KEY,
+      filtersKey:FILTERS_STORAGE_KEY,
+      state:state,
+      filters:FILTERS
+    };
+
+    const blob = new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+
+    const now = new Date();
+    const YYYY = now.getFullYear();
+    const MM = String(now.getMonth()+1).padStart(2,'0');
+    const DD = String(now.getDate()).padStart(2,'0');
+    const hh = String(now.getHours()).padStart(2,'0');
+    const mm = String(now.getMinutes()).padStart(2,'0');
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `backup_tarefas_garvetur_porto_pro_${YYYY}${MM}${DD}_${hh}${mm}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function restoreFromBackup(){
+    if(state.locked){
+      alert('O modo de edição está bloqueado. Ative "Edição ativa" para restaurar um backup.');
+      return;
+    }
+    restoreInput.click();
+  }
+
+  restoreInput.addEventListener('change',(e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      try{
+        const text = ev.target.result;
+        const payload = JSON.parse(text);
+
+        if(!payload || typeof payload !== 'object' || !payload.state || !Array.isArray(payload.state.tasks)){
+          alert('O ficheiro selecionado não parece ser um backup válido de tarefas.');
+          return;
+        }
+
+        const confirmRestore = confirm(
+          'Este backup irá SUBSTITUIR todas as tarefas e filtros atuais.\n\n' +
+          'Pretende continuar?'
+        );
+        if(!confirmRestore) return;
+
+        // Restaura tarefas e estado de bloqueio
+        state.tasks = payload.state.tasks || [];
+        state.locked = payload.state.locked !== false; // por segurança, default bloqueado
+
+        // Restaura filtros se existirem no backup
+        if(payload.filters && typeof payload.filters === 'object'){
+          FILTERS = Object.assign({}, FILTERS, payload.filters);
+        }
+
+        saveState();
+        saveFiltersToStorage();
+        applyFiltersToControls();
+        updateLockUI();
+        renderCards();
+
+        alert('Backup restaurado com sucesso.');
+
+      }catch(err){
+        console.error('Erro ao restaurar backup JSON de tarefas', err);
+        alert('Ocorreu um erro ao ler o ficheiro de backup. Verifique se foi gerado a partir desta aplicação de Tarefas.');
+      }finally{
+        e.target.value = '';
+      }
+    };
+    reader.readAsText(file, 'utf-8');
+  });
+
   // Eventos
   toggleLockBtn.addEventListener('click',()=>{
     state.locked = !state.locked;
@@ -2033,6 +2147,9 @@
   exportCsvBtn.addEventListener('click', exportCsv);
   importCsvBtn.addEventListener('click', importCsv);
   exportPdfBtn.addEventListener('click', exportPdfList);
+
+  backupBtn.addEventListener('click', exportBackup);
+  restoreBtn.addEventListener('click', restoreFromBackup);
 
   window.addEventListener('keydown',(e)=>{
     if(e.key==='Escape' && modalBackdrop.classList.contains('open')){
