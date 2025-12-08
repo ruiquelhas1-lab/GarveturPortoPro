@@ -1782,7 +1782,9 @@ const restoreBtn = $('restoreBtn');    // 👈 NOVO
       observacoes: $('observacoes').value || '',
       notasInternas: $('notasInternas').value || '',
 
-      visible: (typeof groups.visible === 'undefined') ? true : !!groups.visible,
+      visible: (deal && typeof deal.visible !== 'undefined')
+  ? !!deal.visible
+  : true,
 
       zonaEnvolvente: groups.zonaEnvolvente || [],
       infraestruturas: groups.infraestruturas || [],
