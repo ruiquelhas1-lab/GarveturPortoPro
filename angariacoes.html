@@ -1442,38 +1442,93 @@ const restoreBtn = $('restoreBtn');    // 👈 NOVO
   };
 
     function loadState(){
-    try {
-      // 1) Tenta primeiro a chave nova
-      let raw = localStorage.getItem(STORAGE_KEY);
-      let loadedFromLegacy = false;
+  try {
+    let loaded = null;
+    let loadedKey = null;
 
-      // 2) Se não existir nada na chave nova, tenta a chave antiga
-      if (!raw) {
-        raw = localStorage.getItem('gpp_angariacoes'); // 👈 chave antiga provável
-        if (raw) {
-          loadedFromLegacy = true;
-          console.log('A carregar dados legados de "gpp_angariacoes"');
+    // 1) Tenta primeiro as chaves conhecidas
+    const candidateKeys = [
+      STORAGE_KEY,             // 'gpp_angariacoes_v2'
+      'gpp_angariacoes',       // possível chave antiga
+      'gpp_angariacoes_v1',    // outra possível chave antiga
+      'gpp_angariacoes_v0'     // fallback adicional
+    ];
+
+    for (const key of candidateKeys) {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      try {
+        const parsed = JSON.parse(raw);
+        loaded = parsed;
+        loadedKey = key;
+        break;
+      } catch(e) {
+        console.warn('JSON inválido em', key, e);
+      }
+    }
+
+    // 2) Se ainda não encontrou nada, procura qualquer chave que comece por "gpp_angariacoes"
+    if (!loaded) {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key || !key.startsWith('gpp_angariacoes')) continue;
+
+        const raw = localStorage.getItem(key);
+        if (!raw) continue;
+
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed) {
+            loaded = parsed;
+            loadedKey = key;
+            console.log('A carregar dados legados de', key);
+            break;
+          }
+        } catch(e) {
+          console.warn('JSON inválido em chave candidata', key, e);
+        }
+      }
+    }
+
+    // 3) Se encontrou algo, normaliza para o formato interno { deals: [...], locked: ... }
+    if (loaded) {
+      if (Array.isArray(loaded)) {
+        // backup / formato antigo = só array
+        state.deals = loaded;
+        state.locked = true;
+      } else if (loaded && typeof loaded === 'object') {
+        if (Array.isArray(loaded.deals)) {
+          state.deals = loaded.deals;
+        }
+        if (typeof loaded.locked === 'boolean') {
+          state.locked = loaded.locked;
+        } else {
+          state.locked = true;
         }
       }
 
-      if (raw) {
-        const parsed = JSON.parse(raw);
+      // 4) Migra tudo para a chave nova canónica
+      if (loadedKey !== STORAGE_KEY) {
+        console.log('A migrar dados de', loadedKey, 'para', STORAGE_KEY);
+        saveState();
+        try {
+          // Não é obrigatório apagar, mas normalmente ajuda a evitar confusão
+          // localStorage.removeItem(loadedKey);
+        } catch(e){}
+      }
+    } else {
+      // Não encontrou nada – arranca “limpo”
+      state.deals = [];
+      state.locked = true;
+    }
+  } catch(e) {
+    console.error('Erro ao carregar storage', e);
+    state.deals = [];
+    state.locked = true;
+  }
 
-        // CASO A — backups/formato antigo: apenas um array de angariações
-        if (Array.isArray(parsed)) {
-          state.deals = parsed;
-          state.locked = true; // por segurança arranca bloqueado
-        }
-        // CASO B — formato novo: { deals: [...], locked: true/false }
-        else if (parsed && typeof parsed === 'object') {
-          if (Array.isArray(parsed.deals)) {
-            state.deals = parsed.deals;
-          }
-          if (typeof parsed.locked === 'boolean') {
-            state.locked = parsed.locked;
-          } else {
-            state.locked = true;
-          }
+  updateLockUI();
+}
         }
 
         // Se carregámos da chave antiga, migramos para a nova
