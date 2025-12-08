@@ -1442,35 +1442,111 @@ const restoreBtn = $('restoreBtn');    // 👈 NOVO
   };
 
 
+  // 👉 Helper para normalizar / migrar registos antigos
+  function migrateDeal(d){
+    if(!d || typeof d !== 'object') return {};
 
-function loadState(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw){
-      const parsed = JSON.parse(raw);
+    return {
+      // por defeito, tudo visível
+      visible: d.visible !== false,
 
-      if(Array.isArray(parsed.deals)){
-        // MIGRAÇÃO AUTOMÁTICA DOS REGISTOS ANTIGOS
-        state.deals = parsed.deals.map(d => ({
-          visible: d.visible !== false,           
-          zonaEnvolvente: d.zonaEnvolvente || [],
-          infraestruturas: d.infraestruturas || [],
-          equipamentos: d.equipamentos || [],
-          seguranca: d.seguranca || [],
-          documentacao: d.documentacao || [],
-          isEmpreendimento: d.isEmpreendimento || false,
-          percentAjust: d.percentAjust || '',
-          ...d
-        }));
+      // garantir arrays mesmo em versões antigas
+      zonaEnvolvente: Array.isArray(d.zonaEnvolvente) ? d.zonaEnvolvente : [],
+      infraestruturas: Array.isArray(d.infraestruturas) ? d.infraestruturas : [],
+      equipamentos: Array.isArray(d.equipamentos) ? d.equipamentos : [],
+      seguranca: Array.isArray(d.seguranca) ? d.seguranca : [],
+      documentacao: Array.isArray(d.documentacao) ? d.documentacao : [],
+
+      // flags e campos calculados
+      isEmpreendimento: !!d.isEmpreendimento,
+      percentAjust: d.percentAjust || '',
+
+      // mantém todos os restantes campos
+      ...d
+    };
+  }
+
+  function loadState(){
+    function safeParse(raw){
+      if(!raw) return null;
+      try{
+        return JSON.parse(raw);
+      }catch(e){
+        console.error('Erro a fazer parse do storage de angariações', e);
+        return null;
+      }
+    }
+
+    // 1) Tenta primeiro o formato atual (STORAGE_KEY = 'gpp_angariacoes_v2')
+    let parsed = safeParse(localStorage.getItem(STORAGE_KEY));
+    let fromLegacy = false;
+
+    if(parsed){
+      // Formato antigo mas já no STORAGE_KEY atual: array direto
+      if(Array.isArray(parsed)){
+        state.deals = parsed.map(migrateDeal);
+        state.locked = true; // por defeito bloqueado
+        updateLockUI();
+        return;
       }
 
-      state.locked = parsed.locked !== false;
+      // Formato novo: { deals: [...], locked: ... }
+      if(parsed && typeof parsed === 'object' && Array.isArray(parsed.deals)){
+        state.deals = parsed.deals.map(migrateDeal);
+        state.locked = parsed.locked !== false;
+        updateLockUI();
+        return;
+      }
     }
-  }catch(e){
-    console.error('Erro ao carregar storage', e);
+
+    // 2) Se aqui chegou, tentamos encontrar dados "antigos"
+    //    noutros keys do localStorage (ex.: versões v1, nomes antigos, etc.)
+    try{
+      for(let i=0; i<localStorage.length; i++){
+        const key = localStorage.key(i);
+        if(!key) continue;
+
+        const lower = key.toLowerCase();
+        // só olhamos para keys que pareçam ser de "angariações"
+        if(!lower.includes('angariac')) continue;
+
+        const cand = safeParse(localStorage.getItem(key));
+        if(!cand) continue;
+
+        // CASO A — array direto de angariações
+        if(Array.isArray(cand) && cand.length){
+          state.deals = cand.map(migrateDeal);
+          state.locked = true;
+          fromLegacy = true;
+          break;
+        }
+
+        // CASO B — objeto com { deals: [...] }
+        if(cand && typeof cand === 'object' && Array.isArray(cand.deals) && cand.deals.length){
+          state.deals = cand.deals.map(migrateDeal);
+          state.locked = cand.locked !== false;
+          fromLegacy = true;
+          break;
+        }
+      }
+    }catch(e){
+      console.error('Erro ao procurar dados antigos de angariações', e);
+    }
+
+    // 3) Se encontrámos dados em formato antigo, gravamos já no formato novo
+    if(fromLegacy){
+      try{
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          locked: state.locked,
+          deals: state.deals
+        }));
+      }catch(e){
+        console.error('Erro ao atualizar storage para o formato novo de angariações', e);
+      }
+    }
+
+    updateLockUI();
   }
-  updateLockUI();
-}
   function saveState(){
     try{
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
