@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -110,20 +109,14 @@
     }
     .nav-tab.active{
       background:var(--gold);
-      color:#0A0AA0;
+      color:#0A0A0A;
       border-color:var(--gold);
       font-weight:600;
     }
 
-    .header-actions{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      flex-wrap:wrap;
-    }
-
+    /* BOTÕES GENÉRICOS */
     .btn{
-      border-radius:999px;
+      border-radius:10px;
       border:1px solid rgba(163,139,99,.35);
       background:rgba(12,12,12,.9);
       color:var(--text);
@@ -134,6 +127,7 @@
       gap:6px;
       cursor:pointer;
       transition:.18s border-color,.18s background,.18s transform;
+      white-space:nowrap;
     }
     .btn:hover{
       border-color:var(--gold);
@@ -257,59 +251,55 @@
     .checks input{accent-color:var(--gold);}
 
     .cards-area{
-      padding:14px 16px 18px;
+      padding:0;
       overflow-y:auto;
       background:radial-gradient(circle at top,#1a1a1a,#050505 55%,#000 100%);
       display:flex;
       flex-direction:column;
     }
 
-    .cards-header{
+    /* BARRA DE KPIs + TOOLBAR (igual ao mapa) */
+    .kpis{
       display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
-      margin-bottom:6px;
-      gap:10px;
-    }
-    .cards-header-left h2{
-      margin:0;
-      font-size:15px;
-      letter-spacing:.16em;
-      text-transform:uppercase;
-      color:var(--muted);
-    }
-    .cards-header-left p{
-      margin:2px 0 0;
-      font-size:12px;
-      color:var(--muted);
-    }
-
-    /* SUMÁRIO PIPELINE */
-    .summary-bar{
-      padding:6px 10px;
-      font-size:12px;
-      border-radius:999px;
-      border:1px solid rgba(163,139,99,.35);
-      background:rgba(0,0,0,.55);
-      color:#ddd;
-      display:flex;
-      flex-wrap:wrap;
       gap:8px;
       align-items:center;
-      margin-bottom:10px;
+      padding:6px 12px;
+      background:#0F0F0F;
+      border-bottom:1px solid var(--border);
+      border-top:1px solid var(--border);
+      flex-wrap:wrap;
     }
-    .badge-kpi{
-      padding:2px 8px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.18);
-      font-size:11px;
-      color:var(--muted);
-      background:rgba(15,15,15,.9);
+    .kpi{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:6px 10px;
+      font-size:12px;
+      background:rgba(0,0,0,.6);
     }
-    .badge-kpi.highlight{
-      border-color:var(--gold);
-      color:var(--gold);
-      font-weight:600;
+    .dot{
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      background:#999;
+      display:inline-block;
+      border:1px solid rgba(0,0,0,.2);
+    }
+    .dot.novo{background:#757575;}
+    .dot.contacto{background:#1E88E5;}
+    .dot.qualificado{background:#43A047;}
+    .dot.visita{background:#FB8C00;}
+    .dot.proposta{background:#8E24AA;}
+    .dot.fecho{background:#A38B63;}
+    .dot.perdido{background:#E53935;}
+
+    .toolbar{
+      margin-left:auto;
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
     }
 
     /* BOARD / COLUNAS / CARDS */
@@ -317,6 +307,7 @@
       display:grid;
       grid-template-columns:repeat(7,minmax(260px,1fr));
       gap:10px;
+      padding:14px 16px 18px;
     }
     @media (max-width:1400px){
       .board{grid-template-columns:repeat(3,minmax(260px,1fr));}
@@ -503,7 +494,7 @@
       border-radius:999px;
       padding:6px 10px;
       font-size:12px;
-      background:#0E0EE;
+      background:#0E0E0E;
       cursor:pointer;
     }
     .state-pill input{
@@ -571,6 +562,11 @@
     #restoreJsonInput{
       display:none;
     }
+
+    /* Sumário antigo mantido apenas para compatibilidade lógica (oculto) */
+    #pipelineSummary{
+      display:none;
+    }
   </style>
 </head>
 <body>
@@ -598,20 +594,6 @@
       <a href="vendas.html" class="nav-tab">Vendas</a>
       <a href="tarefas.html" class="nav-tab">Tarefas</a>
     </nav>
-
-    <div class="header-actions">
-      <button class="btn primary" id="btnNew" disabled>+ Nova Lead</button>
-      <button class="btn btn-ghost" id="toggleEdit"><span id="lockEmoji">🔒</span> Edição bloqueada</button>
-      <button class="btn btn-ghost" id="exportCsv">⤓ CSV</button>
-      <button class="btn btn-ghost" id="exportXlsx">⤓ Excel</button>
-      <button class="btn btn-ghost" id="importCsvBtn">⤒ Importar CSV</button>
-      <!-- NOVOS BOTÕES -->
-      <button class="btn btn-ghost" id="backupJsonBtn">⤓ Backup</button>
-      <button class="btn btn-ghost" id="restoreJsonBtn">⤒ Restore</button>
-
-      <input type="file" id="importCsvInput" accept=".csv" />
-      <input type="file" id="restoreJsonInput" accept=".json" />
-    </div>
   </header>
 
   <div class="layout">
@@ -661,17 +643,35 @@
       </div>
     </aside>
 
-    <!-- DIREITA: SUMÁRIO + BOARD -->
+    <!-- DIREITA: KPIs + BOARD -->
     <main class="cards-area">
-      <div class="cards-header">
-        <div class="cards-header-left">
-          <h2>Leads</h2>
-          <p>Gestão visual do pipeline comercial — do primeiro contacto ao fecho.</p>
+      <!-- KPIs à la mapa -->
+      <div class="kpis">
+        <div class="kpi"><span class="dot"></span>Total: <b id="k_total">0</b></div>
+        <div class="kpi"><span class="dot novo"></span>Novo: <b id="k_novo">0</b></div>
+        <div class="kpi"><span class="dot contacto"></span>Em contacto: <b id="k_contacto">0</b></div>
+        <div class="kpi"><span class="dot qualificado"></span>Qualificado: <b id="k_qualificado">0</b></div>
+        <div class="kpi"><span class="dot visita"></span>Visita: <b id="k_visita">0</b></div>
+        <div class="kpi"><span class="dot proposta"></span>Proposta: <b id="k_proposta">0</b></div>
+        <div class="kpi"><span class="dot fecho"></span>Fecho: <b id="k_fecho">0</b></div>
+        <div class="kpi"><span class="dot perdido"></span>Perdido: <b id="k_perdido">0</b></div>
+
+        <div class="toolbar">
+          <button class="btn primary" id="btnNew" disabled>+ Nova Lead</button>
+          <button class="btn btn-ghost" id="toggleEdit"><span id="lockEmoji">🔒</span> Edição bloqueada</button>
+          <button class="btn btn-ghost" id="exportCsv">⤓ CSV</button>
+          <button class="btn btn-ghost" id="exportXlsx">⤓ Excel</button>
+          <button class="btn btn-ghost" id="importCsvBtn">⤒ Importar CSV</button>
+          <button class="btn btn-ghost" id="backupJsonBtn">⤓ Backup</button>
+          <button class="btn btn-ghost" id="restoreJsonBtn">⤒ Restore</button>
+
+          <input type="file" id="importCsvInput" accept=".csv" />
+          <input type="file" id="restoreJsonInput" accept=".json" />
         </div>
       </div>
 
-      <!-- Sumário pipeline -->
-      <div id="pipelineSummary" class="summary-bar"></div>
+      <!-- Controlo antigo do sumário (mantido, mas invisível) -->
+      <div id="pipelineSummary"></div>
 
       <!-- Quadro Kanban -->
       <section class="board" id="board"></section>
@@ -1540,27 +1540,29 @@ function propostaSummary(l){
 }
 
 function renderSummary(byEstado){
-  const el = $('pipelineSummary');
+  const el = $('pipelineSummary'); // mantido por compatibilidade
   const total = byEstado.reduce((s,b)=>s+b.items.length,0);
-  if(!total){
-    el.textContent='Sem leads registadas nos filtros atuais.';
-    return;
-  }
   const counts = Object.fromEntries(byEstado.map(b=>[b.estado,b.items.length]));
   const fecho = counts['Fecho'] || 0;
   const taxaFecho = total ? (fecho/total*100).toFixed(1) : '0.0';
 
-  el.innerHTML = `
-    <span class="badge-kpi">Total: ${total}</span>
-    <span class="badge-kpi">Novo: ${counts['Novo']||0}</span>
-    <span class="badge-kpi">Em Contacto: ${counts['Em Contacto']||0}</span>
-    <span class="badge-kpi">Qualificado: ${counts['Qualificado']||0}</span>
-    <span class="badge-kpi">Visita: ${counts['Visita']||0}</span>
-    <span class="badge-kpi">Proposta: ${counts['Proposta']||0}</span>
-    <span class="badge-kpi">Fecho: ${fecho}</span>
-    <span class="badge-kpi">Perdido: ${counts['Perdido']||0}</span>
-    <span class="badge-kpi highlight">Taxa de Fecho: ${taxaFecho}%</span>
-  `;
+  if(el){
+    el.textContent = ''; // mantemos invisível, mas sem perder lógica se quiser reutilizar
+  }
+
+  // Atualizar KPIs no topo (igual mapa)
+  const id = (k)=>document.getElementById(k);
+  if(id('k_total'))      id('k_total').textContent      = total;
+  if(id('k_novo'))       id('k_novo').textContent       = counts['Novo'] || 0;
+  if(id('k_contacto'))   id('k_contacto').textContent   = counts['Em Contacto'] || 0;
+  if(id('k_qualificado'))id('k_qualificado').textContent= counts['Qualificado'] || 0;
+  if(id('k_visita'))     id('k_visita').textContent     = counts['Visita'] || 0;
+  if(id('k_proposta'))   id('k_proposta').textContent   = counts['Proposta'] || 0;
+  if(id('k_fecho'))      id('k_fecho').textContent      = counts['Fecho'] || 0;
+  if(id('k_perdido'))    id('k_perdido').textContent    = counts['Perdido'] || 0;
+
+  // Se quiser usar taxa de fecho em algum lado no futuro, já está calculada
+  // console.log('Taxa de fecho:', taxaFecho+'%');
 }
 
 function renderBoard(){
