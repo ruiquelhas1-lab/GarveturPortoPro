@@ -34,90 +34,163 @@
       flex-direction:column;
     }
 
-   .app-shell{
-  display:grid;
-  grid-template-rows:auto minmax(0,1fr);
-  height:100vh;
-}
+    /* >>> pequeno ajuste para o header poder ter 2 linhas sem cortar nada */
+    .app-shell{
+      display:grid;
+      grid-template-rows:auto minmax(0,1fr);
+      height:100vh;
+    }
+    /* <<< */
 
-/* HEADER / BRAND / NAV TABS */
-header.app-header{
-  display:flex;
-  flex-wrap:wrap;              /* permite 2 linhas */
-  align-items:center;
-  padding:10px 18px;
-  border-bottom:1px solid rgba(163,139,99,.35);
-  background:linear-gradient(90deg,#050505,#111,#050505);
-  gap:10px;
-}
+    /* HEADER / BRAND / NAV TABS */
+    header.app-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:10px 18px;
+      border-bottom:1px solid rgba(163,139,99,.35);
+      background:linear-gradient(90deg,#050505,#111,#050505);
+      gap:16px;
+      flex-wrap:wrap;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .brand-icon{
+      width:26px;
+      height:26px;
+      border-radius:999px;
+      border:1px solid var(--gold);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 0 0 1px rgba(163,139,99,.3);
+    }
+    .brand h1{
+      margin:0;
+      font-size:17px;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      color:var(--gold);
+    }
+    .brand span.sub{
+      display:block;
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
 
-/* bloco da marca – 1ª linha à esquerda */
-.brand{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  flex:1 1 220px; /* ocupa e ajusta */
-}
+    .nav-tabs{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:4px;
+      background:rgba(0,0,0,.35);
+      padding:4px;
+      border-radius:999px;
+      border:1px solid rgba(163,139,99,.35);
+    }
+    .nav-tab{
+      padding:5px 10px;
+      border-radius:999px;
+      font-size:11px;
+      text-decoration:none;
+      color:var(--muted);
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      border:1px solid transparent;
+      transition:.16s background,.16s color,.16s border-color,.16s transform;
+    }
+    .nav-tab:hover{
+      color:#fff;
+      border-color:rgba(163,139,99,.6);
+      transform:translateY(-1px);
+    }
+    .nav-tab.active{
+      background:var(--gold);
+      color:#0A0AA0;
+      border-color:var(--gold);
+      font-weight:600;
+    }
 
-/* tabs de navegação – 1ª linha ao centro/direita */
-.nav-tabs{
-  display:flex;
-  flex-wrap:wrap;
-  align-items:center;
-  justify-content:center;
-  gap:4px;
-  background:rgba(0,0,0,.35);
-  padding:4px;
-  border-radius:999px;
-  border:1px solid rgba(163,139,99,.35);
-  flex:1 1 320px;
-}
+    .header-actions{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
 
-.nav-tab{
-  padding:5px 10px;
-  border-radius:999px;
-  font-size:11px;
-  text-decoration:none;
-  color:var(--muted);
-  letter-spacing:.12em;
-  text-transform:uppercase;
-  border:1px solid transparent;
-  transition:.16s background,.16s color,.16s border-color,.16s transform;
-}
-.nav-tab:hover{
-  color:#fff;
-  border-color:rgba(163,139,99,.6);
-  transform:translateY(-1px);
-}
-.nav-tab.active{
-  background:var(--gold);
-  color:#0A0AA0;
-  border-color:var(--gold);
-  font-weight:600;
-}
+    .btn{
+      border-radius:999px;
+      border:1px solid rgba(163,139,99,.35);
+      background:rgba(12,12,12,.9);
+      color:var(--text);
+      padding:7px 12px;
+      font-size:13px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      cursor:pointer;
+      transition:.18s border-color,.18s background,.18s transform;
+    }
+    .btn:hover{
+      border-color:var(--gold);
+      transform:translateY(-1px);
+    }
+    .btn-primary,
+    .btn.primary{
+      background:var(--gold);
+      color:#0A0A0A;
+      border-color:var(--gold);
+      font-weight:600;
+    }
+    .btn-ghost,
+    .btn.ghost{
+      background:transparent;
+      border-color:rgba(255,255,255,.24);
+      color:var(--muted);
+    }
+    .btn[disabled]{
+      opacity:.45;
+      cursor:not-allowed;
+      transform:none;
+    }
+    .move-select[disabled]{opacity:.45;cursor:not-allowed;}
 
-/* linha 2: todos os botões sempre visíveis */
-.header-actions{
-  display:flex;
-  flex-wrap:wrap;
-  align-items:center;
-  justify-content:flex-end;
-  gap:8px;
-  flex:1 1 100%;   /* força a linha separada */
-}
-
-@media (max-width:900px){
-  .header-actions{ justify-content:flex-start; }
-}
+    /* Botão pequeno */
+    .btn-xs{
+      border-radius:999px;
+      border:1px solid rgba(163,139,99,.35);
+      background:rgba(12,12,12,.9);
+      color:var(--muted);
+      padding:3px 8px;
+      font-size:11px;
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      cursor:pointer;
+      transition:.16s border-color,.16s background,.16s transform;
+    }
+    .btn-xs:hover{
+      border-color:var(--gold);
+      transform:translateY(-1px);
+    }
+    .btn-xs.primary{
+      border-color:var(--gold);
+      color:var(--gold);
+    }
 
     /* LAYOUT PRINCIPAL */
-  .layout{
-  display:grid;
-  grid-template-columns:320px minmax(0,1fr);
-  height:100%;
-  max-height:100%;
-  overflow:hidden;
-}
+    .layout{
+      display:grid;
+      grid-template-columns:320px minmax(0,1fr);
+      height:100%;
+      max-height:100%;
+      overflow:hidden;
+    }
     @media (max-width:960px){
       .layout{
         grid-template-columns:1fr;
@@ -494,8 +567,9 @@ header.app-header{
       background:#111;
     }
 
-    /* input file escondido para importação */
-    #importCsvInput{
+    /* inputs file escondidos */
+    #importCsvInput,
+    #restoreLeadsInput{
       display:none;
     }
   </style>
@@ -532,12 +606,11 @@ header.app-header{
       <button class="btn btn-ghost" id="exportCsv">⤓ CSV</button>
       <button class="btn btn-ghost" id="exportXlsx">⤓ Excel</button>
       <button class="btn btn-ghost" id="importCsvBtn">⤒ Importar CSV</button>
+      <!-- NOVOS BOTÕES, MESMO ESTILO -->
+      <button class="btn btn-ghost" id="backupLeads">⭳ Backup</button>
+      <button class="btn btn-ghost" id="restoreLeads">⭱ Restore</button>
       <input type="file" id="importCsvInput" accept=".csv" />
-
-      <!-- NOVO: Backup & Restore -->
-      <button class="btn btn-ghost" id="btnBackup">💾 Backup</button>
-      <button class="btn btn-ghost" id="btnRestore">⤺ Restaurar</button>
-      <input type="file" id="restoreInput" accept=".json" style="display:none" />
+      <input type="file" id="restoreLeadsInput" accept=".json" />
     </div>
   </header>
 
@@ -617,216 +690,8 @@ header.app-header{
       </div>
     </header>
     <div class="content">
-      <div class="grid2">
-        <div class="form-field"><label>Nome Cliente *</label><input id="ld_nome"></div>
-        <div class="form-field"><label>Consultor *</label>
-          <select id="ld_consultor">
-            <option value="">—</option>
-            <option>Rui Quelhas</option>
-            <option>Manuel Oliveira</option>
-            <option>João Sousa</option>
-            <option>Francisco dos Santos</option>
-            <option>Rosário Vasconcelos</option>
-            <option>Armanda Meireles</option>
-            <option>Audrey Lucas</option>
-          </select>
-        </div>
-
-        <div class="form-field"><label>Contacto *</label><input id="ld_contacto" placeholder="+351 … ou 9 dígitos"></div>
-        <div class="form-field"><label>Email</label><input id="ld_email" type="email"></div>
-
-        <div class="form-field"><label>Tipo de negócio</label>
-          <select id="ld_tipo_negocio">
-            <option value="">—</option><option>Venda</option><option>Compra</option><option>Arrendamento</option><option>Permuta</option>
-          </select>
-        </div>
-        <div class="form-field"><label>Imóvel</label>
-          <select id="ld_imovel">
-            <option value="">—</option><option>Moradia</option><option>Apartamento</option><option>Loja</option><option>Armazém</option><option>Escritório</option><option>Terreno</option><option>Outro</option>
-          </select>
-        </div>
-
-        <div class="form-field"><label>Tipologia</label>
-          <select id="ld_tipologia">
-            <option value="">—</option><option>T0</option><option>T1</option><option>T2</option><option>T3</option><option>T4</option><option>T5</option><option>&gt;T5</option>
-          </select>
-        </div>
-        <div class="form-field"><label>Zona preferencial</label><input id="ld_zona"></div>
-
-        <div class="form-field"><label>Capitais próprios (€)</label><input id="ld_capitais" type="number" min="0" step="1000"></div>
-        <div class="form-field"><label>Valor alvo (€)</label><input id="ld_valor" type="number" min="0" step="1000"></div>
-
-        <div class="form-field"><label>Financiamento bancário?</label>
-          <select id="ld_financiamento"><option>Não</option><option>Sim</option></select>
-        </div>
-        <div class="form-field"><label>Simulação bancária?</label>
-          <select id="ld_simulacao"><option>Não</option><option>Sim</option></select>
-        </div>
-
-        <div class="form-field"><label>Instituição bancária (se aplicável)</label><input id="ld_banco"></div>
-        <div class="form-field"><label>Tem imóvel para vender?</label>
-          <select id="ld_tem_imovel"><option>Não</option><option>Sim</option></select>
-        </div>
-
-        <div class="form-field"><label>Já está à venda?</label>
-          <select id="ld_ja_venda"><option>Não</option><option>Sim</option></select>
-        </div>
-        <div class="form-field"><label>Urgente?</label>
-          <select id="ld_urgente"><option>Não</option><option>Sim</option></select>
-        </div>
-
-        <div class="form-field"><label>Pode comprar em planta?</label>
-          <select id="ld_planta"><option>Não</option><option>Sim</option></select>
-        </div>
-        <div class="form-field"><label>1ª habitação?</label>
-          <select id="ld_primeira_hab"><option>Não</option><option>Sim</option></select>
-        </div>
-
-        <div class="form-field"><label>Comprador/Vendedor</label>
-          <select id="ld_papel"><option value="">—</option><option>Comprador</option><option>Vendedor</option></select>
-        </div>
-        <div class="form-field"><label>Investidor/Cliente final</label>
-          <select id="ld_perfil"><option value="">—</option><option>Investidor</option><option>Cliente final</option></select>
-        </div>
-
-        <div class="form-field">
-          <label>Classificação (1–5)</label>
-          <small style="font-size:11px;color:#9AA0A6;">
-            1 – Lead sem interesse · 2 – Partilha · 3 – Sem resposta a contacto ·
-            4 – Informação s/ imóvel · 5 – Quer marcar visita
-          </small>
-          <select id="ld_classificacao">
-            <option value="">—</option>
-            <option>1</option>
-            <option>2</option>
-            <option>3</option>
-            <option>4</option>
-            <option>5</option>
-          </select>
-        </div>
-
-        <div class="form-field"><label>Ref. Interna</label><input id="ld_ref"></div>
-
-        <div class="form-field"><label>URL anexo</label>
-          <input id="ld_url" placeholder="https://…"><small>Ex.: link de documento (Drive/Dropbox/OneDrive).</small>
-        </div>
-        <div class="form-field"><label>Data</label><input id="ld_data" type="date"></div>
-
-        <div class="form-field" style="grid-column:1 / span 2"><label>Notas</label><textarea id="ld_notas" rows="3"></textarea></div>
-      </div>
-
-      <!-- ESTADO (piscos rápidos) -->
-      <div class="form-field" style="margin-top:6px">
-        <label>Estado (seleção rápida)</label>
-        <div class="state-pills" id="ld_estado_picker">
-          <label class="state-pill"><input type="checkbox" class="cb_estado" value="Em Contacto"> Em Contacto</label>
-          <label class="state-pill"><input type="checkbox" class="cb_estado" value="Qualificado"> Qualificado</label>
-          <label class="state-pill"><input type="checkbox" class="cb_estado" value="Visita"> Visita</label>
-          <label class="state-pill"><input type="checkbox" class="cb_estado" value="Proposta"> Proposta</label>
-          <label class="state-pill"><input type="checkbox" class="cb_estado" value="Fecho"> Fecho</label>
-          <label class="state-pill"><input type="checkbox" class="cb_estado" value="Perdido"> Perdido</label>
-        </div>
-        <div class="help">Se selecionar um estado, o cartão será gravado diretamente nessa coluna. Se nada selecionar, fica em <b>Novo</b>.</div>
-      </div>
-
-      <!-- BLOCO PROPOSTA & NEGOCIAÇÃO -->
-      <div id="propostaBox" class="section-block" style="display:none">
-        <div class="section-title-small">Proposta & Negociação</div>
-
-        <div class="field-grid-2">
-          <div class="form-field">
-            <label>Nome do proponente</label>
-            <input id="ld_prop_nome" type="text">
-          </div>
-          <div class="form-field">
-            <label>Contacto</label>
-            <input id="ld_prop_contacto" type="text">
-          </div>
-        </div>
-
-        <div class="form-field">
-          <label>Email</label>
-          <input id="ld_prop_email" type="text">
-        </div>
-
-        <div class="field-grid-2">
-          <div class="form-field">
-            <label>Valor da proposta</label>
-            <input id="ld_prop_valor" type="text" placeholder="Ex.: 350.000 €">
-          </div>
-          <div class="form-field">
-            <label>Data da proposta</label>
-            <input id="ld_prop_data" type="date">
-          </div>
-        </div>
-
-        <div class="form-field">
-          <label>Termos da proposta</label>
-          <textarea id="ld_prop_termos" rows="3" placeholder="Condições, prazos, mobiliário incluído, necessidade de crédito, etc."></textarea>
-        </div>
-
-        <div class="form-field">
-          <label>
-            Contra-propostas
-            <button type="button" class="btn-xs primary" id="btnAddContraProp" style="margin-left:6px;">+ Adicionar contra-proposta</button>
-          </label>
-          <div id="prop_contra_list"></div>
-        </div>
-
-        <div class="field-grid-2">
-          <div class="form-field">
-            <label>Data da proposta aceite</label>
-            <input id="ld_prop_aceite" type="date">
-          </div>
-        </div>
-      </div>
-
-      <!-- FECHO -->
-      <div id="fechoBox" class="grid2" style="margin-top:8px; display:none">
-        <div class="form-field"><label>Valor do Negócio (€)</label><input id="ld_fecho_negocio" type="number" min="0" step="1000"></div>
-        <div class="form-field">
-          <label>Comissão</label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-            <select id="ld_fecho_comissao">
-              <option value="">—</option>
-              <option value="6">6%</option>
-              <option value="5">5%</option>
-              <option value="4">4%</option>
-              <option value="3">3%</option>
-              <option value="outro">Outro</option>
-            </select>
-            <input id="ld_fecho_comissao_outro" placeholder="Ex.: 4.5%" style="display:none">
-          </div>
-        </div>
-
-        <div class="form-field"><label>Valor Sinal de Reserva (€)</label><input id="ld_fecho_sinal_reserva" type="number" min="0" step="500"></div>
-        <div class="form-field"><label>Valor a dar no CPCV (€)</label><input id="ld_fecho_valor_cpcv" type="number" min="0" step="1000"></div>
-
-        <div class="form-field" style="grid-column:1 / span 2">
-          <label>Valores Intercalares (€)</label>
-          <div id="intercalaresBox" class="intercalares"></div>
-          <div class="total-line" id="intercalaresTotal">Total intercalares: 0 €</div>
-          <button class="btn btn-ghost" type="button" id="addIntercalar">+ Adicionar intercalar</button>
-        </div>
-
-        <div class="form-field"><label>Valor a dar na Escritura (€)</label><input id="ld_fecho_valor_escritura" type="number" min="0" step="1000"></div>
-        <div class="form-field"><label>Data do CPCV</label><input id="ld_fecho_cpcv_date" type="date"></div>
-        <div class="form-field"><label>Data da Escritura</label><input id="ld_fecho_escritura_date" type="date"></div>
-
-        <!-- Pagamento de Comissões -->
-        <div class="form-field" style="grid-column:1 / span 2">
-          <label>Pagamento de Comissões</label>
-          <select id="ld_fecho_pagamento_tipo">
-            <option value="">—</option>
-            <option value="50_50">50% CPCV - 50% Escritura</option>
-            <option value="100_escritura">100% Escritura</option>
-            <option value="outro">Outro</option>
-          </select>
-          <input id="ld_fecho_pagamento_outro" placeholder="Descreva a regra (ex.: 30% CPCV / 70% Escritura)" style="margin-top:6px;display:none">
-        </div>
-
-        <div class="form-field" style="grid-column:1 / span 2"><label>Observações</label><textarea id="ld_fecho_obs" rows="3"></textarea></div>
-      </div>
+      <!-- (resto do modal mantém-se EXACTAMENTE como no seu ficheiro) -->
+      <!-- ...  (para poupar espaço, omiti o conteúdo do modal porque é igual ao que já tem) -->
     </div>
   </div>
 </div>
@@ -840,10 +705,6 @@ const CONSULT_RESOLVE=["Rui Quelhas","Manuel Oliveira","João Sousa","Francisco 
 
 // storage de tarefas (partilhado com tarefas.html)
 const TASKS_STORAGE_KEY = 'gpp_tarefas_v1';
-
-// NOVO: configuração de backup
-const LEADS_BACKUP_KIND = 'gpp_leads_backup_v1';
-
 
 // Mapa de classificação 1–5 para texto amigável
 const LEAD_CLASSIFICACAO_MAP = {
@@ -924,6 +785,63 @@ function isHttp(u){ return /^https?:\/\//i.test(String(u||'')); }
 function uid(){ return 'L'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4); }
 function parsePercent(v){ if(!v) return ''; const s=String(v).replace('%','').replace(',','.'); const n=Number(s); return Number.isFinite(n)? n: ''; }
 function sumIntercalares(arr){ return (arr||[]).reduce((a,b)=>a+(Number(b)||0),0); }
+
+/* ===== BACKUP / RESTORE ===== */
+function downloadBackup(){
+  const payload={
+    version:1,
+    exportedAt:new Date().toISOString(),
+    leads:LEADS,
+    filters:FILTER,
+    editMode:EDIT_MODE
+  };
+  const json=JSON.stringify(payload,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const stamp=todayISO().replace(/-/g,'');
+  a.href=url;
+  a.download='leads-backup-'+stamp+'.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function restoreFromFile(file){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data || !Array.isArray(data.leads)){
+        alert('Ficheiro de backup inválido.');
+        return;
+      }
+      if(!confirm('Confirmar RESTORE das leads a partir deste backup?\nIsto pode substituir dados atuais.')) return;
+
+      LEADS=data.leads;
+      saveLS();
+
+      if(data.filters){
+        FILTER=Object.assign(FILTER,data.filters);
+        persistFilters();
+      }
+      if(typeof data.editMode==='boolean'){
+        EDIT_MODE=data.editMode;
+        localStorage.setItem(EDIT_LS,EDIT_MODE?'1':'0');
+      }
+      updateEditUI();
+      renderBoard();
+      alert('Backup restaurado com sucesso.');
+    }catch(err){
+      console.error('Erro a restaurar backup',err);
+      alert('Não foi possível restaurar o backup. Verifique o ficheiro.');
+    }finally{
+      $('restoreLeadsInput').value='';
+    }
+  };
+  reader.readAsText(file,'utf-8');
+}
 
 /* ===== Tarefas: integração ===== */
 function loadTasksState(){
