@@ -2722,9 +2722,13 @@ const restoreBtn = $('restoreBtn');    // 👈 NOVO
     closeModal();
   });
 
-  exportCsvBtn.addEventListener('click', exportCsv);
-  importCsvBtn.addEventListener('click', handleImportCsv);
-  exportPdfBtn.addEventListener('click', exportPdfAll);
+ exportCsvBtn.addEventListener('click', exportCsv);
+importCsvBtn.addEventListener('click', handleImportCsv);
+exportPdfBtn.addEventListener('click', exportPdfAll);
+
+// ➕ BACKUP & RESTORE – NOVO
+backupBtn.addEventListener('click', handleBackup);
+restoreBtn.addEventListener('click', handleRestore);
 
   window.addEventListener('keydown', (e)=>{
     if(e.key==='Escape' && modalBackdrop.classList.contains('open')){
