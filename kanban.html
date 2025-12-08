@@ -604,10 +604,11 @@
       <button class="btn btn-ghost" id="exportXlsx">⤓ Excel</button>
       <button class="btn btn-ghost" id="importCsvBtn">⤒ Importar CSV</button>
       <input type="file" id="importCsvInput" accept=".csv" />
-      <!-- Backup OneDrive Leads -->
-      <button class="btn" id="backupOneDrive">Backup OneDrive</button>
-      <button class="btn btn-ghost" id="restoreBackup">Restaurar</button>
-      <input type="file" id="backupFile" accept=".csv" style="display:none" />
+
+      <!-- NOVO: Backup & Restore -->
+      <button class="btn btn-ghost" id="btnBackup">💾 Backup</button>
+      <button class="btn btn-ghost" id="btnRestore">⤺ Restaurar</button>
+      <input type="file" id="restoreInput" accept=".json" style="display:none" />
     </div>
   </header>
 
@@ -911,6 +912,10 @@ const CONSULT_RESOLVE=["Rui Quelhas","Manuel Oliveira","João Sousa","Francisco 
 // storage de tarefas (partilhado com tarefas.html)
 const TASKS_STORAGE_KEY = 'gpp_tarefas_v1';
 
+// NOVO: configuração de backup
+const LEADS_BACKUP_KIND = 'gpp_leads_backup_v1';
+
+
 // Mapa de classificação 1–5 para texto amigável
 const LEAD_CLASSIFICACAO_MAP = {
   1: "Lead sem interesse",
@@ -1023,8 +1028,8 @@ function createTaskFromLead(lead){
 
   const titulo = 'Follow-up lead: ' + (lead.nome || 'sem nome');
 
-  const dataCriacaoISO = todayISO();
   const agora = new Date();
+  const dataCriacaoISO = todayISO();
   const limite = new Date(agora);
   limite.setDate(limite.getDate() + 8);
   const dataLimiteISO = limite.toISOString().slice(0,10);
@@ -1823,209 +1828,6 @@ $('exportXlsx').addEventListener('click',()=>{
   XLSX.writeFile(wb, 'leads.xlsx');
 });
 
-/* ===== Backup OneDrive / Restauro (Leads) ===== */
-function backupOneDrive(){
-  const headers=[
-    "ID","Estado","Data","Consultor","Nome","Contacto","Email","TipoNegócio",
-    "Imóvel","Tipologia","Zona","Capitais","Valor","Financiamento","Simulação",
-    "Banco","Comprador/Vend.","Perfil","Classificação","RefInterna","URL",
-    "Urgente","Planta","1ªHab","TemImóvel","JáVenda","Notas","Visível",
-    "Negócio","Comissão(%)","SinalReserva","ValorCPCV","Intercalares",
-    "ValorEscritura","DataCPCV","DataEscritura","PagamentoComissoesTipo",
-    "PagamentoComissoesOutro","FechoObs",
-    "Prop_NomeProponente","Prop_Contacto","Prop_Email","Prop_Valor","Prop_Termos","Prop_Data","Prop_DataAceite","Prop_ContraPropostas"
-  ];
-
-  const rows = LEADS.map(l=>{
-    const p = l.proposta || {};
-    const contra = Array.isArray(p.contraPropostas)
-      ? p.contraPropostas.map(cp=>`${cp.data||''} :: ${cp.valor||''} :: ${cp.termos||''}`).join(' || ')
-      : '';
-    return [
-      l.id,l.estado,l.data||'',l.consultor||'',l.nome||'',l.contacto||'',l.email||'',
-      l.tipo_negocio||'',l.imovel||'',l.tipologia||'',l.zona||'',l.capitais||'',l.valor||'',
-      l.financiamento||'',l.simulacao||'',l.banco||'',l.papel||'',l.perfil||'',
-      l.classificacao||'',l.ref_interna||'',l.url||'',l.urgente||'',l.planta||'',l.primeira_hab||'',
-      l.tem_imovel||'',l.ja_venda||'',l.notas||'', (l.visivel!==false?'Sim':'Não'),
-      l.fecho_negocio||'', (l.fecho_comissao_pct!==''&&l.fecho_comissao_pct!=null? l.fecho_comissao_pct : ''),
-      l.fecho_sinal_reserva||'', l.fecho_valor_cpcv||'',
-      (Array.isArray(l.fecho_intercalares)? l.fecho_intercalares.join(' | ') : ''),
-      l.fecho_valor_escritura||'', l.fecho_cpcv_date||'', l.fecho_escritura_date||'',
-      l.fecho_pagamento_tipo||'', l.fecho_pagamento_outro||'', l.fecho_obs||'',
-      p.nomeProponente||'',p.contactoProponente||'',p.emailProponente||'',p.valorProposta||'',
-      p.termosProposta||'',p.dataProposta||'',p.dataPropostaAceite||'',contra
-    ];
-  });
-
-  const csv = toCSV([headers,...rows]);
-
-  const now = new Date();
-  const yyyy = now.getFullYear();
-  const mm   = String(now.getMonth()+1).padStart(2,'0');
-  const dd   = String(now.getDate()).padStart(2,'0');
-  const hh   = String(now.getHours()).padStart(2,'0');
-  const mi   = String(now.getMinutes()).padStart(2,'0');
-
-  const filename = `gpp-leads-backup-${yyyy}${mm}${dd}-${hh}${mi}.csv`;
-
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;
-  a.download=filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-
-  alert('Backup criado. Guarde o ficheiro na pasta OneDrive: Garvetur Porto Pro / Backups / Leads.');
-}
-
-function restoreFromBackup(file){
-  if(!file) return;
-
-  const reader = new FileReader();
-  reader.onload = function(ev){
-    try{
-      const data = new Uint8Array(ev.target.result);
-      const wb = XLSX.read(data, {type:'array'});
-      const wsName = wb.SheetNames[0];
-      const ws = wb.Sheets[wsName];
-      const json = XLSX.utils.sheet_to_json(ws, {defval:''});
-
-      if(!json.length){
-        alert('O ficheiro de backup está vazio ou não foi possível ler dados.');
-        return;
-      }
-
-      const importedLeads = json.map(row=>{
-        const pContraStr = row["Prop_ContraPropostas"] || '';
-        const contraPropostas = pContraStr
-          ? pContraStr.split('||').map(chunk=>{
-              const parts = chunk.split('::').map(s=>s.trim());
-              if(parts.every(x=>!x)) return null;
-              return {
-                data: parts[0] || '',
-                valor: parts[1] || '',
-                termos: parts[2] || ''
-              };
-            }).filter(x=>x)
-          : [];
-
-        const propostaHasData =
-          row["Prop_NomeProponente"] ||
-          row["Prop_Contacto"] ||
-          row["Prop_Email"] ||
-          row["Prop_Valor"] ||
-          row["Prop_Termos"] ||
-          row["Prop_Data"] ||
-          row["Prop_DataAceite"] ||
-          (contraPropostas.length>0);
-
-        const proposta = propostaHasData ? {
-          nomeProponente: row["Prop_NomeProponente"] || '',
-          contactoProponente: row["Prop_Contacto"] || '',
-          emailProponente: row["Prop_Email"] || '',
-          valorProposta: row["Prop_Valor"] || '',
-          termosProposta: row["Prop_Termos"] || '',
-          dataProposta: row["Prop_Data"] || '',
-          dataPropostaAceite: row["Prop_DataAceite"] || '',
-          contraPropostas
-        } : undefined;
-
-        const visivelStr = String(row["Visível"] || '').toLowerCase();
-        const visivel = visivelStr === 'não' || visivelStr === 'nao' ? false : true;
-
-        const interStr = row["Intercalares"] || '';
-        const interArr = interStr
-          ? interStr.split('|').map(s=>s.trim()).filter(s=>s!=='')
-          : [];
-
-        return {
-          id: row["ID"] || uid(),
-          estado: row["Estado"] || 'Novo',
-          data: row["Data"] || '',
-          consultor: row["Consultor"] || '',
-          nome: row["Nome"] || '',
-          contacto: row["Contacto"] || '',
-          email: row["Email"] || '',
-          tipo_negocio: row["TipoNegócio"] || '',
-          imovel: row["Imóvel"] || '',
-          tipologia: row["Tipologia"] || '',
-          zona: row["Zona"] || '',
-          capitais: row["Capitais"] || '',
-          valor: row["Valor"] || '',
-          financiamento: row["Financiamento"] || '',
-          simulacao: row["Simulação"] || '',
-          banco: row["Banco"] || '',
-          papel: row["Comprador/Vend."] || '',
-          perfil: row["Perfil"] || '',
-          classificacao: row["Classificação"] || '',
-          ref_interna: row["RefInterna"] || row["Ref. Interna"] || '',
-          url: row["URL"] || '',
-          urgente: row["Urgente"] || '',
-          planta: row["Planta"] || '',
-          primeira_hab: row["1ªHab"] || row["1ª Hab."] || '',
-          tem_imovel: row["TemImóvel"] || row["Tem Imóvel"] || '',
-          ja_venda: row["JáVenda"] || row["Já à venda"] || '',
-          notas: row["Notas"] || '',
-          visivel,
-
-          fecho_negocio: row["Negócio"] || '',
-          fecho_comissao_pct: row["Comissão(%)"] !== '' ? row["Comissão(%)"] : '',
-          fecho_sinal_reserva: row["SinalReserva"] || '',
-          fecho_valor_cpcv: row["ValorCPCV"] || '',
-          fecho_intercalares: interArr,
-          fecho_valor_escritura: row["ValorEscritura"] || '',
-          fecho_cpcv_date: row["DataCPCV"] || '',
-          fecho_escritura_date: row["DataEscritura"] || '',
-          fecho_pagamento_tipo: row["PagamentoComissoesTipo"] || '',
-          fecho_pagamento_outro: row["PagamentoComissoesOutro"] || '',
-          fecho_obs: row["FechoObs"] || '',
-          proposta
-        };
-      });
-
-      if(!importedLeads.length){
-        alert('Não foi possível extrair leads válidas do ficheiro de backup.');
-        return;
-      }
-
-      const ok = confirm(
-        'Este restauro vai SUBSTITUIR todas as leads atuais pelos dados do ficheiro de backup.\n\nPretende continuar?'
-      );
-      if(!ok) return;
-
-      LEADS = importedLeads;
-      saveLS();
-      renderBoard();
-      alert('Backup restaurado com sucesso.');
-
-    }catch(err){
-      console.error('Erro ao restaurar backup de leads', err);
-      alert('Ocorreu um erro ao restaurar o backup. Confirme se o ficheiro foi gerado por este Kanban (Backup OneDrive / CSV).');
-    }
-  };
-  reader.readAsArrayBuffer(file);
-}
-
-const btnBackup = $('backupOneDrive');
-if(btnBackup){
-  btnBackup.addEventListener('click', backupOneDrive);
-}
-const btnRestore = $('restoreBackup');
-const backupInput = $('backupFile');
-if(btnRestore && backupInput){
-  btnRestore.addEventListener('click', ()=>{
-    backupInput.value='';
-    backupInput.click();
-  });
-  backupInput.addEventListener('change',(ev)=>{
-    const file = ev.target.files && ev.target.files[0];
-    if(file) restoreFromBackup(file);
-  });
-}
-
 /* ===== Importação CSV ===== */
 $('importCsvBtn').addEventListener('click', ()=>{
   $('importCsvInput').click();
@@ -2168,6 +1970,93 @@ $('importCsvInput').addEventListener('change', (e)=>{
     }
   };
   reader.readAsArrayBuffer(file);
+});
+
+/* ===== BACKUP & RESTORE (JSON) ===== */
+
+function exportLeadsBackup(){
+  if(!LEADS || !LEADS.length){
+    alert('Não existem leads para guardar em backup.');
+    return;
+  }
+  const payload = {
+    kind: LEADS_BACKUP_KIND,
+    ts: new Date().toISOString(),
+    version: 1,
+    lsKey: LS_KEY,
+    leads: LEADS
+  };
+  const json = JSON.stringify(payload,null,2);
+  const blob = new Blob([json],{type:'application/json'});
+  const d = new Date();
+  const stamp = [
+    d.getFullYear(),
+    String(d.getMonth()+1).padStart(2,'0'),
+    String(d.getDate()).padStart(2,'0'),
+    '_',
+    String(d.getHours()).padStart(2,'0'),
+    String(d.getMinutes()).padStart(2,'0')
+  ].join('');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'gpp_leads_backup_' + stamp + '.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(a.href);
+}
+
+function importLeadsBackupFromFile(file){
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    try{
+      const txt = ev.target.result;
+      const data = JSON.parse(txt);
+
+      let leadsArr = null;
+
+      if(Array.isArray(data)){
+        // caso antigo: apenas array de leads
+        leadsArr = data;
+      }else if(data && data.kind === LEADS_BACKUP_KIND && Array.isArray(data.leads)){
+        leadsArr = data.leads;
+      }else{
+        alert('Ficheiro de backup inválido ou formato não reconhecido.');
+        return;
+      }
+
+      if(!leadsArr || !leadsArr.length){
+        alert('O ficheiro de backup não contém leads.');
+        return;
+      }
+
+      const replace = confirm(
+        'Vai restaurar leads a partir deste backup.\n\n' +
+        'OK = substituir TODAS as leads atuais pelo conteúdo do backup\n' +
+        'Cancelar = abortar sem alterar nada.'
+      );
+      if(!replace) return;
+
+      LEADS = leadsArr;
+      saveLS();
+      renderBoard();
+      alert('Backup de leads restaurado com sucesso.');
+
+    }catch(e){
+      console.error('Erro ao restaurar backup de leads', e);
+      alert('Não foi possível ler o ficheiro de backup. Verifique se selecionou o ficheiro correto.');
+    }
+  };
+  reader.readAsText(file,'utf-8');
+}
+
+$('btnBackup').addEventListener('click', exportLeadsBackup);
+$('btnRestore').addEventListener('click', ()=> $('restoreInput').click());
+$('restoreInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  importLeadsBackupFromFile(file);
+  e.target.value='';
 });
 
 /* ===== Boot ===== */
