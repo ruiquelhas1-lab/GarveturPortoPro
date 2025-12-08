@@ -2736,7 +2736,102 @@ const restoreBtn = $('restoreBtn');    // 👈 NOVO
     renderCards();
     closeModal();
   });
+  // --- BACKUP / RESTORE (ficheiro JSON local) ---
 
+  function handleBackup(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        alert('Não existem dados de angariações para fazer backup.');
+        return;
+      }
+
+      const blob = new Blob([raw], { type: 'application/json;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+
+      const hoje = new Date().toISOString().slice(0,10); // AAAA-MM-DD
+      a.href = url;
+      a.download = 'angariacoes_backup_' + hoje + '.json';
+
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      alert('Backup efetuado com sucesso.\nGuarde este ficheiro num local seguro (ex.: OneDrive).');
+    }catch(e){
+      console.error('Erro no backup de angariações', e);
+      alert('Ocorreu um erro ao gerar o ficheiro de backup.');
+    }
+  }
+
+  function handleRestore(){
+    if (!confirm(
+      'Esta operação vai restaurar dados de angariações a partir de um ficheiro de backup.\n\n' +
+      'Os dados atuais serão substituídos pelos do ficheiro selecionado.\n\n' +
+      'Pretende continuar?'
+    )){
+      return;
+    }
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,application/json';
+
+    input.addEventListener('change', (e)=>{
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (ev)=>{
+        try{
+          const text = ev.target.result;
+          const parsed = JSON.parse(text);
+
+          let newDeals = [];
+          let newLocked = true;
+
+          // CASO A — backup só com array de angariações
+          if (Array.isArray(parsed)) {
+            newDeals = parsed;
+          }
+          // CASO B — backup no formato { deals: [...], locked: ... }
+          else if (parsed && typeof parsed === 'object') {
+            if (Array.isArray(parsed.deals)) {
+              newDeals = parsed.deals;
+            }
+            if (typeof parsed.locked === 'boolean') {
+              newLocked = parsed.locked;
+            }
+          }
+
+          if (!Array.isArray(newDeals) || !newDeals.length){
+            alert('O ficheiro não contém angariações válidas para restaurar.');
+            return;
+          }
+
+          state.deals = newDeals;
+          state.locked = newLocked;
+          saveState();
+          updateLockUI();
+          renderCards();
+
+          alert(
+            'Restauro concluído com sucesso.\n\n' +
+            'Total de angariações carregadas: ' + newDeals.length
+          );
+        }catch(err){
+          console.error('Erro ao restaurar backup de angariações', err);
+          alert('O ficheiro selecionado não é um backup válido de angariações.');
+        }
+      };
+
+      reader.readAsText(file, 'utf-8');
+    });
+
+    input.click();
+  }
  exportCsvBtn.addEventListener('click', exportCsv);
 importCsvBtn.addEventListener('click', handleImportCsv);
 exportPdfBtn.addEventListener('click', exportPdfAll);
