@@ -2737,19 +2737,28 @@ const restoreBtn = $('restoreBtn');    // 👈 NOVO
     renderCards();
   });
 
-  saveDealBtn.addEventListener('click', (e)=>{
+   saveDealBtn.addEventListener('click', (e)=>{
     e.preventDefault();
     if(state.locked){
       alert('O modo de edição está bloqueado. Desbloqueie o cadeado no topo para guardar alterações.');
       return;
     }
+
     const data = collectFormData();
-    const idx = state.deals.findIndex(d=>d.id === data.id);
-    if(idx>=0){
+    const idx = state.deals.findIndex(d => d.id === data.id);
+
+    if (idx >= 0) {
+      // Estamos a editar uma angariação existente:
+      // preserva a visibilidade anterior (visível / invisível)
+      const prev = state.deals[idx];
+      data.visible = (typeof prev.visible === 'boolean') ? prev.visible : true;
       state.deals[idx] = data;
-    }else{
+    } else {
+      // Nova angariação: por defeito entra como visível
+      data.visible = true;
       state.deals.push(data);
     }
+
     saveState();
     renderCards();
     closeModal();
