@@ -1444,91 +1444,31 @@ const restoreBtn = $('restoreBtn');    // 👈 NOVO
 
 
 function loadState(){
-  try {
-    let loaded = null;
-    let loadedKey = null;
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
 
-    // 1) Tenta primeiro as chaves conhecidas
-    const candidateKeys = [
-      STORAGE_KEY,             // 'gpp_angariacoes_v2'
-      'gpp_angariacoes',       // possível chave antiga
-      'gpp_angariacoes_v1',    // outra possível chave antiga
-      'gpp_angariacoes_v0'     // fallback adicional
-    ];
-
-    for (const key of candidateKeys) {
-      const raw = localStorage.getItem(key);
-      if (!raw) continue;
-      try {
-        const parsed = JSON.parse(raw);
-        loaded = parsed;
-        loadedKey = key;
-        break;
-      } catch(e) {
-        console.warn('JSON inválido em', key, e);
+      if(Array.isArray(parsed.deals)){
+        // MIGRAÇÃO AUTOMÁTICA DOS REGISTOS ANTIGOS
+        state.deals = parsed.deals.map(d => ({
+          visible: d.visible !== false,           
+          zonaEnvolvente: d.zonaEnvolvente || [],
+          infraestruturas: d.infraestruturas || [],
+          equipamentos: d.equipamentos || [],
+          seguranca: d.seguranca || [],
+          documentacao: d.documentacao || [],
+          isEmpreendimento: d.isEmpreendimento || false,
+          percentAjust: d.percentAjust || '',
+          ...d
+        }));
       }
+
+      state.locked = parsed.locked !== false;
     }
-
-    // 2) Se ainda não encontrou nada, procura qualquer chave que comece por "gpp_angariacoes"
-    if (!loaded) {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (!key || !key.startsWith('gpp_angariacoes')) continue;
-
-        const raw = localStorage.getItem(key);
-        if (!raw) continue;
-
-        try {
-          const parsed = JSON.parse(raw);
-          if (parsed) {
-            loaded = parsed;
-            loadedKey = key;
-            console.log('A carregar dados legados de', key);
-            break;
-          }
-        } catch(e) {
-          console.warn('JSON inválido em chave candidata', key, e);
-        }
-      }
-    }
-
-    // 3) Se encontrou algo, normaliza para o formato interno { deals: [...], locked: ... }
-    if (loaded) {
-      if (Array.isArray(loaded)) {
-        // backup / formato antigo = só array
-        state.deals = loaded;
-        state.locked = true;
-      } else if (loaded && typeof loaded === 'object') {
-        if (Array.isArray(loaded.deals)) {
-          state.deals = loaded.deals;
-        }
-        if (typeof loaded.locked === 'boolean') {
-          state.locked = loaded.locked;
-        } else {
-          state.locked = true;
-        }
-      }
-
-      // 4) Migra tudo para a chave nova canónica
-      if (loadedKey !== STORAGE_KEY) {
-        console.log('A migrar dados de', loadedKey, 'para', STORAGE_KEY);
-        saveState();
-        try {
-          // Não é obrigatório apagar, mas normalmente ajuda a evitar confusão
-          // localStorage.removeItem(loadedKey);
-        } catch(e){}
-      }
-    } else {
-      // Não encontrou nada – arranca “limpo”
-      state.deals = [];
-      state.locked = true;
-    }
-  } catch(e) {
+  }catch(e){
     console.error('Erro ao carregar storage', e);
-    state.deals = [];
-    state.locked = true;
   }
-
   updateLockUI();
 }
   function saveState(){
