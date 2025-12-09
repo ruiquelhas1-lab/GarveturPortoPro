@@ -6,5 +6,6 @@ window.CONSULTANTS_CONFIG = [
   { nome:"Rosário Vasconcelos", ativo:true },
   { nome:"Armanda Meireles", ativo:true },
   { nome:"Audrey Lucas", ativo:true },
+  { nome:"Dalila Cunha", ativo:true },
   { nome:"Outro", ativo:true }
 ];
