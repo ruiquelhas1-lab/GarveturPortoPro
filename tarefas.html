@@ -1228,54 +1228,60 @@ function getConsultorOptions(){
     }
   }
 
-    function initConsultores(){
-    const nomes = getConsultorOptions();
-
-    // Limpa e repõe as opções base
-    responsavelSelect.innerHTML = '<option value="">—</option>';
-    apoioSelect.innerHTML = '<option value="">—</option>';
-    filterResponsavel.innerHTML = '<option value="">Todos</option>';
-
-    // Adiciona consultores definidos em config-consultores.js
-    nomes.forEach(name=>{
-      // Modal - Responsável
-      const opt1 = document.createElement('option');
-      opt1.value = name;
-      opt1.textContent = name;
-      responsavelSelect.appendChild(opt1);
-
-      // Modal - Apoio / Gestor
-      const opt2 = document.createElement('option');
-      opt2.value = name;
-      opt2.textContent = name;
-      apoioSelect.appendChild(opt2);
-
-      // Filtro lateral - Responsável
-      const opt3 = document.createElement('option');
-      opt3.value = name;
-      opt3.textContent = name;
-      filterResponsavel.appendChild(opt3);
-    });
-
-    // Extra: opção "Outro" no fim (útil para parceiros / externos)
-    const extra = ['Outro'];
-    extra.forEach(name=>{
-      const opt1 = document.createElement('option');
-      opt1.value = name;
-      opt1.textContent = name;
-      responsavelSelect.appendChild(opt1);
-
-      const opt2 = document.createElement('option');
-      opt2.value = name;
-      opt2.textContent = name;
-      apoioSelect.appendChild(opt2);
-
-      const opt3 = document.createElement('option');
-      opt3.value = name;
-      opt3.textContent = name;
-      filterResponsavel.appendChild(opt3);
-    });
+   function initConsultores(){
+  // DIAGNÓSTICO
+  try{
+    console.log('DEBUG TAREFAS — typeof CONSULTANTS_CONFIG:',
+      (typeof CONSULTANTS_CONFIG !== 'undefined') ? typeof CONSULTANTS_CONFIG : 'indefinido');
+  }catch(e){
+    console.log('DEBUG TAREFAS — CONSULTANTS_CONFIG lança erro ao aceder:', e);
   }
+
+  const nomes = getConsultorOptions();
+
+  console.log('DEBUG TAREFAS — nomes calculados em getConsultorOptions():', nomes);
+
+  // Limpa e repõe as opções base
+  responsavelSelect.innerHTML = '<option value="">—</option>';
+  apoioSelect.innerHTML = '<option value="">—</option>';
+  filterResponsavel.innerHTML = '<option value="">Todos</option>';
+
+  // Adiciona consultores definidos em config-consultores.js
+  nomes.forEach(name=>{
+    const opt1 = document.createElement('option');
+    opt1.value = name;
+    opt1.textContent = name;
+    responsavelSelect.appendChild(opt1);
+
+    const opt2 = document.createElement('option');
+    opt2.value = name;
+    opt2.textContent = name;
+    apoioSelect.appendChild(opt2);
+
+    const opt3 = document.createElement('option');
+    opt3.value = name;
+    opt3.textContent = name;
+    filterResponsavel.appendChild(opt3);
+  });
+
+  // Extra: opção "Outro"
+  ['Outro'].forEach(name=>{
+    const opt1 = document.createElement('option');
+    opt1.value = name;
+    opt1.textContent = name;
+    responsavelSelect.appendChild(opt1);
+
+    const opt2 = document.createElement('option');
+    opt2.value = name;
+    opt2.textContent = name;
+    apoioSelect.appendChild(opt2);
+
+    const opt3 = document.createElement('option');
+    opt3.value = name;
+    opt3.textContent = name;
+    filterResponsavel.appendChild(opt3);
+  });
+}
 
   function openModal(task){
     modalBackdrop.classList.add('open');
