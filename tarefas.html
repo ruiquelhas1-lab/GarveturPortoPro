@@ -907,20 +907,23 @@
 <script src="config-consultores.js"></script>
 <script>
 (function(){
-  const STORAGE_KEY = 'gpp_tarefas_v1';
+   const STORAGE_KEY = 'gpp_tarefas_v1';
   const FILTERS_STORAGE_KEY = 'gpp_tarefas_filters_v1';
   const GLOBAL_FILTERS_KEY = 'gpp_global_filters_v1';
 
-  const CONSULTOR_OPTIONS = [
-    "Rui Quelhas",
-    "Manuel Oliveira",
-    "João Sousa",
-    "Francisco dos Santos",
-    "Rosário Vasconcelos",
-    "Armanda Meireles",
-    "Audrey Lucas",
-    "Outro"
-  ];
+  // Lê os consultores do ficheiro central config-consultores.js
+  function getConsultorOptions(){
+    try{
+      if(Array.isArray(window.CONSULTANTS_CONFIG)){
+        return window.CONSULTANTS_CONFIG
+          .filter(c => c.ativo !== false)   // só ativos
+          .map(c => c.nome);                // devolve apenas o nome
+      }
+    }catch(e){
+      console.error('Erro a ler CONSULTANTS_CONFIG em tarefas:', e);
+    }
+    return [];
+  }
 
   function $(id){ return document.getElementById(id); }
 
