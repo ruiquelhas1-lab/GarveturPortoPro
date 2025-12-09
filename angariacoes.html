@@ -1340,16 +1340,23 @@
   const STORAGE_KEY = 'gpp_angariacoes_v2';
   const FILTERS_STORAGE_KEY = 'gpp_ang_filters_v1';
 
-  const CONSULTOR_OPTIONS = [
-    "Rui Quelhas",
-    "Manuel Oliveira",
-    "João Sousa",
-    "Francisco dos Santos",
-    "Rosário Vasconcelos",
-    "Armanda Meireles",
-    "Audrey Lucas",
-    "Outro"
-  ];
+  // 👉 NOVO: ler da configuração central (config-consultores.js),
+  // com fallback para a lista antiga se algo falhar
+  const CONSULTOR_OPTIONS = (
+    window.GPPConsultores &&
+    typeof window.GPPConsultores.getAtivos === 'function'
+  )
+    ? window.GPPConsultores.getAtivos().map(c => c.nome)
+    : [
+        "Rui Quelhas",
+        "Manuel Oliveira",
+        "João Sousa",
+        "Francisco dos Santos",
+        "Rosário Vasconcelos",
+        "Armanda Meireles",
+        "Audrey Lucas",
+        "Outro"
+      ];
 
   const ZONA_ENVOLVENTE = [
     "Aeroporto","Banco","Áreas de Lazer Infantil","Auto-estrada","Biblioteca","Centro Comercial",
