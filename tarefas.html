@@ -914,13 +914,13 @@
 // Lê os consultores do ficheiro central config-consultores.js
 function getConsultorOptions(){
   try{
-    // Tenta primeiro a variável global CONSULTANTS_CONFIG (definida no ficheiro)
     let config = null;
 
+    // 1.º tenta a variável global definida no ficheiro config-consultores.js
     if (typeof CONSULTANTS_CONFIG !== 'undefined') {
       config = CONSULTANTS_CONFIG;
     } else if (typeof window !== 'undefined' && Array.isArray(window.CONSULTANTS_CONFIG)) {
-      // fallback, caso em algum momento seja colocado em window
+      // fallback, se em algum momento for colocada em window
       config = window.CONSULTANTS_CONFIG;
     }
 
