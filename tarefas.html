@@ -926,9 +926,28 @@ function getConsultorOptions(){
 
     if (Array.isArray(config)) {
       return config
-        .filter(c => c && c.ativo !== false)  // só ativos
-           .map(c => c.nome || c.consultor || c.name || c.fullName || c.id || '')
-        .filter(Boolean);                     // remove vazios
+        .map(c => {
+          // Caso 1: array de strings
+          if (typeof c === 'string') {
+            return c.trim();
+          }
+
+          // Caso 2: array de objetos
+          if (!c) return '';
+
+          if (c.ativo === false) return ''; // respeita ativo=false
+
+          const nome =
+            c.nome ||
+            c.consultor ||
+            c.name ||
+            c.fullName ||
+            c.id ||
+            '';
+
+          return String(nome).trim();
+        })
+        .filter(Boolean); // remove vazios
     } else {
       console.warn('CONSULTANTS_CONFIG não encontrado em tarefas.');
     }
