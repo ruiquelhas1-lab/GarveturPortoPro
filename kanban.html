@@ -910,8 +910,20 @@
 const LS_KEY='gpp_leads_v5';
 const EDIT_LS='gpp_leads_edit_mode';
 const COLS=["Novo","Em Contacto","Qualificado","Visita","Proposta","Fecho","Perdido"];
-const CONSULT_RESOLVE=["Rui Quelhas","Manuel Oliveira","João Sousa","Francisco dos Santos","Rosário Vasconcelos","Armanda Meireles","Audrey Lucas"];
-
+const CONSULT_RESOLVE = (
+  window.GPPConsultores &&
+  typeof window.GPPConsultores.getAtivos === 'function'
+)
+  ? window.GPPConsultores.getAtivos().map(c => c.nome)
+  : [
+      "Rui Quelhas",
+      "Manuel Oliveira",
+      "João Sousa",
+      "Francisco dos Santos",
+      "Rosário Vasconcelos",
+      "Armanda Meireles",
+      "Audrey Lucas"
+    ];
 // storage de tarefas (partilhado com tarefas.html)
 const TASKS_STORAGE_KEY = 'gpp_tarefas_v1';
 
