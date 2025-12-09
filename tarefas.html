@@ -911,20 +911,32 @@
   const FILTERS_STORAGE_KEY = 'gpp_tarefas_filters_v1';
   const GLOBAL_FILTERS_KEY = 'gpp_global_filters_v1';
 
-  // Lê os consultores do ficheiro central config-consultores.js
-  function getConsultorOptions(){
-    try{
-      if(Array.isArray(window.CONSULTANTS_CONFIG)){
-        return window.CONSULTANTS_CONFIG
-          .filter(c => c.ativo !== false)   // só ativos
-          .map(c => c.nome);                // devolve apenas o nome
-      }
-    }catch(e){
-      console.error('Erro a ler CONSULTANTS_CONFIG em tarefas:', e);
-    }
-    return [];
-  }
+// Lê os consultores do ficheiro central config-consultores.js
+function getConsultorOptions(){
+  try{
+    // Tenta primeiro a variável global CONSULTANTS_CONFIG (definida no ficheiro)
+    let config = null;
 
+    if (typeof CONSULTANTS_CONFIG !== 'undefined') {
+      config = CONSULTANTS_CONFIG;
+    } else if (typeof window !== 'undefined' && Array.isArray(window.CONSULTANTS_CONFIG)) {
+      // fallback, caso em algum momento seja colocado em window
+      config = window.CONSULTANTS_CONFIG;
+    }
+
+    if (Array.isArray(config)) {
+      return config
+        .filter(c => c && c.ativo !== false)  // só ativos
+        .map(c => c.nome)                     // devolve apenas o nome
+        .filter(Boolean);                     // remove vazios
+    } else {
+      console.warn('CONSULTANTS_CONFIG não encontrado em tarefas.');
+    }
+  }catch(e){
+    console.error('Erro a ler CONSULTANTS_CONFIG em tarefas:', e);
+  }
+  return [];
+}
   function $(id){ return document.getElementById(id); }
 
   const toggleLockBtn = $('toggleLockBtn');
