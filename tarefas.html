@@ -908,56 +908,50 @@
 <script>
 (function(){
    const STORAGE_KEY = 'gpp_tarefas_v1';
-  const FILTERS_STORAGE_KEY = 'gpp_tarefas_filters_v1';
-  const GLOBAL_FILTERS_KEY = 'gpp_global_filters_v1';
+   const FILTERS_STORAGE_KEY = 'gpp_tarefas_filters_v1';
+   const GLOBAL_FILTERS_KEY = 'gpp_global_filters_v1';
 
-// Lê os consultores do ficheiro central config-consultores.js
-function getConsultorOptions(){
-  try{
-    let config = null;
+   // Lê os consultores do ficheiro central config-consultores.js
+   function getConsultorOptions(){
+     try{
+       let config = null;
 
-    // 1.º tenta a variável global definida no ficheiro config-consultores.js
-    if (typeof CONSULTANTS_CONFIG !== 'undefined') {
-      config = CONSULTANTS_CONFIG;
-    } else if (typeof window !== 'undefined' && Array.isArray(window.CONSULTANTS_CONFIG)) {
-      // fallback, se em algum momento for colocada em window
-      config = window.CONSULTANTS_CONFIG;
-    }
+       // 1.º tenta a variável global definida no ficheiro config-consultores.js
+       if (typeof CONSULTANTS_CONFIG !== 'undefined' && Array.isArray(CONSULTANTS_CONFIG)) {
+         config = CONSULTANTS_CONFIG;
+       } else if (typeof window !== 'undefined' && Array.isArray(window.CONSULTANTS_CONFIG)) {
+         // fallback, se em algum momento for colocada em window
+         config = window.CONSULTANTS_CONFIG;
+       }
 
-    if (Array.isArray(config)) {
-      return config
-        .map(c => {
-          // Caso 1: array de strings
-          if (typeof c === 'string') {
-            return c.trim();
-          }
+       if (!Array.isArray(config)) {
+         console.warn('CONSULTANTS_CONFIG não encontrado em tarefas.');
+         return [];
+       }
 
-          // Caso 2: array de objetos
-          if (!c) return '';
+       // CASO A: array de STRINGS — ex.: ["Rui Quelhas", "João Silva"]
+       if (config.length && typeof config[0] === 'string') {
+         return config
+           .filter(v => typeof v === 'string')
+           .map(v => v.trim())
+           .filter(v => v.length > 0);
+       }
 
-          if (c.ativo === false) return ''; // respeita ativo=false
+       // CASO B: array de OBJETOS — ex.: [{ nome:"Rui Quelhas", ativo:true }, ...]
+       return config
+         .filter(c => c && c.ativo !== false) // só ativos
+         .map(c => (c.nome || c.consultor || c.name || c.fullName || c.id || '').trim())
+         .filter(Boolean);                     // remove vazios
 
-          const nome =
-            c.nome ||
-            c.consultor ||
-            c.name ||
-            c.fullName ||
-            c.id ||
-            '';
+     }catch(e){
+       console.error('Erro a ler CONSULTANTS_CONFIG em tarefas:', e);
+       return [];
+     }
+   }
 
-          return String(nome).trim();
-        })
-        .filter(Boolean); // remove vazios
-    } else {
-      console.warn('CONSULTANTS_CONFIG não encontrado em tarefas.');
-    }
-  }catch(e){
-    console.error('Erro a ler CONSULTANTS_CONFIG em tarefas:', e);
-  }
-  return [];
-}
-  function $(id){ return document.getElementById(id); }
+   function $(id){ return document.getElementById(id); }
 
+   
   const toggleLockBtn = $('toggleLockBtn');
   const newTaskBtn = $('newTaskBtn');
   const exportCsvBtn = $('exportCsvBtn');
