@@ -1610,18 +1610,29 @@ const restoreBtn = $('restoreBtn');    // 👈 NOVO
     }
   }
 
-  function initConsultores(){
-    CONSULTOR_OPTIONS.forEach(name=>{
+    function initConsultores() {
+    const nomes = obterConsultorOptions();
+
+    // Garante que não duplicamos opções, caso a função seja chamada outra vez
+    consultorSelect.innerHTML = '';
+    gestorSelect.innerHTML = '';
+    // Mantém o "Todos" no filtro
+    filterConsultor.innerHTML = '<option value="">Todos</option>';
+
+    nomes.forEach(name => {
+      // Consultor (modal)
       const opt1 = document.createElement('option');
       opt1.value = name;
       opt1.textContent = name;
       consultorSelect.appendChild(opt1);
 
+      // Gestor (modal)
       const opt2 = document.createElement('option');
       opt2.value = name;
       opt2.textContent = name;
       gestorSelect.appendChild(opt2);
 
+      // Filtro lateral – Consultor
       const opt3 = document.createElement('option');
       opt3.value = name;
       opt3.textContent = name;
