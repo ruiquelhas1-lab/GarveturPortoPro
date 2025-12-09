@@ -927,7 +927,7 @@ function getConsultorOptions(){
     if (Array.isArray(config)) {
       return config
         .filter(c => c && c.ativo !== false)  // só ativos
-        .map(c => c.nome)                     // devolve apenas o nome
+           .map(c => c.nome || c.consultor || c.name || c.fullName || c.id || '')
         .filter(Boolean);                     // remove vazios
     } else {
       console.warn('CONSULTANTS_CONFIG não encontrado em tarefas.');
