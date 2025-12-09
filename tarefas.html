@@ -2222,14 +2222,25 @@
     }
   });
 
-  // Init
+// Init — com garantia de carregamento do config-consultores.js
+function startApp(){
   initConsultores();
   loadState();
   loadFiltersFromStorage();
   loadGlobalFiltersFallback();
-  applyUrlContext();          // integra contexto vindo de Leads/Vendas (+Tarefa / Ver Tarefas)
+  applyUrlContext();
   applyFiltersToControls();
   renderCards();
+}
+
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  // Safari precisa de ligeiro atraso
+  setTimeout(startApp, 50);
+} else {
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(startApp, 50);
+  });
+}
 
 })();
 </script>
