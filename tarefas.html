@@ -1225,25 +1225,16 @@
     }
   }
 
-   function initConsultores(){
-  // DIAGNÓSTICO
-  try{
-    console.log('DEBUG TAREFAS — typeof CONSULTANTS_CONFIG:',
-      (typeof CONSULTANTS_CONFIG !== 'undefined') ? typeof CONSULTANTS_CONFIG : 'indefinido');
-  }catch(e){
-    console.log('DEBUG TAREFAS — CONSULTANTS_CONFIG lança erro ao aceder:', e);
-  }
+ function initConsultores(){
 
   const nomes = getConsultorOptions();
 
-  console.log('DEBUG TAREFAS — nomes calculados em getConsultorOptions():', nomes);
-
-  // Limpa e repõe as opções base
+  // Limpa as caixas
   responsavelSelect.innerHTML = '<option value="">—</option>';
   apoioSelect.innerHTML = '<option value="">—</option>';
   filterResponsavel.innerHTML = '<option value="">Todos</option>';
 
-  // Adiciona consultores definidos em config-consultores.js
+  // Preenche com os consultores vindos do config-consultores.js
   nomes.forEach(name=>{
     const opt1 = document.createElement('option');
     opt1.value = name;
@@ -1260,7 +1251,7 @@
     opt3.textContent = name;
     filterResponsavel.appendChild(opt3);
   });
-
+}
   function openModal(task){
     modalBackdrop.classList.add('open');
     if(task){
