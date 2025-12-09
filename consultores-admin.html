@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <title>Admin · Consultores — Garvetur Porto Pro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --gold:#A38B63;
+      --gold-soft:rgba(163,139,99,.35);
+      --bg:#0B0B0B;
+      --panel:#121212;
+      --panel-soft:#181818;
+      --text:#FFFFFF;
+      --muted:#A0A0A0;
+      --danger:#F25F5C;
+      --shadow-soft:0 14px 25px rgba(0,0,0,.4);
+      --radius-lg:18px;
+      --radius-md:12px;
+    }
+
+    *{box-sizing:border-box;}
+    html,body{
+      margin:0;
+      padding:0;
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      background:radial-gradient(circle at top,#1c1c1c 0,#050505 55%,#000 100%);
+      color:var(--text);
+    }
+
+    body{
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+    }
+
+    .shell{
+      width:100%;
+      max-width:980px;
+      padding:18px 14px 32px;
+    }
+
+    header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      border-bottom:1px solid var(--gold-soft);
+      padding-bottom:10px;
+      margin-bottom:14px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .brand-icon{
+      width:28px;
+      height:28px;
+      border-radius:999px;
+      border:1px solid var(--gold);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 0 0 1px rgba(163,139,99,.3);
+    }
+    .brand-app{
+      font-size:10px;
+      text-transform:uppercase;
+      letter-spacing:.18em;
+      color:var(--muted);
+      margin-bottom:2px;
+    }
+    .brand h1{
+      margin:0;
+      font-size:18px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--gold);
+    }
+    .brand span.sub{
+      display:block;
+      font-size:11px;
+      color:var(--muted);
+    }
+
+    .header-note{
+      font-size:11px;
+      color:var(--muted);
+      max-width:320px;
+    }
+
+    .panel{
+      background:rgba(0,0,0,.55);
+      border-radius:var(--radius-lg);
+      padding:10px 12px 12px;
+      border:1px solid rgba(163,139,99,.25);
+      box-shadow:var(--shadow-soft);
+      margin-bottom:12px;
+    }
+
+    .panel-title{
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      color:var(--muted);
+      margin:0 0 8px;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px;
+      background:radial-gradient(circle at top left,#181818,#070707);
+      border-radius:var(--radius-md);
+      overflow:hidden;
+    }
+    thead{
+      background:rgba(0,0,0,.75);
+    }
+    th,td{
+      padding:6px 8px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    th{
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      color:var(--muted);
+      text-align:left;
+    }
+    tr:last-child td{
+      border-bottom:none;
+    }
+
+    input[type="text"]{
+      width:100%;
+      border-radius:9px;
+      border:1px solid rgba(163,139,99,.28);
+      background:rgba(0,0,0,.8);
+      color:var(--text);
+      padding:5px 7px;
+      font-size:13px;
+      outline:none;
+    }
+    input[type="text"]:focus{
+      border-color:var(--gold);
+      box-shadow:0 0 0 1px rgba(163,139,99,.4);
+    }
+
+    input[type="checkbox"]{
+      transform:scale(1.1);
+      accent-color:var(--gold);
+      cursor:pointer;
+    }
+
+    .btn{
+      border-radius:999px;
+      border:1px solid rgba(163,139,99,.35);
+      background:rgba(10,10,10,.9);
+      color:var(--text);
+      padding:5px 10px;
+      font-size:12px;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      transition:.16s background,.16s border-color,.16s transform;
+    }
+    .btn:hover{
+      border-color:var(--gold);
+      transform:translateY(-1px);
+    }
+    .btn-primary{
+      background:var(--gold);
+      color:#0A0A0A;
+      border-color:var(--gold);
+      font-weight:500;
+    }
+    .btn-danger{
+      border-color:var(--danger);
+      color:#FFC7C4;
+    }
+    .btn-ghost{
+      background:transparent;
+    }
+
+    .row-actions{
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+    }
+
+    .field-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+      margin-top:6px;
+    }
+    .field-row label{
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      color:var(--muted);
+    }
+
+    .footer-bar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      font-size:11px;
+      color:var(--muted);
+      margin-top:6px;
+    }
+
+    .toolbar{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+    }
+
+    @media (max-width: 720px){
+      header{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+      .footer-bar{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+      .toolbar{
+        width:100%;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M8 12.5l2.5 2.5L16 9"></path>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-app">Garvetur Porto Pro</div>
+        <h1>Consultores</h1>
+        <span class="sub">Administração interna · Lista central de consultores</span>
+      </div>
+    </div>
+    <div class="header-note">
+      Esta página permite gerir graficamente a lista de consultores utilizada em
+      Angariações, Kanban e Tarefas.  
+      As alterações são guardadas neste navegador (localStorage).  
+      Depois de guardar, basta recarregar os outros módulos.
+    </div>
+  </header>
+
+  <!-- LISTA DE CONSULTOR -->
+  <section class="panel">
+    <h2 class="panel-title">Lista de consultores</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="width:50%;">Nome</th>
+          <th style="width:10%;">Ativo</th>
+          <th style="width:40%;">Ações</th>
+        </tr>
+      </thead>
+      <tbody id="consultoresBody"></tbody>
+    </table>
+  </section>
+
+  <!-- ADICIONAR NOVO -->
+  <section class="panel">
+    <h2 class="panel-title">Adicionar novo consultor</h2>
+    <div class="field-row">
+      <label for="novoNome">Nome</label>
+      <input type="text" id="novoNome" placeholder="Ex.: Novo Consultor" />
+      <label for="novoAtivo">Ativo</label>
+      <input type="checkbox" id="novoAtivo" checked />
+      <button class="btn btn-primary" id="addBtn">Adicionar</button>
+    </div>
+  </section>
+
+  <!-- CONTROLOS GERAIS -->
+  <section class="panel">
+    <div class="footer-bar">
+      <div>
+        Alterações guardadas em <strong>gpp_consultores_config_v1</strong> (localStorage).  
+        Para aplicar nos módulos operacionais, recarregue: Angariações, Kanban e Tarefas.
+      </div>
+      <div class="toolbar">
+        <button class="btn btn-ghost" id="exportBtn">Exportar JSON</button>
+        <button class="btn btn-ghost" id="importBtn">Importar JSON</button>
+        <button class="btn btn-ghost" id="resetBtn">Repor DEFAULT</button>
+        <button class="btn btn-primary" id="saveBtn">Guardar alterações</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script src="config-consultores.js?v=3"></script>
+<script>
+(function(){
+  const STORAGE_KEY = 'gpp_consultores_config_v1';
+
+  const tbody   = document.getElementById('consultoresBody');
+  const addBtn  = document.getElementById('addBtn');
+  const saveBtn = document.getElementById('saveBtn');
+  const exportBtn = document.getElementById('exportBtn');
+  const importBtn = document.getElementById('importBtn');
+  const resetBtn  = document.getElementById('resetBtn');
+
+  const novoNome  = document.getElementById('novoNome');
+  const novoAtivo = document.getElementById('novoAtivo');
+
+  // Carrega lista atual a partir da API central
+  let lista = (window.GPPConsultores && typeof window.GPPConsultores.getTodos === 'function')
+    ? window.GPPConsultores.getTodos()
+    : (window.CONSULTANTS_CONFIG || []);
+
+  function limparListaVazia(l) {
+    return l
+      .map(c => ({
+        nome: (c.nome || '').trim(),
+        ativo: c.ativo !== false
+      }))
+      .filter(c => c.nome);
+  }
+
+  function render() {
+    tbody.innerHTML = '';
+
+    if (!lista.length) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 3;
+      td.style.fontSize = '12px';
+      td.style.color = 'var(--muted)';
+      td.textContent = 'Ainda não existem consultores definidos.';
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+
+    lista.forEach((c, idx) => {
+      const tr = document.createElement('tr');
+
+      // Nome
+      const tdNome = document.createElement('td');
+      const inputNome = document.createElement('input');
+      inputNome.type = 'text';
+      inputNome.value = c.nome || '';
+      inputNome.addEventListener('input', () => {
+        lista[idx].nome = inputNome.value;
+      });
+      tdNome.appendChild(inputNome);
+      tr.appendChild(tdNome);
+
+      // Ativo
+      const tdAtivo = document.createElement('td');
+      const chk = document.createElement('input');
+      chk.type = 'checkbox';
+      chk.checked = (c.ativo !== false);
+      chk.addEventListener('change', () => {
+        lista[idx].ativo = chk.checked;
+      });
+      tdAtivo.appendChild(chk);
+      tr.appendChild(tdAtivo);
+
+      // Ações
+      const tdActions = document.createElement('td');
+      const actions = document.createElement('div');
+      actions.className = 'row-actions';
+
+      const btnUp = document.createElement('button');
+      btnUp.className = 'btn btn-ghost';
+      btnUp.textContent = '▲';
+      btnUp.title = 'Subir';
+      btnUp.addEventListener('click', () => {
+        if (idx === 0) return;
+        const tmp = lista[idx - 1];
+        lista[idx - 1] = lista[idx];
+        lista[idx] = tmp;
+        render();
+      });
+      actions.appendChild(btnUp);
+
+      const btnDown = document.createElement('button');
+      btnDown.className = 'btn btn-ghost';
+      btnDown.textContent = '▼';
+      btnDown.title = 'Descer';
+      btnDown.addEventListener('click', () => {
+        if (idx === lista.length - 1) return;
+        const tmp = lista[idx + 1];
+        lista[idx + 1] = lista[idx];
+        lista[idx] = tmp;
+        render();
+      });
+      actions.appendChild(btnDown);
+
+      const btnDel = document.createElement('button');
+      btnDel.className = 'btn btn-danger';
+      btnDel.textContent = 'Remover';
+      btnDel.addEventListener('click', () => {
+        if (!confirm('Remover este consultor da lista?')) return;
+        lista.splice(idx, 1);
+        render();
+      });
+      actions.appendChild(btnDel);
+
+      tdActions.appendChild(actions);
+      tr.appendChild(tdActions);
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  addBtn.addEventListener('click', () => {
+    const nome = (novoNome.value || '').trim();
+    if (!nome) {
+      alert('Indique um nome para o novo consultor.');
+      return;
+    }
+    lista.push({ nome, ativo: novoAtivo.checked });
+    novoNome.value = '';
+    novoAtivo.checked = true;
+    render();
+  });
+
+  saveBtn.addEventListener('click', () => {
+    const limpo = limparListaVazia(lista);
+    if (!limpo.length) {
+      alert('A lista de consultores não pode ficar vazia.');
+      return;
+    }
+
+    // Se existir API saveAll, usa; caso contrário, grava diretamente no storage.
+    if (window.GPPConsultores && typeof window.GPPConsultores.saveAll === 'function') {
+      const ok = window.GPPConsultores.saveAll(limpo);
+      if (!ok) {
+        alert('Ocorreu um erro ao guardar a lista de consultores.');
+        return;
+      }
+    } else {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(limpo));
+      } catch (e) {
+        console.error('Erro ao guardar consultores', e);
+        alert('Ocorreu um erro ao guardar a lista de consultores.');
+        return;
+      }
+    }
+
+    alert('Lista de consultores guardada com sucesso.\nRecarregue Angariações / Kanban / Tarefas para aplicar.');
+  });
+
+  exportBtn.addEventListener('click', () => {
+    const limpo = limparListaVazia(lista);
+    if (!limpo.length) {
+      alert('Não há consultores para exportar.');
+      return;
+    }
+
+    const blob = new Blob([JSON.stringify(limpo, null, 2)], { type: 'application/json;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const hoje = new Date().toISOString().slice(0, 10); // AAAA-MM-DD
+    a.href = url;
+    a.download = 'consultores_gpp_' + hoje + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  importBtn.addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,application/json';
+
+    input.addEventListener('change', e => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = ev => {
+        try {
+          const text = ev.target.result;
+          const parsed = JSON.parse(text);
+          if (!Array.isArray(parsed) || !parsed.length) {
+            alert('O ficheiro não contém uma lista válida de consultores.');
+            return;
+          }
+          lista = limparListaVazia(parsed);
+          if (!lista.length) {
+            alert('Depois de limpar entradas vazias a lista ficou sem consultores válidos.');
+            return;
+          }
+          render();
+          alert('Lista importada para o editor.\nClique em "Guardar alterações" para aplicar definitivamente.');
+        } catch (err) {
+          console.error('Erro ao importar JSON de consultores', err);
+          alert('O ficheiro selecionado não é um JSON válido de consultores.');
+        }
+      };
+      reader.readAsText(file, 'utf-8');
+    });
+
+    input.click();
+  });
+
+  resetBtn.addEventListener('click', () => {
+    if (!confirm('Repor a lista DEFAULT de consultores (perdendo a configuração atual deste navegador)?')) {
+      return;
+    }
+
+    if (window.GPPConsultores && typeof window.GPPConsultores.resetToDefault === 'function') {
+      window.GPPConsultores.resetToDefault();
+      lista = window.GPPConsultores.getTodos();
+    } else {
+      // fallback: limpar storage e recarregar
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch (e) {
+        console.error('Erro ao limpar localStorage de consultores', e);
+      }
+      lista = (window.CONSULTANTS_CONFIG || []);
+    }
+
+    render();
+    alert('Lista de consultores reposta para o DEFAULT.');
+  });
+
+  // Render inicial
+  lista = limparListaVazia(lista);
+  render();
+})();
+</script>
+</body>
+</html>
