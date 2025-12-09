@@ -1197,8 +1197,38 @@
     }
   }
 
-  function initConsultores(){
-    CONSULTOR_OPTIONS.forEach(name=>{
+    function initConsultores(){
+    const nomes = getConsultorOptions();
+
+    // Limpa e repõe as opções base
+    responsavelSelect.innerHTML = '<option value="">—</option>';
+    apoioSelect.innerHTML = '<option value="">—</option>';
+    filterResponsavel.innerHTML = '<option value="">Todos</option>';
+
+    // Adiciona consultores definidos em config-consultores.js
+    nomes.forEach(name=>{
+      // Modal - Responsável
+      const opt1 = document.createElement('option');
+      opt1.value = name;
+      opt1.textContent = name;
+      responsavelSelect.appendChild(opt1);
+
+      // Modal - Apoio / Gestor
+      const opt2 = document.createElement('option');
+      opt2.value = name;
+      opt2.textContent = name;
+      apoioSelect.appendChild(opt2);
+
+      // Filtro lateral - Responsável
+      const opt3 = document.createElement('option');
+      opt3.value = name;
+      opt3.textContent = name;
+      filterResponsavel.appendChild(opt3);
+    });
+
+    // Extra: opção "Outro" no fim (útil para parceiros / externos)
+    const extra = ['Outro'];
+    extra.forEach(name=>{
       const opt1 = document.createElement('option');
       opt1.value = name;
       opt1.textContent = name;
