@@ -1354,34 +1354,52 @@
   ];
 
   function obterConsultorOptions() {
-    try {
-      if (
-        window.GPPConsultores &&
-        typeof window.GPPConsultores.getAtivos === 'function'
-      ) {
-        const lista = window.GPPConsultores.getAtivos();
-        if (!Array.isArray(lista) || !lista.length) {
-          return FALLBACK_CONSULTOR_OPTIONS;
-        }
-
-        // Normaliza: aceita strings ou objetos { nome, ... }
-        const nomes = lista
-          .map(c => {
-            if (typeof c === 'string') return c;
-            if (c && typeof c === 'object') {
-              return c.nome || c.name || c.id || '';
-            }
-            return '';
-          })
-          .filter(Boolean);
-
-        return nomes.length ? nomes : FALLBACK_CONSULTOR_OPTIONS;
+  try {
+    // 1.º caso: se existir um wrapper GPPConsultores (para futuro), usamos
+    if (
+      window.GPPConsultores &&
+      typeof window.GPPConsultores.getAtivos === 'function'
+    ) {
+      const lista = window.GPPConsultores.getAtivos();
+      if (!Array.isArray(lista) || !lista.length) {
+        return FALLBACK_CONSULTOR_OPTIONS;
       }
-    } catch (e) {
-      console.error('Erro ao ler consultores de GPPConsultores', e);
+
+      const nomes = lista
+        .map(c => {
+          if (typeof c === 'string') return c;
+          if (c && typeof c === 'object') {
+            return c.nome || c.name || c.id || '';
+          }
+          return '';
+        })
+        .filter(Boolean);
+
+      return nomes.length ? nomes : FALLBACK_CONSULTOR_OPTIONS;
     }
-    return FALLBACK_CONSULTOR_OPTIONS;
+
+    // 2.º caso: cenário atual — usar diretamente CONSULTANTS_CONFIG
+    if (Array.isArray(window.CONSULTANTS_CONFIG)) {
+      const ativos = window.CONSULTANTS_CONFIG.filter(c => {
+        if (!c || typeof c !== 'object') return false;
+        // se não tiver "ativo", assumimos que é ativo
+        if (typeof c.ativo === 'boolean') return c.ativo;
+        return true;
+      });
+
+      const nomes = ativos
+        .map(c => c.nome || c.name || c.id || '')
+        .filter(Boolean);
+
+      return nomes.length ? nomes : FALLBACK_CONSULTOR_OPTIONS;
+    }
+  } catch (e) {
+    console.error('Erro ao ler consultores da configuração central', e);
   }
+
+  // Se tudo falhar, mantém o fallback
+  return FALLBACK_CONSULTOR_OPTIONS;
+}
 
   const ZONA_ENVOLVENTE = [
     "Aeroporto","Banco","Áreas de Lazer Infantil","Auto-estrada","Biblioteca","Centro Comercial",
