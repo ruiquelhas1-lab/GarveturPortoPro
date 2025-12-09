@@ -901,20 +901,31 @@
 const LS_KEY='gpp_leads_v5';
 const EDIT_LS='gpp_leads_edit_mode';
 const COLS=["Novo","Em Contacto","Qualificado","Visita","Proposta","Fecho","Perdido"];
-const CONSULT_RESOLVE = (
-  window.GPPConsultores &&
-  typeof window.GPPConsultores.getAtivos === 'function'
-)
-  ? window.GPPConsultores.getAtivos().map(c => c.nome)
-  : [
-      "Rui Quelhas",
-      "Manuel Oliveira",
-      "João Sousa",
-      "Francisco dos Santos",
-      "Rosário Vasconcelos",
-      "Armanda Meireles",
-      "Audrey Lucas"
-    ];
+
+// Lê consultores a partir do config-consultores.js (CONSULTANTS_CONFIG)
+const CONSULT_RESOLVE = (function(){
+  try{
+    if (Array.isArray(window.CONSULTANTS_CONFIG)) {
+      return window.CONSULTANTS_CONFIG
+        .filter(c => c && c.ativo !== false) // só ativos
+        .map(c => (c.nome || c.consultor || c.name || c.fullName || c.id || '').trim())
+        .filter(Boolean);                     // remove vazios
+    }
+  }catch(e){
+    console.warn('Kanban: erro a ler CONSULTANTS_CONFIG', e);
+  }
+
+  // Fallback de segurança, caso algo corra mal
+  return [
+    "Rui Quelhas",
+    "Manuel Oliveira",
+    "João Sousa",
+    "Francisco dos Santos",
+    "Rosário Vasconcelos",
+    "Armanda Meireles",
+    "Audrey Lucas"
+  ];
+})();
 // storage de tarefas (partilhado com tarefas.html)
 const TASKS_STORAGE_KEY = 'gpp_tarefas_v1';
 
