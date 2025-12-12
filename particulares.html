@@ -1826,19 +1826,7 @@ if(!dataIdent){
     return n.toLocaleString('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
   }
     /* ============ Próxima ação: urgência (cor + ordenação) ============ */
-  function parseYMD(ymd){
-    if(!ymd) return null;
-    const s = String(ymd).trim();
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
-    const [y,m,d] = s.split('-').map(Number);
-    const dt = new Date(Date.UTC(y, m-1, d));
-    return isFinite(dt.getTime()) ? dt : null;
-  }
 
-  function startOfTodayUTC(){
-    const now = new Date();
-    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-  }
 
   // regras:
   // - vermelho: data <= hoje (atrasada ou hoje)
