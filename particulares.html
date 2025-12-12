@@ -1823,6 +1823,53 @@ if(!dataIdent){
     if(!isFinite(n)) return '';
     return n.toLocaleString('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
   }
+    /* ============ Próxima ação: urgência (cor + ordenação) ============ */
+  function parseYMD(ymd){
+    if(!ymd) return null;
+    const s = String(ymd).trim();
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
+    const [y,m,d] = s.split('-').map(Number);
+    const dt = new Date(Date.UTC(y, m-1, d));
+    return isFinite(dt.getTime()) ? dt : null;
+  }
+
+  function startOfTodayUTC(){
+    const now = new Date();
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  }
+
+  // regras:
+  // - vermelho: data <= hoje (atrasada ou hoje)
+  // - laranja: faltam 1-3 dias
+  // - amarelo: faltam 4-7 dias
+  // - sem classe: > 7 dias ou sem data
+  function getNextActionClass(item){
+    const dt = parseYMD(item && item.proximaAcaoData);
+    if(!dt) return '';
+    const today = startOfTodayUTC();
+    const diffDays = Math.floor((dt.getTime() - today.getTime()) / 86400000);
+
+    if(diffDays <= 0) return 'urg-due';
+    if(diffDays <= 3) return 'urg-soon';
+    if(diffDays <= 7) return 'urg-warn';
+    return '';
+  }
+
+  // chave de ordenação:
+  // - quem tem próxima ação vem primeiro (mais cedo = mais acima)
+  // - atrasados (<= hoje) ficam no topo absoluto
+  // - quem não tem data vai para o fim
+  function getNextActionSortKey(item){
+    const dt = parseYMD(item && item.proximaAcaoData);
+    if(!dt) return Number.POSITIVE_INFINITY;
+
+    const today = startOfTodayUTC();
+    const diffDays = Math.floor((dt.getTime() - today.getTime()) / 86400000);
+
+    // atrasados / hoje: topo (valores negativos ou zero)
+    // futuros: segue por ordem natural
+    return diffDays;
+  }
   /* ============ FSBO — Próxima ação: cor + prioridade ============ */
   function toDateOnly(str){
     // Espera "YYYY-MM-DD" (input date). Se inválido, devolve null.
