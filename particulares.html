@@ -1846,9 +1846,10 @@ if(!dataIdent){
   );
   if(dd == null) return null;
 
-  if(dd <= 0) return { text: 'HOJE / ATRASADO', tone: 'due' };
-  if(dd <= 3) return { text: dd + ' DIAS', tone: 'soon' };
-  if(dd <= 7) return { text: dd + ' DIAS', tone: 'warn' };
+  if(dd < 0)  return { text: 'ATRASADO', tone: 'due' };
+  if(dd === 0) return { text: 'HOJE', tone: 'due' };
+  if(dd <= 3)  return { text: dd + ' DIAS', tone: 'soon' };
+  if(dd <= 7)  return { text: dd + ' DIAS', tone: 'warn' };
   return null;
 }
   /* ============ FSBO — Próxima ação: cor + prioridade ============ */
