@@ -1074,7 +1074,86 @@ function createTaskFromLead(lead){
     window.open('tarefas.html','_blank');
   }
 }
+function ensureEscrituraTask(lead){
+  // Só aplica a leads em Fecho com data de escritura
+  if(!lead || lead.estado !== 'Fecho' || !lead.fecho_escritura_date) return;
 
+  const tasksState = loadTasksState();
+
+  // Chave única por lead (para não duplicar e permitir update)
+  const uniqueKey = 'escritura_' + lead.id;
+
+  // Datas
+  const escrituraDate = new Date(lead.fecho_escritura_date);
+  if(isNaN(escrituraDate)) return;
+
+  // "Criada no 1º dia do mês" -> dataCriacao = 1º dia do mês da escritura
+  const dataCriacaoISO = new Date(escrituraDate.getFullYear(), escrituraDate.getMonth(), 1)
+    .toISOString()
+    .slice(0,10);
+
+  // "Data limite = data da escritura"
+  const dataLimiteISO = escrituraDate.toISOString().slice(0,10);
+
+  const origemRef = lead.ref_interna
+    ? (lead.ref_interna + ' — ' + (lead.nome || ''))
+    : (lead.nome || '');
+
+  const titulo = 'Escritura prevista — ' + (lead.nome || 'Lead');
+
+  const descricao =
+    'Lembrete automático: escritura prevista para ' +
+    escrituraDate.toLocaleDateString('pt-PT') +
+    '.\n\nTarefa criada/atualizada automaticamente a partir do Kanban.';
+
+  // Procurar se já existe
+  const idx = tasksState.tasks.findIndex(t => t.origemKey === uniqueKey);
+
+  if(idx >= 0){
+    // ✅ ATUALIZA (sem duplicar) — se a escritura mudar, refletimos já
+    const t = tasksState.tasks[idx];
+
+    t.responsavel = lead.consultor || t.responsavel || '';
+    t.origemTipo = 'lead';
+    t.origemRef = origemRef || t.origemRef || '';
+    t.tipoTarefa = 'escritura';
+    t.tags = 'escritura,fecho';
+    t.titulo = titulo;
+    t.descricao = descricao;
+
+    // Regras pedidas:
+    t.dataCriacao = dataCriacaoISO;  // 1º dia do mês da escritura
+    t.dataLimite = dataLimiteISO;    // data da escritura
+
+    // opcional: refrescar timestamp de update (não quebra nada se não existir)
+    t.updatedAtMs = Date.now();
+
+  }else{
+    // ✅ CRIA (primeira vez)
+    const tarefa = {
+      id: 'task_' + Date.now(),
+      origemKey: uniqueKey,
+      responsavel: lead.consultor || '',
+      apoio: '',
+      origemTipo: 'lead',
+      origemRef: origemRef,
+      estado: 'por_fazer',
+      prioridade: 'alta',
+      tipoTarefa: 'escritura',
+      tags: 'escritura,fecho',
+      titulo: titulo,
+      descricao: descricao,
+      dataCriacao: dataCriacaoISO, // 1º dia do mês da escritura
+      dataLimite: dataLimiteISO,   // data da escritura
+      horaLimite: '',
+      createdAtMs: Date.now()
+    };
+
+    tasksState.tasks.push(tarefa);
+  }
+
+  saveTasksState(tasksState);
+}
 /* ===== Deep link vindo de Tarefas ===== */
 function applyDeepLinkFromTarefas(){
   try{
