@@ -1658,11 +1658,20 @@
     let id = $('itemId').value || '';
     if(!id){ id = 'part_' + Date.now(); }
 
-    let dataIdent = $('dataIdentificacao').value;
-    if(!dataIdent){
-      dataIdent = new Date().toISOString().slice(0,10);
-      $('dataIdentificacao').value = dataIdent;
-    }
+    let dataIdent = $('dataIdentificacao').value || '';
+
+// se já existe registo, a dataIdentificacao fica fixa (histórico)
+const existing = state.items.find(x => x.id === id);
+if(existing && existing.dataIdentificacao){
+  dataIdent = existing.dataIdentificacao;
+  $('dataIdentificacao').value = dataIdent;
+}
+
+// se é novo e não tem data, define hoje
+if(!dataIdent){
+  dataIdent = new Date().toISOString().slice(0,10);
+  $('dataIdentificacao').value = dataIdent;
+}
 
     const data = {
       id,
