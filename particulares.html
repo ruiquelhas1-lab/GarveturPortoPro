@@ -2123,7 +2123,13 @@ Notas:
 
   /* ============ Render Cards ============ */
   function renderCards(){
-    const items = state.items.slice().sort((a,b)=>{
+       const items = state.items.slice().sort((a,b)=>{
+      // 1) prioridade: próxima ação mais próxima (inclui atrasadas no topo)
+      const ka = getNextActionSortKey(a);
+      const kb = getNextActionSortKey(b);
+      if(ka !== kb) return ka - kb;
+
+      // 2) desempate: data de identificação (mais recente primeiro)
       const da = a.dataIdentificacao || '';
       const db = b.dataIdentificacao || '';
       return (db || '').localeCompare(da || '');
