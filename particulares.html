@@ -2356,7 +2356,13 @@ Notas:
       chipEstado.className = 'chip ' + estClass;
       chipEstado.textContent = estLabelMap[est] || est;
       chipsRow.appendChild(chipEstado);
-
+const urg = getNextActionChip(d);
+if(urg){
+  const chipU = document.createElement('span');
+  chipU.className = 'chip chip-urg ' + (urg.tone || '');
+  chipU.textContent = urg.text;
+  chipsRow.appendChild(chipU);
+}
       if(d.consultor){
         const ch = document.createElement('span');
         ch.className = 'chip';
