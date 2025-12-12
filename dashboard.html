@@ -547,6 +547,10 @@
         <button class="area-tab" data-area="tarefas">
           <span class="icon">✅</span> Tarefas
         </button>
+        <!-- ✅ NOVO: FSBO -->
+        <button class="area-tab" data-area="fsbo">
+          <span class="icon">🏷️</span> FSBO
+        </button>
       </div>
 
       <section class="area-panel active" id="areaLeads">
@@ -568,6 +572,12 @@
         <div class="charts-grid" id="tarefasCharts"></div>
         <div class="empty" id="tarefasEmpty" style="display:none;">Sem tarefas nos filtros atuais.</div>
       </section>
+
+      <!-- ✅ NOVO: FSBO -->
+      <section class="area-panel" id="areaFsbo">
+        <div class="charts-grid" id="fsboCharts"></div>
+        <div class="empty" id="fsboEmpty" style="display:none;">Sem registos FSBO nos filtros atuais.</div>
+      </section>
     </main>
   </div>
 </div>
@@ -578,6 +588,10 @@
   const STORAGE_ANG      = 'gpp_angariacoes_v2';
   const STORAGE_TASKS    = 'gpp_tarefas_v1';
   const STORAGE_FILTERS  = 'gpp_dashboard_filters_v1';
+
+  // ✅ NOVO: FSBO (v2 + fallback v1)
+  const STORAGE_FSBO     = 'gpp_particulares_v2';
+  const STORAGE_FSBO_V1  = 'gpp_particulares_v1';
 
   const filterConsultor   = document.getElementById('filterConsultor');
   const filterDataDe      = document.getElementById('filterDataDe');
@@ -601,17 +615,25 @@
   const fechosEmpty       = document.getElementById('fechosEmpty');
   const tarefasEmpty      = document.getElementById('tarefasEmpty');
 
+  // ✅ NOVO: FSBO UI refs
+  const fsboCharts        = document.getElementById('fsboCharts');
+  const fsboEmpty         = document.getElementById('fsboEmpty');
+
   const areaTabs = Array.from(document.querySelectorAll('.area-tab'));
   const areaPanels = {
     leads:  document.getElementById('areaLeads'),
     angs:   document.getElementById('areaAngs'),
     fechos: document.getElementById('areaFechos'),
-    tarefas:document.getElementById('areaTarefas')
+    tarefas:document.getElementById('areaTarefas'),
+    // ✅ NOVO
+    fsbo:   document.getElementById('areaFsbo')
   };
 
   let allLeads = [];
   let allAngs  = [];
   let allTasks = [];
+  // ✅ NOVO
+  let allFsbo  = [];
 
   const FILTERS = {
     consultor:'',
@@ -781,6 +803,37 @@
     }
   }
 
+  // ✅ NOVO: FSBO loader (compatível com v2 e v1)
+  function loadFsbo(){
+    try{
+      let raw = localStorage.getItem(STORAGE_FSBO);
+      let parsed = raw ? JSON.parse(raw) : null;
+
+      // fallback v1
+      if(!parsed){
+        raw = localStorage.getItem(STORAGE_FSBO_V1);
+        parsed = raw ? JSON.parse(raw) : null;
+      }
+
+      // No FSBO v2 guardas um objeto {locked, items}
+      if(parsed && typeof parsed === 'object' && Array.isArray(parsed.items)){
+        allFsbo = parsed.items;
+        return;
+      }
+
+      // Alguns backups/versões podem ser só array
+      if(Array.isArray(parsed)){
+        allFsbo = parsed;
+        return;
+      }
+
+      allFsbo = [];
+    }catch(e){
+      console.error('Erro a ler FSBO:',e);
+      allFsbo = [];
+    }
+  }
+
   /* ========= FILTROS (LOCAL STORAGE) ========= */
   function loadFiltersState(){
     try{
@@ -819,6 +872,9 @@
     allLeads.forEach(l=>{ if(l && l.consultor) set.add(l.consultor); });
     allAngs.forEach(d=>{ if(d && d.consultor) set.add(d.consultor); });
     allTasks.forEach(t=>{ if(t && t.responsavel) set.add(t.responsavel); });
+
+    // ✅ NOVO: incluir consultores existentes no FSBO
+    allFsbo.forEach(f=>{ if(f && f.consultor) set.add(f.consultor); });
 
     const current = FILTERS.consultor || filterConsultor.value;
     filterConsultor.innerHTML = '<option value="">Todos</option>';
@@ -1084,10 +1140,7 @@
     return list;
   }
 
-  /* ========= APLICAÇÃO DE FILTROS =========
-     - Leads / Angariações: filtradas pelo período com base na data de criação
-     - Negócios (Fechos): filtrados pelo período com base na dataFecho (CPCV / fecho)
-  ========================================= */
+  /* ========= APLICAÇÃO DE FILTROS ========= */
   function applyFilters(){
     const cons = FILTERS.consultor;
     const de   = FILTERS.de;
@@ -1095,7 +1148,7 @@
     const showHidden = FILTERS.showHidden;
     const onlyHidden = FILTERS.onlyHidden;
 
-    /* ---- Leads para área de Leads (filtradas pela data de criação) ---- */
+    /* ---- Leads ---- */
     let leads = allLeads.slice().filter(l=>l);
     if(cons){
       leads = leads.filter(l=> (l.consultor || '') === cons);
@@ -1112,7 +1165,7 @@
       leads = leads.filter(l=> l.visivel !== false);
     }
 
-    /* ---- Angariações para área de Angariações (data de angariação) ---- */
+    /* ---- Angariações ---- */
     let angs = allAngs.slice().filter(d=>d);
     if(cons){
       angs = angs.filter(d=> (d.consultor || '') === cons);
@@ -1129,7 +1182,7 @@
       angs = angs.filter(d=> d.visible !== false);
     }
 
-    /* ---- Negócios (Fechos) // base: todos, filtro por CPCV/Fecho ---- */
+    /* ---- Negócios ---- */
     let baseLeads = allLeads.slice().filter(l=>l);
     let baseAngs  = allAngs.slice().filter(a=>a);
 
@@ -1153,7 +1206,7 @@
       return true;
     });
 
-    /* ---- Tarefas (mantém lógica anterior) ---- */
+    /* ---- Tarefas ---- */
     let tasks = allTasks.slice().filter(t=>t);
     if(cons){
       tasks = tasks.filter(t=> (t.responsavel || '') === cons);
@@ -1165,11 +1218,32 @@
       tasks = tasks.filter(t=> !t.dataLimite || t.dataLimite <= ate);
     }
 
-    return {leads, angs, negocios, tasks};
+    /* ✅ NOVO ---- FSBO (dataIdentificacao + visible) ---- */
+    let fsbo = allFsbo.slice().filter(f=>f);
+
+    if(cons){
+      fsbo = fsbo.filter(f=> (f.consultor || '') === cons);
+    }
+
+    // período aplica-se a dataIdentificacao (ISO)
+    if(de){
+      fsbo = fsbo.filter(f=> !f.dataIdentificacao || f.dataIdentificacao >= de);
+    }
+    if(ate){
+      fsbo = fsbo.filter(f=> !f.dataIdentificacao || f.dataIdentificacao <= ate);
+    }
+
+    if(onlyHidden){
+      fsbo = fsbo.filter(f=> f.visible === false);
+    }else if(!showHidden){
+      fsbo = fsbo.filter(f=> f.visible !== false);
+    }
+
+    return {leads, angs, negocios, tasks, fsbo};
   }
 
   /* ========= KPIs GLOBAIS ========= */
-  function renderGlobalKpis(leads, angs, negocios, tasks){
+  function renderGlobalKpis(leads, angs, negocios, tasks, fsbo){
     kpiGrid.innerHTML = '';
 
     const leadsAtivas = leads.length;
@@ -1182,6 +1256,14 @@
     const proxTarefa = tasks
       .filter(t=>t.dataLimite && t.estado!=='concluida' && t.estado!=='cancelada')
       .sort((a,b)=>(a.dataLimite||'').localeCompare(b.dataLimite||''))[0];
+
+    // ✅ NOVO: FSBO KPI
+    const fsboCount = (fsbo || []).length;
+    const fsboIdentificados = fsboCount;
+    const fsboContacto = fsbo.filter(f=> (f.estadoProspeccao || '') === 'contacto-feito').length;
+    const fsboFollow = fsbo.filter(f=> (f.estadoProspeccao || '') === 'follow-up').length;
+    const fsboVisita = fsbo.filter(f=> (f.estadoProspeccao || '') === 'visita').length;
+    const fsboAngariado = fsbo.filter(f=> (f.estadoProspeccao || '') === 'angariado').length;
 
     const kpis = [
       {
@@ -1204,6 +1286,15 @@
         label:'Tarefas em aberto',
         value: formatInt(tarefasAbertas),
         sub: proxTarefa ? ('Próxima data: ' + proxTarefa.dataLimite) : 'Sem tarefas com data limite nos filtros.'
+      },
+      // ✅ NOVO: FSBO
+      {
+        label:'FSBO (Particulares)',
+        value: formatInt(fsboIdentificados),
+        sub: 'Contacto: ' + formatInt(fsboContacto) +
+             ' · Follow-up: ' + formatInt(fsboFollow) +
+             ' · Visita: ' + formatInt(fsboVisita),
+        badge: fsboAngariado ? ('Angariados: ' + formatInt(fsboAngariado)) : ''
       }
     ];
 
@@ -1524,7 +1615,6 @@
     fechosEmpty.style.display = hasData ? 'none':'block';
     if(!hasData) return;
 
-    // Volume mensal (por data de fecho/CPCV)
     const mapaMensal = {};
     negocios.forEach(n=>{
       const dataBase = n.dataFecho || n.data;
@@ -1541,7 +1631,6 @@
         return {label: m+'/'+y.slice(-2), value:val};
       });
 
-    // 🔹 Total global do volume de negócios no período filtrado
     const totalVolume = negocios.reduce((acc,n)=>acc+(n.valor || 0),0);
 
     renderBarChart(fechosCharts,{
@@ -1595,7 +1684,6 @@
         return {label: m+'/'+y.slice(-2), value:val};
       });
 
-    // 🔹 Total global de comissões no período filtrado
     const totalComissoes = comNegocios.reduce((acc,n)=>{
       const comVal = n.comValor || (n.valor * (n.comPercent/100));
       return acc + (comVal || 0);
@@ -1731,7 +1819,6 @@
       responsive:true
     });
 
-    // 🔹 Ticket médio por zona — AGORA só compra/venda
     const mapZonaTicket = {};
     negocios.forEach(n=>{
       const tipoRaw = (n.tipoNegocio || '').toLowerCase();
@@ -1836,6 +1923,74 @@
     });
   }
 
+  /* ✅ NOVO: ÁREA FSBO ========= */
+  function renderFsboArea(fsbo){
+    fsboCharts.innerHTML = '';
+    const hasData = (fsbo || []).length>0;
+    fsboEmpty.style.display = hasData ? 'none':'block';
+    if(!hasData) return;
+
+    const estadosOrder = ['identificado','contacto-feito','follow-up','visita','proposta-enviada','angariado','descartado'];
+    const estadosLabel = {
+      'identificado':'Identificado',
+      'contacto-feito':'Contacto feito',
+      'follow-up':'Follow-up',
+      'visita':'Visita',
+      'proposta-enviada':'Proposta enviada',
+      'angariado':'Angariado',
+      'descartado':'Descartado'
+    };
+    const estMap = groupCount(fsbo, f=>f.estadoProspeccao || '');
+    const estArr = estadosOrder.map(k=>({label:estadosLabel[k], value: estMap[k] || 0}));
+    renderBarChart(fsboCharts,{
+      title:'FSBO por Estado',
+      subtitle:'Distribuição da prospeção a particulares.',
+      items:estArr,
+      formatter:formatInt,
+      responsive:false
+    });
+
+    const portalMap = groupCount(fsbo, f=>(f.portal || '').trim() || '—');
+    const portalArr = topN(mapToSortedArray(portalMap), 6);
+    renderBarChart(fsboCharts,{
+      title:'FSBO por Portal (Top)',
+      subtitle:'Idealista · Imovirtual · Casa Sapo · OLX · etc.',
+      items:portalArr,
+      formatter:formatInt,
+      responsive:true
+    });
+
+    const tipMap = groupCount(fsbo, f=>(f.tipologia || '').trim() || 'Sem tipologia');
+    const tipArr = topN(mapToSortedArray(tipMap), 6);
+    renderBarChart(fsboCharts,{
+      title:'Tipologias (FSBO)',
+      subtitle:'Distribuição de tipologias identificadas.',
+      items:tipArr,
+      formatter:formatInt,
+      responsive:true
+    });
+
+    const concMap = groupCount(fsbo, f=>(f.concelho || '').trim() || 'Sem concelho');
+    const concArr = topN(mapToSortedArray(concMap), 6);
+    renderBarChart(fsboCharts,{
+      title:'Concelhos (FSBO) — Top',
+      subtitle:'Distribuição geográfica dos FSBO.',
+      items:concArr,
+      formatter:formatInt,
+      responsive:true
+    });
+
+    const consultorMap = groupCount(fsbo, f=>(f.consultor || '').trim() || '(sem consultor)');
+    const consultorArr = mapToSortedArray(consultorMap);
+    renderBarChart(fsboCharts,{
+      title:'FSBO por Consultor',
+      subtitle:'Carga de prospeção a particulares por consultor.',
+      items:consultorArr,
+      formatter:formatInt,
+      responsive:false
+    });
+  }
+
   /* ========= CONTEXTO ========= */
   function updateContextLabel(){
     const cons = FILTERS.consultor;
@@ -1870,16 +2025,22 @@
     loadLeads();
     loadAngs();
     loadTasks();
+    // ✅ NOVO: FSBO
+    loadFsbo();
+
     buildConsultorOptions();
     syncFiltersToUI();
 
-    const {leads, angs, negocios, tasks} = applyFilters();
+    const {leads, angs, negocios, tasks, fsbo} = applyFilters();
 
-    renderGlobalKpis(leads, angs, negocios, tasks);
+    renderGlobalKpis(leads, angs, negocios, tasks, fsbo);
     renderLeadsArea(leads);
     renderAngsArea(angs, leads);
     renderFechosArea(negocios);
     renderTarefasArea(tasks);
+    // ✅ NOVO
+    renderFsboArea(fsbo);
+
     updateContextLabel();
   }
 
