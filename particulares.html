@@ -1366,17 +1366,28 @@
     setTimeout(()=>toast.classList.remove('show'), 1600);
   }
 
-  function migrateItem(d){
-    if(!d || typeof d !== 'object') return {};
+ function migrateItem(d){
+  if(!d || typeof d !== 'object'){
     return {
-      visible: d.visible !== false,
-      estadoProspeccao: d.estadoProspeccao || 'identificado',
-      ownerName: d.ownerName || '',
-      ownerPhone: d.ownerPhone || '',
-      ownerEmail: d.ownerEmail || '',
-      ...d
+      visible: true,
+      estadoProspeccao: 'identificado',
+      ownerName: '',
+      ownerPhone: '',
+      ownerEmail: ''
     };
   }
+
+  const out = { ...d };
+
+  // Defaults aplicados no fim (não podem ser anulados)
+  out.visible = (d.visible === false) ? false : true;
+  out.estadoProspeccao = d.estadoProspeccao || 'identificado';
+  out.ownerName = d.ownerName || '';
+  out.ownerPhone = d.ownerPhone || '';
+  out.ownerEmail = d.ownerEmail || '';
+
+  return out;
+}
 
   function safeParse(raw){
     if(!raw) return null;
