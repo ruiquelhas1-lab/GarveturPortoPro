@@ -1738,7 +1738,12 @@ if(!dataIdent){
       zona: $('zona').value || '',
       natureza: $('natureza').value || '',
       tipologia: $('tipologia').value || '',
-      precoAnuncio: $('precoAnuncio').value || '',
+      precoAnuncio: (function(){
+  const v = $('precoAnuncio').value;
+  if(v === '' || v == null) return null;
+  const n = Number(v);
+  return isFinite(n) ? n : null;
+})(),
       observacoes: $('observacoes').value || '',
       notasInternas: $('notasInternas').value || ''
     };
