@@ -1580,7 +1580,11 @@ $('saveLead').addEventListener('click',()=>{
   if(idx>=0) LEADS[idx]=Object.assign(LEADS[idx], lead);
   else LEADS.push(lead);
 
-  saveLS();
+   saveLS();
+
+  // ✅ NOVO: garante/atualiza a tarefa automática da Escritura (criada no 1.º dia do mês)
+  ensureEscrituraTask(lead);
+
   $('leadModal').classList.remove('show');
   $('saveLead').dataset.editId=''; $('saveLead').dataset.editEstado='';
   renderBoard();
