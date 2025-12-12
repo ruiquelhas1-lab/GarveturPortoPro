@@ -13,6 +13,7 @@
       --panel-soft:#181818;
       --text:#FFFFFF;
       --muted:#A0A0A0;
+      --muted-2:#7d7d7d;
       --danger:#F25F5C;
       --success:#4CAF50;
       --warning:#FFC857;
@@ -21,6 +22,9 @@
       --radius-lg:18px;
       --radius-md:12px;
       --shadow-soft:0 14px 25px rgba(0,0,0,.4);
+      --shadow-hard:0 26px 60px rgba(0,0,0,.65);
+      --outline:rgba(255,255,255,.10);
+      --outline-2:rgba(255,255,255,.16);
     }
 
     *{box-sizing:border-box;}
@@ -32,14 +36,11 @@
       color:var(--text);
     }
 
-    body{
-      display:flex;
-      flex-direction:column;
-    }
+    body{ display:flex; flex-direction:column; }
 
     .app-shell{
       display:grid;
-      grid-template-rows:64px auto;
+      grid-template-rows:72px auto;
       height:100%;
     }
 
@@ -47,13 +48,13 @@
       display:flex;
       align-items:center;
       justify-content:space-between;
-      padding:10px 18px;
+      padding:10px 14px;
       border-bottom:1px solid rgba(163,139,99,.35);
       background:linear-gradient(90deg,#050505,#111,#050505);
       position:sticky;
       top:0;
       z-index:20;
-      gap:16px;
+      gap:12px;
       flex-wrap:wrap;
     }
 
@@ -61,16 +62,18 @@
       display:flex;
       align-items:center;
       gap:10px;
+      min-width:260px;
     }
     .brand-icon{
-      width:26px;
-      height:26px;
+      width:28px;
+      height:28px;
       border-radius:999px;
       border:1px solid var(--gold);
       display:flex;
       align-items:center;
       justify-content:center;
       box-shadow:0 0 0 1px rgba(163,139,99,.3);
+      flex:0 0 auto;
     }
     .brand-app{
       font-size:10px;
@@ -79,90 +82,23 @@
       color:var(--muted);
       margin-bottom:2px;
     }
-
     .brand h1{
       margin:0;
       font-size:18px;
       letter-spacing:.08em;
       text-transform:uppercase;
       color:var(--gold);
+      line-height:1.05;
     }
-
     .brand span.sub{
       display:block;
       font-size:11px;
       color:var(--muted);
-      letter-spacing:.08em;
-    }
-
-    .header-actions{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-    }
-
-    .btn{
-      border-radius:999px;
-      border:1px solid var(--gold-soft);
-      background:rgba(12,12,12,.9);
-      color:var(--text);
-      padding:7px 12px;
-      font-size:13px;
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      cursor:pointer;
-      transition:.18s border-color,.18s background,.18s transform;
-    }
-    .btn-primary{
-      background:var(--gold);
-      color:#0A0A0A;
-      border-color:var(--gold);
-      font-weight:500;
-    }
-    .btn-ghost{
-      background:transparent;
-    }
-    .btn-icon{
-      width:32px;
-      height:32px;
-      padding:0;
-      border-radius:999px;
-      justify-content:center;
-    }
-    .btn:hover{
-      border-color:var(--gold);
-      transform:translateY(-1px);
-    }
-    .btn:disabled{
-      opacity:.45;
-      cursor:not-allowed;
-      transform:none;
-    }
-
-    .pill-lock{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      font-size:12px;
-      padding:4px 9px;
-      border-radius:999px;
-      background:rgba(0,0,0,.45);
-      border:1px solid rgba(255,255,255,.14);
-      color:var(--muted);
-    }
-    .pill-lock span.state{
-      font-weight:500;
-      color:var(--gold);
-    }
-    .pill-lock button{
-      all:unset;
-      cursor:pointer;
-      padding:2px 6px;
-      border-radius:999px;
-      background:rgba(255,255,255,.05);
+      letter-spacing:.06em;
+      max-width:560px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
 
     /* NAV TABS */
@@ -177,7 +113,7 @@
       flex-wrap:wrap;
     }
     .nav-tab{
-      padding:5px 10px;
+      padding:6px 10px;
       border-radius:999px;
       font-size:11px;
       text-decoration:none;
@@ -196,15 +132,113 @@
       background:var(--gold);
       color:#0A0A0A;
       border-color:var(--gold);
-      font-weight:600;
+      font-weight:650;
+    }
+
+    /* TOP TOOLBAR (melhorada) */
+    .toolbar{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      min-width:280px;
+    }
+    .tool-group{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 8px;
+      border-radius:999px;
+      border:1px solid rgba(163,139,99,.22);
+      background:rgba(0,0,0,.35);
+      box-shadow:0 8px 22px rgba(0,0,0,.35);
+    }
+    .tool-label{
+      font-size:10px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--muted-2);
+      padding:0 4px 0 6px;
+      border-right:1px solid rgba(255,255,255,.10);
+      margin-right:2px;
+      user-select:none;
+      white-space:nowrap;
+    }
+
+    .btn{
+      border-radius:999px;
+      border:1px solid var(--gold-soft);
+      background:rgba(12,12,12,.9);
+      color:var(--text);
+      padding:7px 12px;
+      font-size:13px;
+      display:inline-flex;
+      align-items:center;
+      gap:7px;
+      cursor:pointer;
+      transition:.18s border-color,.18s background,.18s transform, .18s box-shadow;
+      white-space:nowrap;
+    }
+    .btn:hover{
+      border-color:var(--gold);
+      transform:translateY(-1px);
+      box-shadow:0 10px 22px rgba(0,0,0,.35);
+    }
+    .btn:disabled{ opacity:.45; cursor:not-allowed; transform:none; box-shadow:none; }
+    .btn-primary{
+      background:var(--gold);
+      color:#0A0A0A;
+      border-color:var(--gold);
+      font-weight:650;
+    }
+    .btn-ghost{ background:transparent; border-color:rgba(255,255,255,.14); }
+    .btn-icon{
+      width:34px;
+      height:34px;
+      padding:0;
+      border-radius:999px;
+      justify-content:center;
+    }
+
+    .pill-lock{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(0,0,0,.45);
+      border:1px solid rgba(255,255,255,.14);
+      color:var(--muted);
+    }
+    .pill-lock span.state{
+      font-weight:650;
+      color:var(--gold);
+    }
+    .pill-lock button{
+      all:unset;
+      cursor:pointer;
+      padding:2px 7px;
+      border-radius:999px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      transition:.15s transform,.15s border-color;
+    }
+    .pill-lock button:hover{
+      transform:translateY(-1px);
+      border-color:rgba(163,139,99,.6);
     }
 
     .layout{
       display:grid;
       grid-template-columns:320px minmax(0,1fr);
-      height:calc(100vh - 64px);
-      max-height:calc(100vh - 64px);
+      height:calc(100vh - 72px);
+      max-height:calc(100vh - 72px);
       overflow:hidden;
+    }
+    @media (max-width: 1100px){
+      .brand span.sub{ max-width:420px; }
     }
     @media (max-width: 960px){
       .layout{
@@ -213,12 +247,11 @@
         height:auto;
         max-height:none;
       }
-      .sidebar{
-        max-height:none;
-      }
-      header.app-header{
-        align-items:flex-start;
-      }
+      .sidebar{ max-height:none; }
+      header.app-header{ align-items:flex-start; }
+      .brand{ min-width:auto; width:100%; }
+      .nav-tabs{ width:100%; }
+      .toolbar{ width:100%; justify-content:flex-start; }
     }
 
     .sidebar{
@@ -233,6 +266,7 @@
       background:rgba(0,0,0,.45);
       border:1px solid rgba(163,139,99,.18);
       margin-bottom:10px;
+      box-shadow:0 12px 26px rgba(0,0,0,.25);
     }
     .sidebar-section h3{
       margin:0 0 6px;
@@ -263,28 +297,30 @@
       text-transform:uppercase;
       letter-spacing:.12em;
     }
+
     input[type="text"],
     input[type="number"],
     input[type="date"],
     input[type="email"],
     select,
     textarea{
-      background:rgba(0,0,0,.7);
+      background:rgba(0,0,0,.72);
       color:var(--text);
       border-radius:10px;
       border:1px solid rgba(163,139,99,.22);
-      padding:6px 8px;
+      padding:7px 9px;
       font-size:13px;
       outline:none;
       width:100%;
     }
+    input::placeholder, textarea::placeholder{ color:rgba(255,255,255,.35); }
     input:focus, select:focus, textarea:focus{
       border-color:var(--gold);
       box-shadow:0 0 0 1px rgba(163,139,99,.35);
     }
     textarea{
       resize:vertical;
-      min-height:60px;
+      min-height:64px;
     }
 
     .toggle-line{
@@ -294,20 +330,14 @@
       font-size:12px;
       margin-top:4px;
     }
-    .toggle-line span{
-      color:var(--muted);
-    }
+    .toggle-line span{ color:var(--muted); }
     .switch{
       position:relative;
       display:inline-block;
       width:34px;
       height:18px;
     }
-    .switch input{
-      opacity:0;
-      width:0;
-      height:0;
-    }
+    .switch input{ opacity:0; width:0; height:0; }
     .slider{
       position:absolute;
       cursor:pointer;
@@ -319,20 +349,14 @@
     .slider:before{
       position:absolute;
       content:"";
-      height:14px;
-      width:14px;
-      left:3px;
-      bottom:2px;
+      height:14px; width:14px;
+      left:3px; bottom:2px;
       background-color:white;
       transition:.2s;
       border-radius:50%;
     }
-    .switch input:checked + .slider{
-      background-color:var(--gold);
-    }
-    .switch input:checked + .slider:before{
-      transform:translateX(14px);
-    }
+    .switch input:checked + .slider{ background-color:var(--gold); }
+    .switch input:checked + .slider:before{ transform:translateX(14px); }
 
     .filters-badges{
       display:flex;
@@ -345,10 +369,10 @@
       border-radius:999px;
       padding:3px 7px;
       border:1px solid rgba(163,139,99,.35);
-      background:rgba(8,8,8,.8);
+      background:rgba(8,8,8,.85);
       color:var(--muted);
     }
-    .badge strong{color:var(--gold);}
+    .badge strong{ color:var(--gold); }
 
     .cards-area{
       padding:14px 16px 18px;
@@ -374,12 +398,13 @@
       margin:2px 0 0;
       font-size:12px;
       color:var(--muted);
+      max-width:980px;
     }
     .pipeline-kpis{
       display:flex;
       flex-wrap:wrap;
       gap:8px;
-      margin-top:4px;
+      margin-top:6px;
     }
     .kpi-chip{
       border-radius:999px;
@@ -391,13 +416,13 @@
     }
     .kpi-chip span.value{
       color:var(--gold);
-      font-weight:600;
+      font-weight:700;
       margin-left:4px;
     }
 
     .cards-grid{
       display:grid;
-      grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+      grid-template-columns:repeat(auto-fill,minmax(340px,1fr));
       gap:10px;
     }
 
@@ -412,6 +437,11 @@
       gap:6px;
       position:relative;
       transition:box-shadow .2s, transform .2s, border-color .2s, background .2s;
+    }
+    .card:hover{
+      transform:translateY(-2px);
+      border-color:rgba(163,139,99,.55);
+      box-shadow:var(--shadow-hard);
     }
     .card.hidden-card{
       opacity:.45;
@@ -430,14 +460,14 @@
     .card-title{
       margin:0;
       font-size:14px;
-      font-weight:600;
+      font-weight:700;
       color:#fff;
       text-overflow:ellipsis;
       white-space:nowrap;
       overflow:hidden;
     }
     .card-subtitle{
-      margin:1px 0 0;
+      margin:2px 0 0;
       font-size:11px;
       color:var(--muted);
       text-overflow:ellipsis;
@@ -449,7 +479,7 @@
       display:flex;
       flex-wrap:wrap;
       gap:4px;
-      margin-top:4px;
+      margin-top:6px;
     }
     .chip{
       border-radius:999px;
@@ -461,37 +491,53 @@
       text-transform:uppercase;
       letter-spacing:.08em;
     }
-    .chip-primary{
-      border-color:var(--gold);
-      color:var(--gold);
-    }
-    .chip-green{
-      border-color:rgba(76,175,80,.7);
-      color:#A5D6A7;
-    }
-    .chip-red{
-      border-color:rgba(242,95,92,.8);
-      color:#FFABAB;
-    }
-    .chip-yellow{
-      border-color:rgba(255,200,87,.8);
-      color:#FFE082;
-    }
+    .chip-primary{ border-color:var(--gold); color:var(--gold); }
+    .chip-green{ border-color:rgba(76,175,80,.7); color:#A5D6A7; }
+    .chip-red{ border-color:rgba(242,95,92,.8); color:#FFABAB; }
+    .chip-yellow{ border-color:rgba(255,200,87,.8); color:#FFE082; }
 
     .card-section{
       border-top:1px solid rgba(163,139,99,.18);
-      padding-top:4px;
+      padding-top:6px;
       margin-top:2px;
       font-size:12px;
       color:var(--muted);
     }
+    .card-mini-grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:4px;
+    }
+    .mini-line{
+      display:flex;
+      gap:8px;
+      align-items:flex-start;
+      line-height:1.2;
+    }
+    .mini-k{
+      width:78px;
+      flex:0 0 auto;
+      font-size:10px;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:rgba(255,255,255,.38);
+    }
+    .mini-v{
+      font-size:12px;
+      color:rgba(255,255,255,.78);
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .mini-v a{ color:var(--gold); text-decoration:none; border-bottom:1px dashed rgba(163,139,99,.45); }
+    .mini-v a:hover{ border-bottom-color:rgba(163,139,99,.9); }
 
     .card-footer{
       margin-top:6px;
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:6px;
+      gap:8px;
       font-size:11px;
       color:var(--muted);
       flex-wrap:wrap;
@@ -499,19 +545,19 @@
     .card-footer-left{
       display:flex;
       flex-wrap:wrap;
-      gap:4px;
+      gap:6px;
       align-items:center;
     }
     .card-footer-right{
       display:flex;
       flex-wrap:wrap;
-      gap:4px;
+      gap:6px;
       justify-content:flex-end;
     }
 
     .btn-xs{
       border-radius:999px;
-      padding:3px 7px;
+      padding:4px 8px;
       border:1px solid rgba(163,139,99,.35);
       background:rgba(5,5,5,.9);
       color:var(--muted);
@@ -519,16 +565,19 @@
       cursor:pointer;
       display:inline-flex;
       align-items:center;
-      gap:4px;
+      gap:6px;
+      transition:.16s transform,.16s border-color,.16s box-shadow;
+      white-space:nowrap;
     }
-    .btn-xs.primary{
-      border-color:var(--gold);
-      color:var(--gold);
+    .btn-xs:hover{
+      transform:translateY(-1px);
+      border-color:rgba(163,139,99,.7);
+      box-shadow:0 10px 18px rgba(0,0,0,.35);
     }
-    .btn-xs.danger{
-      border-color:var(--danger);
-      color:#FFB3B0;
-    }
+    .btn-xs.primary{ border-color:var(--gold); color:var(--gold); }
+    .btn-xs.danger{ border-color:var(--danger); color:#FFB3B0; }
+    .btn-xs.success{ border-color:rgba(76,175,80,.75); color:#BDEFC0; }
+    .btn-xs.warn{ border-color:rgba(255,200,87,.8); color:#FFE6A7; }
 
     .empty{
       font-size:12px;
@@ -536,20 +585,20 @@
       padding:16px 4px;
     }
 
+    /* MODALS */
     .modal-backdrop{
       position:fixed;
       inset:0;
-      background:rgba(0,0,0,.7);
+      background:rgba(0,0,0,.72);
       display:none;
       align-items:center;
       justify-content:center;
       z-index:40;
+      padding:10px;
     }
-    .modal-backdrop.open{
-      display:flex;
-    }
+    .modal-backdrop.open{ display:flex; }
     .modal{
-      width:min(980px,96vw);
+      width:min(1040px,96vw);
       max-height:90vh;
       background:radial-gradient(circle at top,#151515,#050505);
       border-radius:22px;
@@ -560,7 +609,7 @@
       overflow:hidden;
     }
     .modal-header{
-      padding:10px 16px 8px;
+      padding:10px 14px 9px;
       border-bottom:1px solid rgba(163,139,99,.25);
       display:flex;
       align-items:center;
@@ -570,30 +619,37 @@
     }
     .modal-header h2{
       margin:0;
-      font-size:15px;
+      font-size:14px;
       letter-spacing:.12em;
       text-transform:uppercase;
       color:var(--gold);
     }
-    .modal-body{
-      padding:10px 14px 12px;
-      overflow-y:auto;
+    .modal-body{ padding:10px 14px 12px; overflow-y:auto; }
+    .modal-footer{
+      padding:9px 14px 10px;
+      border-top:1px solid rgba(163,139,99,.25);
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      background:#050505;
+      flex-wrap:wrap;
+      align-items:center;
     }
+    .modal-footer-left{ font-size:11px; color:var(--muted); max-width:720px; }
+
     .form-grid{
       display:grid;
       grid-template-columns:repeat(2,minmax(0,1fr));
       gap:10px;
     }
-    @media (max-width: 900px){
-      .form-grid{
-        grid-template-columns:1fr;
-      }
+    @media (max-width: 980px){
+      .form-grid{ grid-template-columns:1fr; }
     }
     .form-section{
       border-radius:var(--radius-md);
       border:1px solid rgba(163,139,99,.22);
       background:rgba(0,0,0,.55);
-      padding:8px 9px;
+      padding:9px 10px;
     }
     .form-section h3{
       margin:0 0 6px;
@@ -602,32 +658,115 @@
       letter-spacing:.14em;
       color:var(--muted);
     }
-    .form-section small{
+    .help{
       font-size:11px;
-      color:var(--muted);
+      color:rgba(255,255,255,.45);
+      margin:6px 0 0;
+      line-height:1.25;
     }
 
-    .modal-footer{
-      padding:8px 14px 10px;
-      border-top:1px solid rgba(163,139,99,.25);
+    /* KIT FSBO (modal) */
+    .kit-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width: 980px){
+      .kit-grid{ grid-template-columns:1fr; }
+    }
+    .kit-box{
+      border-radius:14px;
+      border:1px solid rgba(163,139,99,.22);
+      background:rgba(0,0,0,.55);
+      padding:10px 10px 8px;
+    }
+    .kit-box h3{
+      margin:0 0 6px;
+      font-size:11px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:var(--muted);
       display:flex;
+      align-items:center;
       justify-content:space-between;
       gap:8px;
-      background:#050505;
-      flex-wrap:wrap;
     }
-    .modal-footer-left{
+    .kit-box textarea{
+      min-height:150px;
+      font-size:12px;
+      line-height:1.3;
+    }
+    .kit-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:8px;
+    }
+    .toast{
+      position:fixed;
+      bottom:14px;
+      left:50%;
+      transform:translateX(-50%);
+      background:rgba(0,0,0,.85);
+      border:1px solid rgba(163,139,99,.35);
+      color:#fff;
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:12px;
+      display:none;
+      z-index:80;
+      box-shadow:0 18px 40px rgba(0,0,0,.55);
+    }
+    .toast.show{ display:block; }
+
+    /* Attachments */
+    .attach-list{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin-top:6px;
+    }
+    .attach-item{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      padding:8px 9px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.55);
+    }
+    .attach-left{
+      min-width:0;
+    }
+    .attach-name{
+      font-size:12px;
+      color:rgba(255,255,255,.85);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:520px;
+    }
+    .attach-meta{
       font-size:11px;
-      color:var(--muted);
+      color:rgba(255,255,255,.42);
+      margin-top:2px;
     }
 
+    .hr-soft{
+      height:1px;
+      background:linear-gradient(90deg, transparent, rgba(163,139,99,.25), transparent);
+      margin:10px 0;
+      border:0;
+    }
   </style>
 </head>
+
 <body>
 <div class="app-shell">
   <header class="app-header">
     <div class="brand">
-      <div class="brand-icon">
+      <div class="brand-icon" aria-hidden="true">
         <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
           <circle cx="12" cy="12" r="9"></circle>
           <path d="M8 12.5l2.5 2.5L16 9"></path>
@@ -636,7 +775,7 @@
       <div>
         <div class="brand-app">Garvetur Porto Pro</div>
         <h1>FSBO</h1>
-        <span class="sub">Prospeção “For Sale By Owner” (Idealista · Imovirtual · Casa Sapo · Outros)</span>
+        <span class="sub">Prospeção “For Sale By Owner” (Idealista · Imovirtual · Casa Sapo · Outros) — registo, contacto, kit de abordagem e anexos.</span>
       </div>
     </div>
 
@@ -652,21 +791,33 @@
       <a href="consultores-admin.html" class="nav-tab">Consultores</a>
     </nav>
 
-    <div class="header-actions">
-      <div class="pill-lock" id="lockPill">
-        <span>Modo</span>
-        <span class="state" id="lockStateLabel">Bloqueado</span>
-        <button id="toggleLockBtn" title="Alternar entre edição bloqueada e ativa">🔒</button>
+    <div class="toolbar">
+      <div class="tool-group">
+        <div class="tool-label">Dados</div>
+        <div class="pill-lock" id="lockPill">
+          <span>Modo</span>
+          <span class="state" id="lockStateLabel">Bloqueado</span>
+          <button id="toggleLockBtn" title="Alternar entre edição bloqueada e ativa">🔒</button>
+        </div>
+        <button class="btn btn-ghost" id="importCsvBtn" title="Importar registos de CSV">⤒ Importar CSV</button>
       </div>
 
-      <button class="btn btn-ghost" id="importCsvBtn" title="Importar prospeção de CSV">⤒ CSV</button>
-      <button class="btn btn-ghost" id="exportCsvBtn" title="Exportar prospeção para CSV">⤓ CSV</button>
-      <button class="btn btn-ghost" id="exportPdfBtn" title="Imprimir / PDF">⤓ PDF</button>
+      <div class="tool-group">
+        <div class="tool-label">Exportar</div>
+        <button class="btn btn-ghost" id="exportCsvBtn" title="Exportar para CSV">⤓ CSV</button>
+        <button class="btn btn-ghost" id="exportPdfBtn" title="Imprimir / PDF">⤓ PDF</button>
+      </div>
 
-      <button class="btn btn-ghost" id="backupBtn" title="Backup OneDrive">💾 Backup</button>
-      <button class="btn btn-ghost" id="restoreBtn" title="Restaurar dados">⤺ Restaurar</button>
+      <div class="tool-group">
+        <div class="tool-label">Backup</div>
+        <button class="btn btn-ghost" id="backupBtn" title="Exportar backup (JSON)">💾 Backup</button>
+        <button class="btn btn-ghost" id="restoreBtn" title="Restaurar backup (JSON)">⤺ Restaurar</button>
+      </div>
 
-      <button class="btn btn-primary" id="newItemBtn">+ Novo FSBO</button>
+      <div class="tool-group">
+        <div class="tool-label">Criar</div>
+        <button class="btn btn-primary" id="newItemBtn">+ Novo FSBO</button>
+      </div>
     </div>
   </header>
 
@@ -710,7 +861,7 @@
 
         <div class="field">
           <label class="field-label" for="filterSearchText">Pesquisa rápida</label>
-          <input type="text" id="filterSearchText" placeholder="Título, concelho, freguesia, zona, ref., portal…" />
+          <input type="text" id="filterSearchText" placeholder="Título, concelho, freguesia, zona, proprietário, contacto…" />
         </div>
 
         <div class="field">
@@ -762,6 +913,9 @@
         <h3>Notas</h3>
         <p>Quando o cadeado está em <strong>Bloqueado</strong>, não há risco de alterar dados por engano.</p>
         <p>Quando está <strong>Edição ativa</strong>, pode criar, editar e apagar registos FSBO.</p>
+        <p class="help">
+          <strong>Anexos PDF:</strong> são guardados localmente no browser (IndexedDB). Não seguem no CSV. No backup JSON seguem apenas as referências.
+        </p>
       </div>
     </aside>
 
@@ -769,7 +923,7 @@
       <div class="cards-header">
         <div class="cards-header-left">
           <h2>FSBO</h2>
-          <p>Visão consolidada de prospeção “For Sale By Owner” (anúncios de particulares) nos principais portais.</p>
+          <p>Visão consolidada de prospeção a particulares. Em cada cartão: contacto do proprietário, link, e “Kit FSBO” (WhatsApp, chamada, email + SWOT).</p>
           <div class="pipeline-kpis" id="pipelineKpis"></div>
         </div>
       </div>
@@ -782,7 +936,7 @@
   </div>
 </div>
 
-<!-- MODAL -->
+<!-- MODAL: REGISTO FSBO -->
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal">
     <div class="modal-header">
@@ -793,9 +947,10 @@
       <form id="itemForm">
         <input type="hidden" id="itemId" />
         <div class="form-grid">
-          <!-- COLUNA 1: Envolvidos & Portal -->
+
+          <!-- COLUNA 1 -->
           <div class="form-section">
-            <h3>Envolvidos & Portal</h3>
+            <h3>Proprietário & Portal</h3>
 
             <div class="field-row">
               <div class="field">
@@ -818,7 +973,28 @@
             <div class="field">
               <label class="field-label" for="link">Link do anúncio</label>
               <input type="text" id="link" placeholder="https://…" />
+              <div class="help">Se o portal bloquear a leitura automática, o “Kit FSBO” usa o que estiver preenchido no registo (título, tipologia, preço, zona, observações).</div>
             </div>
+
+            <hr class="hr-soft"/>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="ownerName">Nome do proprietário</label>
+                <input type="text" id="ownerName" placeholder="Ex.: Sr. João Silva" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="ownerPhone">Móvel</label>
+                <input type="text" id="ownerPhone" placeholder="Ex.: 9xx xxx xxx" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="ownerEmail">Email</label>
+              <input type="email" id="ownerEmail" placeholder="ex.: nome@email.com" />
+            </div>
+
+            <hr class="hr-soft"/>
 
             <div class="field-row">
               <div class="field">
@@ -874,9 +1050,9 @@
             </div>
           </div>
 
-          <!-- COLUNA 2: Imóvel & localização -->
+          <!-- COLUNA 2 -->
           <div class="form-section">
-            <h3>Imóvel & localização</h3>
+            <h3>Imóvel, Notas & Anexos</h3>
 
             <div class="field">
               <label class="field-label" for="tituloImovel">Título / Designação</label>
@@ -932,15 +1108,28 @@
               <label class="field-label" for="notasInternas">Notas internas</label>
               <textarea id="notasInternas" placeholder="Uso interno: estratégia, histórico de conversas, alertas."></textarea>
             </div>
+
+            <hr class="hr-soft"/>
+
+            <div class="field">
+              <label class="field-label">Anexos PDF (vários)</label>
+              <div class="field-row" style="align-items:center;">
+                <button type="button" class="btn btn-ghost" id="addPdfBtn">+ Adicionar PDFs</button>
+                <button type="button" class="btn btn-ghost" id="refreshPdfsBtn">↻ Atualizar lista</button>
+              </div>
+              <div class="help">Ex.: estudos de mercado, CMA, relatórios, plantas. Guardado no browser (IndexedDB).</div>
+              <div id="pdfList" class="attach-list"></div>
+            </div>
           </div>
+
         </div>
       </form>
     </div>
     <div class="modal-footer">
       <div class="modal-footer-left">
-        Dados guardados apenas neste navegador (localStorage). Use exportações / backup para partilha ou segurança.
+        Dados do FSBO guardados neste navegador (localStorage). PDFs guardados no browser (IndexedDB). Use exportações/backup para segurança.
       </div>
-      <div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <button class="btn btn-ghost" id="cancelModalBtn">Cancelar</button>
         <button class="btn btn-primary" id="saveItemBtn">Guardar</button>
       </div>
@@ -948,25 +1137,97 @@
   </div>
 </div>
 
+<!-- MODAL: KIT FSBO -->
+<div class="modal-backdrop" id="kitBackdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="kitTitle">Kit FSBO</h2>
+      <button class="btn btn-icon btn-ghost" id="closeKitBtn" title="Fechar">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-section" style="margin-bottom:10px;">
+        <h3>Resumo do registo</h3>
+        <div class="card-mini-grid" id="kitSummary"></div>
+        <div class="help" id="kitFetchNote"></div>
+      </div>
+
+      <div class="kit-grid">
+        <div class="kit-box">
+          <h3>
+            WhatsApp (mensagem)
+            <span style="font-size:10px;color:rgba(255,255,255,.45);letter-spacing:.12em;">copy & enviar</span>
+          </h3>
+          <textarea id="kitWhatsapp"></textarea>
+          <div class="kit-actions">
+            <button class="btn btn-ghost" id="copyWhatsappBtn">📋 Copiar</button>
+            <button class="btn btn-primary" id="openWhatsappBtn">🟢 Abrir WhatsApp</button>
+          </div>
+        </div>
+
+        <div class="kit-box">
+          <h3>Chamada (script)</h3>
+          <textarea id="kitCall"></textarea>
+          <div class="kit-actions">
+            <button class="btn btn-ghost" id="copyCallBtn">📋 Copiar</button>
+          </div>
+        </div>
+
+        <div class="kit-box">
+          <h3>Email (profissional)</h3>
+          <textarea id="kitEmail"></textarea>
+          <div class="kit-actions">
+            <button class="btn btn-ghost" id="copyEmailBtn">📋 Copiar</button>
+            <button class="btn btn-ghost" id="openMailtoBtn">✉️ Abrir email</button>
+          </div>
+        </div>
+
+        <div class="kit-box">
+          <h3>SWOT (base)</h3>
+          <textarea id="kitSwot"></textarea>
+          <div class="kit-actions">
+            <button class="btn btn-ghost" id="copySwotBtn">📋 Copiar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="help" style="margin-top:10px;">
+        Nota: Este “Kit FSBO” não é IA externa — é um gerador profissional, consistente e orientado à conversão, com base nos dados do registo + tentativa de leitura do título do link quando tecnicamente possível.
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <div class="modal-footer-left">
+        Recomenda-se personalização final (nome do proprietário, referência de zona, proposta de valor, e próximo passo).
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn btn-ghost" id="regenKitBtn">↻ Regenerar</button>
+        <button class="btn btn-primary" id="closeKitBtn2">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Copiado</div>
+
 <!-- Config central de consultores -->
 <script src="config-consultores.js?v=2"></script>
 
 <script>
 (function(){
-  const STORAGE_KEY = 'gpp_particulares_v1';
+  const STORAGE_KEY = 'gpp_particulares_v2';            // incrementado
+  const STORAGE_KEY_LEGACY = 'gpp_particulares_v1';     // compat
   const FILTERS_STORAGE_KEY = 'gpp_particulares_filters_v1';
 
-  // Lista fallback caso não exista GPPConsultores
+  // IndexedDB para PDFs
+  const DB_NAME = 'gpp_fsbo_attachments_db';
+  const DB_VERSION = 1;
+  const STORE = 'attachments';
+
+  // Lista fallback
   const FALLBACK_CONSULTOR_OPTIONS = [
-    "Rui Quelhas",
-    "Manuel Oliveira",
-    "João Sousa",
-    "Francisco dos Santos",
-    "Rosário Vasconcelos",
-    "Armanda Meireles",
-    "Audrey Lucas",
-    "Dalila Cunha",
-    "Outro"
+    "Rui Quelhas","Manuel Oliveira","João Sousa","Francisco dos Santos",
+    "Rosário Vasconcelos","Armanda Meireles","Audrey Lucas","Dalila Cunha","Outro"
   ];
 
   function obterConsultorOptions(){
@@ -994,6 +1255,7 @@
 
   function $(id){ return document.getElementById(id); }
 
+  // Header
   const lockStateLabel = $('lockStateLabel');
   const toggleLockBtn = $('toggleLockBtn');
   const newItemBtn = $('newItemBtn');
@@ -1003,11 +1265,13 @@
   const backupBtn = $('backupBtn');
   const restoreBtn = $('restoreBtn');
 
+  // Main
   const cardsGrid = $('cardsGrid');
   const emptyState = $('emptyState');
   const pipelineKpis = $('pipelineKpis');
   const summaryBadges = $('summaryBadges');
 
+  // Filters
   const filterConsultor = $('filterConsultor');
   const filterPortal = $('filterPortal');
   const filterEstado = $('filterEstado');
@@ -1019,6 +1283,7 @@
   const filterApplyBtn = $('filterApplyBtn');
   const filterClearBtn = $('filterClearBtn');
 
+  // Modal FSBO
   const modalBackdrop = $('modalBackdrop');
   const modalTitle = $('modalTitle');
   const closeModalBtn = $('closeModalBtn');
@@ -1030,39 +1295,88 @@
   const portalSelect = $('portal');
   const estadoProspeccaoSelect = $('estadoProspeccao');
 
-  let state = {
-    locked:true,
-    items:[]
-  };
+  const addPdfBtn = $('addPdfBtn');
+  const refreshPdfsBtn = $('refreshPdfsBtn');
+  const pdfList = $('pdfList');
+
+  // Modal Kit
+  const kitBackdrop = $('kitBackdrop');
+  const kitTitle = $('kitTitle');
+  const closeKitBtn = $('closeKitBtn');
+  const closeKitBtn2 = $('closeKitBtn2');
+  const regenKitBtn = $('regenKitBtn');
+  const kitSummary = $('kitSummary');
+  const kitFetchNote = $('kitFetchNote');
+  const kitWhatsapp = $('kitWhatsapp');
+  const kitCall = $('kitCall');
+  const kitEmail = $('kitEmail');
+  const kitSwot = $('kitSwot');
+
+  const copyWhatsappBtn = $('copyWhatsappBtn');
+  const openWhatsappBtn = $('openWhatsappBtn');
+  const copyCallBtn = $('copyCallBtn');
+  const copyEmailBtn = $('copyEmailBtn');
+  const openMailtoBtn = $('openMailtoBtn');
+  const copySwotBtn = $('copySwotBtn');
+
+  const toast = $('toast');
+
+  let state = { locked:true, items:[] };
+  let currentEditingId = null;
+  let currentKitItem = null;
+  let lastFetchedTitle = null;
+
+  function showToast(msg){
+    toast.textContent = msg || 'OK';
+    toast.classList.add('show');
+    setTimeout(()=>toast.classList.remove('show'), 1600);
+  }
 
   function migrateItem(d){
     if(!d || typeof d !== 'object') return {};
     return {
       visible: d.visible !== false,
       estadoProspeccao: d.estadoProspeccao || 'identificado',
+      ownerName: d.ownerName || '',
+      ownerPhone: d.ownerPhone || '',
+      ownerEmail: d.ownerEmail || '',
       ...d
     };
   }
 
-  function loadState(){
-    function safeParse(raw){
-      if(!raw) return null;
-      try{ return JSON.parse(raw); }catch(e){ return null; }
-    }
+  function safeParse(raw){
+    if(!raw) return null;
+    try{ return JSON.parse(raw); }catch(e){ return null; }
+  }
 
+  function loadState(){
+    // tenta v2
     let parsed = safeParse(localStorage.getItem(STORAGE_KEY));
+
+    // fallback v1
+    if(!parsed){
+      parsed = safeParse(localStorage.getItem(STORAGE_KEY_LEGACY));
+      if(parsed){
+        // migra para v2
+        try{
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+        }catch(e){}
+      }
+    }
 
     if(parsed){
       if(Array.isArray(parsed)){
         state.items = parsed.map(migrateItem);
         state.locked = true;
         updateLockUI();
+        saveState();
         return;
       }
       if(parsed && typeof parsed === 'object' && Array.isArray(parsed.items)){
         state.items = parsed.items.map(migrateItem);
         state.locked = parsed.locked !== false;
         updateLockUI();
+        saveState();
         return;
       }
     }
@@ -1070,14 +1384,12 @@
     state.items = [];
     state.locked = true;
     updateLockUI();
+    saveState();
   }
 
   function saveState(){
-    try{
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    }catch(e){
-      console.error('Erro ao guardar storage de FSBO', e);
-    }
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    catch(e){ console.error('Erro ao guardar storage de FSBO', e); }
   }
 
   function updateLockUI(){
@@ -1085,10 +1397,12 @@
       lockStateLabel.textContent = 'Bloqueado';
       toggleLockBtn.textContent = '🔒';
       newItemBtn.disabled = true;
+      importCsvBtn.disabled = true;
     }else{
       lockStateLabel.textContent = 'Edição ativa';
       toggleLockBtn.textContent = '🔓';
       newItemBtn.disabled = false;
+      importCsvBtn.disabled = false;
     }
   }
 
@@ -1099,20 +1413,202 @@
 
     nomes.forEach(name=>{
       const opt1 = document.createElement('option');
-      opt1.value = name;
-      opt1.textContent = name;
+      opt1.value = name; opt1.textContent = name;
       consultorSelect.appendChild(opt1);
 
       const opt2 = document.createElement('option');
-      opt2.value = name;
-      opt2.textContent = name;
+      opt2.value = name; opt2.textContent = name;
       filterConsultor.appendChild(opt2);
     });
   }
 
+  /* ============ IndexedDB (PDFs) ============ */
+  function openDB(){
+    return new Promise((resolve, reject)=>{
+      const req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded = (ev)=>{
+        const db = req.result;
+        if(!db.objectStoreNames.contains(STORE)){
+          const store = db.createObjectStore(STORE, { keyPath:'id' });
+          store.createIndex('by_item', 'itemId', { unique:false });
+        }
+      };
+      req.onsuccess = ()=>resolve(req.result);
+      req.onerror = ()=>reject(req.error);
+    });
+  }
+
+  async function addAttachment(itemId, file){
+    const db = await openDB();
+    const id = 'att_' + itemId + '_' + Date.now() + '_' + Math.random().toString(16).slice(2);
+    const rec = {
+      id,
+      itemId,
+      name: file.name || 'documento.pdf',
+      type: file.type || 'application/pdf',
+      size: file.size || 0,
+      createdAt: new Date().toISOString(),
+      blob: file
+    };
+
+    return new Promise((resolve, reject)=>{
+      const tx = db.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).put(rec);
+      tx.oncomplete = ()=>resolve(rec);
+      tx.onerror = ()=>reject(tx.error);
+    });
+  }
+
+  async function listAttachments(itemId){
+    const db = await openDB();
+    return new Promise((resolve, reject)=>{
+      const tx = db.transaction(STORE, 'readonly');
+      const idx = tx.objectStore(STORE).index('by_item');
+      const req = idx.getAll(itemId);
+      req.onsuccess = ()=>resolve(req.result || []);
+      req.onerror = ()=>reject(req.error);
+    });
+  }
+
+  async function deleteAttachment(attId){
+    const db = await openDB();
+    return new Promise((resolve, reject)=>{
+      const tx = db.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).delete(attId);
+      tx.oncomplete = ()=>resolve(true);
+      tx.onerror = ()=>reject(tx.error);
+    });
+  }
+
+  async function getAttachment(attId){
+    const db = await openDB();
+    return new Promise((resolve, reject)=>{
+      const tx = db.transaction(STORE, 'readonly');
+      const req = tx.objectStore(STORE).get(attId);
+      req.onsuccess = ()=>resolve(req.result || null);
+      req.onerror = ()=>reject(req.error);
+    });
+  }
+
+  function bytesToNice(n){
+    if(!n || !isFinite(n)) return '';
+    const units = ['B','KB','MB','GB'];
+    let i=0; let v=n;
+    while(v>=1024 && i<units.length-1){ v/=1024; i++; }
+    return (i===0 ? v.toFixed(0) : v.toFixed(1)) + ' ' + units[i];
+  }
+
+  async function refreshPdfList(){
+    pdfList.innerHTML = '';
+    if(!currentEditingId){
+      pdfList.innerHTML = '<div class="help">Guarde o registo primeiro para poder anexar PDFs.</div>';
+      return;
+    }
+    const list = await listAttachments(currentEditingId);
+    if(!list.length){
+      pdfList.innerHTML = '<div class="help">Sem anexos PDF neste registo.</div>';
+      return;
+    }
+
+    list.sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+
+    list.forEach(att=>{
+      const row = document.createElement('div');
+      row.className = 'attach-item';
+
+      const left = document.createElement('div');
+      left.className = 'attach-left';
+
+      const name = document.createElement('div');
+      name.className = 'attach-name';
+      name.textContent = att.name || 'documento.pdf';
+      left.appendChild(name);
+
+      const meta = document.createElement('div');
+      meta.className = 'attach-meta';
+      meta.textContent = (att.createdAt ? ('Adicionado: ' + att.createdAt.slice(0,10)) : '') + (att.size ? (' · ' + bytesToNice(att.size)) : '');
+      left.appendChild(meta);
+
+      const right = document.createElement('div');
+      right.style.display='flex';
+      right.style.gap='6px';
+      right.style.flexWrap='wrap';
+
+      const openBtn = document.createElement('button');
+      openBtn.className = 'btn-xs';
+      openBtn.textContent = 'Abrir';
+      openBtn.addEventListener('click', async ()=>{
+        const rec = await getAttachment(att.id);
+        if(!rec || !rec.blob){
+          alert('Não foi possível abrir este anexo.');
+          return;
+        }
+        const url = URL.createObjectURL(rec.blob);
+        window.open(url, '_blank');
+        setTimeout(()=>URL.revokeObjectURL(url), 60000);
+      });
+      right.appendChild(openBtn);
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'btn-xs danger';
+      delBtn.textContent = 'Remover';
+      delBtn.addEventListener('click', async ()=>{
+        if(state.locked){
+          alert('Desbloqueie o modo de edição para remover anexos.');
+          return;
+        }
+        if(confirm('Remover este PDF do registo?')){
+          await deleteAttachment(att.id);
+          await refreshPdfList();
+        }
+      });
+      right.appendChild(delBtn);
+
+      row.appendChild(left);
+      row.appendChild(right);
+      pdfList.appendChild(row);
+    });
+  }
+
+  async function handleAddPdfs(){
+    if(state.locked){
+      alert('O modo de edição está bloqueado. Desbloqueie para anexar PDFs.');
+      return;
+    }
+    if(!currentEditingId){
+      alert('Guarde primeiro o registo (para criar ID) e depois anexe PDFs.');
+      return;
+    }
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/pdf,.pdf';
+    input.multiple = true;
+
+    input.addEventListener('change', async (e)=>{
+      const files = Array.from(e.target.files || []);
+      if(!files.length) return;
+
+      for(const f of files){
+        try{ await addAttachment(currentEditingId, f); }
+        catch(err){
+          console.error('Erro ao anexar PDF', err);
+          alert('Falha ao anexar um PDF. Pode ser limitação do browser/armazenamento.');
+        }
+      }
+      await refreshPdfList();
+      showToast('PDF(s) anexado(s)');
+    });
+
+    input.click();
+  }
+
+  /* ============ Modal FSBO ============ */
   function openModal(item){
     modalBackdrop.classList.add('open');
+
     if(item){
+      currentEditingId = item.id || '';
       modalTitle.textContent = 'Editar FSBO';
       $('itemId').value = item.id || '';
       consultorSelect.value = item.consultor || '';
@@ -1134,6 +1630,10 @@
       $('precoAnuncio').value = item.precoAnuncio || '';
       $('observacoes').value = item.observacoes || '';
       $('notasInternas').value = item.notasInternas || '';
+
+      $('ownerName').value = item.ownerName || '';
+      $('ownerPhone').value = item.ownerPhone || '';
+      $('ownerEmail').value = item.ownerEmail || '';
     }else{
       modalTitle.textContent = 'Novo FSBO';
       itemForm.reset();
@@ -1141,18 +1641,21 @@
       estadoProspeccaoSelect.value = 'identificado';
       const hoje = new Date().toISOString().slice(0,10);
       $('dataIdentificacao').value = hoje;
+      currentEditingId = null;
     }
+
+    refreshPdfList();
   }
 
   function closeModal(){
     modalBackdrop.classList.remove('open');
+    currentEditingId = null;
+    pdfList.innerHTML = '';
   }
 
   function collectFormData(){
     let id = $('itemId').value || '';
-    if(!id){
-      id = 'part_' + Date.now();
-    }
+    if(!id){ id = 'part_' + Date.now(); }
 
     let dataIdent = $('dataIdentificacao').value;
     if(!dataIdent){
@@ -1165,6 +1668,9 @@
       consultor: consultorSelect.value || '',
       portal: portalSelect.value || '',
       link: $('link').value || '',
+      ownerName: $('ownerName').value || '',
+      ownerPhone: $('ownerPhone').value || '',
+      ownerEmail: $('ownerEmail').value || '',
       estadoProspeccao: estadoProspeccaoSelect.value || 'identificado',
       refAngariacao: $('refAngariacao').value || '',
       dataIdentificacao: dataIdent,
@@ -1186,6 +1692,7 @@
     return data;
   }
 
+  /* ============ Filters ============ */
   function loadFilterState(){
     try{
       const raw = localStorage.getItem(FILTERS_STORAGE_KEY);
@@ -1219,11 +1726,8 @@
       mostrarInvisiveis: filterShowHidden.checked,
       soInvisiveis: filterOnlyHidden.checked
     };
-    try{
-      localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(data));
-    }catch(e){
-      console.error('Erro a guardar filtros de FSBO', e);
-    }
+    try{ localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(data)); }
+    catch(e){ console.error('Erro a guardar filtros de FSBO', e); }
   }
 
   function applyFilters(items){
@@ -1252,17 +1756,12 @@
 
       if(search){
         const texto = [
-          d.tituloImovel,
-          d.concelho,
-          d.freguesia,
-          d.zona,
-          d.portal,
-          d.consultor,
-          d.refAngariacao
+          d.tituloImovel, d.concelho, d.freguesia, d.zona,
+          d.portal, d.consultor, d.refAngariacao,
+          d.ownerName, d.ownerPhone, d.ownerEmail
         ].filter(Boolean).join(' ').toLowerCase();
         if(!texto.includes(search)) return false;
       }
-
       return true;
     });
   }
@@ -1273,6 +1772,286 @@
     return n.toLocaleString('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
   }
 
+  /* ============ Kit FSBO (Gerador) ============ */
+  function normalizePhone(phone){
+    if(!phone) return '';
+    const digits = String(phone).replace(/[^\d+]/g,'');
+    // tenta normalizar PT
+    if(digits.startsWith('00')) return '+' + digits.slice(2);
+    if(digits.startsWith('+')) return digits;
+    if(digits.length===9) return '+351' + digits;
+    return digits;
+  }
+
+  function buildSummaryLine(k, v, link){
+    const row = document.createElement('div');
+    row.className = 'mini-line';
+
+    const kk = document.createElement('div');
+    kk.className = 'mini-k';
+    kk.textContent = k;
+    row.appendChild(kk);
+
+    const vv = document.createElement('div');
+    vv.className = 'mini-v';
+    if(link){
+      const a = document.createElement('a');
+      a.href = link; a.target = '_blank';
+      a.textContent = v || link;
+      vv.appendChild(a);
+    }else{
+      vv.textContent = v || '-';
+    }
+    row.appendChild(vv);
+    return row;
+  }
+
+  function firstNameFromOwner(name){
+    if(!name) return '';
+    const parts = String(name).trim().split(/\s+/);
+    return parts[0] || '';
+  }
+
+  function guessHighlights(item){
+    const base = (item.tituloImovel || '') + ' ' + (item.observacoes || '') + ' ' + (item.notasInternas || '');
+    const t = base.toLowerCase();
+    const hits = [];
+    const rules = [
+      ['varanda','Varanda/terraço'],['terraço','Varanda/terraço'],['garagem','Garagem'],['box','Garagem/box'],
+      ['elevador','Elevador'],['vista','Vista'],['remodel','Remodelação'],['renov','Renovação'],
+      ['metro','Proximidade ao metro'],['praia','Proximidade à praia'],['parque','Proximidade a parque'],['rio','Proximidade ao rio'],
+      ['luz','Luminosidade'],['sul','Exposição solar favorável'],['poente','Exposição solar favorável'],['nascente','Exposição solar favorável'],
+      ['suite','Suite'],['logradouro','Logradouro'],['jardim','Jardim'],['piscina','Piscina'],
+      ['novo','Imóvel recente/novo'],['constru','Construção'],['reabil','Reabilitação']
+    ];
+    rules.forEach(([key,label])=>{
+      if(t.includes(key) && !hits.includes(label)) hits.push(label);
+    });
+    return hits.slice(0,5);
+  }
+
+  function generateWhatsapp(item, fetchedTitle){
+    const owner = item.ownerName ? item.ownerName.trim() : '';
+    const greetName = owner ? (' ' + firstNameFromOwner(owner)) : '';
+    const title = fetchedTitle || item.tituloImovel || (item.tipologia ? (item.tipologia + ' ' + (item.concelho||'').trim()) : 'o seu imóvel');
+    const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
+    const price = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
+    const highlights = guessHighlights(item);
+    const hLine = highlights.length ? ('\n• ' + highlights.join('\n• ')) : '';
+
+    return (
+`Boa tarde${greetName}.
+
+O meu nome é ${item.consultor || 'Rui Quelhas'}, da Garvetur Luxury Porto. Vi o anúncio${item.portal ? ' no ' + item.portal : ''} relativo a “${title}”${zone ? ' ('+zone+')' : ''}${price ? ' — ' + price : ''}.
+
+Trabalho diariamente com compradores qualificados para esta zona e gostaria de perceber se faz sentido ajudá-lo(a) a vender com mais segurança e melhor posicionamento no mercado.
+
+Em 10 minutos consigo:
+1) validar o enquadramento de preço vs. mercado,
+2) sugerir melhorias de apresentação para aumentar procura,
+3) explicar um plano de venda com triagem de compradores e acompanhamento jurídico.
+
+Podemos agendar uma chamada curta hoje ao final do dia ou amanhã de manhã?`
+    );
+  }
+
+  function generateCallScript(item, fetchedTitle){
+    const owner = item.ownerName ? item.ownerName.trim() : '';
+    const title = fetchedTitle || item.tituloImovel || (item.tipologia ? (item.tipologia + ' ' + (item.concelho||'').trim()) : 'o imóvel');
+    const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
+    const price = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
+    const highlights = guessHighlights(item);
+    const hLine = highlights.length ? ('\n   - Pontos fortes identificados: ' + highlights.join(', ') + '.') : '';
+
+    return (
+`ABERTURA (20s)
+- “Boa tarde, falo com ${owner || 'o proprietário'}? O meu nome é ${item.consultor || 'Rui Quelhas'}, Garvetur Luxury Porto.”
+- “Estou a ligar por causa do anúncio${item.portal ? ' no ' + item.portal : ''} — ‘${title}’${zone ? ' em ' + zone : ''}${price ? ', anunciado por ' + price : ''}.”
+
+OBJECTIVO (10s)
+- “A minha intenção é perceber se ainda está disponível e, se fizer sentido, partilhar uma avaliação rápida de mercado e um plano de venda que costuma encurtar prazos e reduzir riscos.”
+
+PERGUNTAS-CHAVE (2–3 min)
+1) “O imóvel ainda está disponível? Há alguma urgência de venda?”
+2) “Já teve visitas? Que tipo de feedback recebeu?”
+3) “Como definiu o preço? Fez comparação com transações recentes?”
+4) “Qual seria para si um processo ideal (prazo, condições, flexibilidade)?”${hLine}
+
+VALOR (30–60s)
+- “O que fazemos de forma diferente: triagem e qualificação de compradores, estratégia de preço e posicionamento, divulgação direcionada (nacional/internacional quando aplicável) e acompanhamento documental/jurídico.”
+
+FECHO (30s)
+- “Sugiro uma chamada de 10 minutos (ou visita curta) para eu lhe dar um enquadramento de preço e um plano concreto.”
+- “Prefere hoje ao final do dia ou amanhã de manhã?”`
+    );
+  }
+
+  function generateEmail(item, fetchedTitle){
+    const owner = item.ownerName ? item.ownerName.trim() : '';
+    const title = fetchedTitle || item.tituloImovel || (item.tipologia ? (item.tipologia + ' ' + (item.concelho||'').trim()) : 'Imóvel');
+    const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
+    const price = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
+    const highlights = guessHighlights(item);
+    const hLine = highlights.length ? ('\nPontos fortes observados: ' + highlights.join(', ') + '.\n') : '';
+
+    const subject = `Venda do seu imóvel${zone ? ' — ' + zone : ''}`;
+    const body =
+`Exmo.(a) ${owner || 'Senhor(a)'},
+
+O meu nome é ${item.consultor || 'Rui Quelhas'} e sou consultor da Garvetur Luxury Porto.
+
+Tomei conhecimento do seu anúncio${item.portal ? ' no ' + item.portal : ''} relativo a “${title}”${zone ? ' ('+zone+')' : ''}${price ? ', com preço anunciado de ' + price : ''}.
+
+Trabalho com compradores ativos e qualificados na zona do Grande Porto e gostaria de lhe propor uma abordagem orientada a resultados, com foco em:
+- posicionamento e estratégia de preço (comparação com mercado e transações recentes);
+- apresentação (fotografia, copy e proposta de valor) para aumentar procura;
+- qualificação de compradores e gestão de visitas;
+- acompanhamento documental e negociação, reduzindo risco e fricção.
+
+${hLine}Se considerar oportuno, posso partilhar uma análise inicial (10–15 minutos) e sugerir um plano de comercialização com próximos passos claros.
+
+Caso concorde, indique por favor a sua disponibilidade para uma breve chamada ou visita ao imóvel.
+
+Com os melhores cumprimentos,
+${item.consultor || 'Rui Quelhas'}
+Garvetur Luxury Porto`;
+
+    return `Assunto: ${subject}\n\n${body}`;
+  }
+
+  function generateSwot(item, fetchedTitle){
+    const title = fetchedTitle || item.tituloImovel || 'Imóvel';
+    const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
+    const price = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
+    const highlights = guessHighlights(item);
+
+    const strengths = [
+      (zone ? 'Localização: ' + zone : null),
+      (highlights.length ? ('Características: ' + highlights.join(', ')) : null),
+      (price ? ('Preço anunciado: ' + price + ' (a validar vs. mercado)') : 'Preço: a validar vs. mercado'),
+      'Potencial de apresentação/valorização com marketing profissional'
+    ].filter(Boolean);
+
+    const weaknesses = [
+      'Informação incompleta (dependente do anúncio/visita)',
+      'Risco de desalinhamento de preço vs. concorrência',
+      'Possível fraca qualificação de leads (quando vendido por particular)'
+    ];
+
+    const opportunities = [
+      'Reposicionamento do anúncio (copy, fotos, targeting) para acelerar procura',
+      'Estratégia de preço e negociação para maximizar valor líquido',
+      'Acesso a base de compradores e parceiros (network Garvetur)',
+      'Criação de urgência/comparativos com concorrência na zona'
+    ];
+
+    const threats = [
+      'Concorrência direta de imóveis similares (pressão para desconto)',
+      'Mudanças no contexto de crédito/taxa (sensibilidade do comprador)',
+      'Exposição prolongada do anúncio (efeito “cansaço” do mercado)',
+      'Negociação direta sem mitigação de risco documental/jurídico'
+    ];
+
+    return (
+`SWOT — ${title}${zone ? ' | ' + zone : ''}
+
+FORÇAS
+- ${strengths.join('\n- ')}
+
+FRAQUEZAS
+- ${weaknesses.join('\n- ')}
+
+OPORTUNIDADES
+- ${opportunities.join('\n- ')}
+
+AMEAÇAS
+- ${threats.join('\n- ')}
+
+Notas:
+- Validar: tipologia real, áreas, estado de conservação, orientação solar, condomínio, documentação (caderneta, certidão, licença, CE).`
+    );
+  }
+
+  async function tryFetchTitleFromLink(url){
+    lastFetchedTitle = null;
+    if(!url) return { ok:false, title:null, note:'Sem link.' };
+
+    // tentativa "best effort" (pode falhar por CORS)
+    try{
+      const res = await fetch(url, { method:'GET', mode:'cors' });
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      const html = await res.text();
+      const m1 = html.match(/<title[^>]*>([^<]{1,200})<\/title>/i);
+      const title = m1 ? m1[1].replace(/\s+/g,' ').trim() : null;
+      lastFetchedTitle = title;
+      return { ok:!!title, title, note: title ? 'Título lido do link.' : 'Não foi possível extrair <title>.' };
+    }catch(e){
+      return { ok:false, title:null, note:'Leitura automática bloqueada pelo portal (normal). A gerar com base no registo.' };
+    }
+  }
+
+  async function openKit(item){
+    currentKitItem = item;
+    kitBackdrop.classList.add('open');
+    kitTitle.textContent = 'Kit FSBO — ' + (item.tituloImovel || item.tipologia || 'Registo');
+
+    kitSummary.innerHTML = '';
+    kitSummary.appendChild(buildSummaryLine('Propriet.', item.ownerName || '-', null));
+    kitSummary.appendChild(buildSummaryLine('Móvel', item.ownerPhone || '-', null));
+    kitSummary.appendChild(buildSummaryLine('Email', item.ownerEmail || '-', null));
+    kitSummary.appendChild(buildSummaryLine('Portal', item.portal || '-', null));
+    kitSummary.appendChild(buildSummaryLine('Estado', item.estadoProspeccao || '-', null));
+    kitSummary.appendChild(buildSummaryLine('Preço', item.precoAnuncio ? formatMoney(item.precoAnuncio) : '-', null));
+    kitSummary.appendChild(buildSummaryLine('Zona', [item.zona,item.freguesia,item.concelho].filter(Boolean).join(' · ') || '-', null));
+    kitSummary.appendChild(buildSummaryLine('Link', item.link ? 'Abrir anúncio' : '-', item.link || null));
+
+    const fetchInfo = await tryFetchTitleFromLink(item.link || '');
+    kitFetchNote.textContent = fetchInfo.note || '';
+
+    const t = fetchInfo.title || null;
+    kitWhatsapp.value = generateWhatsapp(item, t);
+    kitCall.value = generateCallScript(item, t);
+    kitEmail.value = generateEmail(item, t);
+    kitSwot.value = generateSwot(item, t);
+
+    // preparar botões
+    const phone = normalizePhone(item.ownerPhone || '');
+    openWhatsappBtn.disabled = !phone;
+    openWhatsappBtn.title = phone ? 'Abrir WhatsApp para este contacto' : 'Preencha o móvel do proprietário para abrir WhatsApp';
+
+    openMailtoBtn.disabled = !(item.ownerEmail || '').trim();
+    openMailtoBtn.title = openMailtoBtn.disabled ? 'Preencha o email do proprietário' : 'Abrir app de email';
+
+    showToast('Kit gerado');
+  }
+
+  function closeKit(){
+    kitBackdrop.classList.remove('open');
+    currentKitItem = null;
+  }
+
+  async function regenKit(){
+    if(!currentKitItem) return;
+    await openKit(currentKitItem);
+  }
+
+  async function copyText(text){
+    try{
+      await navigator.clipboard.writeText(text);
+      showToast('Copiado');
+    }catch(e){
+      // fallback
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('Copiado');
+    }
+  }
+
+  /* ============ Render Cards ============ */
   function renderCards(){
     const items = state.items.slice().sort((a,b)=>{
       const da = a.dataIdentificacao || '';
@@ -1328,12 +2107,8 @@
     const porCons = {};
     const porPortal = {};
     fil.forEach(d=>{
-      if(d.consultor){
-        porCons[d.consultor] = (porCons[d.consultor] || 0) + 1;
-      }
-      if(d.portal){
-        porPortal[d.portal] = (porPortal[d.portal] || 0) + 1;
-      }
+      if(d.consultor){ porCons[d.consultor] = (porCons[d.consultor] || 0) + 1; }
+      if(d.portal){ porPortal[d.portal] = (porPortal[d.portal] || 0) + 1; }
     });
 
     Object.keys(porCons).sort().forEach(n=>{
@@ -1419,14 +2194,12 @@
         ch.textContent = formatMoney(d.precoAnuncio);
         chipsRow.appendChild(ch);
       }
-
       if(d.portal){
         const ch = document.createElement('span');
         ch.className = 'chip';
         ch.textContent = d.portal;
         chipsRow.appendChild(ch);
       }
-
       if(d.refAngariacao){
         const ch = document.createElement('span');
         ch.className = 'chip chip-primary';
@@ -1438,21 +2211,48 @@
       topRow.appendChild(titleBlock);
       card.appendChild(topRow);
 
+      // Contacto (novo)
+      const hasContact = (d.ownerName || d.ownerPhone || d.ownerEmail);
+      if(hasContact){
+        const sec = document.createElement('div');
+        sec.className = 'card-section';
+        const grid = document.createElement('div');
+        grid.className = 'card-mini-grid';
+
+        if(d.ownerName){
+          const row = document.createElement('div');
+          row.className = 'mini-line';
+          row.innerHTML = '<div class="mini-k">Nome</div><div class="mini-v">'+ escapeHtml(d.ownerName) +'</div>';
+          grid.appendChild(row);
+        }
+        if(d.ownerPhone){
+          const row = document.createElement('div');
+          row.className = 'mini-line';
+          row.innerHTML = '<div class="mini-k">Móvel</div><div class="mini-v">'+ escapeHtml(d.ownerPhone) +'</div>';
+          grid.appendChild(row);
+        }
+        if(d.ownerEmail){
+          const row = document.createElement('div');
+          row.className = 'mini-line';
+          row.innerHTML = '<div class="mini-k">Email</div><div class="mini-v">'+ escapeHtml(d.ownerEmail) +'</div>';
+          grid.appendChild(row);
+        }
+
+        sec.appendChild(grid);
+        card.appendChild(sec);
+      }
+
       if(d.zona || d.concelho || d.freguesia){
         const sec = document.createElement('div');
         sec.className = 'card-section';
-        const span = document.createElement('span');
-        span.textContent = [d.zona, d.concelho, d.freguesia].filter(Boolean).join(' · ');
-        sec.appendChild(span);
+        sec.textContent = [d.zona, d.concelho, d.freguesia].filter(Boolean).join(' · ');
         card.appendChild(sec);
       }
 
       if(d.observacoes){
         const sec = document.createElement('div');
         sec.className = 'card-section';
-        const span = document.createElement('span');
-        span.textContent = d.observacoes.length > 160 ? d.observacoes.slice(0,157)+'…' : d.observacoes;
-        sec.appendChild(span);
+        sec.textContent = d.observacoes.length > 160 ? d.observacoes.slice(0,157)+'…' : d.observacoes;
         card.appendChild(sec);
       }
 
@@ -1468,12 +2268,20 @@
       if(d.proximaAcaoData){
         partes.push('Próxima: ' + d.proximaAcaoData + (d.proximaAcaoTipo ? ' ('+d.proximaAcaoTipo+')' : ''));
       }
-
       left.textContent = partes.join(' · ');
       foot.appendChild(left);
 
       const right = document.createElement('div');
       right.className = 'card-footer-right';
+
+      const btnKit = document.createElement('button');
+      btnKit.className = 'btn-xs success';
+      btnKit.textContent = '✨ Kit FSBO';
+      btnKit.title = 'Gerar WhatsApp, chamada, email e SWOT';
+      btnKit.addEventListener('click', ()=>{
+        openKit(d);
+      });
+      right.appendChild(btnKit);
 
       const btnEdit = document.createElement('button');
       btnEdit.className = 'btn-xs primary';
@@ -1487,23 +2295,19 @@
       const btnPdf = document.createElement('button');
       btnPdf.className = 'btn-xs';
       btnPdf.textContent = 'PDF';
-      btnPdf.addEventListener('click', ()=>{
-        exportOnePdf(d);
-      });
+      btnPdf.addEventListener('click', ()=> exportOnePdf(d));
       right.appendChild(btnPdf);
 
       if(d.link){
         const btnLink = document.createElement('button');
         btnLink.className = 'btn-xs';
         btnLink.textContent = 'Abrir anúncio';
-        btnLink.addEventListener('click', ()=>{
-          window.open(d.link, '_blank');
-        });
+        btnLink.addEventListener('click', ()=> window.open(d.link, '_blank'));
         right.appendChild(btnLink);
       }
 
       const btnVis = document.createElement('button');
-      btnVis.className = 'btn-xs';
+      btnVis.className = 'btn-xs warn';
       btnVis.textContent = d.visible === false ? 'Tornar visível' : 'Tornar invisível';
       btnVis.addEventListener('click', ()=>{
         if(state.locked) return;
@@ -1528,11 +2332,20 @@
 
       foot.appendChild(right);
       card.appendChild(foot);
-
       cardsGrid.appendChild(card);
     });
   }
 
+  function escapeHtml(str){
+    return String(str || '')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#039;');
+  }
+
+  /* ============ CSV ============ */
   function escCsv(v){
     if(v == null) return '';
     const s = String(v).replace(/"/g,'""');
@@ -1547,6 +2360,7 @@
 
     const cols = [
       'id','consultor','portal','link',
+      'ownerName','ownerPhone','ownerEmail',
       'estadoProspeccao','refAngariacao',
       'dataIdentificacao','dataPrimeiroContacto','dataUltimaAcao',
       'proximaAcaoData','proximaAcaoTipo',
@@ -1616,12 +2430,11 @@
     }
 
     const headerRaw = rows[0];
-    const headers = headerRaw.map(h=>{
-      return String(h || '').trim().replace(/^"|"$/g,'');
-    });
+    const headers = headerRaw.map(h=> String(h || '').trim().replace(/^"|"$/g,''));
 
     const KNOWN_FIELDS = new Set([
       'id','consultor','portal','link',
+      'ownerName','ownerPhone','ownerEmail',
       'estadoProspeccao','refAngariacao',
       'dataIdentificacao','dataPrimeiroContacto','dataUltimaAcao',
       'proximaAcaoData','proximaAcaoTipo',
@@ -1630,9 +2443,7 @@
       'observacoes','notasInternas','visible'
     ]);
 
-    let imported = 0;
-    let created = 0;
-    let updated = 0;
+    let imported = 0, created = 0, updated = 0;
 
     for(let i=1;i<rows.length;i++){
       const row = rows[i];
@@ -1721,6 +2532,7 @@
     input.click();
   }
 
+  /* ============ PDF (impressão) ============ */
   function exportOnePdf(item){
     const w = window.open('', '_blank');
     if(!w){
@@ -1729,6 +2541,12 @@
     }
 
     const titulo = item.tituloImovel || (item.tipologia ? item.tipologia + ' ' : '') + (item.concelho || 'FSBO');
+    const ownerBlock = (item.ownerName || item.ownerPhone || item.ownerEmail) ? `
+      <h2 class="section">Proprietário</h2>
+      <div class="line"><span class="strong">Nome:</span> ${item.ownerName || '-'}</div>
+      <div class="line"><span class="strong">Móvel:</span> ${item.ownerPhone || '-'}</div>
+      <div class="line"><span class="strong">Email:</span> ${item.ownerEmail || '-'}</div>
+    ` : '';
 
     const html = `
 <!doctype html>
@@ -1819,6 +2637,8 @@
   </div>
   ${item.link ? `<div class="line"><span class="strong">Link anúncio:</span> ${item.link}</div>` : ''}
 
+  ${ownerBlock}
+
   <h2 class="section">Imóvel & localização</h2>
   <div class="line"><span class="strong">Concelho:</span> ${item.concelho || ''}</div>
   <div class="line">
@@ -1835,12 +2655,12 @@
 
   <h2 class="section">Observações</h2>
   <div class="line">
-    ${item.observacoes ? item.observacoes.replace(/\\n/g,'<br>') : '<span class="muted">Sem observações registadas.</span>'}
+    ${item.observacoes ? String(item.observacoes).replace(/\\n/g,'<br>') : '<span class="muted">Sem observações registadas.</span>'}
   </div>
 
   <h2 class="section">Notas internas</h2>
   <div class="line">
-    ${item.notasInternas ? item.notasInternas.replace(/\\n/g,'<br>') : '<span class="muted">Sem notas internas registadas.</span>'}
+    ${item.notasInternas ? String(item.notasInternas).replace(/\\n/g,'<br>') : '<span class="muted">Sem notas internas registadas.</span>'}
   </div>
 
 </div>
@@ -1868,6 +2688,7 @@
     }
   }
 
+  /* ============ Backup / Restore ============ */
   function handleBackup(){
     try{
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -1885,7 +2706,7 @@
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      alert('Backup efetuado com sucesso. Guarde o ficheiro num local seguro (ex.: OneDrive).');
+      alert('Backup efetuado com sucesso.\n\nNota: Os PDFs anexados (IndexedDB) não seguem neste ficheiro.');
     }catch(e){
       console.error('Erro no backup de FSBO', e);
       alert('Ocorreu um erro ao gerar o ficheiro de backup.');
@@ -1896,6 +2717,7 @@
     if(!confirm(
       'Esta operação vai restaurar dados FSBO a partir de um ficheiro de backup.\n\n' +
       'Os dados atuais serão substituídos pelos do ficheiro selecionado.\n\n' +
+      'Nota: PDFs anexados (IndexedDB) não são substituídos por esta operação.\n\n' +
       'Pretende continuar?'
     )){
       return;
@@ -1949,6 +2771,7 @@
     input.click();
   }
 
+  /* ============ Events ============ */
   toggleLockBtn.addEventListener('click', ()=>{
     state.locked = !state.locked;
     updateLockUI();
@@ -1963,7 +2786,7 @@
   closeModalBtn.addEventListener('click', closeModal);
   cancelModalBtn.addEventListener('click', closeModal);
 
-  saveItemBtn.addEventListener('click', (e)=>{
+  saveItemBtn.addEventListener('click', async (e)=>{
     e.preventDefault();
     if(state.locked){
       alert('O modo de edição está bloqueado. Desbloqueie o cadeado no topo para guardar alterações.');
@@ -1982,9 +2805,14 @@
       state.items.push(migrateItem(data));
     }
 
+    // garantir currentEditingId para anexos
+    currentEditingId = data.id;
+    $('itemId').value = data.id;
+
     saveState();
     renderCards();
-    closeModal();
+    await refreshPdfList();
+    showToast('Guardado');
   });
 
   filterApplyBtn.addEventListener('click', ()=>{
@@ -2012,12 +2840,62 @@
   backupBtn.addEventListener('click', handleBackup);
   restoreBtn.addEventListener('click', handleRestore);
 
+  addPdfBtn.addEventListener('click', handleAddPdfs);
+  refreshPdfsBtn.addEventListener('click', refreshPdfList);
+
+  // Kit modal events
+  closeKitBtn.addEventListener('click', closeKit);
+  closeKitBtn2.addEventListener('click', closeKit);
+  regenKitBtn.addEventListener('click', regenKit);
+
+  copyWhatsappBtn.addEventListener('click', ()=>copyText(kitWhatsapp.value || ''));
+  copyCallBtn.addEventListener('click', ()=>copyText(kitCall.value || ''));
+  copyEmailBtn.addEventListener('click', ()=>copyText(kitEmail.value || ''));
+  copySwotBtn.addEventListener('click', ()=>copyText(kitSwot.value || ''));
+
+  openWhatsappBtn.addEventListener('click', ()=>{
+    if(!currentKitItem) return;
+    const phone = normalizePhone(currentKitItem.ownerPhone || '');
+    if(!phone){
+      alert('Preencha o móvel do proprietário para abrir o WhatsApp.');
+      return;
+    }
+    const msg = encodeURIComponent(kitWhatsapp.value || '');
+    // wa.me requer sem +
+    const waPhone = phone.replace(/\+/g,'');
+    window.open('https://wa.me/' + waPhone + '?text=' + msg, '_blank');
+  });
+
+  openMailtoBtn.addEventListener('click', ()=>{
+    if(!currentKitItem) return;
+    const email = (currentKitItem.ownerEmail || '').trim();
+    if(!email){
+      alert('Preencha o email do proprietário para abrir o email.');
+      return;
+    }
+    const content = kitEmail.value || '';
+    // extrair assunto da 1ª linha "Assunto:"
+    let subject = 'Contactos sobre o seu imóvel';
+    let body = content;
+    const m = content.match(/^Assunto:\s*(.+)\n\n([\s\S]*)$/i);
+    if(m){
+      subject = m[1].trim();
+      body = m[2] || '';
+    }
+    const url = 'mailto:' + encodeURIComponent(email) +
+      '?subject=' + encodeURIComponent(subject) +
+      '&body=' + encodeURIComponent(body);
+    window.location.href = url;
+  });
+
   window.addEventListener('keydown', (e)=>{
-    if(e.key === 'Escape' && modalBackdrop.classList.contains('open')){
-      closeModal();
+    if(e.key === 'Escape'){
+      if(modalBackdrop.classList.contains('open')) closeModal();
+      if(kitBackdrop.classList.contains('open')) closeKit();
     }
   });
 
+  /* ============ Init ============ */
   initConsultores();
   loadState();
   loadFilterState();
