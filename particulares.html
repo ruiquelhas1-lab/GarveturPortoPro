@@ -1886,6 +1886,18 @@ if(!dataIdent){
     // futuros: segue por ordem natural
     return diffDays;
   }
+  function getNextActionChip(item){
+  const dt = parseYMD(item && item.proximaAcaoData);
+  if(!dt) return null;
+
+  const today = startOfTodayUTC();
+  const diffDays = Math.floor((dt.getTime() - today.getTime()) / 86400000);
+
+  if(diffDays <= 0) return { text: 'HOJE / ATRASADO', tone: 'due' };
+  if(diffDays <= 3) return { text: diffDays + ' DIAS', tone: 'soon' };
+  if(diffDays <= 7) return { text: diffDays + ' DIAS', tone: 'warn' };
+  return null;
+}
   /* ============ FSBO — Próxima ação: cor + prioridade ============ */
   function toDateOnly(str){
     // Espera "YYYY-MM-DD" (input date). Se inválido, devolve null.
