@@ -2804,6 +2804,10 @@ Notas:
     }
 
     const data = collectFormData();
+    // atualizar automaticamente a data da última ação
+const hoje = new Date().toISOString().slice(0,10);
+data.dataUltimaAcao = hoje;
+$('dataUltimaAcao').value = hoje;
     const idx = state.items.findIndex(d=>d.id === data.id);
 
     if(idx >= 0){
