@@ -1,0 +1,2047 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <title>Garvetur Porto Pro — Particulares (Portais)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --gold:#A38B63;
+      --gold-soft:rgba(163,139,99,.35);
+      --bg:#0B0B0B;
+      --panel:#121212;
+      --panel-soft:#181818;
+      --text:#FFFFFF;
+      --muted:#A0A0A0;
+      --danger:#F25F5C;
+      --success:#4CAF50;
+      --warning:#FFC857;
+      --card-border:rgba(163,139,99,.3);
+      --chip-bg:#1E1E1E;
+      --radius-lg:18px;
+      --radius-md:12px;
+      --shadow-soft:0 14px 25px rgba(0,0,0,.4);
+    }
+
+    *{box-sizing:border-box;}
+    html,body{
+      margin:0;
+      height:100%;
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      background:radial-gradient(circle at top,#1c1c1c 0,#050505 55%,#000 100%);
+      color:var(--text);
+    }
+
+    body{
+      display:flex;
+      flex-direction:column;
+    }
+
+    .app-shell{
+      display:grid;
+      grid-template-rows:64px auto;
+      height:100%;
+    }
+
+    header.app-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:10px 18px;
+      border-bottom:1px solid rgba(163,139,99,.35);
+      background:linear-gradient(90deg,#050505,#111,#050505);
+      position:sticky;
+      top:0;
+      z-index:20;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .brand-icon{
+      width:26px;
+      height:26px;
+      border-radius:999px;
+      border:1px solid var(--gold);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 0 0 1px rgba(163,139,99,.3);
+    }
+    .brand-app{
+      font-size:10px;
+      text-transform:uppercase;
+      letter-spacing:.18em;
+      color:var(--muted);
+      margin-bottom:2px;
+    }
+
+    .brand h1{
+      margin:0;
+      font-size:18px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--gold);
+    }
+
+    .brand span.sub{
+      display:block;
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.08em;
+    }
+
+    .header-actions{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .btn{
+      border-radius:999px;
+      border:1px solid var(--gold-soft);
+      background:rgba(12,12,12,.9);
+      color:var(--text);
+      padding:7px 12px;
+      font-size:13px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      cursor:pointer;
+      transition:.18s border-color,.18s background,.18s transform;
+    }
+    .btn-primary{
+      background:var(--gold);
+      color:#0A0A0A;
+      border-color:var(--gold);
+      font-weight:500;
+    }
+    .btn-ghost{
+      background:transparent;
+    }
+    .btn-icon{
+      width:32px;
+      height:32px;
+      padding:0;
+      border-radius:999px;
+      justify-content:center;
+    }
+    .btn:hover{
+      border-color:var(--gold);
+      transform:translateY(-1px);
+    }
+    .btn:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+      transform:none;
+    }
+
+    .pill-lock{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-size:12px;
+      padding:4px 9px;
+      border-radius:999px;
+      background:rgba(0,0,0,.45);
+      border:1px solid rgba(255,255,255,.14);
+      color:var(--muted);
+    }
+    .pill-lock span.state{
+      font-weight:500;
+      color:var(--gold);
+    }
+    .pill-lock button{
+      all:unset;
+      cursor:pointer;
+      padding:2px 6px;
+      border-radius:999px;
+      background:rgba(255,255,255,.05);
+    }
+
+    /* NAV TABS */
+    .nav-tabs{
+      display:flex;
+      align-items:center;
+      gap:4px;
+      background:rgba(0,0,0,.35);
+      padding:4px;
+      border-radius:999px;
+      border:1px solid rgba(163,139,99,.35);
+      flex-wrap:wrap;
+    }
+    .nav-tab{
+      padding:5px 10px;
+      border-radius:999px;
+      font-size:11px;
+      text-decoration:none;
+      color:var(--muted);
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      border:1px solid transparent;
+      transition:.16s background,.16s color,.16s border-color,.16s transform;
+    }
+    .nav-tab:hover{
+      color:#fff;
+      border-color:rgba(163,139,99,.6);
+      transform:translateY(-1px);
+    }
+    .nav-tab.active{
+      background:var(--gold);
+      color:#0A0A0A;
+      border-color:var(--gold);
+      font-weight:600;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns:320px minmax(0,1fr);
+      height:calc(100vh - 64px);
+      max-height:calc(100vh - 64px);
+      overflow:hidden;
+    }
+    @media (max-width: 960px){
+      .layout{
+        grid-template-columns:1fr;
+        grid-template-rows:auto auto;
+        height:auto;
+        max-height:none;
+      }
+      .sidebar{
+        max-height:none;
+      }
+      header.app-header{
+        align-items:flex-start;
+      }
+    }
+
+    .sidebar{
+      border-right:1px solid rgba(163,139,99,.24);
+      background:radial-gradient(circle at top left,#141414,#060606);
+      padding:12px 14px;
+      overflow-y:auto;
+    }
+    .sidebar-section{
+      border-radius:var(--radius-md);
+      padding:10px 11px;
+      background:rgba(0,0,0,.45);
+      border:1px solid rgba(163,139,99,.18);
+      margin-bottom:10px;
+    }
+    .sidebar-section h3{
+      margin:0 0 6px;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      color:var(--muted);
+    }
+    .sidebar-section p{
+      margin:2px 0 6px;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      margin-bottom:8px;
+    }
+    .field-row{
+      display:flex;
+      gap:6px;
+    }
+    label.field-label{
+      font-size:11px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.12em;
+    }
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    input[type="email"],
+    select,
+    textarea{
+      background:rgba(0,0,0,.7);
+      color:var(--text);
+      border-radius:10px;
+      border:1px solid rgba(163,139,99,.22);
+      padding:6px 8px;
+      font-size:13px;
+      outline:none;
+      width:100%;
+    }
+    input:focus, select:focus, textarea:focus{
+      border-color:var(--gold);
+      box-shadow:0 0 0 1px rgba(163,139,99,.35);
+    }
+    textarea{
+      resize:vertical;
+      min-height:60px;
+    }
+
+    .toggle-line{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      font-size:12px;
+      margin-top:4px;
+    }
+    .toggle-line span{
+      color:var(--muted);
+    }
+    .switch{
+      position:relative;
+      display:inline-block;
+      width:34px;
+      height:18px;
+    }
+    .switch input{
+      opacity:0;
+      width:0;
+      height:0;
+    }
+    .slider{
+      position:absolute;
+      cursor:pointer;
+      inset:0;
+      background-color:#444;
+      transition:.2s;
+      border-radius:34px;
+    }
+    .slider:before{
+      position:absolute;
+      content:"";
+      height:14px;
+      width:14px;
+      left:3px;
+      bottom:2px;
+      background-color:white;
+      transition:.2s;
+      border-radius:50%;
+    }
+    .switch input:checked + .slider{
+      background-color:var(--gold);
+    }
+    .switch input:checked + .slider:before{
+      transform:translateX(14px);
+    }
+
+    .filters-badges{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:4px;
+    }
+    .badge{
+      font-size:11px;
+      border-radius:999px;
+      padding:3px 7px;
+      border:1px solid rgba(163,139,99,.35);
+      background:rgba(8,8,8,.8);
+      color:var(--muted);
+    }
+    .badge strong{color:var(--gold);}
+
+    .cards-area{
+      padding:14px 16px 18px;
+      overflow-y:auto;
+      background:radial-gradient(circle at top,#1a1a1a,#050505 55%,#000 100%);
+    }
+    .cards-header{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      margin-bottom:8px;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .cards-header-left h2{
+      margin:0;
+      font-size:15px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+    .cards-header-left p{
+      margin:2px 0 0;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .pipeline-kpis{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:4px;
+    }
+    .kpi-chip{
+      border-radius:999px;
+      padding:4px 9px;
+      border:1px solid rgba(163,139,99,.32);
+      font-size:11px;
+      color:var(--muted);
+      background:rgba(8,8,8,.9);
+    }
+    .kpi-chip span.value{
+      color:var(--gold);
+      font-weight:600;
+      margin-left:4px;
+    }
+
+    .cards-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+      gap:10px;
+    }
+
+    .card{
+      border-radius:var(--radius-lg);
+      border:1px solid var(--card-border);
+      padding:10px 11px 9px;
+      background:radial-gradient(circle at top left,#181818,#070707);
+      box-shadow:var(--shadow-soft);
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      position:relative;
+      transition:box-shadow .2s, transform .2s, border-color .2s, background .2s;
+    }
+    .card.hidden-card{
+      opacity:.45;
+      border-style:dashed;
+    }
+    .card-top-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:8px;
+    }
+    .card-title-block{
+      flex:1;
+      min-width:0;
+    }
+    .card-title{
+      margin:0;
+      font-size:14px;
+      font-weight:600;
+      color:#fff;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      overflow:hidden;
+    }
+    .card-subtitle{
+      margin:1px 0 0;
+      font-size:11px;
+      color:var(--muted);
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      overflow:hidden;
+    }
+
+    .chip-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
+      margin-top:4px;
+    }
+    .chip{
+      border-radius:999px;
+      padding:2px 7px;
+      font-size:10px;
+      border:1px solid rgba(163,139,99,.4);
+      background:var(--chip-bg);
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+    .chip-primary{
+      border-color:var(--gold);
+      color:var(--gold);
+    }
+    .chip-green{
+      border-color:rgba(76,175,80,.7);
+      color:#A5D6A7;
+    }
+    .chip-red{
+      border-color:rgba(242,95,92,.8);
+      color:#FFABAB;
+    }
+    .chip-yellow{
+      border-color:rgba(255,200,87,.8);
+      color:#FFE082;
+    }
+
+    .card-section{
+      border-top:1px solid rgba(163,139,99,.18);
+      padding-top:4px;
+      margin-top:2px;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .card-footer{
+      margin-top:6px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:6px;
+      font-size:11px;
+      color:var(--muted);
+      flex-wrap:wrap;
+    }
+    .card-footer-left{
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
+      align-items:center;
+    }
+    .card-footer-right{
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
+      justify-content:flex-end;
+    }
+
+    .btn-xs{
+      border-radius:999px;
+      padding:3px 7px;
+      border:1px solid rgba(163,139,99,.35);
+      background:rgba(5,5,5,.9);
+      color:var(--muted);
+      font-size:10px;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+    }
+    .btn-xs.primary{
+      border-color:var(--gold);
+      color:var(--gold);
+    }
+    .btn-xs.danger{
+      border-color:var(--danger);
+      color:#FFB3B0;
+    }
+
+    .empty{
+      font-size:12px;
+      color:var(--muted);
+      padding:16px 4px;
+    }
+
+    .modal-backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.7);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:40;
+    }
+    .modal-backdrop.open{
+      display:flex;
+    }
+    .modal{
+      width:min(980px,96vw);
+      max-height:90vh;
+      background:radial-gradient(circle at top,#151515,#050505);
+      border-radius:22px;
+      border:1px solid rgba(163,139,99,.5);
+      box-shadow:0 24px 45px rgba(0,0,0,.8);
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+    }
+    .modal-header{
+      padding:10px 16px 8px;
+      border-bottom:1px solid rgba(163,139,99,.25);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      background:linear-gradient(90deg,#050505,#111,#050505);
+    }
+    .modal-header h2{
+      margin:0;
+      font-size:15px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--gold);
+    }
+    .modal-body{
+      padding:10px 14px 12px;
+      overflow-y:auto;
+    }
+    .form-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+    }
+    @media (max-width: 900px){
+      .form-grid{
+        grid-template-columns:1fr;
+      }
+    }
+    .form-section{
+      border-radius:var(--radius-md);
+      border:1px solid rgba(163,139,99,.22);
+      background:rgba(0,0,0,.55);
+      padding:8px 9px;
+    }
+    .form-section h3{
+      margin:0 0 6px;
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:var(--muted);
+    }
+    .form-section small{
+      font-size:11px;
+      color:var(--muted);
+    }
+
+    .modal-footer{
+      padding:8px 14px 10px;
+      border-top:1px solid rgba(163,139,99,.25);
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      background:#050505;
+      flex-wrap:wrap;
+    }
+    .modal-footer-left{
+      font-size:11px;
+      color:var(--muted);
+    }
+
+  </style>
+</head>
+<body>
+<div class="app-shell">
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M8 12.5l2.5 2.5L16 9"></path>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-app">Garvetur Porto Pro</div>
+        <h1>Particulares (Portais)</h1>
+        <span class="sub">Prospeção em Idealista · Imovirtual · Casa Sapo · Outros</span>
+      </div>
+    </div>
+
+    <nav class="nav-tabs">
+      <a href="index.html" class="nav-tab">Início</a>
+      <a href="mapa.html" class="nav-tab">Mapa</a>
+      <a href="kanban.html" class="nav-tab">Leads</a>
+      <a href="angariacoes.html" class="nav-tab">Angariações</a>
+      <a href="particulares.html" class="nav-tab active">Particulares</a>
+      <a href="dashboard.html" class="nav-tab">Dashboard</a>
+      <a href="vendas.html" class="nav-tab">Vendas</a>
+      <a href="tarefas.html" class="nav-tab">Tarefas</a>
+    </nav>
+
+    <div class="header-actions">
+      <div class="pill-lock" id="lockPill">
+        <span>Modo</span>
+        <span class="state" id="lockStateLabel">Bloqueado</span>
+        <button id="toggleLockBtn" title="Alternar entre edição bloqueada e ativa">
+          🔒
+        </button>
+      </div>
+
+      <button class="btn btn-ghost" id="importCsvBtn" title="Importar prospeção de CSV">⤒ CSV</button>
+      <button class="btn btn-ghost" id="exportCsvBtn" title="Exportar prospeção para CSV">⤓ CSV</button>
+      <button class="btn btn-ghost" id="exportPdfBtn" title="Imprimir / PDF">⤓ PDF</button>
+
+      <button class="btn btn-ghost" id="backupBtn" title="Backup OneDrive">💾 Backup</button>
+      <button class="btn btn-ghost" id="restoreBtn" title="Restaurar dados">⤺ Restaurar</button>
+
+      <button class="btn btn-primary" id="newItemBtn">+ Novo Particular</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <h3>Filtros</h3>
+
+        <div class="field">
+          <label class="field-label" for="filterConsultor">Consultor</label>
+          <select id="filterConsultor">
+            <option value="">Todos</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="filterPortal">Portal</label>
+          <select id="filterPortal">
+            <option value="">Todos</option>
+            <option value="Idealista">Idealista</option>
+            <option value="Imovirtual">Imovirtual</option>
+            <option value="Casa Sapo">Casa Sapo</option>
+            <option value="OLX">OLX</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="filterEstado">Estado prospeção</label>
+          <select id="filterEstado">
+            <option value="">Todos</option>
+            <option value="identificado">Identificado</option>
+            <option value="contacto-feito">Contacto feito</option>
+            <option value="follow-up">Follow-up</option>
+            <option value="visita">Visita</option>
+            <option value="proposta-enviada">Proposta enviada</option>
+            <option value="angariado">Angariado</option>
+            <option value="descartado">Descartado</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="filterSearchText">Pesquisa rápida</label>
+          <input type="text" id="filterSearchText" placeholder="Título, concelho, freguesia, zona, ref., portal…" />
+        </div>
+
+        <div class="field">
+          <label class="field-label">Período (identificação)</label>
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label" for="filterDataDe">De</label>
+              <input type="date" id="filterDataDe" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="filterDataAte">Até</label>
+              <input type="date" id="filterDataAte" />
+            </div>
+          </div>
+        </div>
+
+        <div class="toggle-line">
+          <span>Mostrar invisíveis</span>
+          <label class="switch">
+            <input type="checkbox" id="filterShowHidden">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="toggle-line">
+          <span>Só invisíveis</span>
+          <label class="switch">
+            <input type="checkbox" id="filterOnlyHidden">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="field-row" style="margin-top:8px;">
+          <button class="btn" id="filterApplyBtn" style="flex:1;">Aplicar</button>
+          <button class="btn btn-ghost" id="filterClearBtn" style="flex:1;border-color:rgba(255,255,255,.2);">Limpar</button>
+        </div>
+
+        <p style="margin-top:6px;">
+          Use estes filtros para preparar o trabalho de prospeção (por consultor, portal, estado e datas).
+          O botão <strong>Aplicar</strong> guarda os filtros neste navegador.
+        </p>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Resumo rápido</h3>
+        <div class="filters-badges" id="summaryBadges"></div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Notas</h3>
+        <p>Quando o cadeado está em <strong>Bloqueado</strong>, não há risco de alterar dados por engano.</p>
+        <p>Quando está <strong>Edição ativa</strong>, pode criar, editar e apagar registos de particulares.</p>
+      </div>
+    </aside>
+
+    <main class="cards-area">
+      <div class="cards-header">
+        <div class="cards-header-left">
+          <h2>Particulares (Portais)</h2>
+          <p>Visão consolidada de prospeção em anúncios de particulares nos principais portais.</p>
+          <div class="pipeline-kpis" id="pipelineKpis"></div>
+        </div>
+      </div>
+
+      <div id="cardsGrid" class="cards-grid"></div>
+      <div id="emptyState" class="empty" style="display:none;">
+        Ainda não existem particulares registados com os filtros atuais.
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Novo Particular</h2>
+      <button class="btn btn-icon btn-ghost" id="closeModalBtn" title="Fechar">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="itemForm">
+        <input type="hidden" id="itemId" />
+        <div class="form-grid">
+          <!-- COLUNA 1: Envolvidos & Portal -->
+          <div class="form-section">
+            <h3>Envolvidos & Portal</h3>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="consultor">Consultor</label>
+                <select id="consultor"></select>
+              </div>
+              <div class="field">
+                <label class="field-label" for="portal">Portal</label>
+                <select id="portal">
+                  <option value="">—</option>
+                  <option value="Idealista">Idealista</option>
+                  <option value="Imovirtual">Imovirtual</option>
+                  <option value="Casa Sapo">Casa Sapo</option>
+                  <option value="OLX">OLX</option>
+                  <option value="Outro">Outro</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="link">Link do anúncio</label>
+              <input type="text" id="link" placeholder="https://…" />
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="estadoProspeccao">Estado prospeção</label>
+                <select id="estadoProspeccao">
+                  <option value="identificado">Identificado</option>
+                  <option value="contacto-feito">Contacto feito</option>
+                  <option value="follow-up">Follow-up</option>
+                  <option value="visita">Visita</option>
+                  <option value="proposta-enviada">Proposta enviada</option>
+                  <option value="angariado">Angariado</option>
+                  <option value="descartado">Descartado</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="field-label" for="refAngariacao">Ref. angariação (se já existir)</label>
+                <input type="text" id="refAngariacao" placeholder="Ex.: GPP-2025-001" />
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="dataIdentificacao">Data identificação</label>
+                <input type="date" id="dataIdentificacao" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="dataPrimeiroContacto">Primeiro contacto</label>
+                <input type="date" id="dataPrimeiroContacto" />
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="dataUltimaAcao">Última ação</label>
+                <input type="date" id="dataUltimaAcao" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="proximaAcaoData">Próxima ação (data)</label>
+                <input type="date" id="proximaAcaoData" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="proximaAcaoTipo">Próxima ação (tipo)</label>
+              <select id="proximaAcaoTipo">
+                <option value="">—</option>
+                <option value="ligar">Ligar</option>
+                <option value="email">Enviar email</option>
+                <option value="visita">Visita</option>
+                <option value="proposta">Enviar proposta</option>
+                <option value="outro">Outro</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- COLUNA 2: Imóvel & localização -->
+          <div class="form-section">
+            <h3>Imóvel & localização</h3>
+
+            <div class="field">
+              <label class="field-label" for="tituloImovel">Título / Designação</label>
+              <input type="text" id="tituloImovel" placeholder="Ex.: T2 com varanda junto ao Parque da Cidade" />
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="concelho">Concelho</label>
+                <input type="text" id="concelho" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="freguesia">Freguesia</label>
+                <input type="text" id="freguesia" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="zona">Zona / Referência local</label>
+              <input type="text" id="zona" placeholder="Ex.: Boavista, Foz, Antas…" />
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="natureza">Natureza</label>
+                <select id="natureza">
+                  <option value="">—</option>
+                  <option value="apartamento">Apartamento</option>
+                  <option value="moradia">Moradia</option>
+                  <option value="terreno">Terreno</option>
+                  <option value="loja">Loja</option>
+                  <option value="escritorio">Escritório</option>
+                  <option value="outro">Outro</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="field-label" for="tipologia">Tipologia</label>
+                <input type="text" id="tipologia" placeholder="Ex.: T1, T2, T3+1" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="precoAnuncio">Preço anúncio (€)</label>
+              <input type="number" id="precoAnuncio" min="0" step="1000" />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="observacoes">Observações</label>
+              <textarea id="observacoes" placeholder="Notas sobre o proprietário, objeções, alinhamento de preço, etc."></textarea>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="notasInternas">Notas internas</label>
+              <textarea id="notasInternas" placeholder="Uso interno: estratégia, histórico de conversas, alertas."></textarea>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-footer-left">
+        Dados guardados apenas neste navegador (localStorage). Use exportações / backup para partilha ou segurança.
+      </div>
+      <div>
+        <button class="btn btn-ghost" id="cancelModalBtn">Cancelar</button>
+        <button class="btn btn-primary" id="saveItemBtn">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Config central de consultores -->
+<script src="config-consultores.js?v=2"></script>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'gpp_particulares_v1';
+  const FILTERS_STORAGE_KEY = 'gpp_particulares_filters_v1';
+
+  // Lista fallback caso não exista GPPConsultores
+  const FALLBACK_CONSULTOR_OPTIONS = [
+    "Rui Quelhas",
+    "Manuel Oliveira",
+    "João Sousa",
+    "Francisco dos Santos",
+    "Rosário Vasconcelos",
+    "Armanda Meireles",
+    "Audrey Lucas",
+    "Dalila Cunha",
+    "Outro"
+  ];
+
+  function obterConsultorOptions(){
+    try{
+      if(window.GPPConsultores && typeof window.GPPConsultores.getAtivos === 'function'){
+        const lista = window.GPPConsultores.getAtivos();
+        if(!Array.isArray(lista) || !lista.length) return FALLBACK_CONSULTOR_OPTIONS;
+
+        const nomes = lista
+          .map(c=>{
+            if(typeof c === 'string') return c;
+            if(c && typeof c === 'object'){
+              return c.nome || c.name || c.id || '';
+            }
+            return '';
+          })
+          .filter(Boolean);
+        return nomes.length ? nomes : FALLBACK_CONSULTOR_OPTIONS;
+      }
+    }catch(e){
+      console.error('Erro ao ler consultores de GPPConsultores', e);
+    }
+    return FALLBACK_CONSULTOR_OPTIONS;
+  }
+
+  function $(id){ return document.getElementById(id); }
+
+  const lockStateLabel = $('lockStateLabel');
+  const toggleLockBtn = $('toggleLockBtn');
+  const newItemBtn = $('newItemBtn');
+  const importCsvBtn = $('importCsvBtn');
+  const exportCsvBtn = $('exportCsvBtn');
+  const exportPdfBtn = $('exportPdfBtn');
+  const backupBtn = $('backupBtn');
+  const restoreBtn = $('restoreBtn');
+
+  const cardsGrid = $('cardsGrid');
+  const emptyState = $('emptyState');
+  const pipelineKpis = $('pipelineKpis');
+  const summaryBadges = $('summaryBadges');
+
+  const filterConsultor = $('filterConsultor');
+  const filterPortal = $('filterPortal');
+  const filterEstado = $('filterEstado');
+  const filterSearchText = $('filterSearchText');
+  const filterDataDe = $('filterDataDe');
+  const filterDataAte = $('filterDataAte');
+  const filterShowHidden = $('filterShowHidden');
+  const filterOnlyHidden = $('filterOnlyHidden');
+  const filterApplyBtn = $('filterApplyBtn');
+  const filterClearBtn = $('filterClearBtn');
+
+  const modalBackdrop = $('modalBackdrop');
+  const modalTitle = $('modalTitle');
+  const closeModalBtn = $('closeModalBtn');
+  const cancelModalBtn = $('cancelModalBtn');
+  const saveItemBtn = $('saveItemBtn');
+  const itemForm = $('itemForm');
+
+  const consultorSelect = $('consultor');
+  const portalSelect = $('portal');
+  const estadoProspeccaoSelect = $('estadoProspeccao');
+
+  let state = {
+    locked:true,
+    items:[]
+  };
+
+  function migrateItem(d){
+    if(!d || typeof d !== 'object') return {};
+    return {
+      visible: d.visible !== false,
+      estadoProspeccao: d.estadoProspeccao || 'identificado',
+      ...d
+    };
+  }
+
+  function loadState(){
+    function safeParse(raw){
+      if(!raw) return null;
+      try{ return JSON.parse(raw); }catch(e){ return null; }
+    }
+
+    let parsed = safeParse(localStorage.getItem(STORAGE_KEY));
+    let fromLegacy = false;
+
+    if(parsed){
+      if(Array.isArray(parsed)){
+        state.items = parsed.map(migrateItem);
+        state.locked = true;
+        updateLockUI();
+        return;
+      }
+      if(parsed && typeof parsed === 'object' && Array.isArray(parsed.items)){
+        state.items = parsed.items.map(migrateItem);
+        state.locked = parsed.locked !== false;
+        updateLockUI();
+        return;
+      }
+    }
+
+    // nenhuma entrada anterior — fica tudo vazio
+    state.items = [];
+    state.locked = true;
+    updateLockUI();
+  }
+
+  function saveState(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }catch(e){
+      console.error('Erro ao guardar storage de particulares', e);
+    }
+  }
+
+  function updateLockUI(){
+    if(state.locked){
+      lockStateLabel.textContent = 'Bloqueado';
+      toggleLockBtn.textContent = '🔒';
+      newItemBtn.disabled = true;
+    }else{
+      lockStateLabel.textContent = 'Edição ativa';
+      toggleLockBtn.textContent = '🔓';
+      newItemBtn.disabled = false;
+    }
+  }
+
+  function initConsultores(){
+    const nomes = obterConsultorOptions();
+    consultorSelect.innerHTML = '';
+    filterConsultor.innerHTML = '<option value="">Todos</option>';
+
+    nomes.forEach(name=>{
+      const opt1 = document.createElement('option');
+      opt1.value = name;
+      opt1.textContent = name;
+      consultorSelect.appendChild(opt1);
+
+      const opt2 = document.createElement('option');
+      opt2.value = name;
+      opt2.textContent = name;
+      filterConsultor.appendChild(opt2);
+    });
+  }
+
+  function openModal(item){
+    modalBackdrop.classList.add('open');
+    if(item){
+      modalTitle.textContent = 'Editar Particular';
+      $('itemId').value = item.id || '';
+      consultorSelect.value = item.consultor || '';
+      portalSelect.value = item.portal || '';
+      $('link').value = item.link || '';
+      estadoProspeccaoSelect.value = item.estadoProspeccao || 'identificado';
+      $('refAngariacao').value = item.refAngariacao || '';
+      $('dataIdentificacao').value = item.dataIdentificacao || '';
+      $('dataPrimeiroContacto').value = item.dataPrimeiroContacto || '';
+      $('dataUltimaAcao').value = item.dataUltimaAcao || '';
+      $('proximaAcaoData').value = item.proximaAcaoData || '';
+      $('proximaAcaoTipo').value = item.proximaAcaoTipo || '';
+      $('tituloImovel').value = item.tituloImovel || '';
+      $('concelho').value = item.concelho || '';
+      $('freguesia').value = item.freguesia || '';
+      $('zona').value = item.zona || '';
+      $('natureza').value = item.natureza || '';
+      $('tipologia').value = item.tipologia || '';
+      $('precoAnuncio').value = item.precoAnuncio || '';
+      $('observacoes').value = item.observacoes || '';
+      $('notasInternas').value = item.notasInternas || '';
+    }else{
+      modalTitle.textContent = 'Novo Particular';
+      itemForm.reset();
+      $('itemId').value = '';
+      estadoProspeccaoSelect.value = 'identificado';
+      // Data identificação por defeito = hoje
+      const hoje = new Date().toISOString().slice(0,10);
+      $('dataIdentificacao').value = hoje;
+    }
+  }
+
+  function closeModal(){
+    modalBackdrop.classList.remove('open');
+  }
+
+  function collectFormData(){
+    let id = $('itemId').value || '';
+    if(!id){
+      id = 'part_' + Date.now();
+    }
+
+    let dataIdent = $('dataIdentificacao').value;
+    if(!dataIdent){
+      dataIdent = new Date().toISOString().slice(0,10);
+      $('dataIdentificacao').value = dataIdent;
+    }
+
+    const data = {
+      id,
+      consultor: consultorSelect.value || '',
+      portal: portalSelect.value || '',
+      link: $('link').value || '',
+      estadoProspeccao: estadoProspeccaoSelect.value || 'identificado',
+      refAngariacao: $('refAngariacao').value || '',
+      dataIdentificacao: dataIdent,
+      dataPrimeiroContacto: $('dataPrimeiroContacto').value || '',
+      dataUltimaAcao: $('dataUltimaAcao').value || '',
+      proximaAcaoData: $('proximaAcaoData').value || '',
+      proximaAcaoTipo: $('proximaAcaoTipo').value || '',
+      tituloImovel: $('tituloImovel').value || '',
+      concelho: $('concelho').value || '',
+      freguesia: $('freguesia').value || '',
+      zona: $('zona').value || '',
+      natureza: $('natureza').value || '',
+      tipologia: $('tipologia').value || '',
+      precoAnuncio: $('precoAnuncio').value || '',
+      observacoes: $('observacoes').value || '',
+      notasInternas: $('notasInternas').value || ''
+    };
+
+    return data;
+  }
+
+  function loadFilterState(){
+    try{
+      const raw = localStorage.getItem(FILTERS_STORAGE_KEY);
+      if(!raw) return;
+      const obj = JSON.parse(raw);
+      if(!obj || typeof obj !== 'object') return;
+
+      if(obj.consultor && filterConsultor.querySelector('option[value="'+obj.consultor+'"]')){
+        filterConsultor.value = obj.consultor;
+      }
+      filterPortal.value = obj.portal || '';
+      filterEstado.value = obj.estado || '';
+      filterSearchText.value = obj.searchText || '';
+      filterDataDe.value = obj.de || '';
+      filterDataAte.value = obj.ate || '';
+      filterShowHidden.checked = !!obj.mostrarInvisiveis;
+      filterOnlyHidden.checked = !!obj.soInvisiveis;
+    }catch(e){
+      console.error('Erro a carregar filtros de particulares', e);
+    }
+  }
+
+  function saveFilterStateFromUI(){
+    const data = {
+      consultor: filterConsultor.value || '',
+      portal: filterPortal.value || '',
+      estado: filterEstado.value || '',
+      searchText: filterSearchText.value || '',
+      de: filterDataDe.value || '',
+      ate: filterDataAte.value || '',
+      mostrarInvisiveis: filterShowHidden.checked,
+      soInvisiveis: filterOnlyHidden.checked
+    };
+    try{
+      localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(data));
+    }catch(e){
+      console.error('Erro a guardar filtros de particulares', e);
+    }
+  }
+
+  function applyFilters(items){
+    const cons = filterConsultor.value;
+    const portal = filterPortal.value;
+    const est = filterEstado.value;
+    const search = (filterSearchText.value || '').trim().toLowerCase();
+    const from = filterDataDe.value;
+    const to = filterDataAte.value;
+    const showHidden = filterShowHidden.checked;
+    const onlyHidden = filterOnlyHidden.checked;
+
+    return items.filter(d=>{
+      if(cons && d.consultor !== cons) return false;
+      if(portal && d.portal !== portal) return false;
+      if(est && d.estadoProspeccao !== est) return false;
+
+      if(onlyHidden){
+        if(d.visible !== false) return false;
+      }else if(!showHidden && d.visible === false){
+        return false;
+      }
+
+      if(from && d.dataIdentificacao && d.dataIdentificacao < from) return false;
+      if(to && d.dataIdentificacao && d.dataIdentificacao > to) return false;
+
+      if(search){
+        const texto = [
+          d.tituloImovel,
+          d.concelho,
+          d.freguesia,
+          d.zona,
+          d.portal,
+          d.consultor,
+          d.refAngariacao
+        ].filter(Boolean).join(' ').toLowerCase();
+        if(!texto.includes(search)) return false;
+      }
+
+      return true;
+    });
+  }
+
+  function formatMoney(v){
+    const n = parseFloat(String(v).replace(',', '.'));
+    if(!isFinite(n)) return '';
+    return n.toLocaleString('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+  }
+
+  function renderCards(){
+    const items = state.items.slice().sort((a,b)=>{
+      const da = a.dataIdentificacao || '';
+      const db = b.dataIdentificacao || '';
+      return (db || '').localeCompare(da || '');
+    });
+
+    const filtered = applyFilters(items);
+    cardsGrid.innerHTML = '';
+    emptyState.style.display = filtered.length ? 'none' : 'block';
+
+    // KPIs por estado
+    const estados = ["identificado","contacto-feito","follow-up","visita","proposta-enviada","angariado","descartado"];
+    const labels = {
+      "identificado":"Identificados",
+      "contacto-feito":"Contacto",
+      "follow-up":"Follow-up",
+      "visita":"Visita",
+      "proposta-enviada":"Proposta",
+      "angariado":"Angariados",
+      "descartado":"Descartados"
+    };
+    const contagem = {};
+    estados.forEach(e=>contagem[e]=0);
+    items.forEach(d=>{
+      if(contagem[d.estadoProspeccao] !== undefined){
+        contagem[d.estadoProspeccao]++;
+      }
+    });
+
+    pipelineKpis.innerHTML = '';
+    estados.forEach(e=>{
+      const chip = document.createElement('div');
+      chip.className = 'kpi-chip';
+      chip.innerHTML = labels[e] + '<span class="value">' + contagem[e] + '</span>';
+      pipelineKpis.appendChild(chip);
+    });
+
+    // Resumo rápido (totais, por consultor, por portal)
+    summaryBadges.innerHTML = '';
+    const total = items.length;
+    const visiveis = items.filter(d=>d.visible !== false).length;
+
+    let b1 = document.createElement('div');
+    b1.className = 'badge';
+    b1.innerHTML = 'Total <strong>' + total + '</strong>';
+    summaryBadges.appendChild(b1);
+
+    let b2 = document.createElement('div');
+    b2.className = 'badge';
+    b2.innerHTML = 'Visíveis <strong>' + visiveis + '</strong>';
+    summaryBadges.appendChild(b2);
+
+    const fil = applyFilters(items);
+    const porCons = {};
+    const porPortal = {};
+    fil.forEach(d=>{
+      if(d.consultor){
+        porCons[d.consultor] = (porCons[d.consultor] || 0) + 1;
+      }
+      if(d.portal){
+        porPortal[d.portal] = (porPortal[d.portal] || 0) + 1;
+      }
+    });
+
+    Object.keys(porCons).sort().forEach(n=>{
+      const b = document.createElement('div');
+      b.className = 'badge';
+      b.innerHTML = '<strong>'+n+':</strong> ' + porCons[n];
+      summaryBadges.appendChild(b);
+    });
+
+    Object.keys(porPortal).sort().forEach(p=>{
+      const b = document.createElement('div');
+      b.className = 'badge';
+      b.innerHTML = '<strong>'+p+':</strong> ' + porPortal[p];
+      summaryBadges.appendChild(b);
+    });
+
+    // Cards
+    filtered.forEach(d=>{
+      const card = document.createElement('div');
+      card.className = 'card' + (d.visible === false ? ' hidden-card' : '');
+      card.dataset.id = d.id;
+
+      const title = d.tituloImovel || (d.tipologia ? d.tipologia + ' ' : '') + (d.concelho || 'Particular');
+      const subParts = [];
+      if(d.portal) subParts.push(d.portal);
+      if(d.concelho) subParts.push(d.concelho);
+      if(d.freguesia) subParts.push(d.freguesia);
+      const subtitleText = subParts.join(' · ');
+
+      const topRow = document.createElement('div');
+      topRow.className = 'card-top-row';
+
+      const titleBlock = document.createElement('div');
+      titleBlock.className = 'card-title-block';
+
+      const h3 = document.createElement('h3');
+      h3.className = 'card-title';
+      h3.textContent = title;
+      titleBlock.appendChild(h3);
+
+      const subtitle = document.createElement('div');
+      subtitle.className = 'card-subtitle';
+      subtitle.textContent = subtitleText;
+      titleBlock.appendChild(subtitle);
+
+      const chipsRow = document.createElement('div');
+      chipsRow.className = 'chip-row';
+
+      const estLabelMap = {
+        "identificado":"Identificado",
+        "contacto-feito":"Contacto feito",
+        "follow-up":"Follow-up",
+        "visita":"Visita",
+        "proposta-enviada":"Proposta enviada",
+        "angariado":"Angariado",
+        "descartado":"Descartado"
+      };
+      const est = d.estadoProspeccao || 'identificado';
+      let estClass = 'chip-primary';
+      if(est === 'angariado') estClass = 'chip-green';
+      else if(est === 'descartado') estClass = 'chip-red';
+      else if(est === 'proposta-enviada' || est === 'visita') estClass = 'chip-yellow';
+
+      const chipEstado = document.createElement('span');
+      chipEstado.className = 'chip ' + estClass;
+      chipEstado.textContent = estLabelMap[est] || est;
+      chipsRow.appendChild(chipEstado);
+
+      if(d.consultor){
+        const ch = document.createElement('span');
+        ch.className = 'chip';
+        ch.textContent = d.consultor;
+        chipsRow.appendChild(ch);
+      }
+      if(d.tipologia){
+        const ch = document.createElement('span');
+        ch.className = 'chip';
+        ch.textContent = d.tipologia;
+        chipsRow.appendChild(ch);
+      }
+      if(d.precoAnuncio){
+        const ch = document.createElement('span');
+        ch.className = 'chip';
+        ch.textContent = formatMoney(d.precoAnuncio);
+        chipsRow.appendChild(ch);
+      }
+
+      if(d.portal){
+        const ch = document.createElement('span');
+        ch.className = 'chip';
+        ch.textContent = d.portal;
+        chipsRow.appendChild(ch);
+      }
+
+      if(d.refAngariacao){
+        const ch = document.createElement('span');
+        ch.className = 'chip chip-primary';
+        ch.textContent = 'Ligado a ' + d.refAngariacao;
+        chipsRow.appendChild(ch);
+      }
+
+      titleBlock.appendChild(chipsRow);
+      topRow.appendChild(titleBlock);
+      card.appendChild(topRow);
+
+      // Secções
+      if(d.zona || d.concelho || d.freguesia){
+        const sec = document.createElement('div');
+        sec.className = 'card-section';
+        const span = document.createElement('span');
+        span.textContent = [d.zona, d.concelho, d.freguesia].filter(Boolean).join(' · ');
+        sec.appendChild(span);
+        card.appendChild(sec);
+      }
+
+      if(d.observacoes){
+        const sec = document.createElement('div');
+        sec.className = 'card-section';
+        const span = document.createElement('span');
+        span.textContent = d.observacoes.length > 160 ? d.observacoes.slice(0,157)+'…' : d.observacoes;
+        sec.appendChild(span);
+        card.appendChild(sec);
+      }
+
+      const foot = document.createElement('div');
+      foot.className = 'card-footer';
+
+      const left = document.createElement('div');
+      left.className = 'card-footer-left';
+
+      const partes = [];
+      if(d.dataIdentificacao) partes.push('Identificado: ' + d.dataIdentificacao);
+      if(d.dataUltimaAcao) partes.push('Última ação: ' + d.dataUltimaAcao);
+      if(d.proximaAcaoData){
+        partes.push('Próxima: ' + d.proximaAcaoData + (d.proximaAcaoTipo ? ' ('+d.proximaAcaoTipo+')' : ''));
+      }
+
+      left.textContent = partes.join(' · ');
+      foot.appendChild(left);
+
+      const right = document.createElement('div');
+      right.className = 'card-footer-right';
+
+      const btnEdit = document.createElement('button');
+      btnEdit.className = 'btn-xs primary';
+      btnEdit.textContent = 'Editar';
+      btnEdit.addEventListener('click', ()=>{
+        if(state.locked) return;
+        openModal(d);
+      });
+      right.appendChild(btnEdit);
+
+      const btnPdf = document.createElement('button');
+      btnPdf.className = 'btn-xs';
+      btnPdf.textContent = 'PDF';
+      btnPdf.addEventListener('click', ()=>{
+        exportOnePdf(d);
+      });
+      right.appendChild(btnPdf);
+
+      if(d.link){
+        const btnLink = document.createElement('button');
+        btnLink.className = 'btn-xs';
+        btnLink.textContent = 'Abrir anúncio';
+        btnLink.addEventListener('click', ()=>{
+          window.open(d.link, '_blank');
+        });
+        right.appendChild(btnLink);
+      }
+
+      const btnVis = document.createElement('button');
+      btnVis.className = 'btn-xs';
+      btnVis.textContent = d.visible === false ? 'Tornar visível' : 'Tornar invisível';
+      btnVis.addEventListener('click', ()=>{
+        if(state.locked) return;
+        d.visible = d.visible === false ? true : false;
+        saveState();
+        renderCards();
+      });
+      right.appendChild(btnVis);
+
+      const btnDel = document.createElement('button');
+      btnDel.className = 'btn-xs danger';
+      btnDel.textContent = 'Apagar';
+      btnDel.addEventListener('click', ()=>{
+        if(state.locked) return;
+        if(confirm('Tem a certeza que pretende apagar este registo de particular?')){
+          state.items = state.items.filter(x=>x.id !== d.id);
+          saveState();
+          renderCards();
+        }
+      });
+      right.appendChild(btnDel);
+
+      foot.appendChild(right);
+      card.appendChild(foot);
+
+      cardsGrid.appendChild(card);
+    });
+  }
+
+  // --- CSV Export / Import ---
+
+  function escCsv(v){
+    if(v == null) return '';
+    const s = String(v).replace(/"/g,'""');
+    return '"' + s + '"';
+  }
+
+  function exportCsv(){
+    if(!state.items.length){
+      alert('Não existem registos de particulares para exportar.');
+      return;
+    }
+
+    const cols = [
+      'id','consultor','portal','link',
+      'estadoProspeccao','refAngariacao',
+      'dataIdentificacao','dataPrimeiroContacto','dataUltimaAcao',
+      'proximaAcaoData','proximaAcaoTipo',
+      'tituloImovel','concelho','freguesia','zona',
+      'natureza','tipologia','precoAnuncio',
+      'observacoes','notasInternas','visible'
+    ];
+
+    let csv = cols.map(escCsv).join(';') + '\n';
+    state.items.forEach(d=>{
+      const row = cols.map(c=>escCsv(d[c]));
+      csv += row.join(';') + '\n';
+    });
+
+    const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'particulares_garvetur_porto_pro.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function parseCsv(text){
+    const rows = [];
+    let row = [];
+    let cur = '';
+    let inQuotes = false;
+
+    for(let i=0; i<text.length; i++){
+      const ch = text[i];
+
+      if(ch === '"'){
+        if(inQuotes && text[i+1] === '"'){
+          cur += '"';
+          i++;
+        }else{
+          inQuotes = !inQuotes;
+        }
+      }else if(ch === ';' && !inQuotes){
+        row.push(cur);
+        cur = '';
+      }else if((ch === '\\n' || ch === '\\r') && !inQuotes){
+        if(ch === '\\r' && text[i+1] === '\\n') i++;
+        row.push(cur);
+        rows.push(row);
+        row = [];
+        cur = '';
+      }else{
+        cur += ch;
+      }
+    }
+    if(cur.length>0 || row.length>0){
+      row.push(cur);
+      rows.push(row);
+    }
+    return rows;
+  }
+
+  function importFromCsvContent(text){
+    const rows = parseCsv(text.trim());
+    if(!rows.length){
+      alert('Ficheiro CSV vazio ou não reconhecido.');
+      return;
+    }
+
+    const headerRaw = rows[0];
+    const headers = headerRaw.map(h=>{
+      return String(h || '').trim().replace(/^"|"$/g,'');
+    });
+
+    const KNOWN_FIELDS = new Set([
+      'id','consultor','portal','link',
+      'estadoProspeccao','refAngariacao',
+      'dataIdentificacao','dataPrimeiroContacto','dataUltimaAcao',
+      'proximaAcaoData','proximaAcaoTipo',
+      'tituloImovel','concelho','freguesia','zona',
+      'natureza','tipologia','precoAnuncio',
+      'observacoes','notasInternas','visible'
+    ]);
+
+    let imported = 0;
+    let created = 0;
+    let updated = 0;
+
+    for(let i=1;i<rows.length;i++){
+      const row = rows[i];
+      if(!row || row.length===0) continue;
+
+      const record = {};
+      headers.forEach((h,idx)=>{
+        if(!h) return;
+        let val = row[idx] || '';
+        val = String(val).trim();
+        val = val.replace(/^"|"$/g,'').replace(/""/g,'"');
+        if(!KNOWN_FIELDS.has(h)) return;
+
+        if(h === 'visible'){
+          const low = val.toLowerCase();
+          record[h] = (low === 'true' || low === '1' || low === 'sim');
+        }else{
+          record[h] = val;
+        }
+      });
+
+      if(Object.keys(record).length === 0) continue;
+
+      let id = record.id;
+      if(!id){
+        id = 'part_' + Date.now() + '_' + i;
+        record.id = id;
+      }
+
+      const idxExisting = state.items.findIndex(d=>d.id === id);
+      if(idxExisting >= 0){
+        const existing = state.items[idxExisting];
+        const merged = Object.assign({}, existing, record, { id });
+        state.items[idxExisting] = migrateItem(merged);
+        updated++;
+      }else{
+        const novo = migrateItem(record);
+        state.items.push(novo);
+        created++;
+      }
+      imported++;
+    }
+
+    saveState();
+    renderCards();
+
+    alert(
+      'Importação concluída.\\n\\n' +
+      'Registos lidos: ' + imported +
+      '\\nNovos: ' + created +
+      '\\nAtualizados: ' + updated
+    );
+  }
+
+  function handleImportCsv(){
+    if(state.locked){
+      alert('O modo de edição está bloqueado. Desbloqueie o cadeado no topo para importar dados.');
+      return;
+    }
+
+    if(!confirm('Esta operação vai importar/atualizar registos de particulares a partir de um ficheiro CSV exportado do Garvetur Porto Pro.\\n\\nOs dados existentes com o mesmo ID serão atualizados, os restantes serão adicionados.\\n\\nPretende continuar?')){
+      return;
+    }
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.csv,text/csv';
+
+    input.addEventListener('change', (e)=>{
+      const file = e.target.files && e.target.files[0];
+      if(!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (ev)=>{
+        try{
+          const text = ev.target.result;
+          importFromCsvContent(text);
+        }catch(err){
+          console.error('Erro a importar CSV de particulares', err);
+          alert('Ocorreu um erro ao ler o ficheiro CSV. Verifique se foi exportado a partir do Garvetur Porto Pro.');
+        }
+      };
+      reader.readAsText(file,'utf-8');
+    });
+
+    input.click();
+  }
+
+  // --- PDF (ficha individual) ---
+
+  function exportOnePdf(item){
+    const w = window.open('', '_blank');
+    if(!w){
+      alert('O navegador bloqueou a abertura da janela de impressão.\\n\\nPermita pop-ups para este site ou use outra opção.');
+      return;
+    }
+
+    const titulo = item.tituloImovel || (item.tipologia ? item.tipologia + ' ' : '') + (item.concelho || 'Particular');
+
+    const html = `
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8" />
+<title>Ficha de Prospeção — ${titulo}</title>
+<style>
+  @page { size: A4; margin: 2cm; }
+  body{
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    margin:0;
+    padding:0;
+    color:#222;
+    background:#fff;
+  }
+  .page{ padding:0; }
+  h1{
+    font-size:18px;
+    margin:0 0 4px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:#333;
+  }
+  .sub{
+    font-size:11px;
+    color:#777;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+  }
+  header{
+    border-bottom:2px solid #A38B63;
+    padding-bottom:8px;
+    margin-bottom:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+  }
+  .brand-block{ max-width:70%; }
+  .logo-block{
+    font-size:11px;
+    color:#555;
+    text-align:right;
+  }
+  h2.section{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.16em;
+    color:#555;
+    margin:14px 0 4px;
+    border-bottom:1px solid #ddd;
+    padding-bottom:2px;
+  }
+  .line{
+    font-size:10px;
+    margin:2px 0;
+  }
+  .strong{ font-weight:600; }
+  .muted{ color:#777; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="brand-block">
+      <h1>Garvetur Luxury Porto</h1>
+      <div class="sub">Ficha de Prospeção — Particulares (Portais)</div>
+    </div>
+    <div class="logo-block">
+      <div>Data: ${new Date().toLocaleDateString('pt-PT')}</div>
+      <div>Portal: ${item.portal || '-'}</div>
+    </div>
+  </header>
+
+  <div class="line"><span class="strong">Título:</span> ${titulo}</div>
+  <div class="line"><span class="strong">Consultor:</span> ${item.consultor || ''}</div>
+  <div class="line">
+    <span class="strong">Estado prospeção:</span> ${item.estadoProspeccao || ''} &nbsp; | &nbsp;
+    <span class="strong">Ref. angariação:</span> ${item.refAngariacao || '-'}
+  </div>
+  <div class="line">
+    <span class="strong">Identificação:</span> ${item.dataIdentificacao || '-'} &nbsp; | &nbsp;
+    <span class="strong">Primeiro contacto:</span> ${item.dataPrimeiroContacto || '-'} &nbsp; | &nbsp;
+    <span class="strong">Última ação:</span> ${item.dataUltimaAcao || '-'}
+  </div>
+  <div class="line">
+    <span class="strong">Próxima ação:</span>
+    ${item.proximaAcaoData || '-'} ${item.proximaAcaoTipo ? '('+item.proximaAcaoTipo+')':''}
+  </div>
+  ${item.link ? `<div class="line"><span class="strong">Link anúncio:</span> ${item.link}</div>` : ''}
+
+  <h2 class="section">Imóvel & localização</h2>
+  <div class="line"><span class="strong">Concelho:</span> ${item.concelho || ''}</div>
+  <div class="line">
+    <span class="strong">Freguesia:</span> ${item.freguesia || ''} &nbsp; | &nbsp;
+    <span class="strong">Zona:</span> ${item.zona || ''}
+  </div>
+  <div class="line">
+    <span class="strong">Natureza:</span> ${item.natureza || ''} &nbsp; | &nbsp;
+    <span class="strong">Tipologia:</span> ${item.tipologia || ''}
+  </div>
+  <div class="line">
+    <span class="strong">Preço anúncio:</span> ${item.precoAnuncio || '-'}
+  </div>
+
+  <h2 class="section">Observações</h2>
+  <div class="line">
+    ${item.observacoes ? item.observacoes.replace(/\\n/g,'<br>') : '<span class="muted">Sem observações registadas.</span>'}
+  </div>
+
+  <h2 class="section">Notas internas</h2>
+  <div class="line">
+    ${item.notasInternas ? item.notasInternas.replace(/\\n/g,'<br>') : '<span class="muted">Sem notas internas registadas.</span>'}
+  </div>
+
+</div>
+<script>
+  window.print();
+<\/script>
+</body>
+</html>
+    `;
+
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+  }
+
+  function exportPdfAll(){
+    const filtered = applyFilters(state.items);
+    if(!filtered.length){
+      alert('Não existem registos com os filtros atuais para exportar.');
+      return;
+    }
+    exportOnePdf(filtered[0]);
+    if(filtered.length>1){
+      alert('Nesta fase a exportação em lote gera um PDF de cada vez. Para outros registos, use o botão PDF em cada cartão.');
+    }
+  }
+
+  // --- Backup / Restore JSON ---
+
+  function handleBackup(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw){
+        alert('Não existem dados de particulares para fazer backup.');
+        return;
+      }
+      const blob = new Blob([raw], { type: 'application/json;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const hoje = new Date().toISOString().slice(0,10);
+      a.href = url;
+      a.download = 'particulares_backup_' + hoje + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      alert('Backup efetuado com sucesso. Guarde o ficheiro num local seguro (ex.: OneDrive).');
+    }catch(e){
+      console.error('Erro no backup de particulares', e);
+      alert('Ocorreu um erro ao gerar o ficheiro de backup.');
+    }
+  }
+
+  function handleRestore(){
+    if(!confirm(
+      'Esta operação vai restaurar dados de particulares a partir de um ficheiro de backup.\\n\\n' +
+      'Os dados atuais serão substituídos pelos do ficheiro selecionado.\\n\\n' +
+      'Pretende continuar?'
+    )){
+      return;
+    }
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,application/json';
+
+    input.addEventListener('change', (e)=>{
+      const file = e.target.files && e.target.files[0];
+      if(!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (ev)=>{
+        try{
+          const text = ev.target.result;
+          const parsed = JSON.parse(text);
+
+          let newItems = [];
+          let newLocked = true;
+
+          if(Array.isArray(parsed)){
+            newItems = parsed;
+          }else if(parsed && typeof parsed === 'object'){
+            if(Array.isArray(parsed.items)) newItems = parsed.items;
+            if(typeof parsed.locked === 'boolean') newLocked = parsed.locked;
+          }
+
+          if(!Array.isArray(newItems) || !newItems.length){
+            alert('O ficheiro não contém registos válidos de particulares para restaurar.');
+            return;
+          }
+
+          state.items = newItems.map(migrateItem);
+          state.locked = newLocked;
+          saveState();
+          updateLockUI();
+          renderCards();
+
+          alert('Restauro concluído com sucesso.\\n\\nTotal de registos carregados: ' + state.items.length);
+        }catch(err){
+          console.error('Erro ao restaurar backup de particulares', err);
+          alert('O ficheiro selecionado não é um backup válido de particulares.');
+        }
+      };
+
+      reader.readAsText(file, 'utf-8');
+    });
+
+    input.click();
+  }
+
+  // --- Eventos principais ---
+
+  toggleLockBtn.addEventListener('click', ()=>{
+    state.locked = !state.locked;
+    updateLockUI();
+    saveState();
+  });
+
+  newItemBtn.addEventListener('click', ()=>{
+    if(state.locked) return;
+    openModal(null);
+  });
+
+  closeModalBtn.addEventListener('click', closeModal);
+  cancelModalBtn.addEventListener('click', closeModal);
+
+  saveItemBtn.addEventListener('click', (e)=>{
+    e.preventDefault();
+    if(state.locked){
+      alert('O modo de edição está bloqueado. Desbloqueie o cadeado no topo para guardar alterações.');
+      return;
+    }
+
+    const data = collectFormData();
+    const idx = state.items.findIndex(d=>d.id === data.id);
+
+    if(idx >= 0){
+      const prev = state.items[idx];
+      data.visible = (typeof prev.visible === 'boolean') ? prev.visible : true;
+      state.items[idx] = migrateItem(data);
+    }else{
+      data.visible = true;
+      state.items.push(migrateItem(data));
+    }
+
+    saveState();
+    renderCards();
+    closeModal();
+  });
+
+  filterApplyBtn.addEventListener('click', ()=>{
+    saveFilterStateFromUI();
+    renderCards();
+  });
+
+  filterClearBtn.addEventListener('click', ()=>{
+    filterConsultor.value = '';
+    filterPortal.value = '';
+    filterEstado.value = '';
+    filterSearchText.value = '';
+    filterDataDe.value = '';
+    filterDataAte.value = '';
+    filterShowHidden.checked = false;
+    filterOnlyHidden.checked = false;
+    saveFilterStateFromUI();
+    renderCards();
+  });
+
+  exportCsvBtn.addEventListener('click', exportCsv);
+  importCsvBtn.addEventListener('click', handleImportCsv);
+  exportPdfBtn.addEventListener('click', exportPdfAll);
+
+  backupBtn.addEventListener('click', handleBackup);
+  restoreBtn.addEventListener('click', handleRestore);
+
+  window.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape' && modalBackdrop.classList.contains('open')){
+      closeModal();
+    }
+  });
+
+  // Inicialização
+  initConsultores();
+  loadState();
+  loadFilterState();
+  renderCards();
+
+})();
+</script>
+</body>
+</html>
