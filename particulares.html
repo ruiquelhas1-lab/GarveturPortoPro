@@ -2,7 +2,7 @@
 <html lang="pt-PT">
 <head>
   <meta charset="utf-8" />
-  <title>Garvetur Porto Pro — Particulares (Portais)</title>
+  <title>Garvetur Porto Pro — FSBO</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -635,8 +635,8 @@
       </div>
       <div>
         <div class="brand-app">Garvetur Porto Pro</div>
-        <h1>Particulares (Portais)</h1>
-        <span class="sub">Prospeção em Idealista · Imovirtual · Casa Sapo · Outros</span>
+        <h1>FSBO</h1>
+        <span class="sub">Prospeção “For Sale By Owner” (Idealista · Imovirtual · Casa Sapo · Outros)</span>
       </div>
     </div>
 
@@ -645,19 +645,18 @@
       <a href="mapa.html" class="nav-tab">Mapa</a>
       <a href="kanban.html" class="nav-tab">Leads</a>
       <a href="angariacoes.html" class="nav-tab">Angariações</a>
-      <a href="particulares.html" class="nav-tab active">Particulares</a>
+      <a href="particulares.html" class="nav-tab active">FSBO</a>
       <a href="dashboard.html" class="nav-tab">Dashboard</a>
       <a href="vendas.html" class="nav-tab">Vendas</a>
       <a href="tarefas.html" class="nav-tab">Tarefas</a>
+      <a href="consultores-admin.html" class="nav-tab">Consultores</a>
     </nav>
 
     <div class="header-actions">
       <div class="pill-lock" id="lockPill">
         <span>Modo</span>
         <span class="state" id="lockStateLabel">Bloqueado</span>
-        <button id="toggleLockBtn" title="Alternar entre edição bloqueada e ativa">
-          🔒
-        </button>
+        <button id="toggleLockBtn" title="Alternar entre edição bloqueada e ativa">🔒</button>
       </div>
 
       <button class="btn btn-ghost" id="importCsvBtn" title="Importar prospeção de CSV">⤒ CSV</button>
@@ -667,7 +666,7 @@
       <button class="btn btn-ghost" id="backupBtn" title="Backup OneDrive">💾 Backup</button>
       <button class="btn btn-ghost" id="restoreBtn" title="Restaurar dados">⤺ Restaurar</button>
 
-      <button class="btn btn-primary" id="newItemBtn">+ Novo Particular</button>
+      <button class="btn btn-primary" id="newItemBtn">+ Novo FSBO</button>
     </div>
   </header>
 
@@ -762,22 +761,22 @@
       <div class="sidebar-section">
         <h3>Notas</h3>
         <p>Quando o cadeado está em <strong>Bloqueado</strong>, não há risco de alterar dados por engano.</p>
-        <p>Quando está <strong>Edição ativa</strong>, pode criar, editar e apagar registos de particulares.</p>
+        <p>Quando está <strong>Edição ativa</strong>, pode criar, editar e apagar registos FSBO.</p>
       </div>
     </aside>
 
     <main class="cards-area">
       <div class="cards-header">
         <div class="cards-header-left">
-          <h2>Particulares (Portais)</h2>
-          <p>Visão consolidada de prospeção em anúncios de particulares nos principais portais.</p>
+          <h2>FSBO</h2>
+          <p>Visão consolidada de prospeção “For Sale By Owner” (anúncios de particulares) nos principais portais.</p>
           <div class="pipeline-kpis" id="pipelineKpis"></div>
         </div>
       </div>
 
       <div id="cardsGrid" class="cards-grid"></div>
       <div id="emptyState" class="empty" style="display:none;">
-        Ainda não existem particulares registados com os filtros atuais.
+        Ainda não existem registos FSBO com os filtros atuais.
       </div>
     </main>
   </div>
@@ -787,7 +786,7 @@
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal">
     <div class="modal-header">
-      <h2 id="modalTitle">Novo Particular</h2>
+      <h2 id="modalTitle">Novo FSBO</h2>
       <button class="btn btn-icon btn-ghost" id="closeModalBtn" title="Fechar">✕</button>
     </div>
     <div class="modal-body">
@@ -1052,7 +1051,6 @@
     }
 
     let parsed = safeParse(localStorage.getItem(STORAGE_KEY));
-    let fromLegacy = false;
 
     if(parsed){
       if(Array.isArray(parsed)){
@@ -1069,7 +1067,6 @@
       }
     }
 
-    // nenhuma entrada anterior — fica tudo vazio
     state.items = [];
     state.locked = true;
     updateLockUI();
@@ -1079,7 +1076,7 @@
     try{
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }catch(e){
-      console.error('Erro ao guardar storage de particulares', e);
+      console.error('Erro ao guardar storage de FSBO', e);
     }
   }
 
@@ -1116,7 +1113,7 @@
   function openModal(item){
     modalBackdrop.classList.add('open');
     if(item){
-      modalTitle.textContent = 'Editar Particular';
+      modalTitle.textContent = 'Editar FSBO';
       $('itemId').value = item.id || '';
       consultorSelect.value = item.consultor || '';
       portalSelect.value = item.portal || '';
@@ -1138,11 +1135,10 @@
       $('observacoes').value = item.observacoes || '';
       $('notasInternas').value = item.notasInternas || '';
     }else{
-      modalTitle.textContent = 'Novo Particular';
+      modalTitle.textContent = 'Novo FSBO';
       itemForm.reset();
       $('itemId').value = '';
       estadoProspeccaoSelect.value = 'identificado';
-      // Data identificação por defeito = hoje
       const hoje = new Date().toISOString().slice(0,10);
       $('dataIdentificacao').value = hoje;
     }
@@ -1208,7 +1204,7 @@
       filterShowHidden.checked = !!obj.mostrarInvisiveis;
       filterOnlyHidden.checked = !!obj.soInvisiveis;
     }catch(e){
-      console.error('Erro a carregar filtros de particulares', e);
+      console.error('Erro a carregar filtros de FSBO', e);
     }
   }
 
@@ -1226,7 +1222,7 @@
     try{
       localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(data));
     }catch(e){
-      console.error('Erro a guardar filtros de particulares', e);
+      console.error('Erro a guardar filtros de FSBO', e);
     }
   }
 
@@ -1288,7 +1284,6 @@
     cardsGrid.innerHTML = '';
     emptyState.style.display = filtered.length ? 'none' : 'block';
 
-    // KPIs por estado
     const estados = ["identificado","contacto-feito","follow-up","visita","proposta-enviada","angariado","descartado"];
     const labels = {
       "identificado":"Identificados",
@@ -1315,7 +1310,6 @@
       pipelineKpis.appendChild(chip);
     });
 
-    // Resumo rápido (totais, por consultor, por portal)
     summaryBadges.innerHTML = '';
     const total = items.length;
     const visiveis = items.filter(d=>d.visible !== false).length;
@@ -1356,13 +1350,12 @@
       summaryBadges.appendChild(b);
     });
 
-    // Cards
     filtered.forEach(d=>{
       const card = document.createElement('div');
       card.className = 'card' + (d.visible === false ? ' hidden-card' : '');
       card.dataset.id = d.id;
 
-      const title = d.tituloImovel || (d.tipologia ? d.tipologia + ' ' : '') + (d.concelho || 'Particular');
+      const title = d.tituloImovel || (d.tipologia ? d.tipologia + ' ' : '') + (d.concelho || 'FSBO');
       const subParts = [];
       if(d.portal) subParts.push(d.portal);
       if(d.concelho) subParts.push(d.concelho);
@@ -1445,7 +1438,6 @@
       topRow.appendChild(titleBlock);
       card.appendChild(topRow);
 
-      // Secções
       if(d.zona || d.concelho || d.freguesia){
         const sec = document.createElement('div');
         sec.className = 'card-section';
@@ -1526,7 +1518,7 @@
       btnDel.textContent = 'Apagar';
       btnDel.addEventListener('click', ()=>{
         if(state.locked) return;
-        if(confirm('Tem a certeza que pretende apagar este registo de particular?')){
+        if(confirm('Tem a certeza que pretende apagar este registo FSBO?')){
           state.items = state.items.filter(x=>x.id !== d.id);
           saveState();
           renderCards();
@@ -1541,8 +1533,6 @@
     });
   }
 
-  // --- CSV Export / Import ---
-
   function escCsv(v){
     if(v == null) return '';
     const s = String(v).replace(/"/g,'""');
@@ -1551,7 +1541,7 @@
 
   function exportCsv(){
     if(!state.items.length){
-      alert('Não existem registos de particulares para exportar.');
+      alert('Não existem registos FSBO para exportar.');
       return;
     }
 
@@ -1575,7 +1565,7 @@
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'particulares_garvetur_porto_pro.csv';
+    a.download = 'fsbo_garvetur_porto_pro.csv';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1601,8 +1591,8 @@
       }else if(ch === ';' && !inQuotes){
         row.push(cur);
         cur = '';
-      }else if((ch === '\\n' || ch === '\\r') && !inQuotes){
-        if(ch === '\\r' && text[i+1] === '\\n') i++;
+      }else if((ch === '\n' || ch === '\r') && !inQuotes){
+        if(ch === '\r' && text[i+1] === '\n') i++;
         row.push(cur);
         rows.push(row);
         row = [];
@@ -1690,10 +1680,10 @@
     renderCards();
 
     alert(
-      'Importação concluída.\\n\\n' +
+      'Importação concluída.\n\n' +
       'Registos lidos: ' + imported +
-      '\\nNovos: ' + created +
-      '\\nAtualizados: ' + updated
+      '\nNovos: ' + created +
+      '\nAtualizados: ' + updated
     );
   }
 
@@ -1703,7 +1693,7 @@
       return;
     }
 
-    if(!confirm('Esta operação vai importar/atualizar registos de particulares a partir de um ficheiro CSV exportado do Garvetur Porto Pro.\\n\\nOs dados existentes com o mesmo ID serão atualizados, os restantes serão adicionados.\\n\\nPretende continuar?')){
+    if(!confirm('Esta operação vai importar/atualizar registos FSBO a partir de um ficheiro CSV exportado do Garvetur Porto Pro.\n\nOs dados existentes com o mesmo ID serão atualizados, os restantes serão adicionados.\n\nPretende continuar?')){
       return;
     }
 
@@ -1721,7 +1711,7 @@
           const text = ev.target.result;
           importFromCsvContent(text);
         }catch(err){
-          console.error('Erro a importar CSV de particulares', err);
+          console.error('Erro a importar CSV de FSBO', err);
           alert('Ocorreu um erro ao ler o ficheiro CSV. Verifique se foi exportado a partir do Garvetur Porto Pro.');
         }
       };
@@ -1731,16 +1721,14 @@
     input.click();
   }
 
-  // --- PDF (ficha individual) ---
-
   function exportOnePdf(item){
     const w = window.open('', '_blank');
     if(!w){
-      alert('O navegador bloqueou a abertura da janela de impressão.\\n\\nPermita pop-ups para este site ou use outra opção.');
+      alert('O navegador bloqueou a abertura da janela de impressão.\n\nPermita pop-ups para este site ou use outra opção.');
       return;
     }
 
-    const titulo = item.tituloImovel || (item.tipologia ? item.tipologia + ' ' : '') + (item.concelho || 'Particular');
+    const titulo = item.tituloImovel || (item.tipologia ? item.tipologia + ' ' : '') + (item.concelho || 'FSBO');
 
     const html = `
 <!doctype html>
@@ -1757,7 +1745,6 @@
     color:#222;
     background:#fff;
   }
-  .page{ padding:0; }
   h1{
     font-size:18px;
     margin:0 0 4px;
@@ -1807,7 +1794,7 @@
   <header>
     <div class="brand-block">
       <h1>Garvetur Luxury Porto</h1>
-      <div class="sub">Ficha de Prospeção — Particulares (Portais)</div>
+      <div class="sub">Ficha de Prospeção — FSBO</div>
     </div>
     <div class="logo-block">
       <div>Data: ${new Date().toLocaleDateString('pt-PT')}</div>
@@ -1881,13 +1868,11 @@
     }
   }
 
-  // --- Backup / Restore JSON ---
-
   function handleBackup(){
     try{
       const raw = localStorage.getItem(STORAGE_KEY);
       if(!raw){
-        alert('Não existem dados de particulares para fazer backup.');
+        alert('Não existem dados FSBO para fazer backup.');
         return;
       }
       const blob = new Blob([raw], { type: 'application/json;charset=utf-8;' });
@@ -1895,22 +1880,22 @@
       const a = document.createElement('a');
       const hoje = new Date().toISOString().slice(0,10);
       a.href = url;
-      a.download = 'particulares_backup_' + hoje + '.json';
+      a.download = 'fsbo_backup_' + hoje + '.json';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       alert('Backup efetuado com sucesso. Guarde o ficheiro num local seguro (ex.: OneDrive).');
     }catch(e){
-      console.error('Erro no backup de particulares', e);
+      console.error('Erro no backup de FSBO', e);
       alert('Ocorreu um erro ao gerar o ficheiro de backup.');
     }
   }
 
   function handleRestore(){
     if(!confirm(
-      'Esta operação vai restaurar dados de particulares a partir de um ficheiro de backup.\\n\\n' +
-      'Os dados atuais serão substituídos pelos do ficheiro selecionado.\\n\\n' +
+      'Esta operação vai restaurar dados FSBO a partir de um ficheiro de backup.\n\n' +
+      'Os dados atuais serão substituídos pelos do ficheiro selecionado.\n\n' +
       'Pretende continuar?'
     )){
       return;
@@ -1941,7 +1926,7 @@
           }
 
           if(!Array.isArray(newItems) || !newItems.length){
-            alert('O ficheiro não contém registos válidos de particulares para restaurar.');
+            alert('O ficheiro não contém registos válidos FSBO para restaurar.');
             return;
           }
 
@@ -1951,10 +1936,10 @@
           updateLockUI();
           renderCards();
 
-          alert('Restauro concluído com sucesso.\\n\\nTotal de registos carregados: ' + state.items.length);
+          alert('Restauro concluído com sucesso.\n\nTotal de registos carregados: ' + state.items.length);
         }catch(err){
-          console.error('Erro ao restaurar backup de particulares', err);
-          alert('O ficheiro selecionado não é um backup válido de particulares.');
+          console.error('Erro ao restaurar backup de FSBO', err);
+          alert('O ficheiro selecionado não é um backup válido FSBO.');
         }
       };
 
@@ -1963,8 +1948,6 @@
 
     input.click();
   }
-
-  // --- Eventos principais ---
 
   toggleLockBtn.addEventListener('click', ()=>{
     state.locked = !state.locked;
@@ -2035,7 +2018,6 @@
     }
   });
 
-  // Inicialização
   initConsultores();
   loadState();
   loadFilterState();
