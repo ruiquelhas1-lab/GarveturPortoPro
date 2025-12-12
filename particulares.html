@@ -2197,7 +2197,10 @@ Notas:
 
     filtered.forEach(d=>{
       const card = document.createElement('div');
-      card.className = 'card' + (d.visible === false ? ' hidden-card' : '');
+            const urgencyClass = getNextActionClass(d);
+      card.className = 'card' +
+        (urgencyClass ? (' ' + urgencyClass) : '') +
+        (d.visible === false ? ' hidden-card' : '');
       card.dataset.id = d.id;
 
       const title = d.tituloImovel || (d.tipologia ? d.tipologia + ' ' : '') + (d.concelho || 'FSBO');
