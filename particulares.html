@@ -1385,7 +1385,13 @@
   out.ownerName = d.ownerName || '';
   out.ownerPhone = d.ownerPhone || '';
   out.ownerEmail = d.ownerEmail || '';
-
+// Normalizar precoAnuncio (CSV/backups antigos podem vir como string)
+if(out.precoAnuncio === '' || out.precoAnuncio == null){
+  out.precoAnuncio = null;
+}else{
+  const n = Number(out.precoAnuncio);
+  out.precoAnuncio = isFinite(n) ? n : null;
+}
   return out;
 }
 
