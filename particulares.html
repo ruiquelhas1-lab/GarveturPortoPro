@@ -2189,36 +2189,33 @@ function generateWhatsappSmart(item, fetchedTitle){
   return [header, intro, '', ref, '', body, '', cta].join('\n').trim();
 }
   function generateCallScript(item, fetchedTitle){
-    const owner = item.ownerName ? item.ownerName.trim() : '';
-    const title = fetchedTitle || item.tituloImovel || (item.tipologia ? (item.tipologia + ' ' + (item.concelho||'').trim()) : 'o imóvel');
-    const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
-    const price = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
-    const highlights = guessHighlights(item);
-    const hLine = highlights.length ? ('\n   - Pontos fortes identificados: ' + highlights.join(', ') + '.') : '';
+  const owner = item.ownerName || '';
+  const title = fetchedTitle || item.tituloImovel || 'o imóvel';
+  const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
 
-    return (
-`ABERTURA (20s)
-- “Boa tarde, falo com ${owner || 'o proprietário'}? O meu nome é ${item.consultor || 'Rui Quelhas'}, Garvetur Luxury Porto.”
-- “Estou a ligar por causa do anúncio${item.portal ? ' no ' + item.portal : ''} — ‘${title}’${zone ? ' em ' + zone : ''}${price ? ', anunciado por ' + price : ''}.”
+  return (
+`Introdução
+“Bom dia/Boa tarde, falo com o(a) ${owner || 'proprietário(a)'}?
+Daqui fala o Rui Quelhas, Director Comercial da Garvetur Luxury Porto.”
 
-OBJECTIVO (10s)
-- “A minha intenção é perceber se ainda está disponível e, se fizer sentido, partilhar uma avaliação rápida de mercado e um plano de venda que costuma encurtar prazos e reduzir riscos.”
+Permissão
+“Estou a ligar-lhe muito rapidamente porque vi o anúncio do ${title}${zone ? ' em ' + zone : ''}. É um bom momento para falarmos 30 segundos?”
 
-PERGUNTAS-CHAVE (2–3 min)
-1) “O imóvel ainda está disponível? Há alguma urgência de venda?”
-2) “Já teve visitas? Que tipo de feedback recebeu?”
-3) “Como definiu o preço? Fez comparação com transações recentes?”
-4) “Qual seria para si um processo ideal (prazo, condições, flexibilidade)?”${hLine}
+Contexto
+“O motivo do contacto não é para lhe vender nada agora, mas porque este tipo de imóvel está exatamente dentro da procura ativa que acompanhamos nesta zona.”
 
-VALOR (30–60s)
-- “O que fazemos de forma diferente: triagem e qualificação de compradores, estratégia de preço e posicionamento, divulgação direcionada (nacional/internacional quando aplicável) e acompanhamento documental/jurídico.”
+Valor
+“O que costumo fazer nestes casos é ajudar os proprietários a perceber se o imóvel está corretamente posicionado desde o início — porque quando isso não acontece, a negociação começa a jogar contra o proprietário.”
 
-FECHO (30s)
-- “Sugiro uma chamada de 10 minutos (ou visita curta) para eu lhe dar um enquadramento de preço e um plano concreto.”
-- “Prefere hoje ao final do dia ou amanhã de manhã?”`
-    );
-  }
+Fecho suave
+“Se fizer sentido para si, posso explicar-lhe isto melhor numa chamada curta de 10 minutos, sem qualquer compromisso. Prefere hoje ao final do dia ou amanhã?”
 
+Notas:
+• Se objeção → ouvir, validar, não contrariar
+• Nunca discutir comissão nesta chamada
+• Objetivo é apenas marcar a conversa seguinte`
+  );
+}
  function generateEmail(item, fetchedTitle){
   const owner = item.ownerName || '';
   const title = fetchedTitle || item.tituloImovel || 'o seu imóvel';
