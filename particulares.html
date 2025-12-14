@@ -3200,7 +3200,23 @@ $('dataUltimaAcao').value = hoje;
   copyCallBtn.addEventListener('click', ()=>copyText(kitCall.value || ''));
   copyEmailBtn.addEventListener('click', ()=>copyText(kitEmail.value || ''));
   copySwotBtn.addEventListener('click', ()=>copyText(kitSwot.value || ''));
+function applyObjection(objectionKey){
+  if(!currentKitItem) return;
+  // tenta usar o último título lido (quando disponível)
+  const t = lastFetchedTitle || null;
+  kitWhatsapp.value = buildObjectionReply(objectionKey, currentKitItem, t);
+  showToast('Objeção aplicada');
+}
 
+if(objSoloBtn) objSoloBtn.addEventListener('click', ()=>applyObjection('solo'));
+if(objManyAgenciesBtn) objManyAgenciesBtn.addEventListener('click', ()=>applyObjection('many'));
+if(objCommissionBtn) objCommissionBtn.addEventListener('click', ()=>applyObjection('commission'));
+if(objExclusiveBtn) objExclusiveBtn.addEventListener('click', ()=>applyObjection('exclusive'));
+
+if(objResetWhatsappBtn) objResetWhatsappBtn.addEventListener('click', ()=>{
+  kitWhatsapp.value = kitWhatsappMainMessage || (kitWhatsapp.value || '');
+  showToast('Mensagem principal reposta');
+});
   openWhatsappBtn.addEventListener('click', ()=>{
     if(!currentKitItem) return;
     const phone = normalizePhone(currentKitItem.ownerPhone || '');
