@@ -3419,7 +3419,90 @@ if(objResetWhatsappBtn) objResetWhatsappBtn.addEventListener('click', ()=>{
       '&body=' + encodeURIComponent(body);
     window.location.href = url;
   });
+/* BEGIN: Follow-up 48h action (1 clique) */
+function runFollowup48h(){
+  if(!currentKitItem) return;
 
+  // 1) gerar mensagens (usando último título lido quando existe)
+  const t = lastFetchedTitle || null;
+
+  const waMsg = generateWhatsappFollowup48h(currentKitItem, t);
+  const emailMsg = generateEmailFollowup48h(currentKitItem, t);
+
+  // 2) colocar no Kit (para ficar registado visualmente)
+  kitWhatsapp.value = waMsg;
+  kitEmailMainMessage = emailMsg; // opcional: passa a ser o “principal” atual
+  kitEmail.value = emailMsg;
+
+  // 3) atualizar pipeline/datas no registo (48h)
+  // - define dataPrimeiroContacto se não existir
+  // - define proximaAcaoData = +2 dias a partir de hoje
+  // - define proximaAcaoTipo = follow-up
+  // - define estadoProspeccao = follow-up (sem estragar o fluxo)
+  const hoje = new Date().toISOString().slice(0,10);
+
+  if(!currentKitItem.dataPrimeiroContacto){
+    currentKitItem.dataPrimeiroContacto = hoje;
+  }
+  currentKitItem.dataUltimaAcao = hoje;
+  currentKitItem.proximaAcaoData = addDaysToISO(hoje, 2);
+  currentKitItem.proximaAcaoTipo = 'follow-up (WA+Email)';
+  if(currentKitItem.estadoProspeccao === 'identificado' || currentKitItem.estadoProspeccao === 'contacto-feito'){
+    currentKitItem.estadoProspeccao = 'follow-up';
+  }
+
+  // persistir e refrescar cards
+  saveState();
+  renderCards();
+
+  // 4) abrir WhatsApp + email (tentativa em 1 clique)
+  const phone = normalizePhone(currentKitItem.ownerPhone || '');
+  const email = (currentKitItem.ownerEmail || '').trim();
+
+  // WhatsApp
+  if(phone){
+    const msg = encodeURIComponent(waMsg || '');
+    const waPhone = phone.replace(/\+/g,'');
+    window.open('https://wa.me/' + waPhone + '?text=' + msg, '_blank');
+  }else{
+    showToast('Sem móvel (WA)');
+  }
+
+  // Email (mailto)
+  if(email){
+    // extrair assunto + corpo do template
+    let subject = 'Seguimento do seu imóvel';
+    let body = emailMsg;
+
+    const m = String(emailMsg || '').match(/^Assunto:\s*(.+)\n\n([\s\S]*)$/i);
+    if(m){
+      subject = (m[1] || '').trim();
+      body = m[2] || '';
+    }
+
+    const url = 'mailto:' + encodeURIComponent(email) +
+      '?subject=' + encodeURIComponent(subject) +
+      '&body=' + encodeURIComponent(body);
+
+    // abrir em nova janela (pode ser bloqueado por alguns browsers)
+    const w = window.open(url, '_blank');
+    if(!w){
+      // fallback: abre no mesmo separador
+      window.location.href = url;
+    }
+  }else{
+    // fallback útil: copia email para clipboard para envio manual
+    copyText(emailMsg || '');
+    showToast('Sem email — copiado');
+  }
+
+  showToast('Follow-up 48h preparado');
+}
+
+if(followup48hBtn){
+  followup48hBtn.addEventListener('click', runFollowup48h);
+}
+/* END: Follow-up 48h action (1 clique) */
   window.addEventListener('keydown', (e)=>{
     if(e.key === 'Escape'){
       if(modalBackdrop.classList.contains('open')) closeModal();
