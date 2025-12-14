@@ -2106,19 +2106,19 @@ Podemos agendar uma chamada curta hoje ao final do dia ou amanhã de manhã?`
   }
 
   // Novo gerador “smart” (mantém fallback para o atual)
-  function generateWhatsappSmart(item, fetchedTitle){
-    try{
-      // Usamos o standard internamente (guardado), mas como isto não é IA externa,
-      // o “efeito prompt” é garantir consistência e blocos bem estruturados.
-      // Se quiser, mais tarde exibimos este standard no UI do Kit.
-      void FSBO_PROMPT_STANDARD;
+ function generateWhatsappSmart(item, fetchedTitle){
+  try{
+    void FSBO_PROMPT_STANDARD;
 
-      return buildWhatsappMessage(item, fetchedTitle);
-    }catch(e){
-      console.error('Erro em generateWhatsappSmart — fallback para generateWhatsapp', e);
-      return generateWhatsapp(item, fetchedTitle);
-    }
+    // carimbo de verificação (remover depois)
+    const stamp = '✅ [GPP-SMART]\n\n';
+
+    return stamp + buildWhatsappMessage(item, fetchedTitle);
+  }catch(e){
+    console.error('Erro em generateWhatsappSmart — fallback para generateWhatsapp', e);
+    return generateWhatsapp(item, fetchedTitle);
   }
+}
   function generateCallScript(item, fetchedTitle){
     const owner = item.ownerName ? item.ownerName.trim() : '';
     const title = fetchedTitle || item.tituloImovel || (item.tipologia ? (item.tipologia + ' ' + (item.concelho||'').trim()) : 'o imóvel');
