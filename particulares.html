@@ -2343,7 +2343,61 @@ Director Comercial
 Garvetur Luxury Porto`
   );
 }
+/* BEGIN: Follow-up 48h (WA + Email) */
+function addDaysToISO(dateISO, days){
+  const dt = toDateOnly(dateISO);
+  if(!dt) return '';
+  dt.setDate(dt.getDate() + days);
+  return dt.toISOString().slice(0,10);
+}
 
+function generateWhatsappFollowup48h(item, fetchedTitle){
+  const owner = item.ownerName ? item.ownerName.trim() : '';
+  const greetName = owner ? (' ' + firstNameFromOwner(owner)) : '';
+  const title = fetchedTitle || item.tituloImovel || (item.tipologia ? (item.tipologia + ' ' + (item.concelho||'').trim()) : 'o seu imóvel');
+  const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
+  const price = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
+
+  return (
+`✅ [GPP-FOLLOWUP-48H]
+Boa tarde${greetName}.
+
+Daqui fala o ${item.consultor || 'Rui Quelhas'} (Garvetur Luxury Porto). Volto a contactar apenas para fechar o ponto relativamente ao anúncio “${title}”${zone ? ' ('+zone+')' : ''}${price ? ' — ' + price : ''}.
+
+O imóvel continua disponível?
+
+Se sim, posso enviar-lhe uma leitura objetiva do enquadramento de preço e 2–3 ajustes simples para aumentar procura (leva 2 minutos por mensagem).`
+  );
+}
+
+function generateEmailFollowup48h(item, fetchedTitle){
+  const owner = item.ownerName || 'Proprietário(a)';
+  const title = fetchedTitle || item.tituloImovel || 'o seu imóvel';
+  const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
+  const price = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
+
+  return (
+`Assunto: Seguimento — ${title}${zone ? ' | ' + zone : ''}
+
+Caro(a) ${owner},
+
+Da minha parte, deixo apenas um seguimento rápido relativamente ao seu anúncio${zone ? ' em ' + zone : ''}${price ? ' (preço: ' + price + ')' : ''}.
+
+O imóvel continua disponível?  
+Se sim, posso partilhar consigo:
+• enquadramento objetivo de preço vs. mercado, e  
+• 2–3 melhorias imediatas no anúncio para aumentar procura e proteger o valor.
+
+Caso seja conveniente, podemos falar 8–10 minutos hoje ao final do dia ou amanhã de manhã.
+
+Com os melhores cumprimentos,
+
+Rui Quelhas  
+Director Comercial  
+Garvetur Luxury Porto`
+  );
+}
+/* END: Follow-up 48h (WA + Email) */
   function generateSwot(item, fetchedTitle){
     const title = fetchedTitle || item.tituloImovel || 'Imóvel';
     const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
