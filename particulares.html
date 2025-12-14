@@ -2219,38 +2219,37 @@ FECHO (30s)
     );
   }
 
-  function generateEmail(item, fetchedTitle){
-    const owner = item.ownerName ? item.ownerName.trim() : '';
-    const title = fetchedTitle || item.tituloImovel || (item.tipologia ? (item.tipologia + ' ' + (item.concelho||'').trim()) : 'Imóvel');
-    const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
-    const price = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
-    const highlights = guessHighlights(item);
-    const hLine = highlights.length ? ('\nPontos fortes observados: ' + highlights.join(', ') + '.\n') : '';
+ function generateEmail(item, fetchedTitle){
+  const owner = item.ownerName || '';
+  const title = fetchedTitle || item.tituloImovel || 'o seu imóvel';
+  const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
+  const price = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
 
-    const subject = `Venda do seu imóvel${zone ? ' — ' + zone : ''}`;
-    const body =
-`Exmo.(a) ${owner || 'Senhor(a)'},
+  return (
+`Assunto: Enquadramento de mercado — ${title}${zone ? ' | ' + zone : ''}
 
-O meu nome é ${item.consultor || 'Rui Quelhas'} e sou consultor da Garvetur Luxury Porto.
+Caro(a) ${owner || 'Proprietário(a)'},
 
-Tomei conhecimento do seu anúncio${item.portal ? ' no ' + item.portal : ''} relativo a “${title}”${zone ? ' ('+zone+')' : ''}${price ? ', com preço anunciado de ' + price : ''}.
+O meu nome é Rui Quelhas, Director Comercial da Garvetur Luxury Porto.
 
-Trabalho com compradores ativos e qualificados na zona do Grande Porto e gostaria de lhe propor uma abordagem orientada a resultados, com foco em:
-- posicionamento e estratégia de preço (comparação com mercado e transações recentes);
-- apresentação (fotografia, copy e proposta de valor) para aumentar procura;
-- qualificação de compradores e gestão de visitas;
-- acompanhamento documental e negociação, reduzindo risco e fricção.
+Analisei com atenção o anúncio do seu imóvel${zone ? ' localizado em ' + zone : ''}${price ? ', atualmente anunciado por ' + price : ''}, por corresponder exatamente ao perfil de procura ativa que acompanhamos nesta zona.
 
-${hLine}Se considerar oportuno, posso partilhar uma análise inicial (10–15 minutos) e sugerir um plano de comercialização com próximos passos claros.
+Na prática, o maior risco nas vendas diretas não é a falta de interesse, mas sim o posicionamento inicial — quando não está totalmente ajustado ao mercado, o imóvel tende a perder força negocial ao longo do tempo.
 
-Caso concorde, indique por favor a sua disponibilidade para uma breve chamada ou visita ao imóvel.
+Trabalho diariamente com proprietários que começaram por vender por conta própria e que me procuraram para:
+• validar o enquadramento real de preço,
+• identificar pontos de melhoria na apresentação,
+• estruturar um processo de venda seguro, com filtragem de compradores e acompanhamento jurídico.
+
+Caso considere útil, terei todo o gosto em partilhar consigo uma leitura objetiva do seu imóvel numa breve chamada de 10 minutos, sem qualquer compromisso.
 
 Com os melhores cumprimentos,
-${item.consultor || 'Rui Quelhas'}
-Garvetur Luxury Porto`;
 
-    return `Assunto: ${subject}\n\n${body}`;
-  }
+Rui Quelhas  
+Director Comercial  
+Garvetur Luxury Porto`
+  );
+}
 
   function generateSwot(item, fetchedTitle){
     const title = fetchedTitle || item.tituloImovel || 'Imóvel';
