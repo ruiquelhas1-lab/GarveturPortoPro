@@ -2133,6 +2133,54 @@ return `✅ [GPP-SMART]\n${msg}`;
     console.error('Erro em generateWhatsappSmart — fallback para generateWhatsapp', e);
     return generateWhatsapp(item, fetchedTitle);
   }
+   function buildObjectionReply(objectionKey, item, fetchedTitle){
+  const owner = item.ownerName ? item.ownerName.trim() : '';
+  const greetName = owner ? (' ' + firstNameFromOwner(owner)) : '';
+  const title = fetchedTitle || item.tituloImovel || (item.tipologia ? (item.tipologia + ' ' + (item.concelho||'').trim()) : 'o seu imóvel');
+  const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
+  const price = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
+  const portal = item.portal ? (' no ' + item.portal) : '';
+
+  const header = `✅ [GPP-SMART]`;
+  const intro = `Boa tarde${greetName}.`;
+  const ref = `Vi o anúncio${portal} relativo a “${title}”${zone ? ' ('+zone+')' : ''}${price ? ' — ' + price : ''}.`;
+
+  // Respostas “cirúrgicas” (curtas, objetivas, sem clichés)
+  let body = '';
+  let cta  = '';
+
+  if(objectionKey === 'solo'){
+    body =
+      "Percebo perfeitamente — muitos proprietários começam por vender sozinhos.\n" +
+      "O ponto crítico costuma ser o mesmo: ou se perde margem em negociação, ou perde-se tempo com leads não qualificadas.\n" +
+      "Se fizer sentido, posso ajudá-lo(a) apenas com um enquadramento rápido de preço e posicionamento (sem compromisso).";
+    cta = "Quer que lhe diga em 2–3 linhas se o preço está alinhado com o mercado, ou prefere uma chamada de 10 minutos hoje ao final do dia?";
+  }else if(objectionKey === 'many'){
+    body =
+      "Compreendo — e faz bem em evitar ‘mais do mesmo’.\n" +
+      "A diferença não é estar em mais sites; é ter triagem real, estratégia de preço e condução de negociação com controlo documental.\n" +
+      "Se me disser o que já foi feito (fotos, visitas, feedback), eu digo-lhe onde está a fuga de valor e o ajuste mais rápido.";
+    cta = "Podemos falar 10 minutos hoje ao final do dia ou amanhã de manhã para eu lhe dar um diagnóstico objetivo?";
+  }else if(objectionKey === 'commission'){
+    body =
+      "Percebo a questão da comissão — é natural.\n" +
+      "Na prática, o maior custo tende a ser o desconto final e o tempo no mercado quando o anúncio está mal posicionado.\n" +
+      "O meu foco é maximizar o valor líquido e reduzir risco: triagem, negociação e acompanhamento documental do início ao fim.";
+    cta = "Quer que lhe faça uma simulação simples (valor líquido esperado) e comparamos ‘venda direta’ vs ‘plano com triagem’ em 10 minutos?";
+  }else if(objectionKey === 'exclusive'){
+    body =
+      "Percebo — ‘exclusivo’ só faz sentido se trouxer controlo e responsabilidade.\n" +
+      "Sem exclusivo, normalmente perde-se coerência (preço, comunicação, visitas) e isso abre espaço a descontos.\n" +
+      "Podemos fazer um exclusivo com prazo e objetivos claros, para manter a sua segurança e a nossa performance.";
+    cta = "Aceita um exclusivo de 30 dias, com plano e metas, e no fim decide com total liberdade?";
+  }else{
+    body = "Percebi. Diga-me só qual é a sua principal preocupação para eu ser o mais objetivo possível.";
+    cta = "Prefere uma chamada curta hoje ao final do dia ou amanhã de manhã?";
+  }
+
+  const msg = [header, intro, '', ref, '', body, '', cta].join('\n').trim();
+  return msg;
+}
 }
   function generateCallScript(item, fetchedTitle){
     const owner = item.ownerName ? item.ownerName.trim() : '';
