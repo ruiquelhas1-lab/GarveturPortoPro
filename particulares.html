@@ -2045,20 +2045,31 @@ Podemos agendar uma chamada curta hoje ao final do dia ou amanhã de manhã?`
   }
 
   function buildValueBlock(item){
-    // micro-valor concreto, sem “pitch” longo
-    const highlights = guessHighlights(item);
-    const h = highlights.length ? highlights.slice(0,3) : [];
+  const highlights = guessHighlights(item);
+  const h = highlights.length ? highlights.slice(0,3) : [];
 
-    const parts = [];
-    parts.push("Trabalho diariamente com compradores qualificados para esta zona e posso ajudá-lo(a) a vender com mais segurança e melhor posicionamento.");
+  const parts = [];
 
-    if(h.length){
-      parts.push(`Pelo que li, há pontos que merecem ser bem “trabalhados” para aumentar procura (ex.: ${h.join(', ')}).`);
-    }
+  parts.push(
+    "Analisei o seu anúncio com atenção porque corresponde exatamente ao tipo de imóvel que os compradores estão hoje a procurar nesta zona."
+  );
 
-    parts.push("Em 10 minutos consigo: (1) validar preço vs. mercado, (2) sugerir melhorias de apresentação, (3) estruturar um plano de venda com triagem e acompanhamento jurídico.");
-    return parts.join('\n');
+  if(h.length){
+    parts.push(
+      `Há 2–3 detalhes que fazem muita diferença na procura e que, bem ajustados, costumam acelerar visitas e proteger o valor (ex.: ${h.join(', ')}).`
+    );
   }
+
+  parts.push(
+    "Na maioria dos casos, o desafio não é a falta de interesse, mas sim o posicionamento inicial — quando falha, o imóvel começa a negociar contra o proprietário."
+  );
+
+  parts.push(
+    "Se fizer sentido, posso dar-lhe um enquadramento objetivo em 10 minutos: preço real vs. mercado, pontos de melhoria imediata e a forma mais segura de conduzir contactos e negociação."
+  );
+
+  return parts.join('\n');
+}
 
   function buildQuestionBlock(item, mode){
     // pergunta curta que obriga a resposta (sim/não ou opção A/B)
