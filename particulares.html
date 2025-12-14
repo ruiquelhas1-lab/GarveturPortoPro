@@ -1991,7 +1991,134 @@ Em 10 minutos consigo:
 Podemos agendar uma chamada curta hoje ao final do dia ou amanhã de manhã?`
     );
   }
+  /* ============ FSBO — Standard (Prompt interno + modos WhatsApp) ============ */
 
+  // Prompt/base — guardado no módulo para consistência interna
+  const FSBO_PROMPT_STANDARD = [
+    "Especialista de vendas imobiliárias e conversação WhatsApp.",
+    "Consultor sénior (+10 anos) em imobiliário de luxo.",
+    "Scripts claros, humanos e executáveis, para abordagem a frio a proprietários (FSBO).",
+    "Linguagem simples, direta e profissional. Sem clichés. Sem frases genéricas.",
+    "Objetivo: transformar WhatsApp num processo previsível, focado em conversação e próximo passo."
+  ].join(" ");
+
+  // Mapear estado -> modo de WhatsApp
+  function getWhatsappModeByEstado(item){
+    const est = (item && item.estadoProspeccao) ? String(item.estadoProspeccao) : 'identificado';
+
+    if(est === 'identificado') return 'first_contact';
+    if(est === 'contacto-feito') return 'follow_up_1';
+    if(est === 'follow-up') return 'follow_up_2';
+    if(est === 'visita') return 'visit_confirm';
+    if(est === 'proposta-enviada') return 'proposal_follow';
+    if(est === 'angariado') return 'post_signed';
+    if(est === 'descartado') return 'soft_close';
+    return 'first_contact';
+  }
+
+  function buildContextBlock(item, fetchedTitle){
+    const owner = item.ownerName ? item.ownerName.trim() : '';
+    const greetName = owner ? (' ' + firstNameFromOwner(owner)) : '';
+    const title = fetchedTitle || item.tituloImovel || (item.tipologia ? (item.tipologia + ' ' + (item.concelho||'').trim()) : 'o seu imóvel');
+    const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
+    const price = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
+    const portal = item.portal ? (' no ' + item.portal) : '';
+
+    const line1 = `Boa tarde${greetName}.`;
+    const line2 = `O meu nome é ${item.consultor || 'Rui Quelhas'}, da Garvetur Luxury Porto. Vi o anúncio${portal} relativo a “${title}”${zone ? ' ('+zone+')' : ''}${price ? ' — ' + price : ''}.`;
+
+    return [line1, '', line2].join('\n');
+  }
+
+  function buildValueBlock(item){
+    // micro-valor concreto, sem “pitch” longo
+    const highlights = guessHighlights(item);
+    const h = highlights.length ? highlights.slice(0,3) : [];
+
+    const parts = [];
+    parts.push("Trabalho diariamente com compradores qualificados para esta zona e posso ajudá-lo(a) a vender com mais segurança e melhor posicionamento.");
+
+    if(h.length){
+      parts.push(`Pelo que li, há pontos que merecem ser bem “trabalhados” para aumentar procura (ex.: ${h.join(', ')}).`);
+    }
+
+    parts.push("Em 10 minutos consigo: (1) validar preço vs. mercado, (2) sugerir melhorias de apresentação, (3) estruturar um plano de venda com triagem e acompanhamento jurídico.");
+    return parts.join('\n');
+  }
+
+  function buildQuestionBlock(item, mode){
+    // pergunta curta que obriga a resposta (sim/não ou opção A/B)
+    if(mode === 'visit_confirm'){
+      return "Para alinharmos a visita: confirma-me por favor se prefere manhã ou fim do dia?";
+    }
+    if(mode === 'proposal_follow'){
+      return "Chegou a ver a proposta? Faz sentido ajustarmos algum ponto antes de avançar?";
+    }
+    if(mode === 'post_signed'){
+      return "Quer que trate já do próximo passo (fotografia/briefing) para colocarmos no mercado com força desde o primeiro dia?";
+    }
+    if(mode === 'soft_close'){
+      return "Se não for prioridade agora, posso só deixar-lhe uma avaliação rápida (sem compromisso) para referência futura?";
+    }
+    // follow-ups
+    if(mode === 'follow_up_1'){
+      return "O imóvel continua disponível? Se sim, posso partilhar-lhe um enquadramento de preço em 2–3 linhas.";
+    }
+    if(mode === 'follow_up_2'){
+      return "Teve contactos/visitas desde o anúncio? Qual foi o feedback mais comum?";
+    }
+    // first contact
+    return "O imóvel continua disponível e está a considerar apoio profissional para vender com melhor resultado?";
+  }
+
+  function buildCtaBlock(item, mode){
+    // CTA sempre com escolha binária (reduz fricção)
+    if(mode === 'visit_confirm'){
+      return "Se me disser a sua preferência (manhã / fim do dia), ajusto já na agenda.";
+    }
+    if(mode === 'proposal_follow'){
+      return "Podemos falar 8–10 minutos hoje ao final do dia ou amanhã de manhã?";
+    }
+    if(mode === 'follow_up_1' || mode === 'follow_up_2'){
+      return "Prefere uma chamada rápida hoje ao final do dia ou amanhã de manhã?";
+    }
+    if(mode === 'post_signed'){
+      return "Diga-me um horário e eu envio-lhe já o plano de ação (checklist + timings).";
+    }
+    if(mode === 'soft_close'){
+      return "Se concordar, diga-me só a melhor hora para uma chamada curta (10 min) e eu trato do resto.";
+    }
+    return "Podemos agendar uma chamada curta hoje ao final do dia ou amanhã de manhã?";
+  }
+
+  function buildWhatsappMessage(item, fetchedTitle){
+    const mode = getWhatsappModeByEstado(item);
+
+    const blocks = [];
+    blocks.push(buildContextBlock(item, fetchedTitle));
+    blocks.push('');
+    blocks.push(buildValueBlock(item));
+    blocks.push('');
+    blocks.push(buildQuestionBlock(item, mode));
+    blocks.push(buildCtaBlock(item, mode));
+
+    return blocks.join('\n');
+  }
+
+  // Novo gerador “smart” (mantém fallback para o atual)
+  function generateWhatsappSmart(item, fetchedTitle){
+    try{
+      // Usamos o standard internamente (guardado), mas como isto não é IA externa,
+      // o “efeito prompt” é garantir consistência e blocos bem estruturados.
+      // Se quiser, mais tarde exibimos este standard no UI do Kit.
+      void FSBO_PROMPT_STANDARD;
+
+      return buildWhatsappMessage(item, fetchedTitle);
+    }catch(e){
+      console.error('Erro em generateWhatsappSmart — fallback para generateWhatsapp', e);
+      return generateWhatsapp(item, fetchedTitle);
+    }
+  }
   function generateCallScript(item, fetchedTitle){
     const owner = item.ownerName ? item.ownerName.trim() : '';
     const title = fetchedTitle || item.tituloImovel || (item.tipologia ? (item.tipologia + ' ' + (item.concelho||'').trim()) : 'o imóvel');
