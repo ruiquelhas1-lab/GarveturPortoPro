@@ -3291,7 +3291,21 @@ function applyObjection(objectionKey){
   kitWhatsapp.value = buildObjectionReply(objectionKey, currentKitItem, t);
   showToast('Objeção aplicada');
 }
+function applyEmailObjection(key){
+  if(!currentKitItem) return;
+  const t = lastFetchedTitle || null;
+  kitEmail.value = buildEmailObjectionReply(key, currentKitItem, t);
+  showToast('Objeção aplicada (Email)');
+}
 
+if(emailObjManyAgenciesBtn) emailObjManyAgenciesBtn.addEventListener('click', ()=>applyEmailObjection('many'));
+if(emailObjCommissionBtn) emailObjCommissionBtn.addEventListener('click', ()=>applyEmailObjection('commission'));
+if(emailObjExclusiveBtn) emailObjExclusiveBtn.addEventListener('click', ()=>applyEmailObjection('exclusive'));
+
+if(emailResetBtn) emailResetBtn.addEventListener('click', ()=>{
+  kitEmail.value = kitEmailMainMessage || (kitEmail.value || '');
+  showToast('Email principal reposto');
+});
 if(objSoloBtn) objSoloBtn.addEventListener('click', ()=>applyObjection('solo'));
 if(objManyAgenciesBtn) objManyAgenciesBtn.addEventListener('click', ()=>applyObjection('many'));
 if(objCommissionBtn) objCommissionBtn.addEventListener('click', ()=>applyObjection('commission'));
