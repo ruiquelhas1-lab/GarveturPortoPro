@@ -1950,6 +1950,133 @@ if(!dataIdent){
     if(!dt) return Number.POSITIVE_INFINITY;
     return dt.getTime();
   }
+    /* ============ Follow-up 48h (1 clique) ============ */
+
+  function addDaysISO(isoDateStr, days){
+    // isoDateStr: "YYYY-MM-DD" ou vazio => hoje
+    const base = isoDateStr ? toDateOnly(isoDateStr) : (function(){
+      const t = new Date(); t.setHours(0,0,0,0); return t;
+    })();
+    if(!base) return new Date().toISOString().slice(0,10);
+    const dt = new Date(base.getTime());
+    dt.setDate(dt.getDate() + (days || 0));
+    dt.setHours(0,0,0,0);
+    const y = dt.getFullYear();
+    const m = String(dt.getMonth()+1).padStart(2,'0');
+    const d = String(dt.getDate()).padStart(2,'0');
+    return `${y}-${m}-${d}`;
+  }
+
+  function generateWhatsappFollowup48h(item, fetchedTitle){
+    // força modo follow-up (48h) independentemente do estado atual
+    const blocks = [];
+    blocks.push(buildContextBlock(item, fetchedTitle));
+    blocks.push('');
+    blocks.push("Enviei-lhe mensagem há 48h porque este tipo de imóvel tem procura real nesta zona.");
+    blocks.push("Só para confirmar: o imóvel continua disponível?");
+    blocks.push('');
+    blocks.push("Se sim, posso partilhar-lhe um enquadramento objetivo (preço vs. mercado + 2/3 ajustes simples para aumentar procura).");
+    blocks.push("Prefere uma chamada rápida hoje ao final do dia ou amanhã de manhã?");
+    return `⏱️ [GPP-48H]\n${blocks.join('\n')}`.trim();
+  }
+
+  function generateEmailFollowup48h(item, fetchedTitle){
+    const owner = item.ownerName || 'Proprietário(a)';
+    const title = fetchedTitle || item.tituloImovel || 'o seu imóvel';
+    const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
+    const subject = `Follow-up (48h) — ${title}${zone ? ' | ' + zone : ''}`;
+
+    const body =
+`Caro(a) ${owner},
+
+Deixo um breve follow-up relativamente ao seu imóvel${zone ? ' em ' + zone : ''}.
+
+O objetivo é simples: confirmar se continua disponível e, caso faça sentido, partilhar consigo um enquadramento objetivo (preço vs. mercado + pontos de melhoria imediatos para proteger valor e acelerar procura).
+
+Se estiver disponível, podemos falar 10 minutos hoje ao final do dia ou amanhã de manhã?
+
+Com os melhores cumprimentos,
+Rui Quelhas
+Director Comercial — Garvetur Luxury Porto`;
+
+    return `Assunto: ${subject}\n\n${body}`;
+  }
+
+  async function runFollowup48h(item){
+    if(!item || !item.id) return;
+
+    if(state.locked){
+      alert('O modo de edição está bloqueado. Desbloqueie o cadeado para registar e disparar o follow-up 48h.');
+      return;
+    }
+
+    // 1) Atualizar datas e (opcional) estado
+    const hoje = new Date().toISOString().slice(0,10);
+
+    const idx = state.items.findIndex(x => x.id === item.id);
+    if(idx >= 0){
+      const it = state.items[idx];
+
+      // estado sugerido: follow-up (mantém pipeline coerente)
+      it.estadoProspeccao = 'follow-up';
+
+      // se nunca houve “primeiro contacto”, marca hoje
+      if(!it.dataPrimeiroContacto) it.dataPrimeiroContacto = hoje;
+
+      // última ação é hoje
+      it.dataUltimaAcao = hoje;
+
+      // próxima ação: +2 dias (novo ciclo)
+      it.proximaAcaoData = addDaysISO(hoje, 2);
+      it.proximaAcaoTipo = it.proximaAcaoTipo || 'ligar';
+
+      state.items[idx] = migrateItem(it);
+      saveState();
+      renderCards();
+    }
+
+    // 2) Abrir Kit
+    await openKit(item);
+
+    // 3) Substituir mensagens do Kit por versões 48h
+    const t = lastFetchedTitle || null;
+    kitWhatsapp.value = generateWhatsappFollowup48h(item, t);
+    kitEmail.value = generateEmailFollowup48h(item, t);
+
+    // 4) Disparar WhatsApp + Email
+    const phone = normalizePhone(item.ownerPhone || '');
+    if(phone){
+      const waPhone = phone.replace(/\+/g,'');
+      const msg = encodeURIComponent(kitWhatsapp.value || '');
+      window.open('https://wa.me/' + waPhone + '?text=' + msg, '_blank');
+    }else{
+      alert('Follow-up 48h: falta o móvel do proprietário para abrir WhatsApp.');
+    }
+
+    const email = (item.ownerEmail || '').trim();
+    if(email){
+      const content = kitEmail.value || '';
+      let subject = 'Follow-up (48h)';
+      let body = content;
+
+      const m = content.match(/^Assunto:\s*(.+)\n\n([\s\S]*)$/i);
+      if(m){
+        subject = (m[1] || '').trim();
+        body = m[2] || '';
+      }
+
+      const url = 'mailto:' + encodeURIComponent(email) +
+        '?subject=' + encodeURIComponent(subject) +
+        '&body=' + encodeURIComponent(body);
+
+      // mailto no mesmo separador (WhatsApp já abriu em novo)
+      window.location.href = url;
+    }else{
+      alert('Follow-up 48h: falta o email do proprietário para abrir o email.');
+    }
+
+    showToast('Follow-up 48h preparado');
+  }
   /* ============ Kit FSBO (Gerador) ============ */
   function normalizePhone(phone){
     if(!phone) return '';
