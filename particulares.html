@@ -2199,6 +2199,76 @@ function generateWhatsappSmart(item, fetchedTitle){
 
   return [header, intro, '', ref, '', body, '', cta].join('\n').trim();
 }
+  function buildEmailObjectionReply(objectionKey, item, fetchedTitle){
+  const owner = item.ownerName || 'Proprietário(a)';
+  const title = fetchedTitle || item.tituloImovel || 'o seu imóvel';
+  const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
+  const price = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
+
+  const subjBase = `Enquadramento e estratégia — ${title}${zone ? ' | ' + zone : ''}`;
+  let subject = subjBase;
+
+  let body = '';
+  if(objectionKey === 'many'){
+    subject = `Diferenciação e controlo do processo — ${title}${zone ? ' | ' + zone : ''}`;
+    body =
+`Caro(a) ${owner},
+
+Compreendo perfeitamente que já esteja a falar com outras imobiliárias. A questão raramente é “ter mais contactos”; é garantir controlo do processo e proteção do valor.
+
+Na prática, é aqui que normalmente se perde margem:
+• triagem fraca (muitos curiosos / poucos compradores reais),
+• mensagem e preço inconsistentes,
+• negociação sem estratégia e sem controlo documental.
+
+Se fizer sentido, proponho uma chamada curta de 10 minutos para lhe dar um diagnóstico objetivo: o que está bem, o que está a travar, e qual o ajuste mais rápido para proteger o valor.
+
+Com os melhores cumprimentos,
+Rui Quelhas
+Director Comercial — Garvetur Luxury Porto`;
+  }else if(objectionKey === 'commission'){
+    subject = `Valor líquido e risco — ${title}${zone ? ' | ' + zone : ''}`;
+    body =
+`Caro(a) ${owner},
+
+Percebo a questão da comissão — é um ponto legítimo. O que importa, no final, é o valor líquido e a segurança do processo.
+
+Nos casos em que acompanho, a diferença tende a surgir em três áreas:
+• desconto final (negociação conduzida sem estratégia),
+• tempo em mercado (posicionamento inicial desalinhado),
+• risco (documentos, reservas, condições e timings).
+
+Se desejar, faço-lhe uma simulação simples e objetiva (cenários de valor líquido) e comparamos venda direta vs. plano com triagem e negociação estruturada.
+
+Podemos falar 10 minutos hoje ao final do dia ou amanhã de manhã?
+
+Com os melhores cumprimentos,
+Rui Quelhas
+Director Comercial — Garvetur Luxury Porto`;
+  }else if(objectionKey === 'exclusive'){
+    subject = `Exclusivo com métricas e prazo — ${title}${zone ? ' | ' + zone : ''}`;
+    body =
+`Caro(a) ${owner},
+
+Compreendo a reserva relativamente ao exclusivo. “Exclusivo” só faz sentido quando existe responsabilidade, métricas e um plano claro.
+
+A minha proposta (quando faz sentido) é simples:
+• prazo curto (ex.: 30 dias),
+• plano de ação definido (marketing + triagem + visitas),
+• metas objetivas (procura, visitas, feedback e ajuste),
+• decisão livre no final do período.
+
+Se considerar útil, explico-lhe a diferença prática entre “sem exclusivo” e “exclusivo com controlo” numa chamada de 10 minutos.
+
+Com os melhores cumprimentos,
+Rui Quelhas
+Director Comercial — Garvetur Luxury Porto`;
+  }else{
+    body = buildEmailObjectionReply('many', item, fetchedTitle);
+  }
+
+  return `Assunto: ${subject}\n\n${body}`;
+}
   function generateCallScript(item, fetchedTitle){
   const owner = item.ownerName || '';
   const title = fetchedTitle || item.tituloImovel || 'o imóvel';
