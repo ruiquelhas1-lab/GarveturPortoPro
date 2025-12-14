@@ -2906,7 +2906,14 @@ if(urg){
         openKit(d);
       });
       right.appendChild(btnKit);
-
+      const btn48h = document.createElement('button');
+      btn48h.className = 'btn-xs warn';
+      btn48h.textContent = '⏱ 48h';
+      btn48h.title = 'Abrir Kit e disparar follow-up 48h (WhatsApp + Email)';
+      btn48h.addEventListener('click', ()=>{
+        runFollowup48h(d);
+      });
+      right.appendChild(btn48h);
       const btnEdit = document.createElement('button');
       btnEdit.className = 'btn-xs primary';
       btnEdit.textContent = 'Editar';
