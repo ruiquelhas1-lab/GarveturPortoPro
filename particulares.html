@@ -2988,6 +2988,101 @@ if(urg){
       .replace(/"/g,'&quot;')
       .replace(/'/g,'&#039;');
   }
+    /* ============ Importar anúncio (Clipboard) ============ */
+  function parseListingClipboard(raw){
+    if(!raw) return null;
+    const s = String(raw).trim();
+    if(!s.startsWith('GPP_LISTING_JSON:')) return null;
+    try{
+      const json = s.slice('GPP_LISTING_JSON:'.length);
+      const obj = JSON.parse(json);
+      if(!obj || typeof obj !== 'object') return null;
+      return obj;
+    }catch(e){
+      return null;
+    }
+  }
+
+  function priceToNumber(p){
+    if(p == null) return null;
+    const s = String(p).replace(/[^\d]/g,'');
+    if(!s) return null;
+    const n = Number(s);
+    return isFinite(n) ? n : null;
+  }
+
+  function computeCompletenessFromForm(){
+    // score simples (0-100) para “nível de informação”
+    const checks = [
+      !!($('tituloImovel').value || '').trim(),
+      !!($('concelho').value || '').trim(),
+      !!($('zona').value || '').trim() || !!($('freguesia').value || '').trim(),
+      !!($('tipologia').value || '').trim(),
+      !!($('precoAnuncio').value || '').trim(),
+      !!($('observacoes').value || '').trim(),
+      !!($('ownerPhone').value || '').trim() || !!($('ownerEmail').value || '').trim()
+    ];
+    const points = checks.reduce((a,b)=>a+(b?1:0),0);
+    return Math.round((points / checks.length) * 100);
+  }
+
+  function setListingQualityHint(text){
+    if(!listingQualityHint) return;
+    listingQualityHint.textContent = text || '';
+  }
+
+  async function importListingFromClipboardToForm(){
+    // Nota: navigator.clipboard.readText() pode falhar em file:// por permissões do browser.
+    let raw = '';
+    try{
+      raw = await navigator.clipboard.readText();
+    }catch(e){
+      raw = prompt('O browser bloqueou o acesso ao clipboard.\n\nCole aqui o conteúdo copiado pelo bookmarklet:', '') || '';
+    }
+
+    const payload = parseListingClipboard(raw);
+    if(!payload){
+      alert('Não foi detetado conteúdo válido.\n\nNo anúncio (Idealista/Imovirtual), clique no favorito “Extrair anúncio → Copiar” e volte a tentar.');
+      return;
+    }
+
+    // preencher o que já existe no formulário
+    if(payload.url && !$('link').value) $('link').value = payload.url;
+
+    if(payload.title && !$('tituloImovel').value) $('tituloImovel').value = payload.title;
+
+    const pn = priceToNumber(payload.price);
+    if(pn != null && !$('precoAnuncio').value) $('precoAnuncio').value = pn;
+
+    // descrição -> observações (sem substituir se já tiver notas)
+    if(payload.description){
+      const cur = ($('observacoes').value || '').trim();
+      if(!cur){
+        $('observacoes').value = payload.description;
+      }else if(cur.length < 40){
+        $('observacoes').value = cur + '\n\n' + payload.description;
+      }
+    }
+
+    // guardar URLs de imagens em notas internas (para já, sem anexar automaticamente)
+    if(payload.images && Array.isArray(payload.images) && payload.images.length){
+      const block =
+        '---\n' +
+        'FOTOS (URLs extraídas do anúncio):\n' +
+        payload.images.map(x=>'• '+x).join('\n') +
+        '\n---';
+
+      const curN = ($('notasInternas').value || '').trim();
+      if(!curN.includes('FOTOS (URLs extraídas do anúncio)')){
+        $('notasInternas').value = (curN ? (curN + '\n\n') : '') + block;
+      }
+    }
+
+    const score = computeCompletenessFromForm();
+    setListingQualityHint(`Importação concluída (${payload.source || 'portal'}). Nível de informação: ${score}%.`);
+
+    showToast('Anúncio importado');
+  }
 
   /* ============ CSV ============ */
   function escCsv(v){
