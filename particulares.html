@@ -3043,37 +3043,156 @@ if(urg){
   }
 
   async function importListingFromClipboardToForm(){
-    // Nota: navigator.clipboard.readText() pode falhar em file:// por permissões do browser.
-    let raw = '';
-    try{
-      raw = await navigator.clipboard.readText();
-    }catch(e){
-      raw = prompt('O browser bloqueou o acesso ao clipboard.\n\nCole aqui o conteúdo copiado pelo bookmarklet:', '') || '';
+  // Nota: navigator.clipboard.readText() pode falhar em file:// por permissões do browser.
+  let raw = '';
+  try{
+    raw = await navigator.clipboard.readText();
+  }catch(e){
+    raw = prompt('O browser bloqueou o acesso ao clipboard.\n\nCole aqui o conteúdo copiado pelo bookmarklet:', '') || '';
+  }
+
+  const payload = parseListingClipboard(raw);
+  if(!payload){
+    alert('Não foi detetado conteúdo válido.\n\nNo anúncio (Idealista/Imovirtual), clique no favorito “Extrair anúncio → Copiar” e volte a tentar.');
+    return;
+  }
+
+  // Helpers
+  const set = (id, val, {overwrite=false}={})=>{
+    const el = $(id);
+    if(!el) return;
+    const cur = (el.value || '').trim();
+    const v = (val == null) ? '' : String(val).trim();
+    if(!v) return;
+    if(overwrite || !cur) el.value = v;
+  };
+
+  const pick = (...vals)=>{
+    for(const v of vals){
+      if(v == null) continue;
+      const s = String(v).trim();
+      if(s) return s;
     }
+    return '';
+  };
 
-    const payload = parseListingClipboard(raw);
-    if(!payload){
-      alert('Não foi detetado conteúdo válido.\n\nNo anúncio (Idealista/Imovirtual), clique no favorito “Extrair anúncio → Copiar” e volte a tentar.');
-      return;
+  // 1) Link
+  set('link', payload.url, {overwrite:false});
+
+  // 2) Título / Designação = Título do anúncio (como pediu)
+  //    aqui eu recomendo overwrite=true para garantir consistência
+  set('tituloImovel', payload.title, {overwrite:true});
+
+  // 3) Zona / Referência local = Morada (como pediu)
+  //    tentamos vários campos (o bookmarklet pode enviar address/location)
+  const address =
+    pick(payload.address, payload.location, payload.morada, payload.streetAddress, payload.fullAddress);
+
+  set('zona', address, {overwrite:true});
+
+  // 4) Concelho e Freguesia
+  //    - se o bookmarklet enviar explícito: ótimo
+  //    - caso contrário, tentamos “inferir” a partir do address (heurística leve)
+  const concelho = pick(payload.concelho, payload.county, payload.city, payload.municipality);
+  const freguesia = pick(payload.freguesia, payload.parish, payload.neighborhood);
+
+  set('concelho', concelho, {overwrite:false});
+  set('freguesia', freguesia, {overwrite:false});
+
+  // Heurística (só se vier tudo vazio): tentar extrair “..., Freguesia, Concelho”
+  if(!($('concelho').value || '').trim() && address){
+    const parts = address.split(',').map(x=>x.trim()).filter(Boolean);
+    // exemplo comum: "Rua X, Paranhos, Porto"
+    if(parts.length >= 2){
+      // último tende a ser concelho/cidade
+      set('concelho', parts[parts.length-1], {overwrite:false});
+      // penúltimo pode ser freguesia/zona administrativa
+      set('freguesia', parts[parts.length-2], {overwrite:false});
     }
+  }
 
-    // preencher o que já existe no formulário
-    if(payload.url && !$('link').value) $('link').value = payload.url;
+  // 5) Natureza e Tipologia
+  //    natureza: apartamento/moradia/etc (no seu select)
+  //    tipologia: T1, T2, T3+1, etc.
+  const natureRaw = pick(payload.natureza, payload.propertyType, payload.tipoImovel, payload.type);
+  const typoRaw = pick(payload.tipologia, payload.typology, payload.typ, payload.roomsLabel);
 
-    if(payload.title && !$('tituloImovel').value) $('tituloImovel').value = payload.title;
+  // Normalização Natureza para o seu <select>
+  const natureNorm = (function(v){
+    const s = String(v || '').toLowerCase();
+    if(!s) return '';
+    if(s.includes('apart')) return 'apartamento';
+    if(s.includes('morad') || s.includes('villa')) return 'moradia';
+    if(s.includes('terreno') || s.includes('lote')) return 'terreno';
+    if(s.includes('loja') || s.includes('comércio') || s.includes('comercial')) return 'loja';
+    if(s.includes('escrit')) return 'escritorio';
+    return '';
+  })(natureRaw);
 
-    const pn = priceToNumber(payload.price);
-    if(pn != null && !$('precoAnuncio').value) $('precoAnuncio').value = pn;
-
-    // descrição -> observações (sem substituir se já tiver notas)
-    if(payload.description){
-      const cur = ($('observacoes').value || '').trim();
-      if(!cur){
-        $('observacoes').value = payload.description;
-      }else if(cur.length < 40){
-        $('observacoes').value = cur + '\n\n' + payload.description;
-      }
+  if(natureNorm){
+    // select: só set se existir essa opção
+    const sel = $('natureza');
+    if(sel && sel.querySelector('option[value="'+natureNorm+'"]')){
+      sel.value = natureNorm;
     }
+  }
+
+  // Tipologia: tentar garantir formato "T2", "T3+1", etc.
+  const tipNorm = (function(v){
+    const s = String(v || '').toUpperCase().replace(/\s+/g,' ').trim();
+    if(!s) return '';
+    // apanhar "T2", "T3+1", "T4" em texto maior
+    const m = s.match(/\bT\s*\d(?:\s*\+\s*\d)?\b/);
+    if(m) return m[0].replace(/\s+/g,'').replace('T','T'); // "T 3 + 1" -> "T3+1"
+    return s;
+  })(typoRaw);
+
+  set('tipologia', tipNorm, {overwrite:false});
+
+  // 6) Preço (corrigido)
+  const pn = priceToNumber(payload.price ?? payload.preco ?? payload.priceText);
+  if(pn != null){
+    // recomendo overwrite=true para garantir alinhamento com o anúncio importado
+    $('precoAnuncio').value = pn;
+  }
+
+  // 7) Observações = texto completo do anúncio (como pediu)
+  const desc =
+    pick(payload.description, payload.descricao, payload.text, payload.body);
+
+  if(desc){
+    // overwrite=true para ficar “igual ao anúncio”
+    set('observacoes', desc, {overwrite:true});
+  }
+
+  // 8) Nome e nº de telefone (quando existirem)
+  //    (depende do bookmarklet conseguir extrair)
+  const contactName = pick(payload.ownerName, payload.contactName, payload.nomeAnunciante, payload.nome);
+  const contactPhone = pick(payload.ownerPhone, payload.contactPhone, payload.phone, payload.telefone);
+
+  set('ownerName', contactName, {overwrite:false});
+  set('ownerPhone', contactPhone, {overwrite:false});
+
+  // 9) (extra) Guardar imagens (URLs) em notas internas — mantém o que já tinha
+  if(payload.images && Array.isArray(payload.images) && payload.images.length){
+    const block =
+      '---\n' +
+      'FOTOS (URLs extraídas do anúncio):\n' +
+      payload.images.map(x=>'• '+x).join('\n') +
+      '\n---';
+
+    const curN = ($('notasInternas').value || '').trim();
+    if(!curN.includes('FOTOS (URLs extraídas do anúncio)')){
+      $('notasInternas').value = (curN ? (curN + '\n\n') : '') + block;
+    }
+  }
+
+  // hint/score
+  const score = computeCompletenessFromForm();
+  setListingQualityHint(`Importação concluída (${payload.source || 'portal'}). Nível de informação: ${score}%.`);
+
+  showToast('Anúncio importado');
+}
 
     // guardar URLs de imagens em notas internas (para já, sem anexar automaticamente)
     if(payload.images && Array.isArray(payload.images) && payload.images.length){
