@@ -1014,22 +1014,11 @@
               </div>
             </div>
 
-           <div class="field">
-  <label class="field-label" for="link">Link do anúncio</label>
-
-  <div class="field-row" style="align-items:center;">
-    <input type="text" id="link" placeholder="https://…" style="flex:1;" />
-    <button type="button" class="btn btn-ghost" id="importFromClipboardBtn" title="Colete no anúncio (bookmarklet) e importe aqui">📥 Importar do anúncio</button>
-  </div>
-
-  <div class="help" id="listingQualityHint">
-    Dica: abra o anúncio (Idealista/Imovirtual) → clique no favorito “Extrair anúncio → Copiar” → volte aqui e carregue em “Importar do anúncio”.
-  </div>
-
-  <div class="help" style="opacity:.85;">
-    Se o portal bloquear a leitura automática, o “Kit FSBO” usa o que estiver preenchido no registo (título, tipologia, preço, zona, observações).
-  </div>
-</div>
+            <div class="field">
+              <label class="field-label" for="link">Link do anúncio</label>
+              <input type="text" id="link" placeholder="https://…" />
+              <div class="help">Se o portal bloquear a leitura automática, o “Kit FSBO” usa o que estiver preenchido no registo (título, tipologia, preço, zona, observações).</div>
+            </div>
 
             <hr class="hr-soft"/>
 
@@ -1362,8 +1351,6 @@
   const cancelModalBtn = $('cancelModalBtn');
   const saveItemBtn = $('saveItemBtn');
   const itemForm = $('itemForm');
-    const importFromClipboardBtn = $('importFromClipboardBtn');
-  const listingQualityHint = $('listingQualityHint');
 
   const consultorSelect = $('consultor');
   const portalSelect = $('portal');
@@ -1455,88 +1442,43 @@ if(out.precoAnuncio === '' || out.precoAnuncio == null){
   }
 
   function loadState(){
-  // Tenta várias chaves antigas (migração)
-  const CANDIDATE_KEYS = [
-    STORAGE_KEY,                 // atual (v2)
-    STORAGE_KEY_LEGACY,          // legacy (v1)
-    'gpp_particulares',          // variantes antigas possíveis
-    'gpp_fsbo',                  // possíveis nomes usados noutros módulos
-    'gpp_fsbo_v1',
-    'gpp_fsbo_v2',
-    'gpp_particulares_data',
-    'gpp_particulares_items'
-  ];
+    // tenta v2
+    let parsed = safeParse(localStorage.getItem(STORAGE_KEY));
 
-  function normalizeParsed(parsed){
-    // Aceita:
-    // 1) Array direto: [ {...}, {...} ]
-    // 2) Objeto: { items:[...], locked:true/false }
-    // 3) Objeto: { data:[...]} ou { registros:[...]} (fallback)
-    if(!parsed) return null;
-
-    if(Array.isArray(parsed)){
-      return { items: parsed, locked: true };
-    }
-
-    if(parsed && typeof parsed === 'object'){
-      if(Array.isArray(parsed.items)){
-        return { items: parsed.items, locked: parsed.locked !== false };
-      }
-      if(Array.isArray(parsed.data)){
-        return { items: parsed.data, locked: true };
-      }
-      if(Array.isArray(parsed.registos)){
-        return { items: parsed.registos, locked: true };
-      }
-      if(Array.isArray(parsed.registros)){
-        return { items: parsed.registros, locked: true };
+    // fallback v1
+    if(!parsed){
+      parsed = safeParse(localStorage.getItem(STORAGE_KEY_LEGACY));
+      if(parsed){
+        // migra para v2
+        try{
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+        }catch(e){}
       }
     }
 
-    return null;
-  }
-
-  // 1) Encontrar a primeira key válida com dados
-  let foundKey = null;
-  let normalized = null;
-
-  for(const k of CANDIDATE_KEYS){
-    const raw = localStorage.getItem(k);
-    const parsed = safeParse(raw);
-    const norm = normalizeParsed(parsed);
-    if(norm && Array.isArray(norm.items)){
-      foundKey = k;
-      normalized = norm;
-      break;
+    if(parsed){
+      if(Array.isArray(parsed)){
+        state.items = parsed.map(migrateItem);
+        state.locked = true;
+        updateLockUI();
+        saveState();
+        return;
+      }
+      if(parsed && typeof parsed === 'object' && Array.isArray(parsed.items)){
+        state.items = parsed.items.map(migrateItem);
+        state.locked = parsed.locked !== false;
+        updateLockUI();
+        saveState();
+        return;
+      }
     }
-  }
 
-  // 2) Se encontrou, migra e guarda no STORAGE_KEY atual
-  if(normalized && Array.isArray(normalized.items)){
-    state.items = normalized.items.map(migrateItem);
-    state.locked = normalized.locked !== false;
-
-    // Persistir sempre no STORAGE_KEY atual (v2)
+    state.items = [];
+    state.locked = true;
     updateLockUI();
     saveState();
-
-    // (Opcional) também gravar “compat” no v1 — útil se houver outros ficheiros a ler v1
-    try{
-      localStorage.setItem(STORAGE_KEY_LEGACY, JSON.stringify(state));
-    }catch(e){}
-
-    // Debug opcional (podes remover)
-    // console.log('[FSBO] loadState: carregado de', foundKey, 'itens:', state.items.length);
-
-    return;
   }
 
-  // 3) Se não encontrou nada, inicializa vazio
-  state.items = [];
-  state.locked = true;
-  updateLockUI();
-  saveState();
-}
   function saveState(){
     try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
     catch(e){ console.error('Erro ao guardar storage de FSBO', e); }
@@ -2008,141 +1950,6 @@ if(!dataIdent){
     if(!dt) return Number.POSITIVE_INFINITY;
     return dt.getTime();
   }
-    /* ============ Follow-up 48h (1 clique) ============ */
-
-  function addDaysISO(isoDateStr, days){
-    // isoDateStr: "YYYY-MM-DD" ou vazio => hoje
-    const base = isoDateStr ? toDateOnly(isoDateStr) : (function(){
-      const t = new Date(); t.setHours(0,0,0,0); return t;
-    })();
-    if(!base) return new Date().toISOString().slice(0,10);
-    const dt = new Date(base.getTime());
-    dt.setDate(dt.getDate() + (days || 0));
-    dt.setHours(0,0,0,0);
-    const y = dt.getFullYear();
-    const m = String(dt.getMonth()+1).padStart(2,'0');
-    const d = String(dt.getDate()).padStart(2,'0');
-    return `${y}-${m}-${d}`;
-  }
-
-  function generateWhatsappFollowup48h(item, fetchedTitle){
-    // força modo follow-up (48h) independentemente do estado atual
-    const blocks = [];
-    blocks.push(buildContextBlock(item, fetchedTitle));
-    blocks.push('');
-    blocks.push("Enviei-lhe mensagem há 48h porque este tipo de imóvel tem procura real nesta zona.");
-    blocks.push("Só para confirmar: o imóvel continua disponível?");
-    blocks.push('');
-    blocks.push("Se sim, posso partilhar-lhe um enquadramento objetivo (preço vs. mercado + 2/3 ajustes simples para aumentar procura).");
-    blocks.push("Prefere uma chamada rápida hoje ao final do dia ou amanhã de manhã?");
-    return `⏱️ [GPP-48H]\n${blocks.join('\n')}`.trim();
-  }
-
-  function generateEmailFollowup48h(item, fetchedTitle){
-    const owner = item.ownerName || 'Proprietário(a)';
-    const title = fetchedTitle || item.tituloImovel || 'o seu imóvel';
-    const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
-    const subject = `Follow-up (48h) — ${title}${zone ? ' | ' + zone : ''}`;
-
-    const body =
-`Caro(a) ${owner},
-
-Deixo um breve follow-up relativamente ao seu imóvel${zone ? ' em ' + zone : ''}.
-
-O objetivo é simples: confirmar se continua disponível e, caso faça sentido, partilhar consigo um enquadramento objetivo (preço vs. mercado + pontos de melhoria imediatos para proteger valor e acelerar procura).
-
-Se estiver disponível, podemos falar 10 minutos hoje ao final do dia ou amanhã de manhã?
-
-Com os melhores cumprimentos,
-Rui Quelhas
-Director Comercial — Garvetur Luxury Porto`;
-
-    return `Assunto: ${subject}\n\n${body}`;
-  }
-
-  async function runFollowup48h(item){
-    if(!item || !item.id) return;
-
-    if(state.locked){
-      alert('O modo de edição está bloqueado. Desbloqueie o cadeado para registar e disparar o follow-up 48h.');
-      return;
-    }
-
-    // 1) Atualizar datas e (opcional) estado
-    const hoje = new Date().toISOString().slice(0,10);
-
-    const idx = state.items.findIndex(x => x.id === item.id);
-    if(idx >= 0){
-      const it = state.items[idx];
-
-      // estado sugerido: follow-up (mantém pipeline coerente)
-      it.estadoProspeccao = 'follow-up';
-
-      // se nunca houve “primeiro contacto”, marca hoje
-      if(!it.dataPrimeiroContacto) it.dataPrimeiroContacto = hoje;
-
-      // última ação é hoje
-      it.dataUltimaAcao = hoje;
-
-      // próxima ação: +2 dias (novo ciclo)
-      it.proximaAcaoData = addDaysISO(hoje, 2);
-      it.proximaAcaoTipo = it.proximaAcaoTipo || 'ligar';
-
-      state.items[idx] = migrateItem(it);
-      saveState();
-      renderCards();
-    }
-
-       // 2) Obter o item ATUALIZADO do state (para abrir Kit com dados frescos)
-    const updated = state.items.find(x => x.id === item.id) || item;
-
-    // 3) Abrir Kit com o item atualizado (não o antigo)
-    await openKit(updated);
-
-    // 4) Substituir mensagens do Kit por versões 48h (com base no item atualizado)
-    const t = lastFetchedTitle || null;
-    kitWhatsapp.value = generateWhatsappFollowup48h(updated, t);
-    kitEmail.value = generateEmailFollowup48h(updated, t);
-
-    // 5) Disparar WhatsApp + Email com base no item atualizado
-    const phone = normalizePhone(updated.ownerPhone || '');
-    if(phone){
-      const waPhone = phone.replace(/\+/g,'');
-      const msg = encodeURIComponent(kitWhatsapp.value || '');
-      window.open('https://wa.me/' + waPhone + '?text=' + msg, '_blank');
-    }else{
-      alert('Follow-up 48h: falta o móvel do proprietário para abrir WhatsApp.');
-    }
-
-    const email = (updated.ownerEmail || '').trim();
-    if(email){
-      const content = kitEmail.value || '';
-      let subject = 'Follow-up (48h)';
-      let body = content;
-
-      const m = content.match(/^Assunto:\s*(.+)\n\n([\s\S]*)$/i);
-      if(m){
-        subject = (m[1] || '').trim();
-        body = m[2] || '';
-      }
-
-      const url = 'mailto:' + encodeURIComponent(email) +
-        '?subject=' + encodeURIComponent(subject) +
-        '&body=' + encodeURIComponent(body);
-
-      window.location.href = url;
-    }else{
-      alert('Follow-up 48h: falta o email do proprietário para abrir o email.');
-    }
-
-    showToast('Follow-up 48h preparado');
-return;
-}
-
-/* ============ Kit FSBO (Gerador) ============ */
-function normalizePhone(phone){
-  ...
-}
   /* ============ Kit FSBO (Gerador) ============ */
   function normalizePhone(phone){
     if(!phone) return '';
@@ -2972,14 +2779,7 @@ if(urg){
         openKit(d);
       });
       right.appendChild(btnKit);
-      const btn48h = document.createElement('button');
-      btn48h.className = 'btn-xs warn';
-      btn48h.textContent = '⏱ 48h';
-      btn48h.title = 'Abrir Kit e disparar follow-up 48h (WhatsApp + Email)';
-      btn48h.addEventListener('click', ()=>{
-        runFollowup48h(d);
-      });
-      right.appendChild(btn48h);
+
       const btnEdit = document.createElement('button');
       btnEdit.className = 'btn-xs primary';
       btnEdit.textContent = 'Editar';
@@ -3041,180 +2841,7 @@ if(urg){
       .replace(/"/g,'&quot;')
       .replace(/'/g,'&#039;');
   }
-   /* ============ Importar anúncio (Clipboard) ============ */
-function parseListingClipboard(raw){
-  if(!raw) return null;
-  const s = String(raw).trim();
-  if(!s.startsWith('GPP_LISTING_JSON:')) return null;
-  try{
-    const json = s.slice('GPP_LISTING_JSON:'.length);
-    const obj = JSON.parse(json);
-    if(!obj || typeof obj !== 'object') return null;
-    return obj;
-  }catch(e){
-    return null;
-  }
-}
 
-function priceToNumber(p){
-  if(p == null) return null;
-  const raw = String(p);
-  const m = raw.match(/(\d{1,3}(?:[.\s]\d{3})+|\d{4,})/);
-  if(!m) return null;
-  const cleaned = m[1].replace(/[.\s]/g,'');
-  const n = Number(cleaned);
-  return Number.isFinite(n) ? n : null;
-}
-
-function computeCompletenessFromForm(){
-  const checks = [
-    !!($('tituloImovel').value || '').trim(),
-    !!($('concelho').value || '').trim(),
-    !!($('zona').value || '').trim() || !!($('freguesia').value || '').trim(),
-    !!($('tipologia').value || '').trim(),
-    !!($('precoAnuncio').value || '').trim(),
-    !!($('observacoes').value || '').trim(),
-    !!($('ownerPhone').value || '').trim() || !!($('ownerEmail').value || '').trim()
-  ];
-  const points = checks.reduce((a,b)=>a+(b?1:0),0);
-  return Math.round((points / checks.length) * 100);
-}
-
-function setListingQualityHint(text){
-  if(!listingQualityHint) return;
-  listingQualityHint.textContent = text || '';
-}
-
-async function importListingFromClipboardToForm(){
-  let raw = '';
-  try{
-    raw = await navigator.clipboard.readText();
-  }catch(e){
-    raw = prompt(
-      'O browser bloqueou o acesso ao clipboard.\n\nCole aqui o conteúdo copiado pelo bookmarklet:',
-      ''
-    ) || '';
-  }
-
-  const payload = parseListingClipboard(raw);
-  if(!payload){
-    alert('Não foi detetado conteúdo válido.\n\nNo anúncio (Idealista/Imovirtual), clique no favorito “Extrair anúncio → Copiar” e volte a tentar.');
-    return;
-  }
-
-  const set = (id, val, {overwrite=false}={})=>{
-    const el = $(id);
-    if(!el) return;
-    const cur = (el.value || '').trim();
-    const v = (val == null) ? '' : String(val).trim();
-    if(!v) return;
-    if(overwrite || !cur) el.value = v;
-  };
-
-  const pick = (...vals)=>{
-    for(const v of vals){
-      if(v == null) continue;
-      const s = String(v).trim();
-      if(s) return s;
-    }
-    return '';
-  };
-
-  // 1) Link
-  set('link', payload.url, {overwrite:false});
-
-  // 2) Título
-  set('tituloImovel', payload.title, {overwrite:true});
-
-  // 3) Zona (morada)
-  const address = pick(payload.address, payload.location, payload.morada, payload.streetAddress, payload.fullAddress);
-  set('zona', address, {overwrite:true});
-
-  // 4) Concelho / Freguesia
-  const concelho = pick(payload.concelho, payload.county, payload.city, payload.municipality);
-  const freguesia = pick(payload.freguesia, payload.parish, payload.neighborhood);
-
-  set('concelho', concelho, {overwrite:false});
-  set('freguesia', freguesia, {overwrite:false});
-
-  if(!($('concelho').value || '').trim() && address){
-    const parts = address.split(',').map(x=>x.trim()).filter(Boolean);
-    if(parts.length >= 2){
-      set('concelho', parts[parts.length-1], {overwrite:false});
-      set('freguesia', parts[parts.length-2], {overwrite:false});
-    }
-  }
-
-  // 5) Natureza / Tipologia
-  const natureRaw = pick(payload.natureza, payload.propertyType, payload.tipoImovel, payload.type);
-  const typoRaw = pick(payload.tipologia, payload.typology, payload.typ, payload.roomsLabel);
-
-  const natureNorm = (function(v){
-    const s = String(v || '').toLowerCase();
-    if(!s) return '';
-    if(s.includes('apart')) return 'apartamento';
-    if(s.includes('morad') || s.includes('villa')) return 'moradia';
-    if(s.includes('terreno') || s.includes('lote')) return 'terreno';
-    if(s.includes('loja') || s.includes('comércio') || s.includes('comercial')) return 'loja';
-    if(s.includes('escrit')) return 'escritorio';
-    return '';
-  })(natureRaw);
-
-  if(natureNorm){
-    const sel = $('natureza');
-    if(sel && sel.querySelector('option[value="'+natureNorm+'"]')){
-      sel.value = natureNorm;
-    }
-  }
-
-  const tipNorm = (function(v){
-    const s = String(v || '').toUpperCase().replace(/\s+/g,' ').trim();
-    if(!s) return '';
-    const m = s.match(/\bT\s*\d(?:\s*\+\s*\d)?\b/);
-    if(m) return m[0].replace(/\s+/g,'');
-    return s;
-  })(typoRaw);
-
-  set('tipologia', tipNorm, {overwrite:false});
-
-  // 6) Preço
-  const pn = priceToNumber(payload.price ?? payload.preco ?? payload.priceText);
-  if(pn != null){
-    $('precoAnuncio').value = pn;
-  }
-
-  // 7) Observações
-  const desc = pick(payload.description, payload.descricao, payload.text, payload.body);
-  if(desc){
-    set('observacoes', desc, {overwrite:true});
-  }
-
-  // 8) Contactos (quando existirem)
-  const contactName = pick(payload.ownerName, payload.contactName, payload.nomeAnunciante, payload.nome);
-  const contactPhone = pick(payload.ownerPhone, payload.contactPhone, payload.phone, payload.telefone);
-
-  set('ownerName', contactName, {overwrite:false});
-  set('ownerPhone', contactPhone, {overwrite:false});
-
-  // 9) Imagens em notas internas
-  if(payload.images && Array.isArray(payload.images) && payload.images.length){
-    const block =
-      '---\n' +
-      'FOTOS (URLs extraídas do anúncio):\n' +
-      payload.images.map(x=>'• '+x).join('\n') +
-      '\n---';
-
-    const curN = ($('notasInternas').value || '').trim();
-    if(!curN.includes('FOTOS (URLs extraídas do anúncio)')){
-      $('notasInternas').value = (curN ? (curN + '\n\n') : '') + block;
-    }
-  }
-
-  const score = computeCompletenessFromForm();
-  setListingQualityHint(`Importação concluída (${payload.source || 'portal'}). Nível de informação: ${score}%.`);
-  showToast('Anúncio importado');
-}
-   
   /* ============ CSV ============ */
   function escCsv(v){
     if(v == null) return '';
@@ -3717,9 +3344,6 @@ $('dataUltimaAcao').value = hoje;
 
   addPdfBtn.addEventListener('click', handleAddPdfs);
   refreshPdfsBtn.addEventListener('click', refreshPdfList);
-    if(importFromClipboardBtn){
-    importFromClipboardBtn.addEventListener('click', importListingFromClipboardToForm);
-  }
 
   // Kit modal events
   closeKitBtn.addEventListener('click', closeKit);
@@ -3796,11 +3420,87 @@ if(objResetWhatsappBtn) objResetWhatsappBtn.addEventListener('click', ()=>{
     window.location.href = url;
   });
 /* BEGIN: Follow-up 48h action (1 clique) */
+function runFollowup48h(){
+  if(!currentKitItem) return;
+
+  // 1) gerar mensagens (usando último título lido quando existe)
+  const t = lastFetchedTitle || null;
+
+  const waMsg = generateWhatsappFollowup48h(currentKitItem, t);
+  const emailMsg = generateEmailFollowup48h(currentKitItem, t);
+
+  // 2) colocar no Kit (para ficar registado visualmente)
+  kitWhatsapp.value = waMsg;
+  kitEmailMainMessage = emailMsg; // opcional: passa a ser o “principal” atual
+  kitEmail.value = emailMsg;
+
+  // 3) atualizar pipeline/datas no registo (48h)
+  // - define dataPrimeiroContacto se não existir
+  // - define proximaAcaoData = +2 dias a partir de hoje
+  // - define proximaAcaoTipo = follow-up
+  // - define estadoProspeccao = follow-up (sem estragar o fluxo)
+  const hoje = new Date().toISOString().slice(0,10);
+
+  if(!currentKitItem.dataPrimeiroContacto){
+    currentKitItem.dataPrimeiroContacto = hoje;
+  }
+  currentKitItem.dataUltimaAcao = hoje;
+  currentKitItem.proximaAcaoData = addDaysToISO(hoje, 2);
+  currentKitItem.proximaAcaoTipo = 'follow-up (WA+Email)';
+  if(currentKitItem.estadoProspeccao === 'identificado' || currentKitItem.estadoProspeccao === 'contacto-feito'){
+    currentKitItem.estadoProspeccao = 'follow-up';
+  }
+
+  // persistir e refrescar cards
+  saveState();
+  renderCards();
+
+  // 4) abrir WhatsApp + email (tentativa em 1 clique)
+  const phone = normalizePhone(currentKitItem.ownerPhone || '');
+  const email = (currentKitItem.ownerEmail || '').trim();
+
+  // WhatsApp
+  if(phone){
+    const msg = encodeURIComponent(waMsg || '');
+    const waPhone = phone.replace(/\+/g,'');
+    window.open('https://wa.me/' + waPhone + '?text=' + msg, '_blank');
+  }else{
+    showToast('Sem móvel (WA)');
+  }
+
+  // Email (mailto)
+  if(email){
+    // extrair assunto + corpo do template
+    let subject = 'Seguimento do seu imóvel';
+    let body = emailMsg;
+
+    const m = String(emailMsg || '').match(/^Assunto:\s*(.+)\n\n([\s\S]*)$/i);
+    if(m){
+      subject = (m[1] || '').trim();
+      body = m[2] || '';
+    }
+
+    const url = 'mailto:' + encodeURIComponent(email) +
+      '?subject=' + encodeURIComponent(subject) +
+      '&body=' + encodeURIComponent(body);
+
+    // abrir em nova janela (pode ser bloqueado por alguns browsers)
+    const w = window.open(url, '_blank');
+    if(!w){
+      // fallback: abre no mesmo separador
+      window.location.href = url;
+    }
+  }else{
+    // fallback útil: copia email para clipboard para envio manual
+    copyText(emailMsg || '');
+    showToast('Sem email — copiado');
+  }
+
+  showToast('Follow-up 48h preparado');
+}
+
 if(followup48hBtn){
-  followup48hBtn.addEventListener('click', async ()=>{
-    if(!currentKitItem) return;
-    await runFollowup48h(currentKitItem);
-  });
+  followup48hBtn.addEventListener('click', runFollowup48h);
 }
 /* END: Follow-up 48h action (1 clique) */
   window.addEventListener('keydown', (e)=>{
