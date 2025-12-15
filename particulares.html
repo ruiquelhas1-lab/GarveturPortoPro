@@ -2048,16 +2048,19 @@ Director Comercial — Garvetur Luxury Porto`;
       renderCards();
     }
 
-    // 2) Abrir Kit
-    await openKit(item);
+       // 2) Obter o item ATUALIZADO do state (para abrir Kit com dados frescos)
+    const updated = state.items.find(x => x.id === item.id) || item;
 
-    // 3) Substituir mensagens do Kit por versões 48h
+    // 3) Abrir Kit com o item atualizado (não o antigo)
+    await openKit(updated);
+
+    // 4) Substituir mensagens do Kit por versões 48h (com base no item atualizado)
     const t = lastFetchedTitle || null;
-    kitWhatsapp.value = generateWhatsappFollowup48h(item, t);
-    kitEmail.value = generateEmailFollowup48h(item, t);
+    kitWhatsapp.value = generateWhatsappFollowup48h(updated, t);
+    kitEmail.value = generateEmailFollowup48h(updated, t);
 
-    // 4) Disparar WhatsApp + Email
-    const phone = normalizePhone(item.ownerPhone || '');
+    // 5) Disparar WhatsApp + Email com base no item atualizado
+    const phone = normalizePhone(updated.ownerPhone || '');
     if(phone){
       const waPhone = phone.replace(/\+/g,'');
       const msg = encodeURIComponent(kitWhatsapp.value || '');
@@ -2066,7 +2069,7 @@ Director Comercial — Garvetur Luxury Porto`;
       alert('Follow-up 48h: falta o móvel do proprietário para abrir WhatsApp.');
     }
 
-    const email = (item.ownerEmail || '').trim();
+    const email = (updated.ownerEmail || '').trim();
     if(email){
       const content = kitEmail.value || '';
       let subject = 'Follow-up (48h)';
@@ -2082,14 +2085,12 @@ Director Comercial — Garvetur Luxury Porto`;
         '?subject=' + encodeURIComponent(subject) +
         '&body=' + encodeURIComponent(body);
 
-      // mailto no mesmo separador (WhatsApp já abriu em novo)
       window.location.href = url;
     }else{
       alert('Follow-up 48h: falta o email do proprietário para abrir o email.');
     }
 
     showToast('Follow-up 48h preparado');
-  }
   /* ============ Kit FSBO (Gerador) ============ */
   function normalizePhone(phone){
     if(!phone) return '';
