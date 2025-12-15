@@ -3567,7 +3567,23 @@ if(followup48hBtn){
   loadState();
   loadFilterState();
   renderCards();
+  // Auto-import via hash: #import=BASE64(JSON)
+  (function checkBookmarkletImport(){
+    const hash = String(window.location.hash || '');
+    const m = hash.match(/(?:^#|&)import=([^&]+)/);
+    if(!m) return;
 
+    const payload = decodeImportPayload(m[1]);
+
+    // limpar hash para não repetir ao refrescar
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+
+    if(payload){
+      prefillFormFromPayload(payload);
+    }else{
+      showToast('Import inválido');
+    }
+  })();
 })();
 </script>
 </body>
