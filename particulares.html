@@ -3194,26 +3194,7 @@ if(urg){
   showToast('Anúncio importado');
 }
 
-    // guardar URLs de imagens em notas internas (para já, sem anexar automaticamente)
-    if(payload.images && Array.isArray(payload.images) && payload.images.length){
-      const block =
-        '---\n' +
-        'FOTOS (URLs extraídas do anúncio):\n' +
-        payload.images.map(x=>'• '+x).join('\n') +
-        '\n---';
-
-      const curN = ($('notasInternas').value || '').trim();
-      if(!curN.includes('FOTOS (URLs extraídas do anúncio)')){
-        $('notasInternas').value = (curN ? (curN + '\n\n') : '') + block;
-      }
-    }
-
-    const score = computeCompletenessFromForm();
-    setListingQualityHint(`Importação concluída (${payload.source || 'portal'}). Nível de informação: ${score}%.`);
-
-    showToast('Anúncio importado');
-  }
-
+   
   /* ============ CSV ============ */
   function escCsv(v){
     if(v == null) return '';
