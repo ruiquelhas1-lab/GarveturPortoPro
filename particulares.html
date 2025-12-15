@@ -1317,15 +1317,27 @@
   function $(id){ return document.getElementById(id); }
     /* ============ Import via Bookmarklet (Idealista/Imovirtual) ============ */
   function decodeImportPayload(raw){
-    try{
-      const json = decodeURIComponent(escape(atob(raw)));
-      const obj = JSON.parse(json);
-      return (obj && typeof obj === 'object') ? obj : null;
-    }catch(e){
-      console.error('Falha a descodificar import payload', e);
-      return null;
-    }
+  try{
+    if(!raw) return null;
+
+    // 1) desfazer URL encoding (muito importante)
+    let b64 = String(raw).trim();
+    try{ b64 = decodeURIComponent(b64); }catch(e){}
+
+    // 2) aceitar base64url também (caso apareça)
+    b64 = b64.replace(/-/g,'+').replace(/_/g,'/');
+
+    // 3) garantir padding
+    while(b64.length % 4) b64 += '=';
+
+    const json = decodeURIComponent(escape(atob(b64)));
+    const obj = JSON.parse(json);
+    return (obj && typeof obj === 'object') ? obj : null;
+  }catch(e){
+    console.error('Falha a descodificar import payload', e);
+    return null;
   }
+}
 
   function prefillFormFromPayload(p){
     // abre como NOVO (não cria ID nem grava automaticamente)
