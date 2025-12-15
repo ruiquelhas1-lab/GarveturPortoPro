@@ -1315,6 +1315,58 @@
   }
 
   function $(id){ return document.getElementById(id); }
+    /* ============ Import via Bookmarklet (Idealista/Imovirtual) ============ */
+  function decodeImportPayload(raw){
+    try{
+      const json = decodeURIComponent(escape(atob(raw)));
+      const obj = JSON.parse(json);
+      return (obj && typeof obj === 'object') ? obj : null;
+    }catch(e){
+      console.error('Falha a descodificar import payload', e);
+      return null;
+    }
+  }
+
+  function prefillFormFromPayload(p){
+    // abre como NOVO (não cria ID nem grava automaticamente)
+    openModal(null);
+
+    // Mapeamento para o teu formulário
+    $('portal').value = p.portal || '';
+    $('link').value = p.link || '';
+    $('tituloImovel').value = p.tituloImovel || '';
+    $('precoAnuncio').value = (p.precoAnuncio != null ? String(p.precoAnuncio) : '');
+    $('concelho').value = p.concelho || '';
+    $('freguesia').value = p.freguesia || '';
+    $('zona').value = p.zona || '';
+    $('natureza').value = p.natureza || '';
+    $('tipologia').value = p.tipologia || '';
+
+    // Se vier descrição longa, vai para observações
+    if(p.descricao){
+      $('observacoes').value = p.descricao;
+    }
+
+    // Metadados úteis para rastreabilidade
+    const metaLines = [];
+    if(p.ref) metaLines.push('Ref anúncio: ' + p.ref);
+    if(p.area) metaLines.push('Área: ' + p.area);
+    if(p.quartos != null) metaLines.push('Quartos: ' + p.quartos);
+    if(p.wc != null) metaLines.push('WC: ' + p.wc);
+    if(p.andar) metaLines.push('Andar: ' + p.andar);
+    if(p.extras && p.extras.length) metaLines.push('Extras: ' + p.extras.join(', '));
+    if(p.anunciante) metaLines.push('Anunciante: ' + p.anunciante);
+
+    if(metaLines.length){
+      const prev = $('notasInternas').value || '';
+      $('notasInternas').value =
+        (prev ? (prev + '\n\n') : '') +
+        'Import (bookmarklet):\n' +
+        metaLines.join('\n');
+    }
+
+    showToast('Import preparado — desbloqueie para guardar');
+  }
 
   // Header
   const lockStateLabel = $('lockStateLabel');
