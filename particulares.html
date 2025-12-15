@@ -3570,6 +3570,233 @@ if(followup48hBtn){
   followup48hBtn.addEventListener('click', runFollowup48h);
 }
 /* END: Follow-up 48h action (1 clique) */
+  /* =========================
+   FSBO — FOLLOW-UP ENGINE (Aditivo / Seguro)
+   - Sequência de follow-up com 1 clique
+   - Registo automático em notas internas
+   - Atualiza datas + próxima ação
+   ========================= */
+
+function nowISODate(){
+  return new Date().toISOString().slice(0,10);
+}
+
+function appendInternalLog(item, channel, title, details){
+  // Registo com timestamp + canal + resumo (vai para notasInternas)
+  const stamp = new Date().toISOString().replace('T',' ').slice(0,16);
+  const lines = [];
+  lines.push(`[${stamp}] ${channel} — ${title}`);
+  if(details) lines.push(details);
+
+  const prev = item.notasInternas || '';
+  item.notasInternas = (prev ? (prev + '\n') : '') + lines.join('\n') + '\n';
+}
+
+function safeSetProspeccaoForFollowup(item){
+  // Não “estraga” estados finais
+  const est = String(item.estadoProspeccao || 'identificado');
+  if(est === 'angariado' || est === 'descartado') return;
+  // Se estava identificado/contacto-feito, evolui para follow-up
+  if(est === 'identificado' || est === 'contacto-feito') item.estadoProspeccao = 'follow-up';
+}
+
+function updateActionFields(item, nextDays, nextTypeLabel){
+  const hoje = nowISODate();
+  if(!item.dataPrimeiroContacto) item.dataPrimeiroContacto = hoje;
+  item.dataUltimaAcao = hoje;
+
+  if(nextDays != null && isFinite(Number(nextDays))){
+    item.proximaAcaoData = addDaysToISO(hoje, Number(nextDays));
+    item.proximaAcaoTipo = nextTypeLabel || 'follow-up';
+  }
+}
+
+function openWhatsappWithMessage(item, msg){
+  const phone = normalizePhone(item.ownerPhone || '');
+  if(!phone){
+    alert('Sem móvel do proprietário. Preencha o campo “Móvel” para abrir WhatsApp.');
+    return false;
+  }
+  const waPhone = phone.replace(/\+/g,'');
+  const url = 'https://wa.me/' + waPhone + '?text=' + encodeURIComponent(msg || '');
+  window.open(url, '_blank');
+  return true;
+}
+
+function openEmailWithMessage(item, emailMsg){
+  const email = (item.ownerEmail || '').trim();
+  if(!email){
+    // fallback: copiar para enviar manualmente
+    copyText(emailMsg || '');
+    showToast('Sem email — conteúdo copiado');
+    return false;
+  }
+
+  // extrair assunto “Assunto: …”
+  let subject = 'Seguimento do seu imóvel';
+  let body = emailMsg || '';
+  const m = String(emailMsg || '').match(/^Assunto:\s*(.+)\n\n([\s\S]*)$/i);
+  if(m){
+    subject = (m[1] || '').trim();
+    body = m[2] || '';
+  }
+
+  const url = 'mailto:' + encodeURIComponent(email) +
+    '?subject=' + encodeURIComponent(subject) +
+    '&body=' + encodeURIComponent(body);
+
+  const w = window.open(url, '_blank');
+  if(!w) window.location.href = url;
+  return true;
+}
+
+/* Templates follow-up por etapa (curtos, executáveis e com pergunta) */
+function tplWhatsapp(item, fetchedTitle, stageLabel){
+  const owner = item.ownerName ? (' ' + firstNameFromOwner(item.ownerName)) : '';
+  const title = fetchedTitle || item.tituloImovel || 'o seu imóvel';
+  const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
+  const price = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
+
+  // remove “texto decorativo”, vai direto ao ponto
+  return (
+`✅ [GPP-FOLLOWUP ${stageLabel}]
+Boa tarde${owner}.
+
+Daqui fala o ${item.consultor || 'Rui Quelhas'} (Garvetur Luxury Porto). Só para fechar o ponto do anúncio “${title}”${zone ? ' ('+zone+')' : ''}${price ? ' — ' + price : ''}.
+
+O imóvel continua disponível?
+
+Se sim, posso enviar-lhe 2–3 ajustes objetivos para aumentar procura e proteger o valor (leva 2 minutos por mensagem).`
+  );
+}
+
+function tplEmail(item, fetchedTitle, stageLabel){
+  const owner = item.ownerName || 'Proprietário(a)';
+  const title = fetchedTitle || item.tituloImovel || 'o seu imóvel';
+  const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
+  const price = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
+
+  return (
+`Assunto: Seguimento (${stageLabel}) — ${title}${zone ? ' | ' + zone : ''}
+
+Caro(a) ${owner},
+
+Deixo apenas um seguimento rápido relativamente ao seu anúncio${zone ? ' em ' + zone : ''}${price ? ' (preço: ' + price + ')' : ''}.
+
+O imóvel continua disponível?
+Se sim, posso partilhar consigo:
+• enquadramento objetivo de preço vs. mercado, e
+• 2–3 melhorias imediatas no anúncio para aumentar procura e proteger o valor.
+
+Caso seja conveniente, podemos falar 8–10 minutos hoje ao final do dia ou amanhã de manhã.
+
+Com os melhores cumprimentos,
+
+Rui Quelhas
+Director Comercial
+Garvetur Luxury Porto`
+  );
+}
+
+/* Definição da cadência (pode ajustar depois) */
+const FOLLOWUP_STEPS = [
+  { key:'24h',  label:'24H',  nextDays:2,  nextType:'follow-up (24h)',  channel:'WA',   make:(it,t)=>tplWhatsapp(it,t,'24H') },
+  { key:'48h',  label:'48H',  nextDays:3,  nextType:'follow-up (48h)',  channel:'WA+Email', make:(it,t)=>({
+      wa: generateWhatsappFollowup48h(it,t),
+      email: generateEmailFollowup48h(it,t)
+    })
+  },
+  { key:'72h',  label:'72H',  nextDays:7,  nextType:'follow-up (72h)',  channel:'WA',   make:(it,t)=>tplWhatsapp(it,t,'72H') },
+  { key:'7d',   label:'7 DIAS', nextDays:14, nextType:'follow-up (7d)', channel:'Email', make:(it,t)=>tplEmail(it,t,'7 DIAS') },
+  { key:'14d',  label:'14 DIAS', nextDays:21, nextType:'follow-up (14d)', channel:'WA',  make:(it,t)=>tplWhatsapp(it,t,'14 DIAS') },
+];
+
+function runFollowupStep(stepKey){
+  if(!currentKitItem) return;
+
+  const step = FOLLOWUP_STEPS.find(s=>s.key === stepKey);
+  if(!step) return;
+
+  const t = lastFetchedTitle || null;
+
+  // 1) gerar conteúdo
+  const pack = step.make(currentKitItem, t);
+
+  // 2) atualizar o Kit (para ficar visível)
+  if(step.key === '48h' && pack && typeof pack === 'object'){
+    kitWhatsapp.value = pack.wa || '';
+    kitEmail.value = pack.email || '';
+  }else{
+    if(step.channel.includes('WA')) kitWhatsapp.value = String(pack || '');
+    if(step.channel.includes('Email')) kitEmail.value = String(pack || '');
+  }
+
+  // 3) atualizar pipeline + registar
+  safeSetProspeccaoForFollowup(currentKitItem);
+  updateActionFields(currentKitItem, step.nextDays, step.nextType);
+
+  // log interno
+  appendInternalLog(
+    currentKitItem,
+    step.channel,
+    `Follow-up ${step.label}`,
+    `Próxima ação: ${currentKitItem.proximaAcaoData || '-'} (${currentKitItem.proximaAcaoTipo || '-'})`
+  );
+
+  // persistir
+  saveState();
+  renderCards();
+
+  // 4) abrir canais
+  let opened = false;
+
+  if(step.key === '48h' && pack && typeof pack === 'object'){
+    if(pack.wa) opened = openWhatsappWithMessage(currentKitItem, pack.wa) || opened;
+    if(pack.email) opened = openEmailWithMessage(currentKitItem, pack.email) || opened;
+  }else{
+    if(step.channel.includes('WA')) opened = openWhatsappWithMessage(currentKitItem, String(pack || '')) || opened;
+    if(step.channel.includes('Email')) opened = openEmailWithMessage(currentKitItem, String(pack || '')) || opened;
+  }
+
+  showToast(opened ? `Follow-up ${step.label}` : `Follow-up ${step.label} preparado`);
+}
+
+/* UI: injecta botões no Kit (sem alterar HTML) */
+function renderFollowupPanel(){
+  const box = kitWhatsapp && kitWhatsapp.closest('.kit-box');
+  if(!box) return;
+
+  // evitar duplicar
+  if(document.getElementById('gppFollowupPanel')) return;
+
+  const panel = document.createElement('div');
+  panel.id = 'gppFollowupPanel';
+  panel.className = 'kit-actions';
+  panel.style.marginTop = '8px';
+
+  // rótulo
+  const tag = document.createElement('div');
+  tag.style.fontSize = '10px';
+  tag.style.color = 'rgba(255,255,255,.45)';
+  tag.style.letterSpacing = '.12em';
+  tag.style.textTransform = 'uppercase';
+  tag.style.margin = '4px 0 2px';
+  tag.textContent = 'FOLLOW-UP (1 CLIQUE)';
+  box.appendChild(tag);
+
+  // botões
+  FOLLOWUP_STEPS.forEach(s=>{
+    const b = document.createElement('button');
+    b.className = 'btn btn-ghost';
+    b.type = 'button';
+    b.textContent = `⏱ ${s.label}`;
+    b.title = `Gera + regista + agenda + abre (${s.channel})`;
+    b.addEventListener('click', ()=>runFollowupStep(s.key));
+    panel.appendChild(b);
+  });
+
+  box.appendChild(panel);
+}
   window.addEventListener('keydown', (e)=>{
     if(e.key === 'Escape'){
       if(modalBackdrop.classList.contains('open')) closeModal();
