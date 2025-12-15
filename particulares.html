@@ -1455,43 +1455,88 @@ if(out.precoAnuncio === '' || out.precoAnuncio == null){
   }
 
   function loadState(){
-    // tenta v2
-    let parsed = safeParse(localStorage.getItem(STORAGE_KEY));
+  // Tenta várias chaves antigas (migração)
+  const CANDIDATE_KEYS = [
+    STORAGE_KEY,                 // atual (v2)
+    STORAGE_KEY_LEGACY,          // legacy (v1)
+    'gpp_particulares',          // variantes antigas possíveis
+    'gpp_fsbo',                  // possíveis nomes usados noutros módulos
+    'gpp_fsbo_v1',
+    'gpp_fsbo_v2',
+    'gpp_particulares_data',
+    'gpp_particulares_items'
+  ];
 
-    // fallback v1
-    if(!parsed){
-      parsed = safeParse(localStorage.getItem(STORAGE_KEY_LEGACY));
-      if(parsed){
-        // migra para v2
-        try{
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-        }catch(e){}
+  function normalizeParsed(parsed){
+    // Aceita:
+    // 1) Array direto: [ {...}, {...} ]
+    // 2) Objeto: { items:[...], locked:true/false }
+    // 3) Objeto: { data:[...]} ou { registros:[...]} (fallback)
+    if(!parsed) return null;
+
+    if(Array.isArray(parsed)){
+      return { items: parsed, locked: true };
+    }
+
+    if(parsed && typeof parsed === 'object'){
+      if(Array.isArray(parsed.items)){
+        return { items: parsed.items, locked: parsed.locked !== false };
+      }
+      if(Array.isArray(parsed.data)){
+        return { items: parsed.data, locked: true };
+      }
+      if(Array.isArray(parsed.registos)){
+        return { items: parsed.registos, locked: true };
+      }
+      if(Array.isArray(parsed.registros)){
+        return { items: parsed.registros, locked: true };
       }
     }
 
-    if(parsed){
-      if(Array.isArray(parsed)){
-        state.items = parsed.map(migrateItem);
-        state.locked = true;
-        updateLockUI();
-        saveState();
-        return;
-      }
-      if(parsed && typeof parsed === 'object' && Array.isArray(parsed.items)){
-        state.items = parsed.items.map(migrateItem);
-        state.locked = parsed.locked !== false;
-        updateLockUI();
-        saveState();
-        return;
-      }
-    }
-
-    state.items = [];
-    state.locked = true;
-    updateLockUI();
-    saveState();
+    return null;
   }
 
+  // 1) Encontrar a primeira key válida com dados
+  let foundKey = null;
+  let normalized = null;
+
+  for(const k of CANDIDATE_KEYS){
+    const raw = localStorage.getItem(k);
+    const parsed = safeParse(raw);
+    const norm = normalizeParsed(parsed);
+    if(norm && Array.isArray(norm.items)){
+      foundKey = k;
+      normalized = norm;
+      break;
+    }
+  }
+
+  // 2) Se encontrou, migra e guarda no STORAGE_KEY atual
+  if(normalized && Array.isArray(normalized.items)){
+    state.items = normalized.items.map(migrateItem);
+    state.locked = normalized.locked !== false;
+
+    // Persistir sempre no STORAGE_KEY atual (v2)
+    updateLockUI();
+    saveState();
+
+    // (Opcional) também gravar “compat” no v1 — útil se houver outros ficheiros a ler v1
+    try{
+      localStorage.setItem(STORAGE_KEY_LEGACY, JSON.stringify(state));
+    }catch(e){}
+
+    // Debug opcional (podes remover)
+    // console.log('[FSBO] loadState: carregado de', foundKey, 'itens:', state.items.length);
+
+    return;
+  }
+
+  // 3) Se não encontrou nada, inicializa vazio
+  state.items = [];
+  state.locked = true;
+  updateLockUI();
+  saveState();
+}
   function saveState(){
     try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
     catch(e){ console.error('Erro ao guardar storage de FSBO', e); }
