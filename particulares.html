@@ -2254,228 +2254,239 @@ if(!dataIdent){
   }
 
  function buildKitResumo(item){
-  // Base (mantém compatibilidade com o que já existe no ficheiro)
-  const localidade = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
-  const preco = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
-  const tipologia = cleanText(item.tipologia);
-  const titulo = cleanText(item.tituloImovel);
-
-  const rawObs = String(item.observacoes || '');
-  const rawNotas = String(item.notasInternas || '');
-
-  // Texto de apoio para extrair factos (SEM duplicar depois)
-  const baseText = [
-    item.tituloImovel, item.tipologia, item.zona, item.freguesia, item.concelho,
-    item.observacoes, item.notasInternas
-  ].filter(Boolean).join('\n');
-
-  const facts = extractFactsFromText(baseText);
-
-  // Highlights (já existe guessHighlights)
-  const highlights = guessHighlights(item);
-
-  // -----------------------------
-  // Helpers locais (não mexe no resto do ficheiro)
-  // -----------------------------
-  const norm = (s)=>cleanText(String(s||''));
-  const low  = (s)=>norm(s).toLowerCase();
-
-  // Normaliza Observações em linhas/bullets (sem “explodir” o texto)
-  function obsToLines(text){
-    let t = String(text || '');
-
-    // Separadores comuns em anúncios
-    t = t.replace(/-{3,}/g, '\n');
-    t = t.replace(/\s+\|\s+/g, '\n');
-    t = t.replace(/\s*•\s*/g, '\n• ');
-    t = t.replace(/\s*-\s+/g, '\n• '); // " - " vira bullet
-
-    // Forçar quebras antes de blocos típicos
-    const markers = [
-      'Características específicas',
-      'Prédio',
-      'Edifício',
-      'Condomínio',
-      'Equipamento',
-      'Certificado energético',
-      'Eficiência energética',
-      'Classe energética'
-    ];
-    markers.forEach(m=>{
-      const re = new RegExp('\\s*' + m.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\s*', 'ig');
-      t = t.replace(re, '\n' + m + '\n');
-    });
-
-    // Linhas
-    let lines = t
-      .split(/\n+/)
-      .map(x=>x.replace(/^\s*•\s*/,'').trim())
-      .filter(Boolean);
-
-    // Deduplicar (case-insensitive) e remover lixo muito curto
-    const seen = new Set();
-    const out = [];
-    for(const ln of lines){
-      const key = ln.toLowerCase().replace(/\s+/g,' ').trim();
-      if(key.length < 3) continue;
-      if(seen.has(key)) continue;
-      seen.add(key);
-      out.push(ln);
-    }
-    return out;
+  // ===== Helpers locais (não mexem no resto do ficheiro) =====
+  function norm(s){
+    return String(s||'')
+      .replace(/\u00A0/g,' ')
+      .replace(/[•·]/g,'-')
+      .replace(/\s+/g,' ')
+      .trim();
   }
 
-  // Remove das “linhas detalhadas” aquilo que já está na Ficha rápida
-  function shouldDropAsDuplicateLine(ln){
-    const s = low(ln);
+  function splitIntoLines(text){
+    // quebra por hífen “-”, bullets, ou novas linhas (observações vêm muitas vezes em bloco)
+    const raw = String(text||'')
+      .replace(/\r/g,'\n')
+      .replace(/\s*-\s*/g,'\n- ')       // transforma " - " em linhas
+      .replace(/\s*•\s*/g,'\n- ')
+      .replace(/\s*—\s*/g,'\n- ')
+      .replace(/\n{2,}/g,'\n');
 
-    // evitar repetir números básicos já apresentados
-    if(facts.area && s.includes(String(facts.area).toLowerCase())) return true;
+    return raw
+      .split('\n')
+      .map(l=>norm(l))
+      .filter(Boolean)
+      .map(l=>{
+        // remove prefixo "- " se existir
+        if(l.startsWith('- ')) return l.slice(2).trim();
+        return l;
+      })
+      .filter(Boolean);
+  }
 
-    // “T1/T2/T3…”
-    const tMatch = s.match(/\bt\s?(\d{1,2})(?:\+\d)?\b/i);
-    if(tMatch && facts.quartos && String(facts.quartos) === String(tMatch[1])) return true;
+  function keyOf(line){
+    // chave para dedupe (insensível a maiúsculas e pontuação “leve”)
+    return norm(line)
+      .toLowerCase()
+      .replace(/[()]/g,'')
+      .replace(/[.:;]+/g,'')
+      .replace(/\b(com|de|do|da|dos|das|e|em|no|na|para|por|a|o|as|os)\b/g,'')
+      .replace(/\s+/g,' ')
+      .trim();
+  }
 
-    // quartos / wc
-    if(facts.quartos && s.includes(String(facts.quartos) + ' quarto')) return true;
-    if(facts.wc && (s.includes(String(facts.wc) + ' wc') || s.includes(String(facts.wc) + ' casa'))) return true;
+  function uniqPush(arr, seen, line){
+    const k = keyOf(line);
+    if(!k) return;
+    if(seen.has(k)) return;
+    seen.add(k);
+    arr.push(line);
+  }
 
-    // andar / elevador (já aparecem na ficha)
-    if(facts.andar && (s.includes('andar') || s.includes('piso') || s.includes('rés'))) {
-      // não elimina tudo sobre “andar”, só o que é redundante/curto
-      if(s.length <= 25) return true;
-    }
-    if(facts.elevador && s.includes('elevador') && s.length <= 25) return true;
-
+  function isNoise(line){
+    const l = line.toLowerCase();
+    // “Cabeçalhos” típicos copiados do portal (ruído)
+    if(/^caracter[ií]sticas\s+espec[ií]ficas\b/.test(l)) return true;
+    if(/^equipamento\b\s*:?\s*$/.test(l)) return true;
+    if(/^certificado\s+energ[eé]tico\b\s*:?\s*$/.test(l)) return true;
+    if(/^classe\s+energ[eé]tica\b\s*:?\s*$/.test(l)) return true;
+    if(/^\s*:?\s*[a-z]\s*$/.test(l)) return true; // linhas tipo ": A"
+    // redundâncias muito frequentes sem valor informativo
+    if(/\bárea\s+bruta\b/.test(l)) return true; // já apanha na ficha rápida
     return false;
   }
 
-  // Classifica linhas para uma apresentação “premium”
-  function bucketLine(ln){
-    const s = low(ln);
+  function bucketOf(line){
+    const l = line.toLowerCase();
 
-    // energia
-    if(s.includes('classe energética') || s.includes('certificado energético') || s.includes('eficiência energética')) return 'Eficiência energética';
+    // Domótica / Segurança (novo)
+    if(/\b(dom[oó]tica|alarme|videovigil[aâ]ncia|cctv|porta\s+blindada|fechadura\s+inteligente|intercomunicador|videoporteiro|detetor|sensores)\b/.test(l)){
+      return 'DOMÓTICA / SEGURANÇA';
+    }
 
-    // cozinha / eletrodomésticos
-    if(s.includes('cozinha') || s.includes('bosch') || s.includes('eletrodomést')) return 'Cozinha & equipamentos';
+    // Vistas / Exposição solar (novo)
+    if(/\b(vista|vistas|rio|mar|serra|panor[aâ]mica|exposi[cç][aã]o\s+solar|nascente|poente|sul|norte|orienta[cç][aã]o)\b/.test(l)){
+      return 'VISTAS / EXPOSIÇÃO SOLAR';
+    }
 
-    // climatização / conforto
-    if(s.includes('ar condicionado') || s.includes('bomba de calor') || s.includes('piso radiante') || s.includes('aquecimento') || s.includes('pré-instalação')) return 'Conforto & climatização';
+    // Estado & Reabilitação
+    if(/\b(novo|nova|estrear|remodelad[ao]|renovad[ao]|reabilitad[ao]|segunda\s+m[aã]o|bom\s+estado|a\s+necessitar)\b/.test(l)){
+      return 'ESTADO & REABILITAÇÃO';
+    }
 
-    // garagem / arrumos / EV
-    if(s.includes('garagem') || s.includes('lugar') || s.includes('carregamento') || s.includes('veículos elétricos') || s.includes('arrumos') || s.includes('arrecadação')) return 'Estacionamento & arrumos';
+    // Cozinha & Equipamentos
+    if(/\b(cozinha|forno|placa|exaustor|frigor[ií]fico|micro-?ondas|m[aá]quina\s+de\s+lavar|m[aá]quina\s+de\s+secar|bosch|siemens|aeg)\b/.test(l)){
+      return 'COZINHA & EQUIPAMENTOS';
+    }
 
-    // edifício / condomínio
-    if(s.includes('condomínio') || s.includes('terraço comum') || s.includes('prédio') || s.includes('edifício') || s.includes('elevador') || s.includes('andar') || s.includes('piso')) return 'Edifício & condomínio';
+    // Conforto & Climatização
+    if(/\b(ar\s+condicionado|a\/c|bomba\s+de\s+calor|aquecimento|piso\s+radiante|recuperador|lareira|ventila[cç][aã]o)\b/.test(l)){
+      return 'CONFORTO & CLIMATIZAÇÃO';
+    }
 
-    // estado / obra / remodelação
-    if(s.includes('novo') || s.includes('segunda mão') || s.includes('bom estado') || s.includes('reconstru') || s.includes('redesenh') || s.includes('arquitet')) return 'Estado & reabilitação';
+    // Estacionamento & Arrumos
+    if(/\b(garagem|box|lugar\s+de\s+garagem|estacionamento|carregamento|ve[ií]culos?\s+el[eé]tricos?|tomada|arrumos|arrecada[cç][aã]o)\b/.test(l)){
+      return 'ESTACIONAMENTO & ARRUMOS';
+    }
 
-    // descrição (linhas longas e narrativas)
-    if(norm(ln).length >= 120) return 'Descrição (do anúncio)';
+    // Edifício & Condomínio
+    if(/\b(condom[ií]nio|pr[eé]dio|elevador|terra[cç]o\s+comum|[uú]ltimo\s+piso|fra[cç][aã]o|andar|rc|r[eé]s-?do-?ch[aã]o)\b/.test(l)){
+      return 'EDIFÍCIO & CONDOMÍNIO';
+    }
 
-    // resto
-    return 'Outros detalhes';
+    // Eficiência Energética
+    if(/\b(certificado\s+energ[eé]tico|classe\s+energ[eé]tica|a\+?\b|b\b|c\b|d\b|e\b)\b/.test(l)){
+      return 'EFICIÊNCIA ENERGÉTICA';
+    }
+
+    return 'OUTROS DETALHES';
   }
 
-  // -----------------------------
-  // Construção do resumo
-  // -----------------------------
+  function capList(arr, max){
+    if(arr.length <= max) return arr;
+    return arr.slice(0, max);
+  }
+
+  // ===== Base de trabalho =====
+  const baseText = [
+    item.tituloImovel,
+    item.tipologia,
+    item.zona,
+    item.freguesia,
+    item.concelho,
+    item.observacoes,
+    item.notasInternas
+  ].filter(Boolean).join('\n');
+
+  const hasAnyText = cleanText(baseText).length >= 10;
+  const facts = extractFactsFromText(baseText);
+
+  const localidade = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
+  const preco = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
+
+  // Highlights (mantém a sua função, mas limita para não “inchar”)
+  const highlights = capList(guessHighlights(item), 6);
+  const highlightsBlock = highlights.length ? ('• ' + highlights.join('\n• ')) : '• (Sem destaques detectados)';
+
+  // ===== Detalhes (a partir de Observações + Notas) com dedupe + buckets =====
+  const detailsText = [item.observacoes, item.notasInternas].filter(Boolean).join('\n');
+  const rawLines = splitIntoLines(detailsText);
+
+  const buckets = {};
+  const seenGlobal = new Set();
+
+  rawLines.forEach(line=>{
+    const clean = norm(line);
+    if(!clean) return;
+    if(isNoise(clean)) return;
+
+    // eliminar linhas muito “genéricas” dos portais
+    const low = clean.toLowerCase();
+    if(low === 'prédio' || low === 'condomínio') return;
+
+    const b = bucketOf(clean);
+    if(!buckets[b]) buckets[b] = [];
+    uniqPush(buckets[b], seenGlobal, clean);
+  });
+
+  // Ordenação “premium” (primeiro o que mais vende)
+  const bucketOrder = [
+    'PONTOS-CHAVE', // (não é bucket real; só para referência)
+    'ESTADO & REABILITAÇÃO',
+    'VISTAS / EXPOSIÇÃO SOLAR',
+    'COZINHA & EQUIPAMENTOS',
+    'CONFORTO & CLIMATIZAÇÃO',
+    'DOMÓTICA / SEGURANÇA',
+    'ESTACIONAMENTO & ARRUMOS',
+    'EDIFÍCIO & CONDOMÍNIO',
+    'EFICIÊNCIA ENERGÉTICA',
+    'OUTROS DETALHES'
+  ];
+
+  // Limites por bucket (para manter “resumo”)
+  const bucketCaps = {
+    'ESTADO & REABILITAÇÃO': 3,
+    'VISTAS / EXPOSIÇÃO SOLAR': 3,
+    'COZINHA & EQUIPAMENTOS': 3,
+    'CONFORTO & CLIMATIZAÇÃO': 3,
+    'DOMÓTICA / SEGURANÇA': 3,
+    'ESTACIONAMENTO & ARRUMOS': 3,
+    'EDIFÍCIO & CONDOMÍNIO': 3,
+    'EFICIÊNCIA ENERGÉTICA': 2,
+    'OUTROS DETALHES': 4
+  };
+
+  // construir bloco de detalhes com cap global (evita “bible”)
+  const detailsLines = [];
+  bucketOrder.forEach(b=>{
+    if(!buckets[b] || !buckets[b].length) return;
+    const capped = capList(buckets[b], bucketCaps[b] || 3);
+    detailsLines.push(b);
+    capped.forEach(x=> detailsLines.push('• ' + x));
+    detailsLines.push(''); // espaço
+  });
+
+  // cap global final (segurança extra)
+  const MAX_DETAIL_LINES = 22; // ajustável
+  let finalDetails = detailsLines.filter(Boolean);
+  if(finalDetails.length > MAX_DETAIL_LINES){
+    finalDetails = finalDetails.slice(0, MAX_DETAIL_LINES);
+    finalDetails.push('• (… mais detalhes no anúncio / observações)');
+  }
+
+  // ===== Montagem final (visual e curto) =====
   const lines = [];
-  lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   lines.push('RESUMO PREMIUM DO ANÚNCIO (FSBO)');
   lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  lines.push('');
-
-  // Cabeçalho do imóvel
-  if(titulo) lines.push(`▌ Imóvel: ${titulo}`);
-  if(preco)  lines.push(`▌ Preço: ${preco}`);
+  lines.push(`▌ Imóvel: ${cleanText(item.tituloImovel) || (item.tipologia ? cleanText(item.tipologia) : 'Imóvel')}`);
+  if(preco) lines.push(`▌ Preço: ${preco}`);
   if(localidade) lines.push(`▌ Localização: ${localidade}`);
-  if(tipologia)  lines.push(`▌ Tipologia: ${tipologia}`);
-  lines.push('');
+  if(cleanText(item.tipologia)) lines.push(`▌ Tipologia: ${cleanText(item.tipologia)}`);
 
-  // Ficha rápida (objetiva)
+  // Ficha rápida
   lines.push('FICHA RÁPIDA');
   lines.push('—');
-  if(facts.area)     lines.push(`• Área: ${facts.area} m²`);
-  if(facts.quartos)  lines.push(`• Quartos: ${facts.quartos}`);
-  if(facts.wc)       lines.push(`• Casas de banho: ${facts.wc}`);
-  if(facts.andar)    lines.push(`• Andar/Piso: ${facts.andar}`);
+  if(facts.area) lines.push(`• Área: ${facts.area} m²`);
+  if(facts.quartos) lines.push(`• Quartos: ${facts.quartos}`);
+  if(facts.wc) lines.push(`• Casas de banho: ${facts.wc}`);
+  if(facts.andar) lines.push(`• Andar/Piso: ${facts.andar}`);
   if(facts.elevador) lines.push(`• Elevador: ${facts.elevador}`);
-  if(!facts.area && !facts.quartos && !facts.wc && !facts.andar && !facts.elevador){
-    lines.push('• (Sem dados técnicos detectados automaticamente — preencher Observações para enriquecer)');
-  }
-  lines.push('');
 
-  // Pontos-chave (curto e não “contaminado” com frases longas)
+  // Pontos-chave
   lines.push('PONTOS-CHAVE');
   lines.push('—');
-  if(highlights && highlights.length){
-    // dedup já vem protegido
-    highlights.slice(0,6).forEach(h=> lines.push(`• ${h}`));
-  }else{
-    lines.push('• (Sem pontos-chave detectados automaticamente)');
-  }
-  lines.push('');
+  lines.push(highlightsBlock);
 
-  // Observações organizadas (sem duplicar Ficha rápida)
-  const obsLines = obsToLines(rawObs).filter(ln=>!shouldDropAsDuplicateLine(ln));
-
-  if(obsLines.length){
-    const buckets = new Map(); // title -> array
-    for(const ln of obsLines){
-      const b = bucketLine(ln);
-      if(!buckets.has(b)) buckets.set(b, []);
-      buckets.get(b).push(ln);
-    }
-
-    // ordem de apresentação (prioridade “premium”)
-    const order = [
-      'Descrição (do anúncio)',
-      'Estado & reabilitação',
-      'Cozinha & equipamentos',
-      'Conforto & climatização',
-      'Estacionamento & arrumos',
-      'Edifício & condomínio',
-      'Eficiência energética',
-      'Outros detalhes'
-    ];
-
+  // Detalhes organizados (só se existir matéria)
+  if(finalDetails.length){
     lines.push('DETALHES DO ANÚNCIO (ORGANIZADO)');
     lines.push('—');
-
-    for(const title of order){
-      const arr = buckets.get(title);
-      if(!arr || !arr.length) continue;
-
-      lines.push('');
-      lines.push(title.toUpperCase());
-
-      // A descrição (narrativa) vai em 1 bloco, o resto em bullets
-      if(title === 'Descrição (do anúncio)'){
-        const paragraph = arr.join(' ').replace(/\s+/g,' ').trim();
-        lines.push(paragraph);
-      }else{
-        arr.forEach(x=> lines.push(`• ${x}`));
-      }
-    }
-
-    lines.push('');
-  }else{
-    lines.push('DETALHES DO ANÚNCIO (ORGANIZADO)');
-    lines.push('—');
-    lines.push('• (Sem Observações registadas.)');
-    lines.push('');
+    lines.push(finalDetails.join('\n'));
   }
 
-  // Notas internas (opcional e discreto — não “polui”)
-  const notasClean = norm(rawNotas);
-  if(notasClean && notasClean.toLowerCase() !== 'sem notas internas registadas.'){
-    lines.push('NOTAS INTERNAS (RESERVADO)');
-    lines.push('—');
-    lines.push(notasClean);
+  if(!hasAnyText){
     lines.push('');
+    lines.push('Nota: Para um resumo mais completo, preencha “Observações” e/ou “Notas internas” no registo.');
   }
 
   lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
