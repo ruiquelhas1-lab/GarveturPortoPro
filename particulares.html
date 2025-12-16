@@ -1266,15 +1266,6 @@
               <label class="field-label" for="observacoes">Observações</label>
               <textarea id="observacoes" placeholder="Notas sobre o proprietário, objeções, alinhamento de preço, etc."></textarea>
             </div>
-            <div class="field">
-  <label class="field-label" for="resumoAnuncio">Resumo do anúncio (gerado)</label>
-  <textarea id="resumoAnuncio" placeholder="Gerado automaticamente a partir das Observações..." readonly></textarea>
-  <div class="help">Objetivo: leitura rápida. Clique em “Gerar resumo” ou deixe o sistema gerar ao guardar.</div>
-  <div class="field-row" style="margin-top:6px;">
-    <button type="button" class="btn btn-ghost" id="gerarResumoBtn">✨ Gerar resumo</button>
-    <button type="button" class="btn btn-ghost" id="limparResumoBtn" title="Limpa o resumo para voltar a gerar">🧹 Limpar</button>
-  </div>
-</div>
 
             <div class="field">
               <label class="field-label" for="notasInternas">Notas internas</label>
@@ -1382,25 +1373,6 @@
   <button class="btn btn-ghost" id="pdfSwotBtn" title="Gerar PDF desta SWOT">🧾 PDF</button>
 </div>
         </div>
-        <div class="kit-box">
-  <h3>
-    Resumo do Anúncio
-    <span style="font-size:10px;color:rgba(255,255,255,.45);letter-spacing:.12em;">
-      estruturado
-    </span>
-  </h3>
-
-  <textarea
-    id="resumoAnuncio"
-    placeholder="Resumo estruturado do anúncio…"
-  ></textarea>
-
-  <div class="kit-actions">
-    <button class="btn btn-primary" id="gerarResumoBtn">✨ Criar resumo</button>
-    <button class="btn btn-ghost" id="limparResumoBtn">Limpar</button>
-    <button class="btn btn-ghost" id="pdfResumoBtn">📄 PDF</button>
-  </div>
-</div>
       </div>
 
       <div class="help" style="margin-top:10px;">
@@ -1576,8 +1548,6 @@ $('ownerPhone').value = p.ownerPhone || '';
   const addPdfBtn = $('addPdfBtn');
   const refreshPdfsBtn = $('refreshPdfsBtn');
   const pdfList = $('pdfList');
-  const gerarResumoBtn = $('gerarResumoBtn');
-const limparResumoBtn = $('limparResumoBtn');
 
   // Modal Kit
   const kitBackdrop = $('kitBackdrop');
@@ -1645,7 +1615,6 @@ let kitEmailMainMessage = '';
   out.ownerName = d.ownerName || '';
   out.ownerPhone = d.ownerPhone || '';
   out.ownerEmail = d.ownerEmail || '';
-   out.resumoAnuncio = d.resumoAnuncio || '';
 // Normalizar precoAnuncio (CSV/backups antigos podem vir como string)
 if(out.precoAnuncio === '' || out.precoAnuncio == null){
   out.precoAnuncio = null;
@@ -1941,7 +1910,6 @@ if(out.precoAnuncio === '' || out.precoAnuncio == null){
       $('tipologia').value = item.tipologia || '';
       $('precoAnuncio').value = item.precoAnuncio || '';
       $('observacoes').value = item.observacoes || '';
-      $('resumoAnuncio').value = item.resumoAnuncio || '';
       $('notasInternas').value = item.notasInternas || '';
 
       $('ownerName').value = item.ownerName || '';
@@ -1950,7 +1918,6 @@ if(out.precoAnuncio === '' || out.precoAnuncio == null){
     }else{
       modalTitle.textContent = 'Novo FSBO';
       itemForm.reset();
-      if($('resumoAnuncio')) $('resumoAnuncio').value = '';
       $('itemId').value = '';
       estadoProspeccaoSelect.value = 'identificado';
       const hoje = new Date().toISOString().slice(0,10);
@@ -2015,8 +1982,7 @@ if(!dataIdent){
   return isFinite(n) ? n : null;
 })(),
       observacoes: $('observacoes').value || '',
-resumoAnuncio: ($('resumoAnuncio') ? $('resumoAnuncio').value : '') || '',
-notasInternas: $('notasInternas').value || ''
+      notasInternas: $('notasInternas').value || ''
     };
 
     return data;
@@ -2174,142 +2140,6 @@ notasInternas: $('notasInternas').value || ''
     if(!dt) return Number.POSITIVE_INFINITY;
     return dt.getTime();
   }
-  /* =========================
-   RESUMO DO ANÚNCIO (gerado)
-   - Sem IA externa
-   - Extrai sinais e organiza por tópicos
-========================= */
-
-function normalizeTextForParse(txt){
-  return String(txt || '')
-    .replace(/\s+/g,' ')
-    .replace(/\u00A0/g,' ')
-    .trim();
-}
-
-function pickMatches(text, rules){
-  const t = text.toLowerCase();
-  const hits = [];
-  rules.forEach(r=>{
-    if(r.test(t)) hits.push(r.label);
-  });
-  return Array.from(new Set(hits));
-}
-
-function extractNumber(text, regex){
-  const m = String(text || '').match(regex);
-  if(!m) return null;
-  const v = (m[1] || '').replace(/\./g,'').replace(',', '.');
-  const n = Number(v);
-  return isFinite(n) ? n : null;
-}
-
-function buildResumoFromObservacoes(item){
-  const raw = normalizeTextForParse((item && item.observacoes) ? item.observacoes : '');
-  const raw2 = normalizeTextForParse((item && item.notasInternas) ? item.notasInternas : '');
-
-  const full = (raw + ' ' + raw2).trim();
-  if(!full) return '';
-
-  // Regras (ajustáveis)
-  const features = pickMatches(full, [
-    { test:/varanda|terraço|terraco|logradouro/, label:'Varanda/Terraço/Logradouro' },
-    { test:/garagem|box|estacionamento|lugar de garagem|parqueamento/, label:'Estacionamento/Garagem' },
-    { test:/elevador|ascensor/, label:'Elevador' },
-    { test:/suite|suíte/, label:'Suite' },
-    { test:/jardim/, label:'Jardim' },
-    { test:/piscina/, label:'Piscina' },
-    { test:/ar condicionado|a\/c|climatiza/, label:'Ar condicionado' },
-    { test:/aquecimento central|caldeira|recuperador|lareira/, label:'Aquecimento/Lareira' },
-    { test:/vista mar|vista rio|vista|panor[aá]mica/, label:'Vista' },
-    { test:/remodelad|renovad|reabilitad/, label:'Remodelado/Reabilitado' },
-    { test:/novo|constru[cç][aã]o recente/, label:'Imóvel recente/novo' },
-    { test:/metro|est[aá]dio|parque|praia|rio|marginal/, label:'Proximidades relevantes (metro/parque/praia/rio)' },
-  ]);
-
-  const exposure = pickMatches(full, [
-    { test:/nascente/, label:'Exposição: Nascente' },
-    { test:/poente/, label:'Exposição: Poente' },
-    { test:/sul/, label:'Exposição: Sul' },
-    { test:/norte/, label:'Exposição: Norte' },
-  ]);
-
-  // Áreas (heurística simples)
-  const areaUtil = extractNumber(full, /(?:área útil|area util|útil)\s*[:\-]?\s*(\d{2,4}(?:[.,]\d{1,2})?)/i);
-  const areaBruta = extractNumber(full, /(?:área bruta|area bruta|bruta)\s*[:\-]?\s*(\d{2,4}(?:[.,]\d{1,2})?)/i);
-
-  // Andar (heurística)
-  let andar = null;
-  const mAndar = full.match(/(?:\bandar\b|piso)\s*[:\-]?\s*([0-9]{1,2}|r\/c|rc|rés do chão|res do chao)/i);
-  if(mAndar){
-    andar = String(mAndar[1] || '').toUpperCase()
-      .replace('R/C','RC')
-      .replace('RÉS DO CHÃO','RC')
-      .replace('RES DO CHAO','RC');
-  }
-
-  // Estado e pontos de atenção (muito prático para angariação)
-  const cautions = pickMatches(full, [
-    { test:/sem elevador/, label:'Sem elevador (confirmar)' },
-    { test:/precisa de obras|a precisar de obras|para remodelar/, label:'Precisa de obras/remodelação' },
-    { test:/arrendad|inquilino|ocupad/, label:'Ocupado/Arrendado (confirmar condições)' },
-    { test:/licen[cç]a|alvar[aá]|legaliza|documenta[cç][aã]o/, label:'Documentação/Legalização (validar)' },
-    { test:/condom[ií]nio/, label:'Condomínio (valor/estado a confirmar)' },
-  ]);
-
-  // Construir resumo em tópicos (curto e muito “scanável”)
-  const lines = [];
-
-  // Cabeçalho “rápido”
-  const base = [];
-  if(item.tipologia) base.push(item.tipologia);
-  if(item.natureza) base.push(item.natureza);
-  if(item.concelho) base.push(item.concelho);
-  if(item.zona) base.push(item.zona);
-  if(base.length) lines.push('• Enquadramento: ' + base.join(' · '));
-
-  if(item.precoAnuncio != null){
-    lines.push('• Preço anunciado: ' + formatMoney(item.precoAnuncio));
-  }
-
-  if(areaUtil) lines.push('• Área útil (anúncio): ' + areaUtil + ' m²');
-  if(areaBruta) lines.push('• Área bruta (anúncio): ' + areaBruta + ' m²');
-  if(andar) lines.push('• Andar/Piso: ' + andar);
-
-  if(features.length) lines.push('• Características: ' + features.join(' · '));
-  if(exposure.length) lines.push('• Exposição solar: ' + exposure.map(x=>x.replace('Exposição: ','')).join(' · '));
-
-  if(cautions.length) lines.push('• Pontos a validar: ' + cautions.join(' · '));
-
-  // “Essência” (primeira frase útil)
-  const essence = (raw.length > 220 ? raw.slice(0, 217) + '…' : raw);
-  if(essence) lines.push('• Síntese do anúncio: ' + essence);
-
-  return lines.join('\n');
-}
-
-function setResumoToUIFromCurrentForm(){
-  const item = {
-    tipologia: $('tipologia') ? $('tipologia').value : '',
-    natureza: $('natureza') ? $('natureza').value : '',
-    concelho: $('concelho') ? $('concelho').value : '',
-    zona: $('zona') ? $('zona').value : '',
-    precoAnuncio: (function(){
-      const el = $('precoAnuncio');
-      if(!el) return null;
-      const v = el.value;
-      if(v === '' || v == null) return null;
-      const n = Number(v);
-      return isFinite(n) ? n : null;
-    })(),
-    observacoes: $('observacoes') ? $('observacoes').value : '',
-    notasInternas: $('notasInternas') ? $('notasInternas').value : ''
-  };
-
-  const resumo = buildResumoFromObservacoes(item);
-  if($('resumoAnuncio')) $('resumoAnuncio').value = resumo;
-  showToast(resumo ? 'Resumo gerado' : 'Sem texto para resumir');
-}
   /* ============ Kit FSBO (Gerador) ============ */
   function normalizePhone(phone){
     if(!phone) return '';
@@ -3107,20 +2937,12 @@ if(urg){
         card.appendChild(sec);
       }
 
-      if(d.resumoAnuncio){
-  const sec = document.createElement('div');
-  sec.className = 'card-section';
-  // mostra 3-5 linhas no máximo para “scan”
-  const lines = String(d.resumoAnuncio).split('\n').filter(Boolean);
-  const short = lines.slice(0,5).join(' · ');
-  sec.textContent = short.length > 220 ? short.slice(0,217)+'…' : short;
-  card.appendChild(sec);
-}else if(d.observacoes){
-  const sec = document.createElement('div');
-  sec.className = 'card-section';
-  sec.textContent = d.observacoes.length > 160 ? d.observacoes.slice(0,157)+'…' : d.observacoes;
-  card.appendChild(sec);
-}
+      if(d.observacoes){
+        const sec = document.createElement('div');
+        sec.className = 'card-section';
+        sec.textContent = d.observacoes.length > 160 ? d.observacoes.slice(0,157)+'…' : d.observacoes;
+        card.appendChild(sec);
+      }
 
       const foot = document.createElement('div');
       foot.className = 'card-footer';
@@ -3232,7 +3054,7 @@ if(urg){
       'proximaAcaoData','proximaAcaoTipo',
       'tituloImovel','concelho','freguesia','zona',
       'natureza','tipologia','precoAnuncio',
-      'observacoes','resumoAnuncio','notasInternas','visible'
+      'observacoes','notasInternas','visible'
     ];
 
     let csv = cols.map(escCsv).join(';') + '\n';
@@ -3306,7 +3128,7 @@ if(urg){
       'proximaAcaoData','proximaAcaoTipo',
       'tituloImovel','concelho','freguesia','zona',
       'natureza','tipologia','precoAnuncio',
-      'observacoes','resumoAnuncio','notasInternas','visible'
+      'observacoes','notasInternas','visible'
     ]);
 
     let imported = 0, created = 0, updated = 0;
@@ -3418,7 +3240,6 @@ if(urg){
     email:    { title:'Email (profissional)', content: (kitEmail.value || '') },
     call:     { title:'Chamada (script)', content: (kitCall.value || '') },
     swot:     { title:'SWOT (base)', content: (kitSwot.value || '') },
-    resumo:   { title:'Resumo do Anúncio', content: ( ( $('resumoAnuncio') && $('resumoAnuncio').value ) || '' ) },
   };
 
   const pack = map[sectionKey];
@@ -3773,158 +3594,7 @@ if(urg){
     input.click();
   }
 
-  // ===============================
-// ✅ Resumo do anúncio (Observações -> Resumo estruturado)
-// Requer: textarea#observacoes e textarea#resumoAnuncio
-// ===============================
-function getEl(id){ return document.getElementById(id); }
-
-function cleanText(s){
-  return String(s || '')
-    .replace(/\r/g,'\n')
-    .replace(/[ \t]+/g,' ')
-    .replace(/\n{3,}/g,'\n\n')
-    .trim();
-}
-
-function extractFirstMatch(text, re){
-  const m = String(text || '').match(re);
-  return m ? m[1] : '';
-}
-
-function hasAny(text, arr){
-  const t = String(text||'').toLowerCase();
-  return arr.some(k => t.includes(k));
-}
-
-function buildResumoFromObservacoes(raw){
-  const t = cleanText(raw);
-  if(!t) return '';
-
-  const lower = t.toLowerCase();
-
-  // Extrações simples (best-effort)
-  const area = extractFirstMatch(t, /(\d{2,4})\s*(?:m2|m²)\b/i);
-  const quartos = extractFirstMatch(t, /\b(t\s*[\d+]{1,3})\b/i); // T2, T3+1, etc.
-  const wc = extractFirstMatch(t, /\b(\d+)\s*(?:wc|casas?\s*de\s*banho)\b/i);
-  const andar = extractFirstMatch(t, /\b(\d{1,2})\s*(?:º|o)?\s*andar\b/i);
-
-  // Características (keywords)
-  const feats = [];
-  const rules = [
-    { key: ['varanda','terraço'], label:'Varanda/Terraço' },
-    { key: ['garagem','box','lugar de garagem','estacionamento'], label:'Estacionamento/Garagem' },
-    { key: ['elevador'], label:'Elevador' },
-    { key: ['suite','suíte'], label:'Suite' },
-    { key: ['jardim','logradouro'], label:'Jardim/Logradouro' },
-    { key: ['piscina'], label:'Piscina' },
-    { key: ['vista','mar','rio','dou','serra'], label:'Vistas' },
-    { key: ['remodel','renov','reabil','novo'], label:'Estado/Obra (novo/remodelado)' },
-    { key: ['metro','autocarro','transportes'], label:'Proximidade a transportes' },
-    { key: ['parque','praia','marginal'], label:'Envolvente (parque/praia)' },
-    { key: ['exposição','nascente','poente','sul','norte'], label:'Exposição solar' },
-    { key: ['ar condicionado','ac','a/c'], label:'Ar condicionado' },
-    { key: ['aquecimento','bomba de calor'], label:'Aquecimento/Bomba de calor' },
-    { key: ['cozinha equipada','equipada'], label:'Cozinha equipada' },
-  ];
-
-  rules.forEach(r=>{
-    if(hasAny(lower, r.key) && !feats.includes(r.label)) feats.push(r.label);
-  });
-
-  // Quebra em frases/linhas úteis para “Notas do anúncio”
-  const bullets = t
-    .split(/\n+|[•\-]\s+/g)
-    .map(x=>cleanText(x))
-    .filter(x=>x && x.length >= 18)
-    .slice(0, 10);
-
-  // Montagem do resumo
-  const lines = [];
-  lines.push('RESUMO (gerado a partir do texto do anúncio)');
-  lines.push('');
-
-  lines.push('1) Informação-chave');
-  lines.push(`- Tipologia: ${quartos || '—'}`);
-  lines.push(`- Área: ${area ? area + ' m²' : '—'}`);
-  lines.push(`- WC: ${wc || '—'}`);
-  lines.push(`- Andar: ${andar ? andar + 'º andar' : '—'}`);
-  lines.push('');
-
-  lines.push('2) Destaques prováveis');
-  if(feats.length){
-    feats.slice(0,8).forEach(f=>lines.push(`- ${f}`));
-  }else{
-    lines.push('- —');
-  }
-  lines.push('');
-
-  lines.push('3) Notas do anúncio (tópicos)');
-  if(bullets.length){
-    bullets.forEach(b=>lines.push(`- ${b}`));
-  }else{
-    // fallback: primeiras 2 frases
-    const short = t.replace(/\n+/g,' ').split(/[.!?]\s+/).slice(0,2).join('. ');
-    lines.push(`- ${short || '—'}`);
-  }
-  lines.push('');
-
-  lines.push('4) Pontos a validar (checklist rápido)');
-  lines.push('- Documentação (licença, caderneta, certidão, CE)');
-  lines.push('- Áreas exatas (ABP/ABD) e estado real em visita');
-  lines.push('- Condomínio (valor, obras previstas, elevador/garagem)');
-  lines.push('- Enquadramento de preço vs. concorrência direta');
-  lines.push('- Motivação e prazo do proprietário');
-
-  return lines.join('\n');
-}
-
-function setResumoToUIFromCurrentForm(){
-  const obs = getEl('observacoes');
-  const out = getEl('resumoAnuncio');
-
-  if(!obs){
-    alert('Não foi encontrado o campo Observações (id="observacoes").');
-    return;
-  }
-  if(!out){
-    alert('Não foi encontrado o campo Resumo (id="resumoAnuncio").');
-    return;
-  }
-
-  const resumo = buildResumoFromObservacoes(obs.value || '');
-  out.value = resumo || '';
-  if(typeof showToast === 'function') showToast(resumo ? 'Resumo criado' : 'Sem texto para resumir');
-}
-
   /* ============ Events ============ */
-// ✅ Event delegation — Resumo do anúncio (à prova de posição/ordem)
-document.addEventListener('click', (e)=>{
-  const id = (e.target && e.target.id) ? e.target.id : '';
-  if(!id) return;
-
-  if(id === 'gerarResumoBtn'){
-    e.preventDefault();
-    try{
-      setResumoToUIFromCurrentForm();
-    }catch(err){
-      console.error('Erro ao gerar resumo:', err);
-      alert('Ocorreu um erro ao gerar o resumo. Veja a consola (F12) para detalhes.');
-    }
-  }
-
-  if(id === 'limparResumoBtn'){
-    e.preventDefault();
-    try{
-      const el = document.getElementById('resumoAnuncio');
-      if(el) el.value = '';
-      showToast('Resumo limpo');
-    }catch(err){
-      console.error('Erro ao limpar resumo:', err);
-    }
-  }
-});
-  
   toggleLockBtn.addEventListener('click', ()=>{
     state.locked = !state.locked;
     updateLockUI();
@@ -3939,48 +3609,13 @@ document.addEventListener('click', (e)=>{
   closeModalBtn.addEventListener('click', closeModal);
   cancelModalBtn.addEventListener('click', closeModal);
 
-  if(gerarResumoBtn){
-  gerarResumoBtn.addEventListener('click', ()=>{
-    setResumoToUIFromCurrentForm();
-  });
-}
-if(limparResumoBtn){
-  limparResumoBtn.addEventListener('click', ()=>{
-    if($('resumoAnuncio')) $('resumoAnuncio').value = '';
-    showToast('Resumo limpo');
-  });
-}
-
   saveItemBtn.addEventListener('click', async (e)=>{
     e.preventDefault();
     if(state.locked){
       alert('O modo de edição está bloqueado. Desbloqueie o cadeado no topo para guardar alterações.');
       return;
     }
-// Auto-gerar resumo antes de guardar (se houver observações e não houver resumo)
-try{
-  const tmp = {
-    tipologia: $('tipologia').value || '',
-    natureza: $('natureza').value || '',
-    concelho: $('concelho').value || '',
-    zona: $('zona').value || '',
-    precoAnuncio: (function(){
-      const v = $('precoAnuncio').value;
-      if(v === '' || v == null) return null;
-      const n = Number(v);
-      return isFinite(n) ? n : null;
-    })(),
-    observacoes: $('observacoes').value || '',
-    notasInternas: $('notasInternas').value || ''
-  };
-  const hasObs = (tmp.observacoes || '').trim().length > 0;
-  const hasResumo = ($('resumoAnuncio') && ($('resumoAnuncio').value || '').trim().length > 0);
-  if(hasObs && !hasResumo){
-    $('resumoAnuncio').value = buildResumoFromObservacoes(tmp);
-  }
-}catch(err){
-  console.warn('Falha ao gerar resumo automático', err);
-}
+
     const data = collectFormData();
     // atualizar automaticamente a data da última ação
 const hoje = new Date().toISOString().slice(0,10);
@@ -4040,97 +3675,6 @@ $('dataUltimaAcao').value = hoje;
   closeKitBtn.addEventListener('click', closeKit);
   closeKitBtn2.addEventListener('click', closeKit);
   regenKitBtn.addEventListener('click', regenKit);
-  /* =========================
-   RESUMO DO ANÚNCIO — DENTRO DO KIT
-   ========================= */
-
-const resumoAnuncio = $('resumoAnuncio');
-const gerarResumoBtn = $('gerarResumoBtn');
-const limparResumoBtn = $('limparResumoBtn');
-const pdfResumoBtn = $('pdfResumoBtn');
-
-function cleanText(s){
-  return String(s || '')
-    .replace(/\r/g,'')
-    .replace(/[ \t]+\n/g,'\n')
-    .replace(/\n{3,}/g,'\n\n')
-    .trim();
-}
-
-function buildResumoEstruturado(item){
-  if(!item) return '';
-
-  const titulo = (lastFetchedTitle || item.tituloImovel || item.tipologia || 'Imóvel').trim();
-  const zona = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
-  const preco = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
-  const portal = item.portal || '';
-  const link = item.link || '';
-
-  const obs = cleanText(item.observacoes || '');
-  const notas = cleanText(item.notasInternas || '');
-
-  // Fonte principal (observações). Se quiser, inclui notas internas como “extra”.
-  const fonte = cleanText([obs, notas ? ('\n\n' + notas) : ''].join(''));
-  if(!fonte) return ''; // <- aqui está a validação certa
-
-  // Heurísticas simples (sem IA externa): tópicos claros para leitura rápida
-  const bullets = [];
-  const t = (titulo + ' ' + fonte).toLowerCase();
-
-  // Highlights (reaproveita a sua função existente)
-  const highlights = guessHighlights(item);
-  if(highlights.length) bullets.push(`• Pontos fortes prováveis: ${highlights.join(', ')}`);
-
-  // Detetar “estado / condição” no texto
-  if(/remodel|renov|reabil|novo|como novo|recent|obra/.test(t)) bullets.push('• Estado/condição: há referência a obra/renovação/novo (confirmar em visita).');
-  if(/arrendad|inquilin|ocupad/.test(t)) bullets.push('• Ocupação: há referência a arrendamento/ocupação (validar).');
-  if(/licen|alvar|utiliza|caderneta|certid|ce\b|energ/.test(t)) bullets.push('• Documentação: existe referência documental (confirmar checklist).');
-
-  // Fricções comuns
-  if(/sem elevador|4[ºo] andar|5[ºo] andar|andar alto/.test(t)) bullets.push('• Nota operacional: possível fricção (andar/ acessos) — alinhar expectativa com compradores.');
-  if(/necessita|precisa|obras|a precisar/.test(t)) bullets.push('• Nota técnica: pode necessitar de intervenção — preparar enquadramento e orçamento.');
-
-  // Síntese executiva
-  const resumo =
-`RESUMO EXECUTIVO
-• Designação: ${titulo}${zona ? ' | ' + zona : ''}${preco ? ' | ' + preco : ''}${portal ? ' | ' + portal : ''}
-
-LEITURA RÁPIDA (baseada no texto do anúncio/observações)
-${bullets.length ? bullets.join('\n') : '• Sem padrões detetados automaticamente — resumir manualmente com base no texto.'}
-
-TEXTO-BASE (para contexto)
-${fonte}`;
-
-  return resumo.trim();
-}
-
-function handleGerarResumoKit(){
-  try{
-    if(!currentKitItem){
-      alert('Abra um registo e o Kit FSBO antes de gerar o resumo.');
-      return;
-    }
-    const out = buildResumoEstruturado(currentKitItem);
-    if(!out){
-      alert('Sem texto para resumir. Preencha “Observações” no registo (ou importe a descrição do anúncio).');
-      return;
-    }
-    if(resumoAnuncio) resumoAnuncio.value = out;
-    showToast('Resumo gerado');
-  }catch(e){
-    console.error('Erro a gerar resumo no Kit', e);
-    alert('Ocorreu um erro ao gerar o resumo. Veja a consola (F12) para detalhes.');
-  }
-}
-
-function handleLimparResumoKit(){
-  if(resumoAnuncio) resumoAnuncio.value = '';
-  showToast('Resumo limpo');
-}
-
-if(gerarResumoBtn) gerarResumoBtn.addEventListener('click', handleGerarResumoKit);
-if(limparResumoBtn) limparResumoBtn.addEventListener('click', handleLimparResumoKit);
-if(pdfResumoBtn) pdfResumoBtn.addEventListener('click', ()=>exportKitSectionPdf('resumo'));
   const pdfWhatsappBtn = $('pdfWhatsappBtn');
 const pdfEmailBtn = $('pdfEmailBtn');
 const pdfCallBtn = $('pdfCallBtn');
@@ -4554,4 +4098,3 @@ function renderFollowupPanel(){
 </script>
 </body>
 </html>
-
