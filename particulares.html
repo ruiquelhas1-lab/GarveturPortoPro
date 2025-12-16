@@ -1916,6 +1916,164 @@ function ensureImageUI(){
   // inserir a seguir aos PDFs (abaixo da lista)
   pdfList.parentNode.insertBefore(panel, pdfList.nextSibling);
 }
+  async function refreshImageList(){
+  ensureImageUI();
+
+  if(!imgListEl) return;
+
+  imgListEl.innerHTML = '';
+  if(!currentEditingId){
+    imgListEl.innerHTML = '<div class="help">Guarde o registo primeiro para poder anexar fotografias.</div>';
+    return;
+  }
+
+  const list = await listImageAttachments(currentEditingId);
+  if(!list.length){
+    imgListEl.innerHTML = '<div class="help">Sem fotografias neste registo.</div>';
+    return;
+  }
+
+  // mais recentes primeiro
+  list.sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+
+  // grelha simples
+  const grid = document.createElement('div');
+  grid.style.display = 'grid';
+  grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(120px, 1fr))';
+  grid.style.gap = '10px';
+
+  for(const img of list){
+    const card = document.createElement('div');
+    card.style.border = '1px solid rgba(255,255,255,.10)';
+    card.style.borderRadius = '12px';
+    card.style.overflow = 'hidden';
+    card.style.background = 'rgba(255,255,255,.04)';
+
+    const thumb = document.createElement('div');
+    thumb.style.height = '90px';
+    thumb.style.background = 'rgba(0,0,0,.18)';
+    thumb.style.display = 'flex';
+    thumb.style.alignItems = 'center';
+    thumb.style.justifyContent = 'center';
+
+    // criar URL local a partir do blob
+    if(img && img.blob){
+      const url = URL.createObjectURL(img.blob);
+      const im = document.createElement('img');
+      im.src = url;
+      im.alt = img.name || 'imagem';
+      im.style.width = '100%';
+      im.style.height = '100%';
+      im.style.objectFit = 'cover';
+      thumb.appendChild(im);
+
+      // libertar URL quando possível (ao abrir/remover a UI, não é crítico)
+      setTimeout(()=>{ try{ URL.revokeObjectURL(url); }catch(e){} }, 60000);
+    }else{
+      thumb.textContent = 'Imagem';
+      thumb.style.fontSize = '12px';
+      thumb.style.opacity = '.7';
+    }
+
+    const meta = document.createElement('div');
+    meta.style.padding = '8px';
+
+    const name = document.createElement('div');
+    name.textContent = (img.name || 'Imagem').slice(0,40);
+    name.style.fontSize = '11px';
+    name.style.opacity = '.95';
+    name.style.marginBottom = '6px';
+
+    const row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.gap = '6px';
+    row.style.flexWrap = 'wrap';
+
+    const openBtn = document.createElement('button');
+    openBtn.type = 'button';
+    openBtn.className = 'btn-xs';
+    openBtn.textContent = 'Abrir';
+    openBtn.addEventListener('click', async ()=>{
+      const rec = await getImageAttachment(img.id);
+      if(!rec || !rec.blob){
+        alert('Não foi possível abrir esta imagem.');
+        return;
+      }
+      const u = URL.createObjectURL(rec.blob);
+      window.open(u, '_blank');
+      setTimeout(()=>URL.revokeObjectURL(u), 60000);
+    });
+
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'btn-xs danger';
+    delBtn.textContent = 'Remover';
+    delBtn.addEventListener('click', async ()=>{
+      if(state.locked){
+        alert('Desbloqueie o modo de edição para remover fotografias.');
+        return;
+      }
+      if(confirm('Remover esta fotografia do registo?')){
+        await deleteImageAttachment(img.id);
+        await refreshImageList();
+      }
+    });
+
+    row.appendChild(openBtn);
+    row.appendChild(delBtn);
+
+    meta.appendChild(name);
+    meta.appendChild(row);
+
+    card.appendChild(thumb);
+    card.appendChild(meta);
+
+    grid.appendChild(card);
+  }
+
+  imgListEl.appendChild(grid);
+}
+
+async function handleAddImages(){
+  if(state.locked){
+    alert('O modo de edição está bloqueado. Desbloqueie para anexar fotografias.');
+    return;
+  }
+  if(!currentEditingId){
+    alert('Guarde primeiro o registo (para criar ID) e depois anexe fotografias.');
+    return;
+  }
+
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*,.jpg,.jpeg,.png,.webp';
+  input.multiple = true;
+
+  input.addEventListener('change', async (e)=>{
+    const files = Array.from(e.target.files || []);
+    if(!files.length) return;
+
+    // proteção simples: evita ficheiros gigantes (ajustável)
+    const MAX_MB = 12;
+    for(const f of files){
+      if((f.size || 0) > MAX_MB * 1024 * 1024){
+        alert(`A imagem "${f.name}" é muito grande. Tente uma versão mais leve (até ${MAX_MB}MB).`);
+        continue;
+      }
+      try{
+        await addImageAttachment(currentEditingId, f);
+      }catch(err){
+        console.error('Erro ao anexar imagem', err);
+        alert('Falha ao anexar uma imagem. Pode ser limitação do browser/armazenamento.');
+      }
+    }
+
+    await refreshImageList();
+    showToast('Fotografia(s) anexada(s)');
+  });
+
+  input.click();
+}
   async function refreshPdfList(){
     pdfList.innerHTML = '';
     if(!currentEditingId){
