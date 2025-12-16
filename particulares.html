@@ -1617,18 +1617,44 @@ let kitEmailMainMessage = '';
     setTimeout(()=>toast.classList.remove('show'), 1600);
   }
 
- function migrateItem(d){
+function migrateItem(d){
   if(!d || typeof d !== 'object'){
     return {
       visible: true,
       estadoProspeccao: 'identificado',
       ownerName: '',
       ownerPhone: '',
-      ownerEmail: ''
+      ownerEmail: '',
+      photos: []
     };
   }
 
   const out = { ...d };
+
+  // Defaults seguros
+  out.visible = (d.visible === false) ? false : true;
+  out.estadoProspeccao = d.estadoProspeccao || 'identificado';
+  out.ownerName = d.ownerName || '';
+  out.ownerPhone = d.ownerPhone || '';
+  out.ownerEmail = d.ownerEmail || '';
+
+  // 🔒 BLINDAGEM CRÍTICA DAS FOTOS
+  if(!Array.isArray(d.photos)){
+    out.photos = [];
+  }else{
+    out.photos = d.photos.filter(p => typeof p === 'string' && p.length > 10);
+  }
+
+  // Normalizar preço
+  if(out.precoAnuncio === '' || out.precoAnuncio == null){
+    out.precoAnuncio = null;
+  }else{
+    const n = Number(out.precoAnuncio);
+    out.precoAnuncio = isFinite(n) ? n : null;
+  }
+
+  return out;
+}
 
   // Defaults aplicados no fim (não podem ser anulados)
   out.visible = (d.visible === false) ? false : true;
