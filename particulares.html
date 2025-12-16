@@ -3778,7 +3778,30 @@ if(limparResumoBtn){
       alert('O modo de edição está bloqueado. Desbloqueie o cadeado no topo para guardar alterações.');
       return;
     }
-
+// Auto-gerar resumo antes de guardar (se houver observações e não houver resumo)
+try{
+  const tmp = {
+    tipologia: $('tipologia').value || '',
+    natureza: $('natureza').value || '',
+    concelho: $('concelho').value || '',
+    zona: $('zona').value || '',
+    precoAnuncio: (function(){
+      const v = $('precoAnuncio').value;
+      if(v === '' || v == null) return null;
+      const n = Number(v);
+      return isFinite(n) ? n : null;
+    })(),
+    observacoes: $('observacoes').value || '',
+    notasInternas: $('notasInternas').value || ''
+  };
+  const hasObs = (tmp.observacoes || '').trim().length > 0;
+  const hasResumo = ($('resumoAnuncio') && ($('resumoAnuncio').value || '').trim().length > 0);
+  if(hasObs && !hasResumo){
+    $('resumoAnuncio').value = buildResumoFromObservacoes(tmp);
+  }
+}catch(err){
+  console.warn('Falha ao gerar resumo automático', err);
+}
     const data = collectFormData();
     // atualizar automaticamente a data da última ação
 const hoje = new Date().toISOString().slice(0,10);
