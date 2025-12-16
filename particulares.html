@@ -2153,6 +2153,142 @@ notasInternas: $('notasInternas').value || ''
     if(!dt) return Number.POSITIVE_INFINITY;
     return dt.getTime();
   }
+  /* =========================
+   RESUMO DO ANÚNCIO (gerado)
+   - Sem IA externa
+   - Extrai sinais e organiza por tópicos
+========================= */
+
+function normalizeTextForParse(txt){
+  return String(txt || '')
+    .replace(/\s+/g,' ')
+    .replace(/\u00A0/g,' ')
+    .trim();
+}
+
+function pickMatches(text, rules){
+  const t = text.toLowerCase();
+  const hits = [];
+  rules.forEach(r=>{
+    if(r.test(t)) hits.push(r.label);
+  });
+  return Array.from(new Set(hits));
+}
+
+function extractNumber(text, regex){
+  const m = String(text || '').match(regex);
+  if(!m) return null;
+  const v = (m[1] || '').replace(/\./g,'').replace(',', '.');
+  const n = Number(v);
+  return isFinite(n) ? n : null;
+}
+
+function buildResumoFromObservacoes(item){
+  const raw = normalizeTextForParse((item && item.observacoes) ? item.observacoes : '');
+  const raw2 = normalizeTextForParse((item && item.notasInternas) ? item.notasInternas : '');
+
+  const full = (raw + ' ' + raw2).trim();
+  if(!full) return '';
+
+  // Regras (ajustáveis)
+  const features = pickMatches(full, [
+    { test:/varanda|terraço|terraco|logradouro/, label:'Varanda/Terraço/Logradouro' },
+    { test:/garagem|box|estacionamento|lugar de garagem|parqueamento/, label:'Estacionamento/Garagem' },
+    { test:/elevador|ascensor/, label:'Elevador' },
+    { test:/suite|suíte/, label:'Suite' },
+    { test:/jardim/, label:'Jardim' },
+    { test:/piscina/, label:'Piscina' },
+    { test:/ar condicionado|a\/c|climatiza/, label:'Ar condicionado' },
+    { test:/aquecimento central|caldeira|recuperador|lareira/, label:'Aquecimento/Lareira' },
+    { test:/vista mar|vista rio|vista|panor[aá]mica/, label:'Vista' },
+    { test:/remodelad|renovad|reabilitad/, label:'Remodelado/Reabilitado' },
+    { test:/novo|constru[cç][aã]o recente/, label:'Imóvel recente/novo' },
+    { test:/metro|est[aá]dio|parque|praia|rio|marginal/, label:'Proximidades relevantes (metro/parque/praia/rio)' },
+  ]);
+
+  const exposure = pickMatches(full, [
+    { test:/nascente/, label:'Exposição: Nascente' },
+    { test:/poente/, label:'Exposição: Poente' },
+    { test:/sul/, label:'Exposição: Sul' },
+    { test:/norte/, label:'Exposição: Norte' },
+  ]);
+
+  // Áreas (heurística simples)
+  const areaUtil = extractNumber(full, /(?:área útil|area util|útil)\s*[:\-]?\s*(\d{2,4}(?:[.,]\d{1,2})?)/i);
+  const areaBruta = extractNumber(full, /(?:área bruta|area bruta|bruta)\s*[:\-]?\s*(\d{2,4}(?:[.,]\d{1,2})?)/i);
+
+  // Andar (heurística)
+  let andar = null;
+  const mAndar = full.match(/(?:\bandar\b|piso)\s*[:\-]?\s*([0-9]{1,2}|r\/c|rc|rés do chão|res do chao)/i);
+  if(mAndar){
+    andar = String(mAndar[1] || '').toUpperCase()
+      .replace('R/C','RC')
+      .replace('RÉS DO CHÃO','RC')
+      .replace('RES DO CHAO','RC');
+  }
+
+  // Estado e pontos de atenção (muito prático para angariação)
+  const cautions = pickMatches(full, [
+    { test:/sem elevador/, label:'Sem elevador (confirmar)' },
+    { test:/precisa de obras|a precisar de obras|para remodelar/, label:'Precisa de obras/remodelação' },
+    { test:/arrendad|inquilino|ocupad/, label:'Ocupado/Arrendado (confirmar condições)' },
+    { test:/licen[cç]a|alvar[aá]|legaliza|documenta[cç][aã]o/, label:'Documentação/Legalização (validar)' },
+    { test:/condom[ií]nio/, label:'Condomínio (valor/estado a confirmar)' },
+  ]);
+
+  // Construir resumo em tópicos (curto e muito “scanável”)
+  const lines = [];
+
+  // Cabeçalho “rápido”
+  const base = [];
+  if(item.tipologia) base.push(item.tipologia);
+  if(item.natureza) base.push(item.natureza);
+  if(item.concelho) base.push(item.concelho);
+  if(item.zona) base.push(item.zona);
+  if(base.length) lines.push('• Enquadramento: ' + base.join(' · '));
+
+  if(item.precoAnuncio != null){
+    lines.push('• Preço anunciado: ' + formatMoney(item.precoAnuncio));
+  }
+
+  if(areaUtil) lines.push('• Área útil (anúncio): ' + areaUtil + ' m²');
+  if(areaBruta) lines.push('• Área bruta (anúncio): ' + areaBruta + ' m²');
+  if(andar) lines.push('• Andar/Piso: ' + andar);
+
+  if(features.length) lines.push('• Características: ' + features.join(' · '));
+  if(exposure.length) lines.push('• Exposição solar: ' + exposure.map(x=>x.replace('Exposição: ','')).join(' · '));
+
+  if(cautions.length) lines.push('• Pontos a validar: ' + cautions.join(' · '));
+
+  // “Essência” (primeira frase útil)
+  const essence = (raw.length > 220 ? raw.slice(0, 217) + '…' : raw);
+  if(essence) lines.push('• Síntese do anúncio: ' + essence);
+
+  return lines.join('\n');
+}
+
+function setResumoToUIFromCurrentForm(){
+  const item = {
+    tipologia: $('tipologia') ? $('tipologia').value : '',
+    natureza: $('natureza') ? $('natureza').value : '',
+    concelho: $('concelho') ? $('concelho').value : '',
+    zona: $('zona') ? $('zona').value : '',
+    precoAnuncio: (function(){
+      const el = $('precoAnuncio');
+      if(!el) return null;
+      const v = el.value;
+      if(v === '' || v == null) return null;
+      const n = Number(v);
+      return isFinite(n) ? n : null;
+    })(),
+    observacoes: $('observacoes') ? $('observacoes').value : '',
+    notasInternas: $('notasInternas') ? $('notasInternas').value : ''
+  };
+
+  const resumo = buildResumoFromObservacoes(item);
+  if($('resumoAnuncio')) $('resumoAnuncio').value = resumo;
+  showToast(resumo ? 'Resumo gerado' : 'Sem texto para resumir');
+}
   /* ============ Kit FSBO (Gerador) ============ */
   function normalizePhone(phone){
     if(!phone) return '';
