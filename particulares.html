@@ -4222,7 +4222,15 @@ $('dataUltimaAcao').value = hoje;
 
   addPdfBtn.addEventListener('click', handleAddPdfs);
   refreshPdfsBtn.addEventListener('click', refreshPdfList);
+// NOVO: Fotografias (pré-angariação)
+(function bindImageUI(){
+  // Garante que a UI existe quando abrir o modal
+  // e liga handlers uma única vez
+  ensureImageUI();
 
+  if(addImgBtnEl) addImgBtnEl.addEventListener('click', handleAddImages);
+  if(refreshImgBtnEl) refreshImgBtnEl.addEventListener('click', refreshImageList);
+})();
   // Kit modal events
   closeKitBtn.addEventListener('click', closeKit);
   closeKitBtn2.addEventListener('click', closeKit);
