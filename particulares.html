@@ -1417,11 +1417,9 @@
 
   // IndexedDB para PDFs
   const DB_NAME = 'gpp_fsbo_attachments_db';
-  const DB_VERSION = 2;
+  const DB_VERSION = 1;
   const STORE = 'attachments';
-// NOVO: Store dedicado a imagens (não mistura com PDFs)
-const STORE_IMG = 'fsbo_images';
-  
+
   // Lista fallback
   const FALLBACK_CONSULTOR_OPTIONS = [
     "Rui Quelhas","Manuel Oliveira","João Sousa","Francisco dos Santos",
@@ -1617,45 +1615,18 @@ let kitEmailMainMessage = '';
     setTimeout(()=>toast.classList.remove('show'), 1600);
   }
 
-function migrateItem(d){
-  // Garantir objeto base
-  if(!d || typeof d !== 'object') d = {};
+ function migrateItem(d){
+  if(!d || typeof d !== 'object'){
+    return {
+      visible: true,
+      estadoProspeccao: 'identificado',
+      ownerName: '',
+      ownerPhone: '',
+      ownerEmail: ''
+    };
+  }
 
   const out = { ...d };
-
-  // Defaults seguros (sem destruir campos existentes)
-  out.visible = (out.visible === false) ? false : true;
-  out.estadoProspeccao = out.estadoProspeccao || 'identificado';
-  out.ownerName = out.ownerName || '';
-  out.ownerPhone = out.ownerPhone || '';
-  out.ownerEmail = out.ownerEmail || '';
-
-  // 🔒 Fotos: normalizar SEM perder conteúdo
-  // Aceita:
-  // - strings (dataURL / URL)
-  // - objetos {dataUrl|url|src}
-  if(Array.isArray(out.photos)){
-    out.photos = out.photos
-      .map(p=>{
-        if(typeof p === 'string') return p;
-        if(p && typeof p === 'object') return p.dataUrl || p.url || p.src || '';
-        return '';
-      })
-      .filter(s => typeof s === 'string' && s.trim().length > 20);
-  }else{
-    out.photos = [];
-  }
-
-  // Normalizar preço (aceita "123456" e "123.456" e "123,456")
-  if(out.precoAnuncio === '' || out.precoAnuncio == null){
-    out.precoAnuncio = null;
-  }else{
-    const n = Number(String(out.precoAnuncio).replace(/\./g,'').replace(',','.'));
-    out.precoAnuncio = isFinite(n) ? n : null;
-  }
-
-  return out;
-}
 
   // Defaults aplicados no fim (não podem ser anulados)
   out.visible = (d.visible === false) ? false : true;
@@ -1761,11 +1732,6 @@ if(out.precoAnuncio === '' || out.precoAnuncio == null){
           const store = db.createObjectStore(STORE, { keyPath:'id' });
           store.createIndex('by_item', 'itemId', { unique:false });
         }
-        // NOVO: store de imagens
-if(!db.objectStoreNames.contains(STORE_IMG)){
-  const storeImg = db.createObjectStore(STORE_IMG, { keyPath:'id' });
-  storeImg.createIndex('by_item', 'itemId', { unique:false });
-}
       };
       req.onsuccess = ()=>resolve(req.result);
       req.onerror = ()=>reject(req.error);
@@ -1823,59 +1789,7 @@ if(!db.objectStoreNames.contains(STORE_IMG)){
       req.onerror = ()=>reject(req.error);
     });
   }
-/* ============ IndexedDB (IMAGENS) ============ */
-async function addImageAttachment(itemId, file){
-  const db = await openDB();
-  const id = 'img_' + itemId + '_' + Date.now() + '_' + Math.random().toString(16).slice(2);
 
-  const rec = {
-    id,
-    itemId,
-    name: file.name || 'imagem',
-    type: file.type || 'image/jpeg',
-    size: file.size || 0,
-    createdAt: new Date().toISOString(),
-    blob: file
-  };
-
-  return new Promise((resolve, reject)=>{
-    const tx = db.transaction(STORE_IMG, 'readwrite');
-    tx.objectStore(STORE_IMG).put(rec);
-    tx.oncomplete = ()=>resolve(rec);
-    tx.onerror = ()=>reject(tx.error);
-  });
-}
-
-async function listImageAttachments(itemId){
-  const db = await openDB();
-  return new Promise((resolve, reject)=>{
-    const tx = db.transaction(STORE_IMG, 'readonly');
-    const idx = tx.objectStore(STORE_IMG).index('by_item');
-    const req = idx.getAll(itemId);
-    req.onsuccess = ()=>resolve(req.result || []);
-    req.onerror = ()=>reject(req.error);
-  });
-}
-
-async function deleteImageAttachment(imgId){
-  const db = await openDB();
-  return new Promise((resolve, reject)=>{
-    const tx = db.transaction(STORE_IMG, 'readwrite');
-    tx.objectStore(STORE_IMG).delete(imgId);
-    tx.oncomplete = ()=>resolve(true);
-    tx.onerror = ()=>reject(tx.error);
-  });
-}
-
-async function getImageAttachment(imgId){
-  const db = await openDB();
-  return new Promise((resolve, reject)=>{
-    const tx = db.transaction(STORE_IMG, 'readonly');
-    const req = tx.objectStore(STORE_IMG).get(imgId);
-    req.onsuccess = ()=>resolve(req.result || null);
-    req.onerror = ()=>reject(req.error);
-  });
-}
   function bytesToNice(n){
     if(!n || !isFinite(n)) return '';
     const units = ['B','KB','MB','GB'];
@@ -1883,224 +1797,7 @@ async function getImageAttachment(imgId){
     while(v>=1024 && i<units.length-1){ v/=1024; i++; }
     return (i===0 ? v.toFixed(0) : v.toFixed(1)) + ' ' + units[i];
   }
-let imgListEl = null;
-let addImgBtnEl = null;
-let refreshImgBtnEl = null;
 
-function ensureImageUI(){
-  // pdfList já existe no seu ficheiro e é um bom “âncora”
-  if(!pdfList) return;
-
-  // evitar duplicar
-  if(document.getElementById('fsboImagePanel')) return;
-
-  const panel = document.createElement('div');
-  panel.id = 'fsboImagePanel';
-  panel.style.marginTop = '10px';
-
-  const header = document.createElement('div');
-  header.style.display = 'flex';
-  header.style.alignItems = 'center';
-  header.style.justifyContent = 'space-between';
-  header.style.gap = '10px';
-  header.style.margin = '8px 0 6px';
-
-  const title = document.createElement('div');
-  title.textContent = 'Fotografias (pré-angariação)';
-  title.style.fontSize = '11px';
-  title.style.letterSpacing = '.14em';
-  title.style.textTransform = 'uppercase';
-  title.style.color = '#A38B63';
-
-  const actions = document.createElement('div');
-  actions.style.display = 'flex';
-  actions.style.gap = '6px';
-  actions.style.flexWrap = 'wrap';
-
-  addImgBtnEl = document.createElement('button');
-  addImgBtnEl.type = 'button';
-  addImgBtnEl.className = 'btn-xs';
-  addImgBtnEl.textContent = 'Adicionar fotos';
-
-  refreshImgBtnEl = document.createElement('button');
-  refreshImgBtnEl.type = 'button';
-  refreshImgBtnEl.className = 'btn-xs';
-  refreshImgBtnEl.textContent = 'Atualizar';
-
-  actions.appendChild(addImgBtnEl);
-  actions.appendChild(refreshImgBtnEl);
-
-  header.appendChild(title);
-  header.appendChild(actions);
-
-  imgListEl = document.createElement('div');
-  imgListEl.id = 'fsboImageList';
-  imgListEl.className = 'attach-list'; // se existir, herda styling; se não existir, não quebra
-
-  panel.appendChild(header);
-  panel.appendChild(imgListEl);
-
-  // inserir a seguir aos PDFs (abaixo da lista)
-  pdfList.parentNode.insertBefore(panel, pdfList.nextSibling);
-}
-  async function refreshImageList(){
-  ensureImageUI();
-
-  if(!imgListEl) return;
-
-  imgListEl.innerHTML = '';
-  if(!currentEditingId){
-    imgListEl.innerHTML = '<div class="help">Guarde o registo primeiro para poder anexar fotografias.</div>';
-    return;
-  }
-
-  const list = await listImageAttachments(currentEditingId);
-  if(!list.length){
-    imgListEl.innerHTML = '<div class="help">Sem fotografias neste registo.</div>';
-    return;
-  }
-
-  // mais recentes primeiro
-  list.sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
-
-  // grelha simples
-  const grid = document.createElement('div');
-  grid.style.display = 'grid';
-  grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(120px, 1fr))';
-  grid.style.gap = '10px';
-
-  for(const img of list){
-    const card = document.createElement('div');
-    card.style.border = '1px solid rgba(255,255,255,.10)';
-    card.style.borderRadius = '12px';
-    card.style.overflow = 'hidden';
-    card.style.background = 'rgba(255,255,255,.04)';
-
-    const thumb = document.createElement('div');
-    thumb.style.height = '90px';
-    thumb.style.background = 'rgba(0,0,0,.18)';
-    thumb.style.display = 'flex';
-    thumb.style.alignItems = 'center';
-    thumb.style.justifyContent = 'center';
-
-    // criar URL local a partir do blob
-    if(img && img.blob){
-      const url = URL.createObjectURL(img.blob);
-      const im = document.createElement('img');
-      im.src = url;
-      im.alt = img.name || 'imagem';
-      im.style.width = '100%';
-      im.style.height = '100%';
-      im.style.objectFit = 'cover';
-      thumb.appendChild(im);
-
-      // libertar URL quando possível (ao abrir/remover a UI, não é crítico)
-      setTimeout(()=>{ try{ URL.revokeObjectURL(url); }catch(e){} }, 60000);
-    }else{
-      thumb.textContent = 'Imagem';
-      thumb.style.fontSize = '12px';
-      thumb.style.opacity = '.7';
-    }
-
-    const meta = document.createElement('div');
-    meta.style.padding = '8px';
-
-    const name = document.createElement('div');
-    name.textContent = (img.name || 'Imagem').slice(0,40);
-    name.style.fontSize = '11px';
-    name.style.opacity = '.95';
-    name.style.marginBottom = '6px';
-
-    const row = document.createElement('div');
-    row.style.display = 'flex';
-    row.style.gap = '6px';
-    row.style.flexWrap = 'wrap';
-
-    const openBtn = document.createElement('button');
-    openBtn.type = 'button';
-    openBtn.className = 'btn-xs';
-    openBtn.textContent = 'Abrir';
-    openBtn.addEventListener('click', async ()=>{
-      const rec = await getImageAttachment(img.id);
-      if(!rec || !rec.blob){
-        alert('Não foi possível abrir esta imagem.');
-        return;
-      }
-      const u = URL.createObjectURL(rec.blob);
-      window.open(u, '_blank');
-      setTimeout(()=>URL.revokeObjectURL(u), 60000);
-    });
-
-    const delBtn = document.createElement('button');
-    delBtn.type = 'button';
-    delBtn.className = 'btn-xs danger';
-    delBtn.textContent = 'Remover';
-    delBtn.addEventListener('click', async ()=>{
-      if(state.locked){
-        alert('Desbloqueie o modo de edição para remover fotografias.');
-        return;
-      }
-      if(confirm('Remover esta fotografia do registo?')){
-        await deleteImageAttachment(img.id);
-        await refreshImageList();
-      }
-    });
-
-    row.appendChild(openBtn);
-    row.appendChild(delBtn);
-
-    meta.appendChild(name);
-    meta.appendChild(row);
-
-    card.appendChild(thumb);
-    card.appendChild(meta);
-
-    grid.appendChild(card);
-  }
-
-  imgListEl.appendChild(grid);
-}
-
-async function handleAddImages(){
-  if(state.locked){
-    alert('O modo de edição está bloqueado. Desbloqueie para anexar fotografias.');
-    return;
-  }
-  if(!currentEditingId){
-    alert('Guarde primeiro o registo (para criar ID) e depois anexe fotografias.');
-    return;
-  }
-
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'image/*,.jpg,.jpeg,.png,.webp';
-  input.multiple = true;
-
-  input.addEventListener('change', async (e)=>{
-    const files = Array.from(e.target.files || []);
-    if(!files.length) return;
-
-    // proteção simples: evita ficheiros gigantes (ajustável)
-    const MAX_MB = 12;
-    for(const f of files){
-      if((f.size || 0) > MAX_MB * 1024 * 1024){
-        alert(`A imagem "${f.name}" é muito grande. Tente uma versão mais leve (até ${MAX_MB}MB).`);
-        continue;
-      }
-      try{
-        await addImageAttachment(currentEditingId, f);
-      }catch(err){
-        console.error('Erro ao anexar imagem', err);
-        alert('Falha ao anexar uma imagem. Pode ser limitação do browser/armazenamento.');
-      }
-    }
-
-    await refreshImageList();
-    showToast('Fotografia(s) anexada(s)');
-  });
-
-  input.click();
-}
   async function refreshPdfList(){
     pdfList.innerHTML = '';
     if(!currentEditingId){
@@ -2249,15 +1946,12 @@ async function handleAddImages(){
     }
 
     refreshPdfList();
-    refreshImageList();
   }
 
   function closeModal(){
     modalBackdrop.classList.remove('open');
     currentEditingId = null;
     pdfList.innerHTML = '';
-    const il = document.getElementById('fsboImageList');
-if(il) il.innerHTML = '';
   }
 
   function collectFormData(){
@@ -4221,7 +3915,6 @@ $('dataUltimaAcao').value = hoje;
     saveState();
     renderCards();
     await refreshPdfList();
-    await refreshImageList();
     showToast('Guardado');
     closeModal();
   });
@@ -4253,15 +3946,7 @@ $('dataUltimaAcao').value = hoje;
 
   addPdfBtn.addEventListener('click', handleAddPdfs);
   refreshPdfsBtn.addEventListener('click', refreshPdfList);
-// NOVO: Fotografias (pré-angariação)
-(function bindImageUI(){
-  // Garante que a UI existe quando abrir o modal
-  // e liga handlers uma única vez
-  ensureImageUI();
 
-  if(addImgBtnEl) addImgBtnEl.addEventListener('click', handleAddImages);
-  if(refreshImgBtnEl) refreshImgBtnEl.addEventListener('click', refreshImageList);
-})();
   // Kit modal events
   closeKitBtn.addEventListener('click', closeKit);
   closeKitBtn2.addEventListener('click', closeKit);
@@ -4730,4 +4415,3 @@ function renderFollowupPanel(){
 </script>
 </body>
 </html>
-
