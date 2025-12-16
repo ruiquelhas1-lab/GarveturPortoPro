@@ -3088,12 +3088,20 @@ if(urg){
         card.appendChild(sec);
       }
 
-      if(d.observacoes){
-        const sec = document.createElement('div');
-        sec.className = 'card-section';
-        sec.textContent = d.observacoes.length > 160 ? d.observacoes.slice(0,157)+'…' : d.observacoes;
-        card.appendChild(sec);
-      }
+      if(d.resumoAnuncio){
+  const sec = document.createElement('div');
+  sec.className = 'card-section';
+  // mostra 3-5 linhas no máximo para “scan”
+  const lines = String(d.resumoAnuncio).split('\n').filter(Boolean);
+  const short = lines.slice(0,5).join(' · ');
+  sec.textContent = short.length > 220 ? short.slice(0,217)+'…' : short;
+  card.appendChild(sec);
+}else if(d.observacoes){
+  const sec = document.createElement('div');
+  sec.className = 'card-section';
+  sec.textContent = d.observacoes.length > 160 ? d.observacoes.slice(0,157)+'…' : d.observacoes;
+  card.appendChild(sec);
+}
 
       const foot = document.createElement('div');
       foot.className = 'card-footer';
