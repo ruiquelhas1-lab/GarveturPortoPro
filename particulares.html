@@ -3754,6 +3754,33 @@ if(urg){
   }
 
   /* ============ Events ============ */
+// ✅ Event delegation — Resumo do anúncio (à prova de posição/ordem)
+document.addEventListener('click', (e)=>{
+  const id = (e.target && e.target.id) ? e.target.id : '';
+  if(!id) return;
+
+  if(id === 'gerarResumoBtn'){
+    e.preventDefault();
+    try{
+      setResumoToUIFromCurrentForm();
+    }catch(err){
+      console.error('Erro ao gerar resumo:', err);
+      alert('Ocorreu um erro ao gerar o resumo. Veja a consola (F12) para detalhes.');
+    }
+  }
+
+  if(id === 'limparResumoBtn'){
+    e.preventDefault();
+    try{
+      const el = document.getElementById('resumoAnuncio');
+      if(el) el.value = '';
+      showToast('Resumo limpo');
+    }catch(err){
+      console.error('Erro ao limpar resumo:', err);
+    }
+  }
+});
+  
   toggleLockBtn.addEventListener('click', ()=>{
     state.locked = !state.locked;
     updateLockUI();
