@@ -3760,6 +3760,18 @@ if(urg){
   closeModalBtn.addEventListener('click', closeModal);
   cancelModalBtn.addEventListener('click', closeModal);
 
+  if(gerarResumoBtn){
+  gerarResumoBtn.addEventListener('click', ()=>{
+    setResumoToUIFromCurrentForm();
+  });
+}
+if(limparResumoBtn){
+  limparResumoBtn.addEventListener('click', ()=>{
+    if($('resumoAnuncio')) $('resumoAnuncio').value = '';
+    showToast('Resumo limpo');
+  });
+}
+
   saveItemBtn.addEventListener('click', async (e)=>{
     e.preventDefault();
     if(state.locked){
