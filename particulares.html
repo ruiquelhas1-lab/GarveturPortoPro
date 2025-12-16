@@ -2255,17 +2255,32 @@ if(!dataIdent){
 
 function buildKitResumo(item){
   // =========================
-  // RESUMO PREMIUM (Texto)
-  // - Melhor espaçamento
+  // RESUMO PREMIUM (FSBO)
+  // - Mais espaçamento entre secções
+  // - Títulos “tipo botão” (visual) com Unicode
   // - Buckets adicionais
-  // - Deduplicação + controlo de tamanho
+  // - Deduplicação por secção
   // =========================
 
-  const localidade = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
-  const preco = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
+  // helpers locais (para não mexer no resto do ficheiro)
+  const NL = '\n';
+  const SEP = '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━';
+  const BTN = (t)=>`⬛ ${String(t||'').toUpperCase()}`; // “tipo botão” (sem cor real, mas forte no PDF e no Kit)
 
-  // Base para extração de factos (não entra “cru” nos detalhes para evitar duplicados)
-  const baseTextForFacts = [
+  const clean = (s)=>String(s||'')
+    .replace(/\u00A0/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+
+  const normalizeLine = (s)=>clean(s)
+    .toLowerCase()
+    .replace(/[•\-–—·|]/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+
+  const isTooShort = (s)=>clean(s).length < 3;
+
+  const baseText = [
     item.tituloImovel,
     item.tipologia,
     item.zona,
@@ -2275,230 +2290,170 @@ function buildKitResumo(item){
     item.notasInternas
   ].filter(Boolean).join('\n');
 
-  const hasAnyText = cleanText(baseTextForFacts).length >= 10;
-  const facts = extractFactsFromText(baseTextForFacts);
+  const hasAnyText = clean(baseText).length >= 10;
 
-  // Para “DETALHES ORGANIZADOS” usamos só Observações + Notas internas (evita repetir título/localidade)
-  const rawDetailsText = [
-    item.observacoes,
-    item.notasInternas
-  ].filter(Boolean).join('\n');
+  const facts = extractFactsFromText(baseText);
 
-  // -------------------------
-  // Helpers (locais, para não mexer no resto do ficheiro)
-  // -------------------------
-  function normKey(s){
-    return String(s||'')
-      .toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // remove acentos
-      .replace(/[^\w\s]/g,' ')                        // remove pontuação
-      .replace(/\s+/g,' ')
-      .trim();
-  }
+  const localidade = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
+  const preco = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
 
-  function splitToBullets(text){
-    const t = String(text||'').replace(/\r/g,'\n');
-
-    // quebra por linhas e também por separadores “ - ” frequentes em anúncios
-    const raw = t
-      .split('\n')
-      .flatMap(line => line.split(/\s+-\s+/g))
-      .map(s => cleanText(s))
-      .filter(Boolean);
-
-    // limpa “---”, “--”, etc.
-    return raw
-      .map(s => s.replace(/^-{2,}\s*/g,'').trim())
-      .filter(s => s && s !== '—' && s !== '-' && s !== '--');
-  }
-
-  function dedupeKeepOrder(arr){
-    const seen = new Set();
-    const out = [];
-    for(const x of arr){
-      const k = normKey(x);
-      if(!k) continue;
-      if(seen.has(k)) continue;
-      seen.add(k);
-      out.push(x);
-    }
-    return out;
-  }
-
-  // remove duplicações “A” vs “Classe energética: A” e similares
-  function normalizeEnergyLines(lines){
-    let energy = '';
-    const keep = [];
-
-    for(const line of lines){
-      const k = normKey(line);
-
-      // capturar classe energética
-      let m = String(line).match(/\bclasse?\s+energ[eé]tica[:\s]*([A-G][\+\-]{0,2})\b/i);
-      if(!m) m = String(line).match(/\bclassifica[cç][aã]o\s+energ[eé]tica[:\s]*([A-G][\+\-]{0,2})\b/i);
-
-      if(m && m[1]){
-        energy = m[1].toUpperCase();
-        continue; // não guarda a linha original, vamos injetar uma versão “limpa”
-      }
-
-      // também apanha “Certificado energético … Classe …”
-      const m2 = String(line).match(/\bcertificado\s+energ[eé]tico\b/i);
-      if(m2) continue;
-
-      keep.push(line);
-    }
-
-    if(energy){
-      keep.push('Classe energética: ' + energy);
-    }
-    return keep;
-  }
-
-  function bucketOf(line){
-    const k = normKey(line);
-
-    // Rentabilidade / Investimento
-    if(/\b(rentabil|yield|invest|arrend|alugar|airbnb|alojamento local|al)\b/.test(k)) return 'Rentabilidade / Investimento';
-
-    // Condomínio / Amenities
-    if(/\b(condominio|quota|piscina|ginasio|spa|porteiro|seguranca 24|salao|jardim comum|terra[cç]o comum|areas comuns)\b/.test(k)) return 'Condomínio / Amenities';
-
-    // Domótica / Segurança
-    if(/\b(domotic|alarme|videoporteiro|cctv|seguranc|porta blindada|fechadura|biometr|detetor|incendio)\b/.test(k)) return 'Domótica / Segurança';
-
-    // Vistas / Exposição solar
-    if(/\b(vista|rio|mar|exposi[cç]ao solar|nascente|poente|sul|norte|luminos|sol|varanda|terra[cç]o)\b/.test(k)) return 'Vistas / Exposição solar';
-
-    // Acabamentos & Materiais
-    if(/\b(acabament|materia|soalho|madeira|carvalho|marmore|granito|ceramic|porcelan|lacad|caixilh|alumin|vidro duplo|estores eletr|armarios embutidos|roupeiro)\b/.test(k)) return 'Acabamentos & Materiais';
-
-    // Cozinha & Equipamentos
-    if(/\b(cozinha|placa|forno|exaustor|frigorifico|maquina lavar|maquina de lavar|secar|bosch|siemens|aeg|miele|equipad)\b/.test(k)) return 'Cozinha & Equipamentos';
-
-    // Conforto & Climatização
-    if(/\b(ar condicionado|ac|bomba de calor|aquecimento|piso radiante|recuperador|ventil|climatiza|isolament)\b/.test(k)) return 'Conforto & Climatização';
-
-    // Estacionamento & Arrumos
-    if(/\b(garagem|box|lugar|estacion|carregamento|veiculo eletric|arrumo|arrecada[cç]ao|cave)\b/.test(k)) return 'Estacionamento & Arrumos';
-
-    // Edifício
-    if(/\b(elevador|andar|piso|predio|edificio|rc|res do chao|ultimo piso|duplex)\b/.test(k)) return 'Edifício & Acessos';
-
-    // Estado & Reabilitação
-    if(/\b(novo|segunda mao|bom estado|remodel|renov|reabilit|construcao|acabado|em obra)\b/.test(k)) return 'Estado & Reabilitação';
-
-    // Eficiência Energética
-    if(/\b(energ|classe)\b/.test(k)) return 'Eficiência Energética';
-
-    return 'Outros detalhes';
-  }
-
-  function limitBucket(lines, maxItems){
-    if(lines.length <= maxItems) return lines;
-    const cut = lines.slice(0, maxItems);
-    cut.push(`(… +${lines.length - maxItems} itens)`);
-    return cut;
-  }
-
-  // -------------------------
-  // Highlights (como já tinhas)
-  // -------------------------
   const highlights = guessHighlights(item);
   const highlightsBlock = highlights.length
     ? ('• ' + highlights.join('\n• '))
     : '• (Sem características destacadas detectadas no texto)';
 
-  // -------------------------
-  // DETALHES ORGANIZADOS (bullets -> buckets)
-  // -------------------------
-  let detailLines = splitToBullets(rawDetailsText);
+  // --- 1) preparar “matéria-prima” a partir das Observações/Notas ---
+  const rawObs = String(item.observacoes || '');
+  const rawNotes = String(item.notasInternas || '');
+  const rawAll = [rawObs, rawNotes].filter(Boolean).join('\n');
 
-  // dedupe + normalizações
-  detailLines = dedupeKeepOrder(detailLines);
-  detailLines = normalizeEnergyLines(detailLines);
-  detailLines = dedupeKeepOrder(detailLines);
+  // cortar “ruído” comum de listagens coladas
+  const scrub = (t)=>String(t||'')
+    .replace(/------+/g,'\n')
+    .replace(/\bCaracterísticas\s+específicas\b/gi,'\nCaracterísticas específicas:\n')
+    .replace(/\bEdif[ií]cio\s*\/\s*Condom[ií]nio\b/gi,'\nEdifício/Condomínio:\n')
+    .replace(/\bEfici[eê]ncia\s+energ[eé]tica\b/gi,'\nEficiência energética:\n')
+    .replace(/\r/g,'')
+    .trim();
 
-  // agrupar por bucket
-  const buckets = {};
-  for(const ln of detailLines){
-    const b = bucketOf(ln);
-    if(!buckets[b]) buckets[b] = [];
-    buckets[b].push(ln);
-  }
+  const text = scrub(rawAll);
 
-  // ordem “premium” (o que interessa primeiro)
-  const bucketOrder = [
-    'Estado & Reabilitação',
-    'Acabamentos & Materiais',
-    'Cozinha & Equipamentos',
-    'Conforto & Climatização',
-    'Vistas / Exposição solar',
-    'Edifício & Acessos',
-    'Estacionamento & Arrumos',
-    'Condomínio / Amenities',
-    'Domótica / Segurança',
-    'Eficiência Energética',
-    'Rentabilidade / Investimento',
-    'Outros detalhes'
+  // split inteligente: bullets, quebras, pontos, “;”
+  const parts = text
+    .split(/\n+|•|;|\.(?!\d)|\s{2,}/g)
+    .map(s=>clean(s))
+    .filter(s=>!isTooShort(s));
+
+  // --- 2) Buckets + regras de classificação ---
+  const BUCKETS = [
+    { key:'descricao', title:'Descrição (síntese)', icon:'📝',
+      test:(s)=>/localizad|zona|pr[oó]xim|acesso|transport|com[eé]rcio|vistas?|rio|praia|metro/i.test(s)
+    },
+    { key:'acab', title:'Acabamentos & Materiais', icon:'🧱',
+      test:(s)=>/materiais?|acabamentos?|madeira|m[aá]rmore|pedra|carpint|lacad|arm[aá]rios?\s+embut|roupeir|caixilh|vidro|duplo|cortinas|estores/i.test(s)
+    },
+    { key:'cozinha', title:'Cozinha & Equipamentos', icon:'🍽️',
+      test:(s)=>/cozinha|forno|placa|exaustor|frigor[ií]fico|micro-?ondas|lava-?loi[cç]a|bosch|siemens|aeg|miele|equipad|eletrodom/i.test(s)
+    },
+    { key:'conforto', title:'Conforto & Climatização', icon:'🌡️',
+      test:(s)=>/ar\s*condicionado|a\/c\b|climatiza|piso\s*radiante|bomba\s*de\s*calor|aquecimento|caldeira|ventila[cç][aã]o|isolament/i.test(s)
+    },
+    { key:'domotica', title:'Domótica / Segurança', icon:'🔐',
+      test:(s)=>/dom[oó]tica|alarme|c[âa]maras?|videoporteiro|porta\s*blindada|seguran[cç]a|fechadura/i.test(s)
+    },
+    { key:'vistas', title:'Vistas / Exposição Solar', icon:'🌞',
+      test:(s)=>/vista|exposi[cç][aã]o\s*solar|nascente|poente|sul|norte|luminos|varanda|terra[cç]o|logradouro/i.test(s)
+    },
+    { key:'condominio', title:'Condomínio / Amenities', icon:'🏢',
+      test:(s)=>/condom[ií]nio|amenit|piscina|gin[aá]sio|porteiro|seguran[cç]a\s*24|jardim\s*comum|terra[cç]o\s*comum|sala\s*condom/i.test(s)
+    },
+    { key:'edificio', title:'Edifício & Acessos', icon:'🛗',
+      test:(s)=>/pr[eé]dio|edif[ií]cio|andar|piso|elevador|escadas|acessos?|hall|entrada/i.test(s)
+    },
+    { key:'estac', title:'Estacionamento & Arrumos', icon:'🚗',
+      test:(s)=>/garagem|box\b|lugar|estacion|carregamento|ve[ií]cul|arrumos?|arrecada[cç][aã]o/i.test(s)
+    },
+    { key:'energia', title:'Eficiência Energética', icon:'⚡',
+      test:(s)=>/classe\s*energ|certificado|a\+|a\b|b\b|efici[eê]ncia\s*energ|isolamento|janelas?\s+duplas?/i.test(s)
+    },
+    { key:'invest', title:'Rentabilidade / Investimento', icon:'📈',
+      test:(s)=>/rentabil|invest|yield|arrend|alojamento|licen[cç]a|revenue|retorno/i.test(s)
+    },
+    { key:'estado', title:'Estado & Reabilitação', icon:'🛠️',
+      test:(s)=>/novo|reabilit|remodel|renov|obra|reconstru|segunda\s*m[aã]o|bom\s*estado|a\s*estrear/i.test(s)
+    },
+    { key:'outros', title:'Outros Detalhes', icon:'➕',
+      test:(s)=>true
+    }
   ];
 
-  // -------------------------
-  // Montagem final (com ESPAÇAMENTO)
-  // -------------------------
-  const lines = [];
-  lines.push('RESUMO PREMIUM DO ANÚNCIO (FSBO)');
-  lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  lines.push(`▌ Imóvel: ${cleanText(item.tituloImovel) || '—'}`);
-  if(preco)      lines.push(`▌ Preço: ${preco}`);
-  if(localidade) lines.push(`▌ Localização: ${localidade}`);
-  if(cleanText(item.tipologia)) lines.push(`▌ Tipologia: ${cleanText(item.tipologia)}`);
+  const bucketData = {};
+  BUCKETS.forEach(b=>bucketData[b.key] = { title:b.title, icon:b.icon, items:[], seen:new Set() });
 
-  // Espaço
-  lines.push('');
-  lines.push('🟫  FICHA RÁPIDA');
-  lines.push('—');
-  if(facts.area)     lines.push(`• Área: ${facts.area} m²`);
-  if(facts.quartos)  lines.push(`• Quartos: ${facts.quartos}`);
-  if(facts.wc)       lines.push(`• Casas de banho: ${facts.wc}`);
-  if(facts.andar)    lines.push(`• Andar/Piso: ${facts.andar}`);
-  if(facts.elevador) lines.push(`• Elevador: ${facts.elevador}`);
-  if(!facts.area && !facts.quartos && !facts.wc && !facts.andar && !facts.elevador){
-    lines.push('• (Sem dados técnicos extraídos automaticamente)');
+  // dedupe “curto” e remover duplicações óbvias (ex.: “3º andar” vs “3º andar com elevador”)
+  function addToBucket(key, line){
+    const v = clean(line);
+    if(isTooShort(v)) return;
+
+    // regra: se já temos “3º andar com elevador”, não adicionar “3º andar” nem “com elevador”
+    const n = normalizeLine(v);
+    const pack = bucketData[key];
+    if(!pack) return;
+
+    // não repetir
+    if(pack.seen.has(n)) return;
+
+    // anti-duplicação simples
+    if(/^\d{1,2}\s*º?\s*andar$/i.test(v) && pack.items.some(x=>/andar\s+com\s+elevador/i.test(x))) return;
+    if(/^com\s+elevador$/i.test(v) && pack.items.some(x=>/andar\s+com\s+elevador/i.test(x))) return;
+
+    pack.seen.add(n);
+    pack.items.push(v);
   }
 
+  // classificar partes
+  parts.forEach(p=>{
+    const chosen = BUCKETS.find(b=>b.test(p));
+    addToBucket(chosen ? chosen.key : 'outros', p);
+  });
+
+  // --- 3) Construção do output final (com espaçamento consistente) ---
+  const lines = [];
+  lines.push('RESUMO PREMIUM DO ANÚNCIO (FSBO)');
+  lines.push(SEP);
+
+  if(clean(item.tituloImovel)) lines.push('▌ Imóvel: ' + clean(item.tituloImovel));
+  if(preco) lines.push('▌ Preço: ' + preco);
+  if(localidade) lines.push('▌ Localização: ' + localidade);
+  if(clean(item.tipologia)) lines.push('▌ Tipologia: ' + clean(item.tipologia));
+
   lines.push('');
-  lines.push('🟫  PONTOS-CHAVE');
+  lines.push(BTN('Ficha Rápida'));
+  lines.push('—');
+
+  if(facts.area) lines.push('• Área: ' + facts.area + ' m²');
+  if(facts.quartos) lines.push('• Quartos: ' + facts.quartos);
+  if(facts.wc) lines.push('• Casas de banho: ' + facts.wc);
+  if(facts.andar) lines.push('• Andar/Piso: ' + facts.andar);
+  if(facts.elevador) lines.push('• Elevador: ' + facts.elevador);
+
+  lines.push('');
+  lines.push(BTN('Pontos-chave'));
   lines.push('—');
   lines.push(highlightsBlock);
 
+  // detalhes organizados (só buckets com conteúdo)
+  const orderedKeys = [
+    'descricao','estado','acab','cozinha','conforto','domotica','vistas',
+    'condominio','edificio','estac','energia','invest','outros'
+  ];
+
+  const anyDetail = orderedKeys.some(k => bucketData[k] && bucketData[k].items.length);
+
   lines.push('');
-  lines.push('🟫  DETALHES DO ANÚNCIO (ORGANIZADO)');
+  lines.push(BTN('Detalhes do anúncio (organizado)'));
   lines.push('—');
 
-  // render buckets com espaçamento claro
-  let renderedAnyBucket = false;
+  if(anyDetail){
+    orderedKeys.forEach(k=>{
+      const b = bucketData[k];
+      if(!b || !b.items.length) return;
 
-  bucketOrder.forEach(title=>{
-    const arr = buckets[title] || [];
-    const cleanArr = dedupeKeepOrder(arr).filter(Boolean);
+      // espaçamento entre secções (o ponto que faltava)
+      lines.push('');
+      lines.push(`${b.icon} ${String(b.title||'').toUpperCase()}`);
 
-    if(!cleanArr.length) return;
+      b.items.slice(0,8).forEach(it=>{
+        lines.push('• ' + it);
+      });
 
-    renderedAnyBucket = true;
-
-    // Limites por bucket (evita resumo gigante)
-    const limited = limitBucket(cleanArr, 6);
-
-    // Espaço entre buckets
-    lines.push('');
-    lines.push(`⬛ ${title.toUpperCase()}`);
-    lines.push('• ' + limited.map(x => String(x)).join('\n• '));
-  });
-
-  if(!renderedAnyBucket){
-    lines.push('');
-    lines.push('• (Sem detalhes adicionais detetados em Observações/Notas internas)');
+      // se for muito extenso, sinalizar
+      if(b.items.length > 8){
+        lines.push('• (… mais itens no anúncio / observações)');
+      }
+    });
+  }else{
+    lines.push('• (Sem detalhes suficientes nas Observações/Notas para organizar.)');
   }
 
   if(!hasAnyText){
@@ -2507,9 +2462,9 @@ function buildKitResumo(item){
   }
 
   lines.push('');
-  lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  lines.push(SEP);
   lines.push('Fim do resumo');
-  lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  lines.push(SEP);
 
   return lines.join('\n');
 }
