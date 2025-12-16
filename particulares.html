@@ -1734,6 +1734,11 @@ if(out.precoAnuncio === '' || out.precoAnuncio == null){
           const store = db.createObjectStore(STORE, { keyPath:'id' });
           store.createIndex('by_item', 'itemId', { unique:false });
         }
+        // NOVO: store de imagens
+if(!db.objectStoreNames.contains(STORE_IMG)){
+  const storeImg = db.createObjectStore(STORE_IMG, { keyPath:'id' });
+  storeImg.createIndex('by_item', 'itemId', { unique:false });
+}
       };
       req.onsuccess = ()=>resolve(req.result);
       req.onerror = ()=>reject(req.error);
