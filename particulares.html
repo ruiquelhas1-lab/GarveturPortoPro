@@ -3358,7 +3358,9 @@ if(urg){
     alert('Secção inválida.');
     return;
   }
-
+// ✅ ir buscar o conteúdo real da textarea da secção
+const ta = document.getElementById(pack.textareaId);
+const content = (ta && typeof ta.value === 'string') ? ta.value.trim() : '';
   const w = window.open('', '_blank');
   if(!w){
     alert('O navegador bloqueou a abertura da janela de impressão.\n\nPermita pop-ups para este site.');
