@@ -3221,6 +3221,141 @@ if(urg){
   }
 
   /* ============ PDF (impressão) ============ */
+  function exportKitSectionPdf(sectionKey){
+  if(!currentKitItem){
+    alert('Abra um registo e o Kit FSBO antes de exportar PDF.');
+    return;
+  }
+
+  const t = lastFetchedTitle || currentKitItem.tituloImovel || currentKitItem.tipologia || 'FSBO';
+  const zone = [currentKitItem.zona, currentKitItem.freguesia, currentKitItem.concelho].filter(Boolean).join(' · ');
+  const owner = currentKitItem.ownerName || 'Proprietário(a)';
+  const phone = currentKitItem.ownerPhone || '-';
+  const email = currentKitItem.ownerEmail || '-';
+  const portal = currentKitItem.portal || '-';
+  const link = currentKitItem.link || '';
+
+  const map = {
+    whatsapp: { title:'WhatsApp (mensagem)', content: (kitWhatsapp.value || '') },
+    email:    { title:'Email (profissional)', content: (kitEmail.value || '') },
+    call:     { title:'Chamada (script)', content: (kitCall.value || '') },
+    swot:     { title:'SWOT (base)', content: (kitSwot.value || '') },
+  };
+
+  const pack = map[sectionKey];
+  if(!pack){
+    alert('Secção inválida.');
+    return;
+  }
+
+  const w = window.open('', '_blank');
+  if(!w){
+    alert('O navegador bloqueou a abertura da janela de impressão.\n\nPermita pop-ups para este site.');
+    return;
+  }
+
+  const safe = (s)=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  const html = `
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8" />
+<title>Kit FSBO — ${safe(pack.title)} — ${safe(t)}</title>
+<style>
+  @page { size: A4; margin: 2cm; }
+  body{
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    margin:0; padding:0;
+    color:#222; background:#fff;
+  }
+  header{
+    border-bottom:2px solid #A38B63;
+    padding-bottom:8px;
+    margin-bottom:12px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:12px;
+  }
+  h1{
+    font-size:15px;
+    margin:0 0 4px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:#333;
+  }
+  .sub{
+    font-size:11px;
+    color:#777;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+  }
+  .meta{
+    font-size:10px;
+    color:#666;
+    text-align:right;
+    white-space:nowrap;
+  }
+  .block-title{
+    margin:0 0 8px;
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:#A38B63;
+  }
+  .info{
+    font-size:10px;
+    color:#555;
+    margin:0 0 12px;
+    line-height:1.35;
+  }
+  pre{
+    white-space:pre-wrap;
+    word-wrap:break-word;
+    font-size:11px;
+    line-height:1.35;
+    margin:0;
+    padding:12px;
+    border:1px solid #ddd;
+    border-radius:10px;
+    background:#fafafa;
+  }
+  .muted{ color:#777; }
+</style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Garvetur Luxury Porto</h1>
+      <div class="sub">Kit FSBO — ${safe(pack.title)}</div>
+    </div>
+    <div class="meta">
+      <div>Data: ${new Date().toLocaleDateString('pt-PT')}</div>
+      <div>Consultor: ${safe(currentKitItem.consultor || '')}</div>
+    </div>
+  </header>
+
+  <div class="info">
+    <div><strong>Registo:</strong> ${safe(t)}${zone ? ' <span class="muted">|</span> ' + safe(zone) : ''}</div>
+    <div><strong>Proprietário:</strong> ${safe(owner)} <span class="muted">|</span> <strong>Móvel:</strong> ${safe(phone)} <span class="muted">|</span> <strong>Email:</strong> ${safe(email)}</div>
+    <div><strong>Portal:</strong> ${safe(portal)}${link ? ' <span class="muted">|</span> <strong>Link:</strong> ' + safe(link) : ''}</div>
+  </div>
+
+  <div class="block-title">${safe(pack.title)}</div>
+  <pre>${safe(pack.content || '(sem conteúdo)')}</pre>
+
+<script>
+  window.print();
+<\/script>
+</body>
+</html>
+`;
+
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+}
   function exportOnePdf(item){
     const w = window.open('', '_blank');
     if(!w){
