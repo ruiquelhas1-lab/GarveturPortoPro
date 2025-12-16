@@ -2216,7 +2216,96 @@ if(!dataIdent){
     });
     return hits.slice(0,5);
   }
+  function cleanText(s){
+    return String(s || '').replace(/\s+/g,' ').trim();
+  }
 
+  function pickFirstMatch(text, regex){
+    const m = String(text||'').match(regex);
+    return m ? (m[1] || m[0]) : '';
+  }
+
+  function extractFactsFromText(text){
+    const t = String(text||'');
+
+    // Área: "120 m2", "120m²", "120,5 m2"
+    const area = pickFirstMatch(t, /(\d{2,4}(?:[.,]\d{1,2})?)\s*(?:m2|m²)\b/i);
+
+    // Quartos: "T2", "2 quartos"
+    const tip = pickFirstMatch(t, /\bT\s?(\d{1,2})(?:\+\d)?\b/i);
+    const quartos = pickFirstMatch(t, /\b(\d{1,2})\s*(?:quartos?|qts?)\b/i) || (tip ? tip : '');
+
+    // WC: "2 wc", "2 casas de banho", "2 wcs"
+    const wc = pickFirstMatch(t, /\b(\d{1,2})\s*(?:wc|wcs|casa(?:s)?\s*de\s*banho)\b/i);
+
+    // Andar/Piso: "3º andar", "piso 2", "rés-do-chão"
+    let andar = pickFirstMatch(t, /\b(\d{1,2})\s*(?:º|o)?\s*(?:andar|piso)\b/i);
+    if(!andar){
+      const rdc = t.match(/\b(r[ée]s(?:-|\s)?do(?:-|\s)?ch[aã]o|rc)\b/i);
+      if(rdc) andar = 'Rés-do-chão';
+    }
+
+    // Elevador (sim/não) – tenta detectar presença
+    let elevador = '';
+    if(/\belevador\b/i.test(t)) elevador = 'Sim';
+    if(/\bsem\s+elevador\b/i.test(t)) elevador = 'Não';
+
+    return { area, quartos, wc, andar, elevador };
+  }
+
+  function buildKitResumo(item){
+    const baseText = [
+      item.tituloImovel,
+      item.tipologia,
+      item.zona,
+      item.freguesia,
+      item.concelho,
+      item.observacoes,
+      item.notasInternas
+    ].filter(Boolean).join('\n');
+
+    const hasAnyText = cleanText(baseText).length >= 10;
+
+    const facts = extractFactsFromText(baseText);
+
+    const localidade = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
+    const preco = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
+
+    // Highlights (já existe a sua guessHighlights)
+    const highlights = guessHighlights(item);
+    const highlightsBlock = highlights.length
+      ? ('• ' + highlights.join('\n• '))
+      : '• (Sem características destacadas detectadas no texto)';
+
+    // Campos principais (só mostra se existir)
+    const lines = [];
+    lines.push('RESUMO DO IMÓVEL (FSBO)');
+    lines.push('—');
+
+    if(cleanText(item.tituloImovel)) lines.push('Designação: ' + cleanText(item.tituloImovel));
+    if(preco) lines.push('Preço: ' + preco);
+    if(localidade) lines.push('Localidade: ' + localidade);
+    if(cleanText(item.tipologia)) lines.push('Tipologia: ' + cleanText(item.tipologia));
+
+    if(facts.area) lines.push('Área: ' + facts.area + ' m²');
+    if(facts.quartos) lines.push('Quartos: ' + facts.quartos);
+    if(facts.wc) lines.push('Casas de banho: ' + facts.wc);
+    if(facts.andar) lines.push('Andar/Piso: ' + facts.andar);
+    if(facts.elevador) lines.push('Elevador: ' + facts.elevador);
+
+    lines.push('');
+    lines.push('Pontos-chave');
+    lines.push(highlightsBlock);
+
+    // Se não houver texto suficiente (observações/notas vazias), mesmo assim cria resumo mínimo
+    if(!hasAnyText){
+      lines.push('');
+      lines.push('Nota: Para um resumo mais completo, preencha “Observações” e/ou “Notas internas” no registo.');
+    }
+
+    return lines.join('\n');
+  }
+  
   function generateWhatsapp(item, fetchedTitle){
     const owner = item.ownerName ? item.ownerName.trim() : '';
     const greetName = owner ? (' ' + firstNameFromOwner(owner)) : '';
