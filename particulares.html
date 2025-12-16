@@ -1618,38 +1618,39 @@ let kitEmailMainMessage = '';
   }
 
 function migrateItem(d){
-  if(!d || typeof d !== 'object'){
-    return {
-      visible: true,
-      estadoProspeccao: 'identificado',
-      ownerName: '',
-      ownerPhone: '',
-      ownerEmail: '',
-      photos: []
-    };
-  }
+  // Garantir objeto base
+  if(!d || typeof d !== 'object') d = {};
 
   const out = { ...d };
 
-  // Defaults seguros
-  out.visible = (d.visible === false) ? false : true;
-  out.estadoProspeccao = d.estadoProspeccao || 'identificado';
-  out.ownerName = d.ownerName || '';
-  out.ownerPhone = d.ownerPhone || '';
-  out.ownerEmail = d.ownerEmail || '';
+  // Defaults seguros (sem destruir campos existentes)
+  out.visible = (out.visible === false) ? false : true;
+  out.estadoProspeccao = out.estadoProspeccao || 'identificado';
+  out.ownerName = out.ownerName || '';
+  out.ownerPhone = out.ownerPhone || '';
+  out.ownerEmail = out.ownerEmail || '';
 
-  // 🔒 BLINDAGEM CRÍTICA DAS FOTOS
-  if(!Array.isArray(d.photos)){
-    out.photos = [];
+  // 🔒 Fotos: normalizar SEM perder conteúdo
+  // Aceita:
+  // - strings (dataURL / URL)
+  // - objetos {dataUrl|url|src}
+  if(Array.isArray(out.photos)){
+    out.photos = out.photos
+      .map(p=>{
+        if(typeof p === 'string') return p;
+        if(p && typeof p === 'object') return p.dataUrl || p.url || p.src || '';
+        return '';
+      })
+      .filter(s => typeof s === 'string' && s.trim().length > 20);
   }else{
-    out.photos = d.photos.filter(p => typeof p === 'string' && p.length > 10);
+    out.photos = [];
   }
 
-  // Normalizar preço
+  // Normalizar preço (aceita "123456" e "123.456" e "123,456")
   if(out.precoAnuncio === '' || out.precoAnuncio == null){
     out.precoAnuncio = null;
   }else{
-    const n = Number(out.precoAnuncio);
+    const n = Number(String(out.precoAnuncio).replace(/\./g,'').replace(',','.'));
     out.precoAnuncio = isFinite(n) ? n : null;
   }
 
