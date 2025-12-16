@@ -3343,12 +3343,15 @@ if(urg){
   const portal = currentKitItem.portal || '-';
   const link = currentKitItem.link || '';
 
-  const map = {
-    whatsapp: { title:'WhatsApp (mensagem)', content: (kitWhatsapp.value || '') },
-    email:    { title:'Email (profissional)', content: (kitEmail.value || '') },
-    call:     { title:'Chamada (script)', content: (kitCall.value || '') },
-    swot:     { title:'SWOT (base)', content: (kitSwot.value || '') },
-  };
+ const map = {
+  whatsapp: { title:'WhatsApp', textareaId:'kitWhatsapp' },
+  call:     { title:'Chamada',  textareaId:'kitCall' },
+  email:    { title:'Email',    textareaId:'kitEmail' },
+  swot:     { title:'SWOT',     textareaId:'kitSwot' },
+
+  // NOVO:
+  resumo:   { title:'Resumo do anúncio', textareaId:'kitResumo' }
+};
 
   const pack = map[sectionKey];
   if(!pack){
