@@ -2254,57 +2254,260 @@ if(!dataIdent){
   }
 
   function buildKitResumo(item){
-    const baseText = [
-      item.tituloImovel,
-      item.tipologia,
-      item.zona,
-      item.freguesia,
-      item.concelho,
-      item.observacoes,
-      item.notasInternas
-    ].filter(Boolean).join('\n');
+  // Fallbacks seguros (para não partir se alguma helper não existir)
+  const _cleanText = (typeof cleanText === 'function')
+    ? cleanText
+    : (s)=>String(s||'').replace(/\s+/g,' ').trim();
 
-    const hasAnyText = cleanText(baseText).length >= 10;
+  const _formatMoney = (typeof formatMoney === 'function')
+    ? formatMoney
+    : (v)=>{
+        const n = Number(String(v).replace(',', '.'));
+        return isFinite(n) ? n.toLocaleString('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:0}) : '';
+      };
 
-    const facts = extractFactsFromText(baseText);
+  const _guessHighlights = (typeof guessHighlights === 'function')
+    ? guessHighlights
+    : ()=>[];
 
-    const localidade = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
-    const preco = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
+  const _extractFactsFromText = (typeof extractFactsFromText === 'function')
+    ? extractFactsFromText
+    : ()=>({ area:'', quartos:'', wc:'', andar:'', elevador:'' });
 
-    // Highlights (já existe a sua guessHighlights)
-    const highlights = guessHighlights(item);
-    const highlightsBlock = highlights.length
-      ? ('• ' + highlights.join('\n• '))
-      : '• (Sem características destacadas detectadas no texto)';
+  // =========================
+  // Helpers locais (não mexem no resto do ficheiro)
+  // =========================
+  function splitIntoBullets(raw){
+    const s = String(raw||'').replace(/\r/g,'\n');
 
-    // Campos principais (só mostra se existir)
-    const lines = [];
-    lines.push('RESUMO DO IMÓVEL (FSBO)');
-    lines.push('—');
-
-    if(cleanText(item.tituloImovel)) lines.push('Designação: ' + cleanText(item.tituloImovel));
-    if(preco) lines.push('Preço: ' + preco);
-    if(localidade) lines.push('Localidade: ' + localidade);
-    if(cleanText(item.tipologia)) lines.push('Tipologia: ' + cleanText(item.tipologia));
-
-    if(facts.area) lines.push('Área: ' + facts.area + ' m²');
-    if(facts.quartos) lines.push('Quartos: ' + facts.quartos);
-    if(facts.wc) lines.push('Casas de banho: ' + facts.wc);
-    if(facts.andar) lines.push('Andar/Piso: ' + facts.andar);
-    if(facts.elevador) lines.push('Elevador: ' + facts.elevador);
-
-    lines.push('');
-    lines.push('Pontos-chave');
-    lines.push(highlightsBlock);
-
-    // Se não houver texto suficiente (observações/notas vazias), mesmo assim cria resumo mínimo
-    if(!hasAnyText){
-      lines.push('');
-      lines.push('Nota: Para um resumo mais completo, preencha “Observações” e/ou “Notas internas” no registo.');
+    // Se estiver tudo numa linha com muitos " - ", converte para bullets
+    if(s.indexOf('\n') === -1 && (s.match(/\s-\s/g)||[]).length >= 2){
+      return s.split(/\s-\s/g).map(x=>x.trim()).filter(Boolean);
     }
 
-    return lines.join('\n');
+    // Caso geral: quebrar por linha e também por " - " quando fizer sentido
+    const out = [];
+    s.split('\n').forEach(line=>{
+      const l = line.trim();
+      if(!l) return;
+
+      // remove separadores comuns
+      const cleaned = l.replace(/^(—+|-{2,}|•)\s*/,'').trim();
+      if(!cleaned) return;
+
+      // se a linha tiver vários " - ", parte em itens
+      if((cleaned.match(/\s-\s/g)||[]).length >= 1 && cleaned.length > 40){
+        cleaned.split(/\s-\s/g).forEach(part=>{
+          const p = part.trim();
+          if(p) out.push(p);
+        });
+      }else{
+        out.push(cleaned);
+      }
+    });
+
+    return out;
   }
+
+  function detectSections(lines){
+    // Cria secções típicas encontradas em anúncios “copy/paste”
+    const sections = {
+      descricao: [],
+      especificas: [],
+      edificio: [],
+      equipamento: [],
+      energia: [],
+      outros: []
+    };
+
+    let mode = 'descricao';
+
+    lines.forEach(line=>{
+      const l = String(line||'').trim();
+      const low = l.toLowerCase();
+
+      // mudadores de secção (tolerantes)
+      if(/caracter[ií]sticas\s+espec[ií]ficas/.test(low)){
+        mode = 'especificas';
+        // tentar aproveitar conteúdo a seguir a ":" na mesma linha
+        const after = l.split(':')[1];
+        if(after && after.trim()){
+          after.split(/\s-\s/g).map(x=>x.trim()).filter(Boolean).forEach(x=>sections.especificas.push(x));
+        }
+        return;
+      }
+
+      if(/\bequipamento\b/.test(low)){
+        mode = 'equipamento';
+        return;
+      }
+
+      if(/\bpr[eé]dio\b/.test(low) || /\bedif[ií]cio\b/.test(low)){
+        mode = 'edificio';
+        return;
+      }
+
+      if(/certificado\s+energ[eé]tico|classe\s+energ[eé]tica|classifica[cç][aã]o\s+energ[eé]tica/.test(low)){
+        mode = 'energia';
+        // também deixa a linha cair na energia (não faz return)
+      }
+
+      // Heurística: linhas muito “ficha técnica” vão para específicas
+      if(
+        mode === 'descricao' &&
+        (/\b\d+\s*m²\b|\b\d+\s*m2\b|\bT\d\b|\bwc\b|\bcasa(?:s)?\s+de\s+banho\b/i.test(l))
+      ){
+        sections.especificas.push(l);
+        return;
+      }
+
+      // Guardar na secção atual
+      if(sections[mode]) sections[mode].push(l);
+      else sections.outros.push(l);
+    });
+
+    // Limpeza: remover repetição e lixo curto
+    Object.keys(sections).forEach(k=>{
+      sections[k] = sections[k]
+        .map(x=>x.trim())
+        .filter(x=>x && x.length >= 2);
+    });
+
+    return sections;
+  }
+
+  function uniq(arr){
+    const seen = new Set();
+    const out = [];
+    (arr||[]).forEach(x=>{
+      const key = String(x||'').trim();
+      if(!key) return;
+      const norm = key.toLowerCase();
+      if(seen.has(norm)) return;
+      seen.add(norm);
+      out.push(key);
+    });
+    return out;
+  }
+
+  // =========================
+  // Fonte: Observações (principal) + Notas internas (opcional)
+  // =========================
+  const obsRaw = String(item.observacoes || '').trim();
+  const notasRaw = String(item.notasInternas || '').trim();
+
+  const baseText = [
+    item.tituloImovel,
+    item.tipologia,
+    item.zona,
+    item.freguesia,
+    item.concelho,
+    obsRaw,
+    notasRaw
+  ].filter(Boolean).join('\n');
+
+  const hasAnyText = _cleanText(baseText).length >= 10;
+  const facts = _extractFactsFromText(baseText);
+
+  const localidade = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
+  const preco = item.precoAnuncio ? _formatMoney(item.precoAnuncio) : '';
+
+  // Transformar observações em linhas e organizar por secções
+  const obsLines = splitIntoBullets(obsRaw);
+  const sections = detectSections(obsLines);
+
+  // Highlights automáticos + reforço com “específicas”
+  const highlightsAuto = uniq(_guessHighlights(item));
+  const highlightsExtra = uniq(sections.especificas.slice(0, 10));
+  const highlights = uniq([ ...highlightsAuto, ...highlightsExtra ]).slice(0, 8);
+
+  // =========================
+  // Construção do resumo (premium e completo)
+  // =========================
+  const lines = [];
+
+  lines.push('RESUMO DO IMÓVEL (FSBO) — FORMATO PREMIUM');
+  lines.push('—');
+
+  if(_cleanText(item.tituloImovel)) lines.push('Designação: ' + _cleanText(item.tituloImovel));
+  if(preco) lines.push('Preço: ' + preco);
+  if(localidade) lines.push('Localidade: ' + localidade);
+  if(_cleanText(item.tipologia)) lines.push('Tipologia: ' + _cleanText(item.tipologia));
+
+  // Ficha rápida (só aparece o que existir)
+  const quick = [];
+  if(facts.area) quick.push('Área: ' + facts.area + ' m²');
+  if(facts.quartos) quick.push('Quartos: ' + facts.quartos);
+  if(facts.wc) quick.push('Casas de banho: ' + facts.wc);
+  if(facts.andar) quick.push('Andar/Piso: ' + facts.andar);
+  if(facts.elevador) quick.push('Elevador: ' + facts.elevador);
+
+  if(quick.length){
+    lines.push('');
+    lines.push('Ficha rápida');
+    quick.forEach(x=>lines.push('• ' + x));
+  }
+
+  // Descrição (mantém fraseado — “premium”)
+  const desc = uniq(sections.descricao).join(' ');
+  if(desc){
+    lines.push('');
+    lines.push('Descrição');
+    lines.push(desc);
+  }
+
+  // Pontos-chave (bullets limpos)
+  lines.push('');
+  lines.push('Pontos-chave (organizado)');
+  if(highlights.length){
+    highlights.forEach(h=>lines.push('• ' + h));
+  }else{
+    lines.push('• (Sem pontos-chave detectados automaticamente. Recomenda-se completar Observações.)');
+  }
+
+  // Características detalhadas (inclui TUDO o que houver, sem perder informação)
+  const blockAny =
+    sections.especificas.length ||
+    sections.edificio.length ||
+    sections.equipamento.length ||
+    sections.energia.length ||
+    sections.outros.length;
+
+  if(blockAny){
+    lines.push('');
+    lines.push('Características detalhadas (a partir das Observações)');
+
+    const pushGroup = (title, arr)=>{
+      const a = uniq(arr);
+      if(!a.length) return;
+      lines.push('');
+      lines.push(title);
+      a.forEach(x=>lines.push('• ' + x));
+    };
+
+    pushGroup('Características específicas', sections.especificas);
+    pushGroup('Edifício / Condomínio', sections.edificio);
+    pushGroup('Equipamento', sections.equipamento);
+    pushGroup('Eficiência energética', sections.energia);
+
+    // tudo o que sobrar
+    pushGroup('Outros apontamentos', sections.outros);
+  }
+
+  // Guardar o “texto original” (para garantir que NADA se perde)
+  if(obsRaw){
+    lines.push('');
+    lines.push('Texto original (Observações)');
+    lines.push(obsRaw);
+  }
+
+  if(!hasAnyText){
+    lines.push('');
+    lines.push('Nota: Para um resumo mais completo, preencha “Observações” e/ou “Notas internas” no registo.');
+  }
+
+  return lines.join('\n');
+}
   
   function generateWhatsapp(item, fetchedTitle){
     const owner = item.ownerName ? item.ownerName.trim() : '';
