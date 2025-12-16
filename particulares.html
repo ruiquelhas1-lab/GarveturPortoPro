@@ -4039,6 +4039,97 @@ $('dataUltimaAcao').value = hoje;
   closeKitBtn.addEventListener('click', closeKit);
   closeKitBtn2.addEventListener('click', closeKit);
   regenKitBtn.addEventListener('click', regenKit);
+  /* =========================
+   RESUMO DO ANÚNCIO — DENTRO DO KIT
+   ========================= */
+
+const resumoAnuncio = $('resumoAnuncio');
+const gerarResumoBtn = $('gerarResumoBtn');
+const limparResumoBtn = $('limparResumoBtn');
+const pdfResumoBtn = $('pdfResumoBtn');
+
+function cleanText(s){
+  return String(s || '')
+    .replace(/\r/g,'')
+    .replace(/[ \t]+\n/g,'\n')
+    .replace(/\n{3,}/g,'\n\n')
+    .trim();
+}
+
+function buildResumoEstruturado(item){
+  if(!item) return '';
+
+  const titulo = (lastFetchedTitle || item.tituloImovel || item.tipologia || 'Imóvel').trim();
+  const zona = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
+  const preco = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
+  const portal = item.portal || '';
+  const link = item.link || '';
+
+  const obs = cleanText(item.observacoes || '');
+  const notas = cleanText(item.notasInternas || '');
+
+  // Fonte principal (observações). Se quiser, inclui notas internas como “extra”.
+  const fonte = cleanText([obs, notas ? ('\n\n' + notas) : ''].join(''));
+  if(!fonte) return ''; // <- aqui está a validação certa
+
+  // Heurísticas simples (sem IA externa): tópicos claros para leitura rápida
+  const bullets = [];
+  const t = (titulo + ' ' + fonte).toLowerCase();
+
+  // Highlights (reaproveita a sua função existente)
+  const highlights = guessHighlights(item);
+  if(highlights.length) bullets.push(`• Pontos fortes prováveis: ${highlights.join(', ')}`);
+
+  // Detetar “estado / condição” no texto
+  if(/remodel|renov|reabil|novo|como novo|recent|obra/.test(t)) bullets.push('• Estado/condição: há referência a obra/renovação/novo (confirmar em visita).');
+  if(/arrendad|inquilin|ocupad/.test(t)) bullets.push('• Ocupação: há referência a arrendamento/ocupação (validar).');
+  if(/licen|alvar|utiliza|caderneta|certid|ce\b|energ/.test(t)) bullets.push('• Documentação: existe referência documental (confirmar checklist).');
+
+  // Fricções comuns
+  if(/sem elevador|4[ºo] andar|5[ºo] andar|andar alto/.test(t)) bullets.push('• Nota operacional: possível fricção (andar/ acessos) — alinhar expectativa com compradores.');
+  if(/necessita|precisa|obras|a precisar/.test(t)) bullets.push('• Nota técnica: pode necessitar de intervenção — preparar enquadramento e orçamento.');
+
+  // Síntese executiva
+  const resumo =
+`RESUMO EXECUTIVO
+• Designação: ${titulo}${zona ? ' | ' + zona : ''}${preco ? ' | ' + preco : ''}${portal ? ' | ' + portal : ''}
+
+LEITURA RÁPIDA (baseada no texto do anúncio/observações)
+${bullets.length ? bullets.join('\n') : '• Sem padrões detetados automaticamente — resumir manualmente com base no texto.'}
+
+TEXTO-BASE (para contexto)
+${fonte}`;
+
+  return resumo.trim();
+}
+
+function handleGerarResumoKit(){
+  try{
+    if(!currentKitItem){
+      alert('Abra um registo e o Kit FSBO antes de gerar o resumo.');
+      return;
+    }
+    const out = buildResumoEstruturado(currentKitItem);
+    if(!out){
+      alert('Sem texto para resumir. Preencha “Observações” no registo (ou importe a descrição do anúncio).');
+      return;
+    }
+    if(resumoAnuncio) resumoAnuncio.value = out;
+    showToast('Resumo gerado');
+  }catch(e){
+    console.error('Erro a gerar resumo no Kit', e);
+    alert('Ocorreu um erro ao gerar o resumo. Veja a consola (F12) para detalhes.');
+  }
+}
+
+function handleLimparResumoKit(){
+  if(resumoAnuncio) resumoAnuncio.value = '';
+  showToast('Resumo limpo');
+}
+
+if(gerarResumoBtn) gerarResumoBtn.addEventListener('click', handleGerarResumoKit);
+if(limparResumoBtn) limparResumoBtn.addEventListener('click', handleLimparResumoKit);
+if(pdfResumoBtn) pdfResumoBtn.addEventListener('click', ()=>exportKitSectionPdf('resumo'));
   const pdfWhatsappBtn = $('pdfWhatsappBtn');
 const pdfEmailBtn = $('pdfEmailBtn');
 const pdfCallBtn = $('pdfCallBtn');
