@@ -2253,122 +2253,19 @@ if(!dataIdent){
     return { area, quartos, wc, andar, elevador };
   }
 
- function buildKitResumo(item){
-  // ===== Helpers locais (não mexem no resto do ficheiro) =====
-  function norm(s){
-    return String(s||'')
-      .replace(/\u00A0/g,' ')
-      .replace(/[•·]/g,'-')
-      .replace(/\s+/g,' ')
-      .trim();
-  }
+function buildKitResumo(item){
+  // =========================
+  // RESUMO PREMIUM (Texto)
+  // - Melhor espaçamento
+  // - Buckets adicionais
+  // - Deduplicação + controlo de tamanho
+  // =========================
 
-  function splitIntoLines(text){
-    // quebra por hífen “-”, bullets, ou novas linhas (observações vêm muitas vezes em bloco)
-    const raw = String(text||'')
-      .replace(/\r/g,'\n')
-      .replace(/\s*-\s*/g,'\n- ')       // transforma " - " em linhas
-      .replace(/\s*•\s*/g,'\n- ')
-      .replace(/\s*—\s*/g,'\n- ')
-      .replace(/\n{2,}/g,'\n');
+  const localidade = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
+  const preco = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
 
-    return raw
-      .split('\n')
-      .map(l=>norm(l))
-      .filter(Boolean)
-      .map(l=>{
-        // remove prefixo "- " se existir
-        if(l.startsWith('- ')) return l.slice(2).trim();
-        return l;
-      })
-      .filter(Boolean);
-  }
-
-  function keyOf(line){
-    // chave para dedupe (insensível a maiúsculas e pontuação “leve”)
-    return norm(line)
-      .toLowerCase()
-      .replace(/[()]/g,'')
-      .replace(/[.:;]+/g,'')
-      .replace(/\b(com|de|do|da|dos|das|e|em|no|na|para|por|a|o|as|os)\b/g,'')
-      .replace(/\s+/g,' ')
-      .trim();
-  }
-
-  function uniqPush(arr, seen, line){
-    const k = keyOf(line);
-    if(!k) return;
-    if(seen.has(k)) return;
-    seen.add(k);
-    arr.push(line);
-  }
-
-  function isNoise(line){
-    const l = line.toLowerCase();
-    // “Cabeçalhos” típicos copiados do portal (ruído)
-    if(/^caracter[ií]sticas\s+espec[ií]ficas\b/.test(l)) return true;
-    if(/^equipamento\b\s*:?\s*$/.test(l)) return true;
-    if(/^certificado\s+energ[eé]tico\b\s*:?\s*$/.test(l)) return true;
-    if(/^classe\s+energ[eé]tica\b\s*:?\s*$/.test(l)) return true;
-    if(/^\s*:?\s*[a-z]\s*$/.test(l)) return true; // linhas tipo ": A"
-    // redundâncias muito frequentes sem valor informativo
-    if(/\bárea\s+bruta\b/.test(l)) return true; // já apanha na ficha rápida
-    return false;
-  }
-
-  function bucketOf(line){
-    const l = line.toLowerCase();
-
-    // Domótica / Segurança (novo)
-    if(/\b(dom[oó]tica|alarme|videovigil[aâ]ncia|cctv|porta\s+blindada|fechadura\s+inteligente|intercomunicador|videoporteiro|detetor|sensores)\b/.test(l)){
-      return 'DOMÓTICA / SEGURANÇA';
-    }
-
-    // Vistas / Exposição solar (novo)
-    if(/\b(vista|vistas|rio|mar|serra|panor[aâ]mica|exposi[cç][aã]o\s+solar|nascente|poente|sul|norte|orienta[cç][aã]o)\b/.test(l)){
-      return 'VISTAS / EXPOSIÇÃO SOLAR';
-    }
-
-    // Estado & Reabilitação
-    if(/\b(novo|nova|estrear|remodelad[ao]|renovad[ao]|reabilitad[ao]|segunda\s+m[aã]o|bom\s+estado|a\s+necessitar)\b/.test(l)){
-      return 'ESTADO & REABILITAÇÃO';
-    }
-
-    // Cozinha & Equipamentos
-    if(/\b(cozinha|forno|placa|exaustor|frigor[ií]fico|micro-?ondas|m[aá]quina\s+de\s+lavar|m[aá]quina\s+de\s+secar|bosch|siemens|aeg)\b/.test(l)){
-      return 'COZINHA & EQUIPAMENTOS';
-    }
-
-    // Conforto & Climatização
-    if(/\b(ar\s+condicionado|a\/c|bomba\s+de\s+calor|aquecimento|piso\s+radiante|recuperador|lareira|ventila[cç][aã]o)\b/.test(l)){
-      return 'CONFORTO & CLIMATIZAÇÃO';
-    }
-
-    // Estacionamento & Arrumos
-    if(/\b(garagem|box|lugar\s+de\s+garagem|estacionamento|carregamento|ve[ií]culos?\s+el[eé]tricos?|tomada|arrumos|arrecada[cç][aã]o)\b/.test(l)){
-      return 'ESTACIONAMENTO & ARRUMOS';
-    }
-
-    // Edifício & Condomínio
-    if(/\b(condom[ií]nio|pr[eé]dio|elevador|terra[cç]o\s+comum|[uú]ltimo\s+piso|fra[cç][aã]o|andar|rc|r[eé]s-?do-?ch[aã]o)\b/.test(l)){
-      return 'EDIFÍCIO & CONDOMÍNIO';
-    }
-
-    // Eficiência Energética
-    if(/\b(certificado\s+energ[eé]tico|classe\s+energ[eé]tica|a\+?\b|b\b|c\b|d\b|e\b)\b/.test(l)){
-      return 'EFICIÊNCIA ENERGÉTICA';
-    }
-
-    return 'OUTROS DETALHES';
-  }
-
-  function capList(arr, max){
-    if(arr.length <= max) return arr;
-    return arr.slice(0, max);
-  }
-
-  // ===== Base de trabalho =====
-  const baseText = [
+  // Base para extração de factos (não entra “cru” nos detalhes para evitar duplicados)
+  const baseTextForFacts = [
     item.tituloImovel,
     item.tipologia,
     item.zona,
@@ -2378,110 +2275,230 @@ if(!dataIdent){
     item.notasInternas
   ].filter(Boolean).join('\n');
 
-  const hasAnyText = cleanText(baseText).length >= 10;
-  const facts = extractFactsFromText(baseText);
+  const hasAnyText = cleanText(baseTextForFacts).length >= 10;
+  const facts = extractFactsFromText(baseTextForFacts);
 
-  const localidade = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
-  const preco = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
+  // Para “DETALHES ORGANIZADOS” usamos só Observações + Notas internas (evita repetir título/localidade)
+  const rawDetailsText = [
+    item.observacoes,
+    item.notasInternas
+  ].filter(Boolean).join('\n');
 
-  // Highlights (mantém a sua função, mas limita para não “inchar”)
-  const highlights = capList(guessHighlights(item), 6);
-  const highlightsBlock = highlights.length ? ('• ' + highlights.join('\n• ')) : '• (Sem destaques detectados)';
-
-  // ===== Detalhes (a partir de Observações + Notas) com dedupe + buckets =====
-  const detailsText = [item.observacoes, item.notasInternas].filter(Boolean).join('\n');
-  const rawLines = splitIntoLines(detailsText);
-
-  const buckets = {};
-  const seenGlobal = new Set();
-
-  rawLines.forEach(line=>{
-    const clean = norm(line);
-    if(!clean) return;
-    if(isNoise(clean)) return;
-
-    // eliminar linhas muito “genéricas” dos portais
-    const low = clean.toLowerCase();
-    if(low === 'prédio' || low === 'condomínio') return;
-
-    const b = bucketOf(clean);
-    if(!buckets[b]) buckets[b] = [];
-    uniqPush(buckets[b], seenGlobal, clean);
-  });
-
-  // Ordenação “premium” (primeiro o que mais vende)
-  const bucketOrder = [
-    'PONTOS-CHAVE', // (não é bucket real; só para referência)
-    'ESTADO & REABILITAÇÃO',
-    'VISTAS / EXPOSIÇÃO SOLAR',
-    'COZINHA & EQUIPAMENTOS',
-    'CONFORTO & CLIMATIZAÇÃO',
-    'DOMÓTICA / SEGURANÇA',
-    'ESTACIONAMENTO & ARRUMOS',
-    'EDIFÍCIO & CONDOMÍNIO',
-    'EFICIÊNCIA ENERGÉTICA',
-    'OUTROS DETALHES'
-  ];
-
-  // Limites por bucket (para manter “resumo”)
-  const bucketCaps = {
-    'ESTADO & REABILITAÇÃO': 3,
-    'VISTAS / EXPOSIÇÃO SOLAR': 3,
-    'COZINHA & EQUIPAMENTOS': 3,
-    'CONFORTO & CLIMATIZAÇÃO': 3,
-    'DOMÓTICA / SEGURANÇA': 3,
-    'ESTACIONAMENTO & ARRUMOS': 3,
-    'EDIFÍCIO & CONDOMÍNIO': 3,
-    'EFICIÊNCIA ENERGÉTICA': 2,
-    'OUTROS DETALHES': 4
-  };
-
-  // construir bloco de detalhes com cap global (evita “bible”)
-  const detailsLines = [];
-  bucketOrder.forEach(b=>{
-    if(!buckets[b] || !buckets[b].length) return;
-    const capped = capList(buckets[b], bucketCaps[b] || 3);
-    detailsLines.push(b);
-    capped.forEach(x=> detailsLines.push('• ' + x));
-    detailsLines.push(''); // espaço
-  });
-
-  // cap global final (segurança extra)
-  const MAX_DETAIL_LINES = 22; // ajustável
-  let finalDetails = detailsLines.filter(Boolean);
-  if(finalDetails.length > MAX_DETAIL_LINES){
-    finalDetails = finalDetails.slice(0, MAX_DETAIL_LINES);
-    finalDetails.push('• (… mais detalhes no anúncio / observações)');
+  // -------------------------
+  // Helpers (locais, para não mexer no resto do ficheiro)
+  // -------------------------
+  function normKey(s){
+    return String(s||'')
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // remove acentos
+      .replace(/[^\w\s]/g,' ')                        // remove pontuação
+      .replace(/\s+/g,' ')
+      .trim();
   }
 
-  // ===== Montagem final (visual e curto) =====
+  function splitToBullets(text){
+    const t = String(text||'').replace(/\r/g,'\n');
+
+    // quebra por linhas e também por separadores “ - ” frequentes em anúncios
+    const raw = t
+      .split('\n')
+      .flatMap(line => line.split(/\s+-\s+/g))
+      .map(s => cleanText(s))
+      .filter(Boolean);
+
+    // limpa “---”, “--”, etc.
+    return raw
+      .map(s => s.replace(/^-{2,}\s*/g,'').trim())
+      .filter(s => s && s !== '—' && s !== '-' && s !== '--');
+  }
+
+  function dedupeKeepOrder(arr){
+    const seen = new Set();
+    const out = [];
+    for(const x of arr){
+      const k = normKey(x);
+      if(!k) continue;
+      if(seen.has(k)) continue;
+      seen.add(k);
+      out.push(x);
+    }
+    return out;
+  }
+
+  // remove duplicações “A” vs “Classe energética: A” e similares
+  function normalizeEnergyLines(lines){
+    let energy = '';
+    const keep = [];
+
+    for(const line of lines){
+      const k = normKey(line);
+
+      // capturar classe energética
+      let m = String(line).match(/\bclasse?\s+energ[eé]tica[:\s]*([A-G][\+\-]{0,2})\b/i);
+      if(!m) m = String(line).match(/\bclassifica[cç][aã]o\s+energ[eé]tica[:\s]*([A-G][\+\-]{0,2})\b/i);
+
+      if(m && m[1]){
+        energy = m[1].toUpperCase();
+        continue; // não guarda a linha original, vamos injetar uma versão “limpa”
+      }
+
+      // também apanha “Certificado energético … Classe …”
+      const m2 = String(line).match(/\bcertificado\s+energ[eé]tico\b/i);
+      if(m2) continue;
+
+      keep.push(line);
+    }
+
+    if(energy){
+      keep.push('Classe energética: ' + energy);
+    }
+    return keep;
+  }
+
+  function bucketOf(line){
+    const k = normKey(line);
+
+    // Rentabilidade / Investimento
+    if(/\b(rentabil|yield|invest|arrend|alugar|airbnb|alojamento local|al)\b/.test(k)) return 'Rentabilidade / Investimento';
+
+    // Condomínio / Amenities
+    if(/\b(condominio|quota|piscina|ginasio|spa|porteiro|seguranca 24|salao|jardim comum|terra[cç]o comum|areas comuns)\b/.test(k)) return 'Condomínio / Amenities';
+
+    // Domótica / Segurança
+    if(/\b(domotic|alarme|videoporteiro|cctv|seguranc|porta blindada|fechadura|biometr|detetor|incendio)\b/.test(k)) return 'Domótica / Segurança';
+
+    // Vistas / Exposição solar
+    if(/\b(vista|rio|mar|exposi[cç]ao solar|nascente|poente|sul|norte|luminos|sol|varanda|terra[cç]o)\b/.test(k)) return 'Vistas / Exposição solar';
+
+    // Acabamentos & Materiais
+    if(/\b(acabament|materia|soalho|madeira|carvalho|marmore|granito|ceramic|porcelan|lacad|caixilh|alumin|vidro duplo|estores eletr|armarios embutidos|roupeiro)\b/.test(k)) return 'Acabamentos & Materiais';
+
+    // Cozinha & Equipamentos
+    if(/\b(cozinha|placa|forno|exaustor|frigorifico|maquina lavar|maquina de lavar|secar|bosch|siemens|aeg|miele|equipad)\b/.test(k)) return 'Cozinha & Equipamentos';
+
+    // Conforto & Climatização
+    if(/\b(ar condicionado|ac|bomba de calor|aquecimento|piso radiante|recuperador|ventil|climatiza|isolament)\b/.test(k)) return 'Conforto & Climatização';
+
+    // Estacionamento & Arrumos
+    if(/\b(garagem|box|lugar|estacion|carregamento|veiculo eletric|arrumo|arrecada[cç]ao|cave)\b/.test(k)) return 'Estacionamento & Arrumos';
+
+    // Edifício
+    if(/\b(elevador|andar|piso|predio|edificio|rc|res do chao|ultimo piso|duplex)\b/.test(k)) return 'Edifício & Acessos';
+
+    // Estado & Reabilitação
+    if(/\b(novo|segunda mao|bom estado|remodel|renov|reabilit|construcao|acabado|em obra)\b/.test(k)) return 'Estado & Reabilitação';
+
+    // Eficiência Energética
+    if(/\b(energ|classe)\b/.test(k)) return 'Eficiência Energética';
+
+    return 'Outros detalhes';
+  }
+
+  function limitBucket(lines, maxItems){
+    if(lines.length <= maxItems) return lines;
+    const cut = lines.slice(0, maxItems);
+    cut.push(`(… +${lines.length - maxItems} itens)`);
+    return cut;
+  }
+
+  // -------------------------
+  // Highlights (como já tinhas)
+  // -------------------------
+  const highlights = guessHighlights(item);
+  const highlightsBlock = highlights.length
+    ? ('• ' + highlights.join('\n• '))
+    : '• (Sem características destacadas detectadas no texto)';
+
+  // -------------------------
+  // DETALHES ORGANIZADOS (bullets -> buckets)
+  // -------------------------
+  let detailLines = splitToBullets(rawDetailsText);
+
+  // dedupe + normalizações
+  detailLines = dedupeKeepOrder(detailLines);
+  detailLines = normalizeEnergyLines(detailLines);
+  detailLines = dedupeKeepOrder(detailLines);
+
+  // agrupar por bucket
+  const buckets = {};
+  for(const ln of detailLines){
+    const b = bucketOf(ln);
+    if(!buckets[b]) buckets[b] = [];
+    buckets[b].push(ln);
+  }
+
+  // ordem “premium” (o que interessa primeiro)
+  const bucketOrder = [
+    'Estado & Reabilitação',
+    'Acabamentos & Materiais',
+    'Cozinha & Equipamentos',
+    'Conforto & Climatização',
+    'Vistas / Exposição solar',
+    'Edifício & Acessos',
+    'Estacionamento & Arrumos',
+    'Condomínio / Amenities',
+    'Domótica / Segurança',
+    'Eficiência Energética',
+    'Rentabilidade / Investimento',
+    'Outros detalhes'
+  ];
+
+  // -------------------------
+  // Montagem final (com ESPAÇAMENTO)
+  // -------------------------
   const lines = [];
   lines.push('RESUMO PREMIUM DO ANÚNCIO (FSBO)');
   lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  lines.push(`▌ Imóvel: ${cleanText(item.tituloImovel) || (item.tipologia ? cleanText(item.tipologia) : 'Imóvel')}`);
-  if(preco) lines.push(`▌ Preço: ${preco}`);
+  lines.push(`▌ Imóvel: ${cleanText(item.tituloImovel) || '—'}`);
+  if(preco)      lines.push(`▌ Preço: ${preco}`);
   if(localidade) lines.push(`▌ Localização: ${localidade}`);
   if(cleanText(item.tipologia)) lines.push(`▌ Tipologia: ${cleanText(item.tipologia)}`);
 
-  // Ficha rápida
-  lines.push('FICHA RÁPIDA');
+  // Espaço
+  lines.push('');
+  lines.push('🟫  FICHA RÁPIDA');
   lines.push('—');
-  if(facts.area) lines.push(`• Área: ${facts.area} m²`);
-  if(facts.quartos) lines.push(`• Quartos: ${facts.quartos}`);
-  if(facts.wc) lines.push(`• Casas de banho: ${facts.wc}`);
-  if(facts.andar) lines.push(`• Andar/Piso: ${facts.andar}`);
+  if(facts.area)     lines.push(`• Área: ${facts.area} m²`);
+  if(facts.quartos)  lines.push(`• Quartos: ${facts.quartos}`);
+  if(facts.wc)       lines.push(`• Casas de banho: ${facts.wc}`);
+  if(facts.andar)    lines.push(`• Andar/Piso: ${facts.andar}`);
   if(facts.elevador) lines.push(`• Elevador: ${facts.elevador}`);
+  if(!facts.area && !facts.quartos && !facts.wc && !facts.andar && !facts.elevador){
+    lines.push('• (Sem dados técnicos extraídos automaticamente)');
+  }
 
-  // Pontos-chave
-  lines.push('PONTOS-CHAVE');
+  lines.push('');
+  lines.push('🟫  PONTOS-CHAVE');
   lines.push('—');
   lines.push(highlightsBlock);
 
-  // Detalhes organizados (só se existir matéria)
-  if(finalDetails.length){
-    lines.push('DETALHES DO ANÚNCIO (ORGANIZADO)');
-    lines.push('—');
-    lines.push(finalDetails.join('\n'));
+  lines.push('');
+  lines.push('🟫  DETALHES DO ANÚNCIO (ORGANIZADO)');
+  lines.push('—');
+
+  // render buckets com espaçamento claro
+  let renderedAnyBucket = false;
+
+  bucketOrder.forEach(title=>{
+    const arr = buckets[title] || [];
+    const cleanArr = dedupeKeepOrder(arr).filter(Boolean);
+
+    if(!cleanArr.length) return;
+
+    renderedAnyBucket = true;
+
+    // Limites por bucket (evita resumo gigante)
+    const limited = limitBucket(cleanArr, 6);
+
+    // Espaço entre buckets
+    lines.push('');
+    lines.push(`⬛ ${title.toUpperCase()}`);
+    lines.push('• ' + limited.map(x => String(x)).join('\n• '));
+  });
+
+  if(!renderedAnyBucket){
+    lines.push('');
+    lines.push('• (Sem detalhes adicionais detetados em Observações/Notas internas)');
   }
 
   if(!hasAnyText){
@@ -2489,6 +2506,7 @@ if(!dataIdent){
     lines.push('Nota: Para um resumo mais completo, preencha “Observações” e/ou “Notas internas” no registo.');
   }
 
+  lines.push('');
   lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   lines.push('Fim do resumo');
   lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
