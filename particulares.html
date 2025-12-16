@@ -1796,7 +1796,59 @@ if(!db.objectStoreNames.contains(STORE_IMG)){
       req.onerror = ()=>reject(req.error);
     });
   }
+/* ============ IndexedDB (IMAGENS) ============ */
+async function addImageAttachment(itemId, file){
+  const db = await openDB();
+  const id = 'img_' + itemId + '_' + Date.now() + '_' + Math.random().toString(16).slice(2);
 
+  const rec = {
+    id,
+    itemId,
+    name: file.name || 'imagem',
+    type: file.type || 'image/jpeg',
+    size: file.size || 0,
+    createdAt: new Date().toISOString(),
+    blob: file
+  };
+
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(STORE_IMG, 'readwrite');
+    tx.objectStore(STORE_IMG).put(rec);
+    tx.oncomplete = ()=>resolve(rec);
+    tx.onerror = ()=>reject(tx.error);
+  });
+}
+
+async function listImageAttachments(itemId){
+  const db = await openDB();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(STORE_IMG, 'readonly');
+    const idx = tx.objectStore(STORE_IMG).index('by_item');
+    const req = idx.getAll(itemId);
+    req.onsuccess = ()=>resolve(req.result || []);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+
+async function deleteImageAttachment(imgId){
+  const db = await openDB();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(STORE_IMG, 'readwrite');
+    tx.objectStore(STORE_IMG).delete(imgId);
+    tx.oncomplete = ()=>resolve(true);
+    tx.onerror = ()=>reject(tx.error);
+  });
+}
+
+async function getImageAttachment(imgId){
+  const db = await openDB();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(STORE_IMG, 'readonly');
+    const req = tx.objectStore(STORE_IMG).get(imgId);
+    req.onsuccess = ()=>resolve(req.result || null);
+    req.onerror = ()=>reject(req.error);
+  });
+}
   function bytesToNice(n){
     if(!n || !isFinite(n)) return '';
     const units = ['B','KB','MB','GB'];
