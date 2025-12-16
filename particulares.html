@@ -3797,6 +3797,47 @@ if(pdfSwotBtn)     pdfSwotBtn.addEventListener('click', ()=>exportKitSectionPdf(
   copyCallBtn.addEventListener('click', ()=>copyText(kitCall.value || ''));
   copyEmailBtn.addEventListener('click', ()=>copyText(kitEmail.value || ''));
   copySwotBtn.addEventListener('click', ()=>copyText(kitSwot.value || ''));
+
+    if(genResumoBtn){
+    genResumoBtn.addEventListener('click', ()=>{
+      if(!currentKitItem){
+        alert('Abra primeiro um registo no Kit FSBO.');
+        return;
+      }
+      const resumo = buildKitResumo(currentKitItem);
+      kitResumo.value = resumo;
+      showToast('Resumo gerado');
+    });
+  }
+
+  if(clearResumoBtn){
+    clearResumoBtn.addEventListener('click', ()=>{
+      kitResumo.value = '';
+      showToast('Limpo');
+    });
+  }
+
+  if(copyResumoBtn){
+    copyResumoBtn.addEventListener('click', async ()=>{
+      try{
+        await navigator.clipboard.writeText(kitResumo.value || '');
+        showToast('Copiado');
+      }catch(e){
+        console.error(e);
+        alert('Não foi possível copiar (permissões do browser).');
+      }
+    });
+  }
+
+  if(pdfResumoBtn){
+    pdfResumoBtn.addEventListener('click', ()=>{
+      if(typeof exportKitSectionPdf === 'function'){
+        exportKitSectionPdf('resumo');
+      }else{
+        alert('Função de PDF não encontrada no ficheiro (exportKitSectionPdf).');
+      }
+    });
+  }
 function applyObjection(objectionKey){
   if(!currentKitItem) return;
   // tenta usar o último título lido (quando disponível)
