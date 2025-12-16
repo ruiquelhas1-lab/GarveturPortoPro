@@ -1856,7 +1856,66 @@ async function getImageAttachment(imgId){
     while(v>=1024 && i<units.length-1){ v/=1024; i++; }
     return (i===0 ? v.toFixed(0) : v.toFixed(1)) + ' ' + units[i];
   }
+let imgListEl = null;
+let addImgBtnEl = null;
+let refreshImgBtnEl = null;
 
+function ensureImageUI(){
+  // pdfList já existe no seu ficheiro e é um bom “âncora”
+  if(!pdfList) return;
+
+  // evitar duplicar
+  if(document.getElementById('fsboImagePanel')) return;
+
+  const panel = document.createElement('div');
+  panel.id = 'fsboImagePanel';
+  panel.style.marginTop = '10px';
+
+  const header = document.createElement('div');
+  header.style.display = 'flex';
+  header.style.alignItems = 'center';
+  header.style.justifyContent = 'space-between';
+  header.style.gap = '10px';
+  header.style.margin = '8px 0 6px';
+
+  const title = document.createElement('div');
+  title.textContent = 'Fotografias (pré-angariação)';
+  title.style.fontSize = '11px';
+  title.style.letterSpacing = '.14em';
+  title.style.textTransform = 'uppercase';
+  title.style.color = '#A38B63';
+
+  const actions = document.createElement('div');
+  actions.style.display = 'flex';
+  actions.style.gap = '6px';
+  actions.style.flexWrap = 'wrap';
+
+  addImgBtnEl = document.createElement('button');
+  addImgBtnEl.type = 'button';
+  addImgBtnEl.className = 'btn-xs';
+  addImgBtnEl.textContent = 'Adicionar fotos';
+
+  refreshImgBtnEl = document.createElement('button');
+  refreshImgBtnEl.type = 'button';
+  refreshImgBtnEl.className = 'btn-xs';
+  refreshImgBtnEl.textContent = 'Atualizar';
+
+  actions.appendChild(addImgBtnEl);
+  actions.appendChild(refreshImgBtnEl);
+
+  header.appendChild(title);
+  header.appendChild(actions);
+
+  imgListEl = document.createElement('div');
+  imgListEl.id = 'fsboImageList';
+  imgListEl.className = 'attach-list'; // se existir, herda styling; se não existir, não quebra
+
+  panel.appendChild(header);
+  panel.appendChild(imgListEl);
+
+  // inserir a seguir aos PDFs (abaixo da lista)
+  pdfList.parentNode.insertBefore(panel, pdfList.nextSibling);
+}
   async function refreshPdfList(){
     pdfList.innerHTML = '';
     if(!currentEditingId){
