@@ -1817,8 +1817,19 @@ function mergeAngariacoesIntoRAW(){
   }
   if(!store || !Array.isArray(store.deals)) return;
 
-  const deals = store.deals;
-  const byAngKey = new Map(
+const deals = store.deals;
+
+// 🔧 Normalização retroativa para entradas antigas vindas das Angariações
+RAW.forEach(p=>{
+  if(
+    !p._angKey &&
+    (p._fromAngariacoes || String(p.slug||'').startsWith('ang-'))
+  ){
+    p._angKey = 'ang:' + String(p.slug||'').replace(/^ang-/, '');
+  }
+});
+
+const byAngKey = new Map(
   RAW.filter(p=>p._angKey).map(p=>[p._angKey, p])
 );
 
