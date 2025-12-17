@@ -1850,6 +1850,8 @@ const byAngKey = new Map(
     const nome = d.nomeEmp || d.tituloImovel || d.refInterna || (isEmp ? 'Empreendimento' : 'Imóvel');
     const baseId = d.id || slugify(nome);
     const slug = 'ang-' + baseId;
+    // Chave estável para evitar duplicados após refresh
+const angKey = 'ang:' + (d.id || d.refInterna || slugify(nome));
     const angKey = 'ang:' + baseId;
     let ano = d.anoConclEmp || d.anoConclusao || '';
     ano = ano ? Number(ano) : '';
