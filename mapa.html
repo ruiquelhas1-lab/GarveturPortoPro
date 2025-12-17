@@ -1837,7 +1837,10 @@ const byAngKey = new Map(
 );
 
   deals.forEach(d=>{
-    if(!d) return;
+  if(!d) return;
+
+  // 🔒 cópia defensiva — NUNCA mexemos no deal original
+  const deal = { ...d };
 
     const gps = d.gps || '';
     const coords = parseGps(gps);
