@@ -1809,6 +1809,7 @@ function mergeAngariacoesIntoRAW(){
     return;
   }
   if(!raw) return;
+
   let store;
   try{
     store = JSON.parse(raw);
@@ -1818,96 +1819,94 @@ function mergeAngariacoesIntoRAW(){
   }
   if(!store || !Array.isArray(store.deals)) return;
 
-const deals = store.deals;
+  const deals = store.deals;
+
+  // ✅ Normalização retroativa (ANTES do índice)
+  RAW.forEach(p=>{
+    if(
+      !p._angKey &&
+      (p._fromAngariacoes || String(p.slug||'').startsWith('ang-'))
+    ){
+      p._angKey = 'ang:' + String(p.slug||'').replace(/^ang-/, '');
+    }
+  });
+
+  // ✅ Índice único por chave estável
   const byAngKey = new Map(
-  RAW.filter(p => p._angKey).map(p => [p._angKey, p])
-);
-
-// 🔧 Normalização retroativa para entradas antigas vindas das Angariações
-RAW.forEach(p=>{
-  if(
-    !p._angKey &&
-    (p._fromAngariacoes || String(p.slug||'').startsWith('ang-'))
-  ){
-    p._angKey = 'ang:' + String(p.slug||'').replace(/^ang-/, '');
-  }
-});
-
-const byAngKey = new Map(
-  RAW.filter(p=>p._angKey).map(p=>[p._angKey, p])
-);
+    RAW.filter(p=>p._angKey).map(p=>[p._angKey, p])
+  );
 
   deals.forEach(d=>{
-  if(!d) return;
+    if(!d) return;
 
-  // 🔒 cópia defensiva — NUNCA mexemos no deal original
-  const deal = { ...d };
+    // 🔒 não mexer no d original
+    const deal = { ...d };
 
-    const gps = d.gps || '';
+    const gps = deal.gps || '';
     const coords = parseGps(gps);
     if(coords.lat===null || coords.lng===null) return;
 
-    const isEmp = !!d.isEmpreendimento;
-    const nome = d.nomeEmp || d.tituloImovel || d.refInterna || (isEmp ? 'Empreendimento' : 'Imóvel');
-    const baseId = d.id || slugify(nome);
+    const isEmp = !!deal.isEmpreendimento;
+    const nome = deal.nomeEmp || deal.tituloImovel || deal.refInterna || (isEmp ? 'Empreendimento' : 'Imóvel');
+    const baseId = deal.id || slugify(nome);
     const slug = 'ang-' + baseId;
-    // Chave estável para evitar duplicados após refresh
-const angKey = 'ang:' + (d.id || d.refInterna || slugify(nome));
+
+    // ✅ chave estável (UMA só vez)
     const angKey = 'ang:' + baseId;
-    let ano = d.anoConclEmp || d.anoConclusao || '';
+
+    let ano = deal.anoConclEmp || deal.anoConclusao || '';
     ano = ano ? Number(ano) : '';
-    let mes = d.mesConclEmp || d.mesConclusao || '';
+    let mes = deal.mesConclEmp || deal.mesConclusao || '';
     mes = mes ? Number(mes) : '';
 
     const estado = (function(){
-      const e = d.estadoImovel;
+      const e = deal.estadoImovel;
       if(e === 'construcao') return 'em_construcao';
       if(e === 'projeto') return 'licenciado';
       if(e === 'novo' || e === 'usado' || e === 'recuperado') return 'concluido';
       return '';
     })();
 
-    const preco = numPT(d.precoPedido);
+    const preco = numPT(deal.precoPedido);
     let preco_m2 = '';
-    const areaABP = numPT(d.areaABP || d.areaBruta);
+    const areaABP = numPT(deal.areaABP || deal.areaBruta);
     if(preco !== null && areaABP && areaABP>0){
       preco_m2 = Math.round(preco/areaABP);
     }
 
     const obj = {
+      _angKey: angKey,
       slug,
       nome,
-      concelho: d.concelho || '',
+      concelho: deal.concelho || '',
       estado,
-      promotor: d.promotor || '',
-      tipologias: d.tipologiasEmp || '',
+      promotor: deal.promotor || '',
+      tipologias: deal.tipologiasEmp || '',
       conclusaoAno: ano || '',
       conclusaoMes: mes || '',
       conclusao: ano || '',
       preco_m2: preco_m2 || '',
       precoPedido: preco !== null ? preco : '',
-      notas: d.observacoes || '',
-      link: d.linkUrl || '',
+      notas: deal.observacoes || '',
+      link: deal.linkUrl || '',
       _lat: coords.lat,
       _lng: coords.lng,
       docs: [],
       _fromAngariacoes: true,
       isEmpreendimento: isEmp,
-      refInterna: d.refInterna || '',
-      _ownerNome: d.nomeProprietario || d.proprietario || '',
-      _ownerTelefone: d.telefoneProprietario || d.telefone || '',
-      _ownerTelemovel: d.telemovelProprietario || d.telemovel || '',
-      _contactos: d.contactos || ''
+      refInterna: deal.refInterna || '',
+      _ownerNome: deal.nomeProprietario || deal.proprietario || '',
+      _ownerTelefone: deal.telefoneProprietario || deal.telefone || '',
+      _ownerTelemovel: deal.telemovelProprietario || deal.telemovel || '',
+      _contactos: deal.contactos || ''
     };
 
-  obj._angKey = angKey;
-
-if(byAngKey.has(angKey)){
-  Object.assign(byAngKey.get(angKey), obj);
-}else{
-  RAW.push(obj);
-  byAngKey.set(angKey, obj); // importante para não duplicar no mesmo ciclo
-}
+    if(byAngKey.has(angKey)){
+      Object.assign(byAngKey.get(angKey), obj);
+    }else{
+      RAW.push(obj);
+      byAngKey.set(angKey, obj);
+    }
   });
 }
 
