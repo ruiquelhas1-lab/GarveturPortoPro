@@ -1880,11 +1880,13 @@ function mergeAngariacoesIntoRAW(){
       _contactos: d.contactos || ''
     };
 
-    if(bySlug.has(slug)){
-      Object.assign(bySlug.get(slug), obj);
-    }else{
-      RAW.push(obj);
-    }
+  obj._angKey = angKey;
+
+if(byAngKey.has(angKey)){
+  Object.assign(byAngKey.get(angKey), obj);
+}else{
+  RAW.push(obj);
+}
   });
 }
 
