@@ -1818,6 +1818,9 @@ function mergeAngariacoesIntoRAW(){
   if(!store || !Array.isArray(store.deals)) return;
 
 const deals = store.deals;
+  const byAngKey = new Map(
+  RAW.filter(p => p._angKey).map(p => [p._angKey, p])
+);
 
 // 🔧 Normalização retroativa para entradas antigas vindas das Angariações
 RAW.forEach(p=>{
