@@ -1833,7 +1833,7 @@ function mergeAngariacoesIntoRAW(){
     const nome = d.nomeEmp || d.tituloImovel || d.refInterna || (isEmp ? 'Empreendimento' : 'Imóvel');
     const baseId = d.id || slugify(nome);
     const slug = 'ang-' + baseId;
-
+    const angKey = 'ang:' + (d.id || d.refInterna || nome);
     let ano = d.anoConclEmp || d.anoConclusao || '';
     ano = ano ? Number(ano) : '';
     let mes = d.mesConclEmp || d.mesConclusao || '';
