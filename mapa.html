@@ -1692,7 +1692,7 @@ function restoreFromBackup(file){
         if(!nome) return;
 
         const obj = {
-          _angKey: angKey,
+          _angKey: row._angKey || (String(row.slug||'').startsWith('ang-') ? ('ang:' + String(row.slug).replace(/^ang-/,'')) : ''),
           slug: row.slug || slugify(nome),
           refInterna: row.refInterna || row["refInterna"] || '',
           nome,
