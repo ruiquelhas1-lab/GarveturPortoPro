@@ -13,6 +13,9 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin="anonymous">
 
+<!-- PapaParse (CSV) -->
+<script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js" crossorigin="anonymous" defer></script>
+
 <!-- idb-keyval (IndexedDB) — para abrir anexos locais (idb://) -->
 <script src="https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/idb-keyval.iife.min.js" crossorigin="anonymous"></script>
 
@@ -81,7 +84,12 @@ header{
   border:1px solid var(--border);
   padding:6px 10px;
   border-radius:999px;
+  display:flex;
+  gap:10px;
+  align-items:center;
 }
+.readonly-badge .sep{opacity:.35}
+.readonly-badge b{color:#ddd; font-weight:700; letter-spacing:.08em}
 
 /* KPIs */
 .kpis{
@@ -465,7 +473,11 @@ header{
         <h1>Garvetur Porto Pro — Mapa</h1>
       </div>
 
-      <div class="readonly-badge">Acesso Equipa · Modo Leitura</div>
+      <div class="readonly-badge">
+        <span>Acesso Equipa · Modo Leitura</span>
+        <span class="sep">|</span>
+        <span>Últ. atualização: <b id="lastUpdated">—</b></span>
+      </div>
     </header>
 
     <div class="kpis">
@@ -598,7 +610,6 @@ function loadScript(src){
 <script>
 /* ===== Estado global ===== */
 const AMP_CENTER=[41.15,-8.61], AMP_ZOOM=12;
-const LS_KEY='gpp_dataset_v1';
 const FILTERS_KEY='gpp_mapa_filters_v1';
 const PDF_INLINE_LIMIT=4*1024*1024; // 4 MB
 
@@ -617,9 +628,6 @@ let UIState={
   promotor:'', tipos:'',
   tipo:''
 };
-
-let LS_SKIPPED=false;
-let LS_ERROR=false;
 
 const el=id=>document.getElementById(id);
 function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
@@ -641,16 +649,6 @@ function numPT(v){
   if(v===null||v===undefined||v==='') return null;
   const n=Number(String(v).replace(',','.'));
   return Number.isFinite(n)? n : null;
-}
-
-/* Parser simples de coordenadas GPS vindas das angariações */
-function parseGps(gps){
-  if(!gps) return {lat:null,lng:null};
-  const m = String(gps).match(/-?\d+(?:[.,]\d+)?/g);
-  if(!m || m.length<2) return {lat:null,lng:null};
-  const lat = numPT(m[0]);
-  const lng = numPT(m[1]);
-  return {lat,lng};
 }
 
 /* ===== Formatação conclusão (mês/ano) ===== */
@@ -682,6 +680,20 @@ function setStatus(msg){
   }
   bar.textContent = msg;
   bar.classList.add('show');
+}
+
+/* ===== Última atualização (header Last-Modified) ===== */
+function setLastUpdatedFromHeader(lastModified){
+  const out = el('lastUpdated');
+  if(!out) return;
+  if(!lastModified){ out.textContent = '—'; return; }
+  try{
+    const d = new Date(lastModified);
+    if(isNaN(d.getTime())){ out.textContent='—'; return; }
+    out.textContent = d.toLocaleString('pt-PT', { dateStyle:'short', timeStyle:'short' });
+  }catch{
+    out.textContent = '—';
+  }
 }
 
 /* ===== Leaflet & Cluster ===== */
@@ -763,12 +775,11 @@ function loadFilterState(){
       }
     });
     if(!matched){
-      const chipTodos = document.querySelector('#estadoChips .chip[data-v=""]');
-      if(chipTodos) chipTodos.classList.add('active');
+      document.querySelector('#estadoChips .chip[data-v=""]')?.classList.add('active');
       UIState.estado = '';
     }
 
-    // Tipo (Empreendimento / Isolado)
+    // Tipo (chips)
     const chipsTipo = document.querySelectorAll('#tipoChips .chip');
     chipsTipo.forEach(c => c.classList.remove('active'));
     matched = false;
@@ -779,8 +790,7 @@ function loadFilterState(){
       }
     });
     if(!matched){
-      const chipT = document.querySelector('#tipoChips .chip[data-v=""]');
-      if(chipT) chipT.classList.add('active');
+      document.querySelector('#tipoChips .chip[data-v=""]')?.classList.add('active');
       UIState.tipo = '';
     }
   }catch(e){
@@ -797,7 +807,7 @@ function saveFilterStateFromUI(){
   }
 }
 
-/* ===== Facetas / Filtros ===== */
+/* ===== Facetas ===== */
 function buildFacetOptions(){
   const concelhos=[...new Set(RAW.map(x=>x.concelho).filter(Boolean))].sort();
   const promotores=[...new Set(RAW.map(x=>x.promotor).filter(Boolean))].sort();
@@ -805,7 +815,7 @@ function buildFacetOptions(){
   el('f_promotor').innerHTML='<option value="">(Todos)</option>'+promotores.map(c=>`<option>${c}</option>`).join('');
 }
 
-/* ===== Match/Pesquisa (inclui proprietário, contactos e preços) ===== */
+/* ===== Match/Pesquisa ===== */
 function matchTokens(obj,tokens){
   if(!tokens.length) return true;
 
@@ -838,7 +848,6 @@ function applyFilters(){
     if(UIState.concelho && p.concelho!==UIState.concelho) return false;
     if(UIState.estado && p.estado!==UIState.estado) return false;
 
-    // Filtro por tipo (Empreendimento vs Isolado)
     if(UIState.tipo === 'emp'){
       if(p.isEmpreendimento === false) return false;
     }else if(UIState.tipo === 'iso'){
@@ -1000,7 +1009,6 @@ function renderMarkers(){
 
 /* ===== Documentos & pré-visualização ===== */
 let STORAGE_MODE='idb'; // 'idb' | 'dataurl'
-const PDF_PREFIX='gpp_docs_'; // mantido por compatibilidade
 const TEMP_URLS=new Set();
 
 async function detectStorageMode(){
@@ -1278,121 +1286,87 @@ el('closePanel')?.addEventListener('click',()=>{
   revokeTempUrls();
 });
 
-/* ===== Persistência (robusta) ===== */
-function loadLS(){
-  try{
-    const x=localStorage.getItem(LS_KEY);
-    if(!x) return null;
-    if(x.length > 500000){
-      console.warn('Dataset local demasiado grande, a ignorar para evitar bloqueios.');
-      LS_SKIPPED=true;
-      return null;
-    }
-    return JSON.parse(x);
-  }catch(e){
-    console.warn('Falha a ler dados locais, a iniciar base vazia.', e);
-    LS_ERROR=true;
-    return null;
+/* ===== Carregar CSV remoto (fonte oficial da equipa) ===== */
+async function loadRemoteBackupCSV(){
+  // esperar PapaParse (porque está com defer)
+  if(!window.Papa){
+    await new Promise(res=>{
+      const t=setInterval(()=>{
+        if(window.Papa){ clearInterval(t); res(true); }
+      }, 30);
+    });
   }
-}
 
-/* ===== Integração com Angariações (gpp_angariacoes_v2) ===== */
-function mergeAngariacoesIntoRAW(){
-  let raw=null;
-  try{
-    raw = localStorage.getItem('gpp_angariacoes_v2');
-  }catch(e){
-    console.warn('Sem acesso ao localStorage de angariações', e);
-    return;
+  const baseUrl = './data/gpp-mapa.csv';
+  const url = baseUrl + '?v=' + Date.now(); // evita cache agressiva
+
+  const res = await fetch(url, { cache: 'no-store' });
+  if(!res.ok){
+    throw new Error('Não foi possível carregar o CSV remoto ('+res.status+'). Confirme: /data/gpp-mapa.csv');
   }
-  if(!raw) return;
 
-  let store;
-  try{
-    store = JSON.parse(raw);
-  }catch(e){
-    console.warn('JSON inválido em gpp_angariacoes_v2', e);
-    return;
-  }
-  if(!store || !Array.isArray(store.deals)) return;
+  setLastUpdatedFromHeader(res.headers.get('last-modified'));
 
-  const deals = store.deals;
+  const text = await res.text();
 
-  // Normalização retroativa (chave estável)
-  RAW.forEach(p=>{
-    if(!p._angKey && (p._fromAngariacoes || String(p.slug||'').startsWith('ang-'))){
-      p._angKey = 'ang:' + String(p.slug||'').replace(/^ang-/, '');
-    }
-  });
+  return await new Promise((resolve, reject) => {
+    Papa.parse(text, {
+      header: true,
+      dynamicTyping: false,
+      skipEmptyLines: true,
+      complete: (parsed) => {
+        const data = parsed.data || [];
+        const next = [];
 
-  const byAngKey = new Map(RAW.filter(p=>p._angKey).map(p=>[p._angKey, p]));
+        data.forEach(row => {
+          const nome = (row.nome || '').trim();
+          if(!nome) return;
 
-  deals.forEach(d=>{
-    if(!d) return;
-    const deal = { ...d };
+          const obj = {
+            _angKey: row._angKey || '',
+            slug: (row.slug || slugify(nome)).trim(),
+            refInterna: (row.refInterna || '').trim(),
 
-    const coords = parseGps(deal.gps || '');
-    if(coords.lat===null || coords.lng===null) return;
+            nome,
+            concelho: (row.concelho || '').trim(),
+            estado: stateKey(row.estado || ''),
+            promotor: (row.promotor || '').trim(),
+            tipologias: (row.tipologias || '').trim(),
 
-    const isEmp = !!deal.isEmpreendimento;
-    const nome = deal.nomeEmp || deal.tituloImovel || deal.refInterna || (isEmp ? 'Empreendimento' : 'Imóvel');
-    const baseId = deal.id || slugify(nome);
-    const slug = 'ang-' + baseId;
-    const angKey = 'ang:' + baseId;
+            conclusaoAno: row.conclusaoAno ? Number(row.conclusaoAno) : (row.conclusao ? Number(row.conclusao) : ''),
+            conclusaoMes: row.conclusaoMes ? Number(row.conclusaoMes) : '',
+            conclusao: row.conclusao ? Number(row.conclusao) : '',
 
-    let ano = deal.anoConclEmp || deal.anoConclusao || '';
-    ano = ano ? Number(ano) : '';
-    let mes = deal.mesConclEmp || deal.mesConclusao || '';
-    mes = mes ? Number(mes) : '';
+            preco_m2: row.preco_m2 || '',
+            precoPedido: row.precoPedido || '',
+            notas: row.notas || '',
+            link: row.link || '',
 
-    const estado = (function(){
-      const e = deal.estadoImovel;
-      if(e === 'construcao') return 'em_construcao';
-      if(e === 'projeto') return 'licenciado';
-      if(e === 'novo' || e === 'usado' || e === 'recuperado') return 'concluido';
-      return '';
-    })();
+            _lat: row.lat ? numPT(row.lat) : (row.latitude ? numPT(row.latitude) : null),
+            _lng: row.lng ? numPT(row.lng) : (row.longitude ? numPT(row.longitude) : null),
 
-    const preco = numPT(deal.precoPedido);
-    let preco_m2 = '';
-    const areaABP = numPT(deal.areaABP || deal.areaBruta);
-    if(preco !== null && areaABP && areaABP>0){
-      preco_m2 = Math.round(preco/areaABP);
-    }
+            isEmpreendimento: (String(row.isEmpreendimento || '1') === '0' || String(row.isEmpreendimento).toLowerCase()==='false')
+              ? false
+              : true,
 
-    const obj = {
-      _angKey: angKey,
-      slug,
-      nome,
-      concelho: deal.concelho || '',
-      estado,
-      promotor: deal.promotor || '',
-      tipologias: deal.tipologiasEmp || '',
-      conclusaoAno: ano || '',
-      conclusaoMes: mes || '',
-      conclusao: ano || '',
-      preco_m2: preco_m2 || '',
-      precoPedido: preco !== null ? preco : '',
-      notas: deal.observacoes || '',
-      link: deal.linkUrl || '',
-      _lat: coords.lat,
-      _lng: coords.lng,
-      docs: [],
-      _fromAngariacoes: true,
-      isEmpreendimento: isEmp,
-      refInterna: deal.refInterna || '',
-      _ownerNome: deal.nomeProprietario || deal.proprietario || '',
-      _ownerTelefone: deal.telefoneProprietario || deal.telefone || '',
-      _ownerTelemovel: deal.telemovelProprietario || deal.telemovel || '',
-      _contactos: deal.contactos || ''
-    };
+            docs: [],
+            _ownerNome: row.ownerNome || '',
+            _ownerTelefone: row.ownerTelefone || '',
+            _ownerTelemovel: row.ownerTelemovel || '',
+            _contactos: row.contactos || ''
+          };
 
-    if(byAngKey.has(angKey)){
-      Object.assign(byAngKey.get(angKey), obj);
-    }else{
-      RAW.push(obj);
-      byAngKey.set(angKey, obj);
-    }
+          if(row.docs){
+            try{ obj.docs = JSON.parse(row.docs); }catch{ obj.docs = []; }
+          }
+
+          next.push(obj);
+        });
+
+        resolve(next);
+      },
+      error: (err) => reject(err)
+    });
   });
 }
 
@@ -1420,8 +1394,6 @@ function normalizeConclusaoFields(){
 }
 function autoUpdateEstadosByConclusao(){
   const today = new Date();
-  let changed=false;
-
   RAW.forEach(p=>{
     const ano = Number(p.conclusaoAno || p.conclusao || '');
     const mes = Number(p.conclusaoMes || '');
@@ -1430,11 +1402,8 @@ function autoUpdateEstadosByConclusao(){
     const lastDay = new Date(ano, mes, 0);
     if(today >= lastDay){
       p.estado = 'concluido';
-      changed = true;
     }
   });
-
-  return changed;
 }
 
 /* ===== UI filtros ===== */
@@ -1511,10 +1480,15 @@ function run(){
 
   await detectStorageMode();
 
-  const mem=loadLS();
-  RAW=Array.isArray(mem)? mem : [];
+  try{
+    setStatus('A carregar dados…');
+    RAW = await loadRemoteBackupCSV();
+  }catch(e){
+    console.error(e);
+    setStatus('⚠ Não foi possível carregar o CSV. Verifique se existe: /data/gpp-mapa.csv');
+    RAW = [];
+  }
 
-  mergeAngariacoesIntoRAW();
   normalizeTipoImovel();
   normalizeConclusaoFields();
   autoUpdateEstadosByConclusao();
@@ -1523,13 +1497,7 @@ function run(){
   loadFilterState();
   run();
 
-  if(LS_SKIPPED){
-    setStatus('⚠ Dados locais antigos eram muito pesados e foram ignorados. O mapa foi aberto vazio.');
-  } else if(LS_ERROR){
-    setStatus('⚠ Não foi possível ler os dados locais guardados anteriormente. O mapa foi aberto vazio.');
-  } else {
-    setStatus('');
-  }
+  setStatus('');
 })();
 </script>
 </body>
