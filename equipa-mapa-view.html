@@ -621,6 +621,9 @@ let UIState={
 let LS_SKIPPED=false;
 let LS_ERROR=false;
 
+/* ===== CSV (fallback para equipa) ===== */
+const CSV_URL = "./data/gpp-mapa.csv?v=" + Date.now(); // evita cache agressivo do GitHub Pages
+
 const el=id=>document.getElementById(id);
 function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
 function stateKey(s){
@@ -641,6 +644,62 @@ function numPT(v){
   if(v===null||v===undefined||v==='') return null;
   const n=Number(String(v).replace(',','.'));
   return Number.isFinite(n)? n : null;
+}
+
+function parseCSV(text){
+  const lines = text.replace(/\r/g,'').split('\n').filter(l=>l.trim().length);
+  if(!lines.length) return [];
+  const sep = lines[0].includes(';') ? ';' : ',';
+
+  const headers = lines[0].split(sep).map(h=>h.trim());
+  const out = [];
+
+  for(let i=1;i<lines.length;i++){
+    const row = lines[i].split(sep);
+    const obj = {};
+    headers.forEach((h,idx)=> obj[h] = (row[idx] ?? '').trim());
+
+    const lat = numPT(obj._lat || obj.lat || obj.latitude || obj.Lat || obj.LAT);
+    const lng = numPT(obj._lng || obj.lng || obj.lon || obj.longitude || obj.Lng || obj.LNG);
+
+    out.push({
+      refInterna: obj.refInterna || obj.ref || obj.referencia || obj.Referencia || '',
+      nome: obj.nome || obj.name || obj.Nome || '',
+      concelho: obj.concelho || obj.Concelho || '',
+      estado: stateKey(obj.estado || obj.Estado || ''),
+      promotor: obj.promotor || obj.Promotor || '',
+      tipologias: obj.tipologias || obj.Tipologias || '',
+      conclusaoAno: numPT(obj.conclusaoAno || obj.ano || obj.conclusao || obj.Conclusao || '') || '',
+      conclusaoMes: numPT(obj.conclusaoMes || obj.mes || obj.Mes || '') || '',
+      conclusao: numPT(obj.conclusao || obj.ano || obj.Conclusao || '') || '',
+      preco_m2: obj.preco_m2 || obj.precoM2 || obj['€/m2'] || obj['eur_m2'] || '',
+      precoPedido: obj.precoPedido || obj.preco || obj.Preco || '',
+      notas: obj.notas || obj.Notas || '',
+      link: obj.link || obj.url || obj.URL || '',
+      _lat: lat,
+      _lng: lng,
+      docs: [],
+      isEmpreendimento: (String(obj.isEmpreendimento || obj.tipo || '').toLowerCase().includes('iso')) ? false : true
+    });
+  }
+  return out;
+}
+
+async function loadFromCSV(){
+  try{
+    setStatus('A carregar dataset do CSV…');
+    const r = await fetch(CSV_URL, { cache: 'no-store' });
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const text = await r.text();
+    const arr = parseCSV(text);
+    if(!arr.length) throw new Error('CSV sem linhas válidas');
+    setStatus('');
+    return arr;
+  }catch(e){
+    console.error('Falha CSV:', e);
+    setStatus('⚠ Não foi possível carregar o CSV do repositório. Confirme: /data/gpp-mapa.csv');
+    return [];
+  }
 }
 
 /* Parser simples de coordenadas GPS vindas das angariações */
@@ -1511,9 +1570,16 @@ function run(){
 
   await detectStorageMode();
 
-  const mem=loadLS();
-  RAW=Array.isArray(mem)? mem : [];
+  // 1) tentar localStorage
+  const mem = loadLS();
+  RAW = Array.isArray(mem) ? mem : [];
 
+  // 2) fallback CSV (equipa)
+  if(!RAW.length){
+    RAW = await loadFromCSV();
+  }
+
+  // 3) merge angariações locais (se existirem no browser do utilizador)
   mergeAngariacoesIntoRAW();
   normalizeTipoImovel();
   normalizeConclusaoFields();
@@ -1524,9 +1590,9 @@ function run(){
   run();
 
   if(LS_SKIPPED){
-    setStatus('⚠ Dados locais antigos eram muito pesados e foram ignorados. O mapa foi aberto vazio.');
+    setStatus('⚠ Dados locais antigos eram muito pesados e foram ignorados. O mapa foi aberto via CSV.');
   } else if(LS_ERROR){
-    setStatus('⚠ Não foi possível ler os dados locais guardados anteriormente. O mapa foi aberto vazio.');
+    setStatus('⚠ Não foi possível ler os dados locais guardados anteriormente. O mapa foi aberto via CSV.');
   } else {
     setStatus('');
   }
