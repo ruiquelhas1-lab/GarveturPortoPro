@@ -1,0 +1,1502 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <title>Garvetur Porto Pro — Vendas (Equipa · Leitura)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --gold:#A38B63;
+      --gold-soft:rgba(163,139,99,.35);
+      --bg:#0B0B0B;
+      --panel:#121212;
+      --panel-soft:#181818;
+      --text:#FFFFFF;
+      --muted:#A0A0A0;
+      --danger:#F25F5C;
+      --success:#4CAF50;
+      --border:rgba(255,255,255,.14);
+      --radius-lg:18px;
+      --radius-md:12px;
+      --shadow-soft:0 14px 25px rgba(0,0,0,.4);
+    }
+
+    *{box-sizing:border-box;}
+    html,body{
+      margin:0;
+      height:100%;
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      background:radial-gradient(circle at top,#1c1c1c 0,#050505 55%,#000 100%);
+      color:var(--text);
+    }
+    body{
+      display:flex;
+      flex-direction:column;
+    }
+    .app-shell{
+      display:grid;
+      grid-template-rows:64px auto;
+      height:100%;
+    }
+
+    /* HEADER */
+    header.app-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:10px 18px;
+      border-bottom:1px solid rgba(163,139,99,.35);
+      background:linear-gradient(90deg,#050505,#111,#050505);
+      position:sticky;
+      top:0;
+      z-index:20;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .brand-icon{
+      width:26px;
+      height:26px;
+      border-radius:999px;
+      border:1px solid var(--gold);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 0 0 1px rgba(163,139,99,.3);
+    }
+    .brand h1{
+      margin:0;
+      font-size:17px;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      color:var(--gold);
+    }
+    .brand span.sub{
+      display:block;
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+
+    .readonly-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(0,0,0,.35);
+      color:var(--muted);
+      font-size:11px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      white-space:nowrap;
+    }
+    .header-actions{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .btn{
+      border-radius:999px;
+      border:1px solid var(--gold-soft);
+      background:rgba(12,12,12,.9);
+      color:var(--text);
+      padding:7px 12px;
+      font-size:13px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      cursor:pointer;
+      transition:.18s border-color,.18s background,.18s transform;
+      text-decoration:none;
+    }
+    .btn:hover{
+      border-color:var(--gold);
+      transform:translateY(-1px);
+    }
+    .btn.secondary{
+      border-color:rgba(255,255,255,.18);
+      color:var(--muted);
+      background:transparent;
+    }
+
+    /* LAYOUT MAIN */
+    .layout{
+      display:grid;
+      grid-template-columns:300px minmax(0,1fr);
+      height:calc(100vh - 64px);
+      max-height:calc(100vh - 64px);
+      overflow:hidden;
+    }
+    @media (max-width: 960px){
+      .layout{
+        grid-template-columns:1fr;
+        grid-template-rows:auto auto;
+        height:auto;
+        max-height:none;
+      }
+    }
+
+    /* SIDEBAR */
+    .sidebar{
+      border-right:1px solid rgba(163,139,99,.24);
+      background:radial-gradient(circle at top left,#141414,#060606);
+      padding:12px 14px;
+      overflow-y:auto;
+    }
+    .sidebar-section{
+      border-radius:var(--radius-md);
+      padding:10px 11px;
+      background:rgba(0,0,0,.45);
+      border:1px solid rgba(163,139,99,.18);
+      margin-bottom:10px;
+    }
+    .sidebar-section h3{
+      margin:0 0 6px;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      color:var(--muted);
+    }
+    .sidebar-section p{
+      margin:2px 0 6px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      margin-bottom:8px;
+    }
+    label.field-label{
+      font-size:11px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.12em;
+    }
+    input[type="text"],
+    input[type="date"],
+    select{
+      background:rgba(0,0,0,.7);
+      color:var(--text);
+      border-radius:10px;
+      border:1px solid rgba(163,139,99,.22);
+      padding:6px 8px;
+      font-size:13px;
+      outline:none;
+      width:100%;
+    }
+    input:focus, select:focus{
+      border-color:var(--gold);
+      box-shadow:0 0 0 1px rgba(163,139,99,.35);
+    }
+    .checks{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin-top:4px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .checks label{
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .checks input{
+      accent-color:var(--gold);
+    }
+
+    /* MAIN AREA */
+    .main-area{
+      padding:14px 16px 18px;
+      overflow-y:auto;
+      background:radial-gradient(circle at top,#1a1a1a,#050505 55%,#000 100%);
+    }
+    .main-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+      margin-bottom:10px;
+      flex-wrap:wrap;
+    }
+    .main-header h2{
+      margin:0;
+      font-size:15px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+    .main-header p{
+      margin:2px 0 0;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .kpi-row{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+      margin-top:8px;
+    }
+    @media (max-width: 960px){
+      .kpi-row{ grid-template-columns:1fr; }
+    }
+    .kpi-card{
+      border-radius:var(--radius-md);
+      border:1px solid rgba(163,139,99,.22);
+      background:rgba(5,5,5,.85);
+      padding:8px 10px;
+      box-shadow:0 10px 20px rgba(0,0,0,.5);
+    }
+    .kpi-label{
+      font-size:11px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.12em;
+    }
+    .kpi-value{
+      font-size:18px;
+      margin-top:4px;
+      font-weight:600;
+    }
+    .kpi-sub{
+      font-size:11px;
+      color:var(--muted);
+      margin-top:2px;
+    }
+
+    /* CHART */
+    .chart{
+      margin-top:12px;
+      border-radius:var(--radius-md);
+      border:1px solid rgba(163,139,99,.22);
+      background:rgba(3,3,3,.9);
+      padding:8px 10px;
+    }
+    .chart-title{
+      font-size:11px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      margin-bottom:6px;
+    }
+    .chart-row{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      margin:3px 0;
+      font-size:11px;
+      color:var(--muted);
+      cursor:pointer;
+    }
+    .chart-row.selected{
+      background:rgba(163,139,99,.12);
+      border-radius:8px;
+    }
+    .chart-label{
+      width:70px;
+      flex-shrink:0;
+    }
+    .chart-bar-wrap{
+      flex:1;
+      background:#101010;
+      border-radius:999px;
+      overflow:hidden;
+    }
+    .chart-bar{
+      height:8px;
+      border-radius:999px;
+      background:linear-gradient(90deg,var(--gold),#f5e1b5);
+      width:0%;
+      transition:.2s width;
+    }
+    .chart-value{
+      width:80px;
+      text-align:right;
+      flex-shrink:0;
+    }
+    .chart-empty{
+      font-size:11px;
+      color:var(--muted);
+      margin-top:4px;
+    }
+
+    .section-title{
+      margin-top:14px;
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:var(--muted);
+    }
+
+    .cards-grid{
+      margin-top:6px;
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+      gap:10px;
+    }
+
+    .card{
+      border-radius:var(--radius-lg);
+      border:1px solid rgba(163,139,99,.32);
+      background:radial-gradient(circle at top left,#181818,#070707);
+      padding:10px 11px 9px;
+      box-shadow:var(--shadow-soft);
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      cursor:default; /* equipa: sem navegação */
+    }
+    .card.hidden{
+      opacity:.45;
+      border-style:dashed;
+    }
+
+    .card-top{
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+    }
+    .card-title{
+      font-size:14px;
+      font-weight:600;
+      margin:0;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .card-sub{
+      font-size:11px;
+      color:var(--muted);
+      margin-top:1px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .chip-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
+      margin-top:4px;
+    }
+    .chip{
+      border-radius:999px;
+      padding:2px 7px;
+      font-size:10px;
+      border:1px solid rgba(163,139,99,.4);
+      background:#1E1E1E;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+    .chip-gold{
+      border-color:var(--gold);
+      color:var(--gold);
+    }
+    .chip-green{
+      border-color:rgba(76,175,80,.7);
+      color:#A5D6A7;
+    }
+
+    .card-section{
+      border-top:1px solid rgba(163,139,99,.18);
+      padding-top:4px;
+      margin-top:2px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .card-section strong{
+      color:#f5f5f5;
+      font-weight:500;
+    }
+
+    .card-footer{
+      margin-top:4px;
+      display:flex;
+      justify-content:space-between;
+      font-size:11px;
+      color:var(--muted);
+      gap:6px;
+      flex-wrap:wrap;
+    }
+
+    .empty{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:16px;
+    }
+
+    /* ===== Login Overlay ===== */
+    .auth-backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.72);
+      backdrop-filter:blur(2px);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:99999;
+      padding:16px;
+    }
+    .auth-backdrop.show{display:flex;}
+    .auth-card{
+      width:min(520px, 96vw);
+      border-radius:18px;
+      border:1px solid rgba(163,139,99,.38);
+      background:radial-gradient(circle at top left,#171717,#070707);
+      box-shadow:0 24px 60px rgba(0,0,0,.6);
+      overflow:hidden;
+    }
+    .auth-head{
+      padding:12px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      background:linear-gradient(90deg,#050505,#111,#050505);
+    }
+    .auth-head .title{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      color:var(--gold);
+      font-weight:700;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      font-size:12px;
+    }
+    .auth-body{
+      padding:14px 14px 12px;
+    }
+    .auth-body p{
+      margin:0 0 10px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.45;
+    }
+    .auth-row{
+      display:flex;
+      gap:8px;
+      margin-top:10px;
+      flex-wrap:wrap;
+    }
+    .auth-input{
+      flex:1;
+      min-width:220px;
+      background:rgba(0,0,0,.7);
+      color:var(--text);
+      border-radius:12px;
+      border:1px solid rgba(163,139,99,.26);
+      padding:10px 12px;
+      font-size:14px;
+      outline:none;
+    }
+    .auth-input:focus{
+      border-color:var(--gold);
+      box-shadow:0 0 0 1px rgba(163,139,99,.35);
+    }
+    .auth-msg{
+      margin-top:10px;
+      font-size:12px;
+      color:var(--danger);
+      display:none;
+    }
+    .auth-msg.show{display:block;}
+  </style>
+</head>
+<body>
+
+<!-- Login obrigatório -->
+<div id="authBackdrop" class="auth-backdrop" role="dialog" aria-modal="true" aria-label="Login Equipa">
+  <div class="auth-card">
+    <div class="auth-head">
+      <div class="title">
+        <span style="display:inline-flex;width:26px;height:26px;border-radius:999px;border:1px solid var(--gold);align-items:center;justify-content:center;">
+          <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M8 12.5l2.5 2.5L16 9"></path>
+          </svg>
+        </span>
+        <span>Garvetur Porto Pro · Vendas</span>
+      </div>
+      <span class="readonly-badge">Acesso Equipa · Modo Leitura</span>
+    </div>
+    <div class="auth-body">
+      <p>Este módulo é de acesso reservado à equipa. Introduza a password para continuar.</p>
+      <div class="auth-row">
+        <input id="authPass" class="auth-input" type="password" autocomplete="current-password" placeholder="Password de acesso">
+        <button id="authBtn" class="btn">Entrar</button>
+      </div>
+      <div id="authMsg" class="auth-msg">Password inválida. Tente novamente.</div>
+      <p style="margin-top:10px; font-size:11px;">
+        Dica: a sessão é guardada apenas nesta janela. Ao fechar o browser, será novamente pedido o acesso.
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="app-shell" id="appShell" style="display:none;">
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M8 12.5l2.5 2.5L16 9"></path>
+        </svg>
+      </div>
+      <div>
+        <h1>Garvetur Porto Pro — Vendas</h1>
+        <span class="sub">Negócios fechados & carteira aprovada</span>
+      </div>
+    </div>
+
+    <div class="readonly-badge">Acesso Equipa · Modo Leitura</div>
+
+    <div class="header-actions">
+      <button class="btn secondary" id="logoutBtn">Sair</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <h3>Filtros</h3>
+        <div class="field">
+          <label class="field-label" for="fConsultor">Consultor</label>
+          <select id="fConsultor">
+            <option value="">Todos</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="fOrigem">Origem</label>
+          <select id="fOrigem">
+            <option value="">Todas</option>
+            <option value="lead">Leads (Fecho)</option>
+            <option value="ang">Angariações aprovadas</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Período</label>
+          <div style="display:flex;gap:6px;">
+            <input type="date" id="fDe">
+            <input type="date" id="fAte">
+          </div>
+        </div>
+        <div class="checks">
+          <label><input type="checkbox" id="fIncluirInvisiveis"> Incluir invisíveis</label>
+        </div>
+        <button class="btn" id="applyFiltersBtn" style="margin-top:6px;width:100%;">Aplicar filtros</button>
+        <button class="btn secondary" id="clearFiltersBtn" style="margin-top:4px;width:100%;">Limpar</button>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Resumo por consultor</h3>
+        <div id="consultorResumo" style="font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:4px;"></div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Notas</h3>
+        <p>Este módulo cruza automaticamente:</p>
+        <p>• Leads em <strong>Fecho</strong> (Kanban)<br>
+           • Angariações em <strong>Aprovado</strong></p>
+        <p>Útil para reuniões comerciais, previsões e análise de carteira.</p>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-area">
+      <div class="main-header">
+        <div>
+          <h2>Negócios & Carteira</h2>
+          <p>Leads fechadas + Angariações aprovadas, numa visão única.</p>
+          <div class="kpi-row">
+            <div class="kpi-card">
+              <div class="kpi-label">Negócios (filtros atuais)</div>
+              <div class="kpi-value" id="kpiTotalNegocios">0</div>
+              <div class="kpi-sub" id="kpiSplit"></div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Volume total</div>
+              <div class="kpi-value" id="kpiVolumeTotal">€ 0</div>
+              <div class="kpi-sub">Soma do valor do negócio (Leads) + preço pedido (Angariações aprovadas).</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Top consultor</div>
+              <div class="kpi-value" id="kpiTopConsultor">—</div>
+              <div class="kpi-sub" id="kpiTopConsultorVol">Sem dados nos filtros atuais.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart Volume Negócios -->
+      <div class="chart">
+        <div class="chart-title">Volume mensal de negócios (todos os consultores)</div>
+        <div id="chartContainer"></div>
+      </div>
+
+      <!-- Cronologia de Recebimentos -->
+      <div class="chart">
+        <div class="chart-title">Cronologia de recebimentos (comissões)</div>
+        <div id="chartComissoes"></div>
+        <div id="chartComissoesDetalhe" style="margin-top:8px;font-size:11px;color:var(--muted);"></div>
+      </div>
+
+      <!-- Resumo de Comissões -->
+      <div class="chart">
+        <div class="chart-title">Resumo de comissões</div>
+        <div class="kpi-row">
+          <div class="kpi-card">
+            <div class="kpi-label">Comissões no período</div>
+            <div class="kpi-value" id="kpiComPeriodo">€ 0</div>
+            <div class="kpi-sub">Soma das parcelas de comissão (CPCV/Escritura) entre as datas filtradas.</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Comissões já recebidas</div>
+            <div class="kpi-value" id="kpiComRecebido">€ 0</div>
+            <div class="kpi-sub">Parcelas de comissão com data até hoje.</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Comissões por receber</div>
+            <div class="kpi-value" id="kpiComPorReceber">€ 0</div>
+            <div class="kpi-sub">Comissão total dos negócios fechados menos o já recebido.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Secções separadas -->
+      <h3 class="section-title">Negócios fechados (Leads)</h3>
+      <div id="cardsLeadsGrid" class="cards-grid"></div>
+
+      <h3 class="section-title">Carteira aprovada (Angariações)</h3>
+      <div id="cardsAngGrid" class="cards-grid"></div>
+
+      <div id="emptyState" class="empty" style="display:none;">
+        Não há negócios a apresentar com os filtros atuais.
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+/* ===== Equipa: Login simples + sessão ===== */
+(function teamAuth(){
+  const TEAM_PASSWORD = "Garvetur#Porto2026";
+  const AUTH_KEY = "gpp_team_vendas_auth_v1";
+
+  const backdrop = document.getElementById('authBackdrop');
+  const passEl = document.getElementById('authPass');
+  const btnEl = document.getElementById('authBtn');
+  const msgEl = document.getElementById('authMsg');
+  const appShell = document.getElementById('appShell');
+
+  function isAuthed(){
+    try { return sessionStorage.getItem(AUTH_KEY) === "1"; } catch { return false; }
+  }
+  function setAuthed(){
+    try { sessionStorage.setItem(AUTH_KEY, "1"); } catch {}
+  }
+  function logout(){
+    try { sessionStorage.removeItem(AUTH_KEY); } catch {}
+    location.reload();
+  }
+
+  document.getElementById('logoutBtn')?.addEventListener('click', logout);
+
+  function showLogin(){
+    backdrop.classList.add('show');
+    appShell.style.display = 'none';
+    setTimeout(()=>passEl?.focus(), 60);
+  }
+  function showApp(){
+    backdrop.classList.remove('show');
+    appShell.style.display = '';
+  }
+
+  function tryLogin(){
+    const v = (passEl.value || '').trim();
+    if(v === TEAM_PASSWORD){
+      msgEl.classList.remove('show');
+      setAuthed();
+      showApp();
+    }else{
+      msgEl.classList.add('show');
+      passEl.value = '';
+      passEl.focus();
+    }
+  }
+
+  btnEl.addEventListener('click', tryLogin);
+  passEl.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter'){ e.preventDefault(); tryLogin(); }
+  });
+
+  if(isAuthed()) showApp(); else showLogin();
+})();
+</script>
+
+<script>
+(function(){
+  const TEAM_READONLY = true;
+
+  const LS_LEADS_KEY = 'gpp_leads_v5';
+  const LS_ANG_KEY   = 'gpp_angariacoes_v2';
+
+  const LS_VENDAS_FILTERS_KEY = 'gpp_vendas_filters_v1';
+  const LS_GLOBAL_FILTERS_KEY = 'gpp_filtros_globais';
+
+  const fConsultor = document.getElementById('fConsultor');
+  const fOrigem = document.getElementById('fOrigem');
+  const fDe = document.getElementById('fDe');
+  const fAte = document.getElementById('fAte');
+  const fIncluirInvisiveis = document.getElementById('fIncluirInvisiveis');
+
+  const kpiTotalNegocios = document.getElementById('kpiTotalNegocios');
+  const kpiSplit = document.getElementById('kpiSplit');
+  const kpiVolumeTotal = document.getElementById('kpiVolumeTotal');
+  const kpiTopConsultor = document.getElementById('kpiTopConsultor');
+  const kpiTopConsultorVol = document.getElementById('kpiTopConsultorVol');
+  const consultorResumo = document.getElementById('consultorResumo');
+
+  const cardsLeadsGrid = document.getElementById('cardsLeadsGrid');
+  const cardsAngGrid = document.getElementById('cardsAngGrid');
+  const emptyState = document.getElementById('emptyState');
+
+  const chartContainer = document.getElementById('chartContainer');
+  const chartComissoes = document.getElementById('chartComissoes');
+  const chartComissoesDetalhe = document.getElementById('chartComissoesDetalhe');
+
+  const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+  const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+
+  // KPI de comissões
+  const kpiComPeriodo   = document.getElementById('kpiComPeriodo');
+  const kpiComRecebido  = document.getElementById('kpiComRecebido');
+  const kpiComPorReceber = document.getElementById('kpiComPorReceber');
+
+  let NEGOCIOS = []; // lista combinada
+  let COMISSOES_DETALHE_MAP = {}; // por mês (YYYY-MM) -> lista de parcelas
+  let COMISSOES_RESUMO = { totalPeriodo:0, totalRecebido:0, totalPorReceber:0 };
+  let FILTERS = {
+    consultor:'',
+    origem:'',
+    de:'',
+    ate:'',
+    incluirInvisiveis:false
+  };
+
+  /* ===== Storage filtros globais/locais ===== */
+  function loadGlobalFilters(){
+    try{
+      const raw = localStorage.getItem(LS_GLOBAL_FILTERS_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }catch{
+      return {};
+    }
+  }
+  function saveGlobalFilters(from){
+    // Equipa: permitir apenas persistência de filtros (sem efeitos colaterais)
+    try{
+      const current = loadGlobalFilters();
+      const merged = Object.assign({}, current, {
+        consultor: from.consultor ?? current.consultor ?? '',
+        de: from.de ?? current.de ?? '',
+        ate: from.ate ?? current.ate ?? ''
+      });
+      localStorage.setItem(LS_GLOBAL_FILTERS_KEY, JSON.stringify(merged));
+    }catch{}
+  }
+  function loadVendasFilters(){
+    try{
+      const raw = localStorage.getItem(LS_VENDAS_FILTERS_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }catch{
+      return {};
+    }
+  }
+  function saveVendasFilters(){
+    try{
+      localStorage.setItem(LS_VENDAS_FILTERS_KEY, JSON.stringify(FILTERS));
+    }catch{}
+  }
+
+  function hydrateFiltersFromStorage(){
+    const global = loadGlobalFilters();
+    const local = loadVendasFilters();
+
+    FILTERS.consultor = local.consultor || global.consultor || '';
+    FILTERS.de        = local.de        || global.de        || '';
+    FILTERS.ate       = local.ate       || global.ate       || '';
+    FILTERS.origem    = local.origem    || '';
+    FILTERS.incluirInvisiveis = !!local.incluirInvisiveis;
+
+    if(FILTERS.consultor) fConsultor.value = FILTERS.consultor;
+    if(FILTERS.de) fDe.value = FILTERS.de;
+    if(FILTERS.ate) fAte.value = FILTERS.ate;
+    if(FILTERS.origem) fOrigem.value = FILTERS.origem;
+    fIncluirInvisiveis.checked = FILTERS.incluirInvisiveis;
+  }
+
+  /* ===== Helpers ===== */
+  function parseNumber(v){
+    if(v==null || v==='') return NaN;
+    const s = String(v).replace(/\./g,'').replace(',','.');
+    const n = parseFloat(s);
+    return isFinite(n) ? n : NaN;
+  }
+  function parsePct(v){
+    if(v==null || v==='') return NaN;
+    const s = String(v).replace('%','').replace(',','.');
+    const n = parseFloat(s);
+    return isFinite(n) ? n : NaN;
+  }
+  function formatMoney(v){
+    const n = Number(v);
+    if(!isFinite(n) || n === 0) return '€ 0';
+    return n.toLocaleString('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+  }
+  function formatDate(d){
+    if(!d) return '—';
+    try{
+      const dt = new Date(d);
+      if(isNaN(dt.getTime())) return d;
+      return dt.toLocaleDateString('pt-PT');
+    }catch{return d;}
+  }
+  function todayISO(){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return y + '-' + m + '-' + day;
+  }
+
+  // Procura campos de data com token (ex.: "cpcv", "escritura") em l e l.fecho
+  function findDateWithToken(objs, token){
+    const re = /^\d{4}-\d{2}-\d{2}$/;
+    const tk = String(token).toLowerCase();
+    for(const obj of objs){
+      if(!obj || typeof obj!=='object') continue;
+      for(const k of Object.keys(obj)){
+        const lk = k.toLowerCase();
+        if(lk.includes(tk)){
+          const v = obj[k];
+          if(typeof v === 'string' && re.test(v.trim())){
+            return v.trim();
+          }
+        }
+      }
+    }
+    return '';
+  }
+
+  /* ===== Load Leads & Angariações ===== */
+  function loadLeads(){
+    try{
+      const raw = localStorage.getItem(LS_LEADS_KEY);
+      if(!raw) return [];
+      const arr = JSON.parse(raw);
+      if(!Array.isArray(arr)) return [];
+      return arr;
+    }catch(e){
+      console.error('Erro a ler leads', e);
+      return [];
+    }
+  }
+  function loadAngariacoes(){
+    try{
+      const raw = localStorage.getItem(LS_ANG_KEY);
+      if(!raw) return [];
+      const obj = JSON.parse(raw);
+      if(!obj || !Array.isArray(obj.deals)) return [];
+      return obj.deals;
+    }catch(e){
+      console.error('Erro a ler angariações', e);
+      return [];
+    }
+  }
+
+  /* ===== Construção da lista de negócios ===== */
+  function buildNegocios(){
+    const leads = loadLeads();
+    const angs  = loadAngariacoes();
+    const list = [];
+
+    // Leads em Fecho
+    leads.forEach(l=>{
+      if(l.estado !== 'Fecho') return;
+
+      const valorNegocio = parseNumber(l.fecho_negocio || l.valor || 0);
+      const comissaoPctStr = (l.fecho_comissao_pct!=='' && l.fecho_comissao_pct!=null)
+        ? String(l.fecho_comissao_pct)
+        : (l.fecho && l.fecho.comissaoPct ? String(l.fecho.comissaoPct) : '');
+
+      const comPctNum = parsePct(comissaoPctStr);
+      const comissaoValorTotal = isFinite(comPctNum)
+        ? (valorNegocio * comPctNum / 100)
+        : 0;
+
+      const fechoObj = l.fecho || {};
+      const dataCpcv      = findDateWithToken([l, fechoObj], 'cpcv');
+      const dataEscritura = findDateWithToken([l, fechoObj], 'escritura');
+      const dataFecho     = dataCpcv || dataEscritura || (l.data || '');
+
+      list.push({
+        tipo: 'lead',
+        id: l.id || '',
+        consultor: l.consultor || '',
+        cliente: l.nome || '',
+        contacto: l.contacto || '',
+        email: l.email || '',
+        titulo: l.imovel ? (l.imovel + (l.tipologia? ' ' + l.tipologia : '')) : (l.imovel || 'Lead'),
+        zona: l.zona || '',
+        data: dataFecho,
+        valor: isFinite(valorNegocio)? valorNegocio : 0,
+        comissaoPct: comissaoPctStr || '',
+        comissaoValorTotal: comissaoValorTotal,
+        dataCpcv: dataCpcv || '',
+        dataEscritura: dataEscritura || '',
+        origem: (l.papel || '') ? ('Lead — '+l.papel) : 'Lead',
+        visivel: l.visivel !== false,
+        detalheFecho: {
+          sinal: parseNumber(l.fecho_sinal_reserva || 0),
+          cpcv: parseNumber(l.fecho_valor_cpcv || 0),
+          escritura: parseNumber(l.fecho_valor_escritura || 0)
+        }
+      });
+    });
+
+    // Angariações aprovadas
+    angs.forEach(a=>{
+      if(a.estadoAng !== 'aprovado') return;
+
+      const precoPedido = parseNumber(a.precoPedido || 0);
+      let comPerc = '';
+      if(a.comissao === 'outro' && a.comissaoOutro){
+        comPerc = a.comissaoOutro;
+      }else if(a.comissao){
+        comPerc = a.comissao;
+      }
+      const comAngNum = parsePct(comPerc);
+      const comAngValor = isFinite(comAngNum)
+        ? (precoPedido * comAngNum / 100)
+        : 0;
+
+      const titulo = a.isEmpreendimento && a.nomeEmp
+        ? a.nomeEmp
+        : (a.tituloImovel || 'Angariação');
+
+      const zona = [a.concelho || '', a.zona || ''].filter(Boolean).join(' · ');
+
+      list.push({
+        tipo:'ang',
+        id: a.id || '',
+        consultor: a.consultor || '',
+        cliente: a.isEmpreendimento ? (a.promotor || '') : (a.nomeProp || ''),
+        contacto: a.isEmpreendimento ? (a.telPromotor || '') : (a.telProp || ''),
+        email: a.isEmpreendimento ? (a.emailPromotor || '') : (a.emailProp || ''),
+        titulo: titulo,
+        zona: zona,
+        data: a.dataAngariacao || '',
+        valor: isFinite(precoPedido)? precoPedido : 0,
+        comissaoPct: comPerc || '',
+        comissaoValorTotal: comAngValor,
+        dataCpcv: '',
+        dataEscritura: '',
+        origem: a.isEmpreendimento ? 'Angariação — Empreendimento' : 'Angariação',
+        visivel: a.visible !== false,
+        detalheFecho: null
+      });
+    });
+
+    list.sort((a,b)=>{
+      const da = a.data || '';
+      const db = b.data || '';
+      return (db || '').localeCompare(da || '');
+    });
+
+    NEGOCIOS = list;
+  }
+
+  function populateConsultores(){
+    const set = new Set();
+    NEGOCIOS.forEach(n=>{
+      if(n.consultor) set.add(n.consultor);
+    });
+    const current = fConsultor.value;
+    fConsultor.innerHTML = '<option value="">Todos</option>';
+    Array.from(set).sort().forEach(name=>{
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      fConsultor.appendChild(opt);
+    });
+    if(current && set.has(current)){
+      fConsultor.value = current;
+    }
+  }
+
+  function applyFilters(){
+    return NEGOCIOS.filter(n=>{
+      if(!FILTERS.incluirInvisiveis && !n.visivel) return false;
+      if(FILTERS.consultor && n.consultor !== FILTERS.consultor) return false;
+      if(FILTERS.origem && n.tipo !== FILTERS.origem) return false;
+      if(FILTERS.de && n.data && n.data < FILTERS.de) return false;
+      if(FILTERS.ate && n.data && n.data > FILTERS.ate) return false;
+      return true;
+    });
+  }
+
+  /* ===== Renderizações ===== */
+  function renderKpis(lista){
+    const total = lista.length;
+    const totalLead = lista.filter(n=>n.tipo==='lead').length;
+    const totalAng  = lista.filter(n=>n.tipo==='ang').length;
+
+    kpiTotalNegocios.textContent = total;
+    kpiSplit.textContent = `Leads fechadas: ${totalLead} · Angariações aprovadas: ${totalAng}`;
+
+    const volumeTotal = lista.reduce((acc,n)=>acc + (n.valor || 0),0);
+    kpiVolumeTotal.textContent = formatMoney(volumeTotal);
+
+    const porCons = {};
+    lista.forEach(n=>{
+      if(!n.consultor) return;
+      porCons[n.consultor] = (porCons[n.consultor] || 0) + (n.valor || 0);
+    });
+    const entries = Object.entries(porCons).sort((a,b)=>b[1]-a[1]);
+    if(!entries.length){
+      kpiTopConsultor.textContent = '—';
+      kpiTopConsultorVol.textContent = 'Sem dados nos filtros atuais.';
+    }else{
+      const [nome, vol] = entries[0];
+      kpiTopConsultor.textContent = nome;
+      kpiTopConsultorVol.textContent = formatMoney(vol) + ' em negócios filtrados.';
+    }
+
+    consultorResumo.innerHTML = '';
+    if(!entries.length){
+      consultorResumo.textContent = 'Sem negócios nos filtros atuais.';
+    }else{
+      entries.forEach(([nome,vol])=>{
+        const count = lista.filter(n=>n.consultor===nome).length;
+        const div = document.createElement('div');
+        div.textContent = `${nome} — ${count} negócio(s) · ${formatMoney(vol)}`;
+        consultorResumo.appendChild(div);
+      });
+    }
+  }
+
+  function renderChart(lista){
+    chartContainer.innerHTML = '';
+    if(!lista.length){
+      const div = document.createElement('div');
+      div.className = 'chart-empty';
+      div.textContent = 'Sem dados para o gráfico nos filtros atuais.';
+      chartContainer.appendChild(div);
+      return;
+    }
+    const mapa = {};
+    lista.forEach(n=>{
+      if(!n.data) return;
+      const d = new Date(n.data);
+      if(isNaN(d.getTime())) return;
+      const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+      if(!mapa[key]) mapa[key] = {total:0};
+      mapa[key].total += n.valor || 0;
+    });
+    const entries = Object.entries(mapa).sort((a,b)=>a[0].localeCompare(b[0]));
+    if(!entries.length){
+      const div = document.createElement('div');
+      div.className = 'chart-empty';
+      div.textContent = 'Sem dados de data para o gráfico.';
+      chartContainer.appendChild(div);
+      return;
+    }
+    const max = Math.max(...entries.map(e=>e[1].total));
+    entries.forEach(([key,info])=>{
+      const row = document.createElement('div');
+      row.className = 'chart-row';
+      const label = document.createElement('div');
+      label.className = 'chart-label';
+      const [y,m] = key.split('-');
+      label.textContent = m+'/'+y.slice(-2);
+      const barWrap = document.createElement('div');
+      barWrap.className = 'chart-bar-wrap';
+      const bar = document.createElement('div');
+      bar.className = 'chart-bar';
+      const pct = max>0 ? (info.total/max*100) : 0;
+      bar.style.width = pct.toFixed(1)+'%';
+      barWrap.appendChild(bar);
+      const val = document.createElement('div');
+      val.className = 'chart-value';
+      val.textContent = formatMoney(info.total);
+      row.appendChild(label);
+      row.appendChild(barWrap);
+      row.appendChild(val);
+      chartContainer.appendChild(row);
+    });
+  }
+
+  // Detalhe das comissões por mês
+  function renderComissoesDetalhe(mesKey, mesLabel){
+    chartComissoesDetalhe.innerHTML = '';
+    const lista = COMISSOES_DETALHE_MAP[mesKey];
+    if(!lista || !lista.length){
+      const div = document.createElement('div');
+      div.className = 'chart-empty';
+      div.textContent = 'Sem detalhe de negócios para ' + mesLabel + '.';
+      chartComissoesDetalhe.appendChild(div);
+      return;
+    }
+
+    const totalMes = lista.reduce((acc,it)=>acc + (it.valor || 0),0);
+
+    const title = document.createElement('div');
+    title.style.marginBottom = '4px';
+    title.textContent = 'Negócios que compõem ' + mesLabel + ' (' + lista.length + ' parcela(s) de comissão)';
+    chartComissoesDetalhe.appendChild(title);
+
+    const subt = document.createElement('div');
+    subt.style.marginBottom = '4px';
+    subt.style.fontSize = '11px';
+    subt.style.color = 'var(--muted)';
+    subt.textContent = 'Total de comissões no mês: ' + formatMoney(totalMes);
+    chartComissoesDetalhe.appendChild(subt);
+
+    lista
+      .slice()
+      .sort((a,b)=> (a.data || '').localeCompare(b.data || ''))
+      .forEach(it=>{
+        const row = document.createElement('div');
+        row.className = 'chart-row';
+
+        const left = document.createElement('div');
+        left.className = 'chart-label';
+        left.textContent = formatDate(it.data);
+
+        const mid = document.createElement('div');
+        mid.style.flex = '1';
+        mid.style.fontSize = '11px';
+        mid.innerHTML =
+          '<strong>' + (it.cliente || it.titulo || 'Negócio') + '</strong><br>' +
+          (it.titulo ? it.titulo + ' · ' : '') +
+          (it.consultor || '') +
+          (it.comissaoPct ? ' · Comissão ' + it.comissaoPct + '%' : '') +
+          ' · ' + it.tipoParcela;
+
+        const right = document.createElement('div');
+        right.className = 'chart-value';
+        right.textContent = formatMoney(it.valor);
+
+        row.appendChild(left);
+        row.appendChild(mid);
+        row.appendChild(right);
+        chartComissoesDetalhe.appendChild(row);
+      });
+  }
+
+  // Resumo de Comissões
+  function renderComissoesResumo(){
+    kpiComPeriodo.textContent    = formatMoney(COMISSOES_RESUMO.totalPeriodo || 0);
+    kpiComRecebido.textContent   = formatMoney(COMISSOES_RESUMO.totalRecebido || 0);
+    kpiComPorReceber.textContent = formatMoney(COMISSOES_RESUMO.totalPorReceber || 0);
+  }
+
+  // Cronologia de Recebimentos (comissões) — apenas visualização/KPIs (Equipa: sem criar tarefas)
+  function renderComissoesTimeline(lista){
+    chartComissoes.innerHTML = '';
+    chartComissoesDetalhe.innerHTML = '';
+    COMISSOES_DETALHE_MAP = {};
+    COMISSOES_RESUMO = { totalPeriodo:0, totalRecebido:0, totalPorReceber:0 };
+
+    const hoje = todayISO();
+
+    const apenasLeads = lista.filter(n=>n.tipo==='lead' && isFinite(n.comissaoValorTotal) && n.comissaoValorTotal>0);
+    if(!apenasLeads.length){
+      const div = document.createElement('div');
+      div.className = 'chart-empty';
+      div.textContent = 'Sem dados de comissões (verifique se existem CPCV / Escritura e % de comissão).';
+      chartComissoes.appendChild(div);
+      renderComissoesResumo();
+      return;
+    }
+
+    const mapa = {}; // chave YYYY-MM -> valor comissão nesse mês
+    let totalComissoesTodas = 0;
+    let totalPeriodo = 0;
+    let totalRecebido = 0;
+
+    function dataDentroFiltros(dateStr){
+      if(!dateStr) return false;
+      if(FILTERS.de && dateStr < FILTERS.de) return false;
+      if(FILTERS.ate && dateStr > FILTERS.ate) return false;
+      return true;
+    }
+
+    function addParcela(dateStr, valorParcela, neg, tipoParcela){
+      if(!dateStr || !valorParcela || valorParcela <= 0) return;
+
+      if(FILTERS.de && dateStr < FILTERS.de) return;
+      if(FILTERS.ate && dateStr > FILTERS.ate) return;
+
+      const d = new Date(dateStr);
+      if(isNaN(d.getTime())) return;
+      const k = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+
+      mapa[k] = (mapa[k] || 0) + valorParcela;
+      if(!COMISSOES_DETALHE_MAP[k]) COMISSOES_DETALHE_MAP[k] = [];
+      COMISSOES_DETALHE_MAP[k].push({
+        negocioId: neg.id,
+        cliente: neg.cliente,
+        titulo: neg.titulo,
+        consultor: neg.consultor,
+        tipoParcela,
+        data: dateStr,
+        valor: valorParcela,
+        comissaoPct: neg.comissaoPct
+      });
+
+      totalPeriodo += valorParcela;
+      if(dateStr <= hoje){
+        totalRecebido += valorParcela;
+      }
+    }
+
+    apenasLeads.forEach(n=>{
+      const total = n.comissaoValorTotal || 0;
+      if(total <= 0) return;
+      totalComissoesTodas += total;
+
+      const hasCpcv = !!n.dataCpcv;
+      const hasEsc  = !!n.dataEscritura;
+
+      if(hasCpcv && hasEsc){
+        const valorCpcv = total/2;
+        const valorEsc  = total/2;
+        addParcela(n.dataCpcv, valorCpcv, n, 'CPCV');
+        addParcela(n.dataEscritura, valorEsc, n, 'Escritura');
+      }else if(hasCpcv && !hasEsc){
+        addParcela(n.dataCpcv, total, n, 'CPCV');
+      }else if(!hasCpcv && hasEsc){
+        addParcela(n.dataEscritura, total, n, 'Escritura');
+      }else{
+        if(n.data && dataDentroFiltros(n.data)){
+          addParcela(n.data, total, n, 'Pagamento');
+        }
+      }
+    });
+
+    const entries = Object.entries(mapa).sort((a,b)=>a[0].localeCompare(b[0]));
+    if(!entries.length){
+      const div = document.createElement('div');
+      div.className = 'chart-empty';
+      div.textContent = 'Sem dados de comissões distribuídas por CPCV/Escritura no período selecionado.';
+      chartComissoes.appendChild(div);
+    }else{
+      const max = Math.max(...entries.map(e=>e[1]));
+      entries.forEach(([key,total])=>{
+        const row = document.createElement('div');
+        row.className = 'chart-row';
+        const label = document.createElement('div');
+        label.className = 'chart-label';
+        const [y,m] = key.split('-');
+        const mesLabel = m+'/'+y.slice(-2);
+        label.textContent = mesLabel;
+        const barWrap = document.createElement('div');
+        barWrap.className = 'chart-bar-wrap';
+        const bar = document.createElement('div');
+        bar.className = 'chart-bar';
+        const pct = max>0 ? (total/max*100) : 0;
+        bar.style.width = pct.toFixed(1)+'%';
+        barWrap.appendChild(bar);
+        const val = document.createElement('div');
+        val.className = 'chart-value';
+        val.textContent = formatMoney(total);
+        row.appendChild(label);
+        row.appendChild(barWrap);
+        row.appendChild(val);
+
+        row.addEventListener('click', ()=>{
+          Array.from(chartComissoes.querySelectorAll('.chart-row')).forEach(r=>r.classList.remove('selected'));
+          row.classList.add('selected');
+          renderComissoesDetalhe(key, mesLabel);
+        });
+
+        chartComissoes.appendChild(row);
+      });
+
+      const rows = chartComissoes.querySelectorAll('.chart-row');
+      if(rows.length){
+        const lastRow = rows[rows.length-1];
+        lastRow.classList.add('selected');
+        const [lastKey] = entries[entries.length-1];
+        const [y,m] = lastKey.split('-');
+        const mesLabel = m+'/'+y.slice(-2);
+        renderComissoesDetalhe(lastKey, mesLabel);
+      }
+    }
+
+    const totalPorReceber = totalComissoesTodas - totalRecebido;
+
+    COMISSOES_RESUMO = {
+      totalPeriodo: totalPeriodo,
+      totalRecebido: totalRecebido,
+      totalPorReceber: totalPorReceber
+    };
+    renderComissoesResumo();
+  }
+
+  function renderCards(listaLeads, listaAng){
+    cardsLeadsGrid.innerHTML = '';
+    cardsAngGrid.innerHTML = '';
+
+    const temNada = (!listaLeads.length && !listaAng.length);
+    emptyState.style.display = temNada ? 'block' : 'none';
+
+    function buildCard(n, container){
+      const card = document.createElement('div');
+      card.className = 'card' + (n.visivel ? '' : ' hidden');
+
+      const top = document.createElement('div');
+      top.className = 'card-top';
+      const left = document.createElement('div');
+
+      const h = document.createElement('h3');
+      h.className = 'card-title';
+      h.textContent = n.titulo || 'Negócio';
+      left.appendChild(h);
+
+      const sub = document.createElement('div');
+      sub.className = 'card-sub';
+      sub.textContent = [n.cliente || '', n.zona || ''].filter(Boolean).join(' · ');
+      left.appendChild(sub);
+
+      const chips = document.createElement('div');
+      chips.className = 'chip-row';
+
+      const chipTipo = document.createElement('span');
+      chipTipo.className = 'chip chip-gold';
+      chipTipo.textContent = n.tipo === 'lead' ? 'Lead — Fecho' : 'Angariação — Aprovado';
+      chips.appendChild(chipTipo);
+
+      if(n.consultor){
+        const ch = document.createElement('span');
+        ch.className = 'chip';
+        ch.textContent = n.consultor;
+        chips.appendChild(ch);
+      }
+      if(n.comissaoPct){
+        const ch = document.createElement('span');
+        ch.className = 'chip chip-green';
+        ch.textContent = `Comissão ${n.comissaoPct}%`;
+        chips.appendChild(ch);
+      }
+
+      left.appendChild(chips);
+      top.appendChild(left);
+      card.appendChild(top);
+
+      const sec1 = document.createElement('div');
+      sec1.className = 'card-section';
+      sec1.innerHTML = `<strong>Valor do negócio:</strong> ${formatMoney(n.valor)}`;
+      card.appendChild(sec1);
+
+      const sec2 = document.createElement('div');
+      sec2.className = 'card-section';
+      sec2.innerHTML = `<strong>Cliente / Proprietário:</strong> ${n.cliente || '—'}<br>
+                        <strong>Contacto:</strong> ${n.contacto || '—'}${n.email ? ' · '+n.email : ''}`;
+      card.appendChild(sec2);
+
+      if(n.detalheFecho){
+        const partes = [];
+        if(isFinite(n.detalheFecho.sinal) && n.detalheFecho.sinal>0) partes.push('Sinal '+formatMoney(n.detalheFecho.sinal));
+        if(isFinite(n.detalheFecho.cpcv) && n.detalheFecho.cpcv>0) partes.push('CPCV '+formatMoney(n.detalheFecho.cpcv));
+        if(isFinite(n.detalheFecho.escritura) && n.detalheFecho.escritura>0) partes.push('Escritura '+formatMoney(n.detalheFecho.escritura));
+        if(partes.length){
+          const sec3 = document.createElement('div');
+          sec3.className = 'card-section';
+          sec3.innerHTML = '<strong>Detalhe de pagamento:</strong> ' + partes.join(' · ');
+          card.appendChild(sec3);
+        }
+      }
+
+      const foot = document.createElement('div');
+      foot.className = 'card-footer';
+      const leftF = document.createElement('div');
+      leftF.textContent = n.data ? 'Data: ' + formatDate(n.data) : '';
+      const rightF = document.createElement('div');
+      rightF.textContent = n.origem || '';
+      foot.appendChild(leftF);
+      foot.appendChild(rightF);
+      card.appendChild(foot);
+
+      container.appendChild(card);
+    }
+
+    listaLeads.forEach(n=>buildCard(n, cardsLeadsGrid));
+    listaAng.forEach(n=>buildCard(n, cardsAngGrid));
+  }
+
+  function applyAndRender(){
+    const lista = applyFilters();
+    const listaLeads = lista.filter(n=>n.tipo==='lead');
+    const listaAng   = lista.filter(n=>n.tipo==='ang');
+
+    renderKpis(lista);
+    renderChart(lista);
+    renderComissoesTimeline(lista);
+    renderCards(listaLeads, listaAng);
+  }
+
+  /* ===== Filtros ===== */
+  applyFiltersBtn.addEventListener('click', ()=>{
+    FILTERS.consultor = fConsultor.value || '';
+    FILTERS.origem = fOrigem.value || '';
+    FILTERS.de = fDe.value || '';
+    FILTERS.ate = fAte.value || '';
+    FILTERS.incluirInvisiveis = fIncluirInvisiveis.checked;
+
+    saveVendasFilters();
+    saveGlobalFilters(FILTERS);
+    applyAndRender();
+  });
+
+  clearFiltersBtn.addEventListener('click', ()=>{
+    fConsultor.value = '';
+    fOrigem.value = '';
+    fDe.value = '';
+    fAte.value = '';
+    fIncluirInvisiveis.checked = false;
+
+    FILTERS = {consultor:'',origem:'',de:'',ate:'',incluirInvisiveis:false};
+
+    saveVendasFilters();
+    saveGlobalFilters(FILTERS);
+    applyAndRender();
+  });
+
+  /* ===== Arranque ===== */
+  (function init(){
+    buildNegocios();
+    populateConsultores();
+    hydrateFiltersFromStorage();
+    applyAndRender();
+  })();
+})();
+</script>
+</body>
+</html>
