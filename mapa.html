@@ -558,6 +558,32 @@ input[type="file"]{display:none}
 </style>
 </head>
 <body>
+  <!-- 🔐 BLOQUEIO ADMIN — MAPA -->
+<script>
+(function(){
+  const ADMIN_PASS = '#AdminGarvetur#1997';
+  const KEY = 'gpp_admin_auth';
+
+  try{
+    if(sessionStorage.getItem(KEY) === 'ok') return;
+
+    const pass = prompt(
+      'Acesso restrito — Mapa (Admin)\n\nIntroduza a palavra-passe:'
+    );
+
+    if(pass !== ADMIN_PASS){
+      alert('Acesso negado.');
+      document.documentElement.innerHTML = '';
+      throw new Error('Acesso não autorizado');
+    }
+
+    sessionStorage.setItem(KEY, 'ok');
+  }catch(e){
+    console.warn(e);
+  }
+})();
+</script>
+<!-- 🔐 FIM BLOQUEIO ADMIN — MAPA -->
   <div class="app">
     <header>
       <div class="brand">
