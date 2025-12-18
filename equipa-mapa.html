@@ -1,127 +1,125 @@
 <!doctype html>
 <html lang="pt">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Garvetur Porto Pro — Mapa (Equipa · Leitura)</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Garvetur Porto Pro — Equipa (Login)</title>
 
-<link rel="preconnect" href="https://unpkg.com" crossorigin>
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <!-- Anti-indexação (não é segurança, mas ajuda a não expor em pesquisa) -->
+  <meta name="robots" content="noindex, nofollow" />
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="anonymous">
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin="anonymous">
-
-<script src="https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/idb-keyval.iife.min.js" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" crossorigin="anonymous"></script>
-<script>
-  if (window['pdfjsLib']) {
-    pdfjsLib.GlobalWorkerOptions.workerSrc =
-      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  }
-</script>
-
-<style>
-/* === ESTILO (inalterado) === */
-:root{
-  --gold:#A38B63;
-  --bg:#0E0E0E;
-  --panel:#131313;
-  --text:#fff;
-  --muted:#9AA0A6;
-  --ok:#43A047;
-  --info:#1E88E5;
-  --warn:#E53935;
-  --border:rgba(255,255,255,.12);
-}
-html,body{
-  height:100%; margin:0; background:#0E0E0E; color:#fff;
-  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-}
-.hidden{display:none!important;}
-</style>
+  <style>
+    :root{
+      --gold:#A38B63;
+      --bg:#0E0E0E;
+      --panel:#131313;
+      --text:#fff;
+      --muted:#9AA0A6;
+      --border:rgba(255,255,255,.12);
+    }
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
+    .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:18px;}
+    .card{
+      width:min(520px,92vw);
+      background:#0F0F0F;
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:18px;
+      box-shadow:0 12px 36px rgba(0,0,0,.35);
+    }
+    h1{margin:0 0 8px;color:var(--gold);font-size:18px;}
+    p{margin:0 0 14px;color:var(--muted);font-size:13px;line-height:1.5;}
+    .row{display:flex;gap:8px;margin-top:10px;}
+    input{
+      flex:1;
+      background:#0E0E0E;
+      border:1px solid rgba(255,255,255,.15);
+      border-radius:10px;
+      padding:10px 12px;
+      color:#fff;
+      outline:none;
+      font-size:14px;
+    }
+    button{
+      background:var(--gold);
+      color:#111;
+      border:0;
+      border-radius:10px;
+      padding:10px 14px;
+      font-weight:800;
+      cursor:pointer;
+    }
+    .err{margin-top:10px;color:#ffbdbd;font-size:12px;display:none}
+    .frame{
+      position:fixed; inset:0;
+      display:none;
+      background:#000;
+    }
+    iframe{
+      width:100%;
+      height:100%;
+      border:0;
+      background:#000;
+    }
+  </style>
 </head>
-
 <body>
 
-<!-- 🔐 LOGIN GATE -->
-<div id="loginGate" style="
-  position:fixed; inset:0; z-index:20000;
-  background:rgba(0,0,0,.85); backdrop-filter:blur(6px);
-  display:flex; align-items:center; justify-content:center; padding:16px;
-">
-  <div style="
-    width:min(520px,92vw); background:#0F0F0F;
-    border:1px solid rgba(255,255,255,.12);
-    border-radius:14px; padding:16px;
-  ">
-    <h2 style="margin:0 0 6px;color:#A38B63">Garvetur Porto Pro</h2>
-    <div style="font-size:12px;color:#bbb;margin-bottom:10px">
-      Acesso Equipa · Modo Leitura
-    </div>
+  <!-- LOGIN -->
+  <div class="wrap" id="loginWrap">
+    <div class="card">
+      <h1>Garvetur Porto Pro — Acesso Equipa</h1>
+      <p>Introduza a palavra-passe para aceder ao mapa em modo leitura.</p>
 
-    <input id="teamPass" type="password" placeholder="Password da equipa"
-      style="width:100%;padding:10px;border-radius:10px;border:1px solid #333;background:#0E0E0E;color:#fff">
+      <div class="row">
+        <input id="pw" type="password" placeholder="Palavra-passe" autocomplete="current-password" />
+        <button id="btn">Entrar</button>
+      </div>
 
-    <button id="btnLogin" style="
-      margin-top:10px;width:100%;
-      padding:10px;border-radius:10px;
-      border:1px solid #A38B63;
-      background:#A38B63;color:#111;font-weight:800;
-      cursor:pointer;
-    ">Entrar</button>
-
-    <div id="loginErr" style="display:none;margin-top:8px;color:#ffdddd;font-size:12px">
-      Password incorreta.
+      <div class="err" id="err">Palavra-passe inválida.</div>
     </div>
   </div>
-</div>
+
+  <!-- APP -->
+  <div class="frame" id="frameWrap">
+    <iframe id="appFrame" src="about:blank" referrerpolicy="no-referrer"></iframe>
+  </div>
 
 <script>
-/* 🔐 LOGIN SIMPLES — equipa-mapa.html */
-(function(){
+  // ✅ Config
   const TEAM_PASSWORD = "Garvetur#Porto2026";
-  const SESSION_KEY = "gpp_team_session_v1";
-  const HOURS = 8;
+  const SESSION_KEY = "gpp_team_auth_v1";
+  const TARGET_URL = "./equipa-mapa-view.html"; // <-- IMPORTANTÍSSIMO
 
-  function valid(){
-    try{
-      const o = JSON.parse(localStorage.getItem(SESSION_KEY)||"");
-      return o && (Date.now()-o.ts) < HOURS*3600000;
-    }catch{return false;}
+  const $ = (id)=>document.getElementById(id);
+
+  function openApp(){
+    $("loginWrap").style.display="none";
+    $("frameWrap").style.display="block";
+    $("appFrame").src = TARGET_URL;
   }
-  function unlock(){
-    const g=document.getElementById('loginGate');
-    if(g) g.style.display='none';
-  }
-  if(valid()){
-    document.addEventListener('DOMContentLoaded', unlock);
-    return;
-  }
-  document.addEventListener('DOMContentLoaded',()=>{
-    const inp=document.getElementById('teamPass');
-    const btn=document.getElementById('btnLogin');
-    const err=document.getElementById('loginErr');
-    function go(){
-      if(inp.value===TEAM_PASSWORD){
-        localStorage.setItem(SESSION_KEY,JSON.stringify({ts:Date.now()}));
-        unlock();
-      }else{
-        err.style.display='block';
-        inp.value='';
-        inp.focus();
-      }
+
+  // Sessão activa (evita pedir password sempre)
+  try{
+    if(sessionStorage.getItem(SESSION_KEY)==="1"){
+      openApp();
     }
-    btn.onclick=go;
-    inp.onkeydown=e=>{ if(e.key==="Enter") go(); };
-  });
-})();
+  }catch{}
+
+  function doLogin(){
+    const v = ($("pw").value||"").trim();
+    if(v === TEAM_PASSWORD){
+      try{ sessionStorage.setItem(SESSION_KEY,"1"); }catch{}
+      openApp();
+    }else{
+      $("err").style.display="block";
+      $("pw").value="";
+      $("pw").focus();
+    }
+  }
+
+  $("btn").addEventListener("click", doLogin);
+  $("pw").addEventListener("keydown", (e)=>{ if(e.key==="Enter") doLogin(); });
 </script>
-
-<!-- 🔒 APP EM MODO LEITURA -->
-<iframe src="mapa.html"
-  style="width:100%;height:100vh;border:0">
-</iframe>
-
 </body>
 </html>
