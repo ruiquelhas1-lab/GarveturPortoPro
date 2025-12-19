@@ -628,6 +628,7 @@ function colorByState(k){
   return '#A38B63';
 }
 function slugify(s){ return norm(s).replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,''); }
+
 function numFlex(v){
   // Para preços/áreas/valores PT (aceita "1.234,56" e "1234.56")
   if(v===null||v===undefined||v==='') return null;
@@ -649,6 +650,9 @@ function numFlex(v){
   return Number.isFinite(n) ? n : null;
 }
 
+// Compatibilidade: várias partes do código usam numPT()
+function numPT(v){ return numFlex(v); }
+
 function numCoord(v){
   // Para coordenadas: NÃO remove "." (decimal)
   if(v===null||v===undefined||v==='') return null;
@@ -658,6 +662,30 @@ function numCoord(v){
   if(s.includes(',') && !s.includes('.')) s = s.replace(',', '.');
   const n = Number(s);
   return Number.isFinite(n) ? n : null;
+}
+
+/* ===== Cache (localStorage) ===== */
+function cacheSet(data, meta){
+  try{
+    localStorage.setItem(CSV_CACHE_KEY, JSON.stringify(data || []));
+    localStorage.setItem(CSV_CACHE_META_KEY, JSON.stringify(meta || {}));
+  }catch(e){}
+}
+function cacheGet(){
+  try{
+    const raw = localStorage.getItem(CSV_CACHE_KEY);
+    if(!raw) return null;
+    const data = JSON.parse(raw);
+    const metaRaw = localStorage.getItem(CSV_CACHE_META_KEY);
+    const meta = metaRaw ? JSON.parse(metaRaw) : {};
+    return { data, meta };
+  }catch(e){ return null; }
+}
+function cacheClear(){
+  try{
+    localStorage.removeItem(CSV_CACHE_KEY);
+    localStorage.removeItem(CSV_CACHE_META_KEY);
+  }catch(e){}
 }
 
 /* ===== Status bar ===== */
@@ -712,14 +740,12 @@ async function pickWorkingCsvUrl(){
       if(!r.ok) continue;
 
       const ct = (r.headers.get('content-type') || '').toLowerCase();
-      const len = Number(r.headers.get('content-length') || '0');
 
       // Em GH Pages, 404 costuma vir como text/html
       if(ct.includes('text/html')) continue;
 
       // aceitar csv/plain/octet
       if(ct.includes('text/csv') || ct.includes('text/plain') || ct.includes('application/octet-stream') || ct === ''){
-        // se houver length 0, ainda pode ser válido (alguns hosts omitem), não bloqueia
         return url;
       }
     } catch(e){
@@ -751,13 +777,14 @@ function csvToObjects(csvText){
   const parsed = Papa.parse(csvText, { header:true, skipEmptyLines:true, dynamicTyping:false });
   const rows = parsed?.data || [];
   const out = [];
+
   for(const r of rows){
     const lat = numCoord(pick(r, ['_lat','lat','latitude','Lat','LAT']));
-const lng = numCoord(pick(r, ['_lng','lng','lon','longitude','Lng','LNG']));
-if(lat === null || lng === null) continue;
+    const lng = numCoord(pick(r, ['_lng','lng','lon','longitude','Lng','LNG']));
+    if(lat === null || lng === null) continue;
 
-// valida intervalos (evita Leaflet rebentar)
-if(lat < -90 || lat > 90 || lng < -180 || lng > 180) continue;
+    // valida intervalos (evita Leaflet rebentar)
+    if(lat < -90 || lat > 90 || lng < -180 || lng > 180) continue;
 
     const tipoRaw = String(pick(r, ['isEmpreendimento','tipo','Tipo','TIPO'])).toLowerCase();
     const isIso = tipoRaw.includes('iso') || tipoRaw === '0' || tipoRaw === 'false';
@@ -769,9 +796,9 @@ if(lat < -90 || lat > 90 || lng < -180 || lng > 180) continue;
       estado: stateKey(pick(r, ['estado','Estado'])),
       promotor: pick(r, ['promotor','Promotor']),
       tipologias: pick(r, ['tipologias','Tipologias']),
-     conclusaoAno: numFlex(pick(r, ['conclusaoAno','ano','conclusao','Conclusao'])) || '',
-conclusaoMes: numFlex(pick(r, ['conclusaoMes','mes','Mes'])) || '',
-conclusao: numFlex(pick(r, ['conclusao','ano','Conclusao'])) || '',
+      conclusaoAno: numFlex(pick(r, ['conclusaoAno','ano','conclusao','Conclusao','AnoConclusao'])) || '',
+      conclusaoMes: numFlex(pick(r, ['conclusaoMes','mes','Mes','MesConclusao'])) || '',
+      conclusao: numFlex(pick(r, ['conclusao','Conclusao','ano','AnoConclusao'])) || '',
       preco_m2: pick(r, ['preco_m2','precoM2','€/m2','eur_m2']),
       precoPedido: pick(r, ['precoPedido','preco','Preco','Preço']),
       notas: pick(r, ['notas','Notas']),
@@ -804,7 +831,7 @@ async function loadFromCSVWithCache(){
   }
 
   const csvUrl = await getCSVUrl();
-setStatus('A descarregar dataset CSV… ' + csvUrl);
+  setStatus('A descarregar dataset CSV… ' + csvUrl);
 
   // 1) tenta rede
   try{
@@ -1413,7 +1440,7 @@ function mergeAngariacoesIntoRAW(){
     }
   });
 
-  const byAngKey = new Map(RAW.filter(p=>p._angKey).map(p=>[p._angKey, p]));
+  const byAngKey = new Map(RAW.filter(p=>p._angKey).map(p=>[p._angKey, p ]));
 
   deals.forEach(d=>{
     if(!d) return;
@@ -1647,7 +1674,6 @@ async function initData(showMessages=true){
     const res = await loadFromCSVWithCache();
     RAW = res.data || [];
     if(showMessages && res.from==='cache'){
-      // mantém aviso no status por alguns segundos
       setTimeout(()=>setStatus(''), 3500);
     }else{
       setStatus('');
