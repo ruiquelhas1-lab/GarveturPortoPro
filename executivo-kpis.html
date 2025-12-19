@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Garvetur Porto Pro — Executivo (KPIs)</title>
+
+  <style>
+    :root{
+      --gold:#A38B63;
+      --gold-soft:rgba(163,139,99,.35);
+      --bg:#070707;
+      --panel:#111;
+      --panel2:#0D0D0D;
+      --text:#fff;
+      --muted:#A0A0A0;
+      --border:rgba(255,255,255,.12);
+      --radius-lg:18px;
+      --radius-md:12px;
+      --shadow:0 14px 30px rgba(0,0,0,.45);
+    }
+    *{box-sizing:border-box;}
+    html,body{height:100%;margin:0;}
+    body{
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:radial-gradient(circle at top,#1b1b1b 0,#050505 55%,#000 100%);
+      color:var(--text);
+    }
+    header{
+      position:sticky; top:0; z-index:20;
+      display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+      padding:12px 16px;
+      border-bottom:1px solid rgba(163,139,99,.35);
+      background:linear-gradient(90deg,#050505,#111,#050505);
+    }
+    .brand{display:flex; align-items:center; gap:10px;}
+    .brand-icon{
+      width:30px;height:30px;border-radius:999px;
+      border:1px solid var(--gold);
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:0 0 0 1px rgba(163,139,99,.25);
+    }
+    .brand h1{margin:0;font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);}
+    .brand .sub{margin:2px 0 0;font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;}
+    .actions{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+    .btn{
+      border-radius:999px;
+      border:1px solid var(--gold-soft);
+      background:rgba(12,12,12,.9);
+      color:var(--text);
+      padding:8px 12px;
+      font-size:13px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      cursor:pointer;
+      transition:.18s border-color,.18s transform,.18s background;
+      text-decoration:none;
+      user-select:none;
+    }
+    .btn:hover{border-color:var(--gold); transform:translateY(-1px);}
+    .btn.secondary{border-color:rgba(255,255,255,.18); color:var(--muted); background:transparent;}
+    .wrap{max-width:1200px; margin:0 auto; padding:14px 16px 24px;}
+    .grid{
+      display:grid;
+      grid-template-columns: 360px minmax(0,1fr);
+      gap:12px;
+      align-items:start;
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns:1fr;}
+    }
+
+    .card{
+      border-radius:var(--radius-lg);
+      border:1px solid rgba(163,139,99,.26);
+      background:radial-gradient(circle at top left,#171717,#070707);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .card .head{
+      padding:12px 14px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.28);
+      display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    }
+    .card .head .title{
+      font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted);
+      margin:0;
+    }
+    .card .body{padding:12px 14px;}
+
+    .filters .field{margin-top:10px;}
+    .label{
+      font-size:11px;color:var(--muted);
+      letter-spacing:.12em;text-transform:uppercase;
+      margin-bottom:6px;
+    }
+    input[type="date"], select{
+      width:100%;
+      background:rgba(0,0,0,.7);
+      color:var(--text);
+      border-radius:12px;
+      border:1px solid rgba(163,139,99,.22);
+      padding:10px 12px;
+      font-size:14px;
+      outline:none;
+    }
+    input:focus,select:focus{border-color:var(--gold); box-shadow:0 0 0 1px rgba(163,139,99,.35);}
+
+    .kpis{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+    }
+    @media (max-width: 980px){
+      .kpis{grid-template-columns:1fr;}
+    }
+    .kpi{
+      border-radius:var(--radius-md);
+      border:1px solid rgba(163,139,99,.22);
+      background:rgba(5,5,5,.85);
+      padding:10px 12px;
+      box-shadow:0 10px 20px rgba(0,0,0,.45);
+    }
+    .kpi .k{font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;}
+    .kpi .v{font-size:22px;margin-top:6px;font-weight:650;}
+    .kpi .s{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.35;}
+
+    .chart{
+      margin-top:12px;
+      border-radius:var(--radius-lg);
+      border:1px solid rgba(163,139,99,.22);
+      background:rgba(3,3,3,.9);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .chart .head{
+      padding:12px 14px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;
+      background:rgba(0,0,0,.25);
+    }
+    .chart .head .title{
+      font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted); margin:0;
+    }
+    .chart .body{padding:10px 14px 12px;}
+    .row{
+      display:flex; align-items:center; gap:8px;
+      margin:6px 0;
+      font-size:11px; color:var(--muted);
+    }
+    .row .lbl{width:72px; flex-shrink:0;}
+    .bar-wrap{
+      flex:1;
+      background:#101010;
+      border-radius:999px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .bar{
+      height:9px;
+      border-radius:999px;
+      background:linear-gradient(90deg,var(--gold),#f5e1b5);
+      width:0%;
+      transition:.2s width;
+    }
+    .row .val{width:120px; text-align:right; flex-shrink:0;}
+    .muted{color:var(--muted);}
+    .small{font-size:11px; line-height:1.45;}
+    .status{
+      display:none;
+      position:fixed;
+      left:50%; top:10px;
+      transform:translateX(-50%);
+      background:rgba(10,10,10,.92);
+      border:1px solid var(--border);
+      border-radius:999px;
+      padding:6px 12px;
+      font-size:12px;
+      color:var(--muted);
+      z-index:9999;
+      max-width:min(92vw,900px);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .status.show{display:block;}
+    code{color:#ddd;}
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M8 12.5l2.5 2.5L16 9"></path>
+        </svg>
+      </div>
+      <div>
+        <h1>Garvetur Porto Pro — Executivo</h1>
+        <div class="sub">KPIs · Leads (Fecho) + Angariações (Aprovadas)</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn secondary" id="btnFocus90">Últ. 90 dias</button>
+      <button class="btn secondary" id="btnFocus30">Últ. 30 dias</button>
+      <button class="btn" id="btnReload">Recarregar</button>
+      <button class="btn secondary" id="btnCache">Cache</button>
+    </div>
+  </header>
+
+  <div id="status" class="status"></div>
+
+  <div class="wrap">
+    <div class="grid">
+      <!-- FILTROS -->
+      <section class="card filters">
+        <div class="head">
+          <div class="title">Filtros executivos</div>
+          <div class="small muted">Sem detalhe de clientes.</div>
+        </div>
+        <div class="body">
+          <div class="field">
+            <div class="label">Consultor</div>
+            <select id="fConsultor">
+              <option value="">Todos</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <div class="label">Período</div>
+            <div style="display:flex; gap:8px;">
+              <input type="date" id="fDe">
+              <input type="date" id="fAte">
+            </div>
+            <div class="small muted" style="margin-top:8px;">
+              <b>Comissões no período</b> = soma de parcelas (CPCV/Escritura) dentro destas datas.<br>
+              <b>Recebidas</b> = parcelas no período com data até hoje.<br>
+              <b>Por receber</b> = comissões no período − recebidas.
+            </div>
+          </div>
+
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
+            <button class="btn" id="btnApply">Aplicar</button>
+            <button class="btn secondary" id="btnClear">Limpar</button>
+          </div>
+
+          <div class="small muted" style="margin-top:14px; line-height:1.5;">
+            Fonte: <code>data/gpp-leads.json</code> e <code>data/gpp-angariacoes.json</code><br>
+            Nota: Angariações consideradas apenas com estado <b>aprovado</b>.
+          </div>
+        </div>
+      </section>
+
+      <!-- KPI + CHARTS -->
+      <section>
+        <div class="kpis">
+          <div class="kpi">
+            <div class="k">Negócios</div>
+            <div class="v" id="kNegocios">0</div>
+            <div class="s" id="kSplit">Leads (Fecho): 0 · Angariações (Aprovadas): 0</div>
+          </div>
+
+          <div class="kpi">
+            <div class="k">Volume</div>
+            <div class="v" id="kVolume">€ 0</div>
+            <div class="s">Valor do negócio (Leads) + Preço pedido (Angariações aprovadas).</div>
+          </div>
+
+          <div class="kpi">
+            <div class="k">Top consultor</div>
+            <div class="v" id="kTop">—</div>
+            <div class="s" id="kTopSub">Sem dados nos filtros actuais.</div>
+          </div>
+
+          <div class="kpi">
+            <div class="k">Comissões no período</div>
+            <div class="v" id="kComPeriodo">€ 0</div>
+            <div class="s">CPCV + Escritura (parcelas) dentro do período.</div>
+          </div>
+
+          <div class="kpi">
+            <div class="k">Comissões recebidas</div>
+            <div class="v" id="kComRecebidas">€ 0</div>
+            <div class="s">Parcelas no período com data até hoje.</div>
+          </div>
+
+          <div class="kpi">
+            <div class="k">Comissões por receber</div>
+            <div class="v" id="kComPorReceber">€ 0</div>
+            <div class="s">Comissões no período − recebidas.</div>
+          </div>
+        </div>
+
+        <div class="chart" style="margin-top:12px;">
+          <div class="head">
+            <div class="title">Volume mensal (negócios)</div>
+            <div class="small muted" id="volMeta"></div>
+          </div>
+          <div class="body" id="chartVol"></div>
+        </div>
+
+        <div class="chart" style="margin-top:12px;">
+          <div class="head">
+            <div class="title">Comissões mensais (parcelas no período)</div>
+            <div class="small muted" id="comMeta"></div>
+          </div>
+          <div class="body" id="chartCom"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+<script>
+(function(){
+  /* ========= Config ========= */
+  const DATA_LEADS_REL = 'data/gpp-leads.json';
+  const DATA_ANG_REL   = 'data/gpp-angariacoes.json';
+
+  const CACHE_KEY = 'gpp_exec_cache_v1';
+  const CACHE_META_KEY = 'gpp_exec_cache_meta_v1';
+
+  const FILTERS_KEY = 'gpp_exec_filters_v1';
+
+  /* ========= DOM ========= */
+  const el = id => document.getElementById(id);
+  const statusEl = el('status');
+
+  const fConsultor = el('fConsultor');
+  const fDe = el('fDe');
+  const fAte = el('fAte');
+
+  const kNegocios = el('kNegocios');
+  const kSplit = el('kSplit');
+  const kVolume = el('kVolume');
+  const kTop = el('kTop');
+  const kTopSub = el('kTopSub');
+
+  const kComPeriodo = el('kComPeriodo');
+  const kComRecebidas = el('kComRecebidas');
+  const kComPorReceber = el('kComPorReceber');
+
+  const chartVol = el('chartVol');
+  const chartCom = el('chartCom');
+  const volMeta = el('volMeta');
+  const comMeta = el('comMeta');
+
+  /* ========= Helpers ========= */
+  function setStatus(msg){
+    if(!msg){ statusEl.classList.remove('show'); statusEl.textContent=''; return; }
+    statusEl.textContent = msg;
+    statusEl.classList.add('show');
+  }
+
+  function parseNumber(v){
+    if(v==null || v==='') return NaN;
+    // aceita "1.234,56" e "1234.56"
+    let s = String(v).trim().replace(/\s/g,'');
+    const hasComma = s.includes(',');
+    const hasDot = s.includes('.');
+    if(hasComma && hasDot) s = s.replace(/\./g,'').replace(',', '.');
+    else if(hasComma && !hasDot) s = s.replace(',', '.');
+    const n = Number(s);
+    return Number.isFinite(n) ? n : NaN;
+  }
+  function parsePct(v){
+    if(v==null || v==='') return NaN;
+    let s = String(v).replace('%','').trim();
+    s = s.replace(',', '.');
+    const n = Number(s);
+    return Number.isFinite(n) ? n : NaN;
+  }
+  function money(v){
+    const n = Number(v);
+    if(!Number.isFinite(n) || n === 0) return '€ 0';
+    return n.toLocaleString('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+  }
+  function todayISO(){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return y+'-'+m+'-'+day;
+  }
+  function monthKeyFromISO(dateStr){
+    const d = new Date(dateStr);
+    if(isNaN(d.getTime())) return '';
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+  }
+  function monthLabel(key){ // YYYY-MM -> MM/YY
+    const [y,m] = key.split('-');
+    return (m||'--') + '/' + String(y||'').slice(-2);
+  }
+  // procura campos com token (ex.: "cpcv", "escritura")
+  function findDateWithToken(objs, token){
+    const re = /^\d{4}-\d{2}-\d{2}$/;
+    const tk = String(token).toLowerCase();
+    for(const obj of objs){
+      if(!obj || typeof obj!=='object') continue;
+      for(const k of Object.keys(obj)){
+        const lk = k.toLowerCase();
+        if(lk.includes(tk)){
+          const v = obj[k];
+          if(typeof v === 'string' && re.test(v.trim())) return v.trim();
+        }
+      }
+    }
+    return '';
+  }
+
+  function guessRepoName(){
+    const parts = (location.pathname || '').split('/').filter(Boolean);
+    return parts.length ? parts[0] : '';
+  }
+  function buildCandidateUrls(rel){
+    const repo = guessRepoName();
+    const base = location.origin;
+
+    const list = [
+      new URL('./' + rel, location.href).toString(),
+      new URL('/' + rel, base).toString(),
+    ];
+    if(location.hostname.endsWith('github.io') && repo){
+      list.unshift(new URL('/' + repo + '/' + rel, base).toString());
+    }
+    return [...new Set(list)];
+  }
+
+  async function pickWorkingUrl(rel){
+    const candidates = buildCandidateUrls(rel);
+    for(const url of candidates){
+      try{
+        const r = await fetch(url, { method:'HEAD', cache:'no-store' });
+        if(!r.ok) continue;
+        const ct = (r.headers.get('content-type') || '').toLowerCase();
+        if(ct.includes('text/html')) continue; // 404 GH pages
+        return url;
+      }catch{}
+    }
+    return candidates[0];
+  }
+  async function fetchJsonSmart(rel){
+    const url = await pickWorkingUrl(rel);
+    const u = new URL(url);
+    u.searchParams.set('v', String(Date.now()));
+    const r = await fetch(u.toString(), { cache:'no-store' });
+    if(!r.ok) throw new Error('HTTP ' + r.status + ' em ' + rel);
+    return await r.json();
+  }
+
+  function cacheSet(payload, meta){
+    try{
+      localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
+      localStorage.setItem(CACHE_META_KEY, JSON.stringify(meta||{}));
+    }catch{}
+  }
+  function cacheGet(){
+    try{
+      const raw = localStorage.getItem(CACHE_KEY);
+      const meta = localStorage.getItem(CACHE_META_KEY);
+      return raw ? { data: JSON.parse(raw), meta: meta ? JSON.parse(meta) : {} } : null;
+    }catch{return null;}
+  }
+  function cacheClear(){
+    try{ localStorage.removeItem(CACHE_KEY); localStorage.removeItem(CACHE_META_KEY); }catch{}
+  }
+
+  /* ========= Data model ========= */
+  let LEADS = [];
+  let ANGS = [];
+
+  let FILTERS = { consultor:'', de:'', ate:'' };
+
+  function saveFilters(){
+    try{ localStorage.setItem(FILTERS_KEY, JSON.stringify(FILTERS)); }catch{}
+  }
+  function loadFilters(){
+    try{
+      const raw = localStorage.getItem(FILTERS_KEY);
+      if(!raw) return;
+      const obj = JSON.parse(raw);
+      FILTERS.consultor = obj.consultor || '';
+      FILTERS.de = obj.de || '';
+      FILTERS.ate = obj.ate || '';
+    }catch{}
+  }
+
+  function setLastNDays(n){
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - n);
+
+    const toISO = (d)=>{
+      const y=d.getFullYear();
+      const m=String(d.getMonth()+1).padStart(2,'0');
+      const day=String(d.getDate()).padStart(2,'0');
+      return y+'-'+m+'-'+day;
+    };
+    FILTERS.de = toISO(start);
+    FILTERS.ate = toISO(end);
+    fDe.value = FILTERS.de;
+    fAte.value = FILTERS.ate;
+    saveFilters();
+  }
+
+  function normaliseLeads(raw){
+    // esperado: array (backup do kanban)
+    if(!Array.isArray(raw)) return [];
+    return raw;
+  }
+  function normaliseAng(raw){
+    // esperado: object com deals[] (ou array)
+    if(Array.isArray(raw)) return raw;
+    if(raw && Array.isArray(raw.deals)) return raw.deals;
+    return [];
+  }
+
+  function buildNegocios(){
+    const list = [];
+
+    // Leads em Fecho
+    LEADS.forEach(l=>{
+      if(!l || l.estado !== 'Fecho') return;
+
+      const valorNegocio = parseNumber(l.fecho_negocio || l.valor || 0);
+      const fechoObj = l.fecho || {};
+
+      const comissaoPctStr = (l.fecho_comissao_pct!=='' && l.fecho_comissao_pct!=null)
+        ? String(l.fecho_comissao_pct)
+        : (fechoObj.comissaoPct ? String(fechoObj.comissaoPct) : '');
+
+      const pctNum = parsePct(comissaoPctStr);
+      const comissaoTotal = Number.isFinite(pctNum) && Number.isFinite(valorNegocio)
+        ? (valorNegocio * pctNum / 100)
+        : 0;
+
+      const dataCpcv = findDateWithToken([l, fechoObj], 'cpcv');
+      const dataEsc  = findDateWithToken([l, fechoObj], 'escritura');
+      const dataFecho = dataCpcv || dataEsc || (l.data || '');
+
+      list.push({
+        tipo:'lead',
+        consultor: l.consultor || '',
+        data: dataFecho || '',
+        valor: Number.isFinite(valorNegocio) ? valorNegocio : 0,
+        comissaoPct: comissaoPctStr || '',
+        comissaoTotal: comissaoTotal || 0,
+        dataCpcv: dataCpcv || '',
+        dataEscritura: dataEsc || '',
+        visivel: l.visivel !== false
+      });
+    });
+
+    // Angariações APENAS aprovadas
+    ANGS.forEach(a=>{
+      if(!a) return;
+
+      const estado = String(a.estadoAng || a.estado || '').toLowerCase();
+      if(estado !== 'aprovado') return;
+
+      const precoPedido = parseNumber(a.precoPedido || 0);
+
+      list.push({
+        tipo:'ang',
+        consultor: a.consultor || '',
+        data: a.dataAngariacao || a.data || '',
+        valor: Number.isFinite(precoPedido) ? precoPedido : 0,
+        comissaoPct: '',      // neste executivo focamos comissões das LEADS (timeline CPCV/Escritura)
+        comissaoTotal: 0,
+        dataCpcv:'',
+        dataEscritura:'',
+        visivel: a.visible !== false
+      });
+    });
+
+    // ordem desc por data (string ISO)
+    list.sort((a,b)=> (b.data||'').localeCompare(a.data||''));
+    return list;
+  }
+
+  function withinRange(dateStr){
+    if(!dateStr) return true; // se não tiver data, não bloqueia
+    if(FILTERS.de && dateStr < FILTERS.de) return false;
+    if(FILTERS.ate && dateStr > FILTERS.ate) return false;
+    return true;
+  }
+
+  function applyFilters(negocios){
+    return negocios.filter(n=>{
+      if(FILTERS.consultor && n.consultor !== FILTERS.consultor) return false;
+      if(n.data && !withinRange(n.data)) return false;
+      // para executivo, ignoramos invisíveis por padrão? Mantemos apenas visíveis:
+      if(n.visivel === false) return false;
+      return true;
+    });
+  }
+
+  function populateConsultores(negocios){
+    const set = new Set();
+    negocios.forEach(n=>{ if(n.consultor) set.add(n.consultor); });
+    const current = FILTERS.consultor || '';
+    fConsultor.innerHTML = '<option value="">Todos</option>';
+    Array.from(set).sort().forEach(name=>{
+      const opt=document.createElement('option');
+      opt.value=name; opt.textContent=name;
+      fConsultor.appendChild(opt);
+    });
+    if(current && set.has(current)) fConsultor.value = current;
+  }
+
+  /* ========= KPI / Charts ========= */
+  function renderKPIs(lista){
+    const total = lista.length;
+    const totalLead = lista.filter(x=>x.tipo==='lead').length;
+    const totalAng  = lista.filter(x=>x.tipo==='ang').length;
+
+    kNegocios.textContent = total;
+    kSplit.textContent = `Leads (Fecho): ${totalLead} · Angariações (Aprovadas): ${totalAng}`;
+
+    const volume = lista.reduce((acc,x)=> acc + (x.valor||0), 0);
+    kVolume.textContent = money(volume);
+
+    // top consultor por volume total
+    const by = {};
+    lista.forEach(n=>{
+      if(!n.consultor) return;
+      by[n.consultor] = (by[n.consultor]||0) + (n.valor||0);
+    });
+    const top = Object.entries(by).sort((a,b)=>b[1]-a[1])[0];
+    if(!top){
+      kTop.textContent='—';
+      kTopSub.textContent='Sem dados nos filtros actuais.';
+    }else{
+      kTop.textContent=top[0];
+      kTopSub.textContent=money(top[1]) + ' em volume (negócios filtrados).';
+    }
+  }
+
+  // volume mensal de NEGÓCIOS (leads+ang) dentro dos filtros
+  function renderChartVolume(lista){
+    chartVol.innerHTML='';
+    const mapa = {};
+    lista.forEach(n=>{
+      if(!n.data) return;
+      const key = monthKeyFromISO(n.data);
+      if(!key) return;
+      mapa[key] = (mapa[key]||0) + (n.valor||0);
+    });
+    const entries = Object.entries(mapa).sort((a,b)=>a[0].localeCompare(b[0]));
+    if(!entries.length){
+      chartVol.innerHTML = '<div class="small muted">Sem dados de datas para gráfico.</div>';
+      volMeta.textContent = '';
+      return;
+    }
+    const max = Math.max(...entries.map(e=>e[1]));
+    volMeta.textContent = `Meses: ${entries.length}`;
+    entries.forEach(([k,v])=>{
+      const row=document.createElement('div');
+      row.className='row';
+      row.innerHTML = `
+        <div class="lbl">${monthLabel(k)}</div>
+        <div class="bar-wrap"><div class="bar" style="width:${(max>0?(v/max*100):0).toFixed(1)}%"></div></div>
+        <div class="val">${money(v)}</div>
+      `;
+      chartVol.appendChild(row);
+    });
+  }
+
+  // comissões mensais: SOMA PARCELAS (CPCV/Escritura) que caem no período filtrado
+  function renderChartComissoes(lista){
+    chartCom.innerHTML='';
+    const hoje = todayISO();
+
+    // apenas leads com comissão total > 0
+    const leads = lista.filter(n=> n.tipo==='lead' && (n.comissaoTotal||0) > 0);
+
+    const mapaMes = {}; // YYYY-MM -> total parcelas
+    let totalPeriodo = 0;
+    let totalRecebidas = 0;
+
+    function addParcela(dateStr, valor){
+      if(!dateStr || !valor || valor<=0) return;
+      // parcelas contam apenas se estiverem dentro do período
+      if(FILTERS.de && dateStr < FILTERS.de) return;
+      if(FILTERS.ate && dateStr > FILTERS.ate) return;
+
+      const key = monthKeyFromISO(dateStr);
+      if(!key) return;
+
+      mapaMes[key] = (mapaMes[key]||0) + valor;
+
+      totalPeriodo += valor;
+      if(dateStr <= hoje) totalRecebidas += valor;
+    }
+
+    leads.forEach(n=>{
+      const total = n.comissaoTotal || 0;
+      if(total<=0) return;
+
+      const hasCpcv = !!n.dataCpcv;
+      const hasEsc  = !!n.dataEscritura;
+
+      if(hasCpcv && hasEsc){
+        addParcela(n.dataCpcv, total/2);
+        addParcela(n.dataEscritura, total/2);
+      }else if(hasCpcv && !hasEsc){
+        addParcela(n.dataCpcv, total);
+      }else if(!hasCpcv && hasEsc){
+        addParcela(n.dataEscritura, total);
+      }else{
+        // fallback: usa data do fecho
+        if(n.data) addParcela(n.data, total);
+      }
+    });
+
+    const totalPorReceber = Math.max(0, totalPeriodo - totalRecebidas);
+
+    kComPeriodo.textContent = money(totalPeriodo);
+    kComRecebidas.textContent = money(totalRecebidas);
+    kComPorReceber.textContent = money(totalPorReceber);
+
+    const entries = Object.entries(mapaMes).sort((a,b)=>a[0].localeCompare(b[0]));
+    if(!entries.length){
+      chartCom.innerHTML = '<div class="small muted">Sem parcelas de comissão no período seleccionado.</div>';
+      comMeta.textContent = '';
+      return;
+    }
+    const max = Math.max(...entries.map(e=>e[1]));
+    comMeta.textContent = `Meses com comissões: ${entries.length}`;
+    entries.forEach(([k,v])=>{
+      const row=document.createElement('div');
+      row.className='row';
+      row.innerHTML = `
+        <div class="lbl">${monthLabel(k)}</div>
+        <div class="bar-wrap"><div class="bar" style="width:${(max>0?(v/max*100):0).toFixed(1)}%"></div></div>
+        <div class="val">${money(v)}</div>
+      `;
+      chartCom.appendChild(row);
+    });
+  }
+
+  function applyAndRender(){
+    const negocios = buildNegocios();
+    populateConsultores(negocios);
+
+    const filtered = applyFilters(negocios);
+
+    renderKPIs(filtered);
+    renderChartVolume(filtered);
+    renderChartComissoes(filtered);
+  }
+
+  /* ========= Cache Modal (simples) ========= */
+  function showCacheInfo(){
+    const c = cacheGet();
+    const meta = c?.meta || {};
+    const when = meta.at ? new Date(meta.at).toLocaleString('pt-PT') : '—';
+    const msg =
+      'Cache Executivo:\n' +
+      '• Estado: ' + (c?.data ? 'existe' : 'sem cache') + '\n' +
+      '• Última actualização: ' + when + '\n' +
+      '• Leads: ' + (meta.leadsCount ?? '—') + '\n' +
+      '• Angariações: ' + (meta.angCount ?? '—');
+    alert(msg);
+  }
+
+  /* ========= Init ========= */
+  async function init(){
+    setStatus('A carregar dados (executivo)…');
+
+    // filtros
+    loadFilters();
+    if(FILTERS.de) fDe.value = FILTERS.de;
+    if(FILTERS.ate) fAte.value = FILTERS.ate;
+
+    try{
+      const [rawLeads, rawAng] = await Promise.all([
+        fetchJsonSmart(DATA_LEADS_REL),
+        fetchJsonSmart(DATA_ANG_REL)
+      ]);
+
+      LEADS = normaliseLeads(rawLeads);
+      ANGS  = normaliseAng(rawAng);
+
+      cacheSet({leads:LEADS, angs:ANGS}, { at: Date.now(), leadsCount: LEADS.length, angCount: ANGS.length });
+
+      setStatus('');
+      applyAndRender();
+    }catch(e){
+      console.warn(e);
+      const cached = cacheGet();
+      if(cached?.data?.leads && cached?.data?.angs){
+        LEADS = cached.data.leads;
+        ANGS  = cached.data.angs;
+        setStatus('⚠ Sem rede ou ficheiro indisponível. A usar cache local.');
+        setTimeout(()=>setStatus(''), 3200);
+        applyAndRender();
+      }else{
+        setStatus('⚠ Não foi possível carregar os dados e não existe cache local.');
+      }
+    }
+  }
+
+  /* ========= Events ========= */
+  el('btnReload').addEventListener('click', ()=>location.reload());
+  el('btnCache').addEventListener('click', ()=>showCacheInfo());
+
+  el('btnApply').addEventListener('click', ()=>{
+    FILTERS.consultor = fConsultor.value || '';
+    FILTERS.de = fDe.value || '';
+    FILTERS.ate = fAte.value || '';
+    saveFilters();
+    applyAndRender();
+  });
+
+  el('btnClear').addEventListener('click', ()=>{
+    FILTERS = { consultor:'', de:'', ate:'' };
+    fConsultor.value='';
+    fDe.value='';
+    fAte.value='';
+    saveFilters();
+    applyAndRender();
+  });
+
+  el('btnFocus90').addEventListener('click', ()=>{
+    setLastNDays(90);
+    applyAndRender();
+  });
+  el('btnFocus30').addEventListener('click', ()=>{
+    setLastNDays(30);
+    applyAndRender();
+  });
+
+  init();
+})();
+</script>
+</body>
+</html>
