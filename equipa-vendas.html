@@ -29,17 +29,9 @@
       background:radial-gradient(circle at top,#1c1c1c 0,#050505 55%,#000 100%);
       color:var(--text);
     }
-    body{
-      display:flex;
-      flex-direction:column;
-    }
-    .app-shell{
-      display:grid;
-      grid-template-rows:64px auto;
-      height:100%;
-    }
+    body{ display:flex; flex-direction:column; }
+    .app-shell{ display:grid; grid-template-rows:64px auto; height:100%; }
 
-    /* HEADER */
     header.app-header{
       display:flex;
       align-items:center;
@@ -53,56 +45,22 @@
       gap:16px;
       flex-wrap:wrap;
     }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
+    .brand{ display:flex; align-items:center; gap:10px; }
     .brand-icon{
-      width:26px;
-      height:26px;
-      border-radius:999px;
-      border:1px solid var(--gold);
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      width:26px;height:26px;border-radius:999px;border:1px solid var(--gold);
+      display:flex;align-items:center;justify-content:center;
       box-shadow:0 0 0 1px rgba(163,139,99,.3);
     }
-    .brand h1{
-      margin:0;
-      font-size:17px;
-      letter-spacing:.04em;
-      text-transform:uppercase;
-      color:var(--gold);
-    }
-    .brand span.sub{
-      display:block;
-      font-size:11px;
-      color:var(--muted);
-      letter-spacing:.12em;
-      text-transform:uppercase;
-    }
+    .brand h1{ margin:0; font-size:17px; letter-spacing:.04em; text-transform:uppercase; color:var(--gold); }
+    .brand span.sub{ display:block; font-size:11px; color:var(--muted); letter-spacing:.12em; text-transform:uppercase; }
 
     .readonly-badge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:6px 10px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.16);
-      background:rgba(0,0,0,.35);
-      color:var(--muted);
-      font-size:11px;
-      letter-spacing:.14em;
-      text-transform:uppercase;
-      white-space:nowrap;
+      display:inline-flex; align-items:center; gap:8px; padding:6px 10px;
+      border-radius:999px; border:1px solid rgba(255,255,255,.16);
+      background:rgba(0,0,0,.35); color:var(--muted);
+      font-size:11px; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap;
     }
-    .header-actions{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      flex-wrap:wrap;
-    }
+    .header-actions{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
     .btn{
       border-radius:999px;
       border:1px solid var(--gold-soft);
@@ -117,17 +75,9 @@
       transition:.18s border-color,.18s background,.18s transform;
       text-decoration:none;
     }
-    .btn:hover{
-      border-color:var(--gold);
-      transform:translateY(-1px);
-    }
-    .btn.secondary{
-      border-color:rgba(255,255,255,.18);
-      color:var(--muted);
-      background:transparent;
-    }
+    .btn:hover{ border-color:var(--gold); transform:translateY(-1px); }
+    .btn.secondary{ border-color:rgba(255,255,255,.18); color:var(--muted); background:transparent; }
 
-    /* LAYOUT MAIN */
     .layout{
       display:grid;
       grid-template-columns:300px minmax(0,1fr);
@@ -136,15 +86,9 @@
       overflow:hidden;
     }
     @media (max-width: 960px){
-      .layout{
-        grid-template-columns:1fr;
-        grid-template-rows:auto auto;
-        height:auto;
-        max-height:none;
-      }
+      .layout{ grid-template-columns:1fr; grid-template-rows:auto auto; height:auto; max-height:none; }
     }
 
-    /* SIDEBAR */
     .sidebar{
       border-right:1px solid rgba(163,139,99,.24);
       background:radial-gradient(circle at top left,#141414,#060606);
@@ -170,21 +114,9 @@
       font-size:12px;
       color:var(--muted);
     }
-    .field{
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-      margin-bottom:8px;
-    }
-    label.field-label{
-      font-size:11px;
-      color:var(--muted);
-      text-transform:uppercase;
-      letter-spacing:.12em;
-    }
-    input[type="text"],
-    input[type="date"],
-    select{
+    .field{ display:flex; flex-direction:column; gap:4px; margin-bottom:8px; }
+    label.field-label{ font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.12em; }
+    input[type="text"], input[type="date"], select{
       background:rgba(0,0,0,.7);
       color:var(--text);
       border-radius:10px;
@@ -194,63 +126,22 @@
       outline:none;
       width:100%;
     }
-    input:focus, select:focus{
-      border-color:var(--gold);
-      box-shadow:0 0 0 1px rgba(163,139,99,.35);
-    }
-    .checks{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      margin-top:4px;
-      font-size:12px;
-      color:var(--muted);
-    }
-    .checks label{
-      display:flex;
-      align-items:center;
-      gap:6px;
-    }
-    .checks input{
-      accent-color:var(--gold);
-    }
+    input:focus, select:focus{ border-color:var(--gold); box-shadow:0 0 0 1px rgba(163,139,99,.35); }
+    .checks{ display:flex; flex-direction:column; gap:6px; margin-top:4px; font-size:12px; color:var(--muted); }
+    .checks label{ display:flex; align-items:center; gap:6px; }
+    .checks input{ accent-color:var(--gold); }
 
-    /* MAIN AREA */
     .main-area{
       padding:14px 16px 18px;
       overflow-y:auto;
       background:radial-gradient(circle at top,#1a1a1a,#050505 55%,#000 100%);
     }
-    .main-header{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:10px;
-      margin-bottom:10px;
-      flex-wrap:wrap;
-    }
-    .main-header h2{
-      margin:0;
-      font-size:15px;
-      letter-spacing:.16em;
-      text-transform:uppercase;
-      color:var(--muted);
-    }
-    .main-header p{
-      margin:2px 0 0;
-      font-size:12px;
-      color:var(--muted);
-    }
+    .main-header{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+    .main-header h2{ margin:0; font-size:15px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); }
+    .main-header p{ margin:2px 0 0; font-size:12px; color:var(--muted); }
 
-    .kpi-row{
-      display:grid;
-      grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:10px;
-      margin-top:8px;
-    }
-    @media (max-width: 960px){
-      .kpi-row{ grid-template-columns:1fr; }
-    }
+    .kpi-row{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:8px; }
+    @media (max-width: 960px){ .kpi-row{ grid-template-columns:1fr; } }
     .kpi-card{
       border-radius:var(--radius-md);
       border:1px solid rgba(163,139,99,.22);
@@ -258,24 +149,10 @@
       padding:8px 10px;
       box-shadow:0 10px 20px rgba(0,0,0,.5);
     }
-    .kpi-label{
-      font-size:11px;
-      color:var(--muted);
-      text-transform:uppercase;
-      letter-spacing:.12em;
-    }
-    .kpi-value{
-      font-size:18px;
-      margin-top:4px;
-      font-weight:600;
-    }
-    .kpi-sub{
-      font-size:11px;
-      color:var(--muted);
-      margin-top:2px;
-    }
+    .kpi-label{ font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.12em; }
+    .kpi-value{ font-size:18px; margin-top:4px; font-weight:600; }
+    .kpi-sub{ font-size:11px; color:var(--muted); margin-top:2px; }
 
-    /* CHART */
     .chart{
       margin-top:12px;
       border-radius:var(--radius-md);
@@ -299,20 +176,9 @@
       color:var(--muted);
       cursor:pointer;
     }
-    .chart-row.selected{
-      background:rgba(163,139,99,.12);
-      border-radius:8px;
-    }
-    .chart-label{
-      width:70px;
-      flex-shrink:0;
-    }
-    .chart-bar-wrap{
-      flex:1;
-      background:#101010;
-      border-radius:999px;
-      overflow:hidden;
-    }
+    .chart-row.selected{ background:rgba(163,139,99,.12); border-radius:8px; }
+    .chart-label{ width:70px; flex-shrink:0; }
+    .chart-bar-wrap{ flex:1; background:#101010; border-radius:999px; overflow:hidden; }
     .chart-bar{
       height:8px;
       border-radius:999px;
@@ -320,32 +186,11 @@
       width:0%;
       transition:.2s width;
     }
-    .chart-value{
-      width:80px;
-      text-align:right;
-      flex-shrink:0;
-    }
-    .chart-empty{
-      font-size:11px;
-      color:var(--muted);
-      margin-top:4px;
-    }
+    .chart-value{ width:80px; text-align:right; flex-shrink:0; }
+    .chart-empty{ font-size:11px; color:var(--muted); margin-top:4px; }
 
-    .section-title{
-      margin-top:14px;
-      font-size:12px;
-      text-transform:uppercase;
-      letter-spacing:.14em;
-      color:var(--muted);
-    }
-
-    .cards-grid{
-      margin-top:6px;
-      display:grid;
-      grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
-      gap:10px;
-    }
-
+    .section-title{ margin-top:14px; font-size:12px; text-transform:uppercase; letter-spacing:.14em; color:var(--muted); }
+    .cards-grid{ margin-top:6px; display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:10px; }
     .card{
       border-radius:var(--radius-lg);
       border:1px solid rgba(163,139,99,.32);
@@ -355,41 +200,14 @@
       display:flex;
       flex-direction:column;
       gap:6px;
-      cursor:default; /* equipa: sem navegação */
+      cursor:default;
     }
-    .card.hidden{
-      opacity:.45;
-      border-style:dashed;
-    }
+    .card.hidden{ opacity:.45; border-style:dashed; }
+    .card-top{ display:flex; justify-content:space-between; gap:8px; }
+    .card-title{ font-size:14px; font-weight:600; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .card-sub{ font-size:11px; color:var(--muted); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-    .card-top{
-      display:flex;
-      justify-content:space-between;
-      gap:8px;
-    }
-    .card-title{
-      font-size:14px;
-      font-weight:600;
-      margin:0;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .card-sub{
-      font-size:11px;
-      color:var(--muted);
-      margin-top:1px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-
-    .chip-row{
-      display:flex;
-      flex-wrap:wrap;
-      gap:4px;
-      margin-top:4px;
-    }
+    .chip-row{ display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
     .chip{
       border-radius:999px;
       padding:2px 7px;
@@ -400,54 +218,18 @@
       text-transform:uppercase;
       letter-spacing:.08em;
     }
-    .chip-gold{
-      border-color:var(--gold);
-      color:var(--gold);
-    }
-    .chip-green{
-      border-color:rgba(76,175,80,.7);
-      color:#A5D6A7;
-    }
+    .chip-gold{ border-color:var(--gold); color:var(--gold); }
+    .chip-green{ border-color:rgba(76,175,80,.7); color:#A5D6A7; }
 
-    .card-section{
-      border-top:1px solid rgba(163,139,99,.18);
-      padding-top:4px;
-      margin-top:2px;
-      font-size:12px;
-      color:var(--muted);
-    }
-    .card-section strong{
-      color:#f5f5f5;
-      font-weight:500;
-    }
+    .card-section{ border-top:1px solid rgba(163,139,99,.18); padding-top:4px; margin-top:2px; font-size:12px; color:var(--muted); }
+    .card-section strong{ color:#f5f5f5; font-weight:500; }
 
-    .card-footer{
-      margin-top:4px;
-      display:flex;
-      justify-content:space-between;
-      font-size:11px;
-      color:var(--muted);
-      gap:6px;
-      flex-wrap:wrap;
-    }
+    .card-footer{ margin-top:4px; display:flex; justify-content:space-between; font-size:11px; color:var(--muted); gap:6px; flex-wrap:wrap; }
+    .empty{ font-size:12px; color:var(--muted); margin-top:16px; }
 
-    .empty{
-      font-size:12px;
-      color:var(--muted);
-      margin-top:16px;
-    }
-
-    /* ===== Login Overlay ===== */
     .auth-backdrop{
-      position:fixed;
-      inset:0;
-      background:rgba(0,0,0,.72);
-      backdrop-filter:blur(2px);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      z-index:99999;
-      padding:16px;
+      position:fixed; inset:0; background:rgba(0,0,0,.72); backdrop-filter:blur(2px);
+      display:none; align-items:center; justify-content:center; z-index:99999; padding:16px;
     }
     .auth-backdrop.show{display:flex;}
     .auth-card{
@@ -468,57 +250,25 @@
       background:linear-gradient(90deg,#050505,#111,#050505);
     }
     .auth-head .title{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      color:var(--gold);
-      font-weight:700;
-      letter-spacing:.06em;
-      text-transform:uppercase;
-      font-size:12px;
+      display:flex; align-items:center; gap:10px; color:var(--gold);
+      font-weight:700; letter-spacing:.06em; text-transform:uppercase; font-size:12px;
     }
-    .auth-body{
-      padding:14px 14px 12px;
-    }
-    .auth-body p{
-      margin:0 0 10px;
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.45;
-    }
-    .auth-row{
-      display:flex;
-      gap:8px;
-      margin-top:10px;
-      flex-wrap:wrap;
-    }
+    .auth-body{ padding:14px 14px 12px; }
+    .auth-body p{ margin:0 0 10px; color:var(--muted); font-size:12px; line-height:1.45; }
+    .auth-row{ display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
     .auth-input{
-      flex:1;
-      min-width:220px;
-      background:rgba(0,0,0,.7);
-      color:var(--text);
-      border-radius:12px;
-      border:1px solid rgba(163,139,99,.26);
-      padding:10px 12px;
-      font-size:14px;
-      outline:none;
+      flex:1; min-width:220px;
+      background:rgba(0,0,0,.7); color:var(--text);
+      border-radius:12px; border:1px solid rgba(163,139,99,.26);
+      padding:10px 12px; font-size:14px; outline:none;
     }
-    .auth-input:focus{
-      border-color:var(--gold);
-      box-shadow:0 0 0 1px rgba(163,139,99,.35);
-    }
-    .auth-msg{
-      margin-top:10px;
-      font-size:12px;
-      color:var(--danger);
-      display:none;
-    }
+    .auth-input:focus{ border-color:var(--gold); box-shadow:0 0 0 1px rgba(163,139,99,.35); }
+    .auth-msg{ margin-top:10px; font-size:12px; color:var(--danger); display:none; }
     .auth-msg.show{display:block;}
   </style>
 </head>
 <body>
 
-<!-- Login obrigatório -->
 <div id="authBackdrop" class="auth-backdrop" role="dialog" aria-modal="true" aria-label="Login Equipa">
   <div class="auth-card">
     <div class="auth-head">
@@ -570,8 +320,16 @@
   </header>
 
   <div class="layout">
-    <!-- SIDEBAR -->
     <aside class="sidebar">
+
+      <!-- Diagnóstico -->
+      <div class="sidebar-section">
+        <h3>Diagnóstico</h3>
+        <div id="diagBox" style="font-size:12px;color:var(--muted);line-height:1.5;">
+          A verificar dados…
+        </div>
+      </div>
+
       <div class="sidebar-section">
         <h3>Filtros</h3>
         <div class="field">
@@ -616,7 +374,6 @@
       </div>
     </aside>
 
-    <!-- MAIN -->
     <main class="main-area">
       <div class="main-header">
         <div>
@@ -642,20 +399,17 @@
         </div>
       </div>
 
-      <!-- Chart Volume Negócios -->
       <div class="chart">
         <div class="chart-title">Volume mensal de negócios (todos os consultores)</div>
         <div id="chartContainer"></div>
       </div>
 
-      <!-- Cronologia de Recebimentos -->
       <div class="chart">
         <div class="chart-title">Cronologia de recebimentos (comissões)</div>
         <div id="chartComissoes"></div>
         <div id="chartComissoesDetalhe" style="margin-top:8px;font-size:11px;color:var(--muted);"></div>
       </div>
 
-      <!-- Resumo de Comissões -->
       <div class="chart">
         <div class="chart-title">Resumo de comissões</div>
         <div class="kpi-row">
@@ -677,7 +431,6 @@
         </div>
       </div>
 
-      <!-- Secções separadas -->
       <h3 class="section-title">Negócios fechados (Leads)</h3>
       <div id="cardsLeadsGrid" class="cards-grid"></div>
 
@@ -750,11 +503,6 @@
 
 <script>
 (function(){
-  const TEAM_READONLY = true;
-
-  const LS_LEADS_KEY = 'gpp_leads_v5';
-  const LS_ANG_KEY   = 'gpp_angariacoes_v2';
-
   const LS_VENDAS_FILTERS_KEY = 'gpp_vendas_filters_v1';
   const LS_GLOBAL_FILTERS_KEY = 'gpp_filtros_globais';
 
@@ -782,33 +530,109 @@
   const applyFiltersBtn = document.getElementById('applyFiltersBtn');
   const clearFiltersBtn = document.getElementById('clearFiltersBtn');
 
-  // KPI de comissões
   const kpiComPeriodo   = document.getElementById('kpiComPeriodo');
   const kpiComRecebido  = document.getElementById('kpiComRecebido');
   const kpiComPorReceber = document.getElementById('kpiComPorReceber');
 
-  let NEGOCIOS = []; // lista combinada
-  let COMISSOES_DETALHE_MAP = {}; // por mês (YYYY-MM) -> lista de parcelas
-  let COMISSOES_RESUMO = { totalPeriodo:0, totalRecebido:0, totalPorReceber:0 };
-  let FILTERS = {
-    consultor:'',
-    origem:'',
-    de:'',
-    ate:'',
-    incluirInvisiveis:false
-  };
+  const diagBox = document.getElementById('diagBox');
 
-  /* ===== Storage filtros globais/locais ===== */
+  let NEGOCIOS = [];
+  let COMISSOES_DETALHE_MAP = {};
+  let COMISSOES_RESUMO = { totalPeriodo:0, totalRecebido:0, totalPorReceber:0 };
+  let FILTERS = { consultor:'', origem:'', de:'', ate:'', incluirInvisiveis:false };
+
+  /* ===== Helpers ===== */
+  const norm = (s)=> String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+
+  function parseNumber(v){
+    if(v==null || v==='') return NaN;
+    let s = String(v).trim();
+    // robusto PT/EN: "1.234,56" ou "1234.56"
+    const hasComma = s.includes(',');
+    const hasDot = s.includes('.');
+    s = s.replace(/\s/g,'');
+    if(hasComma && hasDot){ s = s.replace(/\./g,'').replace(',', '.'); }
+    else if(hasComma && !hasDot){ s = s.replace(',', '.'); }
+    const n = Number(s);
+    return Number.isFinite(n) ? n : NaN;
+  }
+  function parsePct(v){
+    if(v==null || v==='') return NaN;
+    let s = String(v).trim().replace('%','');
+    s = s.replace(/\s/g,'');
+    if(s.includes(',') && !s.includes('.')) s = s.replace(',', '.');
+    const n = Number(s);
+    return Number.isFinite(n) ? n : NaN;
+  }
+  function formatMoney(v){
+    const n = Number(v);
+    if(!Number.isFinite(n) || n === 0) return '€ 0';
+    return n.toLocaleString('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+  }
+  function formatDate(d){
+    if(!d) return '—';
+    try{
+      const dt = new Date(d);
+      if(Number.isNaN(dt.getTime())) return d;
+      return dt.toLocaleDateString('pt-PT');
+    }catch{return d;}
+  }
+  function todayISO(){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return y + '-' + m + '-' + day;
+  }
+
+  function findDateWithToken(objs, token){
+    const re = /^\d{4}-\d{2}-\d{2}$/;
+    const tk = String(token).toLowerCase();
+    for(const obj of objs){
+      if(!obj || typeof obj!=='object') continue;
+      for(const k of Object.keys(obj)){
+        const lk = k.toLowerCase();
+        if(lk.includes(tk)){
+          const v = obj[k];
+          if(typeof v === 'string' && re.test(v.trim())) return v.trim();
+        }
+      }
+    }
+    return '';
+  }
+
+  /* ===== Storage: procura keys por prefixo ===== */
+  function lsKeys(){
+    try{ return Object.keys(localStorage); }catch{ return []; }
+  }
+  function pickKeyByCandidates(cands){
+    const keys = lsKeys();
+    for(const c of cands){
+      if(keys.includes(c)) return c;
+    }
+    return '';
+  }
+  function pickLatestByPrefix(prefix){
+    // Ex.: prefix "gpp_leads_v" -> escolhe a maior versão existente
+    const keys = lsKeys().filter(k=>k.startsWith(prefix));
+    if(!keys.length) return '';
+    const withV = keys
+      .map(k=>{
+        const m = k.match(/_v(\d+)/i);
+        return {k, v: m ? Number(m[1]) : 0};
+      })
+      .sort((a,b)=>b.v-a.v);
+    return withV[0].k;
+  }
+
+  /* ===== Filtros persistentes ===== */
   function loadGlobalFilters(){
     try{
       const raw = localStorage.getItem(LS_GLOBAL_FILTERS_KEY);
       return raw ? JSON.parse(raw) : {};
-    }catch{
-      return {};
-    }
+    }catch{ return {}; }
   }
   function saveGlobalFilters(from){
-    // Equipa: permitir apenas persistência de filtros (sem efeitos colaterais)
     try{
       const current = loadGlobalFilters();
       const merged = Object.assign({}, current, {
@@ -823,16 +647,11 @@
     try{
       const raw = localStorage.getItem(LS_VENDAS_FILTERS_KEY);
       return raw ? JSON.parse(raw) : {};
-    }catch{
-      return {};
-    }
+    }catch{ return {}; }
   }
   function saveVendasFilters(){
-    try{
-      localStorage.setItem(LS_VENDAS_FILTERS_KEY, JSON.stringify(FILTERS));
-    }catch{}
+    try{ localStorage.setItem(LS_VENDAS_FILTERS_KEY, JSON.stringify(FILTERS)); }catch{}
   }
-
   function hydrateFiltersFromStorage(){
     const global = loadGlobalFilters();
     const local = loadVendasFilters();
@@ -843,133 +662,112 @@
     FILTERS.origem    = local.origem    || '';
     FILTERS.incluirInvisiveis = !!local.incluirInvisiveis;
 
-    if(FILTERS.consultor) fConsultor.value = FILTERS.consultor;
-    if(FILTERS.de) fDe.value = FILTERS.de;
-    if(FILTERS.ate) fAte.value = FILTERS.ate;
-    if(FILTERS.origem) fOrigem.value = FILTERS.origem;
+    fConsultor.value = FILTERS.consultor || '';
+    fDe.value = FILTERS.de || '';
+    fAte.value = FILTERS.ate || '';
+    fOrigem.value = FILTERS.origem || '';
     fIncluirInvisiveis.checked = FILTERS.incluirInvisiveis;
   }
 
-  /* ===== Helpers ===== */
-  function parseNumber(v){
-    if(v==null || v==='') return NaN;
-    const s = String(v).replace(/\./g,'').replace(',','.');
-    const n = parseFloat(s);
-    return isFinite(n) ? n : NaN;
-  }
-  function parsePct(v){
-    if(v==null || v==='') return NaN;
-    const s = String(v).replace('%','').replace(',','.');
-    const n = parseFloat(s);
-    return isFinite(n) ? n : NaN;
-  }
-  function formatMoney(v){
-    const n = Number(v);
-    if(!isFinite(n) || n === 0) return '€ 0';
-    return n.toLocaleString('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
-  }
-  function formatDate(d){
-    if(!d) return '—';
-    try{
-      const dt = new Date(d);
-      if(isNaN(dt.getTime())) return d;
-      return dt.toLocaleDateString('pt-PT');
-    }catch{return d;}
-  }
-  function todayISO(){
-    const d = new Date();
-    const y = d.getFullYear();
-    const m = String(d.getMonth()+1).padStart(2,'0');
-    const day = String(d.getDate()).padStart(2,'0');
-    return y + '-' + m + '-' + day;
+  /* ===== Load Leads & Angariações (robusto) ===== */
+  function safeJSON(raw){
+    try{ return JSON.parse(raw); }catch{ return null; }
   }
 
-  // Procura campos de data com token (ex.: "cpcv", "escritura") em l e l.fecho
-  function findDateWithToken(objs, token){
-    const re = /^\d{4}-\d{2}-\d{2}$/;
-    const tk = String(token).toLowerCase();
-    for(const obj of objs){
-      if(!obj || typeof obj!=='object') continue;
-      for(const k of Object.keys(obj)){
-        const lk = k.toLowerCase();
-        if(lk.includes(tk)){
-          const v = obj[k];
-          if(typeof v === 'string' && re.test(v.trim())){
-            return v.trim();
-          }
-        }
-      }
+  function extractArrayFromAny(obj, preferredKeys){
+    if(Array.isArray(obj)) return obj;
+    if(!obj || typeof obj !== 'object') return [];
+    for(const k of preferredKeys){
+      if(Array.isArray(obj[k])) return obj[k];
     }
-    return '';
+    return [];
   }
 
-  /* ===== Load Leads & Angariações ===== */
-  function loadLeads(){
-    try{
-      const raw = localStorage.getItem(LS_LEADS_KEY);
-      if(!raw) return [];
-      const arr = JSON.parse(raw);
-      if(!Array.isArray(arr)) return [];
-      return arr;
-    }catch(e){
-      console.error('Erro a ler leads', e);
-      return [];
-    }
-  }
-  function loadAngariacoes(){
-    try{
-      const raw = localStorage.getItem(LS_ANG_KEY);
-      if(!raw) return [];
-      const obj = JSON.parse(raw);
-      if(!obj || !Array.isArray(obj.deals)) return [];
-      return obj.deals;
-    }catch(e){
-      console.error('Erro a ler angariações', e);
-      return [];
-    }
+  function loadLeadsWithDiagnostics(){
+    const candidates = [
+      'gpp_leads_v5','gpp_leads_v6','gpp_leads_v7','gpp_leads_v8',
+      'gpp_leads','gpp_leads_data'
+    ];
+    const key = pickKeyByCandidates(candidates) || pickLatestByPrefix('gpp_leads_v') || '';
+    if(!key) return { key:'—', items:[] };
+
+    const raw = localStorage.getItem(key);
+    const parsed = safeJSON(raw || '');
+    const arr = extractArrayFromAny(parsed, ['leads','data','items','rows']);
+    return { key, items: Array.isArray(arr) ? arr : [] };
   }
 
-  /* ===== Construção da lista de negócios ===== */
+  function loadAngWithDiagnostics(){
+    const candidates = [
+      'gpp_angariacoes_v2','gpp_angariacoes_v3','gpp_angariacoes_v4',
+      'gpp_angariacoes','gpp_angariacoes_data'
+    ];
+    const key = pickKeyByCandidates(candidates) || pickLatestByPrefix('gpp_angariacoes_v') || '';
+    if(!key) return { key:'—', items:[] };
+
+    const raw = localStorage.getItem(key);
+    const parsed = safeJSON(raw || '');
+    const arr = extractArrayFromAny(parsed, ['deals','angariacoes','data','items','rows']);
+    return { key, items: Array.isArray(arr) ? arr : [] };
+  }
+
+  function leadIsFecho(l){
+    const s = norm(l?.estado || l?.status || l?.fase || l?.coluna || '');
+    // aceitar variações
+    return s === 'fecho' || s.includes('fecho') || s.includes('fechad') || s === 'closed';
+  }
+
+  function angIsAprovado(a){
+    const s = norm(
+      a?.estadoAng || a?.estadoAngariacao || a?.estado || a?.status || a?.estadoImovel || a?.fase || ''
+    );
+    return s === 'aprovado' || s.includes('aprov') || s === 'approved';
+  }
+
+  /* ===== Construção da lista ===== */
   function buildNegocios(){
-    const leads = loadLeads();
-    const angs  = loadAngariacoes();
+    const leadsPack = loadLeadsWithDiagnostics();
+    const angPack   = loadAngWithDiagnostics();
+
+    const leads = leadsPack.items || [];
+    const angs  = angPack.items || [];
+
     const list = [];
 
     // Leads em Fecho
     leads.forEach(l=>{
-      if(l.estado !== 'Fecho') return;
+      if(!leadIsFecho(l)) return;
 
-      const valorNegocio = parseNumber(l.fecho_negocio || l.valor || 0);
-      const comissaoPctStr = (l.fecho_comissao_pct!=='' && l.fecho_comissao_pct!=null)
-        ? String(l.fecho_comissao_pct)
-        : (l.fecho && l.fecho.comissaoPct ? String(l.fecho.comissaoPct) : '');
+      const valorNegocio = parseNumber(l.fecho_negocio ?? l.valor ?? l.valorNegocio ?? 0);
+
+      const comissaoPctStr =
+        (l.fecho_comissao_pct!=='' && l.fecho_comissao_pct!=null) ? String(l.fecho_comissao_pct)
+        : (l.fecho?.comissaoPct!=null ? String(l.fecho.comissaoPct) : (l.comissaoPct!=null ? String(l.comissaoPct) : ''));
 
       const comPctNum = parsePct(comissaoPctStr);
-      const comissaoValorTotal = isFinite(comPctNum)
-        ? (valorNegocio * comPctNum / 100)
-        : 0;
+      const comissaoValorTotal = Number.isFinite(comPctNum) ? (valorNegocio * comPctNum / 100) : 0;
 
       const fechoObj = l.fecho || {};
       const dataCpcv      = findDateWithToken([l, fechoObj], 'cpcv');
       const dataEscritura = findDateWithToken([l, fechoObj], 'escritura');
-      const dataFecho     = dataCpcv || dataEscritura || (l.data || '');
+      const dataFecho     = dataCpcv || dataEscritura || (l.data || l.dataFecho || '');
 
       list.push({
         tipo: 'lead',
-        id: l.id || '',
-        consultor: l.consultor || '',
-        cliente: l.nome || '',
-        contacto: l.contacto || '',
+        id: l.id || l._id || '',
+        consultor: l.consultor || l.owner || l.responsavel || '',
+        cliente: l.nome || l.cliente || '',
+        contacto: l.contacto || l.telemovel || l.telefone || '',
         email: l.email || '',
-        titulo: l.imovel ? (l.imovel + (l.tipologia? ' ' + l.tipologia : '')) : (l.imovel || 'Lead'),
-        zona: l.zona || '',
+        titulo: l.imovel ? (l.imovel + (l.tipologia? ' ' + l.tipologia : '')) : (l.titulo || l.imovel || 'Lead'),
+        zona: l.zona || l.localizacao || '',
         data: dataFecho,
-        valor: isFinite(valorNegocio)? valorNegocio : 0,
+        valor: Number.isFinite(valorNegocio) ? valorNegocio : 0,
         comissaoPct: comissaoPctStr || '',
         comissaoValorTotal: comissaoValorTotal,
         dataCpcv: dataCpcv || '',
         dataEscritura: dataEscritura || '',
-        origem: (l.papel || '') ? ('Lead — '+l.papel) : 'Lead',
+        origem: (l.papel || l.origem || '') ? ('Lead — ' + (l.papel || l.origem)) : 'Lead',
         visivel: l.visivel !== false,
         detalheFecho: {
           sinal: parseNumber(l.fecho_sinal_reserva || 0),
@@ -981,61 +779,59 @@
 
     // Angariações aprovadas
     angs.forEach(a=>{
-      if(a.estadoAng !== 'aprovado') return;
+      if(!angIsAprovado(a)) return;
 
-      const precoPedido = parseNumber(a.precoPedido || 0);
+      const precoPedido = parseNumber(a.precoPedido ?? a.preco ?? a.valor ?? 0);
+
       let comPerc = '';
-      if(a.comissao === 'outro' && a.comissaoOutro){
-        comPerc = a.comissaoOutro;
-      }else if(a.comissao){
-        comPerc = a.comissao;
-      }
+      if(a.comissao === 'outro' && a.comissaoOutro) comPerc = a.comissaoOutro;
+      else if(a.comissao != null) comPerc = a.comissao;
+      else if(a.comissaoPct != null) comPerc = a.comissaoPct;
+
       const comAngNum = parsePct(comPerc);
-      const comAngValor = isFinite(comAngNum)
-        ? (precoPedido * comAngNum / 100)
-        : 0;
+      const comAngValor = Number.isFinite(comAngNum) ? (precoPedido * comAngNum / 100) : 0;
 
-      const titulo = a.isEmpreendimento && a.nomeEmp
-        ? a.nomeEmp
-        : (a.tituloImovel || 'Angariação');
-
-      const zona = [a.concelho || '', a.zona || ''].filter(Boolean).join(' · ');
+      const titulo = (a.isEmpreendimento && a.nomeEmp) ? a.nomeEmp : (a.tituloImovel || a.titulo || 'Angariação');
+      const zona = [a.concelho || '', a.zona || a.localizacao || ''].filter(Boolean).join(' · ');
 
       list.push({
         tipo:'ang',
-        id: a.id || '',
-        consultor: a.consultor || '',
-        cliente: a.isEmpreendimento ? (a.promotor || '') : (a.nomeProp || ''),
-        contacto: a.isEmpreendimento ? (a.telPromotor || '') : (a.telProp || ''),
+        id: a.id || a._id || '',
+        consultor: a.consultor || a.owner || a.responsavel || '',
+        cliente: a.isEmpreendimento ? (a.promotor || a.nomePromotor || '') : (a.nomeProp || a.proprietario || ''),
+        contacto: a.isEmpreendimento ? (a.telPromotor || a.telefonePromotor || '') : (a.telProp || a.telefoneProp || a.telemovelProp || ''),
         email: a.isEmpreendimento ? (a.emailPromotor || '') : (a.emailProp || ''),
         titulo: titulo,
         zona: zona,
-        data: a.dataAngariacao || '',
-        valor: isFinite(precoPedido)? precoPedido : 0,
+        data: a.dataAngariacao || a.data || '',
+        valor: Number.isFinite(precoPedido) ? precoPedido : 0,
         comissaoPct: comPerc || '',
         comissaoValorTotal: comAngValor,
         dataCpcv: '',
         dataEscritura: '',
         origem: a.isEmpreendimento ? 'Angariação — Empreendimento' : 'Angariação',
-        visivel: a.visible !== false,
+        visivel: a.visible !== false && a.visivel !== false,
         detalheFecho: null
       });
     });
 
-    list.sort((a,b)=>{
-      const da = a.data || '';
-      const db = b.data || '';
-      return (db || '').localeCompare(da || '');
-    });
+    list.sort((a,b)=> (b.data || '').localeCompare(a.data || '') );
 
     NEGOCIOS = list;
+
+    // diagnóstico para equipa
+    diagBox.innerHTML = `
+      <div><strong>Leads:</strong> key <span style="color:var(--gold)">${leadsPack.key}</span> · registos: <strong>${leadsPack.items.length}</strong> · em Fecho: <strong>${list.filter(x=>x.tipo==='lead').length}</strong></div>
+      <div style="margin-top:4px"><strong>Angariações:</strong> key <span style="color:var(--gold)">${angPack.key}</span> · registos: <strong>${angPack.items.length}</strong> · aprovadas: <strong>${list.filter(x=>x.tipo==='ang').length}</strong></div>
+      <div style="margin-top:6px;font-size:11px;color:var(--muted)">
+        Se “em Fecho” ou “aprovadas” estiverem a 0, é sinal de diferenças no campo de estado ou na versão/estrutura do storage.
+      </div>
+    `;
   }
 
   function populateConsultores(){
     const set = new Set();
-    NEGOCIOS.forEach(n=>{
-      if(n.consultor) set.add(n.consultor);
-    });
+    NEGOCIOS.forEach(n=>{ if(n.consultor) set.add(n.consultor); });
     const current = fConsultor.value;
     fConsultor.innerHTML = '<option value="">Todos</option>';
     Array.from(set).sort().forEach(name=>{
@@ -1044,9 +840,7 @@
       opt.textContent = name;
       fConsultor.appendChild(opt);
     });
-    if(current && set.has(current)){
-      fConsultor.value = current;
-    }
+    if(current && set.has(current)) fConsultor.value = current;
   }
 
   function applyFilters(){
@@ -1060,7 +854,7 @@
     });
   }
 
-  /* ===== Renderizações ===== */
+  /* ===== Renderizações (mantidas) ===== */
   function renderKpis(lista){
     const total = lista.length;
     const totalLead = lista.filter(n=>n.tipo==='lead').length;
@@ -1151,7 +945,6 @@
     });
   }
 
-  // Detalhe das comissões por mês
   function renderComissoesDetalhe(mesKey, mesLabel){
     chartComissoesDetalhe.innerHTML = '';
     const lista = COMISSOES_DETALHE_MAP[mesKey];
@@ -1162,7 +955,6 @@
       chartComissoesDetalhe.appendChild(div);
       return;
     }
-
     const totalMes = lista.reduce((acc,it)=>acc + (it.valor || 0),0);
 
     const title = document.createElement('div');
@@ -1177,46 +969,41 @@
     subt.textContent = 'Total de comissões no mês: ' + formatMoney(totalMes);
     chartComissoesDetalhe.appendChild(subt);
 
-    lista
-      .slice()
-      .sort((a,b)=> (a.data || '').localeCompare(b.data || ''))
-      .forEach(it=>{
-        const row = document.createElement('div');
-        row.className = 'chart-row';
+    lista.slice().sort((a,b)=> (a.data || '').localeCompare(b.data || '')).forEach(it=>{
+      const row = document.createElement('div');
+      row.className = 'chart-row';
 
-        const left = document.createElement('div');
-        left.className = 'chart-label';
-        left.textContent = formatDate(it.data);
+      const left = document.createElement('div');
+      left.className = 'chart-label';
+      left.textContent = formatDate(it.data);
 
-        const mid = document.createElement('div');
-        mid.style.flex = '1';
-        mid.style.fontSize = '11px';
-        mid.innerHTML =
-          '<strong>' + (it.cliente || it.titulo || 'Negócio') + '</strong><br>' +
-          (it.titulo ? it.titulo + ' · ' : '') +
-          (it.consultor || '') +
-          (it.comissaoPct ? ' · Comissão ' + it.comissaoPct + '%' : '') +
-          ' · ' + it.tipoParcela;
+      const mid = document.createElement('div');
+      mid.style.flex = '1';
+      mid.style.fontSize = '11px';
+      mid.innerHTML =
+        '<strong>' + (it.cliente || it.titulo || 'Negócio') + '</strong><br>' +
+        (it.titulo ? it.titulo + ' · ' : '') +
+        (it.consultor || '') +
+        (it.comissaoPct ? ' · Comissão ' + it.comissaoPct + '%' : '') +
+        ' · ' + it.tipoParcela;
 
-        const right = document.createElement('div');
-        right.className = 'chart-value';
-        right.textContent = formatMoney(it.valor);
+      const right = document.createElement('div');
+      right.className = 'chart-value';
+      right.textContent = formatMoney(it.valor);
 
-        row.appendChild(left);
-        row.appendChild(mid);
-        row.appendChild(right);
-        chartComissoesDetalhe.appendChild(row);
-      });
+      row.appendChild(left);
+      row.appendChild(mid);
+      row.appendChild(right);
+      chartComissoesDetalhe.appendChild(row);
+    });
   }
 
-  // Resumo de Comissões
   function renderComissoesResumo(){
     kpiComPeriodo.textContent    = formatMoney(COMISSOES_RESUMO.totalPeriodo || 0);
     kpiComRecebido.textContent   = formatMoney(COMISSOES_RESUMO.totalRecebido || 0);
     kpiComPorReceber.textContent = formatMoney(COMISSOES_RESUMO.totalPorReceber || 0);
   }
 
-  // Cronologia de Recebimentos (comissões) — apenas visualização/KPIs (Equipa: sem criar tarefas)
   function renderComissoesTimeline(lista){
     chartComissoes.innerHTML = '';
     chartComissoesDetalhe.innerHTML = '';
@@ -1225,7 +1012,7 @@
 
     const hoje = todayISO();
 
-    const apenasLeads = lista.filter(n=>n.tipo==='lead' && isFinite(n.comissaoValorTotal) && n.comissaoValorTotal>0);
+    const apenasLeads = lista.filter(n=>n.tipo==='lead' && Number.isFinite(n.comissaoValorTotal) && n.comissaoValorTotal>0);
     if(!apenasLeads.length){
       const div = document.createElement('div');
       div.className = 'chart-empty';
@@ -1235,21 +1022,13 @@
       return;
     }
 
-    const mapa = {}; // chave YYYY-MM -> valor comissão nesse mês
+    const mapa = {};
     let totalComissoesTodas = 0;
     let totalPeriodo = 0;
     let totalRecebido = 0;
 
-    function dataDentroFiltros(dateStr){
-      if(!dateStr) return false;
-      if(FILTERS.de && dateStr < FILTERS.de) return false;
-      if(FILTERS.ate && dateStr > FILTERS.ate) return false;
-      return true;
-    }
-
     function addParcela(dateStr, valorParcela, neg, tipoParcela){
       if(!dateStr || !valorParcela || valorParcela <= 0) return;
-
       if(FILTERS.de && dateStr < FILTERS.de) return;
       if(FILTERS.ate && dateStr > FILTERS.ate) return;
 
@@ -1271,9 +1050,7 @@
       });
 
       totalPeriodo += valorParcela;
-      if(dateStr <= hoje){
-        totalRecebido += valorParcela;
-      }
+      if(dateStr <= hoje) totalRecebido += valorParcela;
     }
 
     apenasLeads.forEach(n=>{
@@ -1285,18 +1062,14 @@
       const hasEsc  = !!n.dataEscritura;
 
       if(hasCpcv && hasEsc){
-        const valorCpcv = total/2;
-        const valorEsc  = total/2;
-        addParcela(n.dataCpcv, valorCpcv, n, 'CPCV');
-        addParcela(n.dataEscritura, valorEsc, n, 'Escritura');
+        addParcela(n.dataCpcv, total/2, n, 'CPCV');
+        addParcela(n.dataEscritura, total/2, n, 'Escritura');
       }else if(hasCpcv && !hasEsc){
         addParcela(n.dataCpcv, total, n, 'CPCV');
       }else if(!hasCpcv && hasEsc){
         addParcela(n.dataEscritura, total, n, 'Escritura');
-      }else{
-        if(n.data && dataDentroFiltros(n.data)){
-          addParcela(n.data, total, n, 'Pagamento');
-        }
+      }else if(n.data){
+        addParcela(n.data, total, n, 'Pagamento');
       }
     });
 
@@ -1316,16 +1089,18 @@
         const [y,m] = key.split('-');
         const mesLabel = m+'/'+y.slice(-2);
         label.textContent = mesLabel;
+
         const barWrap = document.createElement('div');
         barWrap.className = 'chart-bar-wrap';
         const bar = document.createElement('div');
         bar.className = 'chart-bar';
-        const pct = max>0 ? (total/max*100) : 0;
-        bar.style.width = pct.toFixed(1)+'%';
+        bar.style.width = (max>0 ? (total/max*100) : 0).toFixed(1)+'%';
         barWrap.appendChild(bar);
+
         const val = document.createElement('div');
         val.className = 'chart-value';
         val.textContent = formatMoney(total);
+
         row.appendChild(label);
         row.appendChild(barWrap);
         row.appendChild(val);
@@ -1341,21 +1116,18 @@
 
       const rows = chartComissoes.querySelectorAll('.chart-row');
       if(rows.length){
-        const lastRow = rows[rows.length-1];
-        lastRow.classList.add('selected');
-        const [lastKey] = entries[entries.length-1];
+        const lastKey = entries[entries.length-1][0];
         const [y,m] = lastKey.split('-');
         const mesLabel = m+'/'+y.slice(-2);
+        rows[rows.length-1].classList.add('selected');
         renderComissoesDetalhe(lastKey, mesLabel);
       }
     }
 
-    const totalPorReceber = totalComissoesTodas - totalRecebido;
-
     COMISSOES_RESUMO = {
-      totalPeriodo: totalPeriodo,
-      totalRecebido: totalRecebido,
-      totalPorReceber: totalPorReceber
+      totalPeriodo,
+      totalRecebido,
+      totalPorReceber: (totalComissoesTodas - totalRecebido)
     };
     renderComissoesResumo();
   }
@@ -1423,9 +1195,9 @@
 
       if(n.detalheFecho){
         const partes = [];
-        if(isFinite(n.detalheFecho.sinal) && n.detalheFecho.sinal>0) partes.push('Sinal '+formatMoney(n.detalheFecho.sinal));
-        if(isFinite(n.detalheFecho.cpcv) && n.detalheFecho.cpcv>0) partes.push('CPCV '+formatMoney(n.detalheFecho.cpcv));
-        if(isFinite(n.detalheFecho.escritura) && n.detalheFecho.escritura>0) partes.push('Escritura '+formatMoney(n.detalheFecho.escritura));
+        if(Number.isFinite(n.detalheFecho.sinal) && n.detalheFecho.sinal>0) partes.push('Sinal '+formatMoney(n.detalheFecho.sinal));
+        if(Number.isFinite(n.detalheFecho.cpcv) && n.detalheFecho.cpcv>0) partes.push('CPCV '+formatMoney(n.detalheFecho.cpcv));
+        if(Number.isFinite(n.detalheFecho.escritura) && n.detalheFecho.escritura>0) partes.push('Escritura '+formatMoney(n.detalheFecho.escritura));
         if(partes.length){
           const sec3 = document.createElement('div');
           sec3.className = 'card-section';
@@ -1462,7 +1234,7 @@
     renderCards(listaLeads, listaAng);
   }
 
-  /* ===== Filtros ===== */
+  /* ===== Eventos filtros ===== */
   applyFiltersBtn.addEventListener('click', ()=>{
     FILTERS.consultor = fConsultor.value || '';
     FILTERS.origem = fOrigem.value || '';
