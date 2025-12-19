@@ -644,29 +644,66 @@ async function fetchTextWithTimeout(url, ms=15000){
   }
 }
 
-/* ===== CSV: caminho robusto para GitHub Pages (Project Pages) ===== */
-function getRepoBasePrefix(){
-  const host = location.hostname || '';
-  const parts = (location.pathname || '').split('/').filter(Boolean);
-  if(host.endsWith('github.io') && parts.length >= 1){
-    return '/' + parts[0] + '/';
-  }
-  return '/';
-}
-const CSV_REL = 'data/gpp-mapa.csv';
-function getCSVUrl(){
-  const prefix = getRepoBasePrefix();
-  const u = new URL(prefix + CSV_REL, location.origin);
-  u.searchParams.set('v', String(Date.now())); // cache-buster
-  return u.toString();
-}
-
-/* ===== CSV load (PapaParse com fallback) ===== */
+/* ===== CSV load (PapaParse) - helpers ===== */
 function pick(obj, keys){
   for(const k of keys){
     if(obj && Object.prototype.hasOwnProperty.call(obj,k) && String(obj[k] ?? '').trim() !== '') return obj[k];
   }
   return '';
+}
+
+/* =========================================================================================
+   CSV: resolução ROBUSTA (vários caminhos) + fallback (lite) + cache em IndexedDB (offline)
+   ========================================================================================= */
+const CSV_PRIMARY = 'data/gpp-mapa.csv';
+const CSV_FALLBACK = 'data/gpp-mapa-lite.csv';
+const IDB_CACHE_KEY = 'gpp_cached_dataset_v1';
+
+function getRepoBasePrefix(){
+  const host = location.hostname || '';
+  const parts = (location.pathname || '').split('/').filter(Boolean);
+
+  if(host.endsWith('github.io')){
+    // Project Pages tendem a ter /REPO/ficheiro...
+    if(parts.length >= 2) return '/' + parts[0] + '/';
+    return '/';
+  }
+  return '/';
+}
+
+function buildCSVUrlCandidates(relPath){
+  const u1 = new URL(relPath, location.href); // relativo ao html
+  const prefix = getRepoBasePrefix();
+  const u2 = new URL(prefix + relPath.replace(/^\/+/,''),
+                    location.origin);         // /REPO/data/...
+  const u3 = new URL('/' + relPath.replace(/^\/+/,''),
+                    location.origin);         // /data/...
+
+  [u1,u2,u3].forEach(u => u.searchParams.set('v', String(Date.now())));
+
+  const seen = new Set();
+  return [u1,u2,u3].filter(u => {
+    const k = u.toString();
+    if(seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
+async function cacheSaveDataset(arr){
+  if(!window.idbKeyval) return;
+  try{
+    await idbKeyval.set(IDB_CACHE_KEY, { ts: Date.now(), data: arr });
+  }catch{}
+}
+
+async function cacheLoadDataset(){
+  if(!window.idbKeyval) return null;
+  try{
+    const v = await idbKeyval.get(IDB_CACHE_KEY);
+    if(v && Array.isArray(v.data) && v.data.length) return v.data;
+  }catch{}
+  return null;
 }
 
 async function loadFromCSV(){
@@ -677,98 +714,107 @@ async function loadFromCSV(){
     return [];
   }
 
-  const csvUrl = getCSVUrl();
+  const candidates = [
+    ...buildCSVUrlCandidates(CSV_PRIMARY),
+    ...buildCSVUrlCandidates(CSV_FALLBACK)
+  ];
 
-  return await new Promise((resolve) => {
-    const out = [];
-    let done = false;
-    let rowsCount = 0;
-
-    const finish = (arr, msg) => {
-      if(done) return;
-      done = true;
-      if(msg) setStatus(msg); else setStatus('');
-      resolve(arr || []);
-    };
-
-    const watchdog = setTimeout(() => {
-      try { if (parser && parser.abort) parser.abort(); } catch {}
-      finish([], '⚠ Timeout a ler o CSV. O ficheiro é demasiado pesado ou está a bloquear o browser.');
-    }, 45000);
-
-    let parser = null;
-
+  async function tryOne(url){
     try{
-      parser = Papa.parse(csvUrl, {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        worker: true,
-        chunkSize: 1024 * 512,
-        chunk: (results, p) => {
-          parser = p;
+      const csvText = await fetchTextWithTimeout(url, 20000);
 
-          const rows = results?.data || [];
-          if(!rows.length) return;
+      return await new Promise((resolve) => {
+        const out = [];
+        let rowsCount = 0;
+        let resolved = false;
 
-          for(const r of rows){
-            const lat = numPT(pick(r, ['_lat','lat','latitude','Lat','LAT']));
-            const lng = numPT(pick(r, ['_lng','lng','lon','longitude','Lng','LNG']));
-            if(lat === null || lng === null) continue;
+        const finish = (arr) => {
+          if(resolved) return;
+          resolved = true;
+          resolve(arr || []);
+        };
 
-            const tipoRaw = String(pick(r, ['isEmpreendimento','tipo','Tipo','TIPO'])).toLowerCase();
-            const isIso = tipoRaw.includes('iso') || tipoRaw === '0' || tipoRaw === 'false';
+        try{
+          Papa.parse(csvText, {
+            header: true,
+            skipEmptyLines: true,
+            worker: true,
+            step: (results) => {
+              const r = results?.data;
+              if(!r) return;
 
-            out.push({
-              refInterna: pick(r, ['refInterna','ref','referencia','Referencia','RefInterna']),
-              nome: pick(r, ['nome','name','Nome']),
-              concelho: pick(r, ['concelho','Concelho']),
-              estado: stateKey(pick(r, ['estado','Estado'])),
-              promotor: pick(r, ['promotor','Promotor']),
-              tipologias: pick(r, ['tipologias','Tipologias']),
-              conclusaoAno: numPT(pick(r, ['conclusaoAno','ano','conclusao','Conclusao'])) || '',
-              conclusaoMes: numPT(pick(r, ['conclusaoMes','mes','Mes'])) || '',
-              conclusao: numPT(pick(r, ['conclusao','ano','Conclusao'])) || '',
-              preco_m2: pick(r, ['preco_m2','precoM2','€/m2','eur_m2']),
-              precoPedido: pick(r, ['precoPedido','preco','Preco','Preço']),
-              notas: pick(r, ['notas','Notas']),
-              link: pick(r, ['link','url','URL']),
-              _lat: lat,
-              _lng: lng,
-              docs: [],
-              isEmpreendimento: isIso ? false : true
-            });
-          }
+              const lat = numPT(pick(r, ['_lat','lat','latitude','Lat','LAT']));
+              const lng = numPT(pick(r, ['_lng','lng','lon','longitude','Lng','LNG']));
+              if(lat === null || lng === null) return;
 
-          rowsCount += rows.length;
-          if(rowsCount % 500 === 0){
-            setStatus(`A carregar dataset do CSV… (${out.length} pontos válidos)`);
-          }
+              const tipoRaw = String(pick(r, ['isEmpreendimento','tipo','Tipo','TIPO'])).toLowerCase();
+              const isIso = tipoRaw.includes('iso') || tipoRaw === '0' || tipoRaw === 'false';
 
-          if(out.length > 20000){
-            try { p.abort(); } catch {}
-            clearTimeout(watchdog);
-            finish(out, '⚠ Dataset muito grande. Carregado parcialmente para manter estabilidade.');
-          }
-        },
-        complete: () => {
-          clearTimeout(watchdog);
-          const sanity = out.some(x => (x.nome || x.refInterna) && x._lat !== null && x._lng !== null);
-          if(!sanity) return finish([], '⚠ CSV carregou, mas não tem colunas válidas (lat/lng/nome).');
-          finish(out, '');
-        },
-        error: (err) => {
-          clearTimeout(watchdog);
-          console.error(err);
-          finish([], '⚠ Não foi possível descarregar/ler o CSV. Confirme GitHub Pages e o caminho do ficheiro.');
+              out.push({
+                refInterna: pick(r, ['refInterna','ref','referencia','Referencia','RefInterna']),
+                nome: pick(r, ['nome','name','Nome']),
+                concelho: pick(r, ['concelho','Concelho']),
+                estado: stateKey(pick(r, ['estado','Estado'])),
+                promotor: pick(r, ['promotor','Promotor']),
+                tipologias: pick(r, ['tipologias','Tipologias']),
+                conclusaoAno: numPT(pick(r, ['conclusaoAno','ano','conclusao','Conclusao'])) || '',
+                conclusaoMes: numPT(pick(r, ['conclusaoMes','mes','Mes'])) || '',
+                conclusao: numPT(pick(r, ['conclusao','ano','Conclusao'])) || '',
+                preco_m2: pick(r, ['preco_m2','precoM2','€/m2','eur_m2']),
+                precoPedido: pick(r, ['precoPedido','preco','Preco','Preço']),
+                notas: pick(r, ['notas','Notas']),
+                link: pick(r, ['link','url','URL']),
+                _lat: lat,
+                _lng: lng,
+                docs: [],
+                isEmpreendimento: isIso ? false : true
+              });
+
+              rowsCount++;
+              if(rowsCount % 800 === 0){
+                setStatus(`A carregar CSV… (${out.length} pontos válidos)`);
+              }
+
+              if(out.length > 25000){
+                setStatus('⚠ Dataset muito grande. Carregado parcialmente para manter estabilidade.');
+                finish(out);
+              }
+            },
+            complete: () => finish(out),
+            error: () => finish([])
+          });
+        }catch{
+          finish([]);
         }
       });
-    }catch(e){
-      clearTimeout(watchdog);
-      console.error(e);
-      finish([], '⚠ Erro ao iniciar o leitor do CSV.');
+    }catch{
+      return [];
     }
-  });
+  }
+
+  for(let i=0;i<candidates.length;i++){
+    const url = candidates[i].toString();
+    setStatus(`A carregar CSV… (${i+1}/${candidates.length})`);
+
+    const arr = await tryOne(url);
+    const ok = Array.isArray(arr) && arr.length &&
+      arr.some(x => (x.nome || x.refInterna) && x._lat !== null && x._lng !== null);
+
+    if(ok){
+      setStatus('');
+      await cacheSaveDataset(arr);
+      return arr;
+    }
+  }
+
+  const cached = await cacheLoadDataset();
+  if(cached){
+    setStatus('⚠ CSV indisponível. A abrir a última versão em cache.');
+    return cached;
+  }
+
+  setStatus('⚠ Não foi possível ler o CSV. Confirme /data/gpp-mapa.csv (e opcionalmente /data/gpp-mapa-lite.csv) e o GitHub Pages.');
+  return [];
 }
 
 /* ===== Leaflet & Cluster ===== */
@@ -1579,7 +1625,7 @@ function run(){
   autoUpdateEstadosByConclusao();
 
   if(!RAW.length){
-    setStatus('⚠ Sem dados. Confirme que existe /data/gpp-mapa.csv e que contém lat/lng.');
+    setStatus('⚠ Sem dados. Confirme que existe /data/gpp-mapa.csv (e opcionalmente /data/gpp-mapa-lite.csv) e que contém lat/lng.');
     return;
   }
 
