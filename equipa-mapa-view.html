@@ -13,13 +13,13 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin="anonymous">
 
-<!-- idb-keyval (IndexedDB) — para abrir anexos locais (idb://) -->
+<!-- idb-keyval (IndexedDB) -->
 <script src="https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/idb-keyval.iife.min.js" crossorigin="anonymous"></script>
 
-<!-- PapaParse (CSV robusto + Web Worker para não bloquear o browser) -->
+<!-- PapaParse (CSV robusto + worker) -->
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js" crossorigin="anonymous"></script>
 
-<!-- PDF.js (pré-visualização) -->
+<!-- PDF.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" crossorigin="anonymous"></script>
 <script>
   if (window['pdfjsLib']) {
@@ -39,7 +39,6 @@
   --warn:#E53935;
   --border:rgba(255,255,255,.12);
 }
-
 html,body{
   height:100%;
   margin:0;
@@ -48,15 +47,12 @@ html,body{
   font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
 }
 a{color:#e6e6e6;text-decoration:none}
-
 .app{
   display:grid;
   grid-template-columns:380px 1fr;
   grid-template-rows:56px 40px 1fr;
   height:100%;
 }
-
-/* Header / barra superior */
 header{
   grid-column:1 / span 2;
   display:flex;
@@ -85,8 +81,6 @@ header{
   padding:6px 10px;
   border-radius:999px;
 }
-
-/* KPIs */
 .kpis{
   grid-column:1 / span 2;
   display:flex;
@@ -139,8 +133,6 @@ header{
   background:transparent;
   color:#eee;
 }
-
-/* Sidebar */
 .sidebar{
   background:var(--panel);
   border-right:1px solid var(--border);
@@ -196,8 +188,6 @@ header{
 .list{
   padding:8px 12px;
 }
-
-/* Cartões de resultados */
 .card{
   border:1px solid rgba(163,139,99,.25);
   border-radius:12px;
@@ -211,9 +201,7 @@ header{
   gap:8px;
   align-items:center;
 }
-.card .name{
-  font-weight:700;
-}
+.card .name{font-weight:700;}
 .card .meta{
   font-size:11px;
   color:#bbb;
@@ -237,8 +225,6 @@ header{
   margin-top:10px;
   flex-wrap:wrap;
 }
-
-/* Badges genéricos */
 .badge{
   display:inline-flex;
   align-items:center;
@@ -250,28 +236,18 @@ header{
   line-height:1;
   white-space:nowrap;
 }
-
-/* Badges específicos de ESTADO — tamanho uniforme */
 .badge-estado{
   min-width:100px;
   justify-content:center;
   text-transform:uppercase;
 }
-
 .empty{
   padding:10px;
   color:#bbb;
   font-size:13px;
 }
-
-/* Mapa */
-#map{
-  width:100%;
-  height:100%;
-}
+#map{ width:100%; height:100%; }
 .leaflet-container{background:#eaeaea}
-
-/* Legenda */
 .legend{
   position:absolute;
   left:12px;
@@ -299,7 +275,6 @@ header{
 .legend .l{background:#1E88E5}
 .legend .f{background:#43A047}
 
-/* Mensagem discreta topo mapa */
 .status-bar{
   position:absolute;
   top:8px;
@@ -319,8 +294,6 @@ header{
   align-items:center;
   gap:6px;
 }
-
-/* Painel lateral detalhes */
 #side-panel{
   position:absolute;
   right:12px;
@@ -370,8 +343,6 @@ header{
 .pin.c{ background:#E53935; color:#E53935; }
 .pin.l{ background:#1E88E5; color:#1E88E5; }
 .pin.f{ background:#43A047; color:#43A047; }
-
-/* Pulso apenas em construção (empreendimentos) */
 .pin:not(.iso).c::after{
   content:"";
   position:absolute;
@@ -381,8 +352,6 @@ header{
   box-shadow:0 0 0 0 rgba(229,57,53,.55);
   animation:pulse 1.8s ease-out infinite;
 }
-
-/* Imóveis isolados: anel */
 .pin.iso{
   width:28px;
   height:28px;
@@ -400,14 +369,11 @@ header{
   border:2px solid rgba(0,0,0,.65);
   background:transparent;
 }
-
 @keyframes pulse{
   0%{ box-shadow:0 0 0 0 rgba(229,57,53,.55)}
   70%{ box-shadow:0 0 0 18px rgba(229,57,53,0)}
   100%{ box-shadow:0 0 0 0 rgba(229,57,53,0)}
 }
-
-/* Modal PDF fullscreen */
 .pdf-backdrop{
   display:none;
   position:fixed;
@@ -443,9 +409,7 @@ header{
   height:100%;
   border:0;
 }
-
 .hidden{display:none !important}
-
 @media (max-width: 1000px){
   .app{
     grid-template-columns:1fr;
@@ -468,7 +432,6 @@ header{
         </svg>
         <h1>Garvetur Porto Pro — Mapa</h1>
       </div>
-
       <div class="readonly-badge">Acesso Equipa · Modo Leitura</div>
     </header>
 
@@ -554,7 +517,6 @@ header{
 
     <div style="position:relative">
       <div id="map"></div>
-
       <div id="statusBar" class="status-bar"></div>
 
       <div class="legend">
@@ -588,7 +550,6 @@ header{
 </div>
 
 <script>
-/* ===== Helpers de carregamento dinâmico ===== */
 function loadScript(src){
   return new Promise((res,rej)=>{
     const s=document.createElement('script');
@@ -610,11 +571,14 @@ let MAP, CLUSTER, LAYER, CLUSTER_OK=false;
 let RAW=[], FILT=[];
 let ACTIVE=null;
 
-// 🔒 MODO LEITURA FORÇADO (Equipa)
+// Equipa (readonly)
 let EDIT_MODE=false;
-
-// ✅ MODO EQUIPA: prioridade absoluta ao CSV (evita dados locais desatualizados/pesados)
 const TEAM_READONLY_FORCE_CSV = true;
+
+/* Limites para evitar freeze */
+const LIST_MAX_RENDER = 250;          // cartões máximos na lista
+const MARKERS_CHUNK = 350;            // marcadores por frame
+const MARKERS_PROGRESS_EVERY = 700;   // update de status
 
 let UIState={
   q:'', concelho:'', estado:'',
@@ -628,12 +592,12 @@ let UIState={
 let LS_SKIPPED=false;
 let LS_ERROR=false;
 
-/* ===== CSV (fonte para equipa) ===== */
+/* ===== CSV ===== */
 const CSV_PATH = "data/gpp-mapa.csv";
 const CSV_URL = (() => {
   const base = new URL(location.href);
   const u = new URL(CSV_PATH, base);
-  u.searchParams.set('v', String(Date.now())); // cache-bust
+  u.searchParams.set('v', String(Date.now()));
   return u.toString();
 })();
 
@@ -657,13 +621,40 @@ function numPT(v){
   if(v===null||v===undefined||v==='') return null;
   const s = String(v).trim()
     .replace(/\s/g,'')
-    .replace(/\./g,'')      // milhares PT
-    .replace(',', '.');     // decimal PT -> EN
+    .replace(/\./g,'')
+    .replace(',', '.');
   const n = Number(s);
   return Number.isFinite(n)? n : null;
 }
 
-/* ===== CSV loader (PapaParse + Worker) — NÃO bloqueia UI ===== */
+/* ===== Status bar ===== */
+function setStatus(msg){
+  const bar = el('statusBar');
+  if(!bar) return;
+  if(!msg){
+    bar.classList.remove('show');
+    bar.textContent='';
+    return;
+  }
+  bar.textContent = msg;
+  bar.classList.add('show');
+}
+
+/* ===== Fetch com timeout (evita ficar preso) ===== */
+async function fetchTextWithTimeout(url, ms=15000){
+  const ctrl = new AbortController();
+  const t = setTimeout(()=>ctrl.abort(), ms);
+  try{
+    const r = await fetch(url, { cache:'no-store', signal: ctrl.signal });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const txt = await r.text();
+    return txt;
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+/* ===== CSV load (fetch + PapaParse em worker) ===== */
 function pick(obj, keys){
   for(const k of keys){
     if(obj && Object.prototype.hasOwnProperty.call(obj,k) && String(obj[k] ?? '').trim() !== '') return obj[k];
@@ -675,43 +666,55 @@ async function loadFromCSV(){
   setStatus('A carregar dataset do CSV…');
 
   if(!window.Papa){
-    console.error('PapaParse não carregou.');
-    setStatus('⚠ Falha a carregar o parser CSV. Verifique ligação à internet.');
+    setStatus('⚠ Parser CSV não disponível (PapaParse).');
+    return [];
+  }
+
+  let text='';
+  try{
+    text = await fetchTextWithTimeout(CSV_URL, 18000);
+  }catch(e){
+    console.error('Falha fetch CSV:', e);
+    setStatus('⚠ Não foi possível descarregar o CSV (timeout/404). Confirme /data/gpp-mapa.csv');
+    return [];
+  }
+
+  // Se o GitHub Pages devolver HTML (404 page) em vez do CSV
+  const head = text.slice(0,200).toLowerCase();
+  if(head.includes('<!doctype') || head.includes('<html')){
+    console.warn('CSV devolveu HTML (provável 404).');
+    setStatus('⚠ CSV não encontrado. Confirme o caminho: /data/gpp-mapa.csv');
     return [];
   }
 
   return await new Promise((resolve)=>{
-    let done=false;
+    let finished=false;
 
     function finish(arr, msg){
-      if(done) return;
-      done=true;
-      if(msg) setStatus(msg);
-      else setStatus('');
+      if(finished) return;
+      finished=true;
+      setStatus(msg || '');
       resolve(arr || []);
     }
 
-    // watchdog: se ficar “preso”, sai com mensagem (não congela)
+    // watchdog parsing (se algo correr mal, não bloqueia)
     const watchdog = setTimeout(()=>{
-      console.warn('CSV watchdog timeout.');
-      finish([], '⚠ Timeout a carregar CSV. Confirme: /data/gpp-mapa.csv');
-    }, 22000);
+      finish([], '⚠ Timeout a processar CSV. Confirme o ficheiro e tamanho.');
+    }, 20000);
 
-    Papa.parse(CSV_URL, {
-      download: true,
-      header: true,
-      skipEmptyLines: true,
-      worker: true,
+    Papa.parse(text, {
+      header:true,
+      skipEmptyLines:true,
+      worker:true,
       complete: (results)=>{
         clearTimeout(watchdog);
         try{
           const rows = results?.data || [];
-          if(!rows.length) return finish([], '⚠ CSV sem linhas válidas. Confirme o ficheiro em /data/gpp-mapa.csv');
+          if(!rows.length) return finish([], '⚠ CSV sem linhas válidas.');
 
           const arr = rows.map(r=>{
             const lat = numPT(pick(r, ['_lat','lat','latitude','Lat','LAT']));
             const lng = numPT(pick(r, ['_lng','lng','lon','longitude','Lng','LNG']));
-
             const tipoRaw = String(pick(r, ['isEmpreendimento','tipo','Tipo','TIPO'])).toLowerCase();
             const isIso = tipoRaw.includes('iso');
 
@@ -736,64 +739,22 @@ async function loadFromCSV(){
             };
           });
 
-          // validação mínima: se vier HTML/erro em vez de CSV, a estrutura pode vir vazia
-          const sanity = arr.some(x => (x.nome || x.refInterna) && x._lat !== null && x._lng !== null);
-          if(!sanity) return finish([], '⚠ CSV carregou, mas não parece conter colunas válidas (lat/lng/nome).');
+          const sanity = arr.some(x => (x.nome || x.refInterna) && x._lat!==null && x._lng!==null);
+          if(!sanity) return finish([], '⚠ CSV carregou, mas não tem colunas válidas (lat/lng/nome).');
 
           finish(arr);
         }catch(e){
-          console.error('Erro a processar CSV:', e);
-          finish([], '⚠ Erro a processar CSV. Confirme formato/colunas.');
+          console.error('Erro processar CSV:', e);
+          finish([], '⚠ Erro a processar CSV.');
         }
       },
       error: (err)=>{
         clearTimeout(watchdog);
-        console.error('PapaParse error:', err);
-        finish([], '⚠ Não foi possível carregar o CSV do repositório. Confirme: /data/gpp-mapa.csv');
+        console.error('Papa error:', err);
+        finish([], '⚠ Erro no parser do CSV.');
       }
     });
   });
-}
-
-/* Parser simples de coordenadas GPS vindas das angariações */
-function parseGps(gps){
-  if(!gps) return {lat:null,lng:null};
-  const m = String(gps).match(/-?\d+(?:[.,]\d+)?/g);
-  if(!m || m.length<2) return {lat:null,lng:null};
-  const lat = numPT(m[0]);
-  const lng = numPT(m[1]);
-  return {lat,lng};
-}
-
-/* ===== Formatação conclusão (mês/ano) ===== */
-function formatConclusao(p){
-  const ano = p.conclusaoAno || p.conclusao;
-  const mes = p.conclusaoMes;
-  if(!ano && !mes) return '—';
-  if(!ano) return '—';
-  if(!mes) return String(ano);
-  const m = String(mes).padStart(2,'0');
-  return `${m}/${ano}`;
-}
-
-/* Formatador simples de preço pedido */
-function formatPrecoPedido(p){
-  const n = numPT(p.precoPedido);
-  if(n===null) return '—';
-  return n.toLocaleString('pt-PT') + ' €';
-}
-
-/* ===== Barra de estado ===== */
-function setStatus(msg){
-  const bar = el('statusBar');
-  if(!bar) return;
-  if(!msg){
-    bar.classList.remove('show');
-    bar.textContent='';
-    return;
-  }
-  bar.textContent = msg;
-  bar.classList.add('show');
 }
 
 /* ===== Leaflet & Cluster ===== */
@@ -814,14 +775,23 @@ async function loadLeafletAndCluster(){
 }
 
 function initMap(){
-  MAP = L.map('map',{ zoomControl:true, scrollWheelZoom:true }).setView(AMP_CENTER, AMP_ZOOM);
+  // Canvas melhora performance com muitos marcadores (quando possível)
+  MAP = L.map('map',{ zoomControl:true, scrollWheelZoom:true, preferCanvas:true }).setView(AMP_CENTER, AMP_ZOOM);
+
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
     maxZoom:19,
     attribution:'&copy; OpenStreetMap'
   }).addTo(MAP);
 
   if(CLUSTER_OK){
-    const clusterOpts={ spiderfyOnEveryZoom:false, showCoverageOnHover:false, maxClusterRadius:48 };
+    const clusterOpts={
+      spiderfyOnEveryZoom:false,
+      showCoverageOnHover:false,
+      maxClusterRadius:48,
+      chunkedLoading:true,       // IMPORTANTE: cluster em chunks
+      chunkInterval:200,
+      chunkDelay:30
+    };
     CLUSTER=L.markerClusterGroup(clusterOpts);
     LAYER=L.layerGroup().addTo(CLUSTER);
     MAP.addLayer(CLUSTER);
@@ -832,84 +802,7 @@ function initMap(){
   el('focusAmp')?.addEventListener('click',()=>MAP.setView(AMP_CENTER,AMP_ZOOM,{animate:true}));
 }
 
-/* ===== Filtros: persistência ===== */
-function loadFilterState(){
-  try{
-    const raw = localStorage.getItem(FILTERS_KEY);
-    if(!raw) return;
-    const obj = JSON.parse(raw);
-    if(!obj || typeof obj !== 'object') return;
-
-    UIState.q        = obj.q        || '';
-    UIState.concelho = obj.concelho || '';
-    UIState.estado   = obj.estado   || '';
-    UIState.cmin     = obj.cmin     || '';
-    UIState.cmax     = obj.cmax     || '';
-    UIState.pmin     = obj.pmin     || '';
-    UIState.pmax     = obj.pmax     || '';
-    UIState.vmin     = obj.vmin     || '';
-    UIState.vmax     = obj.vmax     || '';
-    UIState.promotor = obj.promotor || '';
-    UIState.tipos    = obj.tipos    || '';
-    UIState.tipo     = obj.tipo     || '';
-
-    if(el('q'))           el('q').value           = UIState.q;
-    if(el('f_concelho'))  el('f_concelho').value  = UIState.concelho;
-    if(el('f_cmin'))      el('f_cmin').value      = UIState.cmin;
-    if(el('f_cmax'))      el('f_cmax').value      = UIState.cmax;
-    if(el('f_pmin'))      el('f_pmin').value      = UIState.pmin;
-    if(el('f_pmax'))      el('f_pmax').value      = UIState.pmax;
-    if(el('f_vmin'))      el('f_vmin').value      = UIState.vmin;
-    if(el('f_vmax'))      el('f_vmax').value      = UIState.vmax;
-    if(el('f_promotor'))  el('f_promotor').value  = UIState.promotor;
-    if(el('f_tipos'))     el('f_tipos').value     = UIState.tipos;
-
-    // Estado (chips)
-    const chips = document.querySelectorAll('#estadoChips .chip');
-    chips.forEach(c => c.classList.remove('active'));
-    let matched = false;
-    chips.forEach(c=>{
-      if((c.dataset.v || '') === UIState.estado){
-        c.classList.add('active');
-        matched = true;
-      }
-    });
-    if(!matched){
-      const chipTodos = document.querySelector('#estadoChips .chip[data-v=""]');
-      if(chipTodos) chipTodos.classList.add('active');
-      UIState.estado = '';
-    }
-
-    // Tipo (Empreendimento / Isolado)
-    const chipsTipo = document.querySelectorAll('#tipoChips .chip');
-    chipsTipo.forEach(c => c.classList.remove('active'));
-    matched = false;
-    chipsTipo.forEach(c=>{
-      if((c.dataset.v || '') === UIState.tipo){
-        c.classList.add('active');
-        matched = true;
-      }
-    });
-    if(!matched){
-      const chipT = document.querySelector('#tipoChips .chip[data-v=""]');
-      if(chipT) chipT.classList.add('active');
-      UIState.tipo = '';
-    }
-  }catch(e){
-    console.error('Erro a carregar filtros do mapa', e);
-  }
-}
-
-function saveFilterStateFromUI(){
-  const obj = { ...UIState };
-  try{
-    localStorage.setItem(FILTERS_KEY, JSON.stringify(obj));
-  }catch(e){
-    console.error('Erro a guardar filtros do mapa', e);
-  }
-}
-
-/* ===== Facetas / Filtros ===== */
+/* ===== Facetas ===== */
 function buildFacetOptions(){
   const concelhos=[...new Set(RAW.map(x=>x.concelho).filter(Boolean))].sort();
   const promotores=[...new Set(RAW.map(x=>x.promotor).filter(Boolean))].sort();
@@ -917,27 +810,14 @@ function buildFacetOptions(){
   el('f_promotor').innerHTML='<option value="">(Todos)</option>'+promotores.map(c=>`<option>${c}</option>`).join('');
 }
 
-/* ===== Match/Pesquisa (inclui proprietário, contactos e preços) ===== */
+/* ===== Match & filtros ===== */
 function matchTokens(obj,tokens){
   if(!tokens.length) return true;
-
   const hay=norm([
-    obj.refInterna,
-    obj.nome,
-    obj.concelho,
-    obj.promotor,
-    obj.tipologias,
-    obj.estado,
-    obj.notas,
-    obj.conclusao,
-    obj.preco_m2,
-    obj.precoPedido,
-    obj._ownerNome,
-    obj._ownerTelefone,
-    obj._ownerTelemovel,
-    obj._contactos
+    obj.refInterna, obj.nome, obj.concelho, obj.promotor, obj.tipologias,
+    obj.estado, obj.notas, obj.conclusao, obj.preco_m2, obj.precoPedido,
+    obj._ownerNome, obj._ownerTelefone, obj._ownerTelemovel, obj._contactos
   ].join(' '));
-
   return tokens.every(tok=>hay.includes(tok));
 }
 
@@ -950,7 +830,6 @@ function applyFilters(){
     if(UIState.concelho && p.concelho!==UIState.concelho) return false;
     if(UIState.estado && p.estado!==UIState.estado) return false;
 
-    // Filtro por tipo (Empreendimento vs Isolado)
     if(UIState.tipo === 'emp'){
       if(p.isEmpreendimento === false) return false;
     }else if(UIState.tipo === 'iso'){
@@ -977,7 +856,6 @@ function applyFilters(){
       const hit=tiposTokens.some(t=>base.includes(t));
       if(!hit) return false;
     }
-
     return true;
   });
 }
@@ -993,7 +871,6 @@ function renderKPIs(){
   el('k_f').textContent=f;
 }
 
-/* ===== Helpers de apresentação ===== */
 function stateLabel(s){
   const c=colorByState(s);
   return `<span class="badge badge-estado" style="border-color:${c};color:${c}">${s||'—'}</span>`;
@@ -1008,7 +885,22 @@ function tipoBadge(p){
   return `<span class="badge" style="border-color:var(--gold);color:var(--gold);margin-left:4px">${t}</span>`;
 }
 
-/* ===== Lista ===== */
+function formatConclusao(p){
+  const ano = p.conclusaoAno || p.conclusao;
+  const mes = p.conclusaoMes;
+  if(!ano && !mes) return '—';
+  if(!ano) return '—';
+  if(!mes) return String(ano);
+  const m = String(mes).padStart(2,'0');
+  return `${m}/${ano}`;
+}
+function formatPrecoPedido(p){
+  const n = numPT(p.precoPedido);
+  if(n===null) return '—';
+  return n.toLocaleString('pt-PT') + ' €';
+}
+
+/* ===== Lista (com limite) ===== */
 function renderList(){
   const box = el('list');
   box.innerHTML = '';
@@ -1018,8 +910,18 @@ function renderList(){
     return;
   }
 
-  FILT.forEach(p => {
-    const nameLine = `${p.nome || '—'}`;
+  const total = FILT.length;
+  const slice = FILT.slice(0, LIST_MAX_RENDER);
+
+  if(total > LIST_MAX_RENDER){
+    const note = document.createElement('div');
+    note.className='hint';
+    note.style.margin='4px 0 10px';
+    note.textContent = `A mostrar ${LIST_MAX_RENDER} de ${total} resultados. Refine os filtros para ver menos itens.`;
+    box.appendChild(note);
+  }
+
+  slice.forEach(p => {
     const div = document.createElement('div');
     div.className = 'card';
     const precoPedidoStr = formatPrecoPedido(p);
@@ -1027,7 +929,7 @@ function renderList(){
     div.innerHTML = `
       <div class="row">
         <div>
-          <div class="name">${nameLine}</div>
+          <div class="name">${p.nome || '—'}</div>
           <div class="meta">
             ${p.refInterna ? `<span>${p.refInterna}</span> · ` : ''}
             <span>${p.concelho || '—'}</span>
@@ -1038,19 +940,12 @@ function renderList(){
       </div>
       <div class="state">
         Conclusão: ${formatConclusao(p)}
-        · €/m²: ${
-          p.preco_m2
-            ? (numPT(p.preco_m2) ?? Number(String(p.preco_m2).replace(',', '.'))).toLocaleString('pt-PT')
-            : '—'
-        }
+        · €/m²: ${p.preco_m2 ? (numPT(p.preco_m2) ?? 0).toLocaleString('pt-PT') : '—'}
         · Preço: ${precoPedidoStr}
       </div>
       <div class="actions">
         <button class="btn" data-act="zoom">Abrir no mapa</button>
-        ${p.link
-          ? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>`
-          : ''
-        }
+        ${p.link ? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>` : ''}
         <button class="btn" data-act="open">Detalhes</button>
       </div>
     `;
@@ -1058,21 +953,18 @@ function renderList(){
     div.querySelector('[data-act="zoom"]')?.addEventListener('click', () => {
       if (p._lat && p._lng) MAP?.setView([p._lat, p._lng], 16, { animate: true });
     });
-
     div.querySelector('[data-act="open"]')?.addEventListener('click', () => openFicha(p, true));
-
     box.appendChild(div);
   });
 }
 
-/* ===== Mapa (marcadores) ===== */
+/* ===== Marcadores (RENDER EM CHUNKS) ===== */
 function pinClassFromState(p){
   const st = p.estado;
   let suffix='';
   if(st==='em_construcao') suffix=' c';
   else if(st==='licenciado') suffix=' l';
   else if(st==='concluido') suffix=' f';
-
   const iso = (p.isEmpreendimento === false) ? ' iso' : '';
   return 'pin' + iso + suffix;
 }
@@ -1085,34 +977,84 @@ function makeDivIcon(p){
     popupAnchor:[0,-14]
   });
 }
-function renderMarkers(){
+
+let __markerJobId = 0;
+
+function renderMarkersChunked(){
   if(!window.L||!LAYER) return;
-  if(CLUSTER){ CLUSTER.clearLayers(); }
-  LAYER.clearLayers();
-  const pts=[];
 
-  FILT.forEach(p=>{
-    const lat=numPT(p._lat), lng=numPT(p._lng);
-    if(lat===null||lng===null) return;
-    pts.push([lat,lng]);
+  __markerJobId++;
+  const jobId = __markerJobId;
 
-    const m=L.marker([lat,lng],{icon:makeDivIcon(p)});
-    const tooltip = p.refInterna ? `[${p.refInterna}] ${p.nome||''}` : (p.nome||'');
-    m.on('click',()=>openFicha(p,true));
-    m.bindTooltip(tooltip,{direction:'top',offset:[0,-8],opacity:.9});
+  try{
+    if(CLUSTER){ CLUSTER.clearLayers(); }
+    LAYER.clearLayers();
+  }catch{}
 
-    (CLUSTER||LAYER).addLayer ? (CLUSTER||LAYER).addLayer(m) : m.addTo(LAYER);
-  });
+  const items = FILT
+    .map(p=>{
+      const lat=numPT(p._lat), lng=numPT(p._lng);
+      if(lat===null||lng===null) return null;
+      return {p, lat, lng};
+    })
+    .filter(Boolean);
 
-  if(pts.length && MAP){
-    const b=L.latLngBounds(pts);
-    if(b.isValid()) MAP.fitBounds(b.pad(0.2));
+  const total = items.length;
+  if(!total){
+    setStatus('');
+    return;
   }
+
+  // bounds sem loops pesados
+  const bounds = L.latLngBounds([]);
+
+  let idx = 0;
+  setStatus(`A desenhar marcadores… 0/${total}`);
+
+  const addChunk = () => {
+    if(jobId !== __markerJobId) return; // cancelado por nova execução
+    const end = Math.min(idx + MARKERS_CHUNK, total);
+
+    for(; idx < end; idx++){
+      const it = items[idx];
+      const p = it.p;
+      bounds.extend([it.lat,it.lng]);
+
+      const m = L.marker([it.lat,it.lng],{icon:makeDivIcon(p)});
+      const tooltip = p.refInterna ? `[${p.refInterna}] ${p.nome||''}` : (p.nome||'');
+      m.on('click',()=>openFicha(p,true));
+      m.bindTooltip(tooltip,{direction:'top',offset:[0,-8],opacity:.9});
+
+      // cluster ou layer
+      if(CLUSTER && CLUSTER.addLayer) CLUSTER.addLayer(m);
+      else LAYER.addLayer(m);
+    }
+
+    if(idx % MARKERS_PROGRESS_EVERY === 0 || idx === total){
+      setStatus(`A desenhar marcadores… ${idx}/${total}`);
+    }
+
+    if(idx < total){
+      requestAnimationFrame(addChunk);
+    }else{
+      // fit bounds no fim
+      if(MAP && bounds.isValid()){
+        MAP.fitBounds(bounds.pad(0.2));
+      }
+      setStatus('');
+    }
+  };
+
+  requestAnimationFrame(addChunk);
 }
 
-/* ===== Documentos & pré-visualização ===== */
-let STORAGE_MODE='idb'; // 'idb' | 'dataurl'
-const PDF_PREFIX='gpp_docs_'; // mantido por compatibilidade
+function renderMarkers(){
+  // substitui a versão antiga por chunked
+  renderMarkersChunked();
+}
+
+/* ===== Documentos & Painel (mantido) ===== */
+let STORAGE_MODE='idb';
 const TEMP_URLS=new Set();
 
 async function detectStorageMode(){
@@ -1146,7 +1088,6 @@ function revokeTempUrls(){
   TEMP_URLS.forEach(u=>URL.revokeObjectURL(u));
   TEMP_URLS.clear();
 }
-
 function openPDF(url){
   el('pdfFrame').src=url;
   el('pdfOpenNew').href=url;
@@ -1158,17 +1099,13 @@ el('pdfClose')?.addEventListener('click',()=>{
   revokeTempUrls();
 });
 
-/* ===== (restante código original mantém-se) ===== */
-
 async function renderDocPreview(container, rawUrl, type){
   const url=await resolveLocalUrl(rawUrl);
   if(!url){
     container.innerHTML='<div class="hint">Documento indisponível.</div>';
     return;
   }
-
   container.innerHTML='';
-
   if(type==='img'){
     const img=document.createElement('img');
     img.src=url;
@@ -1176,7 +1113,6 @@ async function renderDocPreview(container, rawUrl, type){
     img.style.maxWidth='100%';
     img.style.borderRadius='8px';
     container.appendChild(img);
-
     const bar=document.createElement('div');
     bar.style.marginTop='6px';
     bar.style.display='flex';
@@ -1186,12 +1122,10 @@ async function renderDocPreview(container, rawUrl, type){
     container.appendChild(bar);
     return;
   }
-
   if(type==='link'){
     container.innerHTML=`<a class="btn-sm" href="${url}" target="_blank" rel="noreferrer noopener">Abrir link</a>`;
     return;
   }
-
   if(type==='pdf'){
     if(rawUrl.startsWith('idb://')){
       const rec=await getLocal(rawUrl);
@@ -1206,12 +1140,10 @@ async function renderDocPreview(container, rawUrl, type){
         return;
       }
     }
-
     if(!window['pdfjsLib']){
       container.innerHTML = `<div class="hint">Pré-visualização indisponível. <a class="btn-sm" href="${url}" target="_blank" rel="noreferrer noopener">Abrir em nova aba</a></div>`;
       return;
     }
-
     const wrap=document.createElement('div');
     wrap.style.border='1px solid var(--border)';
     wrap.style.borderRadius='8px';
@@ -1245,7 +1177,6 @@ async function renderDocPreview(container, rawUrl, type){
       wrap.innerHTML='';
       wrap.appendChild(canvas);
       await page.render({ canvasContext: ctx, viewport }).promise;
-
       bar.querySelector('#btnExpandLocal')?.addEventListener('click',()=> openPDF(url));
     }catch(e){
       console.error(e);
@@ -1253,21 +1184,29 @@ async function renderDocPreview(container, rawUrl, type){
     }
     return;
   }
-
   container.innerHTML=`<a class="btn-sm" href="${url}" target="_blank" rel="noreferrer noopener">Abrir</a>`;
 }
 
-/* ===== Painel lateral (Ficha) ===== */
+function buildDocsHTML(docs){
+  if(!Array.isArray(docs)||!docs.length) return '<div class="hint">Sem documentos anexados.</div>';
+  const items=docs.map(d=>{
+    const icon=d.type==='pdf'?'📄':(d.type==='img'?'🖼️':'🔗');
+    const extra=d.type==='pdf'?` <button class="btn-sm" data-act="expand" data-url="${d.url}">Expandir</button>`:'';
+    return `<li style="margin-bottom:6px;border:1px solid var(--border);padding:6px 8px;border-radius:8px" data-type="${d.type}" data-url="${d.url}">
+      ${icon} <a class="btn-sm" href="${d.url}" target="_blank" rel="noreferrer noopener">Abrir</a> · ${d.title||d.url}${extra}
+    </li>`;
+  }).join('');
+  return `<ul id="docList" style="list-style:none;margin:0;padding:0">${items}</ul><div id="docView" style="margin-top:8px"></div>`;
+}
+
 function openFicha(p,focus=false){
   ACTIVE = p;
-
-  const titleLine = `${p.nome || '—'}`;
   const precoPedidoStr = formatPrecoPedido(p);
 
   const html = `
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
       <div>
-        <div style="font-weight:800;font-size:16px">${titleLine}</div>
+        <div style="font-weight:800;font-size:16px">${p.nome || '—'}</div>
         <div style="font-size:12px;color:#bbb">
           ${p.refInterna ? `Ref. ${p.refInterna} · ` : ''}${p.concelho || '—'}
           · ${stateLabel(p.estado)}
@@ -1276,14 +1215,8 @@ function openFicha(p,focus=false){
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn" data-act="center">Centrar</button>
-        <a class="btn"
-           href="https://www.google.com/maps?q=${p._lat},${p._lng}"
-           target="_blank"
-           rel="noreferrer">Google Maps</a>
-        ${p.link
-          ? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>`
-          : ''
-        }
+        <a class="btn" href="https://www.google.com/maps?q=${p._lat},${p._lng}" target="_blank" rel="noreferrer">Google Maps</a>
+        ${p.link ? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>` : ''}
         <button class="btn" data-act="copy">Copiar resumo</button>
         <button class="btn" data-act="share">Partilhar</button>
       </div>
@@ -1295,11 +1228,7 @@ function openFicha(p,focus=false){
         <div class="meta-line"><b>Ref. interna:</b> ${p.refInterna || '—'}</div>
         <div class="meta-line"><b>Tipologias:</b> ${p.tipologias || '—'}</div>
         <div class="meta-line"><b>Conclusão:</b> ${formatConclusao(p)}</div>
-        <div class="meta-line"><b>€/m²:</b> ${
-          p.preco_m2
-            ? (numPT(p.preco_m2) ?? Number(String(p.preco_m2).replace(',', '.'))).toLocaleString('pt-PT')
-            : '—'
-        }</div>
+        <div class="meta-line"><b>€/m²:</b> ${p.preco_m2 ? (numPT(p.preco_m2) ?? 0).toLocaleString('pt-PT') : '—'}</div>
         <div class="meta-line"><b>Preço pedido:</b> ${precoPedidoStr}</div>
         <div class="meta-line"><b>Notas:</b> ${p.notas || '—'}</div>
         <div class="meta-line"><b>Coordenadas:</b> ${numPT(p._lat) ?? '—'}, ${numPT(p._lng) ?? '—'}</div>
@@ -1325,24 +1254,14 @@ function openFicha(p,focus=false){
   });
 
   el('panelInner').querySelector('[data-act="copy"]')?.addEventListener('click', async () => {
-    const resumo = `${
-      p.refInterna ? '[' + p.refInterna + '] ' : ''
-    }${p.nome || ''} — ${p.concelho || ''} (${p.estado || ''}) · ${tipoLabel(p)} · Conclusão ${
-      formatConclusao(p)
-    } · Preço: ${precoPedidoStr} · Ref. ${p.refInterna || '-'} · ${p.link || ''}`.trim();
+    const resumo = `${p.refInterna ? '[' + p.refInterna + '] ' : ''}${p.nome || ''} — ${p.concelho || ''} (${p.estado || ''}) · ${tipoLabel(p)} · Conclusão ${formatConclusao(p)} · Preço: ${precoPedidoStr} · Ref. ${p.refInterna || '-'} · ${p.link || ''}`.trim();
     try { await navigator.clipboard.writeText(resumo); } catch {}
   });
 
   el('panelInner').querySelector('[data-act="share"]')?.addEventListener('click', async () => {
     const shareData = {
       title: p.nome || 'Empreendimento',
-      text: `${
-        p.refInterna ? '[' + p.refInterna + '] ' : ''
-      }${p.nome || ''} — ${p.concelho || ''} (${p.estado || ''}) · ${tipoLabel(p)} · Conclusão ${
-        formatConclusao(p)
-      } · Preço: ${precoPedidoStr}${
-        p.refInterna ? ' · Ref. ' + p.refInterna : ''
-      }`,
+      text: `${p.refInterna ? '[' + p.refInterna + '] ' : ''}${p.nome || ''} — ${p.concelho || ''} (${p.estado || ''}) · ${tipoLabel(p)} · Conclusão ${formatConclusao(p)} · Preço: ${precoPedidoStr}${p.refInterna ? ' · Ref. ' + p.refInterna : ''}`,
       url: location.href
     };
     if (navigator.share) {
@@ -1371,59 +1290,43 @@ function openFicha(p,focus=false){
   }
 }
 
-function buildDocsHTML(docs){
-  if(!Array.isArray(docs)||!docs.length) return '<div class="hint">Sem documentos anexados.</div>';
-  const items=docs.map(d=>{
-    const icon=d.type==='pdf'?'📄':(d.type==='img'?'🖼️':'🔗');
-    const extra=d.type==='pdf'?` <button class="btn-sm" data-act="expand" data-url="${d.url}">Expandir</button>`:'';
-    return `<li style="margin-bottom:6px;border:1px solid var(--border);padding:6px 8px;border-radius:8px" data-type="${d.type}" data-url="${d.url}">
-      ${icon} <a class="btn-sm" href="${d.url}" target="_blank" rel="noreferrer noopener">Abrir</a> · ${d.title||d.url}${extra}
-    </li>`;
-  }).join('');
-  return `<ul id="docList" style="list-style:none;margin:0;padding:0">${items}</ul><div id="docView" style="margin-top:8px"></div>`;
-}
-
 el('closePanel')?.addEventListener('click',()=>{
   el('side-panel').classList.remove('show');
   revokeTempUrls();
 });
 
-/* ===== Persistência (robusta) ===== */
+/* ===== Persistência ===== */
 function loadLS(){
   try{
     const x=localStorage.getItem(LS_KEY);
     if(!x) return null;
     if(x.length > 500000){
-      console.warn('Dataset local demasiado grande, a ignorar para evitar bloqueios.');
       LS_SKIPPED=true;
       return null;
     }
     return JSON.parse(x);
   }catch(e){
-    console.warn('Falha a ler dados locais, a iniciar base vazia.', e);
     LS_ERROR=true;
     return null;
   }
 }
 
-/* ===== Integração com Angariações (gpp_angariacoes_v2) ===== */
+/* ===== Merge angariações (mantido) ===== */
+function parseGps(gps){
+  if(!gps) return {lat:null,lng:null};
+  const m = String(gps).match(/-?\d+(?:[.,]\d+)?/g);
+  if(!m || m.length<2) return {lat:null,lng:null};
+  const lat = numPT(m[0]);
+  const lng = numPT(m[1]);
+  return {lat,lng};
+}
 function mergeAngariacoesIntoRAW(){
   let raw=null;
-  try{
-    raw = localStorage.getItem('gpp_angariacoes_v2');
-  }catch(e){
-    console.warn('Sem acesso ao localStorage de angariações', e);
-    return;
-  }
+  try{ raw = localStorage.getItem('gpp_angariacoes_v2'); }catch{ return; }
   if(!raw) return;
 
   let store;
-  try{
-    store = JSON.parse(raw);
-  }catch(e){
-    console.warn('JSON inválido em gpp_angariacoes_v2', e);
-    return;
-  }
+  try{ store = JSON.parse(raw); }catch{ return; }
   if(!store || !Array.isArray(store.deals)) return;
 
   const deals = store.deals;
@@ -1439,7 +1342,6 @@ function mergeAngariacoesIntoRAW(){
   deals.forEach(d=>{
     if(!d) return;
     const deal = { ...d };
-
     const coords = parseGps(deal.gps || '');
     if(coords.lat===null || coords.lng===null) return;
 
@@ -1529,24 +1431,63 @@ function normalizeConclusaoFields(){
 }
 function autoUpdateEstadosByConclusao(){
   const today = new Date();
-  let changed=false;
-
   RAW.forEach(p=>{
     const ano = Number(p.conclusaoAno || p.conclusao || '');
     const mes = Number(p.conclusaoMes || '');
     if(!ano || !mes) return;
     if(p.estado !== 'em_construcao') return;
     const lastDay = new Date(ano, mes, 0);
-    if(today >= lastDay){
-      p.estado = 'concluido';
-      changed = true;
-    }
+    if(today >= lastDay) p.estado = 'concluido';
   });
-
-  return changed;
 }
 
-/* ===== UI filtros ===== */
+/* ===== Persistência filtros ===== */
+function loadFilterState(){
+  try{
+    const raw = localStorage.getItem(FILTERS_KEY);
+    if(!raw) return;
+    const obj = JSON.parse(raw);
+    if(!obj || typeof obj !== 'object') return;
+
+    UIState = {
+      q: obj.q || '',
+      concelho: obj.concelho || '',
+      estado: obj.estado || '',
+      cmin: obj.cmin || '',
+      cmax: obj.cmax || '',
+      pmin: obj.pmin || '',
+      pmax: obj.pmax || '',
+      vmin: obj.vmin || '',
+      vmax: obj.vmax || '',
+      promotor: obj.promotor || '',
+      tipos: obj.tipos || '',
+      tipo: obj.tipo || ''
+    };
+
+    el('q').value = UIState.q;
+    el('f_concelho').value = UIState.concelho;
+    el('f_cmin').value = UIState.cmin;
+    el('f_cmax').value = UIState.cmax;
+    el('f_pmin').value = UIState.pmin;
+    el('f_pmax').value = UIState.pmax;
+    el('f_vmin').value = UIState.vmin;
+    el('f_vmax').value = UIState.vmax;
+    el('f_promotor').value = UIState.promotor;
+    el('f_tipos').value = UIState.tipos;
+
+    document.querySelectorAll('#estadoChips .chip').forEach(c=>c.classList.remove('active'));
+    (document.querySelector(`#estadoChips .chip[data-v="${UIState.estado}"]`) || document.querySelector('#estadoChips .chip[data-v=""]'))?.classList.add('active');
+
+    document.querySelectorAll('#tipoChips .chip').forEach(c=>c.classList.remove('active'));
+    (document.querySelector(`#tipoChips .chip[data-v="${UIState.tipo}"]`) || document.querySelector('#tipoChips .chip[data-v=""]'))?.classList.add('active');
+  }catch{}
+}
+
+function saveFilterStateFromUI(){
+  try{ localStorage.setItem(FILTERS_KEY, JSON.stringify(UIState)); }catch{}
+}
+
+/* ===== UI eventos ===== */
 document.querySelectorAll('#estadoChips .chip').forEach(ch=>{
   ch.addEventListener('click',()=>{
     document.querySelectorAll('#estadoChips .chip').forEach(c=>c.classList.remove('active'));
@@ -1565,7 +1506,7 @@ document.querySelectorAll('#tipoChips .chip').forEach(ch=>{
     run();
   });
 });
-el('apply')?.addEventListener('click',()=>{
+el('apply').addEventListener('click',()=>{
   UIState.q=el('q').value.trim();
   UIState.concelho=el('f_concelho').value;
   UIState.cmin=el('f_cmin').value;
@@ -1579,20 +1520,13 @@ el('apply')?.addEventListener('click',()=>{
   saveFilterStateFromUI();
   run();
 });
-el('clear')?.addEventListener('click',()=>{
+el('clear').addEventListener('click',()=>{
   ['q','f_concelho','f_cmin','f_cmax','f_pmin','f_pmax','f_vmin','f_vmax','f_promotor','f_tipos'].forEach(id=>el(id).value='');
   document.querySelectorAll('#estadoChips .chip').forEach(c=>c.classList.remove('active'));
   document.querySelector('#estadoChips .chip[data-v=""]')?.classList.add('active');
   document.querySelectorAll('#tipoChips .chip').forEach(c=>c.classList.remove('active'));
   document.querySelector('#tipoChips .chip[data-v=""]')?.classList.add('active');
-  UIState={
-    q:'', concelho:'', estado:'',
-    cmin:'', cmax:'',
-    pmin:'', pmax:'',
-    vmin:'', vmax:'',
-    promotor:'', tipos:'',
-    tipo:''
-  };
+  UIState={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', vmin:'', vmax:'', promotor:'', tipos:'', tipo:'' };
   saveFilterStateFromUI();
   run();
 });
@@ -1602,7 +1536,7 @@ function run(){
   applyFilters();
   renderKPIs();
   renderList();
-  renderMarkers();
+  renderMarkers(); // chunked
 }
 
 /* ===== Arranque ===== */
@@ -1614,53 +1548,38 @@ function run(){
     initMap();
   } else {
     document.getElementById('map')?.classList.add('hidden');
-    setStatus('⚠ Não foi possível carregar o motor de mapa (Leaflet). Verifique a ligação à internet.');
+    setStatus('⚠ Não foi possível carregar o motor de mapa (Leaflet).');
     return;
   }
 
   await detectStorageMode();
 
-  // ✅ EQUIPA: carregar SEMPRE do CSV primeiro (fonte oficial)
   if(TEAM_READONLY_FORCE_CSV){
     RAW = await loadFromCSV();
-
-    // Fallback de contingência: se CSV falhar, tenta localStorage (p.ex. offline)
     if(!RAW.length){
       const mem = loadLS();
       RAW = Array.isArray(mem) ? mem : [];
     }
   }else{
-    // (compatibilidade) — tenta localStorage primeiro
     const mem = loadLS();
     RAW = Array.isArray(mem) ? mem : [];
-    if(!RAW.length){
-      RAW = await loadFromCSV();
-    }
+    if(!RAW.length) RAW = await loadFromCSV();
   }
 
-  // Merge angariações locais (se existirem no browser do utilizador)
   mergeAngariacoesIntoRAW();
   normalizeTipoImovel();
   normalizeConclusaoFields();
   autoUpdateEstadosByConclusao();
 
-  buildFacetOptions();
-  loadFilterState();
-  run();
-
   if(!RAW.length){
-    setStatus('⚠ Sem dados. Confirme que o ficheiro CSV existe e está acessível em /data/gpp-mapa.csv');
+    setStatus('⚠ Sem dados. Confirme que existe /data/gpp-mapa.csv e que contém lat/lng.');
     return;
   }
 
-  // Mensagens finais
-  if(LS_SKIPPED){
-    setStatus('⚠ Dados locais antigos eram muito pesados e foram ignorados. O mapa foi aberto via CSV.');
-  } else if(LS_ERROR){
-    setStatus('⚠ Não foi possível ler os dados locais guardados anteriormente. O mapa foi aberto via CSV.');
-  } else {
-    setStatus('');
-  }
+  buildFacetOptions();
+  loadFilterState();
+  run();
+  setStatus('');
 })();
 </script>
 </body>
