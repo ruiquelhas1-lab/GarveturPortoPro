@@ -609,6 +609,9 @@ let ACTIVE=null;
 // 🔒 MODO LEITURA FORÇADO (Equipa)
 let EDIT_MODE=false;
 
+// ✅ MODO EQUIPA: prioridade absoluta ao CSV (evita dados locais desatualizados/pesados)
+const TEAM_READONLY_FORCE_CSV = true;
+
 let UIState={
   q:'', concelho:'', estado:'',
   cmin:'', cmax:'',
@@ -621,8 +624,16 @@ let UIState={
 let LS_SKIPPED=false;
 let LS_ERROR=false;
 
-/* ===== CSV (fallback para equipa) ===== */
-const CSV_URL = "./data/gpp-mapa.csv?v=" + Date.now(); // evita cache agressivo do GitHub Pages
+/* ===== CSV (fonte para equipa) ===== */
+const CSV_PATH = "data/gpp-mapa.csv";
+const CSV_URL = (() => {
+  // resolve robusto para GitHub Pages (mesmo em subpastas)
+  const base = new URL(location.href);
+  const u = new URL(CSV_PATH, base);
+  // evita cache agressivo quando há updates no repo
+  u.searchParams.set('v', String(Date.now()));
+  return u.toString();
+})();
 
 const el=id=>document.getElementById(id);
 function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
@@ -642,20 +653,52 @@ function colorByState(k){
 function slugify(s){ return norm(s).replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,''); }
 function numPT(v){
   if(v===null||v===undefined||v==='') return null;
-  const n=Number(String(v).replace(',','.'));
+  const s = String(v).trim()
+    .replace(/\s/g,'')
+    .replace(/\./g,'')      // remove separador milhares PT
+    .replace(',', '.');     // decimal PT -> EN
+  const n = Number(s);
   return Number.isFinite(n)? n : null;
 }
 
+/* ===== CSV parser robusto (suporta aspas) ===== */
+function detectSep(headerLine){
+  const semi=(headerLine.match(/;/g)||[]).length;
+  const comma=(headerLine.match(/,/g)||[]).length;
+  return semi>=comma ? ';' : ',';
+}
+function parseCSVLine(line, sep){
+  const out=[];
+  let cur='';
+  let inQ=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch === '"'){
+      if(inQ && line[i+1] === '"'){ cur+='"'; i++; }
+      else { inQ=!inQ; }
+      continue;
+    }
+    if(ch===sep && !inQ){
+      out.push(cur);
+      cur='';
+      continue;
+    }
+    cur+=ch;
+  }
+  out.push(cur);
+  return out.map(x=>String(x??'').trim());
+}
 function parseCSV(text){
-  const lines = text.replace(/\r/g,'').split('\n').filter(l=>l.trim().length);
+  const cleaned = String(text||'').replace(/^\uFEFF/,''); // remove BOM
+  const lines = cleaned.replace(/\r/g,'').split('\n').filter(l=>l.trim().length);
   if(!lines.length) return [];
-  const sep = lines[0].includes(';') ? ';' : ',';
+  const sep = detectSep(lines[0]);
 
-  const headers = lines[0].split(sep).map(h=>h.trim());
+  const headers = parseCSVLine(lines[0], sep).map(h=>h.trim());
   const out = [];
 
   for(let i=1;i<lines.length;i++){
-    const row = lines[i].split(sep);
+    const row = parseCSVLine(lines[i], sep);
     const obj = {};
     headers.forEach((h,idx)=> obj[h] = (row[idx] ?? '').trim());
 
@@ -987,7 +1030,7 @@ function renderList(){
         Conclusão: ${formatConclusao(p)}
         · €/m²: ${
           p.preco_m2
-            ? Number(String(p.preco_m2).replace(',', '.')).toLocaleString('pt-PT')
+            ? (numPT(p.preco_m2) ?? Number(String(p.preco_m2).replace(',', '.'))).toLocaleString('pt-PT')
             : '—'
         }
         · Preço: ${precoPedidoStr}
@@ -1242,7 +1285,7 @@ function openFicha(p,focus=false){
         <div class="meta-line"><b>Conclusão:</b> ${formatConclusao(p)}</div>
         <div class="meta-line"><b>€/m²:</b> ${
           p.preco_m2
-            ? Number(String(p.preco_m2).replace(',', '.')).toLocaleString('pt-PT')
+            ? (numPT(p.preco_m2) ?? Number(String(p.preco_m2).replace(',', '.'))).toLocaleString('pt-PT')
             : '—'
         }</div>
         <div class="meta-line"><b>Preço pedido:</b> ${precoPedidoStr}</div>
@@ -1293,11 +1336,7 @@ function openFicha(p,focus=false){
     if (navigator.share) {
       try { await navigator.share(shareData); } catch {}
     } else {
-      try {
-        await navigator.clipboard.writeText(
-          shareData.text + ' ' + (p.link || location.href)
-        );
-      } catch {}
+      try { await navigator.clipboard.writeText(shareData.text + ' ' + (p.link || location.href)); } catch {}
     }
   });
 
@@ -1570,16 +1609,25 @@ function run(){
 
   await detectStorageMode();
 
-  // 1) tentar localStorage
-  const mem = loadLS();
-  RAW = Array.isArray(mem) ? mem : [];
-
-  // 2) fallback CSV (equipa)
-  if(!RAW.length){
+  // ✅ EQUIPA: carregar SEMPRE do CSV primeiro (fonte oficial)
+  if(TEAM_READONLY_FORCE_CSV){
     RAW = await loadFromCSV();
+
+    // Fallback de contingência: se CSV falhar, tenta localStorage (p.ex. offline)
+    if(!RAW.length){
+      const mem = loadLS();
+      RAW = Array.isArray(mem) ? mem : [];
+    }
+  }else{
+    // (mantido por compatibilidade) — tenta localStorage primeiro
+    const mem = loadLS();
+    RAW = Array.isArray(mem) ? mem : [];
+    if(!RAW.length){
+      RAW = await loadFromCSV();
+    }
   }
 
-  // 3) merge angariações locais (se existirem no browser do utilizador)
+  // Merge angariações locais (se existirem no browser do utilizador)
   mergeAngariacoesIntoRAW();
   normalizeTipoImovel();
   normalizeConclusaoFields();
@@ -1589,6 +1637,12 @@ function run(){
   loadFilterState();
   run();
 
+  if(!RAW.length){
+    setStatus('⚠ Sem dados. Confirme que o ficheiro CSV existe e está acessível em /data/gpp-mapa.csv');
+    return;
+  }
+
+  // Mensagens finais
   if(LS_SKIPPED){
     setStatus('⚠ Dados locais antigos eram muito pesados e foram ignorados. O mapa foi aberto via CSV.');
   } else if(LS_ERROR){
