@@ -628,14 +628,36 @@ function colorByState(k){
   return '#A38B63';
 }
 function slugify(s){ return norm(s).replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,''); }
-function numPT(v){
+function numFlex(v){
+  // Para preços/áreas/valores PT (aceita "1.234,56" e "1234.56")
   if(v===null||v===undefined||v==='') return null;
-  const s = String(v).trim()
-    .replace(/\s/g,'')
-    .replace(/\./g,'')
-    .replace(',', '.');
+  let s = String(v).trim().replace(/\s/g,'');
+  if(!s) return null;
+
+  const hasComma = s.includes(',');
+  const hasDot = s.includes('.');
+
+  // Caso PT típico: "1.234,56"  -> remove milhares "." e troca "," por "."
+  if(hasComma && hasDot){
+    s = s.replace(/\./g,'').replace(',', '.');
+  } else if(hasComma && !hasDot){
+    // "1234,56" -> decimal ","
+    s = s.replace(',', '.');
+  } // se só tiver ".", assume decimal "." e não remove
+
   const n = Number(s);
-  return Number.isFinite(n)? n : null;
+  return Number.isFinite(n) ? n : null;
+}
+
+function numCoord(v){
+  // Para coordenadas: NÃO remove "." (decimal)
+  if(v===null||v===undefined||v==='') return null;
+  let s = String(v).trim().replace(/\s/g,'');
+  if(!s) return null;
+  // Aceita "41,15" convertendo para "41.15"
+  if(s.includes(',') && !s.includes('.')) s = s.replace(',', '.');
+  const n = Number(s);
+  return Number.isFinite(n) ? n : null;
 }
 
 /* ===== Status bar ===== */
