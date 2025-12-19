@@ -16,7 +16,7 @@
 <!-- idb-keyval (IndexedDB) -->
 <script src="https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/idb-keyval.iife.min.js" crossorigin="anonymous"></script>
 
-<!-- PapaParse (CSV robusto + worker) -->
+<!-- PapaParse -->
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js" crossorigin="anonymous"></script>
 
 <!-- PDF.js -->
@@ -62,359 +62,119 @@ header{
   border-bottom:1px solid var(--border);
   background:linear-gradient(90deg,#050505,#111,#050505);
 }
-.brand{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-.brand h1{
-  font-size:16px;
-  margin:0;
-  color:var(--gold);
-}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand h1{font-size:16px;margin:0;color:var(--gold);}
 .readonly-badge{
-  font-size:11px;
-  color:var(--muted);
-  text-transform:uppercase;
-  letter-spacing:.14em;
-  border:1px solid var(--border);
-  padding:6px 10px;
-  border-radius:999px;
+  font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.14em;
+  border:1px solid var(--border);padding:6px 10px;border-radius:999px;
 }
 .kpis{
-  grid-column:1 / span 2;
-  display:flex;
-  gap:8px;
-  align-items:center;
-  padding:6px 12px;
-  background:#0F0F0F;
-  border-bottom:1px solid var(--border);
+  grid-column:1 / span 2;display:flex;gap:8px;align-items:center;
+  padding:6px 12px;background:#0F0F0F;border-bottom:1px solid var(--border);
 }
-.kpi{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:6px 10px;
-  font-size:12px;
-}
-.dot{
-  width:10px;
-  height:10px;
-  border-radius:50%;
-  background:#999;
-  display:inline-block;
-  border:1px solid rgba(0,0,0,.2);
-}
-.dot.c{background:var(--warn)}
-.dot.l{background:var(--info)}
-.dot.f{background:var(--ok)}
-.toolbar{
-  margin-left:auto;
-  display:flex;
-  gap:6px;
-  flex-wrap:wrap;
-}
-.btn{
-  background:transparent;
-  border:1px solid rgba(163,139,99,.5);
-  color:#fff;
-  padding:6px 10px;
-  border-radius:10px;
-  cursor:pointer;
-  font-size:12px;
-}
-.btn-sm{
-  font-size:12px;
-  border:1px solid var(--border);
-  padding:4px 8px;
-  border-radius:8px;
-  background:transparent;
-  color:#eee;
-}
-.sidebar{
-  background:var(--panel);
-  border-right:1px solid var(--border);
-  overflow:auto;
-}
-.section{
-  padding:10px;
-  border-bottom:1px solid rgba(255,255,255,.08);
-}
-.hint{
-  font-size:11px;
-  color:#bdbdbd;
-}
-.label{
-  font-size:12px;
-  color:#cfcfcf;
-  margin:6px 0 4px;
-}
-.field{
-  display:flex;
-  gap:6px;
-}
-.field input,.field select{
-  flex:1;
-  background:#0E0E0E;
-  border:1px solid rgba(255,255,255,.15);
-  border-radius:8px;
-  padding:8px 10px;
-  color:#fff;
-  outline:none;
-}
-.chips{
-  display:flex;
-  flex-wrap:wrap;
-  gap:6px;
-  margin-top:6px;
-}
-.chip{
-  font-size:12px;
-  padding:6px 10px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.16);
-  background:#0E0E0E;
-  color:#ddd;
-  cursor:pointer;
-}
-.chip.active{
-  background:var(--gold);
-  color:#111;
-  border-color:var(--gold);
-  font-weight:700;
-}
-.list{
-  padding:8px 12px;
-}
-.card{
-  border:1px solid rgba(163,139,99,.25);
-  border-radius:12px;
-  padding:12px 12px 10px;
-  margin-bottom:12px;
-  background:#0E0E0E;
-}
-.card .row{
-  display:flex;
-  justify-content:space-between;
-  gap:8px;
-  align-items:center;
-}
+.kpi{display:flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:10px;padding:6px 10px;font-size:12px;}
+.dot{width:10px;height:10px;border-radius:50%;background:#999;display:inline-block;border:1px solid rgba(0,0,0,.2);}
+.dot.c{background:var(--warn)} .dot.l{background:var(--info)} .dot.f{background:var(--ok)}
+.toolbar{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;}
+.btn{background:transparent;border:1px solid rgba(163,139,99,.5);color:#fff;padding:6px 10px;border-radius:10px;cursor:pointer;font-size:12px;}
+.btn-sm{font-size:12px;border:1px solid var(--border);padding:4px 8px;border-radius:8px;background:transparent;color:#eee;}
+
+.sidebar{background:var(--panel);border-right:1px solid var(--border);overflow:auto;}
+.section{padding:10px;border-bottom:1px solid rgba(255,255,255,.08);}
+.hint{font-size:11px;color:#bdbdbd;}
+.label{font-size:12px;color:#cfcfcf;margin:6px 0 4px;}
+.field{display:flex;gap:6px;}
+.field input,.field select{flex:1;background:#0E0E0E;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:8px 10px;color:#fff;outline:none;}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.chip{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:#0E0E0E;color:#ddd;cursor:pointer;}
+.chip.active{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700;}
+
+.list{padding:8px 12px;}
+.card{border:1px solid rgba(163,139,99,.25);border-radius:12px;padding:12px 12px 10px;margin-bottom:12px;background:#0E0E0E;}
+.card .row{display:flex;justify-content:space-between;gap:8px;align-items:center;}
 .card .name{font-weight:700;}
-.card .meta{
-  font-size:11px;
-  color:#bbb;
-  text-transform:uppercase;
-  letter-spacing:.05em;
-  margin-top:4px;
-  display:flex;
-  align-items:center;
-  gap:6px;
-  flex-wrap:wrap;
-}
-.card .state{
-  font-size:12px;
-  color:#bbb;
-  margin-top:6px;
-  line-height:1.4;
-}
-.card .actions{
-  display:flex;
-  gap:8px;
-  margin-top:10px;
-  flex-wrap:wrap;
-}
-.badge{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  padding:3px 10px;
-  border-radius:999px;
-  border:1px solid var(--border);
-  font-size:11px;
-  line-height:1;
-  white-space:nowrap;
-}
-.badge-estado{
-  min-width:100px;
-  justify-content:center;
-  text-transform:uppercase;
-}
-.empty{
-  padding:10px;
-  color:#bbb;
-  font-size:13px;
-}
-#map{ width:100%; height:100%; }
+.card .meta{font-size:11px;color:#bbb;text-transform:uppercase;letter-spacing:.05em;margin-top:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.card .state{font-size:12px;color:#bbb;margin-top:6px;line-height:1.4;}
+.card .actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+
+.badge{display:inline-flex;align-items:center;justify-content:center;padding:3px 10px;border-radius:999px;border:1px solid var(--border);font-size:11px;line-height:1;white-space:nowrap;}
+.badge-estado{min-width:100px;justify-content:center;text-transform:uppercase;}
+.empty{padding:10px;color:#bbb;font-size:13px;}
+
+#map{width:100%;height:100%;}
 .leaflet-container{background:#eaeaea}
+
 .legend{
-  position:absolute;
-  left:12px;
-  bottom:16px;
-  z-index:5000;
-  background:#111;
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:8px 10px;
-  font-size:12px;
-  color:#fff;
+  position:absolute;left:12px;bottom:16px;z-index:5000;background:#111;border:1px solid var(--border);
+  border-radius:10px;padding:8px 10px;font-size:12px;color:#fff;
 }
-.legend .row{
-  display:flex;
-  gap:8px;
-  align-items:center;
-}
-.legend .swatch{
-  width:12px;
-  height:12px;
-  border-radius:3px;
-  border:1px solid rgba(0,0,0,.3);
-}
-.legend .c{background:#E53935}
-.legend .l{background:#1E88E5}
-.legend .f{background:#43A047}
+.legend .row{display:flex;gap:8px;align-items:center;}
+.legend .swatch{width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.3);}
+.legend .c{background:#E53935} .legend .l{background:#1E88E5} .legend .f{background:#43A047}
 
 .status-bar{
-  position:absolute;
-  top:8px;
-  left:50%;
-  transform:translateX(-50%);
-  background:rgba(10,10,10,.95);
-  border-radius:999px;
-  border:1px solid var(--border);
-  padding:4px 10px;
-  font-size:11px;
-  color:var(--muted);
-  z-index:6000;
-  display:none;
+  position:absolute;top:8px;left:50%;transform:translateX(-50%);
+  background:rgba(10,10,10,.95);border-radius:999px;border:1px solid var(--border);
+  padding:4px 10px;font-size:11px;color:var(--muted);z-index:6000;display:none;
 }
-.status-bar.show{
-  display:flex;
-  align-items:center;
-  gap:6px;
-}
+.status-bar.show{display:flex;align-items:center;gap:6px;}
+
 #side-panel{
-  position:absolute;
-  right:12px;
-  top:80px;
-  bottom:12px;
-  width:min(470px,92vw);
-  z-index:5001;
-  background:#0F0F0F;
-  border:1px solid var(--border);
-  border-radius:12px;
-  overflow:auto;
-  display:none;
+  position:absolute;right:12px;top:80px;bottom:12px;width:min(470px,92vw);z-index:5001;
+  background:#0F0F0F;border:1px solid var(--border);border-radius:12px;overflow:auto;display:none;
 }
 #side-panel.show{display:block}
 .panel-head{
-  position:sticky;
-  top:0;
-  background:#0F0F0F;
-  border-bottom:1px solid var(--border);
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:10px 12px;
+  position:sticky;top:0;background:#0F0F0F;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;padding:10px 12px;
 }
 .panel-inner{padding:12px}
-.meta-line{
-  font-size:13px;
-  margin:4px 0;
-  color:#ddd;
-}
+.meta-line{font-size:13px;margin:4px 0;color:#ddd;}
 
-/* Pins base */
-.pin{
-  width:28px;
-  height:28px;
-  border-radius:50%;
-  border:2px solid #111;
-  box-shadow:0 2px 6px rgba(0,0,0,.35);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:#fff;
-  font-weight:800;
-  font-size:12px;
-  position:relative;
+/* Pins */
+.pin{width:28px;height:28px;border-radius:50%;border:2px solid #111;box-shadow:0 2px 6px rgba(0,0,0,.35);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:12px;position:relative;
 }
 .pin.c{ background:#E53935; color:#E53935; }
 .pin.l{ background:#1E88E5; color:#1E88E5; }
 .pin.f{ background:#43A047; color:#43A047; }
+
 .pin:not(.iso).c::after{
-  content:"";
-  position:absolute;
-  width:28px;
-  height:28px;
-  border-radius:50%;
-  box-shadow:0 0 0 0 rgba(229,57,53,.55);
-  animation:pulse 1.8s ease-out infinite;
+  content:"";position:absolute;width:28px;height:28px;border-radius:50%;
+  box-shadow:0 0 0 0 rgba(229,57,53,.55);animation:pulse 1.8s ease-out infinite;
 }
 .pin.iso{
-  width:28px;
-  height:28px;
-  border-radius:50%;
-  border:3px solid currentColor;
-  background:transparent;
-  box-shadow:0 2px 6px rgba(0,0,0,.35);
-  position:relative;
+  width:28px;height:28px;border-radius:50%;border:3px solid currentColor;background:transparent;
+  box-shadow:0 2px 6px rgba(0,0,0,.35);position:relative;
 }
-.pin.iso::before{
-  content:"";
-  position:absolute;
-  inset:6px;
-  border-radius:50%;
-  border:2px solid rgba(0,0,0,.65);
-  background:transparent;
-}
+.pin.iso::before{content:"";position:absolute;inset:6px;border-radius:50%;border:2px solid rgba(0,0,0,.65);background:transparent;}
 @keyframes pulse{
   0%{ box-shadow:0 0 0 0 rgba(229,57,53,.55)}
   70%{ box-shadow:0 0 0 18px rgba(229,57,53,0)}
   100%{ box-shadow:0 0 0 0 rgba(229,57,53,0)}
 }
+
+/* PDF modal */
 .pdf-backdrop{
-  display:none;
-  position:fixed;
-  inset:0;
-  z-index:11000;
-  background:rgba(0,0,0,.6);
-  backdrop-filter:blur(2px);
-  align-items:center;
-  justify-content:center;
-  padding:16px;
+  display:none;position:fixed;inset:0;z-index:11000;background:rgba(0,0,0,.6);
+  backdrop-filter:blur(2px);align-items:center;justify-content:center;padding:16px;
 }
 .pdf-backdrop.show{display:flex}
 .pdf-card{
-  width:min(1100px,96vw);
-  height:min(88vh,900px);
-  background:#0F0F0F;
-  border:1px solid var(--border);
-  border-radius:12px;
-  overflow:hidden;
-  display:flex;
-  flex-direction:column;
+  width:min(1100px,96vw);height:min(88vh,900px);background:#0F0F0F;border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;display:flex;flex-direction:column;
 }
 .pdf-card header{
-  padding:8px 10px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  border-bottom:1px solid var(--border);
+  padding:8px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);
 }
 .pdf-card .frame{flex:1}
-.pdf-card iframe{
-  width:100%;
-  height:100%;
-  border:0;
-}
+.pdf-card iframe{width:100%;height:100%;border:0;}
+
 .hidden{display:none !important}
+
 @media (max-width: 1000px){
-  .app{
-    grid-template-columns:1fr;
-    grid-template-rows:56px 40px 280px 1fr;
-  }
+  .app{grid-template-columns:1fr;grid-template-rows:56px 40px 280px 1fr;}
   .sidebar{grid-row:3}
   #map{grid-row:4}
   #side-panel{top:auto;bottom:72px}
@@ -440,7 +200,6 @@ header{
       <div class="kpi"><span class="dot c"></span>Em construção: <b id="k_c">0</b></div>
       <div class="kpi"><span class="dot l"></span>Licenciado: <b id="k_l">0</b></div>
       <div class="kpi"><span class="dot f"></span>Concluído: <b id="k_f">0</b></div>
-
       <div class="toolbar">
         <button class="btn" id="focusAmp">Focar AMP/Porto</button>
       </div>
@@ -576,9 +335,9 @@ let EDIT_MODE=false;
 const TEAM_READONLY_FORCE_CSV = true;
 
 /* Limites para evitar freeze */
-const LIST_MAX_RENDER = 250;
-const MARKERS_CHUNK = 350;
-const MARKERS_PROGRESS_EVERY = 700;
+const LIST_MAX_RENDER = 250;          // cartões máximos na lista
+const MARKERS_CHUNK = 350;            // marcadores por frame
+const MARKERS_PROGRESS_EVERY = 700;   // update de status
 
 let UIState={
   q:'', concelho:'', estado:'',
@@ -593,7 +352,6 @@ let LS_SKIPPED=false;
 let LS_ERROR=false;
 
 const el=id=>document.getElementById(id);
-
 function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
 function stateKey(s){
   const x=norm(s);
@@ -620,25 +378,44 @@ function numPT(v){
 function setStatus(msg){
   const bar = el('statusBar');
   if(!bar) return;
-  if(!msg){
-    bar.classList.remove('show');
-    bar.textContent='';
-    return;
-  }
+  if(!msg){ bar.classList.remove('show'); bar.textContent=''; return; }
   bar.textContent = msg;
   bar.classList.add('show');
 }
 
-/* ===== CSV URL (CORRIGIDO para GitHub Pages de projecto) =====
-   Resolve sempre para .../GarveturPortoPro/data/gpp-mapa.csv quando aplicável. */
+/* ===== URL do CSV (ROBUSTO p/ GitHub Pages project pages) ===== */
+function getRepoBasePrefix(){
+  // Em github.io/project-pages: https://user.github.io/REPO/...
+  const host = location.hostname || '';
+  const parts = (location.pathname || '').split('/').filter(Boolean);
+  if(host.endsWith('github.io') && parts.length >= 1){
+    return '/' + parts[0] + '/'; // "/GarveturPortoPro/"
+  }
+  return '/';
+}
 const CSV_REL = 'data/gpp-mapa.csv';
-function buildCSVUrl(){
-  const u = new URL(CSV_REL, location.href);   // <-- mantém /GarveturPortoPro/
+function getCSVUrl(){
+  const prefix = getRepoBasePrefix();
+  const u = new URL(prefix + CSV_REL, location.origin);
   u.searchParams.set('v', String(Date.now())); // cache-buster
   return u.toString();
 }
 
-/* ===== CSV load (PapaParse em worker) ===== */
+/* ===== Fetch com timeout (evita ficar preso) ===== */
+async function fetchTextWithTimeout(url, ms=15000){
+  const ctrl = new AbortController();
+  const t = setTimeout(()=>ctrl.abort(), ms);
+  try{
+    const r = await fetch(url, { cache:'no-store', signal: ctrl.signal });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const txt = await r.text();
+    return txt;
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+/* ===== CSV load (fetch + Papa.parse do texto) ===== */
 function pick(obj, keys){
   for(const k of keys){
     if(obj && Object.prototype.hasOwnProperty.call(obj,k) && String(obj[k] ?? '').trim() !== '') return obj[k];
@@ -647,96 +424,83 @@ function pick(obj, keys){
 }
 
 async function loadFromCSV(){
-  setStatus('A carregar dataset do CSV…');
-
   if(!window.Papa){
     setStatus('⚠ PapaParse não está disponível.');
     return [];
   }
 
-  const csvUrl = buildCSVUrl();
+  const csvUrl = getCSVUrl();
+  setStatus('A descarregar dataset do CSV…');
 
-  return await new Promise((resolve)=>{
-    let done=false;
+  let text='';
+  try{
+    text = await fetchTextWithTimeout(csvUrl, 20000);
+  }catch(e){
+    console.error(e);
+    setStatus('⚠ Falha a descarregar CSV: ' + csvUrl);
+    return [];
+  }
 
-    const fail = (msg) => {
-      if(done) return;
-      done=true;
-      setStatus(msg);
-      resolve([]);
-    };
+  // Se vier HTML (p.ex. 404 page), não é CSV
+  const t0 = (text || '').trim().slice(0,200).toLowerCase();
+  if(t0.startsWith('<!doctype') || t0.startsWith('<html')){
+    setStatus('⚠ O URL devolveu HTML (não CSV). Confirme: ' + csvUrl);
+    return [];
+  }
 
-    const ok = (arr) => {
-      if(done) return;
-      done=true;
-      setStatus('');
-      resolve(arr || []);
-    };
+  setStatus('A ler/validar CSV…');
 
-    const watchdog = setTimeout(()=>{
-      fail(`⚠ Timeout a carregar/ler CSV. URL: ${csvUrl}`);
-    }, 20000);
-
-    Papa.parse(csvUrl, {
-      download: true,
-      header: true,
-      skipEmptyLines: true,
-      worker: true,
-      complete: (results) => {
-        clearTimeout(watchdog);
-        try{
-          const rows = results?.data || [];
-          if(!rows.length) return fail(`⚠ CSV sem linhas válidas. URL: ${csvUrl}`);
-
-          const arr = rows.map(r=>{
-            const lat = numPT(pick(r, ['_lat','lat','latitude','Lat','LAT']));
-            const lng = numPT(pick(r, ['_lng','lng','lon','longitude','Lng','LNG']));
-            const tipoRaw = String(pick(r, ['isEmpreendimento','tipo','Tipo','TIPO'])).toLowerCase();
-            const isIso = tipoRaw.includes('iso') || tipoRaw === 'false';
-
-            return {
-              refInterna: pick(r, ['refInterna','ref','referencia','Referencia','RefInterna']),
-              nome: pick(r, ['nome','name','Nome']),
-              concelho: pick(r, ['concelho','Concelho']),
-              estado: stateKey(pick(r, ['estado','Estado'])),
-              promotor: pick(r, ['promotor','Promotor']),
-              tipologias: pick(r, ['tipologias','Tipologias']),
-              conclusaoAno: numPT(pick(r, ['conclusaoAno','ano','conclusao','Conclusao'])) || '',
-              conclusaoMes: numPT(pick(r, ['conclusaoMes','mes','Mes'])) || '',
-              conclusao: numPT(pick(r, ['conclusao','ano','Conclusao'])) || '',
-              preco_m2: pick(r, ['preco_m2','precoM2','€/m2','eur_m2']),
-              precoPedido: pick(r, ['precoPedido','preco','Preco','Preço']),
-              notas: pick(r, ['notas','Notas']),
-              link: pick(r, ['link','url','URL']),
-              _lat: lat,
-              _lng: lng,
-              docs: [],
-              isEmpreendimento: isIso ? false : true,
-
-              // extras (se existirem)
-              _ownerNome: pick(r, ['ownerNome','proprietario','nomeProprietario']),
-              _ownerTelefone: pick(r, ['ownerTelefone','telefoneProprietario','telefone']),
-              _ownerTelemovel: pick(r, ['ownerTelemovel','telemovelProprietario','telemovel']),
-              _contactos: pick(r, ['contactos','Contactos'])
-            };
-          });
-
-          const sanity = arr.some(x => (x.nome || x.refInterna) && x._lat!==null && x._lng!==null);
-          if(!sanity) return fail(`⚠ CSV carregou mas não tem colunas válidas (lat/lng/nome). URL: ${csvUrl}`);
-
-          ok(arr);
-        }catch(e){
-          console.error(e);
-          fail(`⚠ Erro a processar CSV. URL: ${csvUrl}`);
-        }
-      },
-      error: (err) => {
-        clearTimeout(watchdog);
-        console.error(err);
-        fail(`⚠ Não foi possível descarregar o CSV. Confirme se existe: ${buildCSVUrl().split('?')[0]}`);
-      }
-    });
+  const parsed = Papa.parse(text, {
+    header: true,
+    skipEmptyLines: true
   });
+
+  if(parsed?.errors?.length){
+    console.warn(parsed.errors);
+  }
+
+  const rows = parsed?.data || [];
+  if(!rows.length){
+    setStatus('⚠ CSV sem linhas válidas. Confirme colunas e conteúdo: ' + csvUrl);
+    return [];
+  }
+
+  const arr = rows.map(r=>{
+    const lat = numPT(pick(r, ['_lat','lat','latitude','Lat','LAT']));
+    const lng = numPT(pick(r, ['_lng','lng','lon','longitude','Lng','LNG']));
+    const tipoRaw = String(pick(r, ['isEmpreendimento','tipo','Tipo','TIPO'])).toLowerCase();
+    const isIso = tipoRaw.includes('iso');
+
+    return {
+      refInterna: pick(r, ['refInterna','ref','referencia','Referencia','RefInterna']),
+      nome: pick(r, ['nome','name','Nome']),
+      concelho: pick(r, ['concelho','Concelho']),
+      estado: stateKey(pick(r, ['estado','Estado'])),
+      promotor: pick(r, ['promotor','Promotor']),
+      tipologias: pick(r, ['tipologias','Tipologias']),
+      conclusaoAno: numPT(pick(r, ['conclusaoAno','ano','conclusao','Conclusao'])) || '',
+      conclusaoMes: numPT(pick(r, ['conclusaoMes','mes','Mes'])) || '',
+      conclusao: numPT(pick(r, ['conclusao','ano','Conclusao'])) || '',
+      preco_m2: pick(r, ['preco_m2','precoM2','€/m2','eur_m2']),
+      precoPedido: pick(r, ['precoPedido','preco','Preco','Preço']),
+      notas: pick(r, ['notas','Notas']),
+      link: pick(r, ['link','url','URL']),
+      _lat: lat,
+      _lng: lng,
+      docs: [],
+      isEmpreendimento: isIso ? false : true
+    };
+  });
+
+  // sanity check: pelo menos 1 com lat/lng e nome/ref
+  const sanity = arr.some(x => (x.nome || x.refInterna) && x._lat!==null && x._lng!==null);
+  if(!sanity){
+    setStatus('⚠ CSV carregou mas não tem colunas válidas (lat/lng/nome).');
+    return [];
+  }
+
+  setStatus('');
+  return arr;
 }
 
 /* ===== Leaflet & Cluster ===== */
@@ -856,16 +620,11 @@ function stateLabel(s){
   const c=colorByState(s);
   return `<span class="badge badge-estado" style="border-color:${c};color:${c}">${s||'—'}</span>`;
 }
-function tipoLabel(p){
-  if(p.isEmpreendimento === false) return 'Imóvel isolado';
-  return 'Empreendimento';
-}
+function tipoLabel(p){ return (p.isEmpreendimento === false) ? 'Imóvel isolado' : 'Empreendimento'; }
 function tipoBadge(p){
   const t=tipoLabel(p);
-  if(!t) return '';
-  return `<span class="badge" style="border-color:var(--gold);color:var(--gold);margin-left:4px">${t}</span>`;
+  return t ? `<span class="badge" style="border-color:var(--gold);color:var(--gold);margin-left:4px">${t}</span>` : '';
 }
-
 function formatConclusao(p){
   const ano = p.conclusaoAno || p.conclusao;
   const mes = p.conclusaoMes;
@@ -939,7 +698,7 @@ function renderList(){
   });
 }
 
-/* ===== Marcadores (RENDER EM CHUNKS) ===== */
+/* ===== Marcadores (chunked) ===== */
 function pinClassFromState(p){
   const st = p.estado;
   let suffix='';
@@ -950,13 +709,7 @@ function pinClassFromState(p){
   return 'pin' + iso + suffix;
 }
 function makeDivIcon(p){
-  return L.divIcon({
-    className: pinClassFromState(p),
-    html:'',
-    iconSize: [28,28],
-    iconAnchor:[14,14],
-    popupAnchor:[0,-14]
-  });
+  return L.divIcon({ className: pinClassFromState(p), html:'', iconSize: [28,28], iconAnchor:[14,14], popupAnchor:[0,-14] });
 }
 
 let __markerJobId = 0;
@@ -981,13 +734,9 @@ function renderMarkersChunked(){
     .filter(Boolean);
 
   const total = items.length;
-  if(!total){
-    setStatus('');
-    return;
-  }
+  if(!total){ setStatus(''); return; }
 
   const bounds = L.latLngBounds([]);
-
   let idx = 0;
   setStatus(`A desenhar marcadores… 0/${total}`);
 
@@ -1016,19 +765,14 @@ function renderMarkersChunked(){
     if(idx < total){
       requestAnimationFrame(addChunk);
     }else{
-      if(MAP && bounds.isValid()){
-        MAP.fitBounds(bounds.pad(0.2));
-      }
+      if(MAP && bounds.isValid()) MAP.fitBounds(bounds.pad(0.2));
       setStatus('');
     }
   };
 
   requestAnimationFrame(addChunk);
 }
-
-function renderMarkers(){
-  renderMarkersChunked();
-}
+function renderMarkers(){ renderMarkersChunked(); }
 
 /* ===== Documentos & Painel (mantido) ===== */
 let STORAGE_MODE='idb';
@@ -1061,10 +805,7 @@ async function resolveLocalUrl(rawUrl){
   if(rawUrl.startsWith('idb://')) return await getLocalBlobUrl(rawUrl);
   return rawUrl;
 }
-function revokeTempUrls(){
-  TEMP_URLS.forEach(u=>URL.revokeObjectURL(u));
-  TEMP_URLS.clear();
-}
+function revokeTempUrls(){ TEMP_URLS.forEach(u=>URL.revokeObjectURL(u)); TEMP_URLS.clear(); }
 function openPDF(url){
   el('pdfFrame').src=url;
   el('pdfOpenNew').href=url;
@@ -1078,22 +819,14 @@ el('pdfClose')?.addEventListener('click',()=>{
 
 async function renderDocPreview(container, rawUrl, type){
   const url=await resolveLocalUrl(rawUrl);
-  if(!url){
-    container.innerHTML='<div class="hint">Documento indisponível.</div>';
-    return;
-  }
+  if(!url){ container.innerHTML='<div class="hint">Documento indisponível.</div>'; return; }
   container.innerHTML='';
   if(type==='img'){
     const img=document.createElement('img');
-    img.src=url;
-    img.alt='';
-    img.style.maxWidth='100%';
-    img.style.borderRadius='8px';
+    img.src=url; img.alt=''; img.style.maxWidth='100%'; img.style.borderRadius='8px';
     container.appendChild(img);
     const bar=document.createElement('div');
-    bar.style.marginTop='6px';
-    bar.style.display='flex';
-    bar.style.gap='6px';
+    bar.style.marginTop='6px'; bar.style.display='flex'; bar.style.gap='6px';
     bar.innerHTML=`<a class="btn-sm" href="${url}" download>Transferir</a>
                    <a class="btn-sm" href="${url}" target="_blank" rel="noreferrer noopener">Abrir em nova aba</a>`;
     container.appendChild(bar);
@@ -1272,15 +1005,12 @@ el('closePanel')?.addEventListener('click',()=>{
   revokeTempUrls();
 });
 
-/* ===== Persistência ===== */
+/* ===== Persistência dataset local (fallback) ===== */
 function loadLS(){
   try{
     const x=localStorage.getItem(LS_KEY);
     if(!x) return null;
-    if(x.length > 500000){
-      LS_SKIPPED=true;
-      return null;
-    }
+    if(x.length > 500000){ LS_SKIPPED=true; return null; }
     return JSON.parse(x);
   }catch(e){
     LS_ERROR=true;
@@ -1344,9 +1074,7 @@ function mergeAngariacoesIntoRAW(){
     const preco = numPT(deal.precoPedido);
     let preco_m2 = '';
     const areaABP = numPT(deal.areaABP || deal.areaBruta);
-    if(preco !== null && areaABP && areaABP>0){
-      preco_m2 = Math.round(preco/areaABP);
-    }
+    if(preco !== null && areaABP && areaABP>0){ preco_m2 = Math.round(preco/areaABP); }
 
     const obj = {
       _angKey: angKey,
@@ -1375,35 +1103,21 @@ function mergeAngariacoesIntoRAW(){
       _contactos: deal.contactos || ''
     };
 
-    if(byAngKey.has(angKey)){
-      Object.assign(byAngKey.get(angKey), obj);
-    }else{
-      RAW.push(obj);
-      byAngKey.set(angKey, obj);
-    }
+    if(byAngKey.has(angKey)) Object.assign(byAngKey.get(angKey), obj);
+    else { RAW.push(obj); byAngKey.set(angKey, obj); }
   });
 }
 
 /* ===== Normalizações ===== */
 function normalizeTipoImovel(){
-  RAW.forEach(p=>{
-    if(typeof p.isEmpreendimento === 'undefined'){
-      p.isEmpreendimento = true;
-    }
-  });
+  RAW.forEach(p=>{ if(typeof p.isEmpreendimento === 'undefined') p.isEmpreendimento = true; });
 }
 function normalizeConclusaoFields(){
   RAW.forEach(p=>{
     const anoStored = p.conclusaoAno || p.conclusao;
-    if(anoStored && !p.conclusaoAno){
-      p.conclusaoAno = Number(anoStored);
-    }
-    if(p.conclusaoAno && !p.conclusao){
-      p.conclusao = p.conclusaoAno;
-    }
-    if(p.conclusaoAno && (p.conclusaoMes === undefined || p.conclusaoMes === null || p.conclusaoMes === '')){
-      p.conclusaoMes = 12;
-    }
+    if(anoStored && !p.conclusaoAno) p.conclusaoAno = Number(anoStored);
+    if(p.conclusaoAno && !p.conclusao) p.conclusao = p.conclusaoAno;
+    if(p.conclusaoAno && (p.conclusaoMes === undefined || p.conclusaoMes === null || p.conclusaoMes === '')) p.conclusaoMes = 12;
   });
 }
 function autoUpdateEstadosByConclusao(){
@@ -1459,10 +1173,7 @@ function loadFilterState(){
     (document.querySelector(`#tipoChips .chip[data-v="${UIState.tipo}"]`) || document.querySelector('#tipoChips .chip[data-v=""]'))?.classList.add('active');
   }catch{}
 }
-
-function saveFilterStateFromUI(){
-  try{ localStorage.setItem(FILTERS_KEY, JSON.stringify(UIState)); }catch{}
-}
+function saveFilterStateFromUI(){ try{ localStorage.setItem(FILTERS_KEY, JSON.stringify(UIState)); }catch{} }
 
 /* ===== UI eventos ===== */
 document.querySelectorAll('#estadoChips .chip').forEach(ch=>{
@@ -1521,9 +1232,8 @@ function run(){
   setStatus('A iniciar mapa…');
 
   try{ await loadLeafletAndCluster(); }catch{}
-  if(window.L){
-    initMap();
-  } else {
+  if(window.L){ initMap(); }
+  else{
     document.getElementById('map')?.classList.add('hidden');
     setStatus('⚠ Não foi possível carregar o motor de mapa (Leaflet).');
     return;
@@ -1549,7 +1259,7 @@ function run(){
   autoUpdateEstadosByConclusao();
 
   if(!RAW.length){
-    setStatus(`⚠ Sem dados. Confirme que existe ${new URL(CSV_REL, location.href).toString()}`);
+    setStatus('⚠ Sem dados. Confirme o CSV no repositório (caminho e colunas).');
     return;
   }
 
