@@ -671,23 +671,59 @@ function getRepoBasePrefix(){
   return '/';
 }
 
+function getGitHubUserAndRepo(){
+  // Para sites do tipo: https://<user>.github.io/<repo>/...
+  const host = (location.hostname || '').toLowerCase();
+  const parts = (location.pathname || '').split('/').filter(Boolean);
+  if(host.endsWith('github.io')){
+    const user = host.split('.')[0] || '';
+    const repo = parts[0] || '';
+    if(user && repo) return { user, repo };
+  }
+  return null;
+}
+
 function buildCSVUrlCandidates(relPath){
-  const u1 = new URL(relPath, location.href); // relativo ao html
+  const rel = relPath.replace(/^\/+/,'');
+  const candidates = [];
+
+  // 1) Relativo ao HTML (mais direto)
+  candidates.push(new URL(rel, location.href));
+
+  // 2) GitHub Pages (Project Pages): /<repo>/data/...
   const prefix = getRepoBasePrefix();
-  const u2 = new URL(prefix + relPath.replace(/^\/+/,''),
-                    location.origin);         // /REPO/data/...
-  const u3 = new URL('/' + relPath.replace(/^\/+/,''),
-                    location.origin);         // /data/...
+  candidates.push(new URL(prefix + rel, location.origin));
 
-  [u1,u2,u3].forEach(u => u.searchParams.set('v', String(Date.now())));
+  // 3) Raiz do domínio: /data/...
+  candidates.push(new URL('/' + rel, location.origin));
 
+  // 4) RAW GitHub (main/master) + jsDelivr (main/master)
+  const gh = getGitHubUserAndRepo();
+  if(gh){
+    const { user, repo } = gh;
+
+    // RAW
+    candidates.push(new URL(`https://raw.githubusercontent.com/${user}/${repo}/main/${rel}`));
+    candidates.push(new URL(`https://raw.githubusercontent.com/${user}/${repo}/master/${rel}`));
+
+    // jsDelivr
+    candidates.push(new URL(`https://cdn.jsdelivr.net/gh/${user}/${repo}@main/${rel}`));
+    candidates.push(new URL(`https://cdn.jsdelivr.net/gh/${user}/${repo}@master/${rel}`));
+  }
+
+  // Cache-buster + dedupe
   const seen = new Set();
-  return [u1,u2,u3].filter(u => {
-    const k = u.toString();
-    if(seen.has(k)) return false;
-    seen.add(k);
-    return true;
-  });
+  const out = [];
+  for(const u of candidates){
+    try{
+      u.searchParams.set('v', String(Date.now()));
+      const s = u.toString();
+      if(seen.has(s)) continue;
+      seen.add(s);
+      out.push(u);
+    }catch{}
+  }
+  return out;
 }
 
 async function cacheSaveDataset(arr){
