@@ -2,381 +2,481 @@
 <html lang="pt-PT">
 <head>
   <meta charset="utf-8" />
+  <title>Garvetur Porto Pro — Executivo · KPIs</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Garvetur Porto Pro — Executivo (KPIs)</title>
-
   <style>
     :root{
       --gold:#A38B63;
       --gold-soft:rgba(163,139,99,.35);
-      --bg:#070707;
-      --panel:#111;
-      --panel2:#0D0D0D;
-      --text:#fff;
+      --bg:#0B0B0B;
+      --panel:#151515;
+      --panel-soft:#1C1C1C;
+      --text:#FFFFFF;
       --muted:#A0A0A0;
-      --border:rgba(255,255,255,.12);
-      --radius-lg:18px;
-      --radius-md:12px;
-      --shadow:0 14px 30px rgba(0,0,0,.45);
+      --border:rgba(255,255,255,.14);
+      --shadow-soft:0 22px 40px rgba(0,0,0,.7);
+      --radius-lg:20px;
+      --radius-md:14px;
+      --danger:#E53935;
+      --ok:#4CAF50;
     }
+
     *{box-sizing:border-box;}
-    html,body{height:100%;margin:0;}
-    body{
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background:radial-gradient(circle at top,#1b1b1b 0,#050505 55%,#000 100%);
+    html,body{
+      margin:0;
+      height:100%;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      background:radial-gradient(circle at top,#1c1c1c 0,#050505 55%,#000 100%);
       color:var(--text);
     }
+
     header{
-      position:sticky; top:0; z-index:20;
-      display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
-      padding:12px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:12px 18px;
       border-bottom:1px solid rgba(163,139,99,.35);
       background:linear-gradient(90deg,#050505,#111,#050505);
+      gap:14px;
+      flex-wrap:wrap;
+      position:sticky; top:0; z-index:20;
     }
-    .brand{display:flex; align-items:center; gap:10px;}
+    .brand{display:flex;align-items:center;gap:10px;}
     .brand-icon{
-      width:30px;height:30px;border-radius:999px;
-      border:1px solid var(--gold);
-      display:flex; align-items:center; justify-content:center;
-      box-shadow:0 0 0 1px rgba(163,139,99,.25);
+      width:30px;height:30px;border-radius:999px;border:1px solid var(--gold);
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 0 0 1px rgba(163,139,99,.35);
     }
-    .brand h1{margin:0;font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);}
-    .brand .sub{margin:2px 0 0;font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;}
-    .actions{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+    .brand h1{
+      margin:0;font-size:18px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);
+    }
+    .brand span.sub{
+      display:block;font-size:11px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;
+    }
+    .badge{
+      font-size:11px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(163,139,99,.45);
+      color:var(--muted);
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      background:rgba(0,0,0,.35);
+      white-space:nowrap;
+    }
+    main{padding:18px 18px 20px;max-width:1200px;margin:0 auto;}
+
+    .hero{
+      border-radius:var(--radius-lg);
+      background:linear-gradient(135deg,#171717,#050505);
+      border:1px solid var(--gold-soft);
+      box-shadow:var(--shadow-soft);
+      padding:14px 16px;
+      margin-bottom:14px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .hero h2{
+      margin:0 0 6px;
+      font-size:16px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:#f5f5f5;
+    }
+    .hero p{
+      margin:0;
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.55;
+      max-width:820px;
+    }
+    .hero-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
     .btn{
       border-radius:999px;
-      border:1px solid var(--gold-soft);
-      background:rgba(12,12,12,.9);
-      color:var(--text);
-      padding:8px 12px;
-      font-size:13px;
+      border:1px solid rgba(163,139,99,.45);
+      background:rgba(0,0,0,.75);
+      color:var(--gold);
+      padding:7px 12px;
+      font-size:12px;
+      cursor:pointer;
+      text-decoration:none;
       display:inline-flex;
       align-items:center;
-      gap:8px;
-      cursor:pointer;
-      transition:.18s border-color,.18s transform,.18s background;
-      text-decoration:none;
-      user-select:none;
+      gap:6px;
+      transition:.18s transform,.18s border-color;
     }
-    .btn:hover{border-color:var(--gold); transform:translateY(-1px);}
-    .btn.secondary{border-color:rgba(255,255,255,.18); color:var(--muted); background:transparent;}
-    .wrap{max-width:1200px; margin:0 auto; padding:14px 16px 24px;}
+    .btn:hover{transform:translateY(-1px);border-color:var(--gold);}
+    .btn.primary{
+      background:var(--gold);
+      color:#0A0A0A;
+      border-color:var(--gold);
+      font-weight:700;
+    }
+
     .grid{
       display:grid;
-      grid-template-columns: 360px minmax(0,1fr);
+      grid-template-columns:repeat(3,minmax(0,1fr));
       gap:12px;
-      align-items:start;
     }
-    @media (max-width: 980px){
-      .grid{grid-template-columns:1fr;}
-    }
+    @media (max-width:1000px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+    @media (max-width:680px){ .grid{grid-template-columns:1fr;} }
 
     .card{
       border-radius:var(--radius-lg);
-      border:1px solid rgba(163,139,99,.26);
-      background:radial-gradient(circle at top left,#171717,#070707);
-      box-shadow:var(--shadow);
+      background:linear-gradient(145deg,#181818,#0C0C0C);
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow:var(--shadow-soft);
+      padding:12px 12px 11px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      position:relative;
       overflow:hidden;
+      min-height:120px;
     }
-    .card .head{
-      padding:12px 14px;
-      border-bottom:1px solid rgba(255,255,255,.10);
-      background:rgba(0,0,0,.28);
-      display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background:radial-gradient(circle at top left,rgba(163,139,99,.12),transparent 55%);
+      opacity:0;
+      transition:.25s opacity;
+      pointer-events:none;
     }
-    .card .head .title{
-      font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted);
+    .card:hover::before{opacity:1;}
+    .card h3{
       margin:0;
+      font-size:12px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:var(--muted);
     }
-    .card .body{padding:12px 14px;}
+    .big{
+      font-size:22px;
+      font-weight:800;
+      letter-spacing:.02em;
+      color:#fff;
+    }
+    .sub{
+      font-size:11px;
+      color:var(--muted);
+      line-height:1.4;
+    }
 
-    .filters .field{margin-top:10px;}
-    .label{
-      font-size:11px;color:var(--muted);
-      letter-spacing:.12em;text-transform:uppercase;
-      margin-bottom:6px;
-    }
-    input[type="date"], select{
-      width:100%;
-      background:rgba(0,0,0,.7);
-      color:var(--text);
-      border-radius:12px;
-      border:1px solid rgba(163,139,99,.22);
-      padding:10px 12px;
-      font-size:14px;
-      outline:none;
-    }
-    input:focus,select:focus{border-color:var(--gold); box-shadow:0 0 0 1px rgba(163,139,99,.35);}
-
-    .kpis{
-      display:grid;
-      grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:10px;
-    }
-    @media (max-width: 980px){
-      .kpis{grid-template-columns:1fr;}
-    }
-    .kpi{
-      border-radius:var(--radius-md);
-      border:1px solid rgba(163,139,99,.22);
-      background:rgba(5,5,5,.85);
-      padding:10px 12px;
-      box-shadow:0 10px 20px rgba(0,0,0,.45);
-    }
-    .kpi .k{font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;}
-    .kpi .v{font-size:22px;margin-top:6px;font-weight:650;}
-    .kpi .s{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.35;}
-
-    .chart{
-      margin-top:12px;
-      border-radius:var(--radius-lg);
-      border:1px solid rgba(163,139,99,.22);
-      background:rgba(3,3,3,.9);
-      box-shadow:var(--shadow);
-      overflow:hidden;
-    }
-    .chart .head{
-      padding:12px 14px;
-      border-bottom:1px solid rgba(255,255,255,.10);
-      display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;
-      background:rgba(0,0,0,.25);
-    }
-    .chart .head .title{
-      font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted); margin:0;
-    }
-    .chart .body{padding:10px 14px 12px;}
-    .row{
-      display:flex; align-items:center; gap:8px;
-      margin:6px 0;
-      font-size:11px; color:var(--muted);
-    }
-    .row .lbl{width:72px; flex-shrink:0;}
-    .bar-wrap{
-      flex:1;
-      background:#101010;
-      border-radius:999px;
-      overflow:hidden;
-      border:1px solid rgba(255,255,255,.08);
-    }
-    .bar{
-      height:9px;
-      border-radius:999px;
-      background:linear-gradient(90deg,var(--gold),#f5e1b5);
-      width:0%;
-      transition:.2s width;
-    }
-    .row .val{width:120px; text-align:right; flex-shrink:0;}
-    .muted{color:var(--muted);}
-    .small{font-size:11px; line-height:1.45;}
     .status{
-      display:none;
-      position:fixed;
-      left:50%; top:10px;
-      transform:translateX(-50%);
-      background:rgba(10,10,10,.92);
-      border:1px solid var(--border);
-      border-radius:999px;
-      padding:6px 12px;
+      margin-top:10px;
       font-size:12px;
       color:var(--muted);
-      z-index:9999;
-      max-width:min(92vw,900px);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
     }
-    .status.show{display:block;}
-    code{color:#ddd;}
+    .pill{
+      display:inline-flex;
+      gap:6px;
+      align-items:center;
+      border:1px solid var(--border);
+      border-radius:999px;
+      padding:4px 10px;
+      background:rgba(0,0,0,.35);
+      font-size:11px;
+      color:var(--muted);
+      white-space:nowrap;
+    }
+    .dot{width:10px;height:10px;border-radius:50%;background:#777;display:inline-block;}
+    .dot.ok{background:var(--ok)}
+    .dot.bad{background:var(--danger)}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;font-size:11px;opacity:.9}
+
+    /* Login overlay (reusa lógica do admin) */
+    .lock{
+      position:fixed; inset:0; z-index:9999;
+      background:radial-gradient(circle at top, rgba(0,0,0,.55), rgba(0,0,0,.92));
+      display:flex; align-items:center; justify-content:center; padding:16px;
+    }
+    .lock-card{
+      width:min(520px, 96vw);
+      border-radius:18px;
+      border:1px solid rgba(163,139,99,.35);
+      background:linear-gradient(145deg,#111,#070707);
+      box-shadow:0 22px 40px rgba(0,0,0,.75);
+      padding:14px 14px 12px;
+    }
+    .lock-title{
+      margin:0 0 6px;
+      font-size:14px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--gold);
+    }
+    .lock-sub{
+      margin:0 0 10px;
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.5;
+    }
+    .lock-row{display:flex;gap:8px;flex-wrap:wrap;}
+    .lock input{
+      flex:1; min-width:200px;
+      border-radius:12px;
+      border:1px solid rgba(163,139,99,.28);
+      background:rgba(0,0,0,.65);
+      color:#fff;
+      padding:10px 12px;
+      outline:none;
+      font-size:14px;
+    }
+    .lock input:focus{border-color:var(--gold); box-shadow:0 0 0 1px rgba(163,139,99,.35);}
+    .lock button{
+      border-radius:12px;
+      border:1px solid rgba(163,139,99,.55);
+      background:var(--gold);
+      color:#0A0A0A;
+      padding:10px 12px;
+      cursor:pointer;
+      font-weight:800;
+    }
+    .lock-err{margin-top:8px;font-size:12px;color:#ffb4b4;display:none;}
+    .lock-mini{
+      margin-top:10px;
+      font-size:11px;
+      color:rgba(255,255,255,.35);
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .mini-link{
+      color:rgba(255,255,255,.45);
+      text-decoration:none;
+      border-bottom:1px dotted rgba(255,255,255,.25);
+    }
+    .mini-link:hover{color:#fff;border-bottom-color:#fff;}
   </style>
 </head>
-
 <body>
-  <header>
-    <div class="brand">
-      <div class="brand-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
-          <circle cx="12" cy="12" r="9"></circle>
-          <path d="M8 12.5l2.5 2.5L16 9"></path>
-        </svg>
-      </div>
-      <div>
-        <h1>Garvetur Porto Pro — Executivo</h1>
-        <div class="sub">KPIs · Leads (Fecho) + Angariações (Aprovadas)</div>
-      </div>
+
+<!-- Proteção: reusa a sessão do admin -->
+<div id="lock" class="lock" aria-modal="true" role="dialog" style="display:none;">
+  <div class="lock-card">
+    <h2 class="lock-title">Acesso Executivo</h2>
+    <p class="lock-sub">
+      Módulo reservado. Introduza a password de Admin para continuar.
+    </p>
+    <div class="lock-row">
+      <input id="pw" type="password" placeholder="Password admin" autocomplete="current-password" />
+      <button id="btn">Entrar</button>
     </div>
-
-    <div class="actions">
-      <button class="btn secondary" id="btnFocus90">Últ. 90 dias</button>
-      <button class="btn secondary" id="btnFocus30">Últ. 30 dias</button>
-      <button class="btn" id="btnReload">Recarregar</button>
-      <button class="btn secondary" id="btnCache">Cache</button>
-    </div>
-  </header>
-
-  <div id="status" class="status"></div>
-
-  <div class="wrap">
-    <div class="grid">
-      <!-- FILTROS -->
-      <section class="card filters">
-        <div class="head">
-          <div class="title">Filtros executivos</div>
-          <div class="small muted">Sem detalhe de clientes.</div>
-        </div>
-        <div class="body">
-          <div class="field">
-            <div class="label">Consultor</div>
-            <select id="fConsultor">
-              <option value="">Todos</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <div class="label">Período</div>
-            <div style="display:flex; gap:8px;">
-              <input type="date" id="fDe">
-              <input type="date" id="fAte">
-            </div>
-            <div class="small muted" style="margin-top:8px;">
-              <b>Comissões no período</b> = soma de parcelas (CPCV/Escritura) dentro destas datas.<br>
-              <b>Recebidas</b> = parcelas no período com data até hoje.<br>
-              <b>Por receber</b> = comissões no período − recebidas.
-            </div>
-          </div>
-
-          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
-            <button class="btn" id="btnApply">Aplicar</button>
-            <button class="btn secondary" id="btnClear">Limpar</button>
-          </div>
-
-          <div class="small muted" style="margin-top:14px; line-height:1.5;">
-            Fonte: <code>data/gpp-leads.json</code> e <code>data/gpp-angariacoes.json</code><br>
-            Nota: Angariações consideradas apenas com estado <b>aprovado</b>.
-          </div>
-        </div>
-      </section>
-
-      <!-- KPI + CHARTS -->
-      <section>
-        <div class="kpis">
-          <div class="kpi">
-            <div class="k">Negócios</div>
-            <div class="v" id="kNegocios">0</div>
-            <div class="s" id="kSplit">Leads (Fecho): 0 · Angariações (Aprovadas): 0</div>
-          </div>
-
-          <div class="kpi">
-            <div class="k">Volume</div>
-            <div class="v" id="kVolume">€ 0</div>
-            <div class="s">Valor do negócio (Leads) + Preço pedido (Angariações aprovadas).</div>
-          </div>
-
-          <div class="kpi">
-            <div class="k">Top consultor</div>
-            <div class="v" id="kTop">—</div>
-            <div class="s" id="kTopSub">Sem dados nos filtros actuais.</div>
-          </div>
-
-          <div class="kpi">
-            <div class="k">Comissões no período</div>
-            <div class="v" id="kComPeriodo">€ 0</div>
-            <div class="s">CPCV + Escritura (parcelas) dentro do período.</div>
-          </div>
-
-          <div class="kpi">
-            <div class="k">Comissões recebidas</div>
-            <div class="v" id="kComRecebidas">€ 0</div>
-            <div class="s">Parcelas no período com data até hoje.</div>
-          </div>
-
-          <div class="kpi">
-            <div class="k">Comissões por receber</div>
-            <div class="v" id="kComPorReceber">€ 0</div>
-            <div class="s">Comissões no período − recebidas.</div>
-          </div>
-        </div>
-
-        <div class="chart" style="margin-top:12px;">
-          <div class="head">
-            <div class="title">Volume mensal (negócios)</div>
-            <div class="small muted" id="volMeta"></div>
-          </div>
-          <div class="body" id="chartVol"></div>
-        </div>
-
-        <div class="chart" style="margin-top:12px;">
-          <div class="head">
-            <div class="title">Comissões mensais (parcelas no período)</div>
-            <div class="small muted" id="comMeta"></div>
-          </div>
-          <div class="body" id="chartCom"></div>
-        </div>
-      </section>
+    <div id="err" class="lock-err">Password inválida.</div>
+    <div class="lock-mini">
+      <span>Garvetur Porto Pro</span>
+      <a class="mini-link" href="./admin.html">Voltar ao Admin</a>
     </div>
   </div>
+</div>
+
+<header>
+  <div class="brand">
+    <div class="brand-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
+        <circle cx="12" cy="12" r="9"></circle>
+        <path d="M8 12.5l2.5 2.5L16 9"></path>
+      </svg>
+    </div>
+    <div>
+      <h1>Executivo · KPIs</h1>
+      <span class="sub">Visão de Direção — Vendas, Volume e Comissões</span>
+    </div>
+  </div>
+  <span class="badge">Privado</span>
+</header>
+
+<main>
+  <section class="hero">
+    <div>
+      <h2>Resumo consolidado</h2>
+      <p>
+        Consolidado de <strong>Leads em Fecho</strong> e <strong>Angariações Aprovadas</strong>.
+        Leitura via <span class="mono">/data/gpp-leads.json</span> e <span class="mono">/data/gpp-angariacoes.json</span>.
+      </p>
+      <div class="status" id="status"></div>
+    </div>
+    <div class="hero-actions">
+      <a class="btn" href="./admin.html">← Admin</a>
+      <button class="btn primary" id="btnReload">Recarregar</button>
+    </div>
+  </section>
+
+  <section class="grid">
+    <article class="card">
+      <h3>Negócios (total)</h3>
+      <div class="big" id="k_negocios">0</div>
+      <div class="sub" id="k_split">Leads: 0 · Angariações aprovadas: 0</div>
+    </article>
+
+    <article class="card">
+      <h3>Volume total</h3>
+      <div class="big" id="k_volume">€ 0</div>
+      <div class="sub">Leads (valor de negócio) + Angariações aprovadas (preço pedido).</div>
+    </article>
+
+    <article class="card">
+      <h3>Top consultor (volume)</h3>
+      <div class="big" id="k_top">—</div>
+      <div class="sub" id="k_top_sub">Sem dados.</div>
+    </article>
+
+    <article class="card">
+      <h3>Comissões (total)</h3>
+      <div class="big" id="k_com_total">€ 0</div>
+      <div class="sub">Comissão total calculada para Leads em Fecho.</div>
+    </article>
+
+    <article class="card">
+      <h3>Comissões já recebidas</h3>
+      <div class="big" id="k_com_recv">€ 0</div>
+      <div class="sub">Parcelas com data ≤ hoje (CPCV/Escritura).</div>
+    </article>
+
+    <article class="card">
+      <h3>Comissões por receber</h3>
+      <div class="big" id="k_com_open">€ 0</div>
+      <div class="sub">Diferença: total – recebido.</div>
+    </article>
+  </section>
+</main>
 
 <script>
+/* ===== Proteção (mesma sessão do admin) ===== */
 (function(){
-  /* ========= Config ========= */
-  const DATA_LEADS_REL = 'data/gpp-leads.json';
-  const DATA_ANG_REL   = 'data/gpp-angariacoes.json';
+  const ADMIN_PASS = '#AdminGarvetur#1997';
+  const KEY  = 'gpp_admin_auth_v1';
 
-  const CACHE_KEY = 'gpp_exec_cache_v1';
-  const CACHE_META_KEY = 'gpp_exec_cache_meta_v1';
+  const lock = document.getElementById('lock');
+  const pw   = document.getElementById('pw');
+  const btn  = document.getElementById('btn');
+  const err  = document.getElementById('err');
 
-  const FILTERS_KEY = 'gpp_exec_filters_v1';
-
-  /* ========= DOM ========= */
-  const el = id => document.getElementById(id);
-  const statusEl = el('status');
-
-  const fConsultor = el('fConsultor');
-  const fDe = el('fDe');
-  const fAte = el('fAte');
-
-  const kNegocios = el('kNegocios');
-  const kSplit = el('kSplit');
-  const kVolume = el('kVolume');
-  const kTop = el('kTop');
-  const kTopSub = el('kTopSub');
-
-  const kComPeriodo = el('kComPeriodo');
-  const kComRecebidas = el('kComRecebidas');
-  const kComPorReceber = el('kComPorReceber');
-
-  const chartVol = el('chartVol');
-  const chartCom = el('chartCom');
-  const volMeta = el('volMeta');
-  const comMeta = el('comMeta');
-
-  /* ========= Helpers ========= */
-  function setStatus(msg){
-    if(!msg){ statusEl.classList.remove('show'); statusEl.textContent=''; return; }
-    statusEl.textContent = msg;
-    statusEl.classList.add('show');
+  function hasSession(){
+    try{ return sessionStorage.getItem(KEY)==='1'; }catch(e){ return false; }
+  }
+  function grant(){
+    try{ sessionStorage.setItem(KEY,'1'); }catch(e){}
+    lock.style.display = 'none';
+  }
+  function deny(){
+    err.style.display = 'block';
+    if(pw) pw.value = '';
+    pw && pw.focus();
+  }
+  function submit(){
+    err.style.display = 'none';
+    const v = (pw.value || '').trim();
+    if(v === ADMIN_PASS) grant();
+    else deny();
   }
 
+  if(!hasSession()){
+    lock.style.display = 'flex';
+    btn.addEventListener('click', submit);
+    pw.addEventListener('keydown', (e)=>{ if(e.key==='Enter') submit(); });
+    setTimeout(()=>pw && pw.focus(), 60);
+  }else{
+    lock.style.display = 'none';
+  }
+})();
+</script>
+
+<script>
+/* ===== Leitura robusta /data/*.json em GitHub Pages ===== */
+(function(){
+  const statusEl = document.getElementById('status');
+  const el = (id)=>document.getElementById(id);
+
+  const k_negocios = el('k_negocios');
+  const k_split    = el('k_split');
+  const k_volume   = el('k_volume');
+  const k_top      = el('k_top');
+  const k_top_sub  = el('k_top_sub');
+
+  const k_com_total = el('k_com_total');
+  const k_com_recv  = el('k_com_recv');
+  const k_com_open  = el('k_com_open');
+
+  const btnReload = el('btnReload');
+  btnReload?.addEventListener('click', ()=>location.reload());
+
+  function pill(ok, label, value){
+    const div = document.createElement('div');
+    div.className = 'pill';
+    div.innerHTML = `<span class="dot ${ok?'ok':'bad'}"></span><strong>${label}:</strong> <span class="mono">${value}</span>`;
+    return div;
+  }
+
+  function guessRepoName(){
+    const parts = (location.pathname || '').split('/').filter(Boolean);
+    // /GarveturPortoPro/executivo-kpis.html  -> repo = GarveturPortoPro
+    return parts.length ? parts[0] : '';
+  }
+  function buildCandidateUrls(rel){
+    const repo = guessRepoName();
+    const base = location.origin;
+
+    const list = [
+      new URL('./' + rel, location.href).toString(),
+      new URL('/' + rel, base).toString()
+    ];
+
+    if(location.hostname.endsWith('github.io') && repo){
+      list.unshift(new URL('/' + repo + '/' + rel, base).toString());
+    }
+    return [...new Set(list)];
+  }
+  async function pickWorkingUrl(rel){
+    const candidates = buildCandidateUrls(rel);
+    for(const url of candidates){
+      try{
+        const r = await fetch(url, { method:'HEAD', cache:'no-store' });
+        if(!r.ok) continue;
+        const ct = (r.headers.get('content-type') || '').toLowerCase();
+        if(ct.includes('text/html')) continue; // típico 404 do GH Pages
+        return url;
+      }catch{}
+    }
+    return candidates[0];
+  }
+  async function fetchJson(rel){
+    const url0 = await pickWorkingUrl(rel);
+    const u = new URL(url0);
+    u.searchParams.set('v', String(Date.now())); // cache-buster
+    const url = u.toString();
+
+    const r = await fetch(url, { cache:'no-store' });
+    if(!r.ok) throw new Error(`HTTP ${r.status} em ${rel}`);
+    const json = await r.json();
+    return { json, url };
+  }
+
+  /* ===== Helpers (iguais à lógica do equipa-vendas) ===== */
   function parseNumber(v){
     if(v==null || v==='') return NaN;
-    // aceita "1.234,56" e "1234.56"
-    let s = String(v).trim().replace(/\s/g,'');
-    const hasComma = s.includes(',');
-    const hasDot = s.includes('.');
-    if(hasComma && hasDot) s = s.replace(/\./g,'').replace(',', '.');
-    else if(hasComma && !hasDot) s = s.replace(',', '.');
-    const n = Number(s);
-    return Number.isFinite(n) ? n : NaN;
+    const s = String(v).replace(/\./g,'').replace(',','.');
+    const n = parseFloat(s);
+    return isFinite(n) ? n : NaN;
   }
   function parsePct(v){
     if(v==null || v==='') return NaN;
-    let s = String(v).replace('%','').trim();
-    s = s.replace(',', '.');
-    const n = Number(s);
-    return Number.isFinite(n) ? n : NaN;
+    const s = String(v).replace('%','').replace(',','.');
+    const n = parseFloat(s);
+    return isFinite(n) ? n : NaN;
   }
-  function money(v){
+  function formatMoney(v){
     const n = Number(v);
-    if(!Number.isFinite(n) || n === 0) return '€ 0';
+    if(!isFinite(n) || n === 0) return '€ 0';
     return n.toLocaleString('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
   }
   function todayISO(){
@@ -384,18 +484,8 @@
     const y = d.getFullYear();
     const m = String(d.getMonth()+1).padStart(2,'0');
     const day = String(d.getDate()).padStart(2,'0');
-    return y+'-'+m+'-'+day;
+    return y + '-' + m + '-' + day;
   }
-  function monthKeyFromISO(dateStr){
-    const d = new Date(dateStr);
-    if(isNaN(d.getTime())) return '';
-    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
-  }
-  function monthLabel(key){ // YYYY-MM -> MM/YY
-    const [y,m] = key.split('-');
-    return (m||'--') + '/' + String(y||'').slice(-2);
-  }
-  // procura campos com token (ex.: "cpcv", "escritura")
   function findDateWithToken(objs, token){
     const re = /^\d{4}-\d{2}-\d{2}$/;
     const tk = String(token).toLowerCase();
@@ -405,438 +495,197 @@
         const lk = k.toLowerCase();
         if(lk.includes(tk)){
           const v = obj[k];
-          if(typeof v === 'string' && re.test(v.trim())) return v.trim();
+          if(typeof v === 'string' && re.test(v.trim())){
+            return v.trim();
+          }
         }
       }
     }
     return '';
   }
 
-  function guessRepoName(){
-    const parts = (location.pathname || '').split('/').filter(Boolean);
-    return parts.length ? parts[0] : '';
-  }
-  function buildCandidateUrls(rel){
-    const repo = guessRepoName();
-    const base = location.origin;
-
-    const list = [
-      new URL('./' + rel, location.href).toString(),
-      new URL('/' + rel, base).toString(),
-    ];
-    if(location.hostname.endsWith('github.io') && repo){
-      list.unshift(new URL('/' + repo + '/' + rel, base).toString());
-    }
-    return [...new Set(list)];
+  function normalizeAprovado(v){
+    const s = String(v||'').toLowerCase().trim();
+    return (s === 'aprovado' || s === 'aprovada' || s === 'approved');
   }
 
-  async function pickWorkingUrl(rel){
-    const candidates = buildCandidateUrls(rel);
-    for(const url of candidates){
-      try{
-        const r = await fetch(url, { method:'HEAD', cache:'no-store' });
-        if(!r.ok) continue;
-        const ct = (r.headers.get('content-type') || '').toLowerCase();
-        if(ct.includes('text/html')) continue; // 404 GH pages
-        return url;
-      }catch{}
-    }
-    return candidates[0];
-  }
-  async function fetchJsonSmart(rel){
-    const url = await pickWorkingUrl(rel);
-    const u = new URL(url);
-    u.searchParams.set('v', String(Date.now()));
-    const r = await fetch(u.toString(), { cache:'no-store' });
-    if(!r.ok) throw new Error('HTTP ' + r.status + ' em ' + rel);
-    return await r.json();
-  }
-
-  function cacheSet(payload, meta){
-    try{
-      localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
-      localStorage.setItem(CACHE_META_KEY, JSON.stringify(meta||{}));
-    }catch{}
-  }
-  function cacheGet(){
-    try{
-      const raw = localStorage.getItem(CACHE_KEY);
-      const meta = localStorage.getItem(CACHE_META_KEY);
-      return raw ? { data: JSON.parse(raw), meta: meta ? JSON.parse(meta) : {} } : null;
-    }catch{return null;}
-  }
-  function cacheClear(){
-    try{ localStorage.removeItem(CACHE_KEY); localStorage.removeItem(CACHE_META_KEY); }catch{}
-  }
-
-  /* ========= Data model ========= */
-  let LEADS = [];
-  let ANGS = [];
-
-  let FILTERS = { consultor:'', de:'', ate:'' };
-
-  function saveFilters(){
-    try{ localStorage.setItem(FILTERS_KEY, JSON.stringify(FILTERS)); }catch{}
-  }
-  function loadFilters(){
-    try{
-      const raw = localStorage.getItem(FILTERS_KEY);
-      if(!raw) return;
-      const obj = JSON.parse(raw);
-      FILTERS.consultor = obj.consultor || '';
-      FILTERS.de = obj.de || '';
-      FILTERS.ate = obj.ate || '';
-    }catch{}
-  }
-
-  function setLastNDays(n){
-    const end = new Date();
-    const start = new Date();
-    start.setDate(end.getDate() - n);
-
-    const toISO = (d)=>{
-      const y=d.getFullYear();
-      const m=String(d.getMonth()+1).padStart(2,'0');
-      const day=String(d.getDate()).padStart(2,'0');
-      return y+'-'+m+'-'+day;
-    };
-    FILTERS.de = toISO(start);
-    FILTERS.ate = toISO(end);
-    fDe.value = FILTERS.de;
-    fAte.value = FILTERS.ate;
-    saveFilters();
-  }
-
-  function normaliseLeads(raw){
-    // esperado: array (backup do kanban)
-    if(!Array.isArray(raw)) return [];
-    return raw;
-  }
-  function normaliseAng(raw){
-    // esperado: object com deals[] (ou array)
-    if(Array.isArray(raw)) return raw;
-    if(raw && Array.isArray(raw.deals)) return raw.deals;
-    return [];
-  }
-
-  function buildNegocios(){
+  /* ===== Construção ===== */
+  function buildNegocios(leadsArr, angObj){
     const list = [];
 
     // Leads em Fecho
-    LEADS.forEach(l=>{
-      if(!l || l.estado !== 'Fecho') return;
+    (Array.isArray(leadsArr) ? leadsArr : []).forEach(l=>{
+      if(!l) return;
+      if(String(l.estado||'') !== 'Fecho') return;
 
       const valorNegocio = parseNumber(l.fecho_negocio || l.valor || 0);
-      const fechoObj = l.fecho || {};
 
       const comissaoPctStr = (l.fecho_comissao_pct!=='' && l.fecho_comissao_pct!=null)
         ? String(l.fecho_comissao_pct)
-        : (fechoObj.comissaoPct ? String(fechoObj.comissaoPct) : '');
+        : (l.fecho && l.fecho.comissaoPct ? String(l.fecho.comissaoPct) : '');
 
-      const pctNum = parsePct(comissaoPctStr);
-      const comissaoTotal = Number.isFinite(pctNum) && Number.isFinite(valorNegocio)
-        ? (valorNegocio * pctNum / 100)
-        : 0;
+      const comPctNum = parsePct(comissaoPctStr);
+      const comissaoValorTotal = isFinite(comPctNum) ? (valorNegocio * comPctNum / 100) : 0;
 
-      const dataCpcv = findDateWithToken([l, fechoObj], 'cpcv');
-      const dataEsc  = findDateWithToken([l, fechoObj], 'escritura');
-      const dataFecho = dataCpcv || dataEsc || (l.data || '');
+      const fechoObj = l.fecho || {};
+      const dataCpcv      = findDateWithToken([l, fechoObj], 'cpcv');
+      const dataEscritura = findDateWithToken([l, fechoObj], 'escritura');
+      const dataFecho     = dataCpcv || dataEscritura || (l.data || '');
 
       list.push({
         tipo:'lead',
         consultor: l.consultor || '',
-        data: dataFecho || '',
-        valor: Number.isFinite(valorNegocio) ? valorNegocio : 0,
+        valor: isFinite(valorNegocio) ? valorNegocio : 0,
+        comissaoValorTotal: comissaoValorTotal,
         comissaoPct: comissaoPctStr || '',
-        comissaoTotal: comissaoTotal || 0,
         dataCpcv: dataCpcv || '',
-        dataEscritura: dataEsc || '',
-        visivel: l.visivel !== false
+        dataEscritura: dataEscritura || '',
+        data: dataFecho || ''
       });
     });
 
-    // Angariações APENAS aprovadas
-    ANGS.forEach(a=>{
+    // Angariações: apenas aprovadas
+    const deals = (angObj && Array.isArray(angObj.deals)) ? angObj.deals : (Array.isArray(angObj) ? angObj : []);
+    deals.forEach(a=>{
       if(!a) return;
-
-      const estado = String(a.estadoAng || a.estado || '').toLowerCase();
-      if(estado !== 'aprovado') return;
+      if(!normalizeAprovado(a.estadoAng)) return;
 
       const precoPedido = parseNumber(a.precoPedido || 0);
-
       list.push({
         tipo:'ang',
         consultor: a.consultor || '',
-        data: a.dataAngariacao || a.data || '',
-        valor: Number.isFinite(precoPedido) ? precoPedido : 0,
-        comissaoPct: '',      // neste executivo focamos comissões das LEADS (timeline CPCV/Escritura)
-        comissaoTotal: 0,
-        dataCpcv:'',
-        dataEscritura:'',
-        visivel: a.visible !== false
+        valor: isFinite(precoPedido) ? precoPedido : 0,
+        data: a.dataAngariacao || ''
       });
     });
 
-    // ordem desc por data (string ISO)
-    list.sort((a,b)=> (b.data||'').localeCompare(a.data||''));
     return list;
   }
 
-  function withinRange(dateStr){
-    if(!dateStr) return true; // se não tiver data, não bloqueia
-    if(FILTERS.de && dateStr < FILTERS.de) return false;
-    if(FILTERS.ate && dateStr > FILTERS.ate) return false;
-    return true;
-  }
+  function computeKPIs(negocios){
+    const total = negocios.length;
+    const leads = negocios.filter(n=>n.tipo==='lead');
+    const angs  = negocios.filter(n=>n.tipo==='ang');
 
-  function applyFilters(negocios){
-    return negocios.filter(n=>{
-      if(FILTERS.consultor && n.consultor !== FILTERS.consultor) return false;
-      if(n.data && !withinRange(n.data)) return false;
-      // para executivo, ignoramos invisíveis por padrão? Mantemos apenas visíveis:
-      if(n.visivel === false) return false;
-      return true;
+    const volumeTotal = negocios.reduce((acc,n)=>acc + (n.valor||0), 0);
+
+    // Top consultor por volume
+    const porCons = {};
+    negocios.forEach(n=>{
+      const c = n.consultor || '';
+      if(!c) return;
+      porCons[c] = (porCons[c] || 0) + (n.valor || 0);
     });
-  }
+    const entries = Object.entries(porCons).sort((a,b)=>b[1]-a[1]);
 
-  function populateConsultores(negocios){
-    const set = new Set();
-    negocios.forEach(n=>{ if(n.consultor) set.add(n.consultor); });
-    const current = FILTERS.consultor || '';
-    fConsultor.innerHTML = '<option value="">Todos</option>';
-    Array.from(set).sort().forEach(name=>{
-      const opt=document.createElement('option');
-      opt.value=name; opt.textContent=name;
-      fConsultor.appendChild(opt);
-    });
-    if(current && set.has(current)) fConsultor.value = current;
-  }
+    // Comissões (apenas leads)
+    const totalComissoes = leads.reduce((acc,n)=>acc + (n.comissaoValorTotal||0), 0);
 
-  /* ========= KPI / Charts ========= */
-  function renderKPIs(lista){
-    const total = lista.length;
-    const totalLead = lista.filter(x=>x.tipo==='lead').length;
-    const totalAng  = lista.filter(x=>x.tipo==='ang').length;
-
-    kNegocios.textContent = total;
-    kSplit.textContent = `Leads (Fecho): ${totalLead} · Angariações (Aprovadas): ${totalAng}`;
-
-    const volume = lista.reduce((acc,x)=> acc + (x.valor||0), 0);
-    kVolume.textContent = money(volume);
-
-    // top consultor por volume total
-    const by = {};
-    lista.forEach(n=>{
-      if(!n.consultor) return;
-      by[n.consultor] = (by[n.consultor]||0) + (n.valor||0);
-    });
-    const top = Object.entries(by).sort((a,b)=>b[1]-a[1])[0];
-    if(!top){
-      kTop.textContent='—';
-      kTopSub.textContent='Sem dados nos filtros actuais.';
-    }else{
-      kTop.textContent=top[0];
-      kTopSub.textContent=money(top[1]) + ' em volume (negócios filtrados).';
-    }
-  }
-
-  // volume mensal de NEGÓCIOS (leads+ang) dentro dos filtros
-  function renderChartVolume(lista){
-    chartVol.innerHTML='';
-    const mapa = {};
-    lista.forEach(n=>{
-      if(!n.data) return;
-      const key = monthKeyFromISO(n.data);
-      if(!key) return;
-      mapa[key] = (mapa[key]||0) + (n.valor||0);
-    });
-    const entries = Object.entries(mapa).sort((a,b)=>a[0].localeCompare(b[0]));
-    if(!entries.length){
-      chartVol.innerHTML = '<div class="small muted">Sem dados de datas para gráfico.</div>';
-      volMeta.textContent = '';
-      return;
-    }
-    const max = Math.max(...entries.map(e=>e[1]));
-    volMeta.textContent = `Meses: ${entries.length}`;
-    entries.forEach(([k,v])=>{
-      const row=document.createElement('div');
-      row.className='row';
-      row.innerHTML = `
-        <div class="lbl">${monthLabel(k)}</div>
-        <div class="bar-wrap"><div class="bar" style="width:${(max>0?(v/max*100):0).toFixed(1)}%"></div></div>
-        <div class="val">${money(v)}</div>
-      `;
-      chartVol.appendChild(row);
-    });
-  }
-
-  // comissões mensais: SOMA PARCELAS (CPCV/Escritura) que caem no período filtrado
-  function renderChartComissoes(lista){
-    chartCom.innerHTML='';
+    // Distribuição CPCV/Escritura (50/50 se ambas existirem, senão 100% na data existente)
     const hoje = todayISO();
-
-    // apenas leads com comissão total > 0
-    const leads = lista.filter(n=> n.tipo==='lead' && (n.comissaoTotal||0) > 0);
-
-    const mapaMes = {}; // YYYY-MM -> total parcelas
-    let totalPeriodo = 0;
-    let totalRecebidas = 0;
-
-    function addParcela(dateStr, valor){
-      if(!dateStr || !valor || valor<=0) return;
-      // parcelas contam apenas se estiverem dentro do período
-      if(FILTERS.de && dateStr < FILTERS.de) return;
-      if(FILTERS.ate && dateStr > FILTERS.ate) return;
-
-      const key = monthKeyFromISO(dateStr);
-      if(!key) return;
-
-      mapaMes[key] = (mapaMes[key]||0) + valor;
-
-      totalPeriodo += valor;
-      if(dateStr <= hoje) totalRecebidas += valor;
-    }
-
+    let recebido = 0;
     leads.forEach(n=>{
-      const total = n.comissaoTotal || 0;
-      if(total<=0) return;
+      const total = n.comissaoValorTotal || 0;
+      if(total <= 0) return;
 
       const hasCpcv = !!n.dataCpcv;
       const hasEsc  = !!n.dataEscritura;
 
+      function add(dateStr, val){
+        if(!dateStr || !val || val<=0) return;
+        if(dateStr <= hoje) recebido += val;
+      }
+
       if(hasCpcv && hasEsc){
-        addParcela(n.dataCpcv, total/2);
-        addParcela(n.dataEscritura, total/2);
-      }else if(hasCpcv && !hasEsc){
-        addParcela(n.dataCpcv, total);
-      }else if(!hasCpcv && hasEsc){
-        addParcela(n.dataEscritura, total);
-      }else{
-        // fallback: usa data do fecho
-        if(n.data) addParcela(n.data, total);
+        add(n.dataCpcv, total/2);
+        add(n.dataEscritura, total/2);
+      }else if(hasCpcv){
+        add(n.dataCpcv, total);
+      }else if(hasEsc){
+        add(n.dataEscritura, total);
+      }else if(n.data){
+        add(n.data, total);
       }
     });
 
-    const totalPorReceber = Math.max(0, totalPeriodo - totalRecebidas);
+    const porReceber = totalComissoes - recebido;
 
-    kComPeriodo.textContent = money(totalPeriodo);
-    kComRecebidas.textContent = money(totalRecebidas);
-    kComPorReceber.textContent = money(totalPorReceber);
-
-    const entries = Object.entries(mapaMes).sort((a,b)=>a[0].localeCompare(b[0]));
-    if(!entries.length){
-      chartCom.innerHTML = '<div class="small muted">Sem parcelas de comissão no período seleccionado.</div>';
-      comMeta.textContent = '';
-      return;
-    }
-    const max = Math.max(...entries.map(e=>e[1]));
-    comMeta.textContent = `Meses com comissões: ${entries.length}`;
-    entries.forEach(([k,v])=>{
-      const row=document.createElement('div');
-      row.className='row';
-      row.innerHTML = `
-        <div class="lbl">${monthLabel(k)}</div>
-        <div class="bar-wrap"><div class="bar" style="width:${(max>0?(v/max*100):0).toFixed(1)}%"></div></div>
-        <div class="val">${money(v)}</div>
-      `;
-      chartCom.appendChild(row);
-    });
+    return {
+      total,
+      totalLeads: leads.length,
+      totalAngs: angs.length,
+      volumeTotal,
+      top: entries.length ? { nome: entries[0][0], vol: entries[0][1] } : null,
+      comTotal: totalComissoes,
+      comRecebido: recebido,
+      comPorReceber: porReceber
+    };
   }
 
-  function applyAndRender(){
-    const negocios = buildNegocios();
-    populateConsultores(negocios);
-
-    const filtered = applyFilters(negocios);
-
-    renderKPIs(filtered);
-    renderChartVolume(filtered);
-    renderChartComissoes(filtered);
-  }
-
-  /* ========= Cache Modal (simples) ========= */
-  function showCacheInfo(){
-    const c = cacheGet();
-    const meta = c?.meta || {};
-    const when = meta.at ? new Date(meta.at).toLocaleString('pt-PT') : '—';
-    const msg =
-      'Cache Executivo:\n' +
-      '• Estado: ' + (c?.data ? 'existe' : 'sem cache') + '\n' +
-      '• Última actualização: ' + when + '\n' +
-      '• Leads: ' + (meta.leadsCount ?? '—') + '\n' +
-      '• Angariações: ' + (meta.angCount ?? '—');
-    alert(msg);
-  }
-
-  /* ========= Init ========= */
   async function init(){
-    setStatus('A carregar dados (executivo)…');
+    statusEl.innerHTML = '';
+    try{
+      statusEl.appendChild(pill(true,'Ambiente', location.hostname));
+      statusEl.appendChild(pill(true,'Path', location.pathname));
+    }catch{}
 
-    // filtros
-    loadFilters();
-    if(FILTERS.de) fDe.value = FILTERS.de;
-    if(FILTERS.ate) fAte.value = FILTERS.ate;
+    let leadsRes=null, angRes=null;
 
     try{
-      const [rawLeads, rawAng] = await Promise.all([
-        fetchJsonSmart(DATA_LEADS_REL),
-        fetchJsonSmart(DATA_ANG_REL)
-      ]);
+      leadsRes = await fetchJson('data/gpp-leads.json');
+      statusEl.appendChild(pill(true,'Leads', 'OK'));
+      statusEl.appendChild(pill(true,'Leads URL', leadsRes.url));
+    }catch(e){
+      console.error(e);
+      statusEl.appendChild(pill(false,'Leads', 'Falha'));
+      statusEl.appendChild(pill(false,'Erro', String(e.message||e)));
+      // não prossegue sem leads
+      k_negocios.textContent = '0';
+      k_split.textContent = 'Leads: 0 · Angariações aprovadas: 0';
+      k_volume.textContent = '€ 0';
+      k_top.textContent = '—';
+      k_top_sub.textContent = 'Sem dados (falha a ler leads).';
+      k_com_total.textContent = '€ 0';
+      k_com_recv.textContent = '€ 0';
+      k_com_open.textContent = '€ 0';
+      return;
+    }
 
-      LEADS = normaliseLeads(rawLeads);
-      ANGS  = normaliseAng(rawAng);
-
-      cacheSet({leads:LEADS, angs:ANGS}, { at: Date.now(), leadsCount: LEADS.length, angCount: ANGS.length });
-
-      setStatus('');
-      applyAndRender();
+    try{
+      angRes = await fetchJson('data/gpp-angariacoes.json');
+      statusEl.appendChild(pill(true,'Angariações', 'OK'));
+      statusEl.appendChild(pill(true,'Ang URL', angRes.url));
     }catch(e){
       console.warn(e);
-      const cached = cacheGet();
-      if(cached?.data?.leads && cached?.data?.angs){
-        LEADS = cached.data.leads;
-        ANGS  = cached.data.angs;
-        setStatus('⚠ Sem rede ou ficheiro indisponível. A usar cache local.');
-        setTimeout(()=>setStatus(''), 3200);
-        applyAndRender();
-      }else{
-        setStatus('⚠ Não foi possível carregar os dados e não existe cache local.');
-      }
+      statusEl.appendChild(pill(false,'Angariações', 'Falha'));
+      statusEl.appendChild(pill(false,'Ang erro', String(e.message||e)));
+      // Prossegue só com leads
+      angRes = { json: {deals:[]} };
     }
+
+    const negocios = buildNegocios(leadsRes.json, angRes.json);
+    const k = computeKPIs(negocios);
+
+    k_negocios.textContent = String(k.total);
+    k_split.textContent = `Leads: ${k.totalLeads} · Angariações aprovadas: ${k.totalAngs}`;
+    k_volume.textContent = formatMoney(k.volumeTotal);
+
+    if(!k.top){
+      k_top.textContent = '—';
+      k_top_sub.textContent = 'Sem dados de consultor.';
+    }else{
+      k_top.textContent = k.top.nome;
+      k_top_sub.textContent = `${formatMoney(k.top.vol)} em volume.`;
+    }
+
+    k_com_total.textContent = formatMoney(k.comTotal);
+    k_com_recv.textContent  = formatMoney(k.comRecebido);
+    k_com_open.textContent  = formatMoney(k.comPorReceber);
   }
-
-  /* ========= Events ========= */
-  el('btnReload').addEventListener('click', ()=>location.reload());
-  el('btnCache').addEventListener('click', ()=>showCacheInfo());
-
-  el('btnApply').addEventListener('click', ()=>{
-    FILTERS.consultor = fConsultor.value || '';
-    FILTERS.de = fDe.value || '';
-    FILTERS.ate = fAte.value || '';
-    saveFilters();
-    applyAndRender();
-  });
-
-  el('btnClear').addEventListener('click', ()=>{
-    FILTERS = { consultor:'', de:'', ate:'' };
-    fConsultor.value='';
-    fDe.value='';
-    fAte.value='';
-    saveFilters();
-    applyAndRender();
-  });
-
-  el('btnFocus90').addEventListener('click', ()=>{
-    setLastNDays(90);
-    applyAndRender();
-  });
-  el('btnFocus30').addEventListener('click', ()=>{
-    setLastNDays(30);
-    applyAndRender();
-  });
 
   init();
 })();
 </script>
+
 </body>
 </html>
