@@ -671,6 +671,7 @@ function pick(obj, keys){
   return '';
 }
 
+<script>
 async function loadFromCSV(){
   setStatus('A carregar dataset do CSV…');
 
@@ -681,116 +682,108 @@ async function loadFromCSV(){
 
   const csvUrl = getCSVUrl();
 
-  // 1) Teste rápido para falhar de forma "clara"
-  try{
-    const r = await fetch(csvUrl, { cache:'no-store' });
-    if(!r.ok) throw new Error('HTTP ' + r.status);
-  }catch(e){
-    console.error(e);
-    setStatus('⚠ Sem dados. O CSV não está acessível (verifique o caminho / permissões do GitHub Pages).');
-    return [];
-  }
+  return await new Promise((resolve) => {
+    const out = [];
+    let done = false;
+    let rowsCount = 0;
 
-  // 2) Tentativa A: Papa download + worker
-  const tryPapaDownload = () => new Promise((resolve, reject) => {
-    let finished = false;
+    const finish = (arr, msg) => {
+      if(done) return;
+      done = true;
+      if(msg) setStatus(msg); else setStatus('');
+      resolve(arr || []);
+    };
 
-    const watchdog = setTimeout(()=>{
-      if(finished) return;
-      finished = true;
-      reject(new Error('timeout'));
-    }, 20000);
+    // Watchdog duro (evita ficar preso)
+    const watchdog = setTimeout(() => {
+      try { if (parser && parser.abort) parser.abort(); } catch {}
+      finish([], '⚠ Timeout a ler o CSV. O ficheiro é demasiado pesado ou está a bloquear o browser.');
+    }, 45000);
 
-    Papa.parse(csvUrl, {
-      download: true,
-      header: true,
-      skipEmptyLines: true,
-      worker: true,
-      complete: (results) => {
-        if(finished) return;
-        finished = true;
-        clearTimeout(watchdog);
-        resolve(results?.data || []);
-      },
-      error: (err) => {
-        if(finished) return;
-        finished = true;
-        clearTimeout(watchdog);
-        reject(err || new Error('Papa download error'));
-      }
-    });
-  });
+    // Importante: chunk parsing (streaming)
+    let parser = null;
 
-  // 3) Tentativa B: fallback fetch texto + parse sem worker
-  const tryFetchAndParse = async () => {
-    const txt = await fetchTextWithTimeout(csvUrl, 20000);
-    const res = Papa.parse(txt, { header: true, skipEmptyLines: true });
-    return res?.data || [];
-  };
-
-  let rows = [];
-  try{
-    rows = await tryPapaDownload();
-  }catch(e){
-    console.warn('Papa download/worker falhou. A usar fallback fetch+parse.', e);
     try{
-      rows = await tryFetchAndParse();
-    }catch(e2){
-      console.error(e2);
-      setStatus('⚠ Não foi possível descarregar/ler o CSV (fallback incluído).');
-      return [];
+      parser = Papa.parse(csvUrl, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        worker: true,              // mantém performance quando possível
+        chunkSize: 1024 * 512,     // 512 KB por chunk (ajuda muito em CSVs grandes)
+        chunk: (results, p) => {
+          parser = p;
+
+          const rows = results?.data || [];
+          if(!rows.length) return;
+
+          for(const r of rows){
+            // NOTA: ignoramos deliberadamente "docs" (onde tens base64 gigante)
+            const lat = numPT(pick(r, ['_lat','lat','latitude','Lat','LAT']));
+            const lng = numPT(pick(r, ['_lng','lng','lon','longitude','Lng','LNG']));
+
+            // se não tiver coordenadas, ignora (evita lixo)
+            if(lat === null || lng === null) continue;
+
+            const tipoRaw = String(pick(r, ['isEmpreendimento','tipo','Tipo','TIPO'])).toLowerCase();
+            const isIso = tipoRaw.includes('iso') || tipoRaw === '0' || tipoRaw === 'false';
+
+            out.push({
+              refInterna: pick(r, ['refInterna','ref','referencia','Referencia','RefInterna']),
+              nome: pick(r, ['nome','name','Nome']),
+              concelho: pick(r, ['concelho','Concelho']),
+              estado: stateKey(pick(r, ['estado','Estado'])),
+              promotor: pick(r, ['promotor','Promotor']),
+              tipologias: pick(r, ['tipologias','Tipologias']),
+              conclusaoAno: numPT(pick(r, ['conclusaoAno','ano','conclusao','Conclusao'])) || '',
+              conclusaoMes: numPT(pick(r, ['conclusaoMes','mes','Mes'])) || '',
+              conclusao: numPT(pick(r, ['conclusao','ano','Conclusao'])) || '',
+              preco_m2: pick(r, ['preco_m2','precoM2','€/m2','eur_m2']),
+              precoPedido: pick(r, ['precoPedido','preco','Preco','Preço']),
+              notas: pick(r, ['notas','Notas']),
+              link: pick(r, ['link','url','URL']),
+              _lat: lat,
+              _lng: lng,
+              docs: [],                 // <<<< sempre vazio no modo Equipa (para não carregar base64)
+              isEmpreendimento: isIso ? false : true
+            });
+          }
+
+          rowsCount += rows.length;
+          if(rowsCount % 500 === 0){
+            setStatus(`A carregar dataset do CSV… (${out.length} pontos válidos)`);
+          }
+
+          // Protecção adicional: se o CSV estiver absurdo, evita rebentar
+          if(out.length > 20000){
+            try { p.abort(); } catch {}
+            clearTimeout(watchdog);
+            finish(out, '⚠ Dataset muito grande. Carregado parcialmente para manter estabilidade.');
+          }
+        },
+        complete: () => {
+          clearTimeout(watchdog);
+
+          const sanity = out.some(x => (x.nome || x.refInterna) && x._lat !== null && x._lng !== null);
+          if(!sanity){
+            return finish([], '⚠ CSV carregou, mas não tem colunas válidas (lat/lng/nome).');
+          }
+
+          finish(out, '');
+        },
+        error: (err) => {
+          clearTimeout(watchdog);
+          console.error(err);
+          finish([], '⚠ Não foi possível descarregar/ler o CSV. Confirme GitHub Pages e o caminho do ficheiro.');
+        }
+      });
+    }catch(e){
+      clearTimeout(watchdog);
+      console.error(e);
+      finish([], '⚠ Erro ao iniciar o leitor do CSV.');
     }
-  }
-
-  // 4) Normalização + sanity check
-  try{
-    if(!rows.length){
-      setStatus('⚠ CSV sem linhas válidas.');
-      return [];
-    }
-
-    const arr = rows.map(r=>{
-      const lat = numPT(pick(r, ['_lat','lat','latitude','Lat','LAT']));
-      const lng = numPT(pick(r, ['_lng','lng','lon','longitude','Lng','LNG']));
-
-      const tipoRaw = String(pick(r, ['isEmpreendimento','tipo','Tipo','TIPO'])).toLowerCase();
-      const isIso = tipoRaw.includes('iso') || tipoRaw === '0' || tipoRaw === 'false';
-
-      return {
-        refInterna: pick(r, ['refInterna','ref','referencia','Referencia','RefInterna']),
-        nome: pick(r, ['nome','name','Nome']),
-        concelho: pick(r, ['concelho','Concelho']),
-        estado: stateKey(pick(r, ['estado','Estado'])),
-        promotor: pick(r, ['promotor','Promotor']),
-        tipologias: pick(r, ['tipologias','Tipologias']),
-        conclusaoAno: numPT(pick(r, ['conclusaoAno','ano','conclusao','Conclusao'])) || '',
-        conclusaoMes: numPT(pick(r, ['conclusaoMes','mes','Mes'])) || '',
-        conclusao: numPT(pick(r, ['conclusao','ano','Conclusao'])) || '',
-        preco_m2: pick(r, ['preco_m2','precoM2','€/m2','eur_m2']),
-        precoPedido: pick(r, ['precoPedido','preco','Preco','Preço']),
-        notas: pick(r, ['notas','Notas']),
-        link: pick(r, ['link','url','URL']),
-        _lat: lat,
-        _lng: lng,
-        docs: [],
-        isEmpreendimento: isIso ? false : true
-      };
-    });
-
-    const sanity = arr.some(x => (x.nome || x.refInterna) && x._lat!==null && x._lng!==null);
-    if(!sanity){
-      setStatus('⚠ CSV carregou mas não tem colunas válidas (lat/lng/nome).');
-      return [];
-    }
-
-    setStatus('');
-    return arr;
-  }catch(e){
-    console.error(e);
-    setStatus('⚠ Erro a processar CSV.');
-    return [];
-  }
+  });
 }
+</script>
 
 /* ===== Leaflet & Cluster ===== */
 async function loadLeafletAndCluster(){
