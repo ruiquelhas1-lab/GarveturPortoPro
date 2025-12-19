@@ -673,53 +673,69 @@ function setStatus(msg){
   bar.classList.add('show');
 }
 
-/* ===== CSV: caminho robusto para GitHub Pages (Project Pages) ===== */
+/* ===== CSV: resolver URL robusto + fallback ===== */
 const CSV_REL = 'data/gpp-mapa.csv';
-const REPO_NAME = 'GarveturPortoPro'; // <- importante (o teu repo)
 
-function getRepoBasePrefix(){
-  const host = location.hostname || '';
-  const pathParts = (location.pathname || '').split('/').filter(Boolean);
+function guessRepoName(){
+  // Ex.: /GarveturPortoPro/equipa-mapa-view.html -> "GarveturPortoPro"
+  const parts = (location.pathname || '').split('/').filter(Boolean);
+  return parts.length ? parts[0] : '';
+}
 
-  // GitHub Pages (ex.: ruiquelhas1-lab.github.io)
-  if(host.endsWith('github.io')){
-    // Se o pathname já contém o repo, usar esse ponto como raiz
-    const idx = pathParts.findIndex(p => p.toLowerCase() === REPO_NAME.toLowerCase());
-    if(idx >= 0) return '/' + pathParts[idx] + '/';
+function buildCandidateCsvUrls(){
+  const repo = guessRepoName();
+  const base = location.origin;
 
-    // fallback: primeiro segmento (comportamento clássico)
-    if(pathParts.length >= 1) return '/' + pathParts[0] + '/';
+  const list = [
+    // relativo ao ficheiro actual (caso esteja na raiz do repo)
+    new URL('./' + CSV_REL, location.href).toString(),
+    // relativo à raiz do host
+    new URL('/' + CSV_REL, base).toString(),
+  ];
+
+  // GitHub Pages por repo (Project Pages): /<repo>/data/gpp-mapa.csv
+  if(location.hostname.endsWith('github.io') && repo){
+    list.unshift(new URL('/' + repo + '/' + CSV_REL, base).toString());
   }
 
-  // fora do github.io (ou root)
-  return '/';
+  // remover duplicados mantendo ordem
+  return [...new Set(list)];
 }
 
-function getCSVUrl(){
-  const prefix = getRepoBasePrefix();
-  const u = new URL(prefix + CSV_REL, location.origin);
-  u.searchParams.set('v', String(Date.now())); // cache-buster
+async function pickWorkingCsvUrl(){
+  const candidates = buildCandidateCsvUrls();
+
+  for(const url of candidates){
+    try{
+      // pede só os headers (rápido)
+      const r = await fetch(url, { method:'HEAD', cache:'no-store' });
+      if(!r.ok) continue;
+
+      const ct = (r.headers.get('content-type') || '').toLowerCase();
+      const len = Number(r.headers.get('content-length') || '0');
+
+      // Em GH Pages, 404 costuma vir como text/html
+      if(ct.includes('text/html')) continue;
+
+      // aceitar csv/plain/octet
+      if(ct.includes('text/csv') || ct.includes('text/plain') || ct.includes('application/octet-stream') || ct === ''){
+        // se houver length 0, ainda pode ser válido (alguns hosts omitem), não bloqueia
+        return url;
+      }
+    } catch(e){
+      // tenta o próximo
+    }
+  }
+  // fallback: primeiro candidato (para não morrer), mas vai dar erro explícito no parse
+  return candidates[0];
+}
+
+async function getCSVUrl(){
+  const url = await pickWorkingCsvUrl();
+  // cache-buster
+  const u = new URL(url);
+  u.searchParams.set('v', String(Date.now()));
   return u.toString();
-}
-/* ===== Cache helpers ===== */
-function safeJSONParse(s){ try{return JSON.parse(s);}catch{return null;} }
-function cacheSet(dataArr, meta){
-  try{
-    localStorage.setItem(CSV_CACHE_KEY, JSON.stringify(dataArr||[]));
-    localStorage.setItem(CSV_CACHE_META_KEY, JSON.stringify(meta||{}));
-  }catch(e){}
-}
-function cacheGet(){
-  const data = safeJSONParse(localStorage.getItem(CSV_CACHE_KEY) || 'null');
-  const meta = safeJSONParse(localStorage.getItem(CSV_CACHE_META_KEY) || 'null');
-  if(!Array.isArray(data)) return null;
-  return { data, meta: (meta && typeof meta==='object') ? meta : {} };
-}
-function cacheClear(){
-  try{
-    localStorage.removeItem(CSV_CACHE_KEY);
-    localStorage.removeItem(CSV_CACHE_META_KEY);
-  }catch(e){}
 }
 
 /* ===== CSV load (PapaParse com fallback + cache) ===== */
