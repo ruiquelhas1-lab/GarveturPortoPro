@@ -186,13 +186,14 @@
       font-size:11px;
       color:var(--muted);
       white-space:nowrap;
+      max-width:100%;
     }
+    .pill span{max-width:72vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
     .dot{width:10px;height:10px;border-radius:50%;background:#777;display:inline-block;}
     .dot.ok{background:var(--ok)}
     .dot.bad{background:var(--danger)}
     .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;font-size:11px;opacity:.9}
 
-    /* Login overlay (reusa lógica do admin) */
     .lock{
       position:fixed; inset:0; z-index:9999;
       background:radial-gradient(circle at top, rgba(0,0,0,.55), rgba(0,0,0,.92));
@@ -260,13 +261,10 @@
 </head>
 <body>
 
-<!-- Proteção: reusa a sessão do admin -->
 <div id="lock" class="lock" aria-modal="true" role="dialog" style="display:none;">
   <div class="lock-card">
     <h2 class="lock-title">Acesso Executivo</h2>
-    <p class="lock-sub">
-      Módulo reservado. Introduza a password de Admin para continuar.
-    </p>
+    <p class="lock-sub">Módulo reservado. Introduza a password de Admin para continuar.</p>
     <div class="lock-row">
       <input id="pw" type="password" placeholder="Password admin" autocomplete="current-password" />
       <button id="btn">Entrar</button>
@@ -392,7 +390,7 @@
 </script>
 
 <script>
-/* ===== Leitura robusta /data/*.json em GitHub Pages ===== */
+/* ===== Leitura robusta /data/*.json em GitHub Pages + auto-detecção de arrays ===== */
 (function(){
   const statusEl = document.getElementById('status');
   const el = (id)=>document.getElementById(id);
@@ -413,13 +411,12 @@
   function pill(ok, label, value){
     const div = document.createElement('div');
     div.className = 'pill';
-    div.innerHTML = `<span class="dot ${ok?'ok':'bad'}"></span><strong>${label}:</strong> <span class="mono">${value}</span>`;
+    div.innerHTML = `<span class="dot ${ok?'ok':'bad'}"></span><strong>${label}:</strong> <span class="mono">${String(value||'')}</span>`;
     return div;
   }
 
   function guessRepoName(){
     const parts = (location.pathname || '').split('/').filter(Boolean);
-    // /GarveturPortoPro/executivo-kpis.html  -> repo = GarveturPortoPro
     return parts.length ? parts[0] : '';
   }
   function buildCandidateUrls(rel){
@@ -430,7 +427,6 @@
       new URL('./' + rel, location.href).toString(),
       new URL('/' + rel, base).toString()
     ];
-
     if(location.hostname.endsWith('github.io') && repo){
       list.unshift(new URL('/' + repo + '/' + rel, base).toString());
     }
@@ -443,7 +439,7 @@
         const r = await fetch(url, { method:'HEAD', cache:'no-store' });
         if(!r.ok) continue;
         const ct = (r.headers.get('content-type') || '').toLowerCase();
-        if(ct.includes('text/html')) continue; // típico 404 do GH Pages
+        if(ct.includes('text/html')) continue; // 404 do GH Pages costuma ser HTML
         return url;
       }catch{}
     }
@@ -452,7 +448,7 @@
   async function fetchJson(rel){
     const url0 = await pickWorkingUrl(rel);
     const u = new URL(url0);
-    u.searchParams.set('v', String(Date.now())); // cache-buster
+    u.searchParams.set('v', String(Date.now()));
     const url = u.toString();
 
     const r = await fetch(url, { cache:'no-store' });
@@ -461,7 +457,9 @@
     return { json, url };
   }
 
-  /* ===== Helpers (iguais à lógica do equipa-vendas) ===== */
+  /* ===== Helpers de parsing ===== */
+  function norm(s){ return String(s||'').trim().toLowerCase(); }
+
   function parseNumber(v){
     if(v==null || v==='') return NaN;
     const s = String(v).replace(/\./g,'').replace(',','.');
@@ -504,19 +502,97 @@
     return '';
   }
 
+  function normalizeFechoEstado(v){
+    const s = norm(v);
+    // tolerante (Fecho / fecho / "Fecho " / etc.)
+    return s === 'fecho';
+  }
+
   function normalizeAprovado(v){
-    const s = String(v||'').toLowerCase().trim();
+    const s = norm(v);
     return (s === 'aprovado' || s === 'aprovada' || s === 'approved');
   }
 
+  // Procura recursiva de “array candidato” dentro do JSON
+  function findArrayDeep(root, predicate){
+    const seen = new Set();
+    const q = [root];
+    while(q.length){
+      const cur = q.shift();
+      if(!cur || typeof cur !== 'object') continue;
+      if(seen.has(cur)) continue;
+      seen.add(cur);
+
+      if(Array.isArray(cur)){
+        if(cur.length && predicate(cur)) return cur;
+        // também pode conter objetos com arrays dentro
+        for(const it of cur){
+          if(it && typeof it === 'object') q.push(it);
+        }
+        continue;
+      }
+
+      for(const k of Object.keys(cur)){
+        const v = cur[k];
+        if(v && typeof v === 'object') q.push(v);
+      }
+    }
+    return [];
+  }
+
+  function isLikelyLeadsArray(arr){
+    // pelo menos alguns itens com “estado” e “consultor”/“fecho”
+    let score = 0;
+    for(const it of arr.slice(0,60)){
+      if(!it || typeof it !== 'object') continue;
+      const keys = Object.keys(it).map(k=>k.toLowerCase());
+      if(keys.includes('estado')) score++;
+      if(keys.includes('consultor')) score++;
+      if(keys.some(k=>k.includes('fecho'))) score++;
+      if(score >= 3) return true;
+    }
+    return false;
+  }
+
+  function isLikelyAngArray(arr){
+    let score = 0;
+    for(const it of arr.slice(0,60)){
+      if(!it || typeof it !== 'object') continue;
+      const keys = Object.keys(it).map(k=>k.toLowerCase());
+      if(keys.some(k=>k.includes('estadoang'))) score++;
+      if(keys.includes('consultor')) score++;
+      if(keys.some(k=>k.includes('precopedido'))) score++;
+      if(score >= 3) return true;
+    }
+    return false;
+  }
+
+  function extractLeads(json){
+    if(Array.isArray(json)) return json;
+    if(json && Array.isArray(json.leads)) return json.leads;
+    if(json && Array.isArray(json.data)) return json.data;
+
+    // fallback: procurar um array “lá dentro”
+    return findArrayDeep(json, isLikelyLeadsArray);
+  }
+
+  function extractAngariacoes(json){
+    // formato típico: {deals:[...]}
+    if(json && Array.isArray(json.deals)) return json.deals;
+    if(Array.isArray(json)) return json;
+    if(json && Array.isArray(json.data)) return json.data;
+
+    return findArrayDeep(json, isLikelyAngArray);
+  }
+
   /* ===== Construção ===== */
-  function buildNegocios(leadsArr, angObj){
+  function buildNegocios(leadsArr, angArr){
     const list = [];
 
     // Leads em Fecho
     (Array.isArray(leadsArr) ? leadsArr : []).forEach(l=>{
       if(!l) return;
-      if(String(l.estado||'') !== 'Fecho') return;
+      if(!normalizeFechoEstado(l.estado)) return;
 
       const valorNegocio = parseNumber(l.fecho_negocio || l.valor || 0);
 
@@ -545,8 +621,7 @@
     });
 
     // Angariações: apenas aprovadas
-    const deals = (angObj && Array.isArray(angObj.deals)) ? angObj.deals : (Array.isArray(angObj) ? angObj : []);
-    deals.forEach(a=>{
+    (Array.isArray(angArr) ? angArr : []).forEach(a=>{
       if(!a) return;
       if(!normalizeAprovado(a.estadoAng)) return;
 
@@ -569,21 +644,19 @@
 
     const volumeTotal = negocios.reduce((acc,n)=>acc + (n.valor||0), 0);
 
-    // Top consultor por volume
     const porCons = {};
     negocios.forEach(n=>{
-      const c = n.consultor || '';
+      const c = (n.consultor||'').trim();
       if(!c) return;
       porCons[c] = (porCons[c] || 0) + (n.valor || 0);
     });
     const entries = Object.entries(porCons).sort((a,b)=>b[1]-a[1]);
 
-    // Comissões (apenas leads)
     const totalComissoes = leads.reduce((acc,n)=>acc + (n.comissaoValorTotal||0), 0);
 
-    // Distribuição CPCV/Escritura (50/50 se ambas existirem, senão 100% na data existente)
     const hoje = todayISO();
     let recebido = 0;
+
     leads.forEach(n=>{
       const total = n.comissaoValorTotal || 0;
       if(total <= 0) return;
@@ -608,8 +681,6 @@
       }
     });
 
-    const porReceber = totalComissoes - recebido;
-
     return {
       total,
       totalLeads: leads.length,
@@ -618,16 +689,14 @@
       top: entries.length ? { nome: entries[0][0], vol: entries[0][1] } : null,
       comTotal: totalComissoes,
       comRecebido: recebido,
-      comPorReceber: porReceber
+      comPorReceber: (totalComissoes - recebido)
     };
   }
 
   async function init(){
     statusEl.innerHTML = '';
-    try{
-      statusEl.appendChild(pill(true,'Ambiente', location.hostname));
-      statusEl.appendChild(pill(true,'Path', location.pathname));
-    }catch{}
+    statusEl.appendChild(pill(true,'Ambiente', location.hostname));
+    statusEl.appendChild(pill(true,'Path', location.pathname));
 
     let leadsRes=null, angRes=null;
 
@@ -639,15 +708,6 @@
       console.error(e);
       statusEl.appendChild(pill(false,'Leads', 'Falha'));
       statusEl.appendChild(pill(false,'Erro', String(e.message||e)));
-      // não prossegue sem leads
-      k_negocios.textContent = '0';
-      k_split.textContent = 'Leads: 0 · Angariações aprovadas: 0';
-      k_volume.textContent = '€ 0';
-      k_top.textContent = '—';
-      k_top_sub.textContent = 'Sem dados (falha a ler leads).';
-      k_com_total.textContent = '€ 0';
-      k_com_recv.textContent = '€ 0';
-      k_com_open.textContent = '€ 0';
       return;
     }
 
@@ -659,11 +719,16 @@
       console.warn(e);
       statusEl.appendChild(pill(false,'Angariações', 'Falha'));
       statusEl.appendChild(pill(false,'Ang erro', String(e.message||e)));
-      // Prossegue só com leads
-      angRes = { json: {deals:[]} };
+      angRes = { json: { deals: [] } };
     }
 
-    const negocios = buildNegocios(leadsRes.json, angRes.json);
+    const leadsArr = extractLeads(leadsRes.json);
+    const angArr   = extractAngariacoes(angRes.json);
+
+    statusEl.appendChild(pill(true,'Leads detectadas', Array.isArray(leadsArr) ? leadsArr.length : 0));
+    statusEl.appendChild(pill(true,'Ang detectadas', Array.isArray(angArr) ? angArr.length : 0));
+
+    const negocios = buildNegocios(leadsArr, angArr);
     const k = computeKPIs(negocios);
 
     k_negocios.textContent = String(k.total);
