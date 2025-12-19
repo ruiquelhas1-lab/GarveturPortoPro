@@ -16,6 +16,9 @@
 <!-- idb-keyval (IndexedDB) — para abrir anexos locais (idb://) -->
 <script src="https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/idb-keyval.iife.min.js" crossorigin="anonymous"></script>
 
+<!-- PapaParse (CSV robusto + Web Worker para não bloquear o browser) -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js" crossorigin="anonymous"></script>
+
 <!-- PDF.js (pré-visualização) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" crossorigin="anonymous"></script>
 <script>
@@ -454,6 +457,7 @@ header{
 }
 </style>
 </head>
+
 <body>
   <div class="app">
     <header>
@@ -627,11 +631,9 @@ let LS_ERROR=false;
 /* ===== CSV (fonte para equipa) ===== */
 const CSV_PATH = "data/gpp-mapa.csv";
 const CSV_URL = (() => {
-  // resolve robusto para GitHub Pages (mesmo em subpastas)
   const base = new URL(location.href);
   const u = new URL(CSV_PATH, base);
-  // evita cache agressivo quando há updates no repo
-  u.searchParams.set('v', String(Date.now()));
+  u.searchParams.set('v', String(Date.now())); // cache-bust
   return u.toString();
 })();
 
@@ -655,94 +657,102 @@ function numPT(v){
   if(v===null||v===undefined||v==='') return null;
   const s = String(v).trim()
     .replace(/\s/g,'')
-    .replace(/\./g,'')      // remove separador milhares PT
+    .replace(/\./g,'')      // milhares PT
     .replace(',', '.');     // decimal PT -> EN
   const n = Number(s);
   return Number.isFinite(n)? n : null;
 }
 
-/* ===== CSV parser robusto (suporta aspas) ===== */
-function detectSep(headerLine){
-  const semi=(headerLine.match(/;/g)||[]).length;
-  const comma=(headerLine.match(/,/g)||[]).length;
-  return semi>=comma ? ';' : ',';
-}
-function parseCSVLine(line, sep){
-  const out=[];
-  let cur='';
-  let inQ=false;
-  for(let i=0;i<line.length;i++){
-    const ch=line[i];
-    if(ch === '"'){
-      if(inQ && line[i+1] === '"'){ cur+='"'; i++; }
-      else { inQ=!inQ; }
-      continue;
-    }
-    if(ch===sep && !inQ){
-      out.push(cur);
-      cur='';
-      continue;
-    }
-    cur+=ch;
+/* ===== CSV loader (PapaParse + Worker) — NÃO bloqueia UI ===== */
+function pick(obj, keys){
+  for(const k of keys){
+    if(obj && Object.prototype.hasOwnProperty.call(obj,k) && String(obj[k] ?? '').trim() !== '') return obj[k];
   }
-  out.push(cur);
-  return out.map(x=>String(x??'').trim());
-}
-function parseCSV(text){
-  const cleaned = String(text||'').replace(/^\uFEFF/,''); // remove BOM
-  const lines = cleaned.replace(/\r/g,'').split('\n').filter(l=>l.trim().length);
-  if(!lines.length) return [];
-  const sep = detectSep(lines[0]);
-
-  const headers = parseCSVLine(lines[0], sep).map(h=>h.trim());
-  const out = [];
-
-  for(let i=1;i<lines.length;i++){
-    const row = parseCSVLine(lines[i], sep);
-    const obj = {};
-    headers.forEach((h,idx)=> obj[h] = (row[idx] ?? '').trim());
-
-    const lat = numPT(obj._lat || obj.lat || obj.latitude || obj.Lat || obj.LAT);
-    const lng = numPT(obj._lng || obj.lng || obj.lon || obj.longitude || obj.Lng || obj.LNG);
-
-    out.push({
-      refInterna: obj.refInterna || obj.ref || obj.referencia || obj.Referencia || '',
-      nome: obj.nome || obj.name || obj.Nome || '',
-      concelho: obj.concelho || obj.Concelho || '',
-      estado: stateKey(obj.estado || obj.Estado || ''),
-      promotor: obj.promotor || obj.Promotor || '',
-      tipologias: obj.tipologias || obj.Tipologias || '',
-      conclusaoAno: numPT(obj.conclusaoAno || obj.ano || obj.conclusao || obj.Conclusao || '') || '',
-      conclusaoMes: numPT(obj.conclusaoMes || obj.mes || obj.Mes || '') || '',
-      conclusao: numPT(obj.conclusao || obj.ano || obj.Conclusao || '') || '',
-      preco_m2: obj.preco_m2 || obj.precoM2 || obj['€/m2'] || obj['eur_m2'] || '',
-      precoPedido: obj.precoPedido || obj.preco || obj.Preco || '',
-      notas: obj.notas || obj.Notas || '',
-      link: obj.link || obj.url || obj.URL || '',
-      _lat: lat,
-      _lng: lng,
-      docs: [],
-      isEmpreendimento: (String(obj.isEmpreendimento || obj.tipo || '').toLowerCase().includes('iso')) ? false : true
-    });
-  }
-  return out;
+  return '';
 }
 
 async function loadFromCSV(){
-  try{
-    setStatus('A carregar dataset do CSV…');
-    const r = await fetch(CSV_URL, { cache: 'no-store' });
-    if(!r.ok) throw new Error('HTTP ' + r.status);
-    const text = await r.text();
-    const arr = parseCSV(text);
-    if(!arr.length) throw new Error('CSV sem linhas válidas');
-    setStatus('');
-    return arr;
-  }catch(e){
-    console.error('Falha CSV:', e);
-    setStatus('⚠ Não foi possível carregar o CSV do repositório. Confirme: /data/gpp-mapa.csv');
+  setStatus('A carregar dataset do CSV…');
+
+  if(!window.Papa){
+    console.error('PapaParse não carregou.');
+    setStatus('⚠ Falha a carregar o parser CSV. Verifique ligação à internet.');
     return [];
   }
+
+  return await new Promise((resolve)=>{
+    let done=false;
+
+    function finish(arr, msg){
+      if(done) return;
+      done=true;
+      if(msg) setStatus(msg);
+      else setStatus('');
+      resolve(arr || []);
+    }
+
+    // watchdog: se ficar “preso”, sai com mensagem (não congela)
+    const watchdog = setTimeout(()=>{
+      console.warn('CSV watchdog timeout.');
+      finish([], '⚠ Timeout a carregar CSV. Confirme: /data/gpp-mapa.csv');
+    }, 22000);
+
+    Papa.parse(CSV_URL, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      worker: true,
+      complete: (results)=>{
+        clearTimeout(watchdog);
+        try{
+          const rows = results?.data || [];
+          if(!rows.length) return finish([], '⚠ CSV sem linhas válidas. Confirme o ficheiro em /data/gpp-mapa.csv');
+
+          const arr = rows.map(r=>{
+            const lat = numPT(pick(r, ['_lat','lat','latitude','Lat','LAT']));
+            const lng = numPT(pick(r, ['_lng','lng','lon','longitude','Lng','LNG']));
+
+            const tipoRaw = String(pick(r, ['isEmpreendimento','tipo','Tipo','TIPO'])).toLowerCase();
+            const isIso = tipoRaw.includes('iso');
+
+            return {
+              refInterna: pick(r, ['refInterna','ref','referencia','Referencia','RefInterna']),
+              nome: pick(r, ['nome','name','Nome']),
+              concelho: pick(r, ['concelho','Concelho']),
+              estado: stateKey(pick(r, ['estado','Estado'])),
+              promotor: pick(r, ['promotor','Promotor']),
+              tipologias: pick(r, ['tipologias','Tipologias']),
+              conclusaoAno: numPT(pick(r, ['conclusaoAno','ano','conclusao','Conclusao'])) || '',
+              conclusaoMes: numPT(pick(r, ['conclusaoMes','mes','Mes'])) || '',
+              conclusao: numPT(pick(r, ['conclusao','ano','Conclusao'])) || '',
+              preco_m2: pick(r, ['preco_m2','precoM2','€/m2','eur_m2']),
+              precoPedido: pick(r, ['precoPedido','preco','Preco','Preço']),
+              notas: pick(r, ['notas','Notas']),
+              link: pick(r, ['link','url','URL']),
+              _lat: lat,
+              _lng: lng,
+              docs: [],
+              isEmpreendimento: isIso ? false : true
+            };
+          });
+
+          // validação mínima: se vier HTML/erro em vez de CSV, a estrutura pode vir vazia
+          const sanity = arr.some(x => (x.nome || x.refInterna) && x._lat !== null && x._lng !== null);
+          if(!sanity) return finish([], '⚠ CSV carregou, mas não parece conter colunas válidas (lat/lng/nome).');
+
+          finish(arr);
+        }catch(e){
+          console.error('Erro a processar CSV:', e);
+          finish([], '⚠ Erro a processar CSV. Confirme formato/colunas.');
+        }
+      },
+      error: (err)=>{
+        clearTimeout(watchdog);
+        console.error('PapaParse error:', err);
+        finish([], '⚠ Não foi possível carregar o CSV do repositório. Confirme: /data/gpp-mapa.csv');
+      }
+    });
+  });
 }
 
 /* Parser simples de coordenadas GPS vindas das angariações */
@@ -1148,6 +1158,8 @@ el('pdfClose')?.addEventListener('click',()=>{
   revokeTempUrls();
 });
 
+/* ===== (restante código original mantém-se) ===== */
+
 async function renderDocPreview(container, rawUrl, type){
   const url=await resolveLocalUrl(rawUrl);
   if(!url){
@@ -1416,7 +1428,6 @@ function mergeAngariacoesIntoRAW(){
 
   const deals = store.deals;
 
-  // Normalização retroativa (chave estável)
   RAW.forEach(p=>{
     if(!p._angKey && (p._fromAngariacoes || String(p.slug||'').startsWith('ang-'))){
       p._angKey = 'ang:' + String(p.slug||'').replace(/^ang-/, '');
@@ -1619,7 +1630,7 @@ function run(){
       RAW = Array.isArray(mem) ? mem : [];
     }
   }else{
-    // (mantido por compatibilidade) — tenta localStorage primeiro
+    // (compatibilidade) — tenta localStorage primeiro
     const mem = loadLS();
     RAW = Array.isArray(mem) ? mem : [];
     if(!RAW.length){
