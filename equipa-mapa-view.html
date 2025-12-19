@@ -550,6 +550,7 @@ header{
 </div>
 
 <script>
+/* ===== Utilitário loader ===== */
 function loadScript(src){
   return new Promise((res,rej)=>{
     const s=document.createElement('script');
@@ -558,9 +559,7 @@ function loadScript(src){
     document.head.appendChild(s);
   });
 }
-</script>
 
-<script>
 /* ===== Estado global ===== */
 const AMP_CENTER=[41.15,-8.61], AMP_ZOOM=12;
 const LS_KEY='gpp_dataset_v1';
@@ -647,11 +646,10 @@ async function fetchTextWithTimeout(url, ms=15000){
 
 /* ===== CSV: caminho robusto para GitHub Pages (Project Pages) ===== */
 function getRepoBasePrefix(){
-  // Em github.io/project-pages: https://user.github.io/REPO/...
   const host = location.hostname || '';
   const parts = (location.pathname || '').split('/').filter(Boolean);
   if(host.endsWith('github.io') && parts.length >= 1){
-    return '/' + parts[0] + '/'; // "/GarveturPortoPro/"
+    return '/' + parts[0] + '/';
   }
   return '/';
 }
@@ -772,7 +770,6 @@ async function loadFromCSV(){
     }
   });
 }
-
 
 /* ===== Leaflet & Cluster ===== */
 async function loadLeafletAndCluster(){
@@ -1063,7 +1060,7 @@ function renderMarkersChunked(){
 
 function renderMarkers(){ renderMarkersChunked(); }
 
-/* ===== Documentos & Painel (mantido) ===== */
+/* ===== Documentos & Painel ===== */
 let STORAGE_MODE='idb';
 const TEMP_URLS=new Set();
 
@@ -1321,7 +1318,7 @@ function loadLS(){
   }
 }
 
-/* ===== Merge angariações (mantido) ===== */
+/* ===== Merge angariações ===== */
 function parseGps(gps){
   if(!gps) return {lat:null,lng:null};
   const m = String(gps).match(/-?\d+(?:[.,]\d+)?/g);
@@ -1592,5 +1589,6 @@ function run(){
   setStatus('');
 })();
 </script>
+
 </body>
 </html>
