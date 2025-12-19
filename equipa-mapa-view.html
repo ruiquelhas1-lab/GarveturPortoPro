@@ -800,7 +800,8 @@ async function loadFromCSVWithCache(){
     return { data: [], from:'error', meta:{} };
   }
 
-  const csvUrl = getCSVUrl();
+  const csvUrl = await getCSVUrl();
+setStatus('A descarregar dataset CSV… ' + csvUrl);
 
   // 1) tenta rede
   try{
