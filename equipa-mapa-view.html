@@ -592,14 +592,12 @@ let UIState={
 let LS_SKIPPED=false;
 let LS_ERROR=false;
 
-/* ===== CSV ===== */
-const CSV_PATH = "/data/gpp-mapa.csv"; // ABSOLUTO (GitHub Pages)
-const CSV_URL = (() => {
-  const base = new URL(location.href);
-  const u = new URL(CSV_PATH, base);
-  u.searchParams.set('v', String(Date.now()));
-  return u.toString();
-})();
+/* ===== CSV =====
+   IMPORTANTE:
+   - Para GitHub Pages (Project Pages) o caminho correto inclui o nome do repositório.
+   - O vosso site é: https://ruiquelhas1-lab.github.io/GarveturPortoPro/
+*/
+const CSV_PATH = "/GarveturPortoPro/data/gpp-mapa.csv";
 
 const el=id=>document.getElementById(id);
 function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
@@ -640,21 +638,7 @@ function setStatus(msg){
   bar.classList.add('show');
 }
 
-/* ===== Fetch com timeout (evita ficar preso) ===== */
-async function fetchTextWithTimeout(url, ms=15000){
-  const ctrl = new AbortController();
-  const t = setTimeout(()=>ctrl.abort(), ms);
-  try{
-    const r = await fetch(url, { cache:'no-store', signal: ctrl.signal });
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    const txt = await r.text();
-    return txt;
-  } finally {
-    clearTimeout(t);
-  }
-}
-
-/* ===== CSV load (fetch + PapaParse em worker) ===== */
+/* ===== CSV load (PapaParse streaming + multiline + abort watchdog) ===== */
 function pick(obj, keys){
   for(const k of keys){
     if(obj && Object.prototype.hasOwnProperty.call(obj,k) && String(obj[k] ?? '').trim() !== '') return obj[k];
@@ -670,91 +654,110 @@ async function loadFromCSV(){
     return [];
   }
 
-  // URL absoluto + cache-buster
   const csvUrl = new URL(CSV_PATH, location.origin);
-  csvUrl.searchParams.set('v', String(Date.now()));
+  csvUrl.searchParams.set('v', String(Date.now())); // anti-cache
 
   return await new Promise((resolve)=>{
     let done=false;
+    let parserRef=null;
 
-    const fail = (msg) => {
-      if(done) return;
-      done=true;
-      setStatus(msg);
-      resolve([]);
-    };
-
-    const ok = (arr) => {
+    const finishOk = (arr)=>{
       if(done) return;
       done=true;
       setStatus('');
       resolve(arr || []);
     };
 
-    // watchdog: se algo bloquear, não fica preso
-    const watchdog = setTimeout(()=>{
-      fail('⚠ Timeout a carregar/ler CSV. Confirme o caminho e o tamanho do ficheiro.');
-    }, 20000);
+    const finishFail = (msg)=>{
+      if(done) return;
+      done=true;
+      setStatus(msg);
+      resolve([]);
+    };
 
-    Papa.parse(csvUrl.toString(), {
-      download: true,        // <<< IMPORTANTE: o Papa faz o fetch
+    // watchdog: evita ficar preso eternamente (e aborta o parser)
+    const watchdog = setTimeout(()=>{
+      try{ parserRef?.abort?.(); }catch{}
+      finishFail('⚠ Timeout a carregar/ler CSV. O ficheiro pode estar demasiado pesado (ex.: base64 em "docs").');
+    }, 25000);
+
+    const out=[];
+    let count=0;
+
+    parserRef = Papa.parse(csvUrl.toString(), {
+      download: true,
       header: true,
       skipEmptyLines: true,
       worker: true,
-      complete: (results) => {
-        clearTimeout(watchdog);
+
+      // garante suporte a campos com quebras de linha dentro de aspas
+      newline: "",
+      quotes: true,
+      quoteChar: '"',
+      escapeChar: '"',
+
+      step: (results)=>{
         try{
-          const rows = results?.data || [];
-          if(!rows.length) return fail('⚠ CSV sem linhas válidas.');
+          const r = results?.data || {};
+          count++;
 
-          const pick = (obj, keys) => {
-            for(const k of keys){
-              if(obj && Object.prototype.hasOwnProperty.call(obj,k) && String(obj[k] ?? '').trim() !== '') return obj[k];
-            }
-            return '';
-          };
+          // atualização discreta a cada X linhas
+          if(count % 1500 === 0){
+            setStatus(`A carregar dataset do CSV… ${count.toLocaleString('pt-PT')} linhas`);
+          }
 
-          const arr = rows.map(r=>{
-            const lat = numPT(pick(r, ['_lat','lat','latitude','Lat','LAT']));
-            const lng = numPT(pick(r, ['_lng','lng','lon','longitude','Lng','LNG']));
-            const tipoRaw = String(pick(r, ['isEmpreendimento','tipo','Tipo','TIPO'])).toLowerCase();
-            const isIso = tipoRaw.includes('iso');
+          const lat = numPT(pick(r, ['_lat','lat','latitude','Lat','LAT']));
+          const lng = numPT(pick(r, ['_lng','lng','lon','longitude','Lng','LNG']));
 
-            return {
-              refInterna: pick(r, ['refInterna','ref','referencia','Referencia','RefInterna']),
-              nome: pick(r, ['nome','name','Nome']),
-              concelho: pick(r, ['concelho','Concelho']),
-              estado: stateKey(pick(r, ['estado','Estado'])),
-              promotor: pick(r, ['promotor','Promotor']),
-              tipologias: pick(r, ['tipologias','Tipologias']),
-              conclusaoAno: numPT(pick(r, ['conclusaoAno','ano','conclusao','Conclusao'])) || '',
-              conclusaoMes: numPT(pick(r, ['conclusaoMes','mes','Mes'])) || '',
-              conclusao: numPT(pick(r, ['conclusao','ano','Conclusao'])) || '',
-              preco_m2: pick(r, ['preco_m2','precoM2','€/m2','eur_m2']),
-              precoPedido: pick(r, ['precoPedido','preco','Preco','Preço']),
-              notas: pick(r, ['notas','Notas']),
-              link: pick(r, ['link','url','URL']),
-              _lat: lat,
-              _lng: lng,
-              docs: [],
-              isEmpreendimento: isIso ? false : true
-            };
+          // se não tiver coordenadas, não interessa para mapa
+          if(lat===null || lng===null) return;
+
+          const tipoRaw = String(pick(r, ['isEmpreendimento','tipo','Tipo','TIPO'])).toLowerCase();
+          const isIso = tipoRaw.includes('iso');
+
+          out.push({
+            refInterna: pick(r, ['refInterna','ref','referencia','Referencia','RefInterna']),
+            nome: pick(r, ['nome','name','Nome']),
+            concelho: pick(r, ['concelho','Concelho']),
+            estado: stateKey(pick(r, ['estado','Estado'])),
+            promotor: pick(r, ['promotor','Promotor']),
+            tipologias: pick(r, ['tipologias','Tipologias']),
+            conclusaoAno: numPT(pick(r, ['conclusaoAno','ano','conclusao','Conclusao'])) || '',
+            conclusaoMes: numPT(pick(r, ['conclusaoMes','mes','Mes'])) || '',
+            conclusao: numPT(pick(r, ['conclusao','ano','Conclusao'])) || '',
+            preco_m2: pick(r, ['preco_m2','precoM2','€/m2','eur_m2']),
+            precoPedido: pick(r, ['precoPedido','preco','Preco','Preço']),
+            notas: pick(r, ['notas','Notas']),
+            link: pick(r, ['link','url','URL']),
+            _lat: lat,
+            _lng: lng,
+
+            // CRÍTICO: não carregar "docs" do CSV (muitas vezes contém base64 enorme)
+            docs: [],
+
+            isEmpreendimento: isIso ? false : true
           });
-
-          // sanity check mínimo: pelo menos 1 ponto com lat/lng e nome/ref
-          const sanity = arr.some(x => (x.nome || x.refInterna) && x._lat!==null && x._lng!==null);
-          if(!sanity) return fail('⚠ CSV carregou mas não tem colunas válidas (lat/lng/nome).');
-
-          ok(arr);
         }catch(e){
-          console.error(e);
-          fail('⚠ Erro a processar CSV.');
+          // se houver uma linha malformada, ignora
         }
       },
-      error: (err) => {
+
+      complete: ()=>{
+        clearTimeout(watchdog);
+
+        // sanity check mínimo
+        const sanity = out.some(x => (x.nome || x.refInterna) && x._lat!==null && x._lng!==null);
+        if(!sanity){
+          return finishFail('⚠ CSV carregou mas não encontra registos válidos com lat/lng.');
+        }
+
+        finishOk(out);
+      },
+
+      error: (err)=>{
         clearTimeout(watchdog);
         console.error(err);
-        fail('⚠ Não foi possível descarregar o CSV. Confirme se /data/gpp-mapa.csv existe no GitHub Pages.');
+        finishFail('⚠ Não foi possível descarregar/ler o CSV. Confirme o caminho e permissões no GitHub Pages.');
       }
     });
   });
@@ -778,7 +781,6 @@ async function loadLeafletAndCluster(){
 }
 
 function initMap(){
-  // Canvas melhora performance com muitos marcadores (quando possível)
   MAP = L.map('map',{ zoomControl:true, scrollWheelZoom:true, preferCanvas:true }).setView(AMP_CENTER, AMP_ZOOM);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
@@ -791,7 +793,7 @@ function initMap(){
       spiderfyOnEveryZoom:false,
       showCoverageOnHover:false,
       maxClusterRadius:48,
-      chunkedLoading:true,       // IMPORTANTE: cluster em chunks
+      chunkedLoading:true,
       chunkInterval:200,
       chunkDelay:30
     };
@@ -961,7 +963,7 @@ function renderList(){
   });
 }
 
-/* ===== Marcadores (RENDER EM CHUNKS) ===== */
+/* ===== Marcadores (render em chunks) ===== */
 function pinClassFromState(p){
   const st = p.estado;
   let suffix='';
@@ -1008,14 +1010,14 @@ function renderMarkersChunked(){
     return;
   }
 
-  // bounds sem loops pesados
   const bounds = L.latLngBounds([]);
 
   let idx = 0;
   setStatus(`A desenhar marcadores… 0/${total}`);
 
   const addChunk = () => {
-    if(jobId !== __markerJobId) return; // cancelado por nova execução
+    if(jobId !== __markerJobId) return;
+
     const end = Math.min(idx + MARKERS_CHUNK, total);
 
     for(; idx < end; idx++){
@@ -1028,7 +1030,6 @@ function renderMarkersChunked(){
       m.on('click',()=>openFicha(p,true));
       m.bindTooltip(tooltip,{direction:'top',offset:[0,-8],opacity:.9});
 
-      // cluster ou layer
       if(CLUSTER && CLUSTER.addLayer) CLUSTER.addLayer(m);
       else LAYER.addLayer(m);
     }
@@ -1040,7 +1041,6 @@ function renderMarkersChunked(){
     if(idx < total){
       requestAnimationFrame(addChunk);
     }else{
-      // fit bounds no fim
       if(MAP && bounds.isValid()){
         MAP.fitBounds(bounds.pad(0.2));
       }
@@ -1052,11 +1052,10 @@ function renderMarkersChunked(){
 }
 
 function renderMarkers(){
-  // substitui a versão antiga por chunked
   renderMarkersChunked();
 }
 
-/* ===== Documentos & Painel (mantido) ===== */
+/* ===== Documentos & Painel ===== */
 let STORAGE_MODE='idb';
 const TEMP_URLS=new Set();
 
@@ -1539,7 +1538,7 @@ function run(){
   applyFilters();
   renderKPIs();
   renderList();
-  renderMarkers(); // chunked
+  renderMarkers();
 }
 
 /* ===== Arranque ===== */
@@ -1551,7 +1550,7 @@ function run(){
     initMap();
   } else {
     document.getElementById('map')?.classList.add('hidden');
-    setStatus('⚠ Não foi possível carregar o motor de mapa (Leaflet).');
+    setStatus('⚯োগ Não foi possível carregar o motor de mapa (Leaflet).');
     return;
   }
 
@@ -1575,7 +1574,7 @@ function run(){
   autoUpdateEstadosByConclusao();
 
   if(!RAW.length){
-    setStatus('⚠ Sem dados. Confirme que existe /data/gpp-mapa.csv e que contém lat/lng.');
+    setStatus('⚠ Sem dados. Confirme o CSV e se contém lat/lng válidos.');
     return;
   }
 
