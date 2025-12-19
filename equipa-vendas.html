@@ -29,9 +29,17 @@
       background:radial-gradient(circle at top,#1c1c1c 0,#050505 55%,#000 100%);
       color:var(--text);
     }
-    body{ display:flex; flex-direction:column; }
-    .app-shell{ display:grid; grid-template-rows:64px auto; height:100%; }
+    body{
+      display:flex;
+      flex-direction:column;
+    }
+    .app-shell{
+      display:grid;
+      grid-template-rows:64px auto;
+      height:100%;
+    }
 
+    /* HEADER */
     header.app-header{
       display:flex;
       align-items:center;
@@ -45,27 +53,56 @@
       gap:16px;
       flex-wrap:wrap;
     }
-    .brand{ display:flex; align-items:center; gap:10px; }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
     .brand-icon{
-      width:26px;height:26px;border-radius:999px;border:1px solid var(--gold);
-      display:flex;align-items:center;justify-content:center;
+      width:26px;
+      height:26px;
+      border-radius:999px;
+      border:1px solid var(--gold);
+      display:flex;
+      align-items:center;
+      justify-content:center;
       box-shadow:0 0 0 1px rgba(163,139,99,.3);
     }
     .brand h1{
-      margin:0;font-size:17px;letter-spacing:.04em;text-transform:uppercase;color:var(--gold);
+      margin:0;
+      font-size:17px;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      color:var(--gold);
     }
     .brand span.sub{
-      display:block;font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;
+      display:block;
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.12em;
+      text-transform:uppercase;
     }
 
     .readonly-badge{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:6px 10px;border-radius:999px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
       border:1px solid rgba(255,255,255,.16);
       background:rgba(0,0,0,.35);
-      color:var(--muted);font-size:11px;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;
+      color:var(--muted);
+      font-size:11px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      white-space:nowrap;
     }
-    .header-actions{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .header-actions{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
     .btn{
       border-radius:999px;
       border:1px solid var(--gold-soft);
@@ -80,9 +117,17 @@
       transition:.18s border-color,.18s background,.18s transform;
       text-decoration:none;
     }
-    .btn:hover{ border-color:var(--gold); transform:translateY(-1px); }
-    .btn.secondary{ border-color:rgba(255,255,255,.18); color:var(--muted); background:transparent; }
+    .btn:hover{
+      border-color:var(--gold);
+      transform:translateY(-1px);
+    }
+    .btn.secondary{
+      border-color:rgba(255,255,255,.18);
+      color:var(--muted);
+      background:transparent;
+    }
 
+    /* LAYOUT MAIN */
     .layout{
       display:grid;
       grid-template-columns:300px minmax(0,1fr);
@@ -91,9 +136,15 @@
       overflow:hidden;
     }
     @media (max-width: 960px){
-      .layout{ grid-template-columns:1fr; grid-template-rows:auto auto; height:auto; max-height:none; }
+      .layout{
+        grid-template-columns:1fr;
+        grid-template-rows:auto auto;
+        height:auto;
+        max-height:none;
+      }
     }
 
+    /* SIDEBAR */
     .sidebar{
       border-right:1px solid rgba(163,139,99,.24);
       background:radial-gradient(circle at top left,#141414,#060606);
@@ -114,10 +165,26 @@
       letter-spacing:.16em;
       color:var(--muted);
     }
-    .sidebar-section p{ margin:2px 0 6px; font-size:12px; color:var(--muted); }
-    .field{ display:flex; flex-direction:column; gap:4px; margin-bottom:8px; }
-    label.field-label{ font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.12em; }
-    input[type="text"], input[type="date"], select{
+    .sidebar-section p{
+      margin:2px 0 6px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      margin-bottom:8px;
+    }
+    label.field-label{
+      font-size:11px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.12em;
+    }
+    input[type="text"],
+    input[type="date"],
+    select{
       background:rgba(0,0,0,.7);
       color:var(--text);
       border-radius:10px;
@@ -127,25 +194,63 @@
       outline:none;
       width:100%;
     }
-    input:focus, select:focus{ border-color:var(--gold); box-shadow:0 0 0 1px rgba(163,139,99,.35); }
-    .checks{ display:flex; flex-direction:column; gap:6px; margin-top:4px; font-size:12px; color:var(--muted); }
-    .checks label{ display:flex; align-items:center; gap:6px; }
-    .checks input{ accent-color:var(--gold); }
+    input:focus, select:focus{
+      border-color:var(--gold);
+      box-shadow:0 0 0 1px rgba(163,139,99,.35);
+    }
+    .checks{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin-top:4px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .checks label{
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .checks input{
+      accent-color:var(--gold);
+    }
 
+    /* MAIN AREA */
     .main-area{
       padding:14px 16px 18px;
       overflow-y:auto;
       background:radial-gradient(circle at top,#1a1a1a,#050505 55%,#000 100%);
     }
     .main-header{
-      display:flex; justify-content:space-between; align-items:flex-start;
-      gap:10px; margin-bottom:10px; flex-wrap:wrap;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+      margin-bottom:10px;
+      flex-wrap:wrap;
     }
-    .main-header h2{ margin:0; font-size:15px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); }
-    .main-header p{ margin:2px 0 0; font-size:12px; color:var(--muted); }
+    .main-header h2{
+      margin:0;
+      font-size:15px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+    .main-header p{
+      margin:2px 0 0;
+      font-size:12px;
+      color:var(--muted);
+    }
 
-    .kpi-row{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:8px; }
-    @media (max-width: 960px){ .kpi-row{ grid-template-columns:1fr; } }
+    .kpi-row{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+      margin-top:8px;
+    }
+    @media (max-width: 960px){
+      .kpi-row{ grid-template-columns:1fr; }
+    }
     .kpi-card{
       border-radius:var(--radius-md);
       border:1px solid rgba(163,139,99,.22);
@@ -153,10 +258,24 @@
       padding:8px 10px;
       box-shadow:0 10px 20px rgba(0,0,0,.5);
     }
-    .kpi-label{ font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.12em; }
-    .kpi-value{ font-size:18px; margin-top:4px; font-weight:600; }
-    .kpi-sub{ font-size:11px; color:var(--muted); margin-top:2px; }
+    .kpi-label{
+      font-size:11px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.12em;
+    }
+    .kpi-value{
+      font-size:18px;
+      margin-top:4px;
+      font-weight:600;
+    }
+    .kpi-sub{
+      font-size:11px;
+      color:var(--muted);
+      margin-top:2px;
+    }
 
+    /* CHART */
     .chart{
       margin-top:12px;
       border-radius:var(--radius-md);
@@ -180,21 +299,53 @@
       color:var(--muted);
       cursor:pointer;
     }
-    .chart-row.selected{ background:rgba(163,139,99,.12); border-radius:8px; }
-    .chart-label{ width:70px; flex-shrink:0; }
-    .chart-bar-wrap{ flex:1; background:#101010; border-radius:999px; overflow:hidden; }
+    .chart-row.selected{
+      background:rgba(163,139,99,.12);
+      border-radius:8px;
+    }
+    .chart-label{
+      width:70px;
+      flex-shrink:0;
+    }
+    .chart-bar-wrap{
+      flex:1;
+      background:#101010;
+      border-radius:999px;
+      overflow:hidden;
+    }
     .chart-bar{
-      height:8px;border-radius:999px;
+      height:8px;
+      border-radius:999px;
       background:linear-gradient(90deg,var(--gold),#f5e1b5);
       width:0%;
       transition:.2s width;
     }
-    .chart-value{ width:110px; text-align:right; flex-shrink:0; }
-    .chart-empty{ font-size:11px; color:var(--muted); margin-top:4px; }
+    .chart-value{
+      width:80px;
+      text-align:right;
+      flex-shrink:0;
+    }
+    .chart-empty{
+      font-size:11px;
+      color:var(--muted);
+      margin-top:4px;
+    }
 
-    .section-title{ margin-top:14px; font-size:12px; text-transform:uppercase; letter-spacing:.14em; color:var(--muted); }
+    .section-title{
+      margin-top:14px;
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:var(--muted);
+    }
 
-    .cards-grid{ margin-top:6px; display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:10px; }
+    .cards-grid{
+      margin-top:6px;
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+      gap:10px;
+    }
+
     .card{
       border-radius:var(--radius-lg);
       border:1px solid rgba(163,139,99,.32);
@@ -204,15 +355,41 @@
       display:flex;
       flex-direction:column;
       gap:6px;
-      cursor:default;
+      cursor:default; /* equipa: sem navegação */
     }
-    .card.hidden{ opacity:.45; border-style:dashed; }
+    .card.hidden{
+      opacity:.45;
+      border-style:dashed;
+    }
 
-    .card-top{ display:flex; justify-content:space-between; gap:8px; }
-    .card-title{ font-size:14px; font-weight:600; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .card-sub{ font-size:11px; color:var(--muted); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .card-top{
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+    }
+    .card-title{
+      font-size:14px;
+      font-weight:600;
+      margin:0;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .card-sub{
+      font-size:11px;
+      color:var(--muted);
+      margin-top:1px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
 
-    .chip-row{ display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
+    .chip-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
+      margin-top:4px;
+    }
     .chip{
       border-radius:999px;
       padding:2px 7px;
@@ -223,8 +400,14 @@
       text-transform:uppercase;
       letter-spacing:.08em;
     }
-    .chip-gold{ border-color:var(--gold); color:var(--gold); }
-    .chip-green{ border-color:rgba(76,175,80,.7); color:#A5D6A7; }
+    .chip-gold{
+      border-color:var(--gold);
+      color:var(--gold);
+    }
+    .chip-green{
+      border-color:rgba(76,175,80,.7);
+      color:#A5D6A7;
+    }
 
     .card-section{
       border-top:1px solid rgba(163,139,99,.18);
@@ -233,7 +416,11 @@
       font-size:12px;
       color:var(--muted);
     }
-    .card-section strong{ color:#f5f5f5; font-weight:500; }
+    .card-section strong{
+      color:#f5f5f5;
+      font-weight:500;
+    }
+
     .card-footer{
       margin-top:4px;
       display:flex;
@@ -243,10 +430,17 @@
       gap:6px;
       flex-wrap:wrap;
     }
-    .empty{ font-size:12px; color:var(--muted); margin-top:16px; }
 
+    .empty{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:16px;
+    }
+
+    /* ===== Login Overlay ===== */
     .auth-backdrop{
-      position:fixed; inset:0;
+      position:fixed;
+      inset:0;
       background:rgba(0,0,0,.72);
       backdrop-filter:blur(2px);
       display:none;
@@ -274,15 +468,33 @@
       background:linear-gradient(90deg,#050505,#111,#050505);
     }
     .auth-head .title{
-      display:flex; align-items:center; gap:10px;
-      color:var(--gold); font-weight:700;
-      letter-spacing:.06em; text-transform:uppercase; font-size:12px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      color:var(--gold);
+      font-weight:700;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      font-size:12px;
     }
-    .auth-body{ padding:14px 14px 12px; }
-    .auth-body p{ margin:0 0 10px; color:var(--muted); font-size:12px; line-height:1.45; }
-    .auth-row{ display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+    .auth-body{
+      padding:14px 14px 12px;
+    }
+    .auth-body p{
+      margin:0 0 10px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.45;
+    }
+    .auth-row{
+      display:flex;
+      gap:8px;
+      margin-top:10px;
+      flex-wrap:wrap;
+    }
     .auth-input{
-      flex:1; min-width:220px;
+      flex:1;
+      min-width:220px;
       background:rgba(0,0,0,.7);
       color:var(--text);
       border-radius:12px;
@@ -291,9 +503,26 @@
       font-size:14px;
       outline:none;
     }
-    .auth-input:focus{ border-color:var(--gold); box-shadow:0 0 0 1px rgba(163,139,99,.35); }
-    .auth-msg{ margin-top:10px; font-size:12px; color:var(--danger); display:none; }
+    .auth-input:focus{
+      border-color:var(--gold);
+      box-shadow:0 0 0 1px rgba(163,139,99,.35);
+    }
+    .auth-msg{
+      margin-top:10px;
+      font-size:12px;
+      color:var(--danger);
+      display:none;
+    }
     .auth-msg.show{display:block;}
+
+    /* Pequeno estado de carregamento */
+    #bootStatus{
+      font-size:11px;
+      color:var(--muted);
+      padding:6px 0 0;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
   </style>
 </head>
 <body>
@@ -338,7 +567,8 @@
       </div>
       <div>
         <h1>Garvetur Porto Pro — Vendas</h1>
-        <span class="sub">Negócios fechados & carteira</span>
+        <span class="sub">Negócios fechados & carteira aprovada</span>
+        <div id="bootStatus"></div>
       </div>
     </div>
 
@@ -365,7 +595,7 @@
           <select id="fOrigem">
             <option value="">Todas</option>
             <option value="lead">Leads (Fecho)</option>
-            <option value="ang">Angariações</option>
+            <option value="ang">Angariações aprovadas</option>
           </select>
         </div>
         <div class="field">
@@ -390,10 +620,9 @@
       <div class="sidebar-section">
         <h3>Notas</h3>
         <p>Este módulo cruza automaticamente:</p>
-        <p>• Leads em <strong>Fecho</strong><br>
-           • Angariações (estado elegível)</p>
+        <p>• Leads em <strong>Fecho</strong> (Kanban)<br>
+           • Angariações em <strong>Aprovado</strong></p>
         <p>Útil para reuniões comerciais, previsões e análise de carteira.</p>
-        <p id="dataStatus" style="margin-top:8px;font-size:11px;color:var(--muted);"></p>
       </div>
     </aside>
 
@@ -402,7 +631,7 @@
       <div class="main-header">
         <div>
           <h2>Negócios & Carteira</h2>
-          <p>Leads fechadas + Angariações, numa visão única.</p>
+          <p>Leads fechadas + Angariações aprovadas, numa visão única.</p>
           <div class="kpi-row">
             <div class="kpi-card">
               <div class="kpi-label">Negócios (filtros atuais)</div>
@@ -412,7 +641,7 @@
             <div class="kpi-card">
               <div class="kpi-label">Volume total</div>
               <div class="kpi-value" id="kpiVolumeTotal">€ 0</div>
-              <div class="kpi-sub">Soma do valor do negócio (Leads) + preço pedido (Angariações).</div>
+              <div class="kpi-sub">Soma do valor do negócio (Leads) + preço pedido (Angariações aprovadas).</div>
             </div>
             <div class="kpi-card">
               <div class="kpi-label">Top consultor</div>
@@ -443,25 +672,26 @@
           <div class="kpi-card">
             <div class="kpi-label">Comissões no período</div>
             <div class="kpi-value" id="kpiComPeriodo">€ 0</div>
-            <div class="kpi-sub">Soma das parcelas de comissão (CPCV/Escritura) entre as datas filtradas.</div>
+            <div class="kpi-sub">Soma das parcelas de comissão (CPCV/Escritura) entre as datas filtradas (recebidas + por receber).</div>
           </div>
           <div class="kpi-card">
             <div class="kpi-label">Comissões já recebidas</div>
             <div class="kpi-value" id="kpiComRecebido">€ 0</div>
-            <div class="kpi-sub">Parcelas de comissão com data até hoje.</div>
+            <div class="kpi-sub">Parcelas de comissão no período com data até hoje.</div>
           </div>
           <div class="kpi-card">
             <div class="kpi-label">Comissões por receber</div>
             <div class="kpi-value" id="kpiComPorReceber">€ 0</div>
-            <div class="kpi-sub">Comissão total dos negócios fechados menos o já recebido.</div>
+            <div class="kpi-sub">Parcelas de comissão no período com data após hoje.</div>
           </div>
         </div>
       </div>
 
+      <!-- Secções separadas -->
       <h3 class="section-title">Negócios fechados (Leads)</h3>
       <div id="cardsLeadsGrid" class="cards-grid"></div>
 
-      <h3 class="section-title">Carteira (Angariações)</h3>
+      <h3 class="section-title">Carteira aprovada (Angariações)</h3>
       <div id="cardsAngGrid" class="cards-grid"></div>
 
       <div id="emptyState" class="empty" style="display:none;">
@@ -532,17 +762,13 @@
 (function(){
   const TEAM_READONLY = true;
 
-  /* ===== Fontes de dados (GitHub Pages) ===== */
-  const DATA_LEADS_URL = 'data/gpp-leads.json';
-  const DATA_ANG_URL   = 'data/gpp-angariacoes.json';
-
-  /* ===== Cache local (offline) ===== */
-  const CACHE_LEADS_KEY = 'gpp_team_leads_cache_v1';
-  const CACHE_ANG_KEY   = 'gpp_team_ang_cache_v1';
-  const CACHE_META_KEY  = 'gpp_team_vendas_cache_meta_v1';
-
+  // Fallback (caso queira continuar a suportar localStorage)
   const LS_LEADS_KEY = 'gpp_leads_v5';
   const LS_ANG_KEY   = 'gpp_angariacoes_v2';
+
+  // Fonte “equipa” (GitHub Pages / data/)
+  const DATA_LEADS_URL = 'data/gpp-leads.json';
+  const DATA_ANG_URL   = 'data/gpp-angariacoes.json';
 
   const LS_VENDAS_FILTERS_KEY = 'gpp_vendas_filters_v1';
   const LS_GLOBAL_FILTERS_KEY = 'gpp_filtros_globais';
@@ -571,47 +797,80 @@
   const applyFiltersBtn = document.getElementById('applyFiltersBtn');
   const clearFiltersBtn = document.getElementById('clearFiltersBtn');
 
+  // KPI de comissões
   const kpiComPeriodo   = document.getElementById('kpiComPeriodo');
   const kpiComRecebido  = document.getElementById('kpiComRecebido');
   const kpiComPorReceber = document.getElementById('kpiComPorReceber');
 
-  const dataStatus = document.getElementById('dataStatus');
+  const bootStatus = document.getElementById('bootStatus');
+  function setBootStatus(msg){
+    if(!bootStatus) return;
+    bootStatus.textContent = msg || '';
+  }
 
-  let NEGOCIOS = [];
-  let COMISSOES_DETALHE_MAP = {};
+  let NEGOCIOS = []; // lista combinada
+  let COMISSOES_DETALHE_MAP = {}; // por mês (YYYY-MM) -> lista de parcelas
   let COMISSOES_RESUMO = { totalPeriodo:0, totalRecebido:0, totalPorReceber:0 };
-  let FILTERS = { consultor:'', origem:'', de:'', ate:'', incluirInvisiveis:false };
+  let FILTERS = {
+    consultor:'',
+    origem:'',
+    de:'',
+    ate:'',
+    incluirInvisiveis:false
+  };
 
-  /* ===== Utilitários ===== */
-  function safeJsonParse(s){ try{ return JSON.parse(s); }catch{ return null; } }
-  function cacheSet(key, data){
-    try{ localStorage.setItem(key, JSON.stringify(data)); }catch{}
+  /* ===== Storage filtros globais/locais ===== */
+  function loadGlobalFilters(){
     try{
-      const meta = safeJsonParse(localStorage.getItem(CACHE_META_KEY)) || {};
-      meta[key] = { at: Date.now(), bytes: (JSON.stringify(data)||'').length };
-      localStorage.setItem(CACHE_META_KEY, JSON.stringify(meta));
-    }catch{}
-  }
-  function cacheGet(key){
-    try{
-      const raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : null;
-    }catch{ return null; }
-  }
-  async function fetchJsonWithTimeout(url, ms=45000){
-    const ctrl = new AbortController();
-    const t = setTimeout(()=>ctrl.abort(), ms);
-    try{
-      const u = new URL(url, location.href);
-      u.searchParams.set('v', String(Date.now())); // cache-buster
-      const r = await fetch(u.toString(), { cache:'no-store', signal: ctrl.signal });
-      if(!r.ok) throw new Error('HTTP ' + r.status);
-      return await r.json();
-    } finally {
-      clearTimeout(t);
+      const raw = localStorage.getItem(LS_GLOBAL_FILTERS_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }catch{
+      return {};
     }
   }
+  function saveGlobalFilters(from){
+    try{
+      const current = loadGlobalFilters();
+      const merged = Object.assign({}, current, {
+        consultor: from.consultor ?? current.consultor ?? '',
+        de: from.de ?? current.de ?? '',
+        ate: from.ate ?? current.ate ?? ''
+      });
+      localStorage.setItem(LS_GLOBAL_FILTERS_KEY, JSON.stringify(merged));
+    }catch{}
+  }
+  function loadVendasFilters(){
+    try{
+      const raw = localStorage.getItem(LS_VENDAS_FILTERS_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }catch{
+      return {};
+    }
+  }
+  function saveVendasFilters(){
+    try{
+      localStorage.setItem(LS_VENDAS_FILTERS_KEY, JSON.stringify(FILTERS));
+    }catch{}
+  }
 
+  function hydrateFiltersFromStorage(){
+    const global = loadGlobalFilters();
+    const local = loadVendasFilters();
+
+    FILTERS.consultor = local.consultor || global.consultor || '';
+    FILTERS.de        = local.de        || global.de        || '';
+    FILTERS.ate       = local.ate       || global.ate       || '';
+    FILTERS.origem    = local.origem    || '';
+    FILTERS.incluirInvisiveis = !!local.incluirInvisiveis;
+
+    if(FILTERS.consultor) fConsultor.value = FILTERS.consultor;
+    if(FILTERS.de) fDe.value = FILTERS.de;
+    if(FILTERS.ate) fAte.value = FILTERS.ate;
+    if(FILTERS.origem) fOrigem.value = FILTERS.origem;
+    fIncluirInvisiveis.checked = FILTERS.incluirInvisiveis;
+  }
+
+  /* ===== Helpers ===== */
   function parseNumber(v){
     if(v==null || v==='') return NaN;
     const s = String(v).replace(/\./g,'').replace(',','.');
@@ -645,6 +904,7 @@
     return y + '-' + m + '-' + day;
   }
 
+  // Procura campos de data com token (ex.: "cpcv", "escritura") em l e l.fecho
   function findDateWithToken(objs, token){
     const re = /^\d{4}-\d{2}-\d{2}$/;
     const tk = String(token).toLowerCase();
@@ -663,136 +923,72 @@
     return '';
   }
 
-  /* ===== Load via /data (com fallback para cache e localStorage) ===== */
-  async function loadLeads(){
-    // 1) tenta /data
+  async function fetchJSON(url, ms=30000){
+    const ctrl = new AbortController();
+    const t = setTimeout(()=>ctrl.abort(), ms);
     try{
-      const j = await fetchJsonWithTimeout(DATA_LEADS_URL, 45000);
-      cacheSet(CACHE_LEADS_KEY, j);
-      return normalizeLeadsPayload(j);
-    }catch(e){
-      // 2) cache
-      const cached = cacheGet(CACHE_LEADS_KEY);
-      if(cached) return normalizeLeadsPayload(cached);
+      const u = new URL(url, location.href);
+      u.searchParams.set('v', String(Date.now())); // cache-buster
+      const r = await fetch(u.toString(), { cache:'no-store', signal: ctrl.signal });
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      return await r.json();
+    } finally { clearTimeout(t); }
+  }
 
-      // 3) fallback localStorage (ambiente manager)
-      try{
-        const raw = localStorage.getItem(LS_LEADS_KEY);
-        const parsed = safeJsonParse(raw);
-        if(parsed) return normalizeLeadsPayload(parsed);
-      }catch{}
+  /* ===== Load Leads & Angariações (data/ primeiro; fallback localStorage) ===== */
+  async function loadLeads(){
+    // 1) data/gpp-leads.json
+    try{
+      const arr = await fetchJSON(DATA_LEADS_URL, 45000);
+      if(Array.isArray(arr)) return arr;
+    }catch(e){
+      console.warn('Falha a carregar gpp-leads.json, a tentar localStorage…', e);
+    }
+
+    // 2) fallback localStorage (se existir)
+    try{
+      const raw = localStorage.getItem(LS_LEADS_KEY);
+      if(!raw) return [];
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    }catch(e){
+      console.error('Erro a ler leads', e);
       return [];
     }
   }
 
   async function loadAngariacoes(){
+    // 1) data/gpp-angariacoes.json
     try{
-      const j = await fetchJsonWithTimeout(DATA_ANG_URL, 45000);
-      cacheSet(CACHE_ANG_KEY, j);
-      return normalizeAngPayload(j);
+      const obj = await fetchJSON(DATA_ANG_URL, 45000);
+      if(obj && Array.isArray(obj.deals)) return obj.deals;
+      if(Array.isArray(obj)) return obj; // tolerância (caso seja lista directa)
     }catch(e){
-      const cached = cacheGet(CACHE_ANG_KEY);
-      if(cached) return normalizeAngPayload(cached);
+      console.warn('Falha a carregar gpp-angariacoes.json, a tentar localStorage…', e);
+    }
 
-      try{
-        const raw = localStorage.getItem(LS_ANG_KEY);
-        const parsed = safeJsonParse(raw);
-        if(parsed) return normalizeAngPayload(parsed);
-      }catch{}
+    // 2) fallback localStorage
+    try{
+      const raw = localStorage.getItem(LS_ANG_KEY);
+      if(!raw) return [];
+      const obj = JSON.parse(raw);
+      if(!obj || !Array.isArray(obj.deals)) return [];
+      return obj.deals;
+    }catch(e){
+      console.error('Erro a ler angariações', e);
       return [];
     }
   }
 
-  function normalizeLeadsPayload(payload){
-    // aceita: {leads:[...]} OU [...]
-    if(Array.isArray(payload)) return payload;
-    if(payload && Array.isArray(payload.leads)) return payload.leads;
-    if(payload && Array.isArray(payload.data)) return payload.data;
-    return [];
-  }
-
-  function normalizeAngPayload(payload){
-    // aceita: {deals:[...]} OU [...]
-    if(Array.isArray(payload)) return payload;
-    if(payload && Array.isArray(payload.deals)) return payload.deals;
-    if(payload && Array.isArray(payload.data)) return payload.data;
-    return [];
-  }
-
-  /* ===== Storage filtros globais/locais ===== */
-  function loadGlobalFilters(){
-    try{
-      const raw = localStorage.getItem(LS_GLOBAL_FILTERS_KEY);
-      return raw ? JSON.parse(raw) : {};
-    }catch{ return {}; }
-  }
-  function saveGlobalFilters(from){
-    try{
-      const current = loadGlobalFilters();
-      const merged = Object.assign({}, current, {
-        consultor: from.consultor ?? current.consultor ?? '',
-        de: from.de ?? current.de ?? '',
-        ate: from.ate ?? current.ate ?? ''
-      });
-      localStorage.setItem(LS_GLOBAL_FILTERS_KEY, JSON.stringify(merged));
-    }catch{}
-  }
-  function loadVendasFilters(){
-    try{
-      const raw = localStorage.getItem(LS_VENDAS_FILTERS_KEY);
-      return raw ? JSON.parse(raw) : {};
-    }catch{ return {}; }
-  }
-  function saveVendasFilters(){
-    try{ localStorage.setItem(LS_VENDAS_FILTERS_KEY, JSON.stringify(FILTERS)); }catch{}
-  }
-
-  function hydrateFiltersFromStorage(){
-    const global = loadGlobalFilters();
-    const local = loadVendasFilters();
-
-    FILTERS.consultor = local.consultor || global.consultor || '';
-    FILTERS.de        = local.de        || global.de        || '';
-    FILTERS.ate       = local.ate       || global.ate       || '';
-    FILTERS.origem    = local.origem    || '';
-    FILTERS.incluirInvisiveis = !!local.incluirInvisiveis;
-
-    if(FILTERS.consultor) fConsultor.value = FILTERS.consultor;
-    if(FILTERS.de) fDe.value = FILTERS.de;
-    if(FILTERS.ate) fAte.value = FILTERS.ate;
-    if(FILTERS.origem) fOrigem.value = FILTERS.origem;
-    fIncluirInvisiveis.checked = FILTERS.incluirInvisiveis;
-  }
-
   /* ===== Construção da lista de negócios ===== */
-  function isLeadFecho(l){
-    const e = String(l?.estado || '').toLowerCase().trim();
-    return e === 'fecho';
-  }
-  function isAngElegivel(a){
-    // No teu backup aparece "novo". Mantém compatibilidade futura com "aprovado".
-    const e = String(a?.estadoAng || '').toLowerCase().trim();
-    return (e === 'aprovado' || e === 'novo');
-  }
-
   async function buildNegocios(){
     const leads = await loadLeads();
     const angs  = await loadAngariacoes();
-
-    // status para diagnóstico
-    const meta = safeJsonParse(localStorage.getItem(CACHE_META_KEY)) || {};
-    const m1 = meta[CACHE_LEADS_KEY]?.at ? new Date(meta[CACHE_LEADS_KEY].at).toLocaleString('pt-PT') : '';
-    const m2 = meta[CACHE_ANG_KEY]?.at ? new Date(meta[CACHE_ANG_KEY].at).toLocaleString('pt-PT') : '';
-    if(dataStatus){
-      dataStatus.textContent = `Dados: Leads=${leads.length} · Angariações=${angs.length}` +
-        (m1 || m2 ? ` · Cache: ${m1 ? 'Leads ' + m1 : ''}${m2 ? ' · Ang ' + m2 : ''}` : '');
-    }
-
     const list = [];
 
     // Leads em Fecho
     leads.forEach(l=>{
-      if(!isLeadFecho(l)) return;
+      if(l.estado !== 'Fecho') return;
 
       const valorNegocio = parseNumber(l.fecho_negocio || l.valor || 0);
       const comissaoPctStr = (l.fecho_comissao_pct!=='' && l.fecho_comissao_pct!=null)
@@ -834,9 +1030,16 @@
       });
     });
 
-    // Angariações elegíveis
+    // Angariações: APENAS aprovadas (robusto)
     angs.forEach(a=>{
-      if(!isAngElegivel(a)) return;
+      const st = String(a.estadoAng || a.estado || '').toLowerCase().trim();
+      const isAprovado =
+        st === 'aprovado' ||
+        st === 'aprovada' ||
+        st === 'aprov' ||
+        st.includes('aprov');
+
+      if(!isAprovado) return;
 
       const precoPedido = parseNumber(a.precoPedido || 0);
       let comPerc = '';
@@ -845,7 +1048,6 @@
       }else if(a.comissao){
         comPerc = a.comissao;
       }
-
       const comAngNum = parsePct(comPerc);
       const comAngValor = isFinite(comAngNum)
         ? (precoPedido * comAngNum / 100)
@@ -873,9 +1075,8 @@
         dataCpcv: '',
         dataEscritura: '',
         origem: a.isEmpreendimento ? 'Angariação — Empreendimento' : 'Angariação',
-        visivel: a.visible !== false,
-        detalheFecho: null,
-        estadoAng: a.estadoAng || ''
+        visivel: a.visible !== false && a.visivel !== false,
+        detalheFecho: null
       });
     });
 
@@ -890,7 +1091,9 @@
 
   function populateConsultores(){
     const set = new Set();
-    NEGOCIOS.forEach(n=>{ if(n.consultor) set.add(n.consultor); });
+    NEGOCIOS.forEach(n=>{
+      if(n.consultor) set.add(n.consultor);
+    });
     const current = fConsultor.value;
     fConsultor.innerHTML = '<option value="">Todos</option>';
     Array.from(set).sort().forEach(name=>{
@@ -899,7 +1102,9 @@
       opt.textContent = name;
       fConsultor.appendChild(opt);
     });
-    if(current && set.has(current)) fConsultor.value = current;
+    if(current && set.has(current)){
+      fConsultor.value = current;
+    }
   }
 
   function applyFilters(){
@@ -920,7 +1125,7 @@
     const totalAng  = lista.filter(n=>n.tipo==='ang').length;
 
     kpiTotalNegocios.textContent = total;
-    kpiSplit.textContent = `Leads em Fecho: ${totalLead} · Angariações: ${totalAng}`;
+    kpiSplit.textContent = `Leads fechadas: ${totalLead} · Angariações aprovadas: ${totalAng}`;
 
     const volumeTotal = lista.reduce((acc,n)=>acc + (n.valor || 0),0);
     kpiVolumeTotal.textContent = formatMoney(volumeTotal);
@@ -1004,6 +1209,7 @@
     });
   }
 
+  // Detalhe das comissões por mês
   function renderComissoesDetalhe(mesKey, mesLabel){
     chartComissoesDetalhe.innerHTML = '';
     const lista = COMISSOES_DETALHE_MAP[mesKey];
@@ -1029,41 +1235,46 @@
     subt.textContent = 'Total de comissões no mês: ' + formatMoney(totalMes);
     chartComissoesDetalhe.appendChild(subt);
 
-    lista.slice().sort((a,b)=> (a.data || '').localeCompare(b.data || '')).forEach(it=>{
-      const row = document.createElement('div');
-      row.className = 'chart-row';
+    lista
+      .slice()
+      .sort((a,b)=> (a.data || '').localeCompare(b.data || ''))
+      .forEach(it=>{
+        const row = document.createElement('div');
+        row.className = 'chart-row';
 
-      const left = document.createElement('div');
-      left.className = 'chart-label';
-      left.textContent = formatDate(it.data);
+        const left = document.createElement('div');
+        left.className = 'chart-label';
+        left.textContent = formatDate(it.data);
 
-      const mid = document.createElement('div');
-      mid.style.flex = '1';
-      mid.style.fontSize = '11px';
-      mid.innerHTML =
-        '<strong>' + (it.cliente || it.titulo || 'Negócio') + '</strong><br>' +
-        (it.titulo ? it.titulo + ' · ' : '') +
-        (it.consultor || '') +
-        (it.comissaoPct ? ' · Comissão ' + it.comissaoPct + '%' : '') +
-        ' · ' + it.tipoParcela;
+        const mid = document.createElement('div');
+        mid.style.flex = '1';
+        mid.style.fontSize = '11px';
+        mid.innerHTML =
+          '<strong>' + (it.cliente || it.titulo || 'Negócio') + '</strong><br>' +
+          (it.titulo ? it.titulo + ' · ' : '') +
+          (it.consultor || '') +
+          (it.comissaoPct ? ' · Comissão ' + it.comissaoPct + '%' : '') +
+          ' · ' + it.tipoParcela;
 
-      const right = document.createElement('div');
-      right.className = 'chart-value';
-      right.textContent = formatMoney(it.valor);
+        const right = document.createElement('div');
+        right.className = 'chart-value';
+        right.textContent = formatMoney(it.valor);
 
-      row.appendChild(left);
-      row.appendChild(mid);
-      row.appendChild(right);
-      chartComissoesDetalhe.appendChild(row);
-    });
+        row.appendChild(left);
+        row.appendChild(mid);
+        row.appendChild(right);
+        chartComissoesDetalhe.appendChild(row);
+      });
   }
 
+  // Resumo de Comissões
   function renderComissoesResumo(){
     kpiComPeriodo.textContent    = formatMoney(COMISSOES_RESUMO.totalPeriodo || 0);
     kpiComRecebido.textContent   = formatMoney(COMISSOES_RESUMO.totalRecebido || 0);
     kpiComPorReceber.textContent = formatMoney(COMISSOES_RESUMO.totalPorReceber || 0);
   }
 
+  // Cronologia de Recebimentos (comissões)
   function renderComissoesTimeline(lista){
     chartComissoes.innerHTML = '';
     chartComissoesDetalhe.innerHTML = '';
@@ -1076,19 +1287,26 @@
     if(!apenasLeads.length){
       const div = document.createElement('div');
       div.className = 'chart-empty';
-      div.textContent = 'Sem dados de comissões (verifique CPCV/Escritura e % de comissão).';
+      div.textContent = 'Sem dados de comissões (verifique se existem CPCV / Escritura e % de comissão).';
       chartComissoes.appendChild(div);
       renderComissoesResumo();
       return;
     }
 
-    const mapa = {};
-    let totalComissoesTodas = 0;
+    const mapa = {}; // chave YYYY-MM -> valor comissão nesse mês
     let totalPeriodo = 0;
     let totalRecebido = 0;
 
+    function dataDentroFiltros(dateStr){
+      if(!dateStr) return false;
+      if(FILTERS.de && dateStr < FILTERS.de) return false;
+      if(FILTERS.ate && dateStr > FILTERS.ate) return false;
+      return true;
+    }
+
     function addParcela(dateStr, valorParcela, neg, tipoParcela){
       if(!dateStr || !valorParcela || valorParcela <= 0) return;
+
       if(FILTERS.de && dateStr < FILTERS.de) return;
       if(FILTERS.ate && dateStr > FILTERS.ate) return;
 
@@ -1109,27 +1327,33 @@
         comissaoPct: neg.comissaoPct
       });
 
+      // KPI "no período" = soma das parcelas dentro do intervalo
       totalPeriodo += valorParcela;
-      if(dateStr <= hoje) totalRecebido += valorParcela;
+
+      // KPI "já recebido" = parcelas no período com data até hoje
+      if(dateStr <= hoje){
+        totalRecebido += valorParcela;
+      }
     }
 
     apenasLeads.forEach(n=>{
       const total = n.comissaoValorTotal || 0;
       if(total <= 0) return;
-      totalComissoesTodas += total;
 
       const hasCpcv = !!n.dataCpcv;
       const hasEsc  = !!n.dataEscritura;
 
       if(hasCpcv && hasEsc){
-        addParcela(n.dataCpcv, total/2, n, 'CPCV');
-        addParcela(n.dataEscritura, total/2, n, 'Escritura');
+        const valorCpcv = total/2;
+        const valorEsc  = total/2;
+        addParcela(n.dataCpcv, valorCpcv, n, 'CPCV');
+        addParcela(n.dataEscritura, valorEsc, n, 'Escritura');
       }else if(hasCpcv && !hasEsc){
         addParcela(n.dataCpcv, total, n, 'CPCV');
       }else if(!hasCpcv && hasEsc){
         addParcela(n.dataEscritura, total, n, 'Escritura');
       }else{
-        if(n.data){
+        if(n.data && dataDentroFiltros(n.data)){
           addParcela(n.data, total, n, 'Pagamento');
         }
       }
@@ -1151,7 +1375,6 @@
         const [y,m] = key.split('-');
         const mesLabel = m+'/'+y.slice(-2);
         label.textContent = mesLabel;
-
         const barWrap = document.createElement('div');
         barWrap.className = 'chart-bar-wrap';
         const bar = document.createElement('div');
@@ -1159,11 +1382,9 @@
         const pct = max>0 ? (total/max*100) : 0;
         bar.style.width = pct.toFixed(1)+'%';
         barWrap.appendChild(bar);
-
         const val = document.createElement('div');
         val.className = 'chart-value';
         val.textContent = formatMoney(total);
-
         row.appendChild(label);
         row.appendChild(barWrap);
         row.appendChild(val);
@@ -1183,12 +1404,20 @@
         lastRow.classList.add('selected');
         const [lastKey] = entries[entries.length-1];
         const [y,m] = lastKey.split('-');
-        renderComissoesDetalhe(lastKey, m+'/'+y.slice(-2));
+        const mesLabel = m+'/'+y.slice(-2);
+        renderComissoesDetalhe(lastKey, mesLabel);
       }
     }
 
-    const totalPorReceber = totalComissoesTodas - totalRecebido;
-    COMISSOES_RESUMO = { totalPeriodo, totalRecebido, totalPorReceber };
+    // ✅ Ajuste: “por receber” deve ser APENAS dentro do período filtrado
+    const totalPorReceber = Math.max(0, totalPeriodo - totalRecebido);
+
+    COMISSOES_RESUMO = {
+      totalPeriodo: totalPeriodo,      // recebido + por receber (no período)
+      totalRecebido: totalRecebido,    // até hoje (no período)
+      totalPorReceber: totalPorReceber // futuro (no período)
+    };
+
     renderComissoesResumo();
   }
 
@@ -1222,8 +1451,7 @@
 
       const chipTipo = document.createElement('span');
       chipTipo.className = 'chip chip-gold';
-      if(n.tipo === 'lead') chipTipo.textContent = 'Lead — Fecho';
-      else chipTipo.textContent = 'Angariação — ' + (n.estadoAng ? String(n.estadoAng).toUpperCase() : '—');
+      chipTipo.textContent = n.tipo === 'lead' ? 'Lead — Fecho' : 'Angariação — Aprovado';
       chips.appendChild(chipTipo);
 
       if(n.consultor){
@@ -1295,6 +1523,7 @@
     renderCards(listaLeads, listaAng);
   }
 
+  /* ===== Filtros ===== */
   applyFiltersBtn.addEventListener('click', ()=>{
     FILTERS.consultor = fConsultor.value || '';
     FILTERS.origem = fOrigem.value || '';
@@ -1323,10 +1552,22 @@
 
   /* ===== Arranque ===== */
   (async function init(){
-    await buildNegocios();
-    populateConsultores();
-    hydrateFiltersFromStorage();
-    applyAndRender();
+    try{
+      setBootStatus('A carregar dados…');
+      await buildNegocios();
+      populateConsultores();
+      hydrateFiltersFromStorage();
+      applyAndRender();
+
+      // pequeno resumo (opcional)
+      const nLead = NEGOCIOS.filter(n=>n.tipo==='lead').length;
+      const nAng  = NEGOCIOS.filter(n=>n.tipo==='ang').length;
+      setBootStatus(`Dados: ${nLead} leads em fecho · ${nAng} angariações aprovadas`);
+    }catch(e){
+      console.error(e);
+      setBootStatus('⚠ Erro a carregar dados. Verifique /data/gpp-leads.json e /data/gpp-angariacoes.json.');
+      applyAndRender();
+    }
   })();
 })();
 </script>
