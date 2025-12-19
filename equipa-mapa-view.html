@@ -750,106 +750,133 @@ async function loadFromCSV(){
     return [];
   }
 
+  // candidatos (já existentes no seu ficheiro)
   const candidates = [
     ...buildCSVUrlCandidates(CSV_PRIMARY),
     ...buildCSVUrlCandidates(CSV_FALLBACK)
   ];
 
-  async function tryOne(url){
+  // helpers
+  const looksLikeHTML = (txt) => {
+    const t = (txt || '').trim().slice(0, 300).toLowerCase();
+    return t.startsWith('<!doctype') || t.startsWith('<html') || t.includes('<head') || t.includes('<body');
+  };
+
+  const parseCSVTextToPoints = (csvText) => new Promise((resolve) => {
+    const out = [];
+    let rowsCount = 0;
+    let done = false;
+
+    const finish = (arr, msg) => {
+      if(done) return;
+      done = true;
+      if(msg) setStatus(msg); else setStatus('');
+      resolve(arr || []);
+    };
+
     try{
-      const csvText = await fetchTextWithTimeout(url, 20000);
+      Papa.parse(csvText, {
+        header: true,
+        skipEmptyLines: true,
+        worker: true,
+        chunkSize: 1024 * 512,
+        chunk: (results) => {
+          const rows = results?.data || [];
+          if(!rows.length) return;
 
-      return await new Promise((resolve) => {
-        const out = [];
-        let rowsCount = 0;
-        let resolved = false;
+          for(const r of rows){
+            const lat = numPT(pick(r, ['_lat','lat','latitude','Lat','LAT']));
+            const lng = numPT(pick(r, ['_lng','lng','lon','longitude','Lng','LNG']));
+            if(lat === null || lng === null) continue;
 
-        const finish = (arr) => {
-          if(resolved) return;
-          resolved = true;
-          resolve(arr || []);
-        };
+            const tipoRaw = String(pick(r, ['isEmpreendimento','tipo','Tipo','TIPO'])).toLowerCase();
+            const isIso = tipoRaw.includes('iso') || tipoRaw === '0' || tipoRaw === 'false';
 
-        try{
-          Papa.parse(csvText, {
-            header: true,
-            skipEmptyLines: true,
-            worker: true,
-            step: (results) => {
-              const r = results?.data;
-              if(!r) return;
+            out.push({
+              refInterna: pick(r, ['refInterna','ref','referencia','Referencia','RefInterna']),
+              nome: pick(r, ['nome','name','Nome']),
+              concelho: pick(r, ['concelho','Concelho']),
+              estado: stateKey(pick(r, ['estado','Estado'])),
+              promotor: pick(r, ['promotor','Promotor']),
+              tipologias: pick(r, ['tipologias','Tipologias']),
+              conclusaoAno: numPT(pick(r, ['conclusaoAno','ano','conclusao','Conclusao'])) || '',
+              conclusaoMes: numPT(pick(r, ['conclusaoMes','mes','Mes'])) || '',
+              conclusao: numPT(pick(r, ['conclusao','ano','Conclusao'])) || '',
+              preco_m2: pick(r, ['preco_m2','precoM2','€/m2','eur_m2']),
+              precoPedido: pick(r, ['precoPedido','preco','Preco','Preço']),
+              notas: pick(r, ['notas','Notas']),
+              link: pick(r, ['link','url','URL']),
+              _lat: lat,
+              _lng: lng,
+              docs: [],
+              isEmpreendimento: isIso ? false : true
+            });
+          }
 
-              const lat = numPT(pick(r, ['_lat','lat','latitude','Lat','LAT']));
-              const lng = numPT(pick(r, ['_lng','lng','lon','longitude','Lng','LNG']));
-              if(lat === null || lng === null) return;
+          rowsCount += rows.length;
+          if(rowsCount % 800 === 0){
+            setStatus(`A carregar dataset do CSV… (${out.length} pontos válidos)`);
+          }
 
-              const tipoRaw = String(pick(r, ['isEmpreendimento','tipo','Tipo','TIPO'])).toLowerCase();
-              const isIso = tipoRaw.includes('iso') || tipoRaw === '0' || tipoRaw === 'false';
-
-              out.push({
-                refInterna: pick(r, ['refInterna','ref','referencia','Referencia','RefInterna']),
-                nome: pick(r, ['nome','name','Nome']),
-                concelho: pick(r, ['concelho','Concelho']),
-                estado: stateKey(pick(r, ['estado','Estado'])),
-                promotor: pick(r, ['promotor','Promotor']),
-                tipologias: pick(r, ['tipologias','Tipologias']),
-                conclusaoAno: numPT(pick(r, ['conclusaoAno','ano','conclusao','Conclusao'])) || '',
-                conclusaoMes: numPT(pick(r, ['conclusaoMes','mes','Mes'])) || '',
-                conclusao: numPT(pick(r, ['conclusao','ano','Conclusao'])) || '',
-                preco_m2: pick(r, ['preco_m2','precoM2','€/m2','eur_m2']),
-                precoPedido: pick(r, ['precoPedido','preco','Preco','Preço']),
-                notas: pick(r, ['notas','Notas']),
-                link: pick(r, ['link','url','URL']),
-                _lat: lat,
-                _lng: lng,
-                docs: [],
-                isEmpreendimento: isIso ? false : true
-              });
-
-              rowsCount++;
-              if(rowsCount % 800 === 0){
-                setStatus(`A carregar CSV… (${out.length} pontos válidos)`);
-              }
-
-              if(out.length > 25000){
-                setStatus('⚠ Dataset muito grande. Carregado parcialmente para manter estabilidade.');
-                finish(out);
-              }
-            },
-            complete: () => finish(out),
-            error: () => finish([])
-          });
-        }catch{
-          finish([]);
+          // guarda de segurança
+          if(out.length > 20000){
+            finish(out, '⚠ Dataset muito grande. Carregado parcialmente para manter estabilidade.');
+          }
+        },
+        complete: () => {
+          const sanity = out.some(x => (x.nome || x.refInterna) && x._lat !== null && x._lng !== null);
+          if(!sanity) return finish([], '⚠ CSV lido, mas sem colunas válidas (lat/lng/nome).');
+          finish(out, '');
+        },
+        error: (err) => {
+          console.error(err);
+          finish([], '⚠ Erro a interpretar o CSV (parse).');
         }
       });
-    }catch{
-      return [];
+    }catch(e){
+      console.error(e);
+      finish([], '⚠ Erro ao iniciar o parse do CSV.');
     }
-  }
+  });
 
+  // tentativa sequencial: fetch com timeout REAL + validação + parse
+  let lastErr = '';
   for(let i=0;i<candidates.length;i++){
-    const url = candidates[i].toString();
-    setStatus(`A carregar CSV… (${i+1}/${candidates.length})`);
+    const url = candidates[i];
+    setStatus(`A carregar dataset csv (${i+1}/${candidates.length})…`);
 
-    const arr = await tryOne(url);
-    const ok = Array.isArray(arr) && arr.length &&
-      arr.some(x => (x.nome || x.refInterna) && x._lat !== null && x._lng !== null);
+    try{
+      // timeout maior para CSVs mais pesados, mas com abort garantido
+      const txt = await fetchTextWithTimeout(url.toString(), 25000);
 
-    if(ok){
-      setStatus('');
-      await cacheSaveDataset(arr);
-      return arr;
+      if(!txt || txt.trim().length < 10){
+        lastErr = 'resposta vazia';
+        continue;
+      }
+      if(looksLikeHTML(txt)){
+        lastErr = 'o URL devolveu HTML (404/redirect), não CSV';
+        continue;
+      }
+
+      // guarda de segurança (evita rebentar browsers fracos)
+      // ~18MB de texto já começa a ser pesado para alguns dispositivos
+      if(txt.length > 18 * 1024 * 1024){
+        lastErr = 'CSV demasiado grande para carregar como texto (aconselha-se lite/split)';
+        continue;
+      }
+
+      const points = await parseCSVTextToPoints(txt);
+      if(points && points.length) return points;
+
+      lastErr = 'parse sem pontos válidos';
+    }catch(e){
+      console.error(e);
+      lastErr = (e && e.name === 'AbortError') ? 'timeout' : (e?.message || 'erro de rede');
+      continue;
     }
   }
 
-  const cached = await cacheLoadDataset();
-  if(cached){
-    setStatus('⚠ CSV indisponível. A abrir a última versão em cache.');
-    return cached;
-  }
-
-  setStatus('⚠ Não foi possível ler o CSV. Confirme /data/gpp-mapa.csv (e opcionalmente /data/gpp-mapa-lite.csv) e o GitHub Pages.');
+  setStatus(`⚠ Não foi possível carregar o CSV. Último motivo: ${lastErr || 'desconhecido'}.`);
   return [];
 }
 
