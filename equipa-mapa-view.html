@@ -652,23 +652,33 @@ function setStatus(msg){
 }
 
 /* ===== CSV: caminho robusto para GitHub Pages (Project Pages) ===== */
+const CSV_REL = 'data/gpp-mapa.csv';
+const REPO_NAME = 'GarveturPortoPro'; // <- importante (o teu repo)
+
 function getRepoBasePrefix(){
   const host = location.hostname || '';
-  const parts = (location.pathname || '').split('/').filter(Boolean);
-  // Ex.: https://ruiquelhas.github.io/<repo>/equipa-mapa-view.html
-  if(host.endsWith('github.io') && parts.length >= 1){
-    return '/' + parts[0] + '/';
+  const pathParts = (location.pathname || '').split('/').filter(Boolean);
+
+  // GitHub Pages (ex.: ruiquelhas1-lab.github.io)
+  if(host.endsWith('github.io')){
+    // Se o pathname já contém o repo, usar esse ponto como raiz
+    const idx = pathParts.findIndex(p => p.toLowerCase() === REPO_NAME.toLowerCase());
+    if(idx >= 0) return '/' + pathParts[idx] + '/';
+
+    // fallback: primeiro segmento (comportamento clássico)
+    if(pathParts.length >= 1) return '/' + pathParts[0] + '/';
   }
+
+  // fora do github.io (ou root)
   return '/';
 }
-const CSV_REL = 'data/gpp-mapa.csv';
+
 function getCSVUrl(){
   const prefix = getRepoBasePrefix();
   const u = new URL(prefix + CSV_REL, location.origin);
   u.searchParams.set('v', String(Date.now())); // cache-buster
   return u.toString();
 }
-
 /* ===== Cache helpers ===== */
 function safeJSONParse(s){ try{return JSON.parse(s);}catch{return null;} }
 function cacheSet(dataArr, meta){
