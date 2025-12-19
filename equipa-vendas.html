@@ -33,58 +33,81 @@
     .app-shell{ display:grid; grid-template-rows:64px auto; height:100%; }
 
     header.app-header{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
+      display:flex; align-items:center; justify-content:space-between;
       padding:10px 18px;
       border-bottom:1px solid rgba(163,139,99,.35);
       background:linear-gradient(90deg,#050505,#111,#050505);
-      position:sticky;
-      top:0;
-      z-index:20;
-      gap:16px;
-      flex-wrap:wrap;
+      position:sticky; top:0; z-index:20;
+      gap:16px; flex-wrap:wrap;
     }
     .brand{ display:flex; align-items:center; gap:10px; }
     .brand-icon{
-      width:26px;height:26px;border-radius:999px;border:1px solid var(--gold);
-      display:flex;align-items:center;justify-content:center;
+      width:26px; height:26px; border-radius:999px;
+      border:1px solid var(--gold);
+      display:flex; align-items:center; justify-content:center;
       box-shadow:0 0 0 1px rgba(163,139,99,.3);
     }
     .brand h1{
-      margin:0;font-size:17px;letter-spacing:.04em;text-transform:uppercase;color:var(--gold);
+      margin:0; font-size:17px; letter-spacing:.04em;
+      text-transform:uppercase; color:var(--gold);
     }
     .brand span.sub{
-      display:block;font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;
+      display:block; font-size:11px; color:var(--muted);
+      letter-spacing:.12em; text-transform:uppercase;
     }
+
     .readonly-badge{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.16);
-      background:rgba(0,0,0,.35);color:var(--muted);
-      font-size:11px;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(0,0,0,.35);
+      color:var(--muted);
+      font-size:11px; letter-spacing:.14em;
+      text-transform:uppercase; white-space:nowrap;
     }
     .header-actions{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
     .btn{
-      border-radius:999px;border:1px solid var(--gold-soft);
-      background:rgba(12,12,12,.9);color:var(--text);
-      padding:7px 12px;font-size:13px;display:inline-flex;align-items:center;gap:6px;
-      cursor:pointer;transition:.18s border-color,.18s background,.18s transform;text-decoration:none;
+      border-radius:999px;
+      border:1px solid var(--gold-soft);
+      background:rgba(12,12,12,.9);
+      color:var(--text);
+      padding:7px 12px;
+      font-size:13px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      cursor:pointer;
+      transition:.18s border-color,.18s background,.18s transform;
+      text-decoration:none;
     }
     .btn:hover{ border-color:var(--gold); transform:translateY(-1px); }
-    .btn.secondary{ border-color:rgba(255,255,255,.18); color:var(--muted); background:transparent; }
+    .btn.secondary{
+      border-color:rgba(255,255,255,.18);
+      color:var(--muted);
+      background:transparent;
+    }
 
     .layout{
-      display:grid;grid-template-columns:300px minmax(0,1fr);
-      height:calc(100vh - 64px);max-height:calc(100vh - 64px);overflow:hidden;
+      display:grid;
+      grid-template-columns:300px minmax(0,1fr);
+      height:calc(100vh - 64px);
+      max-height:calc(100vh - 64px);
+      overflow:hidden;
     }
     @media (max-width: 960px){
-      .layout{ grid-template-columns:1fr; grid-template-rows:auto auto; height:auto; max-height:none; }
+      .layout{
+        grid-template-columns:1fr;
+        grid-template-rows:auto auto;
+        height:auto;
+        max-height:none;
+      }
     }
 
     .sidebar{
       border-right:1px solid rgba(163,139,99,.24);
       background:radial-gradient(circle at top left,#141414,#060606);
-      padding:12px 14px; overflow-y:auto;
+      padding:12px 14px;
+      overflow-y:auto;
     }
     .sidebar-section{
       border-radius:var(--radius-md);
@@ -94,91 +117,220 @@
       margin-bottom:10px;
     }
     .sidebar-section h3{
-      margin:0 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);
+      margin:0 0 6px;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      color:var(--muted);
     }
-    .sidebar-section p{ margin:2px 0 6px;font-size:12px;color:var(--muted); }
+    .sidebar-section p{
+      margin:2px 0 6px;
+      font-size:12px;
+      color:var(--muted);
+    }
     .field{ display:flex; flex-direction:column; gap:4px; margin-bottom:8px; }
-    label.field-label{ font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em; }
-    input[type="date"], select{
-      background:rgba(0,0,0,.7);color:var(--text);
-      border-radius:10px;border:1px solid rgba(163,139,99,.22);
-      padding:6px 8px;font-size:13px;outline:none;width:100%;
+    label.field-label{
+      font-size:11px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.12em;
     }
-    input:focus, select:focus{ border-color:var(--gold); box-shadow:0 0 0 1px rgba(163,139,99,.35); }
-    .checks{ display:flex; flex-direction:column; gap:6px; margin-top:4px; font-size:12px; color:var(--muted); }
+    input[type="text"], input[type="date"], select{
+      background:rgba(0,0,0,.7);
+      color:var(--text);
+      border-radius:10px;
+      border:1px solid rgba(163,139,99,.22);
+      padding:6px 8px;
+      font-size:13px;
+      outline:none;
+      width:100%;
+    }
+    input:focus, select:focus{
+      border-color:var(--gold);
+      box-shadow:0 0 0 1px rgba(163,139,99,.35);
+    }
+    .checks{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin-top:4px;
+      font-size:12px;
+      color:var(--muted);
+    }
     .checks label{ display:flex; align-items:center; gap:6px; }
     .checks input{ accent-color:var(--gold); }
 
     .main-area{
-      padding:14px 16px 18px; overflow-y:auto;
+      padding:14px 16px 18px;
+      overflow-y:auto;
       background:radial-gradient(circle at top,#1a1a1a,#050505 55%,#000 100%);
     }
-    .main-header{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
-    .main-header h2{ margin:0; font-size:15px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); }
+    .main-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+      margin-bottom:10px;
+      flex-wrap:wrap;
+    }
+    .main-header h2{
+      margin:0;
+      font-size:15px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
     .main-header p{ margin:2px 0 0; font-size:12px; color:var(--muted); }
 
-    .kpi-row{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:8px; }
+    .kpi-row{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+      margin-top:8px;
+    }
     @media (max-width: 960px){ .kpi-row{ grid-template-columns:1fr; } }
     .kpi-card{
-      border-radius:var(--radius-md); border:1px solid rgba(163,139,99,.22);
-      background:rgba(5,5,5,.85); padding:8px 10px; box-shadow:0 10px 20px rgba(0,0,0,.5);
+      border-radius:var(--radius-md);
+      border:1px solid rgba(163,139,99,.22);
+      background:rgba(5,5,5,.85);
+      padding:8px 10px;
+      box-shadow:0 10px 20px rgba(0,0,0,.5);
     }
-    .kpi-label{ font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.12em; }
+    .kpi-label{
+      font-size:11px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.12em;
+    }
     .kpi-value{ font-size:18px; margin-top:4px; font-weight:600; }
     .kpi-sub{ font-size:11px; color:var(--muted); margin-top:2px; }
 
     .chart{
-      margin-top:12px; border-radius:var(--radius-md); border:1px solid rgba(163,139,99,.22);
-      background:rgba(3,3,3,.9); padding:8px 10px;
+      margin-top:12px;
+      border-radius:var(--radius-md);
+      border:1px solid rgba(163,139,99,.22);
+      background:rgba(3,3,3,.9);
+      padding:8px 10px;
     }
-    .chart-title{ font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px; }
-    .chart-row{ display:flex; align-items:center; gap:6px; margin:3px 0; font-size:11px; color:var(--muted); cursor:pointer; }
+    .chart-title{
+      font-size:11px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      margin-bottom:6px;
+    }
+    .chart-row{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      margin:3px 0;
+      font-size:11px;
+      color:var(--muted);
+      cursor:pointer;
+    }
     .chart-row.selected{ background:rgba(163,139,99,.12); border-radius:8px; }
     .chart-label{ width:70px; flex-shrink:0; }
-    .chart-bar-wrap{ flex:1; background:#101010; border-radius:999px; overflow:hidden; }
-    .chart-bar{ height:8px; border-radius:999px; background:linear-gradient(90deg,var(--gold),#f5e1b5); width:0%; transition:.2s width; }
+    .chart-bar-wrap{
+      flex:1;
+      background:#101010;
+      border-radius:999px;
+      overflow:hidden;
+    }
+    .chart-bar{
+      height:8px;
+      border-radius:999px;
+      background:linear-gradient(90deg,var(--gold),#f5e1b5);
+      width:0%;
+      transition:.2s width;
+    }
     .chart-value{ width:80px; text-align:right; flex-shrink:0; }
     .chart-empty{ font-size:11px; color:var(--muted); margin-top:4px; }
 
-    .section-title{ margin-top:14px; font-size:12px; text-transform:uppercase; letter-spacing:.14em; color:var(--muted); }
-    .cards-grid{ margin-top:6px; display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:10px; }
-
+    .section-title{
+      margin-top:14px;
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:var(--muted);
+    }
+    .cards-grid{
+      margin-top:6px;
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+      gap:10px;
+    }
     .card{
       border-radius:var(--radius-lg);
       border:1px solid rgba(163,139,99,.32);
       background:radial-gradient(circle at top left,#181818,#070707);
       padding:10px 11px 9px;
       box-shadow:var(--shadow-soft);
-      display:flex; flex-direction:column; gap:6px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
       cursor:default;
     }
     .card.hidden{ opacity:.45; border-style:dashed; }
     .card-top{ display:flex; justify-content:space-between; gap:8px; }
-    .card-title{ font-size:14px;font-weight:600;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
-    .card-sub{ font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
-
+    .card-title{
+      font-size:14px;
+      font-weight:600;
+      margin:0;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .card-sub{
+      font-size:11px;
+      color:var(--muted);
+      margin-top:1px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
     .chip-row{ display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
     .chip{
-      border-radius:999px; padding:2px 7px; font-size:10px;
+      border-radius:999px;
+      padding:2px 7px;
+      font-size:10px;
       border:1px solid rgba(163,139,99,.4);
-      background:#1E1E1E; color:var(--muted);
-      text-transform:uppercase; letter-spacing:.08em;
+      background:#1E1E1E;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.08em;
     }
     .chip-gold{ border-color:var(--gold); color:var(--gold); }
     .chip-green{ border-color:rgba(76,175,80,.7); color:#A5D6A7; }
-
-    .card-section{ border-top:1px solid rgba(163,139,99,.18); padding-top:4px; margin-top:2px; font-size:12px; color:var(--muted); }
+    .card-section{
+      border-top:1px solid rgba(163,139,99,.18);
+      padding-top:4px;
+      margin-top:2px;
+      font-size:12px;
+      color:var(--muted);
+    }
     .card-section strong{ color:#f5f5f5; font-weight:500; }
-    .card-footer{ margin-top:4px; display:flex; justify-content:space-between; font-size:11px; color:var(--muted); gap:6px; flex-wrap:wrap; }
+    .card-footer{
+      margin-top:4px;
+      display:flex;
+      justify-content:space-between;
+      font-size:11px;
+      color:var(--muted);
+      gap:6px;
+      flex-wrap:wrap;
+    }
     .empty{ font-size:12px; color:var(--muted); margin-top:16px; }
 
-    /* Login */
+    /* ===== Login Overlay ===== */
     .auth-backdrop{
-      position:fixed; inset:0;
+      position:fixed;
+      inset:0;
       background:rgba(0,0,0,.72);
       backdrop-filter:blur(2px);
-      display:none; align-items:center; justify-content:center;
-      z-index:99999; padding:16px;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:99999;
+      padding:16px;
     }
     .auth-backdrop.show{display:flex;}
     .auth-card{
@@ -191,13 +343,17 @@
     }
     .auth-head{
       padding:12px 14px;
-      display:flex; align-items:center; justify-content:space-between;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
       gap:10px;
       border-bottom:1px solid rgba(255,255,255,.10);
       background:linear-gradient(90deg,#050505,#111,#050505);
     }
     .auth-head .title{
-      display:flex; align-items:center; gap:10px;
+      display:flex;
+      align-items:center;
+      gap:10px;
       color:var(--gold);
       font-weight:700;
       letter-spacing:.06em;
@@ -205,10 +361,16 @@
       font-size:12px;
     }
     .auth-body{ padding:14px 14px 12px; }
-    .auth-body p{ margin:0 0 10px; color:var(--muted); font-size:12px; line-height:1.45; }
+    .auth-body p{
+      margin:0 0 10px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.45;
+    }
     .auth-row{ display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
     .auth-input{
-      flex:1; min-width:220px;
+      flex:1;
+      min-width:220px;
       background:rgba(0,0,0,.7);
       color:var(--text);
       border-radius:12px;
@@ -217,17 +379,31 @@
       font-size:14px;
       outline:none;
     }
-    .auth-input:focus{ border-color:var(--gold); box-shadow:0 0 0 1px rgba(163,139,99,.35); }
-    .auth-msg{ margin-top:10px; font-size:12px; color:var(--danger); display:none; }
+    .auth-input:focus{
+      border-color:var(--gold);
+      box-shadow:0 0 0 1px rgba(163,139,99,.35);
+    }
+    .auth-msg{
+      margin-top:10px;
+      font-size:12px;
+      color:var(--danger);
+      display:none;
+    }
     .auth-msg.show{display:block;}
 
-    #bootStatus{
-      font-size:11px;
-      color:var(--muted);
-      padding:6px 0 0;
-      letter-spacing:.08em;
-      text-transform:uppercase;
+    /* Aviso GitHub blob */
+    .gh-warning{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(242,95,92,.35);
+      background:rgba(242,95,92,.08);
+      color:#ffd1d0;
+      font-size:12px;
+      line-height:1.45;
     }
+    .gh-warning a{ text-decoration:underline; color:#ffd1d0; }
+    code{ background:rgba(255,255,255,.08); padding:2px 6px; border-radius:8px; }
   </style>
 </head>
 <body>
@@ -249,6 +425,13 @@
     </div>
     <div class="auth-body">
       <p>Este módulo é de acesso reservado à equipa. Introduza a password para continuar.</p>
+
+      <div id="ghWarn" class="gh-warning" style="display:none;">
+        Está a abrir este ficheiro na vista do GitHub (<code>github.com</code> / <code>blob</code>). Nessa vista, o carregamento de dados via <code>/data/*.json</code> não funciona como num site.<br>
+        Abra pela página publicada (GitHub Pages): <br>
+        <a id="ghPagesLink" href="#" target="_blank" rel="noreferrer noopener">Abrir equipa-vendas.html no GitHub Pages</a>
+      </div>
+
       <div class="auth-row">
         <input id="authPass" class="auth-input" type="password" autocomplete="current-password" placeholder="Password de acesso">
         <button id="authBtn" class="btn">Entrar</button>
@@ -273,7 +456,6 @@
       <div>
         <h1>Garvetur Porto Pro — Vendas</h1>
         <span class="sub">Negócios fechados & carteira aprovada</span>
-        <div id="bootStatus"></div>
       </div>
     </div>
 
@@ -328,6 +510,9 @@
         <p>• Leads em <strong>Fecho</strong> (Kanban)<br>
            • Angariações em <strong>Aprovado</strong></p>
         <p>Útil para reuniões comerciais, previsões e análise de carteira.</p>
+        <p style="font-size:11px;color:var(--muted);margin-top:8px;">
+          <strong>Fonte:</strong> <code>/data/gpp-leads.json</code> e <code>/data/gpp-angariacoes.json</code> (fallback localStorage).
+        </p>
       </div>
     </aside>
 
@@ -374,17 +559,17 @@
           <div class="kpi-card">
             <div class="kpi-label">Comissões no período</div>
             <div class="kpi-value" id="kpiComPeriodo">€ 0</div>
-            <div class="kpi-sub">Soma das parcelas de comissão (CPCV/Escritura) entre as datas filtradas (recebidas + por receber).</div>
+            <div class="kpi-sub">Soma das parcelas (CPCV/Escritura) entre as datas filtradas (recebidas + por receber).</div>
           </div>
           <div class="kpi-card">
             <div class="kpi-label">Comissões já recebidas</div>
             <div class="kpi-value" id="kpiComRecebido">€ 0</div>
-            <div class="kpi-sub">Parcelas de comissão no período com data até hoje.</div>
+            <div class="kpi-sub">Parcelas com data até hoje (dentro do período filtrado).</div>
           </div>
           <div class="kpi-card">
             <div class="kpi-label">Comissões por receber</div>
             <div class="kpi-value" id="kpiComPorReceber">€ 0</div>
-            <div class="kpi-sub">Parcelas de comissão no período com data após hoje.</div>
+            <div class="kpi-sub">Comissões no período menos o já recebido (dentro do período filtrado).</div>
           </div>
         </div>
       </div>
@@ -413,6 +598,25 @@
   const btnEl = document.getElementById('authBtn');
   const msgEl = document.getElementById('authMsg');
   const appShell = document.getElementById('appShell');
+
+  // Aviso GitHub blob + link Pages
+  const ghWarn = document.getElementById('ghWarn');
+  const ghPagesLink = document.getElementById('ghPagesLink');
+  (function(){
+    try{
+      const isBlob = location.hostname === 'github.com' && (location.pathname || '').includes('/blob/');
+      if(isBlob){
+        const parts = (location.pathname || '').split('/').filter(Boolean); // user/repo/blob/branch/file
+        const user = parts[0] || '';
+        const repo = parts[1] || '';
+        const file = parts.slice(4).join('/') || 'equipa-vendas.html';
+        const pages = `https://${user}.github.io/${repo}/${file}`;
+        ghPagesLink.href = pages;
+        ghPagesLink.textContent = pages;
+        ghWarn.style.display = '';
+      }
+    }catch{}
+  })();
 
   function isAuthed(){
     try { return sessionStorage.getItem(AUTH_KEY) === "1"; } catch { return false; }
@@ -464,6 +668,10 @@
   const LS_LEADS_KEY = 'gpp_leads_v5';
   const LS_ANG_KEY   = 'gpp_angariacoes_v2';
 
+  // JSON estáticos (GitHub Pages)
+  const JSON_LEADS_REL = 'data/gpp-leads.json';
+  const JSON_ANG_REL   = 'data/gpp-angariacoes.json';
+
   const LS_VENDAS_FILTERS_KEY = 'gpp_vendas_filters_v1';
   const LS_GLOBAL_FILTERS_KEY = 'gpp_filtros_globais';
 
@@ -495,84 +703,70 @@
   const kpiComRecebido  = document.getElementById('kpiComRecebido');
   const kpiComPorReceber = document.getElementById('kpiComPorReceber');
 
-  const bootStatus = document.getElementById('bootStatus');
-  function setBootStatus(msg){ if(bootStatus) bootStatus.textContent = msg || ''; }
-
   let NEGOCIOS = [];
   let COMISSOES_DETALHE_MAP = {};
   let COMISSOES_RESUMO = { totalPeriodo:0, totalRecebido:0, totalPorReceber:0 };
   let FILTERS = { consultor:'', origem:'', de:'', ate:'', incluirInvisiveis:false };
 
-  /* ====== Resolver de paths (igual filosofia ao mapa) ====== */
+  // Dataset carregado (de JSON)
+  let LEADS_DATA = [];
+  let ANG_DATA = [];
+
+  /* ===== URL resolver (robusto p/ GitHub Pages project) ===== */
   function guessRepoName(){
     const parts = (location.pathname || '').split('/').filter(Boolean);
+    // pages project: /<repo>/equipa-vendas.html
     return parts.length ? parts[0] : '';
   }
-
-  function buildCandidateDataUrls(filename){
+  function candidateUrls(rel){
     const repo = guessRepoName();
     const base = location.origin;
-
-    const rel = 'data/' + filename;
-
     const list = [
-      // relativo ao HTML atual
       new URL('./' + rel, location.href).toString(),
-      // um nível acima (se o HTML estiver em /equipa/ por exemplo)
-      new URL('../' + rel, location.href).toString(),
-      // raiz do host
       new URL('/' + rel, base).toString(),
     ];
-
-    // GitHub Pages project: /<repo>/data/...
     if(location.hostname.endsWith('github.io') && repo){
       list.unshift(new URL('/' + repo + '/' + rel, base).toString());
     }
-
     return [...new Set(list)];
   }
-
-  async function fetchJSONSmart(url, ms=45000){
+  async function pickWorkingJsonUrl(rel){
+    const list = candidateUrls(rel);
+    for(const url of list){
+      try{
+        const r = await fetch(url, { method:'HEAD', cache:'no-store' });
+        if(!r.ok) continue;
+        const ct = (r.headers.get('content-type') || '').toLowerCase();
+        // se for html, normalmente é 404 do GH pages
+        if(ct.includes('text/html')) continue;
+        return url;
+      }catch{}
+    }
+    return list[0];
+  }
+  async function fetchJsonSmart(rel, ms=45000){
+    const urlBase = await pickWorkingJsonUrl(rel);
+    const u = new URL(urlBase);
+    u.searchParams.set('v', String(Date.now())); // cache-buster
     const ctrl = new AbortController();
     const t = setTimeout(()=>ctrl.abort(), ms);
     try{
-      const u = new URL(url);
-      u.searchParams.set('v', String(Date.now())); // cache-buster
       const r = await fetch(u.toString(), { cache:'no-store', signal: ctrl.signal });
-      if(!r.ok) throw new Error('HTTP ' + r.status);
-
-      // GitHub Pages 404 muitas vezes vem como HTML
-      const ct = (r.headers.get('content-type') || '').toLowerCase();
-      const text = await r.text();
-      const trimmed = (text || '').trim();
-      if(ct.includes('text/html') || trimmed.startsWith('<!doctype html') || trimmed.startsWith('<html')){
-        throw new Error('Recebido HTML (provável 404 do GitHub Pages) em vez de JSON.');
-      }
-
-      try{ return JSON.parse(text); }
-      catch{ throw new Error('Conteúdo não é JSON válido.'); }
-    } finally { clearTimeout(t); }
-  }
-
-  async function loadFromDataFolder(filename){
-    const candidates = buildCandidateDataUrls(filename);
-    let lastErr = null;
-
-    for(const url of candidates){
-      try{
-        const data = await fetchJSONSmart(url, 45000);
-        return { data, url };
-      }catch(e){
-        lastErr = e;
-      }
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return await r.json();
+    } finally {
+      clearTimeout(t);
     }
-    throw lastErr || new Error('Sem candidatos válidos para ' + filename);
   }
 
-  /* ===== Storage filtros ===== */
+  /* ===== Storage filtros globais/locais ===== */
   function loadGlobalFilters(){
-    try{ const raw = localStorage.getItem(LS_GLOBAL_FILTERS_KEY); return raw ? JSON.parse(raw) : {}; }
-    catch{ return {}; }
+    try{
+      const raw = localStorage.getItem(LS_GLOBAL_FILTERS_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }catch{
+      return {};
+    }
   }
   function saveGlobalFilters(from){
     try{
@@ -586,12 +780,17 @@
     }catch{}
   }
   function loadVendasFilters(){
-    try{ const raw = localStorage.getItem(LS_VENDAS_FILTERS_KEY); return raw ? JSON.parse(raw) : {}; }
-    catch{ return {}; }
+    try{
+      const raw = localStorage.getItem(LS_VENDAS_FILTERS_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }catch{
+      return {};
+    }
   }
   function saveVendasFilters(){
     try{ localStorage.setItem(LS_VENDAS_FILTERS_KEY, JSON.stringify(FILTERS)); }catch{}
   }
+
   function hydrateFiltersFromStorage(){
     const global = loadGlobalFilters();
     const local = loadVendasFilters();
@@ -602,10 +801,10 @@
     FILTERS.origem    = local.origem    || '';
     FILTERS.incluirInvisiveis = !!local.incluirInvisiveis;
 
-    fConsultor.value = FILTERS.consultor || '';
-    fDe.value = FILTERS.de || '';
-    fAte.value = FILTERS.ate || '';
-    fOrigem.value = FILTERS.origem || '';
+    if(FILTERS.consultor) fConsultor.value = FILTERS.consultor;
+    if(FILTERS.de) fDe.value = FILTERS.de;
+    if(FILTERS.ate) fAte.value = FILTERS.ate;
+    if(FILTERS.origem) fOrigem.value = FILTERS.origem;
     fIncluirInvisiveis.checked = FILTERS.incluirInvisiveis;
   }
 
@@ -642,8 +841,11 @@
     const day = String(d.getDate()).padStart(2,'0');
     return y + '-' + m + '-' + day;
   }
+  function isISODate(s){
+    return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.trim());
+  }
+
   function findDateWithToken(objs, token){
-    const re = /^\d{4}-\d{2}-\d{2}$/;
     const tk = String(token).toLowerCase();
     for(const obj of objs){
       if(!obj || typeof obj!=='object') continue;
@@ -651,63 +853,62 @@
         const lk = k.toLowerCase();
         if(lk.includes(tk)){
           const v = obj[k];
-          if(typeof v === 'string' && re.test(v.trim())){
-            return v.trim();
-          }
+          if(isISODate(v)) return v.trim();
         }
       }
     }
     return '';
   }
 
-  /* ===== Load (data/ + fallback localStorage) ===== */
-  async function loadLeads(){
-    try{
-      const { data, url } = await loadFromDataFolder('gpp-leads.json');
-      if(Array.isArray(data)) return { arr:data, from:url };
-    }catch(e){
-      console.warn('Falha a carregar leads de data/:', e);
-    }
+  /* ===== Load Leads & Angariações (JSON primeiro; fallback LS) ===== */
+  function loadLeadsFromLS(){
     try{
       const raw = localStorage.getItem(LS_LEADS_KEY);
-      const arr = raw ? JSON.parse(raw) : [];
-      return { arr: Array.isArray(arr)? arr : [], from:'localStorage' };
-    }catch{
-      return { arr:[], from:'erro' };
-    }
+      if(!raw) return [];
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    }catch{ return []; }
   }
-
-  async function loadAngariacoes(){
-    try{
-      const { data, url } = await loadFromDataFolder('gpp-angariacoes.json');
-      if(data && Array.isArray(data.deals)) return { arr:data.deals, from:url };
-      if(Array.isArray(data)) return { arr:data, from:url };
-    }catch(e){
-      console.warn('Falha a carregar angariações de data/:', e);
-    }
+  function loadAngFromLS(){
     try{
       const raw = localStorage.getItem(LS_ANG_KEY);
-      const obj = raw ? JSON.parse(raw) : null;
-      const arr = (obj && Array.isArray(obj.deals)) ? obj.deals : [];
-      return { arr, from:'localStorage' };
-    }catch{
-      return { arr:[], from:'erro' };
+      if(!raw) return [];
+      const obj = JSON.parse(raw);
+      if(!obj || !Array.isArray(obj.deals)) return [];
+      return obj.deals;
+    }catch{ return []; }
+  }
+
+  async function loadDatasets(){
+    // JSON (GitHub Pages) — estrutura esperada:
+    // leads: array
+    // ang: object {deals: array} OU array
+    try{
+      const leads = await fetchJsonSmart(JSON_LEADS_REL);
+      LEADS_DATA = Array.isArray(leads) ? leads : (Array.isArray(leads?.leads) ? leads.leads : []);
+    }catch(e){
+      LEADS_DATA = loadLeadsFromLS();
+    }
+
+    try{
+      const ang = await fetchJsonSmart(JSON_ANG_REL);
+      if(Array.isArray(ang)) ANG_DATA = ang;
+      else if(Array.isArray(ang?.deals)) ANG_DATA = ang.deals;
+      else ANG_DATA = [];
+    }catch(e){
+      ANG_DATA = loadAngFromLS();
     }
   }
 
-  /* ===== Construção da lista ===== */
-  async function buildNegocios(){
-    const leadsRes = await loadLeads();
-    const angRes   = await loadAngariacoes();
-
-    const leads = leadsRes.arr || [];
-    const angs  = angRes.arr || [];
-
+  /* ===== Construção da lista de negócios ===== */
+  function buildNegocios(){
+    const leads = Array.isArray(LEADS_DATA) ? LEADS_DATA : [];
+    const angs  = Array.isArray(ANG_DATA) ? ANG_DATA : [];
     const list = [];
 
     // Leads em Fecho
     leads.forEach(l=>{
-      if(l.estado !== 'Fecho') return;
+      if(l?.estado !== 'Fecho') return;
 
       const valorNegocio = parseNumber(l.fecho_negocio || l.valor || 0);
       const comissaoPctStr = (l.fecho_comissao_pct!=='' && l.fecho_comissao_pct!=null)
@@ -715,12 +916,14 @@
         : (l.fecho && l.fecho.comissaoPct ? String(l.fecho.comissaoPct) : '');
 
       const comPctNum = parsePct(comissaoPctStr);
-      const comissaoValorTotal = isFinite(comPctNum) ? (valorNegocio * comPctNum / 100) : 0;
+      const comissaoValorTotal = isFinite(comPctNum)
+        ? (valorNegocio * comPctNum / 100)
+        : 0;
 
       const fechoObj = l.fecho || {};
       const dataCpcv      = findDateWithToken([l, fechoObj], 'cpcv');
       const dataEscritura = findDateWithToken([l, fechoObj], 'escritura');
-      const dataFecho     = dataCpcv || dataEscritura || (l.data || '');
+      const dataFecho     = dataCpcv || dataEscritura || (isISODate(l.data) ? l.data : '');
 
       list.push({
         tipo: 'lead',
@@ -747,52 +950,58 @@
       });
     });
 
-    // Angariações: APENAS aprovadas (robusto)
+    // Angariações APROVADAS (apenas)
     angs.forEach(a=>{
-      const st = String(a.estadoAng || a.estado || '').toLowerCase().trim();
-      const isAprovado = st === 'aprovado' || st === 'aprovada' || st.includes('aprov');
-      if(!isAprovado) return;
+      const estado = String(a?.estadoAng || a?.estado || '').toLowerCase();
+      if(estado !== 'aprovado') return;
 
       const precoPedido = parseNumber(a.precoPedido || 0);
+
       let comPerc = '';
-      if(a.comissao === 'outro' && a.comissaoOutro) comPerc = a.comissaoOutro;
-      else if(a.comissao) comPerc = a.comissao;
-
+      if(a.comissao === 'outro' && a.comissaoOutro){
+        comPerc = a.comissaoOutro;
+      }else if(a.comissao){
+        comPerc = a.comissao;
+      }
       const comAngNum = parsePct(comPerc);
-      const comAngValor = isFinite(comAngNum) ? (precoPedido * comAngNum / 100) : 0;
+      const comAngValor = isFinite(comAngNum)
+        ? (precoPedido * comAngNum / 100)
+        : 0;
 
-      const titulo = a.isEmpreendimento && a.nomeEmp ? a.nomeEmp : (a.tituloImovel || 'Angariação');
+      const titulo = a.isEmpreendimento && a.nomeEmp
+        ? a.nomeEmp
+        : (a.tituloImovel || 'Angariação');
+
       const zona = [a.concelho || '', a.zona || ''].filter(Boolean).join(' · ');
 
       list.push({
         tipo:'ang',
         id: a.id || '',
         consultor: a.consultor || '',
-        cliente: a.isEmpreendimento ? (a.promotor || '') : (a.nomeProp || ''),
-        contacto: a.isEmpreendimento ? (a.telPromotor || '') : (a.telProp || ''),
+        cliente: a.isEmpreendimento ? (a.promotor || '') : (a.nomeProp || a.nomeProprietario || ''),
+        contacto: a.isEmpreendimento ? (a.telPromotor || a.telefonePromotor || '') : (a.telProp || a.telemovelProprietario || a.telefoneProprietario || ''),
         email: a.isEmpreendimento ? (a.emailPromotor || '') : (a.emailProp || ''),
-        titulo,
-        zona,
-        data: a.dataAngariacao || '',
+        titulo: titulo,
+        zona: zona,
+        data: isISODate(a.dataAngariacao) ? a.dataAngariacao : '',
         valor: isFinite(precoPedido)? precoPedido : 0,
         comissaoPct: comPerc || '',
         comissaoValorTotal: comAngValor,
         dataCpcv: '',
         dataEscritura: '',
-        origem: a.isEmpreendimento ? 'Angariação — Empreendimento' : 'Angariação',
-        visivel: a.visible !== false && a.visivel !== false,
+        origem: a.isEmpreendimento ? 'Angariação — Empreendimento (Aprovado)' : 'Angariação (Aprovado)',
+        visivel: a.visible !== false,
         detalheFecho: null
       });
     });
 
-    list.sort((a,b)=> (b.data || '').localeCompare(a.data || ''));
+    list.sort((a,b)=>{
+      const da = a.data || '';
+      const db = b.data || '';
+      return (db || '').localeCompare(da || '');
+    });
 
     NEGOCIOS = list;
-
-    // status de diagnóstico
-    const nLead = NEGOCIOS.filter(n=>n.tipo==='lead').length;
-    const nAng  = NEGOCIOS.filter(n=>n.tipo==='ang').length;
-    setBootStatus(`Dados: ${nLead} leads em fecho · ${nAng} angariações aprovadas`);
   }
 
   function populateConsultores(){
@@ -802,7 +1011,8 @@
     fConsultor.innerHTML = '<option value="">Todos</option>';
     Array.from(set).sort().forEach(name=>{
       const opt = document.createElement('option');
-      opt.value = name; opt.textContent = name;
+      opt.value = name;
+      opt.textContent = name;
       fConsultor.appendChild(opt);
     });
     if(current && set.has(current)) fConsultor.value = current;
@@ -819,7 +1029,7 @@
     });
   }
 
-  /* ===== Render ===== */
+  /* ===== Renderizações ===== */
   function renderKpis(lista){
     const total = lista.length;
     const totalLead = lista.filter(n=>n.tipo==='lead').length;
@@ -837,7 +1047,6 @@
       porCons[n.consultor] = (porCons[n.consultor] || 0) + (n.valor || 0);
     });
     const entries = Object.entries(porCons).sort((a,b)=>b[1]-a[1]);
-
     if(!entries.length){
       kpiTopConsultor.textContent = '—';
       kpiTopConsultorVol.textContent = 'Sem dados nos filtros atuais.';
@@ -898,7 +1107,8 @@
       barWrap.className = 'chart-bar-wrap';
       const bar = document.createElement('div');
       bar.className = 'chart-bar';
-      bar.style.width = (max>0 ? (info.total/max*100) : 0).toFixed(1)+'%';
+      const pct = max>0 ? (info.total/max*100) : 0;
+      bar.style.width = pct.toFixed(1)+'%';
       barWrap.appendChild(bar);
       const val = document.createElement('div');
       val.className = 'chart-value';
@@ -920,6 +1130,7 @@
       chartComissoesDetalhe.appendChild(div);
       return;
     }
+
     const totalMes = lista.reduce((acc,it)=>acc + (it.valor || 0),0);
 
     const title = document.createElement('div');
@@ -934,31 +1145,36 @@
     subt.textContent = 'Total de comissões no mês: ' + formatMoney(totalMes);
     chartComissoesDetalhe.appendChild(subt);
 
-    lista.slice().sort((a,b)=> (a.data || '').localeCompare(b.data || '')).forEach(it=>{
-      const row = document.createElement('div');
-      row.className = 'chart-row';
+    lista
+      .slice()
+      .sort((a,b)=> (a.data || '').localeCompare(b.data || ''))
+      .forEach(it=>{
+        const row = document.createElement('div');
+        row.className = 'chart-row';
 
-      const left = document.createElement('div');
-      left.className = 'chart-label';
-      left.textContent = formatDate(it.data);
+        const left = document.createElement('div');
+        left.className = 'chart-label';
+        left.textContent = formatDate(it.data);
 
-      const mid = document.createElement('div');
-      mid.style.flex = '1';
-      mid.style.fontSize = '11px';
-      mid.innerHTML =
-        '<strong>' + (it.cliente || it.titulo || 'Negócio') + '</strong><br>' +
-        (it.titulo ? it.titulo + ' · ' : '') +
-        (it.consultor || '') +
-        (it.comissaoPct ? ' · Comissão ' + it.comissaoPct + '%' : '') +
-        ' · ' + it.tipoParcela;
+        const mid = document.createElement('div');
+        mid.style.flex = '1';
+        mid.style.fontSize = '11px';
+        mid.innerHTML =
+          '<strong>' + (it.cliente || it.titulo || 'Negócio') + '</strong><br>' +
+          (it.titulo ? it.titulo + ' · ' : '') +
+          (it.consultor || '') +
+          (it.comissaoPct ? ' · Comissão ' + it.comissaoPct + '%' : '') +
+          ' · ' + it.tipoParcela;
 
-      const right = document.createElement('div');
-      right.className = 'chart-value';
-      right.textContent = formatMoney(it.valor);
+        const right = document.createElement('div');
+        right.className = 'chart-value';
+        right.textContent = formatMoney(it.valor);
 
-      row.appendChild(left); row.appendChild(mid); row.appendChild(right);
-      chartComissoesDetalhe.appendChild(row);
-    });
+        row.appendChild(left);
+        row.appendChild(mid);
+        row.appendChild(right);
+        chartComissoesDetalhe.appendChild(row);
+      });
   }
 
   function renderComissoesResumo(){
@@ -967,6 +1183,7 @@
     kpiComPorReceber.textContent = formatMoney(COMISSOES_RESUMO.totalPorReceber || 0);
   }
 
+  // Cronologia de Recebimentos (comissões)
   function renderComissoesTimeline(lista){
     chartComissoes.innerHTML = '';
     chartComissoesDetalhe.innerHTML = '';
@@ -974,23 +1191,25 @@
     COMISSOES_RESUMO = { totalPeriodo:0, totalRecebido:0, totalPorReceber:0 };
 
     const hoje = todayISO();
-    const apenasLeads = lista.filter(n=>n.tipo==='lead' && isFinite(n.comissaoValorTotal) && n.comissaoValorTotal>0);
 
+    const apenasLeads = lista.filter(n=>n.tipo==='lead' && isFinite(n.comissaoValorTotal) && n.comissaoValorTotal>0);
     if(!apenasLeads.length){
       const div = document.createElement('div');
       div.className = 'chart-empty';
-      div.textContent = 'Sem dados de comissões (verifique CPCV/Escritura e % de comissão).';
+      div.textContent = 'Sem dados de comissões (verifique se existem CPCV / Escritura e % de comissão).';
       chartComissoes.appendChild(div);
       renderComissoesResumo();
       return;
     }
 
-    const mapa = {};
-    let totalPeriodo = 0;
-    let totalRecebido = 0;
+    const mapa = {}; // YYYY-MM -> comissão
+    let totalComissoesPeriodo = 0;
+    let totalRecebidoPeriodo = 0;
 
     function addParcela(dateStr, valorParcela, neg, tipoParcela){
       if(!dateStr || !valorParcela || valorParcela <= 0) return;
+
+      // Só contabiliza DENTRO do período filtrado (isto garante que "Comissões no período" = recebidas + por receber dentro das datas)
       if(FILTERS.de && dateStr < FILTERS.de) return;
       if(FILTERS.ate && dateStr > FILTERS.ate) return;
 
@@ -1011,11 +1230,10 @@
         comissaoPct: neg.comissaoPct
       });
 
-      // ✅ “Comissões no período” = soma das parcelas dentro do intervalo (recebidas + por receber)
-      totalPeriodo += valorParcela;
-
-      // ✅ “Já recebidas” = parcelas no período com data até hoje
-      if(dateStr <= hoje) totalRecebido += valorParcela;
+      totalComissoesPeriodo += valorParcela;
+      if(dateStr <= hoje){
+        totalRecebidoPeriodo += valorParcela;
+      }
     }
 
     apenasLeads.forEach(n=>{
@@ -1026,15 +1244,19 @@
       const hasEsc  = !!n.dataEscritura;
 
       if(hasCpcv && hasEsc){
-        addParcela(n.dataCpcv, total/2, n, 'CPCV');
-        addParcela(n.dataEscritura, total/2, n, 'Escritura');
-      }else if(hasCpcv){
+        const valorCpcv = total/2;
+        const valorEsc  = total/2;
+        addParcela(n.dataCpcv, valorCpcv, n, 'CPCV');
+        addParcela(n.dataEscritura, valorEsc, n, 'Escritura');
+      }else if(hasCpcv && !hasEsc){
         addParcela(n.dataCpcv, total, n, 'CPCV');
-      }else if(hasEsc){
+      }else if(!hasCpcv && hasEsc){
         addParcela(n.dataEscritura, total, n, 'Escritura');
       }else{
-        // fallback
-        if(n.data) addParcela(n.data, total, n, 'Pagamento');
+        // fallback: se não houver CPCV/Escritura, usa "data"
+        if(n.data){
+          addParcela(n.data, total, n, 'Pagamento');
+        }
       }
     });
 
@@ -1042,14 +1264,13 @@
     if(!entries.length){
       const div = document.createElement('div');
       div.className = 'chart-empty';
-      div.textContent = 'Sem comissões distribuídas por CPCV/Escritura no período selecionado.';
+      div.textContent = 'Sem parcelas de comissões dentro do período selecionado.';
       chartComissoes.appendChild(div);
     }else{
       const max = Math.max(...entries.map(e=>e[1]));
       entries.forEach(([key,total])=>{
         const row = document.createElement('div');
         row.className = 'chart-row';
-
         const label = document.createElement('div');
         label.className = 'chart-label';
         const [y,m] = key.split('-');
@@ -1060,14 +1281,17 @@
         barWrap.className = 'chart-bar-wrap';
         const bar = document.createElement('div');
         bar.className = 'chart-bar';
-        bar.style.width = (max>0 ? (total/max*100) : 0).toFixed(1)+'%';
+        const pct = max>0 ? (total/max*100) : 0;
+        bar.style.width = pct.toFixed(1)+'%';
         barWrap.appendChild(bar);
 
         const val = document.createElement('div');
         val.className = 'chart-value';
         val.textContent = formatMoney(total);
 
-        row.appendChild(label); row.appendChild(barWrap); row.appendChild(val);
+        row.appendChild(label);
+        row.appendChild(barWrap);
+        row.appendChild(val);
 
         row.addEventListener('click', ()=>{
           Array.from(chartComissoes.querySelectorAll('.chart-row')).forEach(r=>r.classList.remove('selected'));
@@ -1082,18 +1306,20 @@
       if(rows.length){
         const lastRow = rows[rows.length-1];
         lastRow.classList.add('selected');
-        const lastKey = entries[entries.length-1][0];
+        const [lastKey] = entries[entries.length-1];
         const [y,m] = lastKey.split('-');
-        renderComissoesDetalhe(lastKey, m+'/'+y.slice(-2));
+        const mesLabel = m+'/'+y.slice(-2);
+        renderComissoesDetalhe(lastKey, mesLabel);
       }
     }
 
-    const totalPorReceber = Math.max(0, totalPeriodo - totalRecebido);
+    // No período: total = recebido + por receber (dentro do período)
+    const totalPorReceberPeriodo = Math.max(0, totalComissoesPeriodo - totalRecebidoPeriodo);
 
     COMISSOES_RESUMO = {
-      totalPeriodo,
-      totalRecebido,
-      totalPorReceber
+      totalPeriodo: totalComissoesPeriodo,
+      totalRecebido: totalRecebidoPeriodo,
+      totalPorReceber: totalPorReceberPeriodo
     };
     renderComissoesResumo();
   }
@@ -1178,7 +1404,8 @@
       leftF.textContent = n.data ? 'Data: ' + formatDate(n.data) : '';
       const rightF = document.createElement('div');
       rightF.textContent = n.origem || '';
-      foot.appendChild(leftF); foot.appendChild(rightF);
+      foot.appendChild(leftF);
+      foot.appendChild(rightF);
       card.appendChild(foot);
 
       container.appendChild(card);
@@ -1199,7 +1426,7 @@
     renderCards(listaLeads, listaAng);
   }
 
-  /* Eventos filtros */
+  /* ===== Filtros ===== */
   applyFiltersBtn.addEventListener('click', ()=>{
     FILTERS.consultor = fConsultor.value || '';
     FILTERS.origem = fOrigem.value || '';
@@ -1226,20 +1453,13 @@
     applyAndRender();
   });
 
-  /* Arranque */
+  /* ===== Arranque ===== */
   (async function init(){
-    try{
-      setBootStatus('A carregar dados…');
-      await buildNegocios();
-      populateConsultores();
-      hydrateFiltersFromStorage();
-      applyAndRender();
-      setBootStatus((bootStatus.textContent || '') + ' · OK');
-    }catch(e){
-      console.error(e);
-      setBootStatus('⚠ Erro a carregar dados. Verifique a pasta /data/ e o caminho do repo.');
-      applyAndRender();
-    }
+    await loadDatasets();
+    buildNegocios();
+    populateConsultores();
+    hydrateFiltersFromStorage();
+    applyAndRender();
   })();
 })();
 </script>
