@@ -1,195 +1,1594 @@
 <!doctype html>
 <html lang="pt">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Garvetur Porto Pro — Mapa Lite</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Garvetur Porto Pro — Mapa (Equipa · Leitura)</title>
 
 <link rel="preconnect" href="https://unpkg.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin>
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin>
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin>
+<!-- Leaflet + Cluster CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="anonymous">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin="anonymous">
 
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js" crossorigin></script>
+<!-- idb-keyval (IndexedDB) -->
+<script src="https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/idb-keyval.iife.min.js" crossorigin="anonymous"></script>
+
+<!-- PapaParse (CSV robusto + worker) -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js" crossorigin="anonymous"></script>
+
+<!-- PDF.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" crossorigin="anonymous"></script>
+<script>
+  if (window['pdfjsLib']) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+</script>
 
 <style>
 :root{
-  --gold:#A38B63;--bg:#0E0E0E;--panel:#131313;--text:#fff;
+  --gold:#A38B63;
+  --bg:#0E0E0E;
+  --panel:#131313;
+  --text:#fff;
+  --muted:#9AA0A6;
+  --ok:#43A047;
+  --info:#1E88E5;
+  --warn:#E53935;
   --border:rgba(255,255,255,.12);
 }
-html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui}
-.app{display:grid;grid-template-columns:360px 1fr;grid-template-rows:56px 44px 1fr;height:100%}
-header{grid-column:1/3;display:flex;align-items:center;justify-content:space-between;
-padding:10px 14px;border-bottom:1px solid var(--border)}
-header h1{margin:0;font-size:16px;color:var(--gold)}
-.badge{font-size:11px;border:1px solid var(--border);padding:6px 10px;border-radius:999px}
-.kpis{grid-column:1/3;display:flex;gap:10px;align-items:center;
-padding:6px 14px;border-bottom:1px solid var(--border)}
-.kpi{border:1px solid var(--border);padding:6px 10px;border-radius:10px;font-size:12px}
-.sidebar{background:var(--panel);border-right:1px solid var(--border);overflow:auto}
-.section{padding:10px;border-bottom:1px solid rgba(255,255,255,.08)}
-label{font-size:12px}
-input,select{width:100%;margin-top:4px;padding:8px;border-radius:8px;
-background:#0E0E0E;color:#fff;border:1px solid var(--border)}
-button{background:transparent;border:1px solid var(--border);
-color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer}
-#map{width:100%;height:100%}
-.list{padding:10px}
-.card{border:1px solid rgba(163,139,99,.35);border-radius:10px;padding:10px;margin-bottom:10px}
-.card b{color:var(--gold)}
+html,body{
+  height:100%;
+  margin:0;
+  background:#0E0E0E;
+  color:var(--text);
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+a{color:#e6e6e6;text-decoration:none}
+.app{
+  display:grid;
+  grid-template-columns:380px 1fr;
+  grid-template-rows:56px 40px 1fr;
+  height:100%;
+}
+header{
+  grid-column:1 / span 2;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 12px;
+  border-bottom:1px solid var(--border);
+  background:linear-gradient(90deg,#050505,#111,#050505);
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.brand h1{
+  font-size:16px;
+  margin:0;
+  color:var(--gold);
+}
+.readonly-badge{
+  font-size:11px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.14em;
+  border:1px solid var(--border);
+  padding:6px 10px;
+  border-radius:999px;
+}
+.kpis{
+  grid-column:1 / span 2;
+  display:flex;
+  gap:8px;
+  align-items:center;
+  padding:6px 12px;
+  background:#0F0F0F;
+  border-bottom:1px solid var(--border);
+}
+.kpi{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:6px 10px;
+  font-size:12px;
+}
+.dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#999;
+  display:inline-block;
+  border:1px solid rgba(0,0,0,.2);
+}
+.dot.c{background:var(--warn)}
+.dot.l{background:var(--info)}
+.dot.f{background:var(--ok)}
+.toolbar{
+  margin-left:auto;
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+.btn{
+  background:transparent;
+  border:1px solid rgba(163,139,99,.5);
+  color:#fff;
+  padding:6px 10px;
+  border-radius:10px;
+  cursor:pointer;
+  font-size:12px;
+}
+.btn-sm{
+  font-size:12px;
+  border:1px solid var(--border);
+  padding:4px 8px;
+  border-radius:8px;
+  background:transparent;
+  color:#eee;
+}
+.sidebar{
+  background:var(--panel);
+  border-right:1px solid var(--border);
+  overflow:auto;
+}
+.section{
+  padding:10px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.hint{
+  font-size:11px;
+  color:#bdbdbd;
+}
+.label{
+  font-size:12px;
+  color:#cfcfcf;
+  margin:6px 0 4px;
+}
+.field{
+  display:flex;
+  gap:6px;
+}
+.field input,.field select{
+  flex:1;
+  background:#0E0E0E;
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:8px;
+  padding:8px 10px;
+  color:#fff;
+  outline:none;
+}
+.chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:6px;
+}
+.chip{
+  font-size:12px;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.16);
+  background:#0E0E0E;
+  color:#ddd;
+  cursor:pointer;
+}
+.chip.active{
+  background:var(--gold);
+  color:#111;
+  border-color:var(--gold);
+  font-weight:700;
+}
+.list{
+  padding:8px 12px;
+}
+.card{
+  border:1px solid rgba(163,139,99,.25);
+  border-radius:12px;
+  padding:12px 12px 10px;
+  margin-bottom:12px;
+  background:#0E0E0E;
+}
+.card .row{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  align-items:center;
+}
+.card .name{font-weight:700;}
+.card .meta{
+  font-size:11px;
+  color:#bbb;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  margin-top:4px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-wrap:wrap;
+}
+.card .state{
+  font-size:12px;
+  color:#bbb;
+  margin-top:6px;
+  line-height:1.4;
+}
+.card .actions{
+  display:flex;
+  gap:8px;
+  margin-top:10px;
+  flex-wrap:wrap;
+}
+.badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:3px 10px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  font-size:11px;
+  line-height:1;
+  white-space:nowrap;
+}
+.badge-estado{
+  min-width:100px;
+  justify-content:center;
+  text-transform:uppercase;
+}
+.empty{
+  padding:10px;
+  color:#bbb;
+  font-size:13px;
+}
+#map{ width:100%; height:100%; }
+.leaflet-container{background:#eaeaea}
+.legend{
+  position:absolute;
+  left:12px;
+  bottom:16px;
+  z-index:5000;
+  background:#111;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:8px 10px;
+  font-size:12px;
+  color:#fff;
+}
+.legend .row{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+.legend .swatch{
+  width:12px;
+  height:12px;
+  border-radius:3px;
+  border:1px solid rgba(0,0,0,.3);
+}
+.legend .c{background:#E53935}
+.legend .l{background:#1E88E5}
+.legend .f{background:#43A047}
+
+.status-bar{
+  position:absolute;
+  top:8px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(10,10,10,.95);
+  border-radius:999px;
+  border:1px solid var(--border);
+  padding:4px 10px;
+  font-size:11px;
+  color:var(--muted);
+  z-index:6000;
+  display:none;
+}
+.status-bar.show{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+#side-panel{
+  position:absolute;
+  right:12px;
+  top:80px;
+  bottom:12px;
+  width:min(470px,92vw);
+  z-index:5001;
+  background:#0F0F0F;
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:auto;
+  display:none;
+}
+#side-panel.show{display:block}
+.panel-head{
+  position:sticky;
+  top:0;
+  background:#0F0F0F;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 12px;
+}
+.panel-inner{padding:12px}
+.meta-line{
+  font-size:13px;
+  margin:4px 0;
+  color:#ddd;
+}
+
+/* Pins base */
+.pin{
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  border:2px solid #111;
+  box-shadow:0 2px 6px rgba(0,0,0,.35);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-weight:800;
+  font-size:12px;
+  position:relative;
+}
+.pin.c{ background:#E53935; color:#E53935; }
+.pin.l{ background:#1E88E5; color:#1E88E5; }
+.pin.f{ background:#43A047; color:#43A047; }
+.pin:not(.iso).c::after{
+  content:"";
+  position:absolute;
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  box-shadow:0 0 0 0 rgba(229,57,53,.55);
+  animation:pulse 1.8s ease-out infinite;
+}
+.pin.iso{
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  border:3px solid currentColor;
+  background:transparent;
+  box-shadow:0 2px 6px rgba(0,0,0,.35);
+  position:relative;
+}
+.pin.iso::before{
+  content:"";
+  position:absolute;
+  inset:6px;
+  border-radius:50%;
+  border:2px solid rgba(0,0,0,.65);
+  background:transparent;
+}
+@keyframes pulse{
+  0%{ box-shadow:0 0 0 0 rgba(229,57,53,.55)}
+  70%{ box-shadow:0 0 0 18px rgba(229,57,53,0)}
+  100%{ box-shadow:0 0 0 0 rgba(229,57,53,0)}
+}
+.pdf-backdrop{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:11000;
+  background:rgba(0,0,0,.6);
+  backdrop-filter:blur(2px);
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+}
+.pdf-backdrop.show{display:flex}
+.pdf-card{
+  width:min(1100px,96vw);
+  height:min(88vh,900px);
+  background:#0F0F0F;
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+.pdf-card header{
+  padding:8px 10px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid var(--border);
+}
+.pdf-card .frame{flex:1}
+.pdf-card iframe{
+  width:100%;
+  height:100%;
+  border:0;
+}
+.hidden{display:none !important}
+@media (max-width: 1000px){
+  .app{
+    grid-template-columns:1fr;
+    grid-template-rows:56px 40px 280px 1fr;
+  }
+  .sidebar{grid-row:3}
+  #map{grid-row:4}
+  #side-panel{top:auto;bottom:72px}
+}
 </style>
 </head>
 
 <body>
-<div class="app">
-<header>
-  <h1>Garvetur Porto Pro — Mapa Lite</h1>
-  <div class="badge">Acesso Equipa · Modo Leitura</div>
-</header>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--gold)">
+          <circle cx="12" cy="12" r="10" stroke-width="1.5"/>
+          <path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/>
+        </svg>
+        <h1>Garvetur Porto Pro — Mapa</h1>
+      </div>
+      <div class="readonly-badge">Acesso Equipa · Modo Leitura</div>
+    </header>
 
-<div class="kpis">
-  <div class="kpi">Total: <b id="k_total">0</b></div>
-  <div class="kpi">Em construção: <b id="k_c">0</b></div>
-  <div class="kpi">Licenciado: <b id="k_l">0</b></div>
-  <div class="kpi">Concluído: <b id="k_f">0</b></div>
-  <button id="focus">Focar AMP/Porto</button>
-  <button id="reload">Recarregar</button>
-</div>
+    <div class="kpis">
+      <div class="kpi"><span class="dot"></span>Total: <b id="k_total">0</b></div>
+      <div class="kpi"><span class="dot c"></span>Em construção: <b id="k_c">0</b></div>
+      <div class="kpi"><span class="dot l"></span>Licenciado: <b id="k_l">0</b></div>
+      <div class="kpi"><span class="dot f"></span>Concluído: <b id="k_f">0</b></div>
 
-<aside class="sidebar">
-  <div class="section">
-    <label>Pesquisa global</label>
-    <input id="q" placeholder="Nome, concelho, promotor…">
-    <p style="font-size:11px;opacity:.7;margin-top:6px">
-      Versão Lite: carrega apenas dados essenciais. Cache local ativa.
-    </p>
+      <div class="toolbar">
+        <button class="btn" id="focusAmp">Focar AMP/Porto</button>
+      </div>
+    </div>
+
+    <aside class="sidebar">
+      <div class="section">
+        <div class="label">Pesquisa global</div>
+        <div class="field"><input id="q" placeholder="Ex.: 'Gaia licenciado 2027 promotor X'"></div>
+        <div class="hint">
+          Pesquisa por ref. interna, nome, concelho, promotor, tipologias, estado, proprietário, contactos,
+          conclusão, notas, €/m² e preço pedido.
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="label">Concelho</div>
+        <div class="field"><select id="f_concelho"><option value="">(Todos)</option></select></div>
+
+        <div class="label">Estado</div>
+        <div class="chips" id="estadoChips">
+          <div class="chip active" data-v="">Todos</div>
+          <div class="chip" data-v="em_construcao">Em construção</div>
+          <div class="chip" data-v="licenciado">Licenciado</div>
+          <div class="chip" data-v="concluido">Concluído</div>
+        </div>
+
+        <div class="label" style="margin-top:6px">Tipo</div>
+        <div class="chips" id="tipoChips">
+          <div class="chip active" data-v="">Todos</div>
+          <div class="chip" data-v="emp">Empreendimentos</div>
+          <div class="chip" data-v="iso">Imóveis isolados</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="label">Conclusão (ano)</div>
+        <div class="field">
+          <input id="f_cmin" type="number" placeholder="Mín. ex.: 2025">
+          <input id="f_cmax" type="number" placeholder="Máx. ex.: 2029">
+        </div>
+
+        <div class="label" style="margin-top:6px">Preço €/m²</div>
+        <div class="field">
+          <input id="f_pmin" type="number" placeholder="Mín.">
+          <input id="f_pmax" type="number" placeholder="Máx.">
+        </div>
+
+        <div class="label" style="margin-top:6px">Preço pedido (€)</div>
+        <div class="field">
+          <input id="f_vmin" type="number" placeholder="Mín.">
+          <input id="f_vmax" type="number" placeholder="Máx.">
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="label">Promotor</div>
+        <div class="field"><select id="f_promotor"><option value="">(Todos)</option></select></div>
+
+        <div class="label" style="margin-top:6px">Tipologias (texto)</div>
+        <div class="field"><input id="f_tipos" placeholder="Ex.: T1,T2"></div>
+      </div>
+
+      <div class="section">
+        <div class="actions">
+          <button class="btn" id="apply">Aplicar</button>
+          <button class="btn" id="clear" style="border-color:var(--border);color:#ddd">Limpar</button>
+        </div>
+      </div>
+
+      <div class="section"><div class="label">Resultados</div></div>
+      <div class="list" id="list"></div>
+    </aside>
+
+    <div style="position:relative">
+      <div id="map"></div>
+      <div id="statusBar" class="status-bar"></div>
+
+      <div class="legend">
+        <div class="row"><span class="swatch c"></span> Em construção</div>
+        <div class="row"><span class="swatch l"></span> Licenciado</div>
+        <div class="row"><span class="swatch f"></span> Concluído</div>
+      </div>
+
+      <div id="side-panel">
+        <div class="panel-head">
+          <div style="font-weight:700">Detalhes</div>
+          <button class="btn" id="closePanel">Fechar ✕</button>
+        </div>
+        <div class="panel-inner" id="panelInner"></div>
+      </div>
+    </div>
   </div>
 
-  <div class="section">
-    <label>Concelho</label>
-    <select id="f_concelho"><option value="">(Todos)</option></select>
-
-    <label style="margin-top:6px">Estado</label>
-    <select id="f_estado">
-      <option value="">Todos</option>
-      <option value="em_construcao">Em construção</option>
-      <option value="licenciado">Licenciado</option>
-      <option value="concluido">Concluído</option>
-    </select>
+<!-- Modal PDF fullscreen -->
+<div id="pdfModal" class="pdf-backdrop" role="dialog" aria-modal="true" aria-label="Documento">
+  <div class="pdf-card">
+    <header>
+      <div><strong>Documento</strong></div>
+      <div style="display:flex;gap:8px">
+        <a id="pdfOpenNew" class="btn" target="_blank" rel="noreferrer">Abrir em nova aba</a>
+        <button class="btn" id="pdfClose" style="border-color:var(--border);color:#ddd">Fechar ✕</button>
+      </div>
+    </header>
+    <div class="frame"><iframe id="pdfFrame"></iframe></div>
   </div>
-
-  <div class="section">
-    <button id="apply">Aplicar</button>
-    <button id="clear">Limpar</button>
-  </div>
-
-  <div class="section">
-    <b>Resultados</b>
-    <div id="list" class="list"></div>
-  </div>
-</aside>
-
-<div id="map"></div>
 </div>
 
 <script>
-const AMP=[41.15,-8.61], ZOOM=12;
-const CSV='data/gpp-mapa.csv';
-let MAP, CLUSTER, RAW=[], FILT=[];
-
-const el=id=>document.getElementById(id);
-const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-
-function stateKey(s){
-  const x=norm(s);
-  if(x.includes('constr'))return'em_construcao';
-  if(x.includes('licen'))return'licenciado';
-  if(x.includes('concl'))return'concluido';
-  return'';
-}
-
-function loadCSV(){
-  return new Promise(res=>{
-    Papa.parse(CSV,{
-      download:true,header:true,skipEmptyLines:true,worker:true,
-      complete:r=>res(r.data||[])
-    });
+/* ===== Utilitário loader ===== */
+function loadScript(src){
+  return new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src=src; s.defer=true; s.crossOrigin='anonymous';
+    s.onload=()=>res(true); s.onerror=()=>rej(new Error('Falha a carregar '+src));
+    document.head.appendChild(s);
   });
 }
 
-function apply(){
-  const q=norm(el('q').value);
-  const c=el('f_concelho').value;
-  const e=el('f_estado').value;
+/* ===== Estado global ===== */
+const AMP_CENTER=[41.15,-8.61], AMP_ZOOM=12;
+const LS_KEY='gpp_dataset_v1';
+const FILTERS_KEY='gpp_mapa_filters_v1';
+const PDF_INLINE_LIMIT=4*1024*1024; // 4 MB
+
+let MAP, CLUSTER, LAYER, CLUSTER_OK=false;
+let RAW=[], FILT=[];
+let ACTIVE=null;
+
+// Equipa (readonly)
+let EDIT_MODE=false;
+const TEAM_READONLY_FORCE_CSV = true;
+
+/* Limites para evitar freeze */
+const LIST_MAX_RENDER = 250;          // cartões máximos na lista
+const MARKERS_CHUNK = 350;            // marcadores por frame
+const MARKERS_PROGRESS_EVERY = 700;   // update de status
+
+let UIState={
+  q:'', concelho:'', estado:'',
+  cmin:'', cmax:'',
+  pmin:'', pmax:'',
+  vmin:'', vmax:'',
+  promotor:'', tipos:'',
+  tipo:''
+};
+
+let LS_SKIPPED=false;
+let LS_ERROR=false;
+
+const el=id=>document.getElementById(id);
+function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+function stateKey(s){
+  const x=norm(s);
+  if(x.includes('constr'))return 'em_construcao';
+  if(x.includes('licen'))return 'licenciado';
+  if(x.includes('concl'))return 'concluido';
+  return x||'';
+}
+function colorByState(k){
+  if(k==='em_construcao')return '#E53935';
+  if(k==='licenciado')return '#1E88E5';
+  if(k==='concluido')return '#43A047';
+  return '#A38B63';
+}
+function slugify(s){ return norm(s).replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,''); }
+function numPT(v){
+  if(v===null||v===undefined||v==='') return null;
+  const s = String(v).trim()
+    .replace(/\s/g,'')
+    .replace(/\./g,'')
+    .replace(',', '.');
+  const n = Number(s);
+  return Number.isFinite(n)? n : null;
+}
+
+/* ===== Status bar ===== */
+function setStatus(msg){
+  const bar = el('statusBar');
+  if(!bar) return;
+  if(!msg){
+    bar.classList.remove('show');
+    bar.textContent='';
+    return;
+  }
+  bar.textContent = msg;
+  bar.classList.add('show');
+}
+
+/* ===== Fetch com timeout (evita ficar preso) ===== */
+async function fetchTextWithTimeout(url, ms=15000){
+  const ctrl = new AbortController();
+  const t = setTimeout(()=>ctrl.abort(), ms);
+  try{
+    const r = await fetch(url, { cache:'no-store', signal: ctrl.signal });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const txt = await r.text();
+    return txt;
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+/* ===== CSV: caminho robusto para GitHub Pages (Project Pages) ===== */
+function getRepoBasePrefix(){
+  const host = location.hostname || '';
+  const parts = (location.pathname || '').split('/').filter(Boolean);
+  if(host.endsWith('github.io') && parts.length >= 1){
+    return '/' + parts[0] + '/';
+  }
+  return '/';
+}
+const CSV_REL = 'data/gpp-mapa.csv';
+function getCSVUrl(){
+  const prefix = getRepoBasePrefix();
+  const u = new URL(prefix + CSV_REL, location.origin);
+  u.searchParams.set('v', String(Date.now())); // cache-buster
+  return u.toString();
+}
+
+/* ===== CSV load (PapaParse com fallback) ===== */
+function pick(obj, keys){
+  for(const k of keys){
+    if(obj && Object.prototype.hasOwnProperty.call(obj,k) && String(obj[k] ?? '').trim() !== '') return obj[k];
+  }
+  return '';
+}
+
+async function loadFromCSV(){
+  setStatus('A carregar dataset do CSV…');
+
+  if(!window.Papa){
+    setStatus('⚠ PapaParse não está disponível.');
+    return [];
+  }
+
+  const csvUrl = getCSVUrl();
+
+  return await new Promise((resolve) => {
+    const out = [];
+    let done = false;
+    let rowsCount = 0;
+
+    const finish = (arr, msg) => {
+      if(done) return;
+      done = true;
+      if(msg) setStatus(msg); else setStatus('');
+      resolve(arr || []);
+    };
+
+    const watchdog = setTimeout(() => {
+      try { if (parser && parser.abort) parser.abort(); } catch {}
+      finish([], '⚠ Timeout a ler o CSV. O ficheiro é demasiado pesado ou está a bloquear o browser.');
+    }, 45000);
+
+    let parser = null;
+
+    try{
+      parser = Papa.parse(csvUrl, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        worker: true,
+        chunkSize: 1024 * 512,
+        chunk: (results, p) => {
+          parser = p;
+
+          const rows = results?.data || [];
+          if(!rows.length) return;
+
+          for(const r of rows){
+            const lat = numPT(pick(r, ['_lat','lat','latitude','Lat','LAT']));
+            const lng = numPT(pick(r, ['_lng','lng','lon','longitude','Lng','LNG']));
+            if(lat === null || lng === null) continue;
+
+            const tipoRaw = String(pick(r, ['isEmpreendimento','tipo','Tipo','TIPO'])).toLowerCase();
+            const isIso = tipoRaw.includes('iso') || tipoRaw === '0' || tipoRaw === 'false';
+
+            out.push({
+              refInterna: pick(r, ['refInterna','ref','referencia','Referencia','RefInterna']),
+              nome: pick(r, ['nome','name','Nome']),
+              concelho: pick(r, ['concelho','Concelho']),
+              estado: stateKey(pick(r, ['estado','Estado'])),
+              promotor: pick(r, ['promotor','Promotor']),
+              tipologias: pick(r, ['tipologias','Tipologias']),
+              conclusaoAno: numPT(pick(r, ['conclusaoAno','ano','conclusao','Conclusao'])) || '',
+              conclusaoMes: numPT(pick(r, ['conclusaoMes','mes','Mes'])) || '',
+              conclusao: numPT(pick(r, ['conclusao','ano','Conclusao'])) || '',
+              preco_m2: pick(r, ['preco_m2','precoM2','€/m2','eur_m2']),
+              precoPedido: pick(r, ['precoPedido','preco','Preco','Preço']),
+              notas: pick(r, ['notas','Notas']),
+              link: pick(r, ['link','url','URL']),
+              _lat: lat,
+              _lng: lng,
+              docs: [],
+              isEmpreendimento: isIso ? false : true
+            });
+          }
+
+          rowsCount += rows.length;
+          if(rowsCount % 500 === 0){
+            setStatus(`A carregar dataset do CSV… (${out.length} pontos válidos)`);
+          }
+
+          if(out.length > 20000){
+            try { p.abort(); } catch {}
+            clearTimeout(watchdog);
+            finish(out, '⚠ Dataset muito grande. Carregado parcialmente para manter estabilidade.');
+          }
+        },
+        complete: () => {
+          clearTimeout(watchdog);
+          const sanity = out.some(x => (x.nome || x.refInterna) && x._lat !== null && x._lng !== null);
+          if(!sanity) return finish([], '⚠ CSV carregou, mas não tem colunas válidas (lat/lng/nome).');
+          finish(out, '');
+        },
+        error: (err) => {
+          clearTimeout(watchdog);
+          console.error(err);
+          finish([], '⚠ Não foi possível descarregar/ler o CSV. Confirme GitHub Pages e o caminho do ficheiro.');
+        }
+      });
+    }catch(e){
+      clearTimeout(watchdog);
+      console.error(e);
+      finish([], '⚠ Erro ao iniciar o leitor do CSV.');
+    }
+  });
+}
+
+/* ===== Leaflet & Cluster ===== */
+async function loadLeafletAndCluster(){
+  if(!window.L){
+    try{ await loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'); }
+    catch{ await loadScript('https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js'); }
+  }
+  try{
+    if(!window.L.markerClusterGroup){
+      try{ await loadScript('https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'); }
+      catch{ await loadScript('https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'); }
+    }
+    CLUSTER_OK=!!window.L.markerClusterGroup;
+  }catch{
+    CLUSTER_OK=false;
+  }
+}
+
+function initMap(){
+  MAP = L.map('map',{ zoomControl:true, scrollWheelZoom:true, preferCanvas:true }).setView(AMP_CENTER, AMP_ZOOM);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:19,
+    attribution:'&copy; OpenStreetMap'
+  }).addTo(MAP);
+
+  if(CLUSTER_OK){
+    const clusterOpts={
+      spiderfyOnEveryZoom:false,
+      showCoverageOnHover:false,
+      maxClusterRadius:48,
+      chunkedLoading:true,
+      chunkInterval:200,
+      chunkDelay:30
+    };
+    CLUSTER=L.markerClusterGroup(clusterOpts);
+    LAYER=L.layerGroup().addTo(CLUSTER);
+    MAP.addLayer(CLUSTER);
+  }else{
+    LAYER=L.layerGroup().addTo(MAP);
+  }
+
+  el('focusAmp')?.addEventListener('click',()=>MAP.setView(AMP_CENTER,AMP_ZOOM,{animate:true}));
+}
+
+/* ===== Facetas ===== */
+function buildFacetOptions(){
+  const concelhos=[...new Set(RAW.map(x=>x.concelho).filter(Boolean))].sort();
+  const promotores=[...new Set(RAW.map(x=>x.promotor).filter(Boolean))].sort();
+  el('f_concelho').innerHTML='<option value="">(Todos)</option>'+concelhos.map(c=>`<option>${c}</option>`).join('');
+  el('f_promotor').innerHTML='<option value="">(Todos)</option>'+promotores.map(c=>`<option>${c}</option>`).join('');
+}
+
+/* ===== Match & filtros ===== */
+function matchTokens(obj,tokens){
+  if(!tokens.length) return true;
+  const hay=norm([
+    obj.refInterna, obj.nome, obj.concelho, obj.promotor, obj.tipologias,
+    obj.estado, obj.notas, obj.conclusao, obj.preco_m2, obj.precoPedido,
+    obj._ownerNome, obj._ownerTelefone, obj._ownerTelemovel, obj._contactos
+  ].join(' '));
+  return tokens.every(tok=>hay.includes(tok));
+}
+
+function applyFilters(){
+  const tokens=norm(UIState.q).split(/\s+/).filter(Boolean);
+  const tiposTokens=norm(UIState.tipos||'').split(/[,\s]+/).filter(Boolean);
 
   FILT=RAW.filter(p=>{
-    if(q && !norm(p.nome+p.concelho+p.promotor).includes(q))return false;
-    if(c && p.concelho!==c)return false;
-    if(e && p.estado!==e)return false;
+    if(!matchTokens(p,tokens)) return false;
+    if(UIState.concelho && p.concelho!==UIState.concelho) return false;
+    if(UIState.estado && p.estado!==UIState.estado) return false;
+
+    if(UIState.tipo === 'emp'){
+      if(p.isEmpreendimento === false) return false;
+    }else if(UIState.tipo === 'iso'){
+      if(p.isEmpreendimento !== false) return false;
+    }
+
+    const ano = p.conclusaoAno || p.conclusao;
+    const c = numPT(ano);
+    if(UIState.cmin && c!==null && c<Number(UIState.cmin)) return false;
+    if(UIState.cmax && c!==null && c>Number(UIState.cmax)) return false;
+
+    const m2=numPT(p.preco_m2);
+    if(UIState.pmin && m2!==null && m2<Number(UIState.pmin)) return false;
+    if(UIState.pmax && m2!==null && m2>Number(UIState.pmax)) return false;
+
+    const precoTot = numPT(p.precoPedido);
+    if(UIState.vmin && precoTot!==null && precoTot<Number(UIState.vmin)) return false;
+    if(UIState.vmax && precoTot!==null && precoTot>Number(UIState.vmax)) return false;
+
+    if(UIState.promotor && p.promotor!==UIState.promotor) return false;
+
+    if(tiposTokens.length){
+      const base=norm(p.tipologias||'');
+      const hit=tiposTokens.some(t=>base.includes(t));
+      if(!hit) return false;
+    }
     return true;
   });
 }
 
 function renderKPIs(){
-  el('k_total').textContent=FILT.length;
-  el('k_c').textContent=FILT.filter(x=>x.estado==='em_construcao').length;
-  el('k_l').textContent=FILT.filter(x=>x.estado==='licenciado').length;
-  el('k_f').textContent=FILT.filter(x=>x.estado==='concluido').length;
+  const t=FILT.length;
+  const c=FILT.filter(x=>x.estado==='em_construcao').length;
+  const l=FILT.filter(x=>x.estado==='licenciado').length;
+  const f=FILT.filter(x=>x.estado==='concluido').length;
+  el('k_total').textContent=t;
+  el('k_c').textContent=c;
+  el('k_l').textContent=l;
+  el('k_f').textContent=f;
 }
 
+function stateLabel(s){
+  const c=colorByState(s);
+  return `<span class="badge badge-estado" style="border-color:${c};color:${c}">${s||'—'}</span>`;
+}
+function tipoLabel(p){
+  if(p.isEmpreendimento === false) return 'Imóvel isolado';
+  return 'Empreendimento';
+}
+function tipoBadge(p){
+  const t=tipoLabel(p);
+  if(!t) return '';
+  return `<span class="badge" style="border-color:var(--gold);color:var(--gold);margin-left:4px">${t}</span>`;
+}
+
+function formatConclusao(p){
+  const ano = p.conclusaoAno || p.conclusao;
+  const mes = p.conclusaoMes;
+  if(!ano && !mes) return '—';
+  if(!ano) return '—';
+  if(!mes) return String(ano);
+  const m = String(mes).padStart(2,'0');
+  return `${m}/${ano}`;
+}
+function formatPrecoPedido(p){
+  const n = numPT(p.precoPedido);
+  if(n===null) return '—';
+  return n.toLocaleString('pt-PT') + ' €';
+}
+
+/* ===== Lista (com limite) ===== */
 function renderList(){
-  const box=el('list'); box.innerHTML='';
-  FILT.forEach(p=>{
-    const d=document.createElement('div');
-    d.className='card';
-    d.innerHTML=`<b>${p.nome||'—'}</b><br>${p.concelho||''}<br>${p.estado||''}`;
-    d.onclick=()=>MAP.setView([p.lat,p.lng],16);
-    box.appendChild(d);
+  const box = el('list');
+  box.innerHTML = '';
+
+  if (!FILT.length) {
+    box.innerHTML = '<div class="empty">Sem resultados com os filtros atuais.</div>';
+    return;
+  }
+
+  const total = FILT.length;
+  const slice = FILT.slice(0, LIST_MAX_RENDER);
+
+  if(total > LIST_MAX_RENDER){
+    const note = document.createElement('div');
+    note.className='hint';
+    note.style.margin='4px 0 10px';
+    note.textContent = `A mostrar ${LIST_MAX_RENDER} de ${total} resultados. Refine os filtros para ver menos itens.`;
+    box.appendChild(note);
+  }
+
+  slice.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'card';
+    const precoPedidoStr = formatPrecoPedido(p);
+
+    div.innerHTML = `
+      <div class="row">
+        <div>
+          <div class="name">${p.nome || '—'}</div>
+          <div class="meta">
+            ${p.refInterna ? `<span>${p.refInterna}</span> · ` : ''}
+            <span>${p.concelho || '—'}</span>
+            ${tipoBadge(p)}
+          </div>
+        </div>
+        ${stateLabel(p.estado)}
+      </div>
+      <div class="state">
+        Conclusão: ${formatConclusao(p)}
+        · €/m²: ${p.preco_m2 ? (numPT(p.preco_m2) ?? 0).toLocaleString('pt-PT') : '—'}
+        · Preço: ${precoPedidoStr}
+      </div>
+      <div class="actions">
+        <button class="btn" data-act="zoom">Abrir no mapa</button>
+        ${p.link ? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>` : ''}
+        <button class="btn" data-act="open">Detalhes</button>
+      </div>
+    `;
+
+    div.querySelector('[data-act="zoom"]')?.addEventListener('click', () => {
+      if (p._lat && p._lng) MAP?.setView([p._lat, p._lng], 16, { animate: true });
+    });
+    div.querySelector('[data-act="open"]')?.addEventListener('click', () => openFicha(p, true));
+    box.appendChild(div);
   });
 }
 
-function renderMap(){
-  if(CLUSTER)CLUSTER.clearLayers();
-  FILT.forEach(p=>{
-    if(!p.lat||!p.lng)return;
-    const m=L.marker([p.lat,p.lng]);
-    m.bindPopup(`<b>${p.nome||''}</b><br>${p.concelho||''}`);
-    CLUSTER.addLayer(m);
+/* ===== Marcadores (RENDER EM CHUNKS) ===== */
+function pinClassFromState(p){
+  const st = p.estado;
+  let suffix='';
+  if(st==='em_construcao') suffix=' c';
+  else if(st==='licenciado') suffix=' l';
+  else if(st==='concluido') suffix=' f';
+  const iso = (p.isEmpreendimento === false) ? ' iso' : '';
+  return 'pin' + iso + suffix;
+}
+function makeDivIcon(p){
+  return L.divIcon({
+    className: pinClassFromState(p),
+    html:'',
+    iconSize: [28,28],
+    iconAnchor:[14,14],
+    popupAnchor:[0,-14]
   });
 }
 
-async function init(){
-  RAW=await loadCSV();
-  RAW=RAW.map(r=>({
-    id:r.refInterna||Math.random().toString(36).slice(2),
-    nome:r.nome||'',
-    concelho:r.concelho||'',
-    promotor:r.promotor||'',
-    estado:stateKey(r.estado),
-    lat:Number(r.lat||r._lat),
-    lng:Number(r.lng||r._lng)
-  }));
+let __markerJobId = 0;
 
-  MAP=L.map('map').setView(AMP,ZOOM);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(MAP);
-  CLUSTER=L.markerClusterGroup(); MAP.addLayer(CLUSTER);
+function renderMarkersChunked(){
+  if(!window.L||!LAYER) return;
 
-  const conc=[...new Set(RAW.map(x=>x.concelho).filter(Boolean))].sort();
-  el('f_concelho').innerHTML='<option value="">(Todos)</option>'+conc.map(c=>`<option>${c}</option>`).join('');
+  __markerJobId++;
+  const jobId = __markerJobId;
 
+  try{
+    if(CLUSTER){ CLUSTER.clearLayers(); }
+    LAYER.clearLayers();
+  }catch{}
+
+  const items = FILT
+    .map(p=>{
+      const lat=numPT(p._lat), lng=numPT(p._lng);
+      if(lat===null||lng===null) return null;
+      return {p, lat, lng};
+    })
+    .filter(Boolean);
+
+  const total = items.length;
+  if(!total){
+    setStatus('');
+    return;
+  }
+
+  const bounds = L.latLngBounds([]);
+
+  let idx = 0;
+  setStatus(`A desenhar marcadores… 0/${total}`);
+
+  const addChunk = () => {
+    if(jobId !== __markerJobId) return;
+    const end = Math.min(idx + MARKERS_CHUNK, total);
+
+    for(; idx < end; idx++){
+      const it = items[idx];
+      const p = it.p;
+      bounds.extend([it.lat,it.lng]);
+
+      const m = L.marker([it.lat,it.lng],{icon:makeDivIcon(p)});
+      const tooltip = p.refInterna ? `[${p.refInterna}] ${p.nome||''}` : (p.nome||'');
+      m.on('click',()=>openFicha(p,true));
+      m.bindTooltip(tooltip,{direction:'top',offset:[0,-8],opacity:.9});
+
+      if(CLUSTER && CLUSTER.addLayer) CLUSTER.addLayer(m);
+      else LAYER.addLayer(m);
+    }
+
+    if(idx % MARKERS_PROGRESS_EVERY === 0 || idx === total){
+      setStatus(`A desenhar marcadores… ${idx}/${total}`);
+    }
+
+    if(idx < total){
+      requestAnimationFrame(addChunk);
+    }else{
+      if(MAP && bounds.isValid()){
+        MAP.fitBounds(bounds.pad(0.2));
+      }
+      setStatus('');
+    }
+  };
+
+  requestAnimationFrame(addChunk);
+}
+
+function renderMarkers(){ renderMarkersChunked(); }
+
+/* ===== Documentos & Painel ===== */
+let STORAGE_MODE='idb';
+const TEMP_URLS=new Set();
+
+async function detectStorageMode(){
+  if(!window.idbKeyval){ STORAGE_MODE='dataurl'; return; }
+  try{
+    const test='__gpp_test__';
+    await idbKeyval.set(test,new Blob(['ok']));
+    const v=await idbKeyval.get(test);
+    await idbKeyval.del(test);
+    if(!v) throw new Error('sem leitura IDB');
+    STORAGE_MODE='idb';
+  }catch{
+    STORAGE_MODE='dataurl';
+  }
+}
+async function getLocal(idbUrl){
+  if(!idbUrl || !idbUrl.startsWith('idb://') || !window.idbKeyval) return null;
+  try{ return await idbKeyval.get(idbUrl.replace('idb://','')); }catch{ return null; }
+}
+async function getLocalBlobUrl(idbUrl){
+  const rec=await getLocal(idbUrl); if(!rec) return null;
+  const u=URL.createObjectURL(rec.blob); TEMP_URLS.add(u); return u;
+}
+async function resolveLocalUrl(rawUrl){
+  if(!rawUrl) return null;
+  if(rawUrl.startsWith('data:') || rawUrl.startsWith('http')) return rawUrl;
+  if(rawUrl.startsWith('idb://')) return await getLocalBlobUrl(rawUrl);
+  return rawUrl;
+}
+function revokeTempUrls(){
+  TEMP_URLS.forEach(u=>URL.revokeObjectURL(u));
+  TEMP_URLS.clear();
+}
+function openPDF(url){
+  el('pdfFrame').src=url;
+  el('pdfOpenNew').href=url;
+  el('pdfModal').classList.add('show');
+}
+el('pdfClose')?.addEventListener('click',()=>{
+  el('pdfModal').classList.remove('show');
+  el('pdfFrame').src='about:blank';
+  revokeTempUrls();
+});
+
+async function renderDocPreview(container, rawUrl, type){
+  const url=await resolveLocalUrl(rawUrl);
+  if(!url){
+    container.innerHTML='<div class="hint">Documento indisponível.</div>';
+    return;
+  }
+  container.innerHTML='';
+  if(type==='img'){
+    const img=document.createElement('img');
+    img.src=url;
+    img.alt='';
+    img.style.maxWidth='100%';
+    img.style.borderRadius='8px';
+    container.appendChild(img);
+    const bar=document.createElement('div');
+    bar.style.marginTop='6px';
+    bar.style.display='flex';
+    bar.style.gap='6px';
+    bar.innerHTML=`<a class="btn-sm" href="${url}" download>Transferir</a>
+                   <a class="btn-sm" href="${url}" target="_blank" rel="noreferrer noopener">Abrir em nova aba</a>`;
+    container.appendChild(bar);
+    return;
+  }
+  if(type==='link'){
+    container.innerHTML=`<a class="btn-sm" href="${url}" target="_blank" rel="noreferrer noopener">Abrir link</a>`;
+    return;
+  }
+  if(type==='pdf'){
+    if(rawUrl.startsWith('idb://')){
+      const rec=await getLocal(rawUrl);
+      const size=rec?.meta?.size ?? 0;
+      if(size > PDF_INLINE_LIMIT){
+        const resolved = await resolveLocalUrl(rawUrl);
+        container.innerHTML = `
+          <div class="hint" style="line-height:1.5">
+            Ficheiro grande (${(size/1024/1024).toFixed(1)} MB). Para pré-visualizar sem bloqueios, hospede num URL HTTPS e use o link aqui.<br>
+            Ainda assim, pode <a class="btn-sm" href="${resolved}" target="_blank" rel="noreferrer noopener">Abrir em nova aba</a> ou <a class="btn-sm" href="${resolved}" download>Transferir</a>.
+          </div>`;
+        return;
+      }
+    }
+    if(!window['pdfjsLib']){
+      container.innerHTML = `<div class="hint">Pré-visualização indisponível. <a class="btn-sm" href="${url}" target="_blank" rel="noreferrer noopener">Abrir em nova aba</a></div>`;
+      return;
+    }
+    const wrap=document.createElement('div');
+    wrap.style.border='1px solid var(--border)';
+    wrap.style.borderRadius='8px';
+    wrap.style.overflow='hidden';
+    wrap.style.background='#fff';
+    wrap.style.height='420px';
+    wrap.style.display='flex';
+    wrap.style.alignItems='center';
+    wrap.style.justifyContent='center';
+    wrap.innerHTML='<div style="color:#666;font:13px/1.4 system-ui">A carregar PDF…</div>';
+    container.appendChild(wrap);
+
+    const bar=document.createElement('div');
+    bar.style.marginTop='6px';
+    bar.style.display='flex';
+    bar.style.gap='6px';
+    bar.innerHTML=`<a class="btn-sm" href="${url}" download>Transferir</a>
+                   <a class="btn-sm" href="${url}" target="_blank" rel="noreferrer noopener">Abrir em nova aba</a>
+                   <button class="btn-sm" id="btnExpandLocal">Expandir</button>`;
+    container.appendChild(bar);
+
+    try{
+      const loadingTask=pdfjsLib.getDocument(url);
+      const pdf=await loadingTask.promise;
+      const page=await pdf.getPage(1);
+      const viewport=page.getViewport({ scale: 1.4 });
+      const canvas=document.createElement('canvas');
+      const ctx=canvas.getContext('2d');
+      canvas.width=viewport.width;
+      canvas.height=viewport.height;
+      wrap.innerHTML='';
+      wrap.appendChild(canvas);
+      await page.render({ canvasContext: ctx, viewport }).promise;
+      bar.querySelector('#btnExpandLocal')?.addEventListener('click',()=> openPDF(url));
+    }catch(e){
+      console.error(e);
+      wrap.innerHTML=`<div style="padding:10px;color:#444">Não foi possível pré-visualizar. <a class="btn-sm" href="${url}" target="_blank" rel="noreferrer noopener">Abrir em nova aba</a></div>`;
+    }
+    return;
+  }
+  container.innerHTML=`<a class="btn-sm" href="${url}" target="_blank" rel="noreferrer noopener">Abrir</a>`;
+}
+
+function buildDocsHTML(docs){
+  if(!Array.isArray(docs)||!docs.length) return '<div class="hint">Sem documentos anexados.</div>';
+  const items=docs.map(d=>{
+    const icon=d.type==='pdf'?'📄':(d.type==='img'?'🖼️':'🔗');
+    const extra=d.type==='pdf'?` <button class="btn-sm" data-act="expand" data-url="${d.url}">Expandir</button>`:'';
+    return `<li style="margin-bottom:6px;border:1px solid var(--border);padding:6px 8px;border-radius:8px" data-type="${d.type}" data-url="${d.url}">
+      ${icon} <a class="btn-sm" href="${d.url}" target="_blank" rel="noreferrer noopener">Abrir</a> · ${d.title||d.url}${extra}
+    </li>`;
+  }).join('');
+  return `<ul id="docList" style="list-style:none;margin:0;padding:0">${items}</ul><div id="docView" style="margin-top:8px"></div>`;
+}
+
+function openFicha(p,focus=false){
+  ACTIVE = p;
+  const precoPedidoStr = formatPrecoPedido(p);
+
+  const html = `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <div>
+        <div style="font-weight:800;font-size:16px">${p.nome || '—'}</div>
+        <div style="font-size:12px;color:#bbb">
+          ${p.refInterna ? `Ref. ${p.refInterna} · ` : ''}${p.concelho || '—'}
+          · ${stateLabel(p.estado)}
+          ${tipoBadge(p)}
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn" data-act="center">Centrar</button>
+        <a class="btn" href="https://www.google.com/maps?q=${p._lat},${p._lng}" target="_blank" rel="noreferrer">Google Maps</a>
+        ${p.link ? `<a class="btn" href="${p.link}" target="_blank" rel="noreferrer">Abrir link</a>` : ''}
+        <button class="btn" data-act="copy">Copiar resumo</button>
+        <button class="btn" data-act="share">Partilhar</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
+      <div>
+        <div class="meta-line"><b>Tipo:</b> ${tipoLabel(p)}</div>
+        <div class="meta-line"><b>Promotor:</b> ${p.promotor || '—'}</div>
+        <div class="meta-line"><b>Ref. interna:</b> ${p.refInterna || '—'}</div>
+        <div class="meta-line"><b>Tipologias:</b> ${p.tipologias || '—'}</div>
+        <div class="meta-line"><b>Conclusão:</b> ${formatConclusao(p)}</div>
+        <div class="meta-line"><b>€/m²:</b> ${p.preco_m2 ? (numPT(p.preco_m2) ?? 0).toLocaleString('pt-PT') : '—'}</div>
+        <div class="meta-line"><b>Preço pedido:</b> ${precoPedidoStr}</div>
+        <div class="meta-line"><b>Notas:</b> ${p.notas || '—'}</div>
+        <div class="meta-line"><b>Coordenadas:</b> ${numPT(p._lat) ?? '—'}, ${numPT(p._lng) ?? '—'}</div>
+      </div>
+      <div>
+        <div class="label">Documentos & Media</div>
+        ${buildDocsHTML(p.docs || [])}
+      </div>
+    </div>
+  `;
+
+  el('panelInner').innerHTML = html;
+  el('side-panel').classList.add('show');
+
+  if (focus && numPT(p._lat) !== null && numPT(p._lng) !== null) {
+    MAP?.setView([numPT(p._lat), numPT(p._lng)], 16, { animate: true });
+  }
+
+  el('panelInner').querySelector('[data-act="center"]')?.addEventListener('click', () => {
+    if (numPT(p._lat) !== null && numPT(p._lng) !== null) {
+      MAP?.setView([p._lat, p._lng], 16, { animate: true });
+    }
+  });
+
+  el('panelInner').querySelector('[data-act="copy"]')?.addEventListener('click', async () => {
+    const resumo = `${p.refInterna ? '[' + p.refInterna + '] ' : ''}${p.nome || ''} — ${p.concelho || ''} (${p.estado || ''}) · ${tipoLabel(p)} · Conclusão ${formatConclusao(p)} · Preço: ${precoPedidoStr} · Ref. ${p.refInterna || '-'} · ${p.link || ''}`.trim();
+    try { await navigator.clipboard.writeText(resumo); } catch {}
+  });
+
+  el('panelInner').querySelector('[data-act="share"]')?.addEventListener('click', async () => {
+    const shareData = {
+      title: p.nome || 'Empreendimento',
+      text: `${p.refInterna ? '[' + p.refInterna + '] ' : ''}${p.nome || ''} — ${p.concelho || ''} (${p.estado || ''}) · ${tipoLabel(p)} · Conclusão ${formatConclusao(p)} · Preço: ${precoPedidoStr}${p.refInterna ? ' · Ref. ' + p.refInterna : ''}`,
+      url: location.href
+    };
+    if (navigator.share) {
+      try { await navigator.share(shareData); } catch {}
+    } else {
+      try { await navigator.clipboard.writeText(shareData.text + ' ' + (p.link || location.href)); } catch {}
+    }
+  });
+
+  const ul = el('panelInner').querySelector('#docList');
+  if (ul) {
+    ul.querySelectorAll('li').forEach(li => {
+      li.addEventListener('click', async () => {
+        const rawUrl = li.getAttribute('data-url');
+        const tp = li.getAttribute('data-type');
+        const view = el('panelInner').querySelector('#docView');
+        await renderDocPreview(view, rawUrl, tp);
+      });
+      li.querySelector('[data-act="expand"]')?.addEventListener('click', async e => {
+        e.stopPropagation();
+        const raw = e.target.getAttribute('data-url');
+        const u = await resolveLocalUrl(raw);
+        openPDF(u);
+      });
+    });
+  }
+}
+
+el('closePanel')?.addEventListener('click',()=>{
+  el('side-panel').classList.remove('show');
+  revokeTempUrls();
+});
+
+/* ===== Persistência ===== */
+function loadLS(){
+  try{
+    const x=localStorage.getItem(LS_KEY);
+    if(!x) return null;
+    if(x.length > 500000){
+      LS_SKIPPED=true;
+      return null;
+    }
+    return JSON.parse(x);
+  }catch(e){
+    LS_ERROR=true;
+    return null;
+  }
+}
+
+/* ===== Merge angariações ===== */
+function parseGps(gps){
+  if(!gps) return {lat:null,lng:null};
+  const m = String(gps).match(/-?\d+(?:[.,]\d+)?/g);
+  if(!m || m.length<2) return {lat:null,lng:null};
+  const lat = numPT(m[0]);
+  const lng = numPT(m[1]);
+  return {lat,lng};
+}
+function mergeAngariacoesIntoRAW(){
+  let raw=null;
+  try{ raw = localStorage.getItem('gpp_angariacoes_v2'); }catch{ return; }
+  if(!raw) return;
+
+  let store;
+  try{ store = JSON.parse(raw); }catch{ return; }
+  if(!store || !Array.isArray(store.deals)) return;
+
+  const deals = store.deals;
+
+  RAW.forEach(p=>{
+    if(!p._angKey && (p._fromAngariacoes || String(p.slug||'').startsWith('ang-'))){
+      p._angKey = 'ang:' + String(p.slug||'').replace(/^ang-/, '');
+    }
+  });
+
+  const byAngKey = new Map(RAW.filter(p=>p._angKey).map(p=>[p._angKey, p]));
+
+  deals.forEach(d=>{
+    if(!d) return;
+    const deal = { ...d };
+    const coords = parseGps(deal.gps || '');
+    if(coords.lat===null || coords.lng===null) return;
+
+    const isEmp = !!deal.isEmpreendimento;
+    const nome = deal.nomeEmp || deal.tituloImovel || deal.refInterna || (isEmp ? 'Empreendimento' : 'Imóvel');
+    const baseId = deal.id || slugify(nome);
+    const slug = 'ang-' + baseId;
+    const angKey = 'ang:' + baseId;
+
+    let ano = deal.anoConclEmp || deal.anoConclusao || '';
+    ano = ano ? Number(ano) : '';
+    let mes = deal.mesConclEmp || deal.mesConclusao || '';
+    mes = mes ? Number(mes) : '';
+
+    const estado = (function(){
+      const e = deal.estadoImovel;
+      if(e === 'construcao') return 'em_construcao';
+      if(e === 'projeto') return 'licenciado';
+      if(e === 'novo' || e === 'usado' || e === 'recuperado') return 'concluido';
+      return '';
+    })();
+
+    const preco = numPT(deal.precoPedido);
+    let preco_m2 = '';
+    const areaABP = numPT(deal.areaABP || deal.areaBruta);
+    if(preco !== null && areaABP && areaABP>0){
+      preco_m2 = Math.round(preco/areaABP);
+    }
+
+    const obj = {
+      _angKey: angKey,
+      slug,
+      nome,
+      concelho: deal.concelho || '',
+      estado,
+      promotor: deal.promotor || '',
+      tipologias: deal.tipologiasEmp || '',
+      conclusaoAno: ano || '',
+      conclusaoMes: mes || '',
+      conclusao: ano || '',
+      preco_m2: preco_m2 || '',
+      precoPedido: preco !== null ? preco : '',
+      notas: deal.observacoes || '',
+      link: deal.linkUrl || '',
+      _lat: coords.lat,
+      _lng: coords.lng,
+      docs: [],
+      _fromAngariacoes: true,
+      isEmpreendimento: isEmp,
+      refInterna: deal.refInterna || '',
+      _ownerNome: deal.nomeProprietario || deal.proprietario || '',
+      _ownerTelefone: deal.telefoneProprietario || deal.telefone || '',
+      _ownerTelemovel: deal.telemovelProprietario || deal.telemovel || '',
+      _contactos: deal.contactos || ''
+    };
+
+    if(byAngKey.has(angKey)){
+      Object.assign(byAngKey.get(angKey), obj);
+    }else{
+      RAW.push(obj);
+      byAngKey.set(angKey, obj);
+    }
+  });
+}
+
+/* ===== Normalizações ===== */
+function normalizeTipoImovel(){
+  RAW.forEach(p=>{
+    if(typeof p.isEmpreendimento === 'undefined'){
+      p.isEmpreendimento = true;
+    }
+  });
+}
+function normalizeConclusaoFields(){
+  RAW.forEach(p=>{
+    const anoStored = p.conclusaoAno || p.conclusao;
+    if(anoStored && !p.conclusaoAno){
+      p.conclusaoAno = Number(anoStored);
+    }
+    if(p.conclusaoAno && !p.conclusao){
+      p.conclusao = p.conclusaoAno;
+    }
+    if(p.conclusaoAno && (p.conclusaoMes === undefined || p.conclusaoMes === null || p.conclusaoMes === '')){
+      p.conclusaoMes = 12;
+    }
+  });
+}
+function autoUpdateEstadosByConclusao(){
+  const today = new Date();
+  RAW.forEach(p=>{
+    const ano = Number(p.conclusaoAno || p.conclusao || '');
+    const mes = Number(p.conclusaoMes || '');
+    if(!ano || !mes) return;
+    if(p.estado !== 'em_construcao') return;
+    const lastDay = new Date(ano, mes, 0);
+    if(today >= lastDay) p.estado = 'concluido';
+  });
+}
+
+/* ===== Persistência filtros ===== */
+function loadFilterState(){
+  try{
+    const raw = localStorage.getItem(FILTERS_KEY);
+    if(!raw) return;
+    const obj = JSON.parse(raw);
+    if(!obj || typeof obj !== 'object') return;
+
+    UIState = {
+      q: obj.q || '',
+      concelho: obj.concelho || '',
+      estado: obj.estado || '',
+      cmin: obj.cmin || '',
+      cmax: obj.cmax || '',
+      pmin: obj.pmin || '',
+      pmax: obj.pmax || '',
+      vmin: obj.vmin || '',
+      vmax: obj.vmax || '',
+      promotor: obj.promotor || '',
+      tipos: obj.tipos || '',
+      tipo: obj.tipo || ''
+    };
+
+    el('q').value = UIState.q;
+    el('f_concelho').value = UIState.concelho;
+    el('f_cmin').value = UIState.cmin;
+    el('f_cmax').value = UIState.cmax;
+    el('f_pmin').value = UIState.pmin;
+    el('f_pmax').value = UIState.pmax;
+    el('f_vmin').value = UIState.vmin;
+    el('f_vmax').value = UIState.vmax;
+    el('f_promotor').value = UIState.promotor;
+    el('f_tipos').value = UIState.tipos;
+
+    document.querySelectorAll('#estadoChips .chip').forEach(c=>c.classList.remove('active'));
+    (document.querySelector(`#estadoChips .chip[data-v="${UIState.estado}"]`) || document.querySelector('#estadoChips .chip[data-v=""]'))?.classList.add('active');
+
+    document.querySelectorAll('#tipoChips .chip').forEach(c=>c.classList.remove('active'));
+    (document.querySelector(`#tipoChips .chip[data-v="${UIState.tipo}"]`) || document.querySelector('#tipoChips .chip[data-v=""]'))?.classList.add('active');
+  }catch{}
+}
+
+function saveFilterStateFromUI(){
+  try{ localStorage.setItem(FILTERS_KEY, JSON.stringify(UIState)); }catch{}
+}
+
+/* ===== UI eventos ===== */
+document.querySelectorAll('#estadoChips .chip').forEach(ch=>{
+  ch.addEventListener('click',()=>{
+    document.querySelectorAll('#estadoChips .chip').forEach(c=>c.classList.remove('active'));
+    ch.classList.add('active');
+    UIState.estado=ch.dataset.v||'';
+    saveFilterStateFromUI();
+    run();
+  });
+});
+document.querySelectorAll('#tipoChips .chip').forEach(ch=>{
+  ch.addEventListener('click',()=>{
+    document.querySelectorAll('#tipoChips .chip').forEach(c=>c.classList.remove('active'));
+    ch.classList.add('active');
+    UIState.tipo=ch.dataset.v||'';
+    saveFilterStateFromUI();
+    run();
+  });
+});
+el('apply').addEventListener('click',()=>{
+  UIState.q=el('q').value.trim();
+  UIState.concelho=el('f_concelho').value;
+  UIState.cmin=el('f_cmin').value;
+  UIState.cmax=el('f_cmax').value;
+  UIState.pmin=el('f_pmin').value;
+  UIState.pmax=el('f_pmax').value;
+  UIState.vmin=el('f_vmin').value;
+  UIState.vmax=el('f_vmax').value;
+  UIState.promotor=el('f_promotor').value;
+  UIState.tipos=el('f_tipos').value.trim();
+  saveFilterStateFromUI();
   run();
+});
+el('clear').addEventListener('click',()=>{
+  ['q','f_concelho','f_cmin','f_cmax','f_pmin','f_pmax','f_vmin','f_vmax','f_promotor','f_tipos'].forEach(id=>el(id).value='');
+  document.querySelectorAll('#estadoChips .chip').forEach(c=>c.classList.remove('active'));
+  document.querySelector('#estadoChips .chip[data-v=""]')?.classList.add('active');
+  document.querySelectorAll('#tipoChips .chip').forEach(c=>c.classList.remove('active'));
+  document.querySelector('#tipoChips .chip[data-v=""]')?.classList.add('active');
+  UIState={ q:'', concelho:'', estado:'', cmin:'', cmax:'', pmin:'', pmax:'', vmin:'', vmax:'', promotor:'', tipos:'', tipo:'' };
+  saveFilterStateFromUI();
+  run();
+});
+
+/* ===== Ciclo render ===== */
+function run(){
+  applyFilters();
+  renderKPIs();
+  renderList();
+  renderMarkers();
 }
 
-function run(){apply();renderKPIs();renderList();renderMap();}
+/* ===== Arranque ===== */
+(async function init(){
+  setStatus('A iniciar mapa…');
 
-el('apply').onclick=run;
-el('clear').onclick=()=>{el('q').value='';el('f_concelho').value='';el('f_estado').value='';run();}
-el('reload').onclick=()=>location.reload();
-el('focus').onclick=()=>MAP.setView(AMP,ZOOM);
+  try{ await loadLeafletAndCluster(); }catch{}
+  if(window.L){
+    initMap();
+  } else {
+    document.getElementById('map')?.classList.add('hidden');
+    setStatus('⚠ Não foi possível carregar o motor de mapa (Leaflet).');
+    return;
+  }
 
-init();
+  await detectStorageMode();
+
+  if(TEAM_READONLY_FORCE_CSV){
+    RAW = await loadFromCSV();
+    if(!RAW.length){
+      const mem = loadLS();
+      RAW = Array.isArray(mem) ? mem : [];
+    }
+  }else{
+    const mem = loadLS();
+    RAW = Array.isArray(mem) ? mem : [];
+    if(!RAW.length) RAW = await loadFromCSV();
+  }
+
+  mergeAngariacoesIntoRAW();
+  normalizeTipoImovel();
+  normalizeConclusaoFields();
+  autoUpdateEstadosByConclusao();
+
+  if(!RAW.length){
+    setStatus('⚠ Sem dados. Confirme que existe /data/gpp-mapa.csv e que contém lat/lng.');
+    return;
+  }
+
+  buildFacetOptions();
+  loadFilterState();
+  run();
+  setStatus('');
+})();
 </script>
+
 </body>
 </html>
