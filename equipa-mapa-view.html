@@ -671,7 +671,6 @@ function pick(obj, keys){
   return '';
 }
 
-<script>
 async function loadFromCSV(){
   setStatus('A carregar dataset do CSV…');
 
@@ -694,13 +693,11 @@ async function loadFromCSV(){
       resolve(arr || []);
     };
 
-    // Watchdog duro (evita ficar preso)
     const watchdog = setTimeout(() => {
       try { if (parser && parser.abort) parser.abort(); } catch {}
       finish([], '⚠ Timeout a ler o CSV. O ficheiro é demasiado pesado ou está a bloquear o browser.');
     }, 45000);
 
-    // Importante: chunk parsing (streaming)
     let parser = null;
 
     try{
@@ -708,8 +705,8 @@ async function loadFromCSV(){
         download: true,
         header: true,
         skipEmptyLines: true,
-        worker: true,              // mantém performance quando possível
-        chunkSize: 1024 * 512,     // 512 KB por chunk (ajuda muito em CSVs grandes)
+        worker: true,
+        chunkSize: 1024 * 512,
         chunk: (results, p) => {
           parser = p;
 
@@ -717,11 +714,8 @@ async function loadFromCSV(){
           if(!rows.length) return;
 
           for(const r of rows){
-            // NOTA: ignoramos deliberadamente "docs" (onde tens base64 gigante)
             const lat = numPT(pick(r, ['_lat','lat','latitude','Lat','LAT']));
             const lng = numPT(pick(r, ['_lng','lng','lon','longitude','Lng','LNG']));
-
-            // se não tiver coordenadas, ignora (evita lixo)
             if(lat === null || lng === null) continue;
 
             const tipoRaw = String(pick(r, ['isEmpreendimento','tipo','Tipo','TIPO'])).toLowerCase();
@@ -743,7 +737,7 @@ async function loadFromCSV(){
               link: pick(r, ['link','url','URL']),
               _lat: lat,
               _lng: lng,
-              docs: [],                 // <<<< sempre vazio no modo Equipa (para não carregar base64)
+              docs: [],
               isEmpreendimento: isIso ? false : true
             });
           }
@@ -753,7 +747,6 @@ async function loadFromCSV(){
             setStatus(`A carregar dataset do CSV… (${out.length} pontos válidos)`);
           }
 
-          // Protecção adicional: se o CSV estiver absurdo, evita rebentar
           if(out.length > 20000){
             try { p.abort(); } catch {}
             clearTimeout(watchdog);
@@ -762,12 +755,8 @@ async function loadFromCSV(){
         },
         complete: () => {
           clearTimeout(watchdog);
-
           const sanity = out.some(x => (x.nome || x.refInterna) && x._lat !== null && x._lng !== null);
-          if(!sanity){
-            return finish([], '⚠ CSV carregou, mas não tem colunas válidas (lat/lng/nome).');
-          }
-
+          if(!sanity) return finish([], '⚠ CSV carregou, mas não tem colunas válidas (lat/lng/nome).');
           finish(out, '');
         },
         error: (err) => {
