@@ -752,9 +752,12 @@ function csvToObjects(csvText){
   const rows = parsed?.data || [];
   const out = [];
   for(const r of rows){
-    const lat = numPT(pick(r, ['_lat','lat','latitude','Lat','LAT']));
-    const lng = numPT(pick(r, ['_lng','lng','lon','longitude','Lng','LNG']));
-    if(lat === null || lng === null) continue;
+    const lat = numCoord(pick(r, ['_lat','lat','latitude','Lat','LAT']));
+const lng = numCoord(pick(r, ['_lng','lng','lon','longitude','Lng','LNG']));
+if(lat === null || lng === null) continue;
+
+// valida intervalos (evita Leaflet rebentar)
+if(lat < -90 || lat > 90 || lng < -180 || lng > 180) continue;
 
     const tipoRaw = String(pick(r, ['isEmpreendimento','tipo','Tipo','TIPO'])).toLowerCase();
     const isIso = tipoRaw.includes('iso') || tipoRaw === '0' || tipoRaw === 'false';
