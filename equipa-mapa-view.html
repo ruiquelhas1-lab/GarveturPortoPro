@@ -666,51 +666,53 @@ async function loadFromCSV(){
   setStatus('A carregar dataset do CSV…');
 
   if(!window.Papa){
-    setStatus('⚠ Parser CSV não disponível (PapaParse).');
+    setStatus('⚠ PapaParse não está disponível.');
     return [];
   }
 
-  let text='';
-  try{
-    text = await fetchTextWithTimeout(CSV_URL, 18000);
-  }catch(e){
-    console.error('Falha fetch CSV:', e);
-    setStatus('⚠ Não foi possível descarregar o CSV (timeout/404). Confirme /data/gpp-mapa.csv');
-    return [];
-  }
-
-  // Se o GitHub Pages devolver HTML (404 page) em vez do CSV
-  const head = text.slice(0,200).toLowerCase();
-  if(head.includes('<!doctype') || head.includes('<html')){
-    console.warn('CSV devolveu HTML (provável 404).');
-    setStatus('⚠ CSV não encontrado. Confirme o caminho: /data/gpp-mapa.csv');
-    return [];
-  }
+  // URL absoluto + cache-buster
+  const csvUrl = new URL(CSV_PATH, location.origin);
+  csvUrl.searchParams.set('v', String(Date.now()));
 
   return await new Promise((resolve)=>{
-    let finished=false;
+    let done=false;
 
-    function finish(arr, msg){
-      if(finished) return;
-      finished=true;
-      setStatus(msg || '');
+    const fail = (msg) => {
+      if(done) return;
+      done=true;
+      setStatus(msg);
+      resolve([]);
+    };
+
+    const ok = (arr) => {
+      if(done) return;
+      done=true;
+      setStatus('');
       resolve(arr || []);
-    }
+    };
 
-    // watchdog parsing (se algo correr mal, não bloqueia)
+    // watchdog: se algo bloquear, não fica preso
     const watchdog = setTimeout(()=>{
-      finish([], '⚠ Timeout a processar CSV. Confirme o ficheiro e tamanho.');
+      fail('⚠ Timeout a carregar/ler CSV. Confirme o caminho e o tamanho do ficheiro.');
     }, 20000);
 
-    Papa.parse(text, {
-      header:true,
-      skipEmptyLines:true,
-      worker:true,
-      complete: (results)=>{
+    Papa.parse(csvUrl.toString(), {
+      download: true,        // <<< IMPORTANTE: o Papa faz o fetch
+      header: true,
+      skipEmptyLines: true,
+      worker: true,
+      complete: (results) => {
         clearTimeout(watchdog);
         try{
           const rows = results?.data || [];
-          if(!rows.length) return finish([], '⚠ CSV sem linhas válidas.');
+          if(!rows.length) return fail('⚠ CSV sem linhas válidas.');
+
+          const pick = (obj, keys) => {
+            for(const k of keys){
+              if(obj && Object.prototype.hasOwnProperty.call(obj,k) && String(obj[k] ?? '').trim() !== '') return obj[k];
+            }
+            return '';
+          };
 
           const arr = rows.map(r=>{
             const lat = numPT(pick(r, ['_lat','lat','latitude','Lat','LAT']));
@@ -739,19 +741,20 @@ async function loadFromCSV(){
             };
           });
 
+          // sanity check mínimo: pelo menos 1 ponto com lat/lng e nome/ref
           const sanity = arr.some(x => (x.nome || x.refInterna) && x._lat!==null && x._lng!==null);
-          if(!sanity) return finish([], '⚠ CSV carregou, mas não tem colunas válidas (lat/lng/nome).');
+          if(!sanity) return fail('⚠ CSV carregou mas não tem colunas válidas (lat/lng/nome).');
 
-          finish(arr);
+          ok(arr);
         }catch(e){
-          console.error('Erro processar CSV:', e);
-          finish([], '⚠ Erro a processar CSV.');
+          console.error(e);
+          fail('⚠ Erro a processar CSV.');
         }
       },
-      error: (err)=>{
+      error: (err) => {
         clearTimeout(watchdog);
-        console.error('Papa error:', err);
-        finish([], '⚠ Erro no parser do CSV.');
+        console.error(err);
+        fail('⚠ Não foi possível descarregar o CSV. Confirme se /data/gpp-mapa.csv existe no GitHub Pages.');
       }
     });
   });
