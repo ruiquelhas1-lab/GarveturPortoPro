@@ -1,4 +1,5 @@
 
+
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -1723,7 +1724,7 @@ if(out.precoAnuncio === '' || out.precoAnuncio == null){
   }
 
   /* ============ IndexedDB (PDFs) ============ */
-  async function openDB(){
+  function openDB(){
     return new Promise((resolve, reject)=>{
       const req = indexedDB.open(DB_NAME, DB_VERSION);
       req.onupgradeneeded = (ev)=>{
@@ -1738,7 +1739,7 @@ if(out.precoAnuncio === '' || out.precoAnuncio == null){
     });
   }
 
-  async async function addAttachment(itemId, file){
+  async function addAttachment(itemId, file){
     const db = await openDB();
     const id = 'att_' + itemId + '_' + Date.now() + '_' + Math.random().toString(16).slice(2);
     const rec = {
@@ -1759,7 +1760,7 @@ if(out.precoAnuncio === '' || out.precoAnuncio == null){
     });
   }
 
-  async async function listAttachments(itemId){
+  async function listAttachments(itemId){
     const db = await openDB();
     return new Promise((resolve, reject)=>{
       const tx = db.transaction(STORE, 'readonly');
@@ -1770,7 +1771,7 @@ if(out.precoAnuncio === '' || out.precoAnuncio == null){
     });
   }
 
-  async async function deleteAttachment(attId){
+  async function deleteAttachment(attId){
     const db = await openDB();
     return new Promise((resolve, reject)=>{
       const tx = db.transaction(STORE, 'readwrite');
@@ -1780,7 +1781,7 @@ if(out.precoAnuncio === '' || out.precoAnuncio == null){
     });
   }
 
-  async async async function getAttachment(attId){
+  async function getAttachment(attId){
     const db = await openDB();
     return new Promise((resolve, reject)=>{
       const tx = db.transaction(STORE, 'readonly');
@@ -2695,32 +2696,55 @@ Notas:
     }
   }
 
-  async async function openKit(item){
-  // Compatibilidade: o módulo usa buildKit() como fluxo principal.
-  // Mantemos openKit() para chamadas antigas/atalhos.
-  try{
-    if(!item) return;
-    CURRENT = item;
-    // Abrir modal
-    kitBackdrop.classList.add('show');
-    // Gerar kit completo (WhatsApp/Email/Chamada/SWOT)
-    regenKit();
-  }catch(e){
-    console.error(e);
-  }
-}
+  async function openKit(item){
+    currentKitItem = item;
+    kitBackdrop.classList.add('open');
+    kitTitle.textContent = 'Kit FSBO — ' + (item.tituloImovel || item.tipologia || 'Registo');
 
-function closeKit(){
+    kitSummary.innerHTML = '';
+    kitSummary.appendChild(buildSummaryLine('Propriet.', item.ownerName || '-', null));
+    kitSummary.appendChild(buildSummaryLine('Móvel', item.ownerPhone || '-', null));
+    kitSummary.appendChild(buildSummaryLine('Email', item.ownerEmail || '-', null));
+    kitSummary.appendChild(buildSummaryLine('Portal', item.portal || '-', null));
+    kitSummary.appendChild(buildSummaryLine('Estado', item.estadoProspeccao || '-', null));
+    kitSummary.appendChild(buildSummaryLine('Preço', item.precoAnuncio ? formatMoney(item.precoAnuncio) : '-', null));
+    kitSummary.appendChild(buildSummaryLine('Zona', [item.zona,item.freguesia,item.concelho].filter(Boolean).join(' · ') || '-', null));
+    kitSummary.appendChild(buildSummaryLine('Link', item.link ? 'Abrir anúncio' : '-', item.link || null));
+
+    const fetchInfo = await tryFetchTitleFromLink(item.link || '');
+    kitFetchNote.textContent = fetchInfo.note || '';
+
+    const t = fetchInfo.title || null;
+   kitWhatsappMainMessage = generateWhatsappSmart(item, t);
+kitWhatsapp.value = kitWhatsappMainMessage;
+    kitCall.value = generateCallScript(item, t);
+    kitEmailMainMessage = generateEmail(item, t);
+kitEmail.value = kitEmailMainMessage;
+    kitSwot.value = generateSwot(item, t);
+
+    // preparar botões
+    const phone = normalizePhone(item.ownerPhone || '');
+    openWhatsappBtn.disabled = !phone;
+    openWhatsappBtn.title = phone ? 'Abrir WhatsApp para este contacto' : 'Preencha o móvel do proprietário para abrir WhatsApp';
+
+    openMailtoBtn.disabled = !(item.ownerEmail || '').trim();
+    openMailtoBtn.title = openMailtoBtn.disabled ? 'Preencha o email do proprietário' : 'Abrir app de email';
+
+    showToast('Kit gerado');
+    renderFollowupPanel();
+  }
+
+  function closeKit(){
     kitBackdrop.classList.remove('open');
     currentKitItem = null;
   }
 
-  async async function regenKit(){
+  async function regenKit(){
     if(!currentKitItem) return;
     await openKit(currentKitItem);
   }
 
-  async async function copyText(text){
+  async function copyText(text){
     try{
       await navigator.clipboard.writeText(text);
       showToast('Copiado');
@@ -3553,7 +3577,7 @@ const content = (ta && typeof ta.value === 'string') ? ta.value.trim() : '';
     }
   }
 
-  async function handleRestore(){
+  function handleRestore(){
     if(!confirm(
       'Esta operação vai restaurar dados FSBO a partir de um ficheiro de backup.\n\n' +
       'Os dados atuais serão substituídos pelos do ficheiro selecionado.\n\n' +
