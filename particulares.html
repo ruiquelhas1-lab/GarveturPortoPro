@@ -1,4 +1,5 @@
 
+
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -2199,274 +2200,38 @@ if(!dataIdent){
     return parts[0] || '';
   }
 
-  function guessHighlights(item){
-    const base = (item.tituloImovel || '') + ' ' + (item.observacoes || '') + ' ' + (item.notasInternas || '');
-    const t = base.toLowerCase();
-    const hits = [];
-    const rules = [
-      ['varanda','Varanda/terraço'],['terraço','Varanda/terraço'],['garagem','Garagem'],['box','Garagem/box'],
-      ['elevador','Elevador'],['vista','Vista'],['remodel','Remodelação'],['renov','Renovação'],
-      ['metro','Proximidade ao metro'],['praia','Proximidade à praia'],['parque','Proximidade a parque'],['rio','Proximidade ao rio'],
-      ['luz','Luminosidade'],['sul','Exposição solar favorável'],['poente','Exposição solar favorável'],['nascente','Exposição solar favorável'],
-      ['suite','Suite'],['logradouro','Logradouro'],['jardim','Jardim'],['piscina','Piscina'],
-      ['novo','Imóvel recente/novo'],['constru','Construção'],['reabil','Reabilitação']
-    ];
-    rules.forEach(([key,label])=>{
-      if(t.includes(key) && !hits.includes(label)) hits.push(label);
-    });
-    return hits.slice(0,5);
-  }
-  function cleanText(s){
-    return String(s || '').replace(/\s+/g,' ').trim();
-  }
+  function guessHighlights(item, fetchedTitle='', opt){
+  // opt.mode:
+  //  - 'ad'  : apenas texto do anúncio (evita falsos positivos vindos de notas internas/checklists)
+  //  - 'all' : inclui notas internas (uso apenas interno)
+  const mode = (typeof opt === 'string' ? opt : (opt && opt.mode)) || 'all';
 
-  function pickFirstMatch(text, regex){
-    const m = String(text||'').match(regex);
-    return m ? (m[1] || m[0]) : '';
-  }
+  const parts = [
+    fetchedTitle || '',
+    item?.tituloImovel || '',
+    item?.observacoes || ''
+  ];
+  if(mode === 'all') parts.push(item?.notasInternas || '');
 
-  function extractFactsFromText(text){
-    const t = String(text||'');
+  const base = norm(parts.filter(Boolean).join(' '));
+  const hits = [];
 
-    // Área: "120 m2", "120m²", "120,5 m2"
-    const area = pickFirstMatch(t, /(\d{2,4}(?:[.,]\d{1,2})?)\s*(?:m2|m²)\b/i);
-
-    // Quartos: "T2", "2 quartos"
-    const tip = pickFirstMatch(t, /\bT\s?(\d{1,2})(?:\+\d)?\b/i);
-    const quartos = pickFirstMatch(t, /\b(\d{1,2})\s*(?:quartos?|qts?)\b/i) || (tip ? tip : '');
-
-    // WC: "2 wc", "2 casas de banho", "2 wcs"
-    const wc = pickFirstMatch(t, /\b(\d{1,2})\s*(?:wc|wcs|casa(?:s)?\s*de\s*banho)\b/i);
-
-    // Andar/Piso: "3º andar", "piso 2", "rés-do-chão"
-    let andar = pickFirstMatch(t, /\b(\d{1,2})\s*(?:º|o)?\s*(?:andar|piso)\b/i);
-    if(!andar){
-      const rdc = t.match(/\b(r[ée]s(?:-|\s)?do(?:-|\s)?ch[aã]o|rc)\b/i);
-      if(rdc) andar = 'Rés-do-chão';
-    }
-
-    // Elevador (sim/não) – tenta detectar presença
-    let elevador = '';
-    if(/\belevador\b/i.test(t)) elevador = 'Sim';
-    if(/\bsem\s+elevador\b/i.test(t)) elevador = 'Não';
-
-    return { area, quartos, wc, andar, elevador };
-  }
-
-function buildKitResumo(item){
-  // =========================
-  // RESUMO PREMIUM (FSBO)
-  // - Mais espaçamento entre secções
-  // - Títulos “tipo botão” (visual) com Unicode
-  // - Buckets adicionais
-  // - Deduplicação por secção
-  // =========================
-
-  // helpers locais (para não mexer no resto do ficheiro)
-  const NL = '\n';
-  const SEP = '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━';
-  const BTN = (t)=>`⬛ ${String(t||'').toUpperCase()}`; // “tipo botão” (sem cor real, mas forte no PDF e no Kit)
-
-  const clean = (s)=>String(s||'')
-    .replace(/\u00A0/g,' ')
-    .replace(/\s+/g,' ')
-    .trim();
-
-  const normalizeLine = (s)=>clean(s)
-    .toLowerCase()
-    .replace(/[•\-–—·|]/g,' ')
-    .replace(/\s+/g,' ')
-    .trim();
-
-  const isTooShort = (s)=>clean(s).length < 3;
-
-  const baseText = [
-    item.tituloImovel,
-    item.tipologia,
-    item.zona,
-    item.freguesia,
-    item.concelho,
-    item.observacoes,
-    item.notasInternas
-  ].filter(Boolean).join('\n');
-
-  const hasAnyText = clean(baseText).length >= 10;
-
-  const facts = extractFactsFromText(baseText);
-
-  const localidade = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
-  const preco = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
-
-  const highlights = guessHighlights(item);
-  const highlightsBlock = highlights.length
-    ? ('• ' + highlights.join('\n• '))
-    : '• (Sem características destacadas detectadas no texto)';
-
-  // --- 1) preparar “matéria-prima” a partir das Observações/Notas ---
-  const rawObs = String(item.observacoes || '');
-  const rawNotes = String(item.notasInternas || '');
-  const rawAll = [rawObs, rawNotes].filter(Boolean).join('\n');
-
-  // cortar “ruído” comum de listagens coladas
-  const scrub = (t)=>String(t||'')
-    .replace(/------+/g,'\n')
-    .replace(/\bCaracterísticas\s+específicas\b/gi,'\nCaracterísticas específicas:\n')
-    .replace(/\bEdif[ií]cio\s*\/\s*Condom[ií]nio\b/gi,'\nEdifício/Condomínio:\n')
-    .replace(/\bEfici[eê]ncia\s+energ[eé]tica\b/gi,'\nEficiência energética:\n')
-    .replace(/\r/g,'')
-    .trim();
-
-  const text = scrub(rawAll);
-
-  // split inteligente: bullets, quebras, pontos, “;”
-  const parts = text
-    .split(/\n+|•|;|\.(?!\d)|\s{2,}/g)
-    .map(s=>clean(s))
-    .filter(s=>!isTooShort(s));
-
-  // --- 2) Buckets + regras de classificação ---
-  const BUCKETS = [
-    { key:'descricao', title:'Descrição (síntese)', icon:'📝',
-      test:(s)=>/localizad|zona|pr[oó]xim|acesso|transport|com[eé]rcio|vistas?|rio|praia|metro/i.test(s)
-    },
-    { key:'acab', title:'Acabamentos & Materiais', icon:'🧱',
-      test:(s)=>/materiais?|acabamentos?|madeira|m[aá]rmore|pedra|carpint|lacad|arm[aá]rios?\s+embut|roupeir|caixilh|vidro|duplo|cortinas|estores/i.test(s)
-    },
-    { key:'cozinha', title:'Cozinha & Equipamentos', icon:'🍽️',
-      test:(s)=>/cozinha|forno|placa|exaustor|frigor[ií]fico|micro-?ondas|lava-?loi[cç]a|bosch|siemens|aeg|miele|equipad|eletrodom/i.test(s)
-    },
-    { key:'conforto', title:'Conforto & Climatização', icon:'🌡️',
-      test:(s)=>/ar\s*condicionado|a\/c\b|climatiza|piso\s*radiante|bomba\s*de\s*calor|aquecimento|caldeira|ventila[cç][aã]o|isolament/i.test(s)
-    },
-    { key:'domotica', title:'Domótica / Segurança', icon:'🔐',
-      test:(s)=>/dom[oó]tica|alarme|c[âa]maras?|videoporteiro|porta\s*blindada|seguran[cç]a|fechadura/i.test(s)
-    },
-    { key:'vistas', title:'Vistas / Exposição Solar', icon:'🌞',
-      test:(s)=>/vista|exposi[cç][aã]o\s*solar|nascente|poente|sul|norte|luminos|varanda|terra[cç]o|logradouro/i.test(s)
-    },
-    { key:'condominio', title:'Condomínio / Amenities', icon:'🏢',
-      test:(s)=>/condom[ií]nio|amenit|piscina|gin[aá]sio|porteiro|seguran[cç]a\s*24|jardim\s*comum|terra[cç]o\s*comum|sala\s*condom/i.test(s)
-    },
-    { key:'edificio', title:'Edifício & Acessos', icon:'🛗',
-      test:(s)=>/pr[eé]dio|edif[ií]cio|andar|piso|elevador|escadas|acessos?|hall|entrada/i.test(s)
-    },
-    { key:'estac', title:'Estacionamento & Arrumos', icon:'🚗',
-      test:(s)=>/garagem|box\b|lugar|estacion|carregamento|ve[ií]cul|arrumos?|arrecada[cç][aã]o/i.test(s)
-    },
-    { key:'energia', title:'Eficiência Energética', icon:'⚡',
-      test:(s)=>/classe\s*energ|certificado|a\+|a\b|b\b|efici[eê]ncia\s*energ|isolamento|janelas?\s+duplas?/i.test(s)
-    },
-    { key:'invest', title:'Rentabilidade / Investimento', icon:'📈',
-      test:(s)=>/rentabil|invest|yield|arrend|alojamento|licen[cç]a|revenue|retorno/i.test(s)
-    },
-    { key:'estado', title:'Estado & Reabilitação', icon:'🛠️',
-      test:(s)=>/novo|reabilit|remodel|renov|obra|reconstru|segunda\s*m[aã]o|bom\s*estado|a\s*estrear/i.test(s)
-    },
-    { key:'outros', title:'Outros Detalhes', icon:'➕',
-      test:(s)=>true
-    }
+  const rules = [
+    { re: /(varanda|terra[cç]o|logradouro|p[aá]tio|jardim)/, label:'Varanda/Exterior' },
+    { re: /(elevador)/, label:'Elevador' },
+    { re: /(garagem|box|lugar de garagem|estacionamento)/, label:'Garagem' },
+    { re: /(su[ií]te|suite)/, label:'Suite' },
+    { re: /(vista|mar|rio|douro|panor[aâ]mica)/, label:'Vistas' },
+    { re: /(novo|nova constru[cç][aã]o|constru[cç][aã]o nova|recuperad[oa]|reabilitad[oa])/, label:'Novo/Recuperado' },
+    { re: /(ar condicionado|a\/c|climatiza[cç][aã]o)/, label:'Ar condicionado' }
   ];
 
-  const bucketData = {};
-  BUCKETS.forEach(b=>bucketData[b.key] = { title:b.title, icon:b.icon, items:[], seen:new Set() });
-
-  // dedupe “curto” e remover duplicações óbvias (ex.: “3º andar” vs “3º andar com elevador”)
-  function addToBucket(key, line){
-    const v = clean(line);
-    if(isTooShort(v)) return;
-
-    // regra: se já temos “3º andar com elevador”, não adicionar “3º andar” nem “com elevador”
-    const n = normalizeLine(v);
-    const pack = bucketData[key];
-    if(!pack) return;
-
-    // não repetir
-    if(pack.seen.has(n)) return;
-
-    // anti-duplicação simples
-    if(/^\d{1,2}\s*º?\s*andar$/i.test(v) && pack.items.some(x=>/andar\s+com\s+elevador/i.test(x))) return;
-    if(/^com\s+elevador$/i.test(v) && pack.items.some(x=>/andar\s+com\s+elevador/i.test(x))) return;
-
-    pack.seen.add(n);
-    pack.items.push(v);
+  for(const r of rules){
+    if(r.re.test(base)) hits.push(r.label);
   }
 
-  // classificar partes
-  parts.forEach(p=>{
-    const chosen = BUCKETS.find(b=>b.test(p));
-    addToBucket(chosen ? chosen.key : 'outros', p);
-  });
-
-  // --- 3) Construção do output final (com espaçamento consistente) ---
-  const lines = [];
-  lines.push('RESUMO PREMIUM DO ANÚNCIO (FSBO)');
-  lines.push(SEP);
-
-  if(clean(item.tituloImovel)) lines.push('▌ Imóvel: ' + clean(item.tituloImovel));
-  if(preco) lines.push('▌ Preço: ' + preco);
-  if(localidade) lines.push('▌ Localização: ' + localidade);
-  if(clean(item.tipologia)) lines.push('▌ Tipologia: ' + clean(item.tipologia));
-
-  lines.push('');
-  lines.push(BTN('Ficha Rápida'));
-  lines.push('—');
-
-  if(facts.area) lines.push('• Área: ' + facts.area + ' m²');
-  if(facts.quartos) lines.push('• Quartos: ' + facts.quartos);
-  if(facts.wc) lines.push('• Casas de banho: ' + facts.wc);
-  if(facts.andar) lines.push('• Andar/Piso: ' + facts.andar);
-  if(facts.elevador) lines.push('• Elevador: ' + facts.elevador);
-
-  lines.push('');
-  lines.push(BTN('Pontos-chave'));
-  lines.push('—');
-  lines.push(highlightsBlock);
-
-  // detalhes organizados (só buckets com conteúdo)
-  const orderedKeys = [
-    'descricao','estado','acab','cozinha','conforto','domotica','vistas',
-    'condominio','edificio','estac','energia','invest','outros'
-  ];
-
-  const anyDetail = orderedKeys.some(k => bucketData[k] && bucketData[k].items.length);
-
-  lines.push('');
-  lines.push(BTN('Detalhes do anúncio (organizado)'));
-  lines.push('—');
-
-  if(anyDetail){
-    orderedKeys.forEach(k=>{
-      const b = bucketData[k];
-      if(!b || !b.items.length) return;
-
-      // espaçamento entre secções (o ponto que faltava)
-      lines.push('');
-      lines.push(`${b.icon} ${String(b.title||'').toUpperCase()}`);
-
-      b.items.slice(0,8).forEach(it=>{
-        lines.push('• ' + it);
-      });
-
-      // se for muito extenso, sinalizar
-      if(b.items.length > 8){
-        lines.push('• (… mais itens no anúncio / observações)');
-      }
-    });
-  }else{
-    lines.push('• (Sem detalhes suficientes nas Observações/Notas para organizar.)');
-  }
-
-  if(!hasAnyText){
-    lines.push('');
-    lines.push('Nota: Para um resumo mais completo, preencha “Observações” e/ou “Notas internas” no registo.');
-  }
-
-  lines.push('');
-  lines.push(SEP);
-  lines.push('Fim do resumo');
-  lines.push(SEP);
-
-  return lines.join('\n');
+  // remover duplicados + limitar
+  return [...new Set(hits)].slice(0, 3);
 }
   
   function generateWhatsapp(item, fetchedTitle){
@@ -2532,31 +2297,31 @@ Podemos agendar uma chamada curta hoje ao final do dia ou amanhã de manhã?`
     return [line1, '', line2].join('\n');
   }
 
-  function buildValueBlock(item){
-  const highlights = guessHighlights(item);
-  const h = highlights.length ? highlights.slice(0,3) : [];
+  function buildValueBlock(item, fetchedTitle){
+  // Versão FSBO (outreach): só usa informação que exista no anúncio importado
+  const adText = [fetchedTitle||'', item?.tituloImovel||'', item?.observacoes||''].filter(Boolean).join(' ');
+  const facts = extractFactsFromText(adText);
+  const highlights = guessHighlights(item, fetchedTitle, { mode:'ad' });
 
-  const parts = [];
+  // 1) Hook factual (sem assumir características)
+  const hookParts = [];
+  if(facts.tipologia) hookParts.push(facts.tipologia.toUpperCase());
+  if(facts.area && isFinite(facts.area)) hookParts.push(String(Math.round(facts.area)) + ' m²');
+  if(highlights.length) hookParts.push(highlights[0]);
 
-  parts.push(
-    "Analisei o seu anúncio com atenção porque corresponde exatamente ao tipo de imóvel que os compradores estão hoje a procurar nesta zona."
-  );
+  const hook = hookParts.length
+    ? `Analisei o seu anúncio com atenção — ${hookParts.join(' · ')} — porque o posicionamento encaixa bem no perfil de procura atual nesta zona.`
+    : `Analisei o seu anúncio com atenção porque o posicionamento e a zona encaixam bem no perfil de procura atual.`;
 
-  if(h.length){
-    parts.push(
-      `Há 2–3 detalhes que fazem muita diferença na procura e que, bem ajustados, costumam acelerar visitas e proteger o valor (ex.: ${h.join(', ')}).`
-    );
-  }
+  // 2) Detalhes a optimizar: apenas os detectados; caso contrário, falar de apresentação/estratégia
+  const detalhes = highlights.length
+    ? `Há 2–3 detalhes do anúncio que fazem diferença na procura e que, bem ajustados, costumam acelerar visitas e proteger o valor (ex.: ${highlights.join(', ')}).`
+    : `Há 2–3 pontos no posicionamento do anúncio que costumam fazer muita diferença (ex.: qualidade das fotos, clareza da descrição, estratégia de preço e gestão dos contactos).`;
 
-  parts.push(
-    "Na maioria dos casos, o desafio não é a falta de interesse, mas sim o posicionamento inicial — quando falha, o imóvel começa a negociar contra o proprietário."
-  );
-
-  parts.push(
-    "Se fizer sentido, posso dar-lhe um enquadramento objetivo em 10 minutos: preço real vs. mercado, pontos de melhoria imediata e a forma mais segura de conduzir contactos e negociação."
-  );
-
-  return parts.join('\n');
+  return `${hook}
+${detalhes}
+Na maioria dos casos, o desafio não é a falta de interesse, mas sim o posicionamento inicial — quando falha, o imóvel começa a negociar contra o proprietário.
+Se fizer sentido, posso dar-lhe um enquadramento objetivo em 10 minutos: preço real vs. mercado, melhorias imediatas e a forma mais segura de conduzir contactos e negociação.`;
 }
 
   function buildQuestionBlock(item, mode){
