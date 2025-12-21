@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -1102,9 +1103,9 @@
 
   // Campos (sinónimos) mais comuns encontrados nos módulos
   const CONTACT_FIELD_MAP = {
-    name:   ['nome','name','cliente','client','proprietario','proprietário','owner','contacto','contato','titular','empresa','company','lead','leadName'],
-    phone:  ['telemovel','telemóvel','telefone','tel','phone','mobile','contactoTel','contactTel','whatsapp'],
-    email:  ['email','e-mail','mail','contactoEmail','contactEmail']
+    name:   ['nome','name','cliente','client','proprietario','proprietário','owner','contacto','contato','titular','empresa','company','lead','leadName', 'ownerName', 'nomeProp', 'owner_name', 'proprietarioNome', 'proprietárioNome'],
+    phone:  ['telemovel','telemóvel','telefone','tel','phone','mobile','contactoTel','contactTel','whatsapp', 'ownerPhone', 'telProp', 'phoneProp', 'proprietarioTel', 'proprietárioTel', 'ownerMobile', 'ownerTel'],
+    email:  ['email','e-mail','mail','contactoEmail','contactEmail', 'ownerEmail', 'emailProp', 'proprietarioEmail', 'proprietárioEmail']
   };
 
   function onlyDigits(s){ return (s||'').toString().replace(/\D+/g,''); }
@@ -1258,35 +1259,48 @@
     return list.slice().sort((a,b)=>score(b)-score(a))[0] || null;
   }
 
-  function findContactPriority({name, phone, email}){
-    const idx = scanLocalStorageForContacts();
+  function scoreMatch(c, {nameN, phoneN, emailN}){
+    let score = 0;
+    // Nome (maior prioridade)
+    if(nameN && c.name){
+      if(c.name === nameN) score += 30;
+      else if(c.name.includes(nameN) || nameN.includes(c.name)) score += 18;
+    }
+    // Telefone
+    if(phoneN && c.phone){
+      if(c.phone === phoneN) score += 20;
+      else if(c.phone.endsWith(phoneN) || phoneN.endsWith(c.phone)) score += 14;
+    }
+    // Email
+    if(emailN && c.email){
+      if(c.email === emailN) score += 10;
+    }
+    // Bónus por completude
+    score += (c.name ? 2 : 0) + (c.phone ? 2 : 0) + (c.email ? 2 : 0) + (c.notes ? 1 : 0);
+    return score;
+  }
 
+  function findContactMatchesPriority({name, phone, email}){
+    const idx = scanLocalStorageForContacts();
     const nameN = normName(name);
     const phoneN = onlyDigits(phone);
     const emailN = normEmail(email);
 
-    // 1) Nome
-    if(nameN && nameN.length >= 3){
-      const exact = idx.filter(c=>c.name && c.name === nameN);
-      if(exact.length) return pickBestByCompleteness(exact);
+    // Sem query => sem matches
+    if(!( (nameN && nameN.length>=3) || (phoneN && phoneN.length>=7) || (emailN && emailN.includes('@')) )) return [];
 
-      const includes = idx.filter(c=>c.name && (c.name.includes(nameN) || nameN.includes(c.name)));
-      if(includes.length) return pickBestByCompleteness(includes);
+    const scored = [];
+    for(const c of idx){
+      const s = scoreMatch(c, {nameN, phoneN, emailN});
+      if(s>0) scored.push({ ...c, _score:s });
     }
+    scored.sort((a,b)=> b._score - a._score);
+    return scored.slice(0, 20); // limite razoável para UI
+  }
 
-    // 2) Telefone
-    if(phoneN && phoneN.length >= 7){
-      const byPhone = idx.filter(c=>c.phone && (c.phone === phoneN || c.phone.endsWith(phoneN) || phoneN.endsWith(c.phone)));
-      if(byPhone.length) return pickBestByCompleteness(byPhone);
-    }
-
-    // 3) Email
-    if(emailN && emailN.includes('@')){
-      const byEmail = idx.filter(c=>c.email && c.email === emailN);
-      if(byEmail.length) return pickBestByCompleteness(byEmail);
-    }
-
-    return null;
+  function findContactPriority({name, phone, email}){
+    const matches = findContactMatchesPriority({name, phone, email});
+    return matches[0] || null;
   }
 
 
@@ -1378,7 +1392,7 @@
       clearTimeout(timer);
       timer = setTimeout(()=>{
         const query = { name: normStr(iNome.value), phone: normStr(iTel.value), email: normStr(iEmail.value) };
-        const candidates = findContactCandidatesPriority(query);
+        const candidates = findContactMatchesPriority(query);
         const hit = candidates[0] || null;
 
         if(hit){
@@ -1490,6 +1504,7 @@
 
   const autoImportBadge = el('autoImportBadge');
   const autoImportText = el('autoImportText');
+  const btnResetCliente = el('btnResetCliente');
 
   const oObjetivo = el('oObjetivo');
   const oHorizonte = el('oHorizonte');
@@ -1553,7 +1568,8 @@
       5:'Passo 5 — Construção do Relatório'
     };
     stepTitle.textContent = titles[currentStep] || 'Passo';
-    btnPrev.disabled = currentStep === 1;
+    btnPrev.disabled = false;
+    btnPrev.textContent = (currentStep === 1) ? 'Voltar à lista' : 'Anterior';
     btnNext.textContent = (currentStep === 5) ? 'Concluir' : 'Seguinte';
   }
 
@@ -1809,6 +1825,27 @@
     inp.addEventListener('blur', ()=>{ scheduleAutoImport(); });
   });
 
+
+  // Botão Limpar (reset do cliente no passo 1)
+  btnResetCliente?.addEventListener('click', ()=>{
+    if(!confirm('Limpar os dados do cliente neste relatório?')) return;
+    cNome.value = '';
+    cTel.value = '';
+    cEmail.value = '';
+    cTipo.value = '';
+    if(cNotas.value){
+      // mantém notas internas gerais; remover apenas carimbos de importação
+      cNotas.value = cNotas.value
+        .split(/\n/)
+        .filter(line=>!line.trim().startsWith('[Importado de '))
+        .join('\n')
+        .trim();
+    }
+    const r = saveDraftSilent();
+    if(r?.cliente) r.cliente.importedFrom = null;
+    upsertReport(r);
+    setAutoImportUI(null);
+  });
   /* ===========================
      Lista: render + filtros
   =========================== */
@@ -1954,6 +1991,12 @@
   });
 
   btnPrev?.addEventListener('click', ()=>{
+    if(currentStep === 1){
+      saveDraft();
+      setTab('list');
+      renderList();
+      return;
+    }
     saveDraft();
     setStep(currentStep-1);
   });
