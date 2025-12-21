@@ -1199,5 +1199,1322 @@
     setTab('list');
     setStep(1);
   </script>
+  <!-- PDF.js (para extrair texto do PDF no browser) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.js" integrity="sha512-rV8m7FfYJEdq3OaS7mYy+z2Qm0x2t0xj2jN1mPz8HkZJfUQdZkqR7qkH3rZc7mU9lV4j2YH1qK4z6cGgE2Kp1w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script>
+(function(){
+  /* ===========================
+     Config / Helpers
+  =========================== */
+  const el = (id)=>document.getElementById(id);
+  const $$ = (sel, root=document)=>Array.from(root.querySelectorAll(sel));
+  const todayISO = ()=> new Date().toISOString().slice(0,10);
+
+  function safeJSONParse(raw, fallback){
+    try{ return raw ? JSON.parse(raw) : fallback; }catch{ return fallback; }
+  }
+  function uid(prefix='rpt'){
+    return prefix + '_' + Math.random().toString(16).slice(2) + '_' + Date.now().toString(16);
+  }
+  function bytesToMB(b){ return (b/1024/1024).toFixed(2) + ' MB'; }
+  function toPTDate(iso){
+    try{
+      const d = new Date(iso);
+      if(isNaN(d.getTime())) return iso;
+      return d.toLocaleDateString('pt-PT');
+    }catch{ return iso; }
+  }
+  function normStr(s){ return (s||'').toString().trim(); }
+
+  function moneyGuessToPretty(v){
+    // v pode ser número ou string com símbolos; tenta normalizar
+    if(v==null) return '—';
+    let s = String(v).replace(/\s/g,'');
+    // aceitar 780000, 780.000, 780 000, 780.000€
+    s = s.replace(/[€]/g,'');
+    // remover pontos de milhar e converter virgula para ponto
+    s = s.replace(/\./g,'').replace(/,/g,'.');
+    const n = Number(s);
+    if(!isFinite(n) || n<=0) return '—';
+    return n.toLocaleString('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+  }
+
+  function stripExtraSpaces(t){
+    return (t||'').replace(/\s+/g,' ').trim();
+  }
+
+  /* ===========================
+     Storage: Relatórios (meta)
+  =========================== */
+  const LS_KEY = 'gpp_relatorios_cliente_v1';
+
+  function loadAllReports(){
+    return safeJSONParse(localStorage.getItem(LS_KEY), []);
+  }
+  function saveAllReports(list){
+    localStorage.setItem(LS_KEY, JSON.stringify(list || []));
+  }
+  function getReport(id){
+    return loadAllReports().find(r=>r.id===id) || null;
+  }
+  function upsertReport(report){
+    const list = loadAllReports();
+    const idx = list.findIndex(r=>r.id===report.id);
+    if(idx>=0) list[idx] = report;
+    else list.unshift(report);
+    saveAllReports(list);
+  }
+  function deleteReport(id){
+    const list = loadAllReports().filter(r=>r.id!==id);
+    saveAllReports(list);
+  }
+
+  /* ===========================
+     IndexedDB: PDFs (Blobs)
+  =========================== */
+  const DB_NAME = 'gpp_relatorios_cliente_db_v1';
+  const DB_STORE = 'pdfs';
+
+  function openDB(){
+    return new Promise((resolve, reject)=>{
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onerror = ()=>reject(req.error);
+      req.onupgradeneeded = ()=>{
+        const db = req.result;
+        if(!db.objectStoreNames.contains(DB_STORE)){
+          db.createObjectStore(DB_STORE, { keyPath:'key' });
+        }
+      };
+      req.onsuccess = ()=>resolve(req.result);
+    });
+  }
+
+  async function idbPutPDF(key, blob, meta){
+    const db = await openDB();
+    return new Promise((resolve, reject)=>{
+      const tx = db.transaction(DB_STORE, 'readwrite');
+      tx.objectStore(DB_STORE).put({
+        key,
+        blob,
+        meta: meta || {}
+      });
+      tx.oncomplete = ()=>resolve(true);
+      tx.onerror = ()=>reject(tx.error);
+    });
+  }
+
+  async function idbGetPDF(key){
+    const db = await openDB();
+    return new Promise((resolve, reject)=>{
+      const tx = db.transaction(DB_STORE, 'readonly');
+      const req = tx.objectStore(DB_STORE).get(key);
+      req.onsuccess = ()=>resolve(req.result || null);
+      req.onerror = ()=>reject(req.error);
+    });
+  }
+
+  async function idbDelPDF(key){
+    const db = await openDB();
+    return new Promise((resolve, reject)=>{
+      const tx = db.transaction(DB_STORE, 'readwrite');
+      tx.objectStore(DB_STORE).delete(key);
+      tx.oncomplete = ()=>resolve(true);
+      tx.onerror = ()=>reject(tx.error);
+    });
+  }
+
+  /* ===========================
+     PDF Extraction (pdf.js)
+  =========================== */
+  if(window.pdfjsLib){
+    // worker
+    try{
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.js";
+    }catch{}
+  }
+
+  async function pdfToText(fileOrBlob){
+    if(!window.pdfjsLib) throw new Error('PDF.js não carregou.');
+
+    const ab = await fileOrBlob.arrayBuffer();
+    const loadingTask = pdfjsLib.getDocument({ data: ab });
+    const pdf = await loadingTask.promise;
+    const numPages = pdf.numPages;
+
+    let allText = '';
+    for(let p=1; p<=numPages; p++){
+      const page = await pdf.getPage(p);
+      const content = await page.getTextContent();
+      const strings = content.items.map(it => it.str).filter(Boolean);
+      const pageText = strings.join(' ');
+      allText += '\n\n' + pageText;
+    }
+    return { text: stripExtraSpaces(allText), pages: numPages };
+  }
+
+  /* ===========================
+     Heurísticas: Métricas / Capítulos / Resumo
+  =========================== */
+  function extractMetrics(text){
+    const t = text || '';
+
+    // €/m2
+    const reM2 = /(\d{1,3}(?:[ .]\d{3})*(?:,\d+)?)\s*(?:€|EUR)?\s*(?:\/|por)?\s*m2|m²/ig;
+    // intervalos tipo "6.000–7.500 €/m²" ou "6000 - 7500"
+    const reRange = /(\d{1,3}(?:[ .]\d{3})*)\s*(?:-|–|a)\s*(\d{1,3}(?:[ .]\d{3})*)\s*(?:€|EUR)?\s*(?:\/|por)?\s*(?:m2|m²)/ig;
+
+    // tendência: YoY, variação %
+    const reTrend = /(\+|-)?\s*(\d{1,2}(?:,\d+)?)\s*%\s*(?:a\.?a\.?|yoy|YoY|ano|anual)/g;
+
+    // tempo: dias / meses
+    const reTime = /(\d{1,3})\s*(dias|dia|meses|mês|semanas|semana)/ig;
+
+    function normNum(s){
+      return Number(String(s).replace(/\s/g,'').replace(/\./g,'').replace(',','.'));
+    }
+
+    let m2Vals = [];
+    let m2Range = null;
+
+    let m;
+    while((m = reRange.exec(t)) !== null){
+      const a = normNum(m[1]); const b = normNum(m[2]);
+      if(isFinite(a) && isFinite(b)){
+        m2Range = [a,b].sort((x,y)=>x-y);
+      }
+    }
+    while((m = reM2.exec(t)) !== null){
+      const val = normNum(m[1]);
+      if(isFinite(val) && val>0 && val<50000) m2Vals.push(val);
+    }
+
+    // preço médio/m2: mediana
+    let precoM2 = '—';
+    if(m2Vals.length){
+      m2Vals.sort((a,b)=>a-b);
+      const mid = Math.floor(m2Vals.length/2);
+      const med = (m2Vals.length%2) ? m2Vals[mid] : (m2Vals[mid-1]+m2Vals[mid])/2;
+      precoM2 = Math.round(med).toLocaleString('pt-PT') + ' €/m²';
+    }
+
+    let intervalo = '—';
+    if(m2Range){
+      intervalo = Math.round(m2Range[0]).toLocaleString('pt-PT') + '–' + Math.round(m2Range[1]).toLocaleString('pt-PT') + ' €/m²';
+    }
+
+    let tendencia = '—';
+    const trends = [];
+    while((m = reTrend.exec(t)) !== null){
+      const sign = m[1] || '';
+      const v = Number(String(m[2]).replace(',','.'));
+      if(isFinite(v) && v>=0 && v<=99) trends.push((sign==='-'?'-':'+') + v.toFixed(1) + '%');
+    }
+    if(trends.length){
+      // pegar 1-2
+      tendencia = trends.slice(0,2).join(' · ') + ' a.a.';
+    }
+
+    let tempo = '—';
+    const times = [];
+    while((m = reTime.exec(t)) !== null){
+      const n = Number(m[1]);
+      const unit = m[2].toLowerCase();
+      if(isFinite(n) && n>0){
+        times.push(n + ' ' + unit);
+      }
+    }
+    if(times.length){
+      tempo = times.slice(0,2).join(' · ');
+    }
+
+    return { precoM2, intervalo, tendencia, tempo };
+  }
+
+  function detectChapters(text){
+    const lines = (text||'').split('\n').map(l=>l.trim()).filter(Boolean);
+    const chapters = [];
+    const headingLike = (l)=>{
+      if(l.length < 6 || l.length > 80) return false;
+      // títulos: maiúsculas, ou começam com número, ou terminam com ":" e têm “cara” de heading
+      const upperRatio = l.replace(/[^A-ZÁÀÂÃÄÉÈÊÍÌÎÓÒÔÕÖÚÙÛÇ]/g,'').length / Math.max(1,l.replace(/[^A-Za-zÁÀÂÃÄÉÈÊÍÌÎÓÒÔÕÖÚÙÛÇ]/g,'').length);
+      if(upperRatio > 0.75 && l.length <= 60) return true;
+      if(/^\d+(\.\d+)*\s+/.test(l)) return true;
+      if(/:$/.test(l) && l.length<=60) return true;
+      if(/(conclus|resumo|metodologia|oferta|procura|preç|tendênc|recomenda|riscos|mercado)/i.test(l)) return true;
+      return false;
+    };
+
+    for(let i=0;i<lines.length;i++){
+      const l = lines[i];
+      if(headingLike(l)){
+        chapters.push(l.replace(/:+$/,''));
+      }
+      if(chapters.length>=8) break;
+    }
+    return chapters;
+  }
+
+  function buildAutoSummary(text, ctx){
+    // resumo simples e “seguro”: usa keywords do contexto para selecionar frases do PDF
+    const t = stripExtraSpaces(text||'');
+    if(!t) return { rel:'', risk:'', opp:'' };
+
+    const sentences = t
+      .replace(/([.!?])\s+/g,'$1|')
+      .split('|')
+      .map(s=>s.trim())
+      .filter(s=>s.length>35 && s.length<220);
+
+    const kwBase = [];
+    if(ctx?.zona) kwBase.push(ctx.zona);
+    if(ctx?.tipologia) kwBase.push(ctx.tipologia);
+    if(ctx?.objetivo) kwBase.push(ctx.objetivo);
+
+    const kwsRel = ['procura','oferta','preço','preços','tendência','variação','m²','m2','transações','absorção','stock','prime','luxo','porto','foz','boavista','centro'];
+    const kwsRisk = ['risco','incerteza','subida','queda','correção','negociação','taxa','juros','fiscal','licença','prazo','atraso','exposição'];
+    const kwsOpp  = ['oportunidade','crescimento','valorização','escassez','pipeline','novo','reabilitação','rentabilidade','yield','procura internacional','procura externa','premium'];
+
+    function score(s, kws){
+      const low = s.toLowerCase();
+      let pts = 0;
+      kws.forEach(k=>{
+        const kk = (k||'').toLowerCase();
+        if(!kk) return;
+        if(low.includes(kk)) pts += 2;
+      });
+      kwBase.forEach(k=>{
+        const kk = (k||'').toLowerCase();
+        if(!kk) return;
+        if(low.includes(kk)) pts += 3;
+      });
+      // valoriza frases com números
+      if(/\d/.test(s)) pts += 1;
+      return pts;
+    }
+
+    function pickTop(kws){
+      const ranked = sentences
+        .map(s=>({ s, p: score(s,kws) }))
+        .filter(x=>x.p>0)
+        .sort((a,b)=>b.p-a.p);
+      const top = ranked.slice(0,3).map(x=>x.s);
+      return top.join('\n• ').trim();
+    }
+
+    const rel = pickTop(kwsRel);
+    const risk = pickTop(kwsRisk);
+    const opp = pickTop(kwsOpp);
+
+    return {
+      rel: rel ? ('• ' + rel) : '',
+      risk: risk ? ('• ' + risk) : '',
+      opp: opp ? ('• ' + opp) : ''
+    };
+  }
+
+  /* ===========================
+     UI: Elementos do módulo
+  =========================== */
+  const q = el('q');
+  const fStatus = el('fStatus');
+  const fTipo = el('fTipo');
+  const fDataDe = el('fDataDe');
+  const fDataAte = el('fDataAte');
+  const fConfidencial = el('fConfidencial');
+
+  const btnApply = el('btnApply');
+  const btnClear = el('btnClear');
+
+  const reportsTbody = el('reportsTbody');
+
+  const tabList = el('tabList');
+  const tabWizard = el('tabWizard');
+  const viewList = el('viewList');
+  const viewWizard = el('viewWizard');
+
+  const btnNew = el('btnNew');
+  const btnGoWizard = el('btnGoWizard');
+  const btnBackToList = el('btnBackToList');
+  const btnSaveDraft = el('btnSaveDraft');
+
+  const btnPrev = el('btnPrev');
+  const btnNext = el('btnNext');
+
+  const steps = $$('.step');
+  const stepTitle = el('stepTitle');
+
+  // Step fields
+  const cTipo = el('cTipo');
+  const cNome = el('cNome');
+  const cTel = el('cTel');
+  const cEmail = el('cEmail');
+  const cIdioma = el('cIdioma');
+  const cDetalhe = el('cDetalhe');
+  const cConf = el('cConf');
+  const cNotas = el('cNotas');
+
+  const oObjetivo = el('oObjetivo');
+  const oHorizonte = el('oHorizonte');
+  const oRisco = el('oRisco');
+  const oPreocup = el('oPreocup');
+  const oBrief = el('oBrief');
+
+  const aFonte = el('aFonte');
+  const aSearch = el('aSearch');
+  const aZona = el('aZona');
+  const aTipologia = el('aTipologia');
+  const aPreco = el('aPreco');
+  const aObs = el('aObs');
+
+  const zZona = el('zZona');
+  const zTipologia = el('zTipologia');
+  const zSegmento = el('zSegmento');
+  const zMin = el('zMin');
+  const zMax = el('zMax');
+
+  const pdfFile = el('pdfFile');
+  const btnPickPdf = el('btnPickPdf');
+  const btnReprocess = el('btnReprocess');
+  const pdfList = el('pdfList');
+
+  const mPrecoM2 = el('mPrecoM2');
+  const mIntervalo = el('mIntervalo');
+  const mTendencia = el('mTendencia');
+  const mTempo = el('mTempo');
+  const mCapitulos = el('mCapitulos');
+
+  const sumRelevante = el('sumRelevante');
+  const sumRiscos = el('sumRiscos');
+  const sumOport = el('sumOport');
+
+  const sExec = el('sExec');
+  const sContexto = el('sContexto');
+  const sMercado = el('sMercado');
+  const sComps = el('sComps');
+  const sCenarios = el('sCenarios');
+  const sRecomend = el('sRecomend');
+  const sPlano = el('sPlano');
+  const sAnexos = el('sAnexos');
+
+  const rTom = el('rTom');
+  const rCTA = el('rCTA');
+  const rRecomend = el('rRecomend');
+
+  const btnBuildPdf = el('btnBuildPdf');
+  const btnBuildExec = el('btnBuildExec');
+  const btnDuplicate = el('btnDuplicate');
+
+  // Views & steps
+  const stepEls = [null, el('step1'), el('step2'), el('step3'), el('step4'), el('step5')];
+  let currentStep = 1;
+
+  let ACTIVE_REPORT_ID = null; // relatório em edição
+
+  function setTab(which){
+    const isList = which === 'list';
+    tabList.classList.toggle('active', isList);
+    tabWizard.classList.toggle('active', !isList);
+    viewList.classList.toggle('hidden', !isList);
+    viewWizard.classList.toggle('hidden', isList);
+  }
+
+  function setStep(n){
+    currentStep = Math.min(5, Math.max(1, n));
+    steps.forEach(s => s.classList.toggle('active', Number(s.dataset.step) === currentStep));
+    stepEls.forEach((node, idx)=>{ if(node) node.classList.toggle('hidden', idx !== currentStep); });
+
+    const titles = {
+      1:'Passo 1 — Identificação do Cliente',
+      2:'Passo 2 — Objetivo e Perfil de Decisão',
+      3:'Passo 3 — Ativo / Zona em análise',
+      4:'Passo 4 — Importar PDF & Análise',
+      5:'Passo 5 — Construção do Relatório'
+    };
+    stepTitle.textContent = titles[currentStep] || 'Passo';
+    btnPrev.disabled = currentStep === 1;
+    btnNext.textContent = (currentStep === 5) ? 'Concluir' : 'Seguinte';
+  }
+
+  function getSelectedAssetMode(){
+    return document.querySelector('input[name="assetMode"]:checked')?.value || 'imovel';
+  }
+
+  function collectForm(){
+    const mode = getSelectedAssetMode();
+
+    const preocup = Array.from(oPreocup?.selectedOptions || []).map(o=>o.value);
+
+    const base = {
+      id: ACTIVE_REPORT_ID || uid('rpt'),
+      createdAt: null,
+      updatedAt: todayISO(),
+      status: 'draft', // draft | final | sent
+
+      cliente: {
+        tipo: normStr(cTipo.value),
+        nome: normStr(cNome.value),
+        tel: normStr(cTel.value),
+        email: normStr(cEmail.value),
+        idioma: normStr(cIdioma.value || 'pt'),
+        detalhe: normStr(cDetalhe.value || 'exec'),
+        confidencial: (cConf.value === 'yes'),
+        notas: normStr(cNotas.value)
+      },
+
+      objetivo: {
+        objetivo: normStr(oObjetivo.value),
+        horizonte: normStr(oHorizonte.value),
+        risco: normStr(oRisco.value),
+        preocupacoes: preocup,
+        brief: normStr(oBrief.value)
+      },
+
+      ativo: {
+        mode,
+        imovel: {
+          fonte: normStr(aFonte.value),
+          query: normStr(aSearch.value),
+          zona: normStr(aZona.value),
+          tipologia: normStr(aTipologia.value),
+          preco: normStr(aPreco.value),
+          obs: normStr(aObs.value)
+        },
+        zona: {
+          zona: normStr(zZona.value),
+          tipologia: normStr(zTipologia.value),
+          segmento: normStr(zSegmento.value),
+          min: normStr(zMin.value),
+          max: normStr(zMax.value)
+        }
+      },
+
+      pdfs: [], // { key, name, size, pages, addedAt, extractedAt, metrics, chapters, textSample }
+      analysis: {
+        metrics: { precoM2:'—', intervalo:'—', tendencia:'—', tempo:'—' },
+        chapters: [],
+        sum: {
+          relevante: normStr(sumRelevante.value),
+          riscos: normStr(sumRiscos.value),
+          oportunidades: normStr(sumOport.value)
+        }
+      },
+
+      report: {
+        sections: {
+          exec: !!sExec.checked,
+          contexto: !!sContexto.checked,
+          mercado: !!sMercado.checked,
+          comps: !!sComps.checked,
+          cenarios: !!sCenarios.checked,
+          recomend: !!sRecomend.checked,
+          plano: !!sPlano.checked,
+          anexos: !!sAnexos.checked
+        },
+        tom: normStr(rTom.value),
+        cta: normStr(rCTA.value),
+        recomendacaoFinal: normStr(rRecomend.value)
+      }
+    };
+
+    // manter createdAt em updates
+    const existing = ACTIVE_REPORT_ID ? getReport(ACTIVE_REPORT_ID) : null;
+    base.createdAt = existing?.createdAt || todayISO();
+    base.status = existing?.status || 'draft';
+    base.pdfs = existing?.pdfs || [];
+    base.analysis = existing?.analysis || base.analysis;
+
+    return base;
+  }
+
+  function fillForm(report){
+    if(!report) return;
+
+    ACTIVE_REPORT_ID = report.id;
+
+    cTipo.value = report.cliente?.tipo || '';
+    cNome.value = report.cliente?.nome || '';
+    cTel.value = report.cliente?.tel || '';
+    cEmail.value = report.cliente?.email || '';
+    cIdioma.value = report.cliente?.idioma || 'pt';
+    cDetalhe.value = report.cliente?.detalhe || 'exec';
+    cConf.value = report.cliente?.confidencial ? 'yes' : 'no';
+    cNotas.value = report.cliente?.notas || '';
+
+    oObjetivo.value = report.objetivo?.objetivo || '';
+    oHorizonte.value = report.objetivo?.horizonte || '';
+    oRisco.value = report.objetivo?.risco || '';
+    // preocup multi
+    const selected = new Set(report.objetivo?.preocupacoes || []);
+    Array.from(oPreocup.options).forEach(opt=> opt.selected = selected.has(opt.value));
+    oBrief.value = report.objetivo?.brief || '';
+
+    // modo
+    const mode = report.ativo?.mode || 'imovel';
+    const radios = $$('input[name="assetMode"]');
+    radios.forEach(r=>{ r.checked = (r.value === mode); });
+    // toggle
+    const assetImovel = el('assetImovel');
+    const assetZona = el('assetZona');
+    assetImovel.classList.toggle('hidden', mode !== 'imovel');
+    assetZona.classList.toggle('hidden', mode !== 'zona');
+
+    aFonte.value = report.ativo?.imovel?.fonte || 'Manual';
+    aSearch.value = report.ativo?.imovel?.query || '';
+    aZona.value = report.ativo?.imovel?.zona || '';
+    aTipologia.value = report.ativo?.imovel?.tipologia || '';
+    aPreco.value = report.ativo?.imovel?.preco || '';
+    aObs.value = report.ativo?.imovel?.obs || '';
+
+    zZona.value = report.ativo?.zona?.zona || '';
+    zTipologia.value = report.ativo?.zona?.tipologia || '';
+    zSegmento.value = report.ativo?.zona?.segmento || 'Novo';
+    zMin.value = report.ativo?.zona?.min || '';
+    zMax.value = report.ativo?.zona?.max || '';
+
+    // analysis
+    const met = report.analysis?.metrics || {};
+    mPrecoM2.textContent = met.precoM2 || '—';
+    mIntervalo.textContent = met.intervalo || '—';
+    mTendencia.textContent = met.tendencia || '—';
+    mTempo.textContent = met.tempo || '—';
+
+    const ch = report.analysis?.chapters || [];
+    mCapitulos.textContent = ch.length ? ch.map(c=>'• '+c).join('\n') : 'Sem análise ainda. Após importação, será gerada uma estrutura (editável).';
+    mCapitulos.style.whiteSpace = 'pre-line';
+
+    sumRelevante.value = report.analysis?.sum?.relevante || '';
+    sumRiscos.value = report.analysis?.sum?.riscos || '';
+    sumOport.value = report.analysis?.sum?.oportunidades || '';
+
+    // sections
+    const sec = report.report?.sections || {};
+    sExec.checked = !!sec.exec;
+    sContexto.checked = !!sec.contexto;
+    sMercado.checked = !!sec.mercado;
+    sComps.checked = !!sec.comps;
+    sCenarios.checked = !!sec.cenarios;
+    sRecomend.checked = !!sec.recomend;
+    sPlano.checked = !!sec.plano;
+    sAnexos.checked = !!sec.anexos;
+
+    rTom.value = report.report?.tom || 'Neutro';
+    rCTA.value = report.report?.cta || 'Agendar reunião';
+    rRecomend.value = report.report?.recomendacaoFinal || '';
+
+    // pdfs list
+    renderPDFList(report);
+  }
+
+  function getContextForSummary(report){
+    const mode = report.ativo?.mode || 'imovel';
+    if(mode==='imovel'){
+      return {
+        zona: report.ativo?.imovel?.zona || '',
+        tipologia: report.ativo?.imovel?.tipologia || '',
+        objetivo: report.objetivo?.objetivo || ''
+      };
+    }
+    return {
+      zona: report.ativo?.zona?.zona || '',
+      tipologia: report.ativo?.zona?.tipologia || '',
+      objetivo: report.objetivo?.objetivo || ''
+    };
+  }
+
+  /* ===========================
+     Lista: render + filtros
+  =========================== */
+  function badgeEstado(status){
+    if(status==='final') return '<span class="pill ok">Final</span>';
+    if(status==='sent') return '<span class="pill ok">Enviado</span>';
+    return '<span class="pill info">Rascunho</span>';
+  }
+
+  function matchFilters(r){
+    const txt = (q.value||'').toLowerCase().trim();
+    if(txt){
+      const hay = [
+        r.cliente?.nome, r.cliente?.tipo,
+        r.objetivo?.objetivo,
+        r.ativo?.imovel?.zona, r.ativo?.zona?.zona,
+        r.status
+      ].filter(Boolean).join(' ').toLowerCase();
+      if(!hay.includes(txt)) return false;
+    }
+    if(fStatus.value && r.status !== fStatus.value) return false;
+    if(fTipo.value && (r.cliente?.tipo||'') !== fTipo.value) return false;
+
+    if(fConfidencial.checked && !r.cliente?.confidencial) return false;
+
+    const de = fDataDe.value || '';
+    const ate = fDataAte.value || '';
+    const dt = r.updatedAt || r.createdAt || '';
+    if(de && dt && dt < de) return false;
+    if(ate && dt && dt > ate) return false;
+
+    return true;
+  }
+
+  function renderList(){
+    const list = loadAllReports().filter(matchFilters);
+    reportsTbody.innerHTML = '';
+
+    if(!list.length){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td colspan="5">
+          <div style="padding:10px 0;color:var(--muted);font-size:12px">
+            Sem relatórios com os filtros atuais. Clique em <strong>+ Novo Relatório</strong>.
+          </div>
+        </td>`;
+      reportsTbody.appendChild(tr);
+      return;
+    }
+
+    list.forEach(r=>{
+      const mode = r.ativo?.mode || 'imovel';
+      const zona = mode==='imovel' ? (r.ativo?.imovel?.zona||'—') : (r.ativo?.zona?.zona||'—');
+      const tip = mode==='imovel' ? (r.ativo?.imovel?.tipologia||'') : (r.ativo?.zona?.tipologia||'');
+      const obj = r.objetivo?.objetivo || '—';
+      const detalhe = (r.cliente?.detalhe === 'full') ? 'Completo' : 'Executivo';
+      const conf = r.cliente?.confidencial ? 'Sim' : 'Não';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <div><strong>${r.cliente?.nome || '—'}</strong></div>
+          <span class="td-sub">${r.cliente?.tipo || '—'} · Idioma ${((r.cliente?.idioma||'pt')==='en'?'EN':'PT')} · ${detalhe}</span>
+        </td>
+        <td>
+          <div><strong>${obj}</strong></div>
+          <span class="td-sub">Zona: ${zona}${tip ? ' · Tipologia: '+tip : ''}</span>
+        </td>
+        <td>
+          <div><strong>${toPTDate(r.createdAt || '')}</strong></div>
+          <span class="td-sub">Atualizado: ${toPTDate(r.updatedAt || '')}</span>
+        </td>
+        <td>
+          ${badgeEstado(r.status)}
+          <span class="td-sub">Confidencial: ${conf}</span>
+        </td>
+        <td>
+          <div class="row-actions">
+            <button class="btn-xs primary" data-act="open" data-id="${r.id}">Abrir</button>
+            <button class="btn-xs" data-act="duplicate" data-id="${r.id}">Duplicar</button>
+            <button class="btn-xs" data-act="export" data-id="${r.id}">Exportar PDF</button>
+            <button class="btn-xs ghost" data-act="delete" data-id="${r.id}">Remover</button>
+          </div>
+        </td>
+      `;
+      reportsTbody.appendChild(tr);
+    });
+  }
+
+  reportsTbody.addEventListener('click', async (e)=>{
+    const btn = e.target.closest('button[data-act]');
+    if(!btn) return;
+    const act = btn.dataset.act;
+    const id = btn.dataset.id;
+
+    if(act==='open'){
+      const r = getReport(id);
+      if(!r) return;
+      fillForm(r);
+      setTab('wizard');
+      setStep(1);
+      return;
+    }
+
+    if(act==='duplicate'){
+      const r = getReport(id);
+      if(!r) return;
+      const copy = JSON.parse(JSON.stringify(r));
+      copy.id = uid('rpt');
+      copy.createdAt = todayISO();
+      copy.updatedAt = todayISO();
+      copy.status = 'draft';
+      // PDFs: manter refs (podemos manter os blobs) -> duplicar apenas meta, reusar keys
+      upsertReport(copy);
+      renderList();
+      return;
+    }
+
+    if(act==='delete'){
+      if(!confirm('Remover este relatório? (esta ação não pode ser desfeita)')) return;
+      const r = getReport(id);
+      if(r?.pdfs?.length){
+        // remover blobs
+        for(const p of r.pdfs){
+          if(p.key) { try{ await idbDelPDF(p.key); }catch{} }
+        }
+      }
+      deleteReport(id);
+      renderList();
+      return;
+    }
+
+    if(act==='export'){
+      const r = getReport(id);
+      if(!r) return;
+      exportReportToPrintPDF(r);
+      return;
+    }
+  });
+
+  btnApply?.addEventListener('click', renderList);
+  btnClear?.addEventListener('click', ()=>{
+    q.value = '';
+    fStatus.value = '';
+    fTipo.value = '';
+    fDataDe.value = '';
+    fDataAte.value = '';
+    fConfidencial.checked = false;
+    renderList();
+  });
+
+  /* ===========================
+     Wizard: criar/guardar
+  =========================== */
+  function newReport(){
+    const r = collectForm();
+    r.id = uid('rpt');
+    r.createdAt = todayISO();
+    r.updatedAt = todayISO();
+    r.status = 'draft';
+    upsertReport(r);
+    fillForm(r);
+    return r;
+  }
+
+  function saveDraft(){
+    const r = collectForm();
+    r.updatedAt = todayISO();
+    r.status = 'draft';
+    upsertReport(r);
+    ACTIVE_REPORT_ID = r.id;
+    // refrescar lista, mas mantém no wizard
+    renderList();
+    return r;
+  }
+
+  btnNew?.addEventListener('click', ()=>{
+    ACTIVE_REPORT_ID = null;
+    // limpar form rápido (reutiliza um “novo” vazio)
+    const empty = {
+      id: uid('rpt'),
+      createdAt: todayISO(),
+      updatedAt: todayISO(),
+      status: 'draft',
+      cliente:{tipo:'',nome:'',tel:'',email:'',idioma:'pt',detalhe:'exec',confidencial:false,notas:''},
+      objetivo:{objetivo:'',horizonte:'',risco:'',preocupacoes:[],brief:''},
+      ativo:{mode:'imovel',imovel:{fonte:'Manual',query:'',zona:'',tipologia:'',preco:'',obs:''},zona:{zona:'',tipologia:'',segmento:'Novo',min:'',max:''}},
+      pdfs:[],
+      analysis:{metrics:{precoM2:'—',intervalo:'—',tendencia:'—',tempo:'—'},chapters:[],sum:{relevante:'',riscos:'',oportunidades:''}},
+      report:{sections:{exec:true,contexto:true,mercado:true,comps:false,cenarios:true,recomend:true,plano:true,anexos:true},tom:'Neutro',cta:'Agendar reunião',recomendacaoFinal:''}
+    };
+    fillForm(empty);
+    setTab('wizard'); setStep(1);
+  });
+
+  btnGoWizard?.addEventListener('click', ()=>{
+    ACTIVE_REPORT_ID = null;
+    btnNew.click();
+  });
+
+  btnBackToList?.addEventListener('click', ()=>{
+    setTab('list');
+    renderList();
+  });
+
+  btnSaveDraft?.addEventListener('click', ()=>{
+    saveDraft();
+    alert('Rascunho guardado.');
+  });
+
+  // Navegação steps
+  steps.forEach(s=>{
+    s.addEventListener('click', ()=>{
+      saveDraft();
+      setStep(Number(s.dataset.step));
+    });
+  });
+
+  btnPrev?.addEventListener('click', ()=>{
+    saveDraft();
+    setStep(currentStep-1);
+  });
+  btnNext?.addEventListener('click', ()=>{
+    saveDraft();
+    if(currentStep < 5) setStep(currentStep+1);
+    else { setTab('list'); renderList(); }
+  });
+
+  // Autosave suave (sem “spam”)
+  let autosaveTimer = null;
+  function scheduleAutosave(){
+    clearTimeout(autosaveTimer);
+    autosaveTimer = setTimeout(()=>{ if(viewWizard && !viewWizard.classList.contains('hidden')) saveDraft(); }, 600);
+  }
+  ['input','change','keyup'].forEach(ev=>{
+    viewWizard?.addEventListener(ev, scheduleAutosave, true);
+  });
+
+  /* ===========================
+     PDFs: Importar / Reprocessar / Ver / Remover
+  =========================== */
+  function ensureActiveReport(){
+    if(!ACTIVE_REPORT_ID){
+      const r = newReport();
+      ACTIVE_REPORT_ID = r.id;
+      return r;
+    }
+    const r = getReport(ACTIVE_REPORT_ID);
+    if(!r){
+      const nr = newReport();
+      ACTIVE_REPORT_ID = nr.id;
+      return nr;
+    }
+    return r;
+  }
+
+  function renderPDFList(report){
+    pdfList.innerHTML = '';
+    const list = report?.pdfs || [];
+    if(!list.length){
+      const div = document.createElement('div');
+      div.className = 'file';
+      div.innerHTML = `
+        <div>
+          <div class="f-name" style="color:var(--muted);font-weight:700">Sem PDFs importados</div>
+          <div class="f-meta">Importe um estudo para iniciar a extração automática.</div>
+        </div>
+        <div class="f-actions">
+          <button class="btn-xs" disabled>Ver</button>
+        </div>
+      `;
+      pdfList.appendChild(div);
+      return;
+    }
+
+    list.forEach(p=>{
+      const div = document.createElement('div');
+      div.className = 'file';
+      div.innerHTML = `
+        <div>
+          <div class="f-name">${p.name || 'PDF'}</div>
+          <div class="f-meta">${toPTDate(p.addedAt || '')} · ${p.pages || '—'} páginas · ${p.sizeMB || '—'}</div>
+        </div>
+        <div class="f-actions">
+          <button class="btn-xs" data-act="view" data-key="${p.key}">Ver</button>
+          <button class="btn-xs" data-act="remove" data-key="${p.key}">Remover</button>
+        </div>
+      `;
+      pdfList.appendChild(div);
+    });
+  }
+
+  async function processPDFAndUpdateReport(file){
+    const report = ensureActiveReport();
+
+    const key = uid('pdf');
+    const addedAt = todayISO();
+
+    // guardar blob em IDB
+    await idbPutPDF(key, file, { name:file.name, addedAt });
+
+    // extrair texto
+    const { text, pages } = await pdfToText(file);
+
+    // métricas/capítulos
+    const metrics = extractMetrics(text);
+    const chapters = detectChapters(text);
+
+    // resumo auto (com base no contexto)
+    const ctx = getContextForSummary(report);
+    const sum = buildAutoSummary(text, ctx);
+
+    // atualizar report
+    report.updatedAt = todayISO();
+    report.pdfs = (report.pdfs || []);
+    report.pdfs.unshift({
+      key,
+      name: file.name,
+      size: file.size,
+      sizeMB: bytesToMB(file.size),
+      pages,
+      addedAt,
+      extractedAt: todayISO(),
+      metrics,
+      chapters,
+      textSample: text.slice(0, 1200) // amostra para “pesquisa” futura
+    });
+
+    // consolidado (último PDF manda)
+    report.analysis = report.analysis || {};
+    report.analysis.metrics = metrics;
+    report.analysis.chapters = chapters;
+    report.analysis.sum = report.analysis.sum || {relevante:'',riscos:'',oportunidades:''};
+
+    // só autopreenche se estiver vazio (não atropela edição manual)
+    if(!report.analysis.sum.relevante) report.analysis.sum.relevante = sum.rel;
+    if(!report.analysis.sum.riscos) report.analysis.sum.riscos = sum.risk;
+    if(!report.analysis.sum.oportunidades) report.analysis.sum.oportunidades = sum.opp;
+
+    upsertReport(report);
+    fillForm(report);
+
+    alert('PDF importado e analisado com sucesso.');
+  }
+
+  btnPickPdf?.addEventListener('click', ()=>pdfFile.click());
+  pdfFile?.addEventListener('change', async ()=>{
+    const f = pdfFile.files && pdfFile.files[0];
+    if(!f) return;
+    if(f.type !== 'application/pdf'){
+      alert('Por favor selecione um ficheiro PDF.');
+      return;
+    }
+    try{
+      btnPickPdf.disabled = true;
+      btnReprocess.disabled = true;
+      await processPDFAndUpdateReport(f);
+    }catch(err){
+      console.error(err);
+      alert('Falha ao processar PDF. Tente novamente. (Se for muito grande, divida o PDF.)');
+    }finally{
+      btnPickPdf.disabled = false;
+      btnReprocess.disabled = false;
+      pdfFile.value = '';
+    }
+  });
+
+  pdfList?.addEventListener('click', async (e)=>{
+    const b = e.target.closest('button[data-act]');
+    if(!b) return;
+
+    const report = ensureActiveReport();
+    const act = b.dataset.act;
+    const key = b.dataset.key;
+
+    if(act==='remove'){
+      if(!confirm('Remover este PDF do relatório?')) return;
+      try{ await idbDelPDF(key); }catch{}
+      report.pdfs = (report.pdfs||[]).filter(p=>p.key!==key);
+      upsertReport(report);
+      fillForm(report);
+      return;
+    }
+
+    if(act==='view'){
+      const rec = await idbGetPDF(key);
+      if(!rec?.blob){
+        alert('PDF não encontrado (cache/DB). Reimporte o ficheiro.');
+        return;
+      }
+      const url = URL.createObjectURL(rec.blob);
+      window.open(url, '_blank', 'noopener,noreferrer');
+      setTimeout(()=>URL.revokeObjectURL(url), 15000);
+      return;
+    }
+  });
+
+  btnReprocess?.addEventListener('click', async ()=>{
+    const report = ensureActiveReport();
+    if(!report.pdfs || !report.pdfs.length){
+      alert('Sem PDFs para reprocessar.');
+      return;
+    }
+    const latest = report.pdfs[0];
+    try{
+      btnPickPdf.disabled = true;
+      btnReprocess.disabled = true;
+
+      const rec = await idbGetPDF(latest.key);
+      if(!rec?.blob) throw new Error('PDF não encontrado em IDB');
+
+      const { text, pages } = await pdfToText(rec.blob);
+
+      const metrics = extractMetrics(text);
+      const chapters = detectChapters(text);
+      const ctx = getContextForSummary(report);
+      const sum = buildAutoSummary(text, ctx);
+
+      // atualizar último registo
+      latest.pages = pages;
+      latest.extractedAt = todayISO();
+      latest.metrics = metrics;
+      latest.chapters = chapters;
+      latest.textSample = text.slice(0, 1200);
+
+      report.analysis.metrics = metrics;
+      report.analysis.chapters = chapters;
+
+      // respeita o que o Rui já escreveu manualmente
+      report.analysis.sum.relevante = report.analysis.sum.relevante || sum.rel;
+      report.analysis.sum.riscos = report.analysis.sum.riscos || sum.risk;
+      report.analysis.sum.oportunidades = report.analysis.sum.oportunidades || sum.opp;
+
+      report.updatedAt = todayISO();
+
+      upsertReport(report);
+      fillForm(report);
+
+      alert('Reprocessamento concluído.');
+    }catch(err){
+      console.error(err);
+      alert('Falha no reprocessamento. Reimporte o PDF se necessário.');
+    }finally{
+      btnPickPdf.disabled = false;
+      btnReprocess.disabled = false;
+    }
+  });
+
+  /* ===========================
+     Exportação “PDF”: janela de impressão (premium)
+     (O browser permite “Guardar como PDF”)
+  =========================== */
+  function htmlEscape(s){
+    return String(s||'')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+
+  function exportReportToPrintPDF(report, forceExec=false){
+    const cliente = report.cliente || {};
+    const obj = report.objetivo || {};
+    const ativo = report.ativo || {};
+    const mode = ativo.mode || 'imovel';
+
+    const zona = mode==='imovel' ? (ativo.imovel?.zona || '—') : (ativo.zona?.zona || '—');
+    const tip = mode==='imovel' ? (ativo.imovel?.tipologia || '') : (ativo.zona?.tipologia || '');
+    const preco = mode==='imovel' ? moneyGuessToPretty(ativo.imovel?.preco || '') : '';
+    const detalhe = forceExec ? 'exec' : (cliente.detalhe || 'exec');
+
+    const sec = report.report?.sections || {};
+    const use = (k)=> forceExec ? (k==='exec' || k==='recomend' || k==='plano') : !!sec[k];
+
+    const met = report.analysis?.metrics || {};
+    const ch = report.analysis?.chapters || [];
+    const sum = report.analysis?.sum || {};
+
+    const confTag = cliente.confidencial ? 'CONFIDENCIAL' : 'INTERNO';
+    const title = `Relatório para Cliente — ${cliente.nome || 'Cliente'} (${toPTDate(report.updatedAt || report.createdAt)})`;
+
+    const styles = `
+      <style>
+        :root{--gold:#A38B63;--muted:#666;--txt:#111}
+        *{box-sizing:border-box}
+        body{font-family:Arial,Helvetica,sans-serif;color:var(--txt);margin:0;background:#fff}
+        .page{max-width:920px;margin:0 auto;padding:28px 34px}
+        .top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+        .brand{font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);font-size:14px}
+        .meta{font-size:12px;color:var(--muted);text-align:right;line-height:1.4}
+        .h1{margin:18px 0 6px;font-size:20px;letter-spacing:.02em}
+        .tag{display:inline-block;padding:4px 10px;border:1px solid #ddd;border-radius:999px;font-size:11px;color:#333;background:#fafafa}
+        .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+        .card{border:1px solid #eee;border-radius:14px;padding:12px 12px}
+        .card h3{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#444}
+        .kv{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
+        .kv:last-child{border-bottom:none}
+        .kv b{color:#555;font-weight:700}
+        .sec{margin-top:16px}
+        .sec h2{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.14em;color:#444}
+        .p{font-size:13px;line-height:1.55;color:#222;margin:0 0 8px}
+        ul{margin:6px 0 0 18px}
+        li{margin:4px 0;font-size:13px;line-height:1.45}
+        .foot{margin-top:18px;padding-top:10px;border-top:1px solid #eee;font-size:11px;color:#777;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+        @media print{
+          .page{padding:18px 24px}
+        }
+      </style>
+    `;
+
+    function blockResumoExec(){
+      const rec = (report.report?.recomendacaoFinal || '').trim() || '(preencher recomendação final)';
+      return `
+        <div class="sec">
+          <h2>Resumo Executivo</h2>
+          <p class="p"><strong>Objetivo:</strong> ${htmlEscape(obj.objetivo || '—')} · <strong>Zona:</strong> ${htmlEscape(zona)} ${tip?('· <strong>Tipologia:</strong> '+htmlEscape(tip)) : ''} ${preco?('· <strong>Preço:</strong> '+htmlEscape(preco)) : ''}</p>
+          <p class="p">${htmlEscape(rec).replace(/\n/g,'<br>')}</p>
+        </div>
+      `;
+    }
+
+    function blockContexto(){
+      const preocup = (obj.preocupacoes||[]).length ? (obj.preocupacoes.join(', ')) : '—';
+      return `
+        <div class="sec">
+          <h2>Contexto do Cliente</h2>
+          <div class="grid">
+            <div class="card">
+              <h3>Briefing</h3>
+              <div class="kv"><b>Tipo</b><span>${htmlEscape(cliente.tipo||'—')}</span></div>
+              <div class="kv"><b>Horizonte</b><span>${htmlEscape(obj.horizonte||'—')}</span></div>
+              <div class="kv"><b>Risco</b><span>${htmlEscape(obj.risco||'—')}</span></div>
+              <div class="kv"><b>Preocupações</b><span>${htmlEscape(preocup)}</span></div>
+            </div>
+            <div class="card">
+              <h3>Notas</h3>
+              <p class="p">${htmlEscape(obj.brief||cliente.notas||'—').replace(/\n/g,'<br>')}</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function blockMercado(){
+      const caps = ch.length ? ('<ul>' + ch.slice(0,8).map(c=>`<li>${htmlEscape(c)}</li>`).join('') + '</ul>') : '<p class="p">Sem capítulos detetados (importe um PDF para análise).</p>';
+      return `
+        <div class="sec">
+          <h2>Enquadramento de Mercado</h2>
+          <div class="grid">
+            <div class="card">
+              <h3>Métricas (do PDF)</h3>
+              <div class="kv"><b>Preço médio/m²</b><span>${htmlEscape(met.precoM2||'—')}</span></div>
+              <div class="kv"><b>Intervalo</b><span>${htmlEscape(met.intervalo||'—')}</span></div>
+              <div class="kv"><b>Tendência</b><span>${htmlEscape(met.tendencia||'—')}</span></div>
+              <div class="kv"><b>Tempo médio</b><span>${htmlEscape(met.tempo||'—')}</span></div>
+            </div>
+            <div class="card">
+              <h3>Estrutura / Capítulos</h3>
+              ${caps}
+            </div>
+          </div>
+
+          <div class="grid" style="margin-top:12px">
+            <div class="card">
+              <h3>Relevante para o cliente</h3>
+              <p class="p">${htmlEscape(sum.relevante||'—').replace(/\n/g,'<br>')}</p>
+            </div>
+            <div class="card">
+              <h3>Riscos / Alertas</h3>
+              <p class="p">${htmlEscape(sum.riscos||'—').replace(/\n/g,'<br>')}</p>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:12px">
+            <h3>Oportunidades</h3>
+            <p class="p">${htmlEscape(sum.oportunidades||'—').replace(/\n/g,'<br>')}</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function blockCenarios(){
+      return `
+        <div class="sec">
+          <h2>Cenários</h2>
+          <p class="p">Sugestão (placeholder): aqui ligamos no próximo sprint a simulação de cenários (preço vs timing vs estratégia), com base nos teus dados internos.</p>
+        </div>
+      `;
+    }
+
+    function blockPlano(){
+      const cta = report.report?.cta || 'Agendar reunião';
+      return `
+        <div class="sec">
+          <h2>Próximos passos</h2>
+          <ul>
+            <li>Validar objetivo e critérios de decisão do cliente (10–15 min).</li>
+            <li>Confirmar dados do ativo/zona e recolher informação crítica (documentos, comparáveis, restrições).</li>
+            <li>Alinhar estratégia e calendarização (marketing, posicionamento, negociação).</li>
+            <li><strong>CTA final:</strong> ${htmlEscape(cta)}.</li>
+          </ul>
+        </div>
+      `;
+    }
+
+    const html = `
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>${htmlEscape(title)}</title>
+          ${styles}
+        </head>
+        <body>
+          <div class="page">
+            <div class="top">
+              <div>
+                <div class="brand">Garvetur Luxury Porto</div>
+                <div class="h1">Relatório para Cliente</div>
+                <span class="tag">${htmlEscape(confTag)}</span>
+              </div>
+              <div class="meta">
+                <div><strong>Cliente:</strong> ${htmlEscape(cliente.nome||'—')}</div>
+                <div><strong>Data:</strong> ${htmlEscape(toPTDate(report.updatedAt||report.createdAt||todayISO()))}</div>
+                <div><strong>Formato:</strong> ${detalhe==='full'?'Completo':'Executivo'}</div>
+              </div>
+            </div>
+
+            ${use('exec') ? blockResumoExec() : ''}
+            ${use('contexto') ? blockContexto() : ''}
+            ${use('mercado') ? blockMercado() : ''}
+            ${use('cenarios') ? blockCenarios() : ''}
+            ${use('plano') ? blockPlano() : ''}
+
+            <div class="foot">
+              <span>${htmlEscape(confTag)} · Uso interno / cliente · Não distribuir sem autorização.</span>
+              <span>Gerado em ${htmlEscape(toPTDate(todayISO()))}</span>
+            </div>
+          </div>
+
+          <script>
+            // abre diálogo de impressão para "Guardar como PDF"
+            setTimeout(()=>{ window.print(); }, 500);
+          <\/script>
+        </body>
+      </html>
+    `;
+
+    const w = window.open('', '_blank', 'noopener,noreferrer');
+    if(!w){ alert('O browser bloqueou a nova janela. Permita pop-ups para exportar PDF.'); return; }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+  }
+
+  btnBuildPdf?.addEventListener('click', ()=>{
+    const r = saveDraft();
+    // “Completo” respeita toggles
+    exportReportToPrintPDF(r, false);
+  });
+
+  btnBuildExec?.addEventListener('click', ()=>{
+    const r = saveDraft();
+    // força executivo mínimo (Resumo + Recomendação + Plano)
+    exportReportToPrintPDF(r, true);
+  });
+
+  btnDuplicate?.addEventListener('click', ()=>{
+    const r = saveDraft();
+    const copy = JSON.parse(JSON.stringify(r));
+    copy.id = uid('rpt');
+    copy.createdAt = todayISO();
+    copy.updatedAt = todayISO();
+    copy.status = 'draft';
+    upsertReport(copy);
+    renderList();
+    alert('Template duplicado. Pode abrir a cópia na lista.');
+  });
+
+  /* ===========================
+     init
+  =========================== */
+  // ligar tabs (se o teu script do ponto 1 já tiver isto, não há conflito: este reforça)
+  tabList?.addEventListener('click', ()=>setTab('list'));
+  tabWizard?.addEventListener('click', ()=>setTab('wizard'));
+
+  // default
+  setTab('list');
+  setStep(1);
+  renderList();
+
+})();
+</script>
 </body>
 </html>
