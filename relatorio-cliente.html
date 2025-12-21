@@ -2180,6 +2180,151 @@
   // liga auto-importação com módulos existentes (FSBO | Leads | Angariações)
   try{ initCrossModuleImport(); }catch(e){ console.warn('Auto-import indisponível', e); }
 
+  <!-- ===============================
+ AUTO-IMPORT CLIENTE (BLUR)
+ FSBO | LEADS | ANGARIAÇÕES
+=============================== -->
+<script>
+(function(){
+
+/* ========= CONFIG ========= */
+const FIELDS = {
+  nome: document.getElementById('clienteNome'),
+  tel: document.getElementById('clienteTelefone'),
+  email: document.getElementById('clienteEmail')
+};
+
+let AUTO_MATCH = null;
+
+/* ========= NORMALIZAÇÃO ========= */
+const normTxt = v =>
+  (v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+
+const normTel = v =>
+  (v||'').replace(/\D/g,'').replace(/^351/,'');
+
+/* ========= EXTRAIR CONTACTOS ========= */
+function extractContactsFromObject(obj, source){
+  const out = [];
+  if(!obj || typeof obj !== 'object') return out;
+
+  const scan = (o)=>{
+    if(!o || typeof o !== 'object') return;
+
+    const nome = o.nome || o.name || o.owner || o.proprietario;
+    const tel  = o.telefone || o.phone || o.telemovel || o.contacto;
+    const mail = o.email || o.mail;
+
+    if(nome || tel || mail){
+      out.push({
+        nome, telefone: tel, email: mail,
+        source,
+        updatedAt: o.updatedAt || o.data || null
+      });
+    }
+    Object.values(o).forEach(scan);
+  };
+  scan(obj);
+  return out;
+}
+
+/* ========= VARREDURA GLOBAL ========= */
+function loadAllContacts(){
+  let all = [];
+  for(let i=0;i<localStorage.length;i++){
+    const key = localStorage.key(i);
+    try{
+      const data = JSON.parse(localStorage.getItem(key));
+      all = all.concat(extractContactsFromObject(data, key));
+    }catch(e){}
+  }
+  return all;
+}
+
+/* ========= MATCHING ========= */
+function findMatches(){
+  const nomeQ = normTxt(FIELDS.nome.value);
+  const telQ  = normTel(FIELDS.tel.value);
+  const mailQ = normTxt(FIELDS.email.value);
+
+  if(!nomeQ && !telQ && !mailQ) return [];
+
+  const contacts = loadAllContacts();
+  const matches = [];
+
+  contacts.forEach(c=>{
+    let score = 0;
+    if(nomeQ && normTxt(c.nome) === nomeQ) score += 3;
+    if(telQ  && normTel(c.telefone) === telQ) score += 2;
+    if(mailQ && normTxt(c.email) === mailQ) score += 1;
+    if(score>0) matches.push({...c, score});
+  });
+
+  return matches.sort((a,b)=>b.score-a.score);
+}
+
+/* ========= APLICAR MATCH ========= */
+function applyMatch(c){
+  if(!FIELDS.nome.value) FIELDS.nome.value = c.nome || '';
+  if(!FIELDS.tel.value)  FIELDS.tel.value  = c.telefone || '';
+  if(!FIELDS.email.value)FIELDS.email.value= c.email || '';
+  AUTO_MATCH = c;
+  alert(`Auto-importado de ${c.source}`);
+}
+
+/* ========= PAINEL DE ESCOLHA ========= */
+function showChooser(matches){
+  const box = document.createElement('div');
+  box.style = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  box.innerHTML = `
+    <div style="background:#111;padding:16px;border-radius:12px;max-width:520px;width:95%">
+      <h3 style="color:#A38B63">Selecionar contacto</h3>
+      ${matches.map((m,i)=>`
+        <div style="padding:8px;border-bottom:1px solid #333;cursor:pointer"
+             data-i="${i}">
+          <strong>${m.nome||'—'}</strong><br>
+          ${m.telefone||''} ${m.email||''}<br>
+          <small>${m.source}</small>
+        </div>`).join('')}
+      <button id="closeChooser" style="margin-top:10px">Cancelar</button>
+    </div>`;
+  document.body.appendChild(box);
+
+  box.addEventListener('click',e=>{
+    const row = e.target.closest('[data-i]');
+    if(row){
+      applyMatch(matches[row.dataset.i]);
+      box.remove();
+    }
+    if(e.target.id==='closeChooser') box.remove();
+  });
+}
+
+/* ========= BLUR HANDLER ========= */
+function onBlur(){
+  if(AUTO_MATCH) return;
+  const matches = findMatches();
+  if(matches.length===1) applyMatch(matches[0]);
+  else if(matches.length>1) showChooser(matches);
+}
+
+/* ========= RESET ========= */
+window.resetCliente = function(){
+  if(!confirm('Limpar dados do cliente?')) return;
+  FIELDS.nome.value='';
+  FIELDS.tel.value='';
+  FIELDS.email.value='';
+  AUTO_MATCH=null;
+};
+
+/* ========= EVENTS ========= */
+Object.values(FIELDS).forEach(f=>{
+  if(f) f.addEventListener('blur', onBlur);
+});
+
+})();
+</script>
+
 })();
 </script>
 </body>
