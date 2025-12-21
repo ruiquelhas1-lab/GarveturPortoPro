@@ -2055,53 +2055,8 @@
     }
   });
 
-  btnReprocess?.addEventListener('click', async ()=>{
-    const report = ensureActiveReport();
-    if(!report.pdfs || !report.pdfs.length){
-      alert('Sem PDFs para reprocessar.');
-      return;
-    }
-    const latest = report.pdfs[0];
-    try{
-      btnPickPdf.disabled = true;
-      btnReprocess.disabled = true;
-
-      const rec = await idbGetPDF(latest.key);
-      if(!rec?.blob) throw new Error('PDF não encontrado em IDB');
-
-      const { text, pages } = await pdfToText(rec.blob);
-
-      const metrics = extractMetrics(text);
-      const chapters = detectChapters(text);
-      const ctx = getContextForSummary(report);
-      const sum = buildAutoSummary(text, ctx);
-
-      latest.pages = pages;
-      latest.extractedAt = todayISO();
-      latest.metrics = metrics;
-      latest.chapters = chapters;
-      latest.textSample = text.slice(0, 1200);
-
-      report.analysis.metrics = metrics;
-      report.analysis.chapters = chapters;
-
-      report.analysis.sum.relevante = report.analysis.sum.relevante || sum.rel;
-      report.analysis.sum.riscos = report.analysis.sum.riscos || sum.risk;
-      report.analysis.sum.oportunidades = report.analysis.sum.oportunidades || sum.opp;
-
-      report.updatedAt = todayISO();
-
-      upsertReport(report);
-      fillForm(report);
-
-      alert('Reprocessamento concluído.');
-    }catch(err){
-      console.error(err);
-      alert('Falha no reprocessamento. Reimporte o PDF se necessário.');
-    }finally{
-      btnPickPdf.disabled = false;
-      btnReprocess.disabled = false;
-    }
+  btnReprocess?.addEventListener('click', ()=>{
+    alert('Reprocessar está indisponível neste modo (PDFs como anexos, sem análise automática).');
   });
 
   /* ===========================
