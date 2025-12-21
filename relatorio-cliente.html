@@ -1989,14 +1989,9 @@
       btnPickPdf.disabled = true;
       btnReprocess.disabled = true;
       await processPDFAndUpdateReport(f);
-    }catch(err){
+       }catch(err){
       console.error(err);
-      const msg = (String(err?.message||'') || '').toLowerCase();
-      if(msg.includes('pdf.js não carregou')){
-        alert('Falha: o motor PDF (PDF.js) não carregou. Verifique ligação à internet/CDN ou políticas de bloqueio (adblock).');
-      }else{
-        alert('Falha ao processar PDF. Se for digitalizado (imagem) ou muito grande, divida o PDF ou use uma versão com texto pesquisável.');
-      }
+      alert('Falha ao importar PDF. Tente novamente (ou experimente um PDF mais leve).');
     }finally{
       btnPickPdf.disabled = false;
       btnReprocess.disabled = false;
