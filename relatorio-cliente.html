@@ -747,7 +747,7 @@
                 <div class="hint" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0 10px">
                   <span id="autoImportBadge" class="pill info hidden">Importação automática</span>
                   <span id="autoImportText">Escreva nome/telemóvel/email para tentar reconhecer o cliente nos módulos <strong>FSBO</strong>, <strong>Leads</strong> e <strong>Angariações</strong>.</span>
-                  <button class="btn-xs ghost" id="btnResetCliente" type="button">Limpar cliente</button>
+                  <button class="btn secondary" type="button" id="btnResetCliente" style="padding:6px 10px;font-size:12px">Limpar</button>
                 </div>
 
                 <div class="grid-3">
@@ -1103,9 +1103,9 @@
 
   // Campos (sinónimos) mais comuns encontrados nos módulos
   const CONTACT_FIELD_MAP = {
-    name:   ['nome','name','cliente','client','proprietario','proprietário','owner','contacto','contato','titular','empresa','company','lead','leadName', 'ownerName', 'nomeProp', 'owner_name', 'proprietarioNome', 'proprietárioNome'],
-    phone:  ['telemovel','telemóvel','telefone','tel','phone','mobile','contactoTel','contactTel','whatsapp', 'ownerPhone', 'telProp', 'phoneProp', 'proprietarioTel', 'proprietárioTel', 'ownerMobile', 'ownerTel'],
-    email:  ['email','e-mail','mail','contactoEmail','contactEmail', 'ownerEmail', 'emailProp', 'proprietarioEmail', 'proprietárioEmail']
+    name:   ['nome', 'name', 'cliente', 'client', 'proprietario', 'proprietário', 'owner', 'contacto', 'contato', 'titular', 'empresa', 'company', 'lead', 'leadName', 'nomeProp', 'ownerName', 'leadNome', 'clienteNome', 'nomeCliente', 'contactName'],
+    phone:  ['telemovel', 'telemóvel', 'telefone', 'tel', 'phone', 'mobile', 'contactoTel', 'contactTel', 'whatsapp', 'telProp', 'telefoneProp', 'telemovelProp', 'telemóvelProp', 'ownerPhone', 'ownerMobile', 'contactPhone', 'contactMobile', 'clienteTel', 'clienteTelefone'],
+    email:  ['email', 'e-mail', 'mail', 'contactoEmail', 'contactEmail', 'emailProp', 'ownerEmail', 'clienteEmail']
   };
 
   function onlyDigits(s){ return (s||'').toString().replace(/\D+/g,''); }
@@ -1259,48 +1259,112 @@
     return list.slice().sort((a,b)=>score(b)-score(a))[0] || null;
   }
 
-  function scoreMatch(c, {nameN, phoneN, emailN}){
-    let score = 0;
-    // Nome (maior prioridade)
-    if(nameN && c.name){
-      if(c.name === nameN) score += 30;
-      else if(c.name.includes(nameN) || nameN.includes(c.name)) score += 18;
-    }
-    // Telefone
-    if(phoneN && c.phone){
-      if(c.phone === phoneN) score += 20;
-      else if(c.phone.endsWith(phoneN) || phoneN.endsWith(c.phone)) score += 14;
-    }
-    // Email
-    if(emailN && c.email){
-      if(c.email === emailN) score += 10;
-    }
-    // Bónus por completude
-    score += (c.name ? 2 : 0) + (c.phone ? 2 : 0) + (c.email ? 2 : 0) + (c.notes ? 1 : 0);
-    return score;
-  }
+  function findContactPriority({name, phone, email}){
+    const idx = scanLocalStorageForContacts();
 
-  function findContactMatchesPriority({name, phone, email}){
+    const nameN = normName(name);
+    const phoneN = onlyDigits(phone);
+    const emailN = normEmail(email);
+
+    // 1) Nome
+    if(nameN && nameN.length >= 3){
+      const exact = idx.filter(c=>c.name && c.name === nameN);
+      if(exact.length) return pickBestByCompleteness(exact);
+
+      const includes = idx.filter(c=>c.name && (c.name.includes(nameN) || nameN.includes(c.name)));
+      if(includes.length) return pickBestByCompleteness(includes);
+    }
+
+  // Lista de correspondências (para escolha quando existir ambiguidade)
+  function findContactsPriorityList({name, phone, email}, maxResults=8){
     const idx = scanLocalStorageForContacts();
     const nameN = normName(name);
     const phoneN = onlyDigits(phone);
     const emailN = normEmail(email);
 
-    // Sem query => sem matches
-    if(!( (nameN && nameN.length>=3) || (phoneN && phoneN.length>=7) || (emailN && emailN.includes('@')) )) return [];
-
     const scored = [];
+
     for(const c of idx){
-      const s = scoreMatch(c, {nameN, phoneN, emailN});
-      if(s>0) scored.push({ ...c, _score:s });
+      let score = 0;
+
+      if(nameN && c.name){
+        if(c.name === nameN) score += 30;
+        else if(c.name.includes(nameN) || nameN.includes(c.name)) score += 18;
+      }
+
+      if(phoneN && c.phone){
+        if(c.phone === phoneN || c.phone.endsWith(phoneN) || phoneN.endsWith(c.phone)) score += 20;
+      }
+
+      if(emailN && c.email){
+        if(c.email === emailN) score += 12;
+      }
+
+      score += (c.name?3:0) + (c.phone?3:0) + (c.email?3:0) + (c.notes?1:0);
+
+      if(score>0) scored.push({ ...c, _score: score });
     }
+
     scored.sort((a,b)=> b._score - a._score);
-    return scored.slice(0, 20); // limite razoável para UI
+    return scored.slice(0, maxResults);
   }
 
-  function findContactPriority({name, phone, email}){
-    const matches = findContactMatchesPriority({name, phone, email});
-    return matches[0] || null;
+  function showContactChooser(matches, onPick){
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:14px;';
+    overlay.innerHTML = `
+      <div style="max-width:760px;width:100%;background:#0f0f0f;border:1px solid rgba(163,139,99,.35);border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.7)">
+        <div style="padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.10);display:flex;justify-content:space-between;gap:10px;align-items:center">
+          <div style="font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#A38B63;font-size:12px">Selecionar registo para importar</div>
+          <button id="gppCloseChooser" class="btn secondary" style="padding:6px 10px;font-size:12px">Cancelar</button>
+        </div>
+        <div style="max-height:60vh;overflow:auto">
+          ${matches.map((m,i)=>`
+            <div data-i="${i}" style="padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.08);cursor:pointer">
+              <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap">
+                <div>
+                  <div style="font-weight:800;color:#fff">${htmlEscape(m.nameRaw || '—')}</div>
+                  <div style="color:#aaa;font-size:12px;margin-top:3px">${htmlEscape(m.phoneRaw || '—')} · ${htmlEscape(m.emailRaw || '—')}</div>
+                </div>
+                <div style="text-align:right;color:#aaa;font-size:12px">
+                  <div>${htmlEscape(sourceLabelFromKey(m.sourceKey))}</div>
+                  <div style="opacity:.8">score: ${m._score}</div>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const close = ()=>{ try{ overlay.remove(); }catch{} };
+    overlay.addEventListener('click', (e)=>{
+      if(e.target === overlay) return close();
+      if(e.target.closest('#gppCloseChooser')) return close();
+      const row = e.target.closest('[data-i]');
+      if(row){
+        const pick = matches[Number(row.dataset.i)];
+        close();
+        onPick && onPick(pick);
+      }
+    });
+  }
+
+
+    // 2) Telefone
+    if(phoneN && phoneN.length >= 7){
+      const byPhone = idx.filter(c=>c.phone && (c.phone === phoneN || c.phone.endsWith(phoneN) || phoneN.endsWith(c.phone)));
+      if(byPhone.length) return pickBestByCompleteness(byPhone);
+    }
+
+    // 3) Email
+    if(emailN && emailN.includes('@')){
+      const byEmail = idx.filter(c=>c.email && c.email === emailN);
+      if(byEmail.length) return pickBestByCompleteness(byEmail);
+    }
+
+    return null;
   }
 
 
@@ -1392,36 +1456,25 @@
       clearTimeout(timer);
       timer = setTimeout(()=>{
         const query = { name: normStr(iNome.value), phone: normStr(iTel.value), email: normStr(iEmail.value) };
-        const candidates = findContactMatchesPriority(query);
-        const hit = candidates[0] || null;
+        const hit = findContactPriority(query);
 
         if(hit){
-  const changed = applyContact(hit);
-  showMsg(
-    changed ? `Auto-importação: dados carregados do histórico (${hit.sourceKey}).`
-            : `Auto-importação: encontrado no histórico (${hit.sourceKey}).`,
-    'ok'
-  );
-  if(candidates.length > 1){
-    // se existirem vários registos plausíveis, permitir escolha
-    openContactChooser(candidates, (picked)=>{
-      const ch2 = applyContact(picked);
-      showMsg(
-        ch2 ? `Auto-importação: dados carregados do histórico (${picked.sourceKey}).`
-            : `Auto-importação: encontrado no histórico (${picked.sourceKey}).`,
-        'ok'
-      );
-    });
-  }
-}else{
-  showMsg('Auto-importação: sem correspondência (pode inserir manualmente).','info');
-}
+          const changed = applyContact(hit);
+          showMsg(
+            changed ? `Auto-importação: dados carregados do histórico (${hit.sourceKey}).`
+                    : `Auto-importação: encontrado no histórico (${hit.sourceKey}).`,
+            'ok'
+          );
+        }else{
+          showMsg('Auto-importação: sem correspondência (pode inserir manualmente).','info');
+        }
       }, 450);
     }
 
     [iNome, iTel, iEmail].forEach(inp=>{
-      inp.addEventListener('blur', schedule);
+      inp.addEventListener('input', schedule);
       inp.addEventListener('change', schedule);
+      inp.addEventListener('blur', schedule);
     });
 
     window.addEventListener('storage', ()=>{
@@ -1434,34 +1487,7 @@
   }
 
 
-    // Botão de reset do cliente (Passo 1)
-  const btnResetCliente = el('btnResetCliente');
-  btnResetCliente?.addEventListener('click', ()=>{
-    if(!confirm('Limpar dados do cliente neste relatório?')) return;
-
-    const iNome  = el('cNome');
-    const iTel   = el('cTel');
-    const iEmail = el('cEmail');
-    const iTipo  = el('cTipo');
-    const iNotas = el('cNotas');
-
-    if(iTipo) iTipo.value = '';
-    if(iNome) iNome.value = '';
-    if(iTel) iTel.value = '';
-    if(iEmail) iEmail.value = '';
-    if(iNotas) iNotas.value = '';
-
-    // limpar estado visual de importação
-    try{ setAutoImportUI(null); }catch{}
-    // guardar rascunho (se já existir)
-    try{
-      const r = saveDraftSilent();
-      if(r?.cliente) r.cliente.importedFrom = null;
-      if(r) upsertReport(r);
-    }catch{}
-  });
-
-/* ===========================
+  /* ===========================
      UI Elements
   =========================== */
   const q = el('q');
@@ -1504,7 +1530,6 @@
 
   const autoImportBadge = el('autoImportBadge');
   const autoImportText = el('autoImportText');
-  const btnResetCliente = el('btnResetCliente');
 
   const oObjetivo = el('oObjetivo');
   const oHorizonte = el('oHorizonte');
@@ -1569,7 +1594,7 @@
     };
     stepTitle.textContent = titles[currentStep] || 'Passo';
     btnPrev.disabled = false;
-    btnPrev.textContent = (currentStep === 1) ? 'Voltar à lista' : 'Anterior';
+    btnPrev.textContent = (currentStep === 1) ? 'Voltar' : 'Anterior';
     btnNext.textContent = (currentStep === 5) ? 'Concluir' : 'Seguinte';
   }
 
@@ -1742,16 +1767,32 @@
     }
   }
 
+  
   function tryAutoImport(){
     const nome = cNome.value;
     const tel  = cTel.value;
     const email = cEmail.value;
 
-    const found = findBestContact({ nome, tel, email });
-    if(!found){
-      // não apagar estado importado existente quando já há um relatório guardado
+    const matches = findContactsPriorityList({ name: nome, phone: tel, email }, 8);
+    if(!matches.length){
       return false;
     }
+
+    const applyPick = (pick)=>{
+      const found = {
+        nome: pick.nameRaw || '',
+        tel: pick.phoneRaw || '',
+        email: pick.emailRaw || '',
+        sourceKey: pick.sourceKey || '',
+        source: sourceLabelFromKey(pick.sourceKey),
+        raw: pick,
+        id: null
+      };
+
+    showContactChooser(matches, applyPick);
+    return true;
+  }
+
 
     // evitar “sobre-escrita agressiva”: só preenche campos vazios (exceto o que o utilizador está a introduzir)
     const current = collectForm();
@@ -1823,29 +1864,19 @@
     if(!inp) return;
     inp.addEventListener('input', scheduleAutoImport);
     inp.addEventListener('blur', ()=>{ scheduleAutoImport(); });
-  });
 
-
-  // Botão Limpar (reset do cliente no passo 1)
+  const btnResetCliente = el('btnResetCliente');
   btnResetCliente?.addEventListener('click', ()=>{
-    if(!confirm('Limpar os dados do cliente neste relatório?')) return;
-    cNome.value = '';
-    cTel.value = '';
-    cEmail.value = '';
-    cTipo.value = '';
-    if(cNotas.value){
-      // mantém notas internas gerais; remover apenas carimbos de importação
-      cNotas.value = cNotas.value
-        .split(/\n/)
-        .filter(line=>!line.trim().startsWith('[Importado de '))
-        .join('\n')
-        .trim();
-    }
+    if(!confirm('Limpar dados do cliente?')) return;
+    cNome.value=''; cTel.value=''; cEmail.value='';
+    if(cNotas) cNotas.value='';
     const r = saveDraftSilent();
-    if(r?.cliente) r.cliente.importedFrom = null;
+    if(r && r.cliente) r.cliente.importedFrom = null;
     upsertReport(r);
     setAutoImportUI(null);
   });
+  });
+
   /* ===========================
      Lista: render + filtros
   =========================== */
