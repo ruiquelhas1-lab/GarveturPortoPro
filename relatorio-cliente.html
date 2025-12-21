@@ -1,3 +1,5 @@
+
+
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -574,10 +576,10 @@
             <span class="dot ok"></span><span>UI pronta (layout)</span>
           </div>
           <div class="status" style="margin-top:8px">
-            <span class="dot info"></span><span>Hooks JS por IDs (próximo passo)</span>
+            <span class="dot info"></span><span>Ligação a módulos (FSBO | Leads | Angariações)</span>
           </div>
           <div class="status" style="margin-top:8px">
-            <span class="dot warn"></span><span>Extração PDF/Exportação (a implementar)</span>
+            <span class="dot warn"></span><span>Extração PDF/Exportação (adiada)</span>
           </div>
         </div>
       </aside>
@@ -626,45 +628,18 @@
                   </tr>
                 </thead>
                 <tbody id="reportsTbody">
-                  <!-- Exemplo (placeholder) -->
-                  <tr>
-                    <td>
-                      <div><strong>Exemplo — Cliente</strong></div>
-                      <span class="td-sub">Investidor · Idioma PT · Executivo</span>
-                    </td>
-                    <td>
-                      <div><strong>Investir</strong></div>
-                      <span class="td-sub">Zona: Foz · Tipologia: T2/T3</span>
-                    </td>
-                    <td>
-                      <div><strong>20/12/2025</strong></div>
-                      <span class="td-sub">Atualizado: 20/12/2025</span>
-                    </td>
-                    <td>
-                      <span class="pill info">Rascunho</span>
-                      <span class="td-sub">Confidencial: Sim</span>
-                    </td>
-                    <td>
-                      <div class="row-actions">
-                        <button class="btn-xs primary" data-act="open">Abrir</button>
-                        <button class="btn-xs" data-act="duplicate">Duplicar</button>
-                        <button class="btn-xs" data-act="export">Exportar PDF</button>
-                        <button class="btn-xs ghost" data-act="delete">Remover</button>
-                      </div>
-                    </td>
-                  </tr>
-                  <!-- /placeholder -->
+                  <!-- Placeholder -->
                 </tbody>
               </table>
             </div>
 
             <div class="hint" style="margin-top:10px">
-              Nota: nesta fase o layout já está pronto. No próximo passo ligamos esta lista ao storage (localStorage/IndexedDB) e à geração PDF.
+              Nota: esta fase foca a <strong>ligação aos módulos</strong> (FSBO | Leads | Angariações) para auto-preenchimento.
             </div>
           </div>
 
           <div class="panel-foot">
-            <div class="hint">Dica operacional: use “Duplicar” para criar variações (executivo vs completo) sem recomeçar do zero.</div>
+            <div class="hint">Dica operacional: ao escrever nome/telemóvel/email, o sistema tenta reconhecer o cliente e preencher automaticamente.</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="btn" id="btnGoWizard">Criar novo</button>
             </div>
@@ -705,7 +680,7 @@
               <div class="n">4</div>
               <div>
                 <div class="t">PDF & Análise</div>
-                <span class="s">Importar estudo e extrair insights</span>
+                <span class="s">(adiado)</span>
               </div>
             </div>
 
@@ -720,8 +695,8 @@
             <div class="divider"></div>
 
             <div class="hint">
-              Para manter consistência premium, o relatório final é construído por secções (ativar/desativar),
-              com <strong>recomendação</strong> e <strong>próximos passos</strong>.
+              Nesta fase: <strong>auto-importação de dados</strong> a partir dos módulos existentes,
+              para acelerar onboarding do relatório e aumentar contexto do cliente.
             </div>
           </div>
 
@@ -761,13 +736,18 @@
 
                   <div class="field">
                     <label for="cTel">Contacto</label>
-                    <input class="input" id="cTel" type="text" placeholder="Telefone" />
+                    <input class="input" id="cTel" type="text" placeholder="Telefone/telemóvel" />
                   </div>
 
                   <div class="field">
                     <label for="cEmail">Email</label>
                     <input class="input" id="cEmail" type="text" placeholder="email@cliente.com" />
                   </div>
+                </div>
+
+                <div class="hint" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0 10px">
+                  <span id="autoImportBadge" class="pill info hidden">Importação automática</span>
+                  <span id="autoImportText">Escreva nome/telemóvel/email para tentar reconhecer o cliente nos módulos <strong>FSBO</strong>, <strong>Leads</strong> e <strong>Angariações</strong>.</span>
                 </div>
 
                 <div class="grid-3">
@@ -965,73 +945,9 @@
                 </div>
               </div>
 
-              <!-- STEP 4 -->
+              <!-- STEP 4 (adiado) -->
               <div id="step4" class="hidden">
-                <div class="drop" id="pdfDrop">
-                  <div class="d-left">
-                    <div class="d-title">Estudos de mercado (PDF)</div>
-                    <p class="d-sub">
-                      Carregue um PDF genérico para análise. No passo seguinte o sistema irá extrair métricas, capítulos e
-                      gerar um resumo operacional (editável).
-                    </p>
-                    <p class="d-sub" style="margin-top:6px">
-                      <strong>Recomendação:</strong> PDFs até ~15MB (dependendo do browser). Para volumes grandes, dividir por capítulos.
-                    </p>
-                  </div>
-                  <div class="d-actions">
-                    <input id="pdfFile" type="file" accept="application/pdf" class="hidden" />
-                    <button class="btn primary" id="btnPickPdf">Importar PDF</button>
-                    <button class="btn secondary" id="btnReprocess">Reprocessar</button>
-                  </div>
-                </div>
-
-                <div class="files" id="pdfList">
-                  <!-- placeholder -->
-                  <div class="file">
-                    <div>
-                      <div class="f-name">Exemplo.pdf</div>
-                      <div class="f-meta">20/12/2025 · 18 páginas · Fonte: upload</div>
-                    </div>
-                    <div class="f-actions">
-                      <button class="btn-xs" data-act="view">Ver</button>
-                      <button class="btn-xs" data-act="remove">Remover</button>
-                    </div>
-                  </div>
-                  <!-- /placeholder -->
-                </div>
-
-                <div class="analysis">
-                  <div class="mini-card">
-                    <h5>Métricas detetadas</h5>
-                    <div class="kv"><b>Preço médio/m²</b><span id="mPrecoM2">—</span></div>
-                    <div class="kv"><b>Intervalo</b><span id="mIntervalo">—</span></div>
-                    <div class="kv"><b>Tendência</b><span id="mTendencia">—</span></div>
-                    <div class="kv"><b>Tempo médio</b><span id="mTempo">—</span></div>
-                  </div>
-
-                  <div class="mini-card">
-                    <h5>Capítulos / Estrutura</h5>
-                    <div class="hint" id="mCapitulos">Sem análise ainda. Após importação, será gerada uma estrutura (editável).</div>
-                  </div>
-
-                  <div class="mini-card">
-                    <h5>Resumo operacional</h5>
-                    <div class="hint">Três blocos editáveis para preparar a narrativa do relatório.</div>
-                    <div class="divider"></div>
-                    <div class="field" style="margin:0">
-                      <label for="sumRelevante">Relevante para o cliente</label>
-                      <textarea id="sumRelevante" placeholder="Pontos do PDF que interessam diretamente ao cliente…"></textarea>
-                    </div>
-                    <div class="field" style="margin:0">
-                      <label for="sumRiscos">Riscos / alertas</label>
-                      <textarea id="sumRiscos" placeholder="Riscos e condicionantes que o cliente deve considerar…"></textarea>
-                    </div>
-                    <div class="field" style="margin:0">
-                      <label for="sumOport">Oportunidades</label>
-                      <textarea id="sumOport" placeholder="Oportunidades e alavancas de valor…"></textarea>
-                    </div>
-                  </div>
-                </div>
+                <div class="hint">Este passo (PDF) está temporariamente adiado para estabilizarmos a ligação entre módulos.</div>
               </div>
 
               <!-- STEP 5 -->
@@ -1041,12 +957,12 @@
                 <div class="switches">
                   <label class="sw"><span class="l"><b>Resumo Executivo</b><span>1 página com decisão + mensagem final.</span></span><input id="sExec" type="checkbox" checked></label>
                   <label class="sw"><span class="l"><b>Contexto do Cliente</b><span>Objetivo, preocupações e perfil.</span></span><input id="sContexto" type="checkbox" checked></label>
-                  <label class="sw"><span class="l"><b>Enquadramento de Mercado</b><span>Insights do PDF + dados internos.</span></span><input id="sMercado" type="checkbox" checked></label>
+                  <label class="sw"><span class="l"><b>Enquadramento de Mercado</b><span>Insights (a ligar mais tarde).</span></span><input id="sMercado" type="checkbox" checked></label>
                   <label class="sw"><span class="l"><b>Comparáveis</b><span>Concorrência e posicionamento (quando aplicável).</span></span><input id="sComps" type="checkbox"></label>
                   <label class="sw"><span class="l"><b>Cenários</b><span>Impacto de preço/timing/estratégia.</span></span><input id="sCenarios" type="checkbox" checked></label>
                   <label class="sw"><span class="l"><b>Recomendação Garvetur</b><span>O “o que fazer” com racional.</span></span><input id="sRecomend" type="checkbox" checked></label>
                   <label class="sw"><span class="l"><b>Plano de ação</b><span>Próximos passos, prazos, responsabilidades.</span></span><input id="sPlano" type="checkbox" checked></label>
-                  <label class="sw"><span class="l"><b>Anexos</b><span>PDFs, excertos e material de suporte.</span></span><input id="sAnexos" type="checkbox" checked></label>
+                  <label class="sw"><span class="l"><b>Anexos</b><span>(a ligar depois).</span></span><input id="sAnexos" type="checkbox" checked></label>
                 </div>
 
                 <div class="divider"></div>
@@ -1085,14 +1001,14 @@
                 </div>
 
                 <div class="hint" style="margin-top:10px">
-                  Nota: a geração PDF será ligada no próximo passo (JS) com o teu layout premium e rodapés (confidencial, data, marca).
+                  Nota: a geração PDF aqui é “impressão” (sem servidor). A exportação premium ficará para a fase seguinte.
                 </div>
               </div>
 
             </div>
 
             <div class="panel-foot">
-              <div class="hint" id="wizardHint">Preencha os campos essenciais e avance. O sistema guardará rascunho automaticamente (a ligar no JS).</div>
+              <div class="hint" id="wizardHint">Preencha os campos essenciais e avance. O sistema guarda rascunho automaticamente.</div>
               <div style="display:flex;gap:8px;flex-wrap:wrap">
                 <button class="btn secondary" id="btnPrev">Anterior</button>
                 <button class="btn primary" id="btnNext">Seguinte</button>
@@ -1105,12 +1021,10 @@
     </div>
   </div>
 
-  <!-- pdf-lib (opcional): apenas para contar páginas sem PDF.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
 (function(){
   /* ===========================
-     Config / Helpers
+     Helpers
   =========================== */
   const el = (id)=>document.getElementById(id);
   const $$ = (sel, root=document)=>Array.from(root.querySelectorAll(sel));
@@ -1122,7 +1036,6 @@
   function uid(prefix='rpt'){
     return prefix + '_' + Math.random().toString(16).slice(2) + '_' + Date.now().toString(16);
   }
-  function bytesToMB(b){ return (b/1024/1024).toFixed(2) + ' MB'; }
   function toPTDate(iso){
     try{
       const d = new Date(iso);
@@ -1132,18 +1045,29 @@
   }
   function normStr(s){ return (s||'').toString().trim(); }
 
-  function moneyGuessToPretty(v){
-    if(v==null) return '—';
-    let s = String(v).replace(/\s/g,'');
-    s = s.replace(/[€]/g,'');
-    s = s.replace(/\./g,'').replace(/,/g,'.');
-    const n = Number(s);
-    if(!isFinite(n) || n<=0) return '—';
-    return n.toLocaleString('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+  function htmlEscape(s){
+    return String(s||'')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
   }
 
-  function stripExtraSpaces(t){
-    return (t||'').replace(/\s+/g,' ').trim();
+  function stripAccents(s){
+    try{
+      return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    }catch{
+      return (s||'');
+    }
+  }
+  function normEmail(s){ return (s||'').toString().trim().toLowerCase(); }
+  function normPhone(s){
+    const d = (s||'').toString().replace(/\D/g,'');
+    // PT typical last 9 digits
+    return d.length>9 ? d.slice(-9) : d;
+  }
+  function normName(s){
+    return stripAccents((s||'').toString().trim().toLowerCase()).replace(/\s+/g,' ');
   }
 
   /* ===========================
@@ -1151,15 +1075,9 @@
   =========================== */
   const LS_KEY = 'gpp_relatorios_cliente_v1';
 
-  function loadAllReports(){
-    return safeJSONParse(localStorage.getItem(LS_KEY), []);
-  }
-  function saveAllReports(list){
-    localStorage.setItem(LS_KEY, JSON.stringify(list || []));
-  }
-  function getReport(id){
-    return loadAllReports().find(r=>r.id===id) || null;
-  }
+  function loadAllReports(){ return safeJSONParse(localStorage.getItem(LS_KEY), []); }
+  function saveAllReports(list){ localStorage.setItem(LS_KEY, JSON.stringify(list || [])); }
+  function getReport(id){ return loadAllReports().find(r=>r.id===id) || null; }
   function upsertReport(report){
     const list = loadAllReports();
     const idx = list.findIndex(r=>r.id===report.id);
@@ -1173,226 +1091,139 @@
   }
 
   /* ===========================
-     IndexedDB: PDFs (Blobs)
+     Cross-module import (FSBO | Leads | Angariações)
+     Keys identificadas nos teus módulos:
+       - FSBO/Particulares: gpp_particulares_v2   (ownerName/ownerPhone/ownerEmail)
+       - Leads/Kanban:      gpp_leads_v5          (nome/contacto/email)
+       - Angariações:       gpp_angariacoes_v2    (nomeProp/telProp/emailProp)
   =========================== */
-  const DB_NAME = 'gpp_relatorios_cliente_db_v1';
-  const DB_STORE = 'pdfs';
+  const KEY_FSBO = 'gpp_particulares_v2';
+  const KEY_LEADS = 'gpp_leads_v5';
+  const KEY_ANG = 'gpp_angariacoes_v2';
 
-  function openDB(){
-    return new Promise((resolve, reject)=>{
-      const req = indexedDB.open(DB_NAME, 1);
-      req.onerror = ()=>reject(req.error);
-      req.onupgradeneeded = ()=>{
-        const db = req.result;
-        if(!db.objectStoreNames.contains(DB_STORE)){
-          db.createObjectStore(DB_STORE, { keyPath:'key' });
-        }
-      };
-      req.onsuccess = ()=>resolve(req.result);
-    });
-  }
+  function loadFSBO(){ return safeJSONParse(localStorage.getItem(KEY_FSBO), []); }
+  function loadLeads(){ return safeJSONParse(localStorage.getItem(KEY_LEADS), []); }
+  function loadAng(){ return safeJSONParse(localStorage.getItem(KEY_ANG), []); }
 
-  async function idbPutPDF(key, blob, meta){
-    const db = await openDB();
-    return new Promise((resolve, reject)=>{
-      const tx = db.transaction(DB_STORE, 'readwrite');
-      tx.objectStore(DB_STORE).put({
-        key,
-        blob,
-        meta: meta || {}
+  function buildContactIndex(){
+    const out = [];
+
+    // FSBO
+    for(const p of (loadFSBO()||[])){
+      const name = p?.ownerName || '';
+      const phone = p?.ownerPhone || '';
+      const email = p?.ownerEmail || '';
+      if(!(name||phone||email)) continue;
+      out.push({
+        source: 'FSBO',
+        sourceKey: KEY_FSBO,
+        id: p?.id || p?.uid || p?.key || null,
+        nome: name,
+        tel: phone,
+        email,
+        raw: p
       });
-      tx.oncomplete = ()=>resolve(true);
-      tx.onerror = ()=>reject(tx.error);
-    });
-  }
-
-  async function idbGetPDF(key){
-    const db = await openDB();
-    return new Promise((resolve, reject)=>{
-      const tx = db.transaction(DB_STORE, 'readonly');
-      const req = tx.objectStore(DB_STORE).get(key);
-      req.onsuccess = ()=>resolve(req.result || null);
-      req.onerror = ()=>reject(req.error);
-    });
-  }
-
-  async function idbDelPDF(key){
-    const db = await openDB();
-    return new Promise((resolve, reject)=>{
-      const tx = db.transaction(DB_STORE, 'readwrite');
-      tx.objectStore(DB_STORE).delete(key);
-      tx.oncomplete = ()=>resolve(true);
-      tx.onerror = ()=>reject(tx.error);
-    });
-  }
-
- /* ===========================
-     PDF (ANEXO) — sem PDF.js
-     - guarda o ficheiro na IndexedDB
-     - (opcional) conta páginas com pdf-lib
-  =========================== */
-  async function getPdfPageCount(fileOrBlob){
-    try{
-      if(!window.PDFLib) return null;
-      const ab = await fileOrBlob.arrayBuffer();
-      const doc = await PDFLib.PDFDocument.load(ab, { ignoreEncryption:true });
-      return doc.getPageCount();
-    }catch{
-      return null;
-    }
-  }
-  /* ===========================
-     Heurísticas: Métricas / Capítulos / Resumo
-  =========================== */
-  function extractMetrics(text){
-    const t = text || '';
-
-    const reM2 = /(\d{1,3}(?:[ .]\d{3})*(?:,\d+)?)\s*(?:€|EUR)?\s*(?:\/|por)?\s*(?:m2|m²)/ig;
-    const reRange = /(\d{1,3}(?:[ .]\d{3})*)\s*(?:-|–|a)\s*(\d{1,3}(?:[ .]\d{3})*)\s*(?:€|EUR)?\s*(?:\/|por)?\s*(?:m2|m²)/ig;
-
-    const reTrend = /(\+|-)?\s*(\d{1,2}(?:,\d+)?)\s*%\s*(?:a\.?a\.?|yoy|YoY|ano|anual)/g;
-    const reTime = /(\d{1,3})\s*(dias|dia|meses|mês|semanas|semana)/ig;
-
-    function normNum(s){
-      return Number(String(s).replace(/\s/g,'').replace(/\./g,'').replace(',','.'));
     }
 
-    let m2Vals = [];
-    let m2Range = null;
+    // Leads
+    for(const l of (loadLeads()||[])){
+      const name = l?.nome || l?.name || '';
+      const phone = l?.contacto || l?.telefone || l?.telemovel || '';
+      const email = l?.email || '';
+      if(!(name||phone||email)) continue;
+      out.push({
+        source: 'Leads',
+        sourceKey: KEY_LEADS,
+        id: l?.id || l?.uid || null,
+        nome: name,
+        tel: phone,
+        email,
+        raw: l
+      });
+    }
 
-    let m;
-    while((m = reRange.exec(t)) !== null){
-      const a = normNum(m[1]); const b = normNum(m[2]);
-      if(isFinite(a) && isFinite(b)){
-        m2Range = [a,b].sort((x,y)=>x-y);
+    // Angariações
+    for(const a of (loadAng()||[])){
+      const name = a?.nomeProp || a?.proprietarioNome || '';
+      const phone = a?.telProp || a?.telemovelProp || a?.telefoneProp || '';
+      const email = a?.emailProp || '';
+      if(!(name||phone||email)) continue;
+      out.push({
+        source: 'Angariações',
+        sourceKey: KEY_ANG,
+        id: a?.id || a?.uid || null,
+        nome: name,
+        tel: phone,
+        email,
+        raw: a
+      });
+    }
+
+    return out;
+  }
+
+  function scoreCandidate(q, c){
+    let score = 0;
+    const qEmail = normEmail(q.email);
+    const qPhone = normPhone(q.tel);
+    const qName  = normName(q.nome);
+
+    const cEmail = normEmail(c.email);
+    const cPhone = normPhone(c.tel);
+    const cName  = normName(c.nome);
+
+    if(qEmail && cEmail && qEmail === cEmail) score += 120;
+    if(qPhone && cPhone && qPhone === cPhone) score += 90;
+
+    if(qName && cName){
+      if(qName === cName) score += 60;
+      else if(cName.includes(qName) || qName.includes(cName)) score += 25;
+    }
+
+    // bónus se tem mais campos completos
+    score += (cEmail?5:0) + (cPhone?5:0) + (cName?5:0);
+
+    return score;
+  }
+
+  function findBestContact({ nome, tel, email }){
+    const q = { nome:normStr(nome), tel:normStr(tel), email:normStr(email) };
+    const hasAny = !!(q.nome || q.tel || q.email);
+    if(!hasAny) return null;
+
+    const candidates = buildContactIndex();
+    let best = null;
+    let bestScore = 0;
+
+    for(const c of candidates){
+      const s = scoreCandidate(q, c);
+      if(s > bestScore){
+        bestScore = s;
+        best = c;
       }
     }
-    while((m = reM2.exec(t)) !== null){
-      const val = normNum(m[1]);
-      if(isFinite(val) && val>0 && val<50000) m2Vals.push(val);
-    }
 
-    let precoM2 = '—';
-    if(m2Vals.length){
-      m2Vals.sort((a,b)=>a-b);
-      const mid = Math.floor(m2Vals.length/2);
-      const med = (m2Vals.length%2) ? m2Vals[mid] : (m2Vals[mid-1]+m2Vals[mid])/2;
-      precoM2 = Math.round(med).toLocaleString('pt-PT') + ' €/m²';
-    }
-
-    let intervalo = '—';
-    if(m2Range){
-      intervalo = Math.round(m2Range[0]).toLocaleString('pt-PT') + '–' + Math.round(m2Range[1]).toLocaleString('pt-PT') + ' €/m²';
-    }
-
-    let tendencia = '—';
-    const trends = [];
-    while((m = reTrend.exec(t)) !== null){
-      const sign = m[1] || '';
-      const v = Number(String(m[2]).replace(',','.'));
-      if(isFinite(v) && v>=0 && v<=99) trends.push((sign==='-'?'-':'+') + v.toFixed(1) + '%');
-    }
-    if(trends.length){
-      tendencia = trends.slice(0,2).join(' · ') + ' a.a.';
-    }
-
-    let tempo = '—';
-    const times = [];
-    while((m = reTime.exec(t)) !== null){
-      const n = Number(m[1]);
-      const unit = m[2].toLowerCase();
-      if(isFinite(n) && n>0){
-        times.push(n + ' ' + unit);
-      }
-    }
-    if(times.length){
-      tempo = times.slice(0,2).join(' · ');
-    }
-
-    return { precoM2, intervalo, tendencia, tempo };
+    // limiar: evita falsos positivos quando só existe nome muito genérico
+    if(!best) return null;
+    const strictNeeded = (q.email || q.tel);
+    const threshold = strictNeeded ? 80 : 70;
+    return bestScore >= threshold ? { ...best, _score: bestScore } : null;
   }
 
-  function detectChapters(text){
-    const lines = (text||'').split('\n').map(l=>l.trim()).filter(Boolean);
-    const chapters = [];
-    const headingLike = (l)=>{
-      if(l.length < 6 || l.length > 80) return false;
-      const upperRatio = l.replace(/[^A-ZÁÀÂÃÄÉÈÊÍÌÎÓÒÔÕÖÚÙÛÇ]/g,'').length / Math.max(1,l.replace(/[^A-Za-zÁÀÂÃÄÉÈÊÍÌÎÓÒÔÕÖÚÙÛÇ]/g,'').length);
-      if(upperRatio > 0.75 && l.length <= 60) return true;
-      if(/^\d+(\.\d+)*\s+/.test(l)) return true;
-      if(/:$/.test(l) && l.length<=60) return true;
-      if(/(conclus|resumo|metodologia|oferta|procura|preç|tendênc|recomenda|riscos|mercado)/i.test(l)) return true;
-      return false;
-    };
-
-    for(let i=0;i<lines.length;i++){
-      const l = lines[i];
-      if(headingLike(l)){
-        chapters.push(l.replace(/:+$/,''));
-      }
-      if(chapters.length>=8) break;
+  function suggestTipoFromSource(source, raw){
+    if(source === 'FSBO' || source === 'Angariações') return 'Proprietário';
+    if(source === 'Leads'){
+      // se existir “tipo” na lead, respeitar; caso contrário manter em branco para o utilizador decidir
+      const t = raw?.tipo || raw?.perfil || '';
+      if(t && /invest/i.test(t)) return 'Investidor';
+      if(t && /compr/i.test(t)) return 'Comprador';
+      return '';
     }
-    return chapters;
-  }
-
-  function buildAutoSummary(text, ctx){
-    const t = stripExtraSpaces(text||'');
-    if(!t) return { rel:'', risk:'', opp:'' };
-
-    const sentences = t
-      .replace(/([.!?])\s+/g,'$1|')
-      .split('|')
-      .map(s=>s.trim())
-      .filter(s=>s.length>35 && s.length<220);
-
-    const kwBase = [];
-    if(ctx?.zona) kwBase.push(ctx.zona);
-    if(ctx?.tipologia) kwBase.push(ctx.tipologia);
-    if(ctx?.objetivo) kwBase.push(ctx.objetivo);
-
-    const kwsRel = ['procura','oferta','preço','preços','tendência','variação','m²','m2','transações','absorção','stock','prime','luxo','porto','foz','boavista','centro'];
-    const kwsRisk = ['risco','incerteza','subida','queda','correção','negociação','taxa','juros','fiscal','licença','prazo','atraso','exposição'];
-    const kwsOpp  = ['oportunidade','crescimento','valorização','escassez','pipeline','novo','reabilitação','rentabilidade','yield','procura internacional','procura externa','premium'];
-
-    function score(s, kws){
-      const low = s.toLowerCase();
-      let pts = 0;
-      kws.forEach(k=>{
-        const kk = (k||'').toLowerCase();
-        if(!kk) return;
-        if(low.includes(kk)) pts += 2;
-      });
-      kwBase.forEach(k=>{
-        const kk = (k||'').toLowerCase();
-        if(!kk) return;
-        if(low.includes(kk)) pts += 3;
-      });
-      if(/\d/.test(s)) pts += 1;
-      return pts;
-    }
-
-    function pickTop(kws){
-      const ranked = sentences
-        .map(s=>({ s, p: score(s,kws) }))
-        .filter(x=>x.p>0)
-        .sort((a,b)=>b.p-a.p);
-      const top = ranked.slice(0,3).map(x=>x.s);
-      return top.join('\n• ').trim();
-    }
-
-    const rel = pickTop(kwsRel);
-    const risk = pickTop(kwsRisk);
-    const opp = pickTop(kwsOpp);
-
-    return {
-      rel: rel ? ('• ' + rel) : '',
-      risk: risk ? ('• ' + risk) : '',
-      opp: opp ? ('• ' + opp) : ''
-    };
+    return '';
   }
 
   /* ===========================
-     UI: Elementos do módulo
+     UI Elements
   =========================== */
   const q = el('q');
   const fStatus = el('fStatus');
@@ -1432,6 +1263,9 @@
   const cConf = el('cConf');
   const cNotas = el('cNotas');
 
+  const autoImportBadge = el('autoImportBadge');
+  const autoImportText = el('autoImportText');
+
   const oObjetivo = el('oObjetivo');
   const oHorizonte = el('oHorizonte');
   const oRisco = el('oRisco');
@@ -1450,22 +1284,6 @@
   const zSegmento = el('zSegmento');
   const zMin = el('zMin');
   const zMax = el('zMax');
-
-  const pdfDrop = el('pdfDrop');
-  const pdfFile = el('pdfFile');
-  const btnPickPdf = el('btnPickPdf');
-  const btnReprocess = el('btnReprocess');
-  const pdfList = el('pdfList');
-
-  const mPrecoM2 = el('mPrecoM2');
-  const mIntervalo = el('mIntervalo');
-  const mTendencia = el('mTendencia');
-  const mTempo = el('mTempo');
-  const mCapitulos = el('mCapitulos');
-
-  const sumRelevante = el('sumRelevante');
-  const sumRiscos = el('sumRiscos');
-  const sumOport = el('sumOport');
 
   const sExec = el('sExec');
   const sContexto = el('sContexto');
@@ -1487,7 +1305,6 @@
   // Views & steps
   const stepEls = [null, el('step1'), el('step2'), el('step3'), el('step4'), el('step5')];
   let currentStep = 1;
-
   let ACTIVE_REPORT_ID = null; // relatório em edição
 
   function setTab(which){
@@ -1507,7 +1324,7 @@
       1:'Passo 1 — Identificação do Cliente',
       2:'Passo 2 — Objetivo e Perfil de Decisão',
       3:'Passo 3 — Ativo / Zona em análise',
-      4:'Passo 4 — Importar PDF & Análise',
+      4:'Passo 4 — PDF (adiado)',
       5:'Passo 5 — Construção do Relatório'
     };
     stepTitle.textContent = titles[currentStep] || 'Passo';
@@ -1537,7 +1354,8 @@
         idioma: normStr(cIdioma.value || 'pt'),
         detalhe: normStr(cDetalhe.value || 'exec'),
         confidencial: (cConf.value === 'yes'),
-        notas: normStr(cNotas.value)
+        notas: normStr(cNotas.value),
+        importedFrom: null
       },
 
       objetivo: {
@@ -1571,11 +1389,7 @@
       analysis: {
         metrics: { precoM2:'—', intervalo:'—', tendencia:'—', tempo:'—' },
         chapters: [],
-        sum: {
-          relevante: normStr(sumRelevante.value),
-          riscos: normStr(sumRiscos.value),
-          oportunidades: normStr(sumOport.value)
-        }
+        sum: { relevante:'', riscos:'', oportunidades:'' }
       },
 
       report: {
@@ -1600,6 +1414,7 @@
     base.status = existing?.status || 'draft';
     base.pdfs = existing?.pdfs || [];
     base.analysis = existing?.analysis || base.analysis;
+    base.cliente.importedFrom = existing?.cliente?.importedFrom || null;
 
     return base;
   }
@@ -1617,6 +1432,9 @@
     cDetalhe.value = report.cliente?.detalhe || 'exec';
     cConf.value = report.cliente?.confidencial ? 'yes' : 'no';
     cNotas.value = report.cliente?.notas || '';
+
+    const imp = report.cliente?.importedFrom;
+    setAutoImportUI(imp);
 
     oObjetivo.value = report.objetivo?.objetivo || '';
     oHorizonte.value = report.objetivo?.horizonte || '';
@@ -1646,20 +1464,6 @@
     zMin.value = report.ativo?.zona?.min || '';
     zMax.value = report.ativo?.zona?.max || '';
 
-    const met = report.analysis?.metrics || {};
-    mPrecoM2.textContent = met.precoM2 || '—';
-    mIntervalo.textContent = met.intervalo || '—';
-    mTendencia.textContent = met.tendencia || '—';
-    mTempo.textContent = met.tempo || '—';
-
-    const ch = report.analysis?.chapters || [];
-    mCapitulos.textContent = ch.length ? ch.map(c=>'• '+c).join('\n') : 'Sem análise ainda. Após importação, será gerada uma estrutura (editável).';
-    mCapitulos.style.whiteSpace = 'pre-line';
-
-    sumRelevante.value = report.analysis?.sum?.relevante || '';
-    sumRiscos.value = report.analysis?.sum?.riscos || '';
-    sumOport.value = report.analysis?.sum?.oportunidades || '';
-
     const sec = report.report?.sections || {};
     sExec.checked = !!sec.exec;
     sContexto.checked = !!sec.contexto;
@@ -1673,25 +1477,112 @@
     rTom.value = report.report?.tom || 'Neutro';
     rCTA.value = report.report?.cta || 'Agendar reunião';
     rRecomend.value = report.report?.recomendacaoFinal || '';
-
-    renderPDFList(report);
   }
 
-  function getContextForSummary(report){
-    const mode = report.ativo?.mode || 'imovel';
-    if(mode==='imovel'){
-      return {
-        zona: report.ativo?.imovel?.zona || '',
-        tipologia: report.ativo?.imovel?.tipologia || '',
-        objetivo: report.objetivo?.objetivo || ''
-      };
+  /* ===========================
+     Auto-import UI & logic
+  =========================== */
+  function setAutoImportUI(importedFrom){
+    if(!autoImportBadge || !autoImportText) return;
+
+    if(importedFrom?.source){
+      autoImportBadge.classList.remove('hidden');
+      autoImportBadge.className = 'pill ok';
+      autoImportBadge.textContent = 'Importado: ' + importedFrom.source;
+      const extra = [];
+      if(importedFrom.matchBy) extra.push('match: ' + importedFrom.matchBy);
+      if(importedFrom.at) extra.push('em ' + toPTDate(importedFrom.at));
+      autoImportText.innerHTML = `Dados reconhecidos automaticamente (${extra.join(' · ') || '—'}). Se necessário, pode editar manualmente.`;
+    }else{
+      autoImportBadge.classList.add('hidden');
+      autoImportBadge.className = 'pill info hidden';
+      autoImportBadge.textContent = 'Importação automática';
+      autoImportText.innerHTML = `Escreva nome/telemóvel/email para tentar reconhecer o cliente nos módulos <strong>FSBO</strong>, <strong>Leads</strong> e <strong>Angariações</strong>.`;
     }
-    return {
-      zona: report.ativo?.zona?.zona || '',
-      tipologia: report.ativo?.zona?.tipologia || '',
-      objetivo: report.objetivo?.objetivo || ''
-    };
   }
+
+  function tryAutoImport(){
+    const nome = cNome.value;
+    const tel  = cTel.value;
+    const email = cEmail.value;
+
+    const found = findBestContact({ nome, tel, email });
+    if(!found){
+      // não apagar estado importado existente quando já há um relatório guardado
+      return false;
+    }
+
+    // evitar “sobre-escrita agressiva”: só preenche campos vazios (exceto o que o utilizador está a introduzir)
+    const current = collectForm();
+    const before = {
+      nome: current.cliente.nome,
+      tel: current.cliente.tel,
+      email: current.cliente.email,
+      tipo: current.cliente.tipo
+    };
+
+    const fNome = normStr(found.nome);
+    const fTel  = normStr(found.tel);
+    const fEmail= normStr(found.email);
+
+    // inferência do campo que deu match (para log/visibilidade)
+    let matchBy = 'nome';
+    if(email && fEmail && normEmail(email) === normEmail(fEmail)) matchBy = 'email';
+    else if(tel && fTel && normPhone(tel) === normPhone(fTel)) matchBy = 'telemóvel';
+    else if(nome && fNome) matchBy = 'nome';
+
+    // preencher apenas se vazio
+    if(!before.nome && fNome) cNome.value = fNome;
+    if(!before.tel && fTel) cTel.value = fTel;
+    if(!before.email && fEmail) cEmail.value = fEmail;
+
+    // tipo: só se ainda não foi selecionado
+    if(!before.tipo){
+      const suggested = suggestTipoFromSource(found.source, found.raw);
+      if(suggested) cTipo.value = suggested;
+    }
+
+    // notas: acrescentar linha, sem duplicar
+    const stamp = `[Importado de ${found.source} · match: ${matchBy} · ${toPTDate(todayISO())}]`;
+    const notes = (cNotas.value || '').trim();
+    if(!notes.includes(stamp)){
+      cNotas.value = (notes ? (notes + '\n') : '') + stamp;
+    }
+
+    // guardar estado “importado de”
+    const r = saveDraftSilent();
+    r.cliente.importedFrom = { source: found.source, matchBy, at: todayISO(), sourceKey: found.sourceKey, sourceId: found.id };
+    upsertReport(r);
+    setAutoImportUI(r.cliente.importedFrom);
+
+    return true;
+  }
+
+  // Guarda sem alertas (para autosave e auto-import)
+  function saveDraftSilent(){
+    const r = collectForm();
+    r.updatedAt = todayISO();
+    r.status = 'draft';
+    upsertReport(r);
+    ACTIVE_REPORT_ID = r.id;
+    return r;
+  }
+
+  let importTimer = null;
+  function scheduleAutoImport(){
+    clearTimeout(importTimer);
+    importTimer = setTimeout(()=> {
+      // só tentar quando estamos no wizard e no passo 1
+      if(viewWizard && !viewWizard.classList.contains('hidden')) tryAutoImport();
+    }, 420);
+  }
+
+  // tentativas ao escrever (debounce)
+  [cNome, cTel, cEmail].forEach(inp=>{
+    if(!inp) return;
+    inp.addEventListener('input', scheduleAutoImport);
+    inp.addEventListener('blur', ()=>{ scheduleAutoImport(); });
+  });
 
   /* ===========================
      Lista: render + filtros
@@ -1750,20 +1641,21 @@
       const obj = r.objetivo?.objetivo || '—';
       const detalhe = (r.cliente?.detalhe === 'full') ? 'Completo' : 'Executivo';
       const conf = r.cliente?.confidencial ? 'Sim' : 'Não';
+      const imp = r.cliente?.importedFrom?.source ? (' · Importado: ' + r.cliente.importedFrom.source) : '';
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>
-          <div><strong>${r.cliente?.nome || '—'}</strong></div>
-          <span class="td-sub">${r.cliente?.tipo || '—'} · Idioma ${((r.cliente?.idioma||'pt')==='en'?'EN':'PT')} · ${detalhe}</span>
+          <div><strong>${htmlEscape(r.cliente?.nome || '—')}</strong></div>
+          <span class="td-sub">${htmlEscape(r.cliente?.tipo || '—')} · Idioma ${((r.cliente?.idioma||'pt')==='en'?'EN':'PT')} · ${detalhe}${imp}</span>
         </td>
         <td>
-          <div><strong>${obj}</strong></div>
-          <span class="td-sub">Zona: ${zona}${tip ? ' · Tipologia: '+tip : ''}</span>
+          <div><strong>${htmlEscape(obj)}</strong></div>
+          <span class="td-sub">Zona: ${htmlEscape(zona)}${tip ? ' · Tipologia: '+htmlEscape(tip) : ''}</span>
         </td>
         <td>
-          <div><strong>${toPTDate(r.createdAt || '')}</strong></div>
-          <span class="td-sub">Atualizado: ${toPTDate(r.updatedAt || '')}</span>
+          <div><strong>${htmlEscape(toPTDate(r.createdAt || ''))}</strong></div>
+          <span class="td-sub">Atualizado: ${htmlEscape(toPTDate(r.updatedAt || ''))}</span>
         </td>
         <td>
           ${badgeEstado(r.status)}
@@ -1785,17 +1677,6 @@
   /* ===========================
      Wizard: criar/guardar
   =========================== */
-  function newReport(){
-    const r = collectForm();
-    r.id = uid('rpt');
-    r.createdAt = todayISO();
-    r.updatedAt = todayISO();
-    r.status = 'draft';
-    upsertReport(r);
-    fillForm(r);
-    return r;
-  }
-
   function saveDraft(){
     const r = collectForm();
     r.updatedAt = todayISO();
@@ -1813,7 +1694,7 @@
       createdAt: todayISO(),
       updatedAt: todayISO(),
       status: 'draft',
-      cliente:{tipo:'',nome:'',tel:'',email:'',idioma:'pt',detalhe:'exec',confidencial:false,notas:''},
+      cliente:{tipo:'',nome:'',tel:'',email:'',idioma:'pt',detalhe:'exec',confidencial:false,notas:'', importedFrom:null},
       objetivo:{objetivo:'',horizonte:'',risco:'',preocupacoes:[],brief:''},
       ativo:{mode:'imovel',imovel:{fonte:'Manual',query:'',zona:'',tipologia:'',preco:'',obs:''},zona:{zona:'',tipologia:'',segmento:'Novo',min:'',max:''}},
       pdfs:[],
@@ -1822,6 +1703,7 @@
     };
     fillForm(empty);
     setTab('wizard'); setStep(1);
+    setAutoImportUI(null);
   });
 
   btnGoWizard?.addEventListener('click', ()=>{
@@ -1860,217 +1742,15 @@
   let autosaveTimer = null;
   function scheduleAutosave(){
     clearTimeout(autosaveTimer);
-    autosaveTimer = setTimeout(()=>{ if(viewWizard && !viewWizard.classList.contains('hidden')) saveDraft(); }, 600);
+    autosaveTimer = setTimeout(()=>{ if(viewWizard && !viewWizard.classList.contains('hidden')) saveDraftSilent(); }, 650);
   }
   ['input','change','keyup'].forEach(ev=>{
     viewWizard?.addEventListener(ev, scheduleAutosave, true);
   });
 
   /* ===========================
-     PDFs: Importar / Reprocessar / Ver / Remover — FIX
-     - suporte drag & drop
-     - validação + mensagens consistentes
+     Exportação “PDF” (impressão)
   =========================== */
-  function ensureActiveReport(){
-    if(!ACTIVE_REPORT_ID){
-      const r = newReport();
-      ACTIVE_REPORT_ID = r.id;
-      return r;
-    }
-    const r = getReport(ACTIVE_REPORT_ID);
-    if(!r){
-      const nr = newReport();
-      ACTIVE_REPORT_ID = nr.id;
-      return nr;
-    }
-    return r;
-  }
-
-  function renderPDFList(report){
-    pdfList.innerHTML = '';
-    const list = report?.pdfs || [];
-    if(!list.length){
-      const div = document.createElement('div');
-      div.className = 'file';
-      div.innerHTML = `
-        <div>
-          <div class="f-name" style="color:var(--muted);font-weight:700">Sem PDFs importados</div>
-          <div class="f-meta">Importe um estudo para iniciar a extração automática.</div>
-        </div>
-        <div class="f-actions">
-          <button class="btn-xs" disabled>Ver</button>
-        </div>
-      `;
-      pdfList.appendChild(div);
-      return;
-    }
-
-    list.forEach(p=>{
-      const div = document.createElement('div');
-      div.className = 'file';
-      div.innerHTML = `
-        <div>
-          <div class="f-name">${p.name || 'PDF'}</div>
-          <div class="f-meta">${toPTDate(p.addedAt || '')} · ${p.pages || '—'} páginas · ${p.sizeMB || '—'}</div>
-        </div>
-        <div class="f-actions">
-          <button class="btn-xs" data-act="view" data-key="${p.key}">Ver</button>
-          <button class="btn-xs" data-act="remove" data-key="${p.key}">Remover</button>
-        </div>
-      `;
-      pdfList.appendChild(div);
-    });
-  }
-
-    async function processPDFAndUpdateReport(file){
-    const report = ensureActiveReport();
-
-    if(file.type !== 'application/pdf'){
-      alert('Por favor selecione um ficheiro PDF.');
-      return;
-    }
-
-    const mb = file.size / 1024 / 1024;
-    if(mb > 25){
-      if(!confirm(`Este PDF tem ${mb.toFixed(1)}MB. Pode falhar em alguns browsers. Pretende tentar na mesma?`)) return;
-    }
-
-    const key = uid('pdf');
-    const addedAt = todayISO();
-
-    // guardar como anexo normal
-    await idbPutPDF(key, file, { name:file.name, addedAt });
-
-    // (opcional) contar páginas sem PDF.js
-    const pages = await getPdfPageCount(file);
-
-    report.updatedAt = todayISO();
-    report.pdfs = (report.pdfs || []);
-    report.pdfs.unshift({
-      key,
-      name: file.name,
-      size: file.size,
-      sizeMB: bytesToMB(file.size),
-      pages: (pages ?? '—'),
-      addedAt,
-      extractedAt: null,
-      metrics: null,
-      chapters: null,
-      textSample: null
-    });
-
-    // mantém campos de análise editáveis (manual)
-    report.analysis = report.analysis || {};
-    report.analysis.metrics = report.analysis.metrics || { precoM2:'—', intervalo:'—', tendencia:'—', tempo:'—' };
-    report.analysis.chapters = report.analysis.chapters || [];
-    report.analysis.sum = report.analysis.sum || { relevante:'', riscos:'', oportunidades:'' };
-
-    upsertReport(report);
-    fillForm(report);
-
-    alert('PDF importado com sucesso (anexo).');
-  }
-
-  function pickPdf(){
-    // gesto direto (browser-friendly)
-    pdfFile.value = '';
-    pdfFile.click();
-  }
-
-  btnPickPdf?.addEventListener('click', (e)=>{
-    e.preventDefault();
-    pickPdf();
-  });
-
-  pdfFile?.addEventListener('change', async ()=>{
-    const f = pdfFile.files && pdfFile.files[0];
-    if(!f) return;
-    try{
-      btnPickPdf.disabled = true;
-      btnReprocess.disabled = true;
-      await processPDFAndUpdateReport(f);
-       }catch(err){
-      console.error(err);
-      alert('Falha ao importar PDF. Tente novamente (ou experimente um PDF mais leve).');
-    }finally{
-      btnPickPdf.disabled = false;
-      btnReprocess.disabled = false;
-      pdfFile.value = '';
-    }
-  });
-
-  // Drag & Drop no bloco #pdfDrop — FIX
-  if(pdfDrop){
-    const on = (name, fn)=>pdfDrop.addEventListener(name, fn, false);
-
-    on('dragenter', (e)=>{ e.preventDefault(); e.stopPropagation(); pdfDrop.style.outline='2px solid rgba(163,139,99,.55)'; });
-    on('dragover',  (e)=>{ e.preventDefault(); e.stopPropagation(); });
-    on('dragleave', (e)=>{ e.preventDefault(); e.stopPropagation(); pdfDrop.style.outline='none'; });
-    on('drop', async (e)=>{
-      e.preventDefault(); e.stopPropagation();
-      pdfDrop.style.outline='none';
-      const f = e.dataTransfer?.files?.[0];
-      if(!f) return;
-      try{
-        btnPickPdf.disabled = true;
-        btnReprocess.disabled = true;
-        await processPDFAndUpdateReport(f);
-      }catch(err){
-        console.error(err);
-        alert('Falha ao processar PDF via drag&drop. Tente importar pelo botão.');
-      }finally{
-        btnPickPdf.disabled = false;
-        btnReprocess.disabled = false;
-      }
-    });
-  }
-
-  pdfList?.addEventListener('click', async (e)=>{
-    const b = e.target.closest('button[data-act]');
-    if(!b) return;
-
-    const report = ensureActiveReport();
-    const act = b.dataset.act;
-    const key = b.dataset.key;
-
-    if(act==='remove'){
-      if(!confirm('Remover este PDF do relatório?')) return;
-      try{ await idbDelPDF(key); }catch{}
-      report.pdfs = (report.pdfs||[]).filter(p=>p.key!==key);
-      upsertReport(report);
-      fillForm(report);
-      return;
-    }
-
-    if(act==='view'){
-      const rec = await idbGetPDF(key);
-      if(!rec?.blob){
-        alert('PDF não encontrado (cache/DB). Reimporte o ficheiro.');
-        return;
-      }
-      const url = URL.createObjectURL(rec.blob);
-      window.open(url, '_blank', 'noopener,noreferrer');
-      setTimeout(()=>URL.revokeObjectURL(url), 15000);
-      return;
-    }
-  });
-
-  btnReprocess?.addEventListener('click', ()=>{
-    alert('Reprocessar está indisponível neste modo (PDFs como anexos, sem análise automática).');
-  });
-
-  /* ===========================
-     Exportação “PDF” — FIX (sem pop-ups)
-     - imprime via IFRAME invisível (evita bloqueio de janela)
-  =========================== */
-  function htmlEscape(s){
-    return String(s||'')
-      .replace(/&/g,'&amp;')
-      .replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;');
-  }
-
   function printHTMLInFrame(html){
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
@@ -2081,43 +1761,22 @@
     iframe.style.border = '0';
     iframe.style.opacity = '0';
     iframe.setAttribute('aria-hidden','true');
-
     document.body.appendChild(iframe);
 
-    const cleanup = ()=>{
-      try{ iframe.remove(); }catch{}
-    };
+    const cleanup = ()=>{ try{ iframe.remove(); }catch{} };
 
     const w = iframe.contentWindow;
     const d = iframe.contentDocument || w.document;
 
-    d.open();
-    d.write(html);
-    d.close();
+    d.open(); d.write(html); d.close();
 
-    // Espera que fonts/layout estejam prontos, depois imprime
     const firePrint = async ()=>{
-      try{
-        if(d.fonts && d.fonts.ready) await d.fonts.ready;
-      }catch{}
-      try{
-        w.focus();
-        w.print();
-      }catch(err){
-        console.error(err);
-        alert('Falha ao abrir impressão. Tente novamente.');
-        cleanup();
-      }
+      try{ if(d.fonts && d.fonts.ready) await d.fonts.ready; }catch{}
+      try{ w.focus(); w.print(); }catch(err){ console.error(err); alert('Falha ao abrir impressão.'); cleanup(); }
     };
-
-    // afterprint para limpeza
-    const onAfter = ()=>{
-      w.removeEventListener('afterprint', onAfter);
-      setTimeout(cleanup, 250);
-    };
+    const onAfter = ()=>{ w.removeEventListener('afterprint', onAfter); setTimeout(cleanup, 250); };
     w.addEventListener('afterprint', onAfter);
 
-    // alguns browsers não disparam afterprint consistentemente
     setTimeout(firePrint, 250);
     setTimeout(cleanup, 60000);
   }
@@ -2130,16 +1789,7 @@
 
     const zona = mode==='imovel' ? (ativo.imovel?.zona || '—') : (ativo.zona?.zona || '—');
     const tip = mode==='imovel' ? (ativo.imovel?.tipologia || '') : (ativo.zona?.tipologia || '');
-    const preco = mode==='imovel' ? moneyGuessToPretty(ativo.imovel?.preco || '') : '';
     const detalhe = forceExec ? 'exec' : (cliente.detalhe || 'exec');
-
-    const sec = report.report?.sections || {};
-    const use = (k)=> forceExec ? (k==='exec' || k==='recomend' || k==='plano' || k==='mercado' ) : !!sec[k];
-
-    const met = report.analysis?.metrics || {};
-    const ch = report.analysis?.chapters || [];
-    const sum = report.analysis?.sum || {};
-
     const confTag = cliente.confidencial ? 'CONFIDENCIAL' : 'INTERNO';
     const title = `Relatório para Cliente — ${cliente.nome || 'Cliente'} (${toPTDate(report.updatedAt || report.createdAt)})`;
 
@@ -2166,106 +1816,10 @@
         ul{margin:6px 0 0 18px}
         li{margin:4px 0;font-size:13px;line-height:1.45}
         .foot{margin-top:18px;padding-top:10px;border-top:1px solid #eee;font-size:11px;color:#777;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
-        @media print{
-          .page{padding:18px 24px}
-        }
       </style>
     `;
 
-    function blockResumoExec(){
-      const rec = (report.report?.recomendacaoFinal || '').trim() || '(preencher recomendação final)';
-      return `
-        <div class="sec">
-          <h2>Resumo Executivo</h2>
-          <p class="p"><strong>Objetivo:</strong> ${htmlEscape(obj.objetivo || '—')} · <strong>Zona:</strong> ${htmlEscape(zona)} ${tip?('· <strong>Tipologia:</strong> '+htmlEscape(tip)) : ''} ${preco?('· <strong>Preço:</strong> '+htmlEscape(preco)) : ''}</p>
-          <p class="p">${htmlEscape(rec).replace(/\n/g,'<br>')}</p>
-        </div>
-      `;
-    }
-
-    function blockContexto(){
-      const preocup = (obj.preocupacoes||[]).length ? (obj.preocupacoes.join(', ')) : '—';
-      return `
-        <div class="sec">
-          <h2>Contexto do Cliente</h2>
-          <div class="grid">
-            <div class="card">
-              <h3>Briefing</h3>
-              <div class="kv"><b>Tipo</b><span>${htmlEscape(cliente.tipo||'—')}</span></div>
-              <div class="kv"><b>Horizonte</b><span>${htmlEscape(obj.horizonte||'—')}</span></div>
-              <div class="kv"><b>Risco</b><span>${htmlEscape(obj.risco||'—')}</span></div>
-              <div class="kv"><b>Preocupações</b><span>${htmlEscape(preocup)}</span></div>
-            </div>
-            <div class="card">
-              <h3>Notas</h3>
-              <p class="p">${htmlEscape(obj.brief||cliente.notas||'—').replace(/\n/g,'<br>')}</p>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
-    function blockMercado(){
-      const caps = ch.length ? ('<ul>' + ch.slice(0,8).map(c=>`<li>${htmlEscape(c)}</li>`).join('') + '</ul>') : '<p class="p">Sem capítulos detetados (importe um PDF para análise).</p>';
-      return `
-        <div class="sec">
-          <h2>Enquadramento de Mercado</h2>
-          <div class="grid">
-            <div class="card">
-              <h3>Métricas (do PDF)</h3>
-              <div class="kv"><b>Preço médio/m²</b><span>${htmlEscape(met.precoM2||'—')}</span></div>
-              <div class="kv"><b>Intervalo</b><span>${htmlEscape(met.intervalo||'—')}</span></div>
-              <div class="kv"><b>Tendência</b><span>${htmlEscape(met.tendencia||'—')}</span></div>
-              <div class="kv"><b>Tempo médio</b><span>${htmlEscape(met.tempo||'—')}</span></div>
-            </div>
-            <div class="card">
-              <h3>Estrutura / Capítulos</h3>
-              ${caps}
-            </div>
-          </div>
-
-          <div class="grid" style="margin-top:12px">
-            <div class="card">
-              <h3>Relevante para o cliente</h3>
-              <p class="p">${htmlEscape(sum.relevante||'—').replace(/\n/g,'<br>')}</p>
-            </div>
-            <div class="card">
-              <h3>Riscos / Alertas</h3>
-              <p class="p">${htmlEscape(sum.riscos||'—').replace(/\n/g,'<br>')}</p>
-            </div>
-          </div>
-
-          <div class="card" style="margin-top:12px">
-            <h3>Oportunidades</h3>
-            <p class="p">${htmlEscape(sum.oportunidades||'—').replace(/\n/g,'<br>')}</p>
-          </div>
-        </div>
-      `;
-    }
-
-    function blockCenarios(){
-      return `
-        <div class="sec">
-          <h2>Cenários</h2>
-          <p class="p">Sugestão (placeholder): aqui ligamos no próximo sprint a simulação de cenários (preço vs timing vs estratégia), com base nos teus dados internos.</p>
-        </div>
-      `;
-    }
-
-    function blockPlano(){
-      const cta = report.report?.cta || 'Agendar reunião';
-      return `
-        <div class="sec">
-          <h2>Próximos passos</h2>
-          <ul>
-            <li>Validar objetivo e critérios de decisão do cliente (10–15 min).</li>
-            <li>Confirmar dados do ativo/zona e recolher informação crítica (documentos, comparáveis, restrições).</li>
-            <li>Alinhar estratégia e calendarização (marketing, posicionamento, negociação).</li>
-            <li><strong>CTA final:</strong> ${htmlEscape(cta)}.</li>
-          </ul>
-        </div>
-      `;
-    }
+    const rec = (report.report?.recomendacaoFinal || '').trim() || '(preencher recomendação final)';
 
     const html = `
       <!doctype html>
@@ -2285,16 +1839,43 @@
               </div>
               <div class="meta">
                 <div><strong>Cliente:</strong> ${htmlEscape(cliente.nome||'—')}</div>
+                <div><strong>Contacto:</strong> ${htmlEscape(cliente.tel||'—')} · ${htmlEscape(cliente.email||'—')}</div>
                 <div><strong>Data:</strong> ${htmlEscape(toPTDate(report.updatedAt||report.createdAt||todayISO()))}</div>
                 <div><strong>Formato:</strong> ${detalhe==='full'?'Completo':'Executivo'}</div>
               </div>
             </div>
 
-            ${use('exec') ? blockResumoExec() : ''}
-            ${use('contexto') ? blockContexto() : ''}
-            ${use('mercado') ? blockMercado() : ''}
-            ${use('cenarios') ? blockCenarios() : ''}
-            ${use('plano') ? blockPlano() : ''}
+            <div class="sec">
+              <h2>Resumo Executivo</h2>
+              <p class="p"><strong>Objetivo:</strong> ${htmlEscape(obj.objetivo || '—')} · <strong>Zona:</strong> ${htmlEscape(zona)} ${tip?('· <strong>Tipologia:</strong> '+htmlEscape(tip)) : ''}</p>
+              <p class="p">${htmlEscape(rec).replace(/\\n/g,'<br>')}</p>
+            </div>
+
+            <div class="sec">
+              <h2>Contexto (inputs do módulo)</h2>
+              <div class="grid">
+                <div class="card">
+                  <h3>Briefing</h3>
+                  <div class="kv"><b>Tipo</b><span>${htmlEscape(cliente.tipo||'—')}</span></div>
+                  <div class="kv"><b>Horizonte</b><span>${htmlEscape(obj.horizonte||'—')}</span></div>
+                  <div class="kv"><b>Risco</b><span>${htmlEscape(obj.risco||'—')}</span></div>
+                </div>
+                <div class="card">
+                  <h3>Notas internas</h3>
+                  <p class="p">${htmlEscape(cliente.notas||'—').replace(/\\n/g,'<br>')}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="sec">
+              <h2>Próximos passos</h2>
+              <ul>
+                <li>Validar objetivo e critérios de decisão do cliente (10–15 min).</li>
+                <li>Confirmar informação crítica já existente nos módulos (FSBO | Leads | Angariações).</li>
+                <li>Alinhar estratégia e calendarização.</li>
+                <li><strong>CTA final:</strong> ${htmlEscape(report.report?.cta || 'Agendar reunião')}.</li>
+              </ul>
+            </div>
 
             <div class="foot">
               <span>${htmlEscape(confTag)} · Uso interno / cliente · Não distribuir sem autorização.</span>
@@ -2341,12 +1922,6 @@
 
     if(act==='delete'){
       if(!confirm('Remover este relatório? (esta ação não pode ser desfeita)')) return;
-      const r = getReport(id);
-      if(r?.pdfs?.length){
-        for(const p of r.pdfs){
-          if(p.key) { try{ await idbDelPDF(p.key); }catch{} }
-        }
-      }
       deleteReport(id);
       renderList();
       return;
@@ -2416,10 +1991,9 @@
   setTab('list');
   setStep(1);
   renderList();
+  setAutoImportUI(null);
 
 })();
 </script>
 </body>
 </html>
-
-
