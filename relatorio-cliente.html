@@ -1226,38 +1226,21 @@
     });
   }
 
-  /* ===========================
-     PDF Extraction (pdf.js) — FIX
+ /* ===========================
+     PDF (ANEXO) — sem PDF.js
+     - guarda o ficheiro na IndexedDB
+     - (opcional) conta páginas com pdf-lib
   =========================== */
-  function ensurePdfJsReady(){
-    if(!window.pdfjsLib) return false;
+  async function getPdfPageCount(fileOrBlob){
     try{
-      // worker consistente
-      pdfjsLib.GlobalWorkerOptions.workerSrc =
-        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.js";
-    }catch{}
-    return true;
-  }
-
-  async function pdfToText(fileOrBlob){
-    if(!ensurePdfJsReady()) throw new Error('PDF.js não carregou.');
-
-    const ab = await fileOrBlob.arrayBuffer();
-    const loadingTask = pdfjsLib.getDocument({ data: ab });
-    const pdf = await loadingTask.promise;
-    const numPages = pdf.numPages;
-
-    let allText = '';
-    for(let p=1; p<=numPages; p++){
-      const page = await pdf.getPage(p);
-      const content = await page.getTextContent();
-      const strings = content.items.map(it => it.str).filter(Boolean);
-      const pageText = strings.join(' ');
-      allText += '\n\n' + pageText;
+      if(!window.PDFLib) return null;
+      const ab = await fileOrBlob.arrayBuffer();
+      const doc = await PDFLib.PDFDocument.load(ab, { ignoreEncryption:true });
+      return doc.getPageCount();
+    }catch{
+      return null;
     }
-    return { text: stripExtraSpaces(allText), pages: numPages };
   }
-
   /* ===========================
      Heurísticas: Métricas / Capítulos / Resumo
   =========================== */
