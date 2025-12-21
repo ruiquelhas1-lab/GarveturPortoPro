@@ -1922,15 +1922,14 @@
     });
   }
 
-  async function processPDFAndUpdateReport(file){
+    async function processPDFAndUpdateReport(file){
     const report = ensureActiveReport();
 
-    // validações rápidas
     if(file.type !== 'application/pdf'){
       alert('Por favor selecione um ficheiro PDF.');
       return;
     }
-    // “guardrail” de UX (não bloqueia tecnicamente, mas evita crashes)
+
     const mb = file.size / 1024 / 1024;
     if(mb > 25){
       if(!confirm(`Este PDF tem ${mb.toFixed(1)}MB. Pode falhar em alguns browsers. Pretende tentar na mesma?`)) return;
@@ -1939,15 +1938,11 @@
     const key = uid('pdf');
     const addedAt = todayISO();
 
+    // guardar como anexo normal
     await idbPutPDF(key, file, { name:file.name, addedAt });
 
-    const { text, pages } = await pdfToText(file);
-
-    const metrics = extractMetrics(text);
-    const chapters = detectChapters(text);
-
-    const ctx = getContextForSummary(report);
-    const sum = buildAutoSummary(text, ctx);
+    // (opcional) contar páginas sem PDF.js
+    const pages = await getPdfPageCount(file);
 
     report.updatedAt = todayISO();
     report.pdfs = (report.pdfs || []);
@@ -1956,27 +1951,24 @@
       name: file.name,
       size: file.size,
       sizeMB: bytesToMB(file.size),
-      pages,
+      pages: (pages ?? '—'),
       addedAt,
-      extractedAt: todayISO(),
-      metrics,
-      chapters,
-      textSample: text.slice(0, 1200)
+      extractedAt: null,
+      metrics: null,
+      chapters: null,
+      textSample: null
     });
 
+    // mantém campos de análise editáveis (manual)
     report.analysis = report.analysis || {};
-    report.analysis.metrics = metrics;
-    report.analysis.chapters = chapters;
-    report.analysis.sum = report.analysis.sum || {relevante:'',riscos:'',oportunidades:''};
-
-    if(!report.analysis.sum.relevante) report.analysis.sum.relevante = sum.rel;
-    if(!report.analysis.sum.riscos) report.analysis.sum.riscos = sum.risk;
-    if(!report.analysis.sum.oportunidades) report.analysis.sum.oportunidades = sum.opp;
+    report.analysis.metrics = report.analysis.metrics || { precoM2:'—', intervalo:'—', tendencia:'—', tempo:'—' };
+    report.analysis.chapters = report.analysis.chapters || [];
+    report.analysis.sum = report.analysis.sum || { relevante:'', riscos:'', oportunidades:'' };
 
     upsertReport(report);
     fillForm(report);
 
-    alert('PDF importado e analisado com sucesso.');
+    alert('PDF importado com sucesso (anexo).');
   }
 
   function pickPdf(){
