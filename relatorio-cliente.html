@@ -1,10 +1,10 @@
-
 <!doctype html>
 <html lang="pt-PT">
 <head>
   <meta charset="utf-8" />
   <title>Garvetur Porto Pro — Relatório para Cliente (Admin)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
     :root{
       --gold:#A38B63;
@@ -29,6 +29,7 @@
     a{color:inherit}
     .hidden{display:none !important}
 
+    /* Shell */
     .app{
       display:grid;
       grid-template-rows:64px 1fr;
@@ -47,7 +48,9 @@
       gap:12px;
       flex-wrap:wrap;
     }
-    .brand{display:flex;align-items:center;gap:10px}
+    .brand{
+      display:flex;align-items:center;gap:10px;
+    }
     .brand-icon{
       width:30px;height:30px;border-radius:999px;border:1px solid var(--gold);
       display:flex;align-items:center;justify-content:center;
@@ -87,9 +90,18 @@
     .btn.primary{background:var(--gold);color:#0A0A0A;border-color:var(--gold);font-weight:700}
     .btn.secondary{border-color:rgba(255,255,255,.18);color:var(--muted);background:transparent}
 
-    .layout{display:grid;grid-template-columns:320px minmax(0,1fr);height:100%;overflow:hidden}
-    @media (max-width: 980px){.layout{grid-template-columns:1fr;grid-template-rows:auto 1fr}}
+    /* Layout */
+    .layout{
+      display:grid;
+      grid-template-columns:320px minmax(0,1fr);
+      height:100%;
+      overflow:hidden;
+    }
+    @media (max-width: 980px){
+      .layout{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+    }
 
+    /* Sidebar */
     aside.sidebar{
       border-right:1px solid rgba(163,139,99,.24);
       background:radial-gradient(circle at top left,#141414,#060606);
@@ -104,9 +116,17 @@
       margin-bottom:10px;
       box-shadow:0 12px 22px rgba(0,0,0,.35);
     }
-    .side-card h3{margin:0 0 8px;font-size:11px;color:var(--muted);letter-spacing:.16em;text-transform:uppercase}
+    .side-card h3{
+      margin:0 0 8px;
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
     .field{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
-    .field label{font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+    .field label{
+      font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase
+    }
     .input, select, textarea{
       width:100%;
       background:rgba(0,0,0,.70);
@@ -118,20 +138,38 @@
       font-size:13px;
     }
     textarea{min-height:84px;resize:vertical}
-    .input:focus, select:focus, textarea:focus{border-color:var(--gold);box-shadow:0 0 0 1px rgba(163,139,99,.35)}
+    .input:focus, select:focus, textarea:focus{
+      border-color:var(--gold);
+      box-shadow:0 0 0 1px rgba(163,139,99,.35);
+    }
     .checks{display:flex;flex-direction:column;gap:8px;margin-top:6px}
     .checks label{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--muted);line-height:1.35}
     .checks input{accent-color:var(--gold);margin-top:2px}
+
     .hint{font-size:11px;color:var(--muted);line-height:1.45}
     .divider{height:1px;background:rgba(255,255,255,.10);margin:10px 0}
 
+    /* Main */
     main.main{
       padding:14px 16px 18px;
       overflow:auto;
       background:radial-gradient(circle at top,#1a1a1a,#050505 55%,#000 100%);
     }
-    .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:10px}
-    .topbar h2{margin:0;font-size:14px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .topbar h2{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
     .topbar p{margin:2px 0 0;font-size:12px;color:var(--muted);line-height:1.45;max-width:920px}
 
     .panel{
@@ -151,7 +189,10 @@
       gap:10px;
       flex-wrap:wrap;
     }
-    .panel-head .title{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:12px;color:var(--gold)}
+    .panel-head .title{
+      display:flex;align-items:center;gap:10px;
+      font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:12px;color:var(--gold);
+    }
     .panel-body{padding:12px 12px 12px}
     .panel-foot{
       padding:10px 12px;
@@ -163,7 +204,10 @@
       background:rgba(0,0,0,.35);
     }
 
-    .tabs{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+    /* Tabs (Lista vs Wizard) */
+    .tabs{
+      display:flex;gap:6px;flex-wrap:wrap;align-items:center;
+    }
     .tab{
       border-radius:999px;
       padding:6px 10px;
@@ -174,15 +218,49 @@
       cursor:pointer;
       user-select:none;
     }
-    .tab.active{border-color:var(--gold);color:#0A0A0A;background:var(--gold);font-weight:800}
+    .tab.active{
+      border-color:var(--gold);
+      color:#0A0A0A;
+      background:var(--gold);
+      font-weight:800;
+    }
 
+    /* Table list */
     .table-wrap{overflow:auto}
-    table{width:100%;border-collapse:collapse;min-width:860px}
-    th,td{padding:10px 10px;border-bottom:1px solid rgba(255,255,255,.08);vertical-align:top}
-    th{position:sticky;top:0;background:rgba(0,0,0,.55);color:var(--muted);font-size:11px;letter-spacing:.12em;text-transform:uppercase;z-index:2}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:860px;
+    }
+    th,td{
+      padding:10px 10px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      vertical-align:top;
+    }
+    th{
+      position:sticky;top:0;
+      background:rgba(0,0,0,.55);
+      color:var(--muted);
+      font-size:11px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      z-index:2;
+    }
     td{font-size:13px;color:#e9e9e9}
     .td-sub{display:block;font-size:11px;color:var(--muted);margin-top:2px}
-    .pill{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;border:1px solid rgba(255,255,255,.14);font-size:11px;letter-spacing:.10em;text-transform:uppercase;color:var(--muted);background:rgba(0,0,0,.35);white-space:nowrap}
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      padding:4px 9px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      font-size:11px;
+      letter-spacing:.10em;
+      text-transform:uppercase;
+      color:var(--muted);
+      background:rgba(0,0,0,.35);
+      white-space:nowrap;
+    }
     .pill.ok{border-color:rgba(67,160,71,.55);color:#A5D6A7}
     .pill.warn{border-color:rgba(229,57,53,.55);color:#ffb4b4}
     .pill.info{border-color:rgba(30,136,229,.55);color:#bbdefb}
@@ -207,8 +285,16 @@
     .btn-xs.primary{background:var(--gold);color:#0A0A0A;border-color:var(--gold);font-weight:800}
     .btn-xs.ghost{border-color:rgba(255,255,255,.16);color:var(--muted);background:transparent}
 
-    .wizard{display:grid;grid-template-columns:260px minmax(0,1fr);gap:12px;align-items:start}
-    @media (max-width: 980px){.wizard{grid-template-columns:1fr}}
+    /* Wizard */
+    .wizard{
+      display:grid;
+      grid-template-columns:260px minmax(0,1fr);
+      gap:12px;
+      align-items:start;
+    }
+    @media (max-width: 980px){
+      .wizard{grid-template-columns:1fr}
+    }
 
     .steps{
       border-radius:var(--radius-lg);
@@ -218,15 +304,44 @@
       position:sticky;
       top:84px;
     }
-    @media (max-width: 980px){.steps{position:relative;top:auto}}
-    .steps h4{margin:0 0 8px;font-size:11px;color:var(--muted);letter-spacing:.16em;text-transform:uppercase}
-    .step{display:flex;gap:10px;align-items:flex-start;padding:8px 8px;border-radius:12px;border:1px solid transparent;cursor:pointer}
+    @media (max-width: 980px){
+      .steps{position:relative;top:auto}
+    }
+    .steps h4{
+      margin:0 0 8px;
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+    .step{
+      display:flex;gap:10px;align-items:flex-start;
+      padding:8px 8px;
+      border-radius:12px;
+      border:1px solid transparent;
+      cursor:pointer;
+    }
     .step:hover{border-color:rgba(163,139,99,.22);background:rgba(163,139,99,.08)}
     .step.active{border-color:rgba(163,139,99,.45);background:rgba(163,139,99,.12)}
-    .step .n{width:24px;height:24px;border-radius:999px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.45);color:var(--muted);font-size:12px;flex-shrink:0}
+    .step .n{
+      width:24px;height:24px;border-radius:999px;
+      display:flex;align-items:center;justify-content:center;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.45);
+      color:var(--muted);
+      font-size:12px;
+      flex-shrink:0;
+    }
     .step.active .n{background:var(--gold);border-color:var(--gold);color:#0A0A0A;font-weight:900}
-    .step .t{font-size:12px;color:#f0f0f0;font-weight:700;line-height:1.2}
-    .step .s{display:block;margin-top:2px;font-size:11px;color:var(--muted);font-weight:500;line-height:1.25}
+    .step .t{
+      font-size:12px;color:#f0f0f0;font-weight:700;
+      line-height:1.2;
+    }
+    .step .s{
+      display:block;margin-top:2px;
+      font-size:11px;color:var(--muted);font-weight:500;
+      line-height:1.25;
+    }
 
     .step-panel{
       border-radius:var(--radius-lg);
@@ -241,16 +356,22 @@
       display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
       background:linear-gradient(90deg,#050505,#111,#050505);
     }
-    .step-head .left{display:flex;flex-direction:column;gap:2px}
-    .step-head .kicker{font-size:11px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase}
-    .step-head .name{font-size:13px;color:var(--gold);font-weight:900;letter-spacing:.06em;text-transform:uppercase}
+    .step-head .left{
+      display:flex;flex-direction:column;gap:2px;
+    }
+    .step-head .kicker{
+      font-size:11px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;
+    }
+    .step-head .name{
+      font-size:13px;color:var(--gold);font-weight:900;letter-spacing:.06em;text-transform:uppercase;
+    }
     .step-body{padding:12px 12px}
     .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     @media (max-width: 980px){.grid-2{grid-template-columns:1fr}}
     .grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
     @media (max-width: 980px){.grid-3{grid-template-columns:1fr}}
 
-    .radio-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .radio-row, .toggle-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     .radio{
       border:1px solid rgba(255,255,255,.14);
       background:rgba(0,0,0,.35);
@@ -265,8 +386,15 @@
     .radio .rt{font-size:12px;font-weight:800;color:#f0f0f0}
     .radio .rs{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.3}
 
-    .section-title{margin:12px 0 6px;font-size:11px;color:var(--muted);letter-spacing:.16em;text-transform:uppercase}
+    .section-title{
+      margin:12px 0 6px;
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
 
+    /* Upload */
     .drop{
       border:1px dashed rgba(163,139,99,.55);
       background:rgba(163,139,99,.08);
@@ -283,32 +411,75 @@
     .drop .d-sub{margin:0;font-size:12px;color:var(--muted);line-height:1.45}
     .drop .d-actions{display:flex;gap:8px;flex-wrap:wrap}
 
-    .files{margin-top:10px;border:1px solid rgba(255,255,255,.10);border-radius:14px;overflow:hidden;background:rgba(0,0,0,.35)}
-    .file{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:10px 10px;border-bottom:1px solid rgba(255,255,255,.08)}
+    /* Attachments list */
+    .files{
+      margin-top:10px;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      overflow:hidden;
+      background:rgba(0,0,0,.35);
+    }
+    .file{
+      display:flex;justify-content:space-between;gap:10px;align-items:flex-start;
+      padding:10px 10px;border-bottom:1px solid rgba(255,255,255,.08);
+    }
     .file:last-child{border-bottom:none}
     .file .f-name{font-weight:800}
     .file .f-meta{font-size:11px;color:var(--muted);margin-top:2px}
     .file .f-actions{display:flex;gap:6px;flex-wrap:wrap}
 
-    .analysis{margin-top:10px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+    /* Analysis cards */
+    .analysis{
+      margin-top:10px;
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+    }
     @media (max-width: 980px){.analysis{grid-template-columns:1fr}}
-    .mini-card{border-radius:16px;border:1px solid rgba(163,139,99,.22);background:rgba(0,0,0,.35);padding:10px 10px}
-    .mini-card h5{margin:0 0 6px;font-size:11px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase}
+    .mini-card{
+      border-radius:16px;
+      border:1px solid rgba(163,139,99,.22);
+      background:rgba(0,0,0,.35);
+      padding:10px 10px;
+    }
+    .mini-card h5{
+      margin:0 0 6px;
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
     .kv{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.06)}
     .kv:last-child{border-bottom:none}
     .kv span{font-size:12px;color:#e9e9e9}
     .kv b{font-size:12px;color:var(--muted);font-weight:700}
 
-    .switches{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
+    /* Report builder */
+    .switches{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:8px;
+      margin-top:8px;
+    }
     @media (max-width: 980px){.switches{grid-template-columns:1fr}}
-    .sw{border:1px solid rgba(255,255,255,.10);border-radius:14px;background:rgba(0,0,0,.35);padding:10px 10px;display:flex;justify-content:space-between;gap:10px;align-items:center}
+    .sw{
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      background:rgba(0,0,0,.35);
+      padding:10px 10px;
+      display:flex;justify-content:space-between;gap:10px;align-items:center;
+    }
     .sw .l{display:flex;flex-direction:column;gap:2px}
     .sw .l b{font-size:12px;color:#f5f5f5}
     .sw .l span{font-size:11px;color:var(--muted);line-height:1.3}
     .sw input{accent-color:var(--gold);transform:scale(1.05)}
 
     .cta-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .status{font-size:11px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .status{
+      font-size:11px;
+      color:var(--muted);
+      display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+    }
     .dot{width:10px;height:10px;border-radius:999px;background:rgba(255,255,255,.22);border:1px solid rgba(0,0,0,.25)}
     .dot.ok{background:rgba(67,160,71,.9)}
     .dot.warn{background:rgba(229,57,53,.9)}
@@ -340,6 +511,7 @@
     </header>
 
     <div class="layout">
+      <!-- SIDEBAR -->
       <aside class="sidebar">
         <div class="side-card">
           <h3>Pesquisa & Filtros</h3>
@@ -399,17 +571,18 @@
         <div class="side-card">
           <h3>Estado do módulo</h3>
           <div class="status">
-            <span class="dot ok"></span><span>UI pronta (layout + JS Nível 1)</span>
+            <span class="dot ok"></span><span>UI pronta (layout)</span>
           </div>
           <div class="status" style="margin-top:8px">
-            <span class="dot ok"></span><span>Lista (Abrir/Duplicar/Remover) + PDFs (Ver/Analisar)</span>
+            <span class="dot info"></span><span>Hooks JS por IDs (próximo passo)</span>
           </div>
           <div class="status" style="margin-top:8px">
-            <span class="dot info"></span><span>Exportação: impressão em IFRAME (sem pop-ups)</span>
+            <span class="dot warn"></span><span>Extração PDF/Exportação (a implementar)</span>
           </div>
         </div>
       </aside>
 
+      <!-- MAIN -->
       <main class="main">
         <div class="topbar">
           <div>
@@ -423,6 +596,7 @@
           </div>
         </div>
 
+        <!-- LISTA -->
         <section class="panel" id="viewList">
           <div class="panel-head">
             <div class="title">
@@ -434,8 +608,8 @@
               <span>Lista de relatórios</span>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button class="btn secondary" id="btnImportTemplate" title="(nível 2)">Templates</button>
-              <button class="btn" id="btnExportAll" title="(nível 2)">Exportações</button>
+              <button class="btn secondary" id="btnImportTemplate">Templates</button>
+              <button class="btn" id="btnExportAll">Exportações</button>
             </div>
           </div>
 
@@ -451,12 +625,41 @@
                     <th style="min-width:280px">Ações</th>
                   </tr>
                 </thead>
-                <tbody id="reportsTbody"></tbody>
+                <tbody id="reportsTbody">
+                  <!-- Exemplo (placeholder) -->
+                  <tr>
+                    <td>
+                      <div><strong>Exemplo — Cliente</strong></div>
+                      <span class="td-sub">Investidor · Idioma PT · Executivo</span>
+                    </td>
+                    <td>
+                      <div><strong>Investir</strong></div>
+                      <span class="td-sub">Zona: Foz · Tipologia: T2/T3</span>
+                    </td>
+                    <td>
+                      <div><strong>20/12/2025</strong></div>
+                      <span class="td-sub">Atualizado: 20/12/2025</span>
+                    </td>
+                    <td>
+                      <span class="pill info">Rascunho</span>
+                      <span class="td-sub">Confidencial: Sim</span>
+                    </td>
+                    <td>
+                      <div class="row-actions">
+                        <button class="btn-xs primary" data-act="open">Abrir</button>
+                        <button class="btn-xs" data-act="duplicate">Duplicar</button>
+                        <button class="btn-xs" data-act="export">Exportar PDF</button>
+                        <button class="btn-xs ghost" data-act="delete">Remover</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <!-- /placeholder -->
+                </tbody>
               </table>
             </div>
 
             <div class="hint" style="margin-top:10px">
-              Nesta fase (Nível 1) a lista já está ligada ao storage local e às ações base.
+              Nota: nesta fase o layout já está pronto. No próximo passo ligamos esta lista ao storage (localStorage/IndexedDB) e à geração PDF.
             </div>
           </div>
 
@@ -468,18 +671,61 @@
           </div>
         </section>
 
+        <!-- WIZARD -->
         <section class="wizard hidden" id="viewWizard">
+          <!-- Steps -->
           <div class="steps">
             <h4>Passos</h4>
-            <div class="step active" data-step="1"><div class="n">1</div><div><div class="t">Cliente</div><span class="s">Identificação e formato</span></div></div>
-            <div class="step" data-step="2"><div class="n">2</div><div><div class="t">Objetivo</div><span class="s">Risco, horizonte e preocupações</span></div></div>
-            <div class="step" data-step="3"><div class="n">3</div><div><div class="t">Ativo / Zona</div><span class="s">Imóvel específico ou análise de zona</span></div></div>
-            <div class="step" data-step="4"><div class="n">4</div><div><div class="t">PDF & Análise</div><span class="s">Importar estudo e extrair insights</span></div></div>
-            <div class="step" data-step="5"><div class="n">5</div><div><div class="t">Relatório</div><span class="s">Estrutura, tom e exportação</span></div></div>
+
+            <div class="step active" data-step="1">
+              <div class="n">1</div>
+              <div>
+                <div class="t">Cliente</div>
+                <span class="s">Identificação e formato</span>
+              </div>
+            </div>
+
+            <div class="step" data-step="2">
+              <div class="n">2</div>
+              <div>
+                <div class="t">Objetivo</div>
+                <span class="s">Risco, horizonte e preocupações</span>
+              </div>
+            </div>
+
+            <div class="step" data-step="3">
+              <div class="n">3</div>
+              <div>
+                <div class="t">Ativo / Zona</div>
+                <span class="s">Imóvel específico ou análise de zona</span>
+              </div>
+            </div>
+
+            <div class="step" data-step="4">
+              <div class="n">4</div>
+              <div>
+                <div class="t">PDF & Análise</div>
+                <span class="s">Importar estudo e extrair insights</span>
+              </div>
+            </div>
+
+            <div class="step" data-step="5">
+              <div class="n">5</div>
+              <div>
+                <div class="t">Relatório</div>
+                <span class="s">Estrutura, tom e exportação</span>
+              </div>
+            </div>
+
             <div class="divider"></div>
-            <div class="hint">Relatório por secções (ativar/desativar), com <strong>recomendação</strong> e <strong>próximos passos</strong>.</div>
+
+            <div class="hint">
+              Para manter consistência premium, o relatório final é construído por secções (ativar/desativar),
+              com <strong>recomendação</strong> e <strong>próximos passos</strong>.
+            </div>
           </div>
 
+          <!-- Step panel -->
           <div class="step-panel">
             <div class="step-head">
               <div class="left">
@@ -494,6 +740,7 @@
 
             <div class="step-body">
 
+              <!-- STEP 1 -->
               <div id="step1">
                 <div class="grid-2">
                   <div class="field">
@@ -506,21 +753,22 @@
                       <option>Comprador</option>
                     </select>
                   </div>
+
                   <div class="field">
                     <label for="cNome">Nome do Cliente / Empresa</label>
                     <input class="input" id="cNome" type="text" placeholder="Ex.: Family Office X / Sr. Manuel Silva" />
                   </div>
+
                   <div class="field">
                     <label for="cTel">Contacto</label>
                     <input class="input" id="cTel" type="text" placeholder="Telefone" />
                   </div>
+
                   <div class="field">
                     <label for="cEmail">Email</label>
                     <input class="input" id="cEmail" type="text" placeholder="email@cliente.com" />
                   </div>
                 </div>
-
-                <div class="hint" id="matchStatus" style="margin-top:8px">Detecção de cliente: —</div>
 
                 <div class="grid-3">
                   <div class="field">
@@ -552,15 +800,9 @@
                   <label for="cNotas">Notas internas</label>
                   <textarea id="cNotas" placeholder="Briefing do cliente, contexto, pontos críticos…"></textarea>
                 </div>
-
-                <div class="divider"></div>
-
-                <div class="cta-row" style="justify-content:flex-start">
-                  <button class="btn" id="btnDetectCliente">Auto-detectar cliente (Leads / FSBO / Angariações)</button>
-                  <span class="hint" id="clientMatchHint" style="margin:0">Sem correspondência ainda.</span>
-                </div>
               </div>
 
+              <!-- STEP 2 -->
               <div id="step2" class="hidden">
                 <div class="grid-2">
                   <div class="field">
@@ -621,6 +863,7 @@
                 </div>
               </div>
 
+              <!-- STEP 3 -->
               <div id="step3" class="hidden">
                 <div class="section-title">Tipo de relatório</div>
                 <div class="radio-row">
@@ -683,7 +926,9 @@
                     </div>
                   </div>
 
-                  <div class="hint">Nota: aqui ligamos depois ao teu dataset (Mapa/Angariações/FSBO) para autopreencher e evitar duplicação.</div>
+                  <div class="hint">
+                    Nota: aqui ligamos depois ao teu dataset (Mapa/Angariações/FSBO) para autopreencher e evitar duplicação.
+                  </div>
                 </div>
 
                 <div id="assetZona" class="hidden" style="margin-top:10px">
@@ -720,12 +965,18 @@
                 </div>
               </div>
 
+              <!-- STEP 4 -->
               <div id="step4" class="hidden">
                 <div class="drop" id="pdfDrop">
                   <div class="d-left">
                     <div class="d-title">Estudos de mercado (PDF)</div>
-                    <p class="d-sub">Carregue um PDF genérico para análise. O sistema irá extrair métricas, capítulos e gerar um resumo operacional (editável).</p>
-                    <p class="d-sub" style="margin-top:6px"><strong>Recomendação:</strong> PDFs até ~15MB (dependendo do browser). Para volumes grandes, dividir por capítulos.</p>
+                    <p class="d-sub">
+                      Carregue um PDF genérico para análise. No passo seguinte o sistema irá extrair métricas, capítulos e
+                      gerar um resumo operacional (editável).
+                    </p>
+                    <p class="d-sub" style="margin-top:6px">
+                      <strong>Recomendação:</strong> PDFs até ~15MB (dependendo do browser). Para volumes grandes, dividir por capítulos.
+                    </p>
                   </div>
                   <div class="d-actions">
                     <input id="pdfFile" type="file" accept="application/pdf" class="hidden" />
@@ -734,7 +985,20 @@
                   </div>
                 </div>
 
-                <div class="files" id="pdfList"></div>
+                <div class="files" id="pdfList">
+                  <!-- placeholder -->
+                  <div class="file">
+                    <div>
+                      <div class="f-name">Exemplo.pdf</div>
+                      <div class="f-meta">20/12/2025 · 18 páginas · Fonte: upload</div>
+                    </div>
+                    <div class="f-actions">
+                      <button class="btn-xs" data-act="view">Ver</button>
+                      <button class="btn-xs" data-act="remove">Remover</button>
+                    </div>
+                  </div>
+                  <!-- /placeholder -->
+                </div>
 
                 <div class="analysis">
                   <div class="mini-card">
@@ -770,6 +1034,7 @@
                 </div>
               </div>
 
+              <!-- STEP 5 -->
               <div id="step5" class="hidden">
                 <div class="section-title">Estrutura do relatório</div>
 
@@ -819,12 +1084,15 @@
                   <button class="btn secondary" id="btnDuplicate">Duplicar como template</button>
                 </div>
 
-                <div class="hint" style="margin-top:10px">Exportação via impressão (Guardar como PDF), usando IFRAME invisível para evitar bloqueio de pop-ups.</div>
+                <div class="hint" style="margin-top:10px">
+                  Nota: a geração PDF será ligada no próximo passo (JS) com o teu layout premium e rodapés (confidencial, data, marca).
+                </div>
               </div>
+
             </div>
 
             <div class="panel-foot">
-              <div class="hint" id="wizardHint">Preencha os campos essenciais e avance. O sistema guarda rascunho automaticamente.</div>
+              <div class="hint" id="wizardHint">Preencha os campos essenciais e avance. O sistema guardará rascunho automaticamente (a ligar no JS).</div>
               <div style="display:flex;gap:8px;flex-wrap:wrap">
                 <button class="btn secondary" id="btnPrev">Anterior</button>
                 <button class="btn primary" id="btnNext">Seguinte</button>
@@ -837,1480 +1105,1230 @@
     </div>
   </div>
 
-  <!-- PDF.js (extrair texto do PDF no browser) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <!-- pdf-lib (opcional): apenas para contar páginas sem PDF.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+(function(){
+  /* ===========================
+     Config / Helpers
+  =========================== */
+  const el = (id)=>document.getElementById(id);
+  const $$ = (sel, root=document)=>Array.from(root.querySelectorAll(sel));
+  const todayISO = ()=> new Date().toISOString().slice(0,10);
 
-  <script>
-  (function(){
-    'use strict';
+  function safeJSONParse(raw, fallback){
+    try{ return raw ? JSON.parse(raw) : fallback; }catch{ return fallback; }
+  }
+  function uid(prefix='rpt'){
+    return prefix + '_' + Math.random().toString(16).slice(2) + '_' + Date.now().toString(16);
+  }
+  function bytesToMB(b){ return (b/1024/1024).toFixed(2) + ' MB'; }
+  function toPTDate(iso){
+    try{
+      const d = new Date(iso);
+      if(isNaN(d.getTime())) return iso;
+      return d.toLocaleDateString('pt-PT');
+    }catch{ return iso; }
+  }
+  function normStr(s){ return (s||'').toString().trim(); }
 
-    /* ===========================
-       Helpers
-    =========================== */
-    const el = (id)=>document.getElementById(id);
-    const $$ = (sel, root=document)=>Array.from(root.querySelectorAll(sel));
-    const todayISO = ()=> new Date().toISOString().slice(0,10);
+  function moneyGuessToPretty(v){
+    if(v==null) return '—';
+    let s = String(v).replace(/\s/g,'');
+    s = s.replace(/[€]/g,'');
+    s = s.replace(/\./g,'').replace(/,/g,'.');
+    const n = Number(s);
+    if(!isFinite(n) || n<=0) return '—';
+    return n.toLocaleString('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+  }
 
-    function safeJSONParse(raw, fallback){
-      try{ return raw ? JSON.parse(raw) : fallback; }catch{ return fallback; }
-    }
-    function uid(prefix='rpt'){
-      return prefix + '_' + Math.random().toString(16).slice(2) + '_' + Date.now().toString(16);
-    }
-    function bytesToMB(b){ return (b/1024/1024).toFixed(2) + ' MB'; }
-    function toPTDate(iso){
-      try{
-        const d = new Date(iso);
-        if(isNaN(d.getTime())) return iso;
-        return d.toLocaleDateString('pt-PT');
-      }catch{ return iso; }
-    }
-    function normStr(s){ return (s||'').toString().trim(); }
+  function stripExtraSpaces(t){
+    return (t||'').replace(/\s+/g,' ').trim();
+  }
 
-    function stripDiacritics(str){
-      try{
-        return (str||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-      }catch{
-        return (str||'');
-      }
-    }
-    function normName(s){
-      return stripDiacritics(String(s||'').toLowerCase().trim()).replace(/\\s+/g,' ');
-    }
-    function normEmail(s){ return String(s||'').toLowerCase().trim(); }
-    function normPhone(s){
-      const digits = String(s||'').replace(/\\D/g,'');
-      return digits.length > 9 ? digits.slice(-9) : digits;
-    }
+  /* ===========================
+     Storage: Relatórios (meta)
+  =========================== */
+  const LS_KEY = 'gpp_relatorios_cliente_v1';
 
-    function moneyGuessToPretty(v){
-      if(v==null) return '—';
-      let s = String(v).replace(/\\s/g,'').replace(/[€]/g,'');
-      s = s.replace(/\\./g,'').replace(/,/g,'.');
-      const n = Number(s);
-      if(!isFinite(n) || n<=0) return '—';
-      return n.toLocaleString('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
-    }
+  function loadAllReports(){
+    return safeJSONParse(localStorage.getItem(LS_KEY), []);
+  }
+  function saveAllReports(list){
+    localStorage.setItem(LS_KEY, JSON.stringify(list || []));
+  }
+  function getReport(id){
+    return loadAllReports().find(r=>r.id===id) || null;
+  }
+  function upsertReport(report){
+    const list = loadAllReports();
+    const idx = list.findIndex(r=>r.id===report.id);
+    if(idx>=0) list[idx] = report;
+    else list.unshift(report);
+    saveAllReports(list);
+  }
+  function deleteReport(id){
+    const list = loadAllReports().filter(r=>r.id!==id);
+    saveAllReports(list);
+  }
 
-    function htmlEscape(s){
-      return String(s||'')
-        .replace(/&/g,'&amp;')
-        .replace(/</g,'&lt;')
-        .replace(/>/g,'&gt;')
-        .replace(/"/g,'&quot;');
-    }
+  /* ===========================
+     IndexedDB: PDFs (Blobs)
+  =========================== */
+  const DB_NAME = 'gpp_relatorios_cliente_db_v1';
+  const DB_STORE = 'pdfs';
 
-    /* ===========================
-       PDF.js config
-    =========================== */
-    function ensurePDFJS(){
-      const lib = window.pdfjsLib;
-      if(!lib) return null;
-      try{
-        lib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.js';
-      }catch{}
-      return lib;
-    }
+  function openDB(){
+    return new Promise((resolve, reject)=>{
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onerror = ()=>reject(req.error);
+      req.onupgradeneeded = ()=>{
+        const db = req.result;
+        if(!db.objectStoreNames.contains(DB_STORE)){
+          db.createObjectStore(DB_STORE, { keyPath:'key' });
+        }
+      };
+      req.onsuccess = ()=>resolve(req.result);
+    });
+  }
 
-    async function pdfToText(fileOrBlob, maxPages=35){
-      const lib = ensurePDFJS();
-      if(!lib) throw new Error('PDFJS_MISSING');
+  async function idbPutPDF(key, blob, meta){
+    const db = await openDB();
+    return new Promise((resolve, reject)=>{
+      const tx = db.transaction(DB_STORE, 'readwrite');
+      tx.objectStore(DB_STORE).put({
+        key,
+        blob,
+        meta: meta || {}
+      });
+      tx.oncomplete = ()=>resolve(true);
+      tx.onerror = ()=>reject(tx.error);
+    });
+  }
 
+  async function idbGetPDF(key){
+    const db = await openDB();
+    return new Promise((resolve, reject)=>{
+      const tx = db.transaction(DB_STORE, 'readonly');
+      const req = tx.objectStore(DB_STORE).get(key);
+      req.onsuccess = ()=>resolve(req.result || null);
+      req.onerror = ()=>reject(req.error);
+    });
+  }
+
+  async function idbDelPDF(key){
+    const db = await openDB();
+    return new Promise((resolve, reject)=>{
+      const tx = db.transaction(DB_STORE, 'readwrite');
+      tx.objectStore(DB_STORE).delete(key);
+      tx.oncomplete = ()=>resolve(true);
+      tx.onerror = ()=>reject(tx.error);
+    });
+  }
+
+ /* ===========================
+     PDF (ANEXO) — sem PDF.js
+     - guarda o ficheiro na IndexedDB
+     - (opcional) conta páginas com pdf-lib
+  =========================== */
+  async function getPdfPageCount(fileOrBlob){
+    try{
+      if(!window.PDFLib) return null;
       const ab = await fileOrBlob.arrayBuffer();
+      const doc = await PDFLib.PDFDocument.load(ab, { ignoreEncryption:true });
+      return doc.getPageCount();
+    }catch{
+      return null;
+    }
+  }
+  /* ===========================
+     Heurísticas: Métricas / Capítulos / Resumo
+  =========================== */
+  function extractMetrics(text){
+    const t = text || '';
 
-      async function run(disableWorker){
-        const task = lib.getDocument({ data: ab, disableWorker: !!disableWorker });
-        const pdf = await task.promise;
-        const pages = Math.min(pdf.numPages || 0, maxPages);
-        let all = '';
-        for(let p=1; p<=pages; p++){
-          const page = await pdf.getPage(p);
-          const content = await page.getTextContent();
-          const strings = (content.items||[]).map(it => it.str || '').filter(Boolean);
-          all += strings.join(' ') + '\\n';
+    const reM2 = /(\d{1,3}(?:[ .]\d{3})*(?:,\d+)?)\s*(?:€|EUR)?\s*(?:\/|por)?\s*(?:m2|m²)/ig;
+    const reRange = /(\d{1,3}(?:[ .]\d{3})*)\s*(?:-|–|a)\s*(\d{1,3}(?:[ .]\d{3})*)\s*(?:€|EUR)?\s*(?:\/|por)?\s*(?:m2|m²)/ig;
+
+    const reTrend = /(\+|-)?\s*(\d{1,2}(?:,\d+)?)\s*%\s*(?:a\.?a\.?|yoy|YoY|ano|anual)/g;
+    const reTime = /(\d{1,3})\s*(dias|dia|meses|mês|semanas|semana)/ig;
+
+    function normNum(s){
+      return Number(String(s).replace(/\s/g,'').replace(/\./g,'').replace(',','.'));
+    }
+
+    let m2Vals = [];
+    let m2Range = null;
+
+    let m;
+    while((m = reRange.exec(t)) !== null){
+      const a = normNum(m[1]); const b = normNum(m[2]);
+      if(isFinite(a) && isFinite(b)){
+        m2Range = [a,b].sort((x,y)=>x-y);
+      }
+    }
+    while((m = reM2.exec(t)) !== null){
+      const val = normNum(m[1]);
+      if(isFinite(val) && val>0 && val<50000) m2Vals.push(val);
+    }
+
+    let precoM2 = '—';
+    if(m2Vals.length){
+      m2Vals.sort((a,b)=>a-b);
+      const mid = Math.floor(m2Vals.length/2);
+      const med = (m2Vals.length%2) ? m2Vals[mid] : (m2Vals[mid-1]+m2Vals[mid])/2;
+      precoM2 = Math.round(med).toLocaleString('pt-PT') + ' €/m²';
+    }
+
+    let intervalo = '—';
+    if(m2Range){
+      intervalo = Math.round(m2Range[0]).toLocaleString('pt-PT') + '–' + Math.round(m2Range[1]).toLocaleString('pt-PT') + ' €/m²';
+    }
+
+    let tendencia = '—';
+    const trends = [];
+    while((m = reTrend.exec(t)) !== null){
+      const sign = m[1] || '';
+      const v = Number(String(m[2]).replace(',','.'));
+      if(isFinite(v) && v>=0 && v<=99) trends.push((sign==='-'?'-':'+') + v.toFixed(1) + '%');
+    }
+    if(trends.length){
+      tendencia = trends.slice(0,2).join(' · ') + ' a.a.';
+    }
+
+    let tempo = '—';
+    const times = [];
+    while((m = reTime.exec(t)) !== null){
+      const n = Number(m[1]);
+      const unit = m[2].toLowerCase();
+      if(isFinite(n) && n>0){
+        times.push(n + ' ' + unit);
+      }
+    }
+    if(times.length){
+      tempo = times.slice(0,2).join(' · ');
+    }
+
+    return { precoM2, intervalo, tendencia, tempo };
+  }
+
+  function detectChapters(text){
+    const lines = (text||'').split('\n').map(l=>l.trim()).filter(Boolean);
+    const chapters = [];
+    const headingLike = (l)=>{
+      if(l.length < 6 || l.length > 80) return false;
+      const upperRatio = l.replace(/[^A-ZÁÀÂÃÄÉÈÊÍÌÎÓÒÔÕÖÚÙÛÇ]/g,'').length / Math.max(1,l.replace(/[^A-Za-zÁÀÂÃÄÉÈÊÍÌÎÓÒÔÕÖÚÙÛÇ]/g,'').length);
+      if(upperRatio > 0.75 && l.length <= 60) return true;
+      if(/^\d+(\.\d+)*\s+/.test(l)) return true;
+      if(/:$/.test(l) && l.length<=60) return true;
+      if(/(conclus|resumo|metodologia|oferta|procura|preç|tendênc|recomenda|riscos|mercado)/i.test(l)) return true;
+      return false;
+    };
+
+    for(let i=0;i<lines.length;i++){
+      const l = lines[i];
+      if(headingLike(l)){
+        chapters.push(l.replace(/:+$/,''));
+      }
+      if(chapters.length>=8) break;
+    }
+    return chapters;
+  }
+
+  function buildAutoSummary(text, ctx){
+    const t = stripExtraSpaces(text||'');
+    if(!t) return { rel:'', risk:'', opp:'' };
+
+    const sentences = t
+      .replace(/([.!?])\s+/g,'$1|')
+      .split('|')
+      .map(s=>s.trim())
+      .filter(s=>s.length>35 && s.length<220);
+
+    const kwBase = [];
+    if(ctx?.zona) kwBase.push(ctx.zona);
+    if(ctx?.tipologia) kwBase.push(ctx.tipologia);
+    if(ctx?.objetivo) kwBase.push(ctx.objetivo);
+
+    const kwsRel = ['procura','oferta','preço','preços','tendência','variação','m²','m2','transações','absorção','stock','prime','luxo','porto','foz','boavista','centro'];
+    const kwsRisk = ['risco','incerteza','subida','queda','correção','negociação','taxa','juros','fiscal','licença','prazo','atraso','exposição'];
+    const kwsOpp  = ['oportunidade','crescimento','valorização','escassez','pipeline','novo','reabilitação','rentabilidade','yield','procura internacional','procura externa','premium'];
+
+    function score(s, kws){
+      const low = s.toLowerCase();
+      let pts = 0;
+      kws.forEach(k=>{
+        const kk = (k||'').toLowerCase();
+        if(!kk) return;
+        if(low.includes(kk)) pts += 2;
+      });
+      kwBase.forEach(k=>{
+        const kk = (k||'').toLowerCase();
+        if(!kk) return;
+        if(low.includes(kk)) pts += 3;
+      });
+      if(/\d/.test(s)) pts += 1;
+      return pts;
+    }
+
+    function pickTop(kws){
+      const ranked = sentences
+        .map(s=>({ s, p: score(s,kws) }))
+        .filter(x=>x.p>0)
+        .sort((a,b)=>b.p-a.p);
+      const top = ranked.slice(0,3).map(x=>x.s);
+      return top.join('\n• ').trim();
+    }
+
+    const rel = pickTop(kwsRel);
+    const risk = pickTop(kwsRisk);
+    const opp = pickTop(kwsOpp);
+
+    return {
+      rel: rel ? ('• ' + rel) : '',
+      risk: risk ? ('• ' + risk) : '',
+      opp: opp ? ('• ' + opp) : ''
+    };
+  }
+
+  /* ===========================
+     UI: Elementos do módulo
+  =========================== */
+  const q = el('q');
+  const fStatus = el('fStatus');
+  const fTipo = el('fTipo');
+  const fDataDe = el('fDataDe');
+  const fDataAte = el('fDataAte');
+  const fConfidencial = el('fConfidencial');
+
+  const btnApply = el('btnApply');
+  const btnClear = el('btnClear');
+
+  const reportsTbody = el('reportsTbody');
+
+  const tabList = el('tabList');
+  const tabWizard = el('tabWizard');
+  const viewList = el('viewList');
+  const viewWizard = el('viewWizard');
+
+  const btnNew = el('btnNew');
+  const btnGoWizard = el('btnGoWizard');
+  const btnBackToList = el('btnBackToList');
+  const btnSaveDraft = el('btnSaveDraft');
+
+  const btnPrev = el('btnPrev');
+  const btnNext = el('btnNext');
+
+  const steps = $$('.step');
+  const stepTitle = el('stepTitle');
+
+  // Step fields
+  const cTipo = el('cTipo');
+  const cNome = el('cNome');
+  const cTel = el('cTel');
+  const cEmail = el('cEmail');
+  const cIdioma = el('cIdioma');
+  const cDetalhe = el('cDetalhe');
+  const cConf = el('cConf');
+  const cNotas = el('cNotas');
+
+  const oObjetivo = el('oObjetivo');
+  const oHorizonte = el('oHorizonte');
+  const oRisco = el('oRisco');
+  const oPreocup = el('oPreocup');
+  const oBrief = el('oBrief');
+
+  const aFonte = el('aFonte');
+  const aSearch = el('aSearch');
+  const aZona = el('aZona');
+  const aTipologia = el('aTipologia');
+  const aPreco = el('aPreco');
+  const aObs = el('aObs');
+
+  const zZona = el('zZona');
+  const zTipologia = el('zTipologia');
+  const zSegmento = el('zSegmento');
+  const zMin = el('zMin');
+  const zMax = el('zMax');
+
+  const pdfDrop = el('pdfDrop');
+  const pdfFile = el('pdfFile');
+  const btnPickPdf = el('btnPickPdf');
+  const btnReprocess = el('btnReprocess');
+  const pdfList = el('pdfList');
+
+  const mPrecoM2 = el('mPrecoM2');
+  const mIntervalo = el('mIntervalo');
+  const mTendencia = el('mTendencia');
+  const mTempo = el('mTempo');
+  const mCapitulos = el('mCapitulos');
+
+  const sumRelevante = el('sumRelevante');
+  const sumRiscos = el('sumRiscos');
+  const sumOport = el('sumOport');
+
+  const sExec = el('sExec');
+  const sContexto = el('sContexto');
+  const sMercado = el('sMercado');
+  const sComps = el('sComps');
+  const sCenarios = el('sCenarios');
+  const sRecomend = el('sRecomend');
+  const sPlano = el('sPlano');
+  const sAnexos = el('sAnexos');
+
+  const rTom = el('rTom');
+  const rCTA = el('rCTA');
+  const rRecomend = el('rRecomend');
+
+  const btnBuildPdf = el('btnBuildPdf');
+  const btnBuildExec = el('btnBuildExec');
+  const btnDuplicate = el('btnDuplicate');
+
+  // Views & steps
+  const stepEls = [null, el('step1'), el('step2'), el('step3'), el('step4'), el('step5')];
+  let currentStep = 1;
+
+  let ACTIVE_REPORT_ID = null; // relatório em edição
+
+  function setTab(which){
+    const isList = which === 'list';
+    tabList.classList.toggle('active', isList);
+    tabWizard.classList.toggle('active', !isList);
+    viewList.classList.toggle('hidden', !isList);
+    viewWizard.classList.toggle('hidden', isList);
+  }
+
+  function setStep(n){
+    currentStep = Math.min(5, Math.max(1, n));
+    steps.forEach(s => s.classList.toggle('active', Number(s.dataset.step) === currentStep));
+    stepEls.forEach((node, idx)=>{ if(node) node.classList.toggle('hidden', idx !== currentStep); });
+
+    const titles = {
+      1:'Passo 1 — Identificação do Cliente',
+      2:'Passo 2 — Objetivo e Perfil de Decisão',
+      3:'Passo 3 — Ativo / Zona em análise',
+      4:'Passo 4 — Importar PDF & Análise',
+      5:'Passo 5 — Construção do Relatório'
+    };
+    stepTitle.textContent = titles[currentStep] || 'Passo';
+    btnPrev.disabled = currentStep === 1;
+    btnNext.textContent = (currentStep === 5) ? 'Concluir' : 'Seguinte';
+  }
+
+  function getSelectedAssetMode(){
+    return document.querySelector('input[name="assetMode"]:checked')?.value || 'imovel';
+  }
+
+  function collectForm(){
+    const mode = getSelectedAssetMode();
+    const preocup = Array.from(oPreocup?.selectedOptions || []).map(o=>o.value);
+
+    const base = {
+      id: ACTIVE_REPORT_ID || uid('rpt'),
+      createdAt: null,
+      updatedAt: todayISO(),
+      status: 'draft',
+
+      cliente: {
+        tipo: normStr(cTipo.value),
+        nome: normStr(cNome.value),
+        tel: normStr(cTel.value),
+        email: normStr(cEmail.value),
+        idioma: normStr(cIdioma.value || 'pt'),
+        detalhe: normStr(cDetalhe.value || 'exec'),
+        confidencial: (cConf.value === 'yes'),
+        notas: normStr(cNotas.value)
+      },
+
+      objetivo: {
+        objetivo: normStr(oObjetivo.value),
+        horizonte: normStr(oHorizonte.value),
+        risco: normStr(oRisco.value),
+        preocupacoes: preocup,
+        brief: normStr(oBrief.value)
+      },
+
+      ativo: {
+        mode,
+        imovel: {
+          fonte: normStr(aFonte.value),
+          query: normStr(aSearch.value),
+          zona: normStr(aZona.value),
+          tipologia: normStr(aTipologia.value),
+          preco: normStr(aPreco.value),
+          obs: normStr(aObs.value)
+        },
+        zona: {
+          zona: normStr(zZona.value),
+          tipologia: normStr(zTipologia.value),
+          segmento: normStr(zSegmento.value),
+          min: normStr(zMin.value),
+          max: normStr(zMax.value)
         }
-        return { text: all, pagesTotal: pdf.numPages || 0, pagesUsed: pages };
-      }
+      },
 
-      try{
-        return await run(false);
-      }catch(e){
-        // fallback para ambientes que bloqueiam worker em file://
-        return await run(true);
-      }
-    }
-
-    /* ===========================
-       Heurísticas: Métricas / Capítulos / Resumo
-    =========================== */
-    function extractMetrics(text){
-      const t = text || '';
-      const reM2 = /(\\d{1,3}(?:[ .]\\d{3})*(?:,\\d+)?)\\s*(?:€|EUR)?\\s*(?:\\/|por)?\\s*(?:m2|m²)/ig;
-      const reRange = /(\\d{1,3}(?:[ .]\\d{3})*)\\s*(?:-|–|a)\\s*(\\d{1,3}(?:[ .]\\d{3})*)\\s*(?:€|EUR)?\\s*(?:\\/|por)?\\s*(?:m2|m²)/ig;
-      const reTrend = /(\\+|-)\\s*(\\d{1,2}(?:,\\d+)?)\\s*%\\s*(?:a\\.?a\\.?|yoy|YoY|ano|anual)/g;
-      const reTime = /(\\d{1,3})\\s*(dias|dia|meses|mês|semanas|semana)/ig;
-
-      const normNum = (s)=> Number(String(s).replace(/\\s/g,'').replace(/\\./g,'').replace(',','.'));
-
-      let m2Vals = [];
-      let m2Range = null;
-
-      let m;
-      while((m = reRange.exec(t)) !== null){
-        const a = normNum(m[1]); const b = normNum(m[2]);
-        if(isFinite(a) && isFinite(b)) m2Range = [a,b].sort((x,y)=>x-y);
-      }
-      while((m = reM2.exec(t)) !== null){
-        const val = normNum(m[1]);
-        if(isFinite(val) && val>0 && val<50000) m2Vals.push(val);
-      }
-
-      let precoM2 = '—';
-      if(m2Vals.length){
-        m2Vals.sort((a,b)=>a-b);
-        const mid = Math.floor(m2Vals.length/2);
-        const med = (m2Vals.length%2) ? m2Vals[mid] : (m2Vals[mid-1]+m2Vals[mid])/2;
-        precoM2 = Math.round(med).toLocaleString('pt-PT') + ' €/m²';
-      }
-
-      let intervalo = '—';
-      if(m2Range){
-        intervalo = Math.round(m2Range[0]).toLocaleString('pt-PT') + '–' + Math.round(m2Range[1]).toLocaleString('pt-PT') + ' €/m²';
-      }
-
-      let tendencia = '—';
-      const trends = [];
-      while((m = reTrend.exec(t)) !== null){
-        const sign = m[1] || '+';
-        const v = Number(String(m[2]).replace(',','.'));
-        if(isFinite(v) && v>=0 && v<=99) trends.push(sign + v.toFixed(1) + '%');
-      }
-      if(trends.length) tendencia = trends.slice(0,2).join(' · ') + ' a.a.';
-
-      let tempo = '—';
-      const times = [];
-      while((m = reTime.exec(t)) !== null){
-        const n = Number(m[1]);
-        const unit = m[2].toLowerCase();
-        if(isFinite(n) && n>0) times.push(n + ' ' + unit);
-      }
-      if(times.length) tempo = times.slice(0,2).join(' · ');
-
-      return { precoM2, intervalo, tendencia, tempo };
-    }
-
-    function detectChapters(text){
-      const lines = (text||'').split('\\n').map(l=>l.trim()).filter(Boolean);
-      const chapters = [];
-      const headingLike = (l)=>{
-        if(l.length < 6 || l.length > 80) return false;
-        const letters = l.replace(/[^A-Za-zÁÀÂÃÄÉÈÊÍÌÎÓÒÔÕÖÚÙÛÇ]/g,'');
-        const uppers = l.replace(/[^A-ZÁÀÂÃÄÉÈÊÍÌÎÓÒÔÕÖÚÙÛÇ]/g,'');
-        const upperRatio = uppers.length / Math.max(1, letters.length);
-        if(upperRatio > 0.75 && l.length <= 60) return true;
-        if(/^\\d+(\\.\\d+)*\\s+/.test(l)) return true;
-        if(/:$/.test(l) && l.length<=60) return true;
-        if(/(conclus|resumo|metodologia|oferta|procura|preç|tendênc|recomenda|riscos|mercado)/i.test(l)) return true;
-        return false;
-      };
-      for(const l of lines){
-        if(headingLike(l)) chapters.push(l.replace(/:+$/,''));
-        if(chapters.length>=8) break;
-      }
-      return chapters;
-    }
-
-    function buildAutoSummary(text, ctx){
-      const t = (text||'').replace(/\\s+/g,' ').trim();
-      if(!t) return { rel:'', risk:'', opp:'' };
-
-      const sentences = t
-        .replace(/([.!?])\\s+/g,'$1|')
-        .split('|')
-        .map(s=>s.trim())
-        .filter(s=>s.length>35 && s.length<220);
-
-      const kwBase = [];
-      if(ctx?.zona) kwBase.push(ctx.zona);
-      if(ctx?.tipologia) kwBase.push(ctx.tipologia);
-      if(ctx?.objetivo) kwBase.push(ctx.objetivo);
-
-      const kwsRel = ['procura','oferta','preço','preços','tendência','variação','m²','m2','transações','absorção','stock','prime','luxo','porto','foz','boavista','centro'];
-      const kwsRisk = ['risco','incerteza','subida','queda','correção','negociação','taxa','juros','fiscal','licença','prazo','atraso','exposição'];
-      const kwsOpp  = ['oportunidade','crescimento','valorização','escassez','pipeline','novo','reabilitação','rentabilidade','yield','procura internacional','procura externa','premium'];
-
-      const score = (s, kws)=>{
-        const low = s.toLowerCase();
-        let pts = 0;
-        kws.forEach(k=>{ if(low.includes(k)) pts += 2; });
-        kwBase.forEach(k=>{ const kk = String(k||'').toLowerCase(); if(kk && low.includes(kk)) pts += 3; });
-        if(/\\d/.test(s)) pts += 1;
-        return pts;
-      };
-
-      const pickTop = (kws)=>{
-        const ranked = sentences
-          .map(s=>({ s, p: score(s,kws) }))
-          .filter(x=>x.p>0)
-          .sort((a,b)=>b.p-a.p);
-        const top = ranked.slice(0,3).map(x=>x.s);
-        return top.join('\\n• ').trim();
-      };
-
-      const rel = pickTop(kwsRel);
-      const risk = pickTop(kwsRisk);
-      const opp = pickTop(kwsOpp);
-
-      return {
-        rel: rel ? ('• ' + rel) : '',
-        risk: risk ? ('• ' + risk) : '',
-        opp: opp ? ('• ' + opp) : ''
-      };
-    }
-
-    /* ===========================
-       Storage: Relatórios
-    =========================== */
-    const LS_REPORTS = 'gpp_relatorios_cliente_v1';
-
-    function loadAllReports(){ return safeJSONParse(localStorage.getItem(LS_REPORTS), []); }
-    function saveAllReports(list){ localStorage.setItem(LS_REPORTS, JSON.stringify(list || [])); }
-    function getReport(id){ return loadAllReports().find(r=>r.id===id) || null; }
-    function upsertReport(report){
-      const list = loadAllReports();
-      const idx = list.findIndex(r=>r.id===report.id);
-      if(idx>=0) list[idx] = report; else list.unshift(report);
-      saveAllReports(list);
-    }
-    function deleteReport(id){ saveAllReports(loadAllReports().filter(r=>r.id!==id)); }
-
-    /* ===========================
-       IndexedDB: PDFs
-    =========================== */
-    const DB_NAME = 'gpp_relatorios_cliente_db_v1';
-    const DB_STORE = 'pdfs';
-
-    function openDB(){
-      return new Promise((resolve, reject)=>{
-        const req = indexedDB.open(DB_NAME, 1);
-        req.onerror = ()=>reject(req.error);
-        req.onupgradeneeded = ()=>{
-          const db = req.result;
-          if(!db.objectStoreNames.contains(DB_STORE)){
-            db.createObjectStore(DB_STORE, { keyPath:'key' });
-          }
-        };
-        req.onsuccess = ()=>resolve(req.result);
-      });
-    }
-    async function idbPutPDF(key, blob, meta){
-      const db = await openDB();
-      return new Promise((resolve, reject)=>{
-        const tx = db.transaction(DB_STORE, 'readwrite');
-        tx.objectStore(DB_STORE).put({ key, blob, meta: meta || {} });
-        tx.oncomplete = ()=>resolve(true);
-        tx.onerror = ()=>reject(tx.error);
-      });
-    }
-    async function idbGetPDF(key){
-      const db = await openDB();
-      return new Promise((resolve, reject)=>{
-        const tx = db.transaction(DB_STORE, 'readonly');
-        const req = tx.objectStore(DB_STORE).get(key);
-        req.onsuccess = ()=>resolve(req.result || null);
-        req.onerror = ()=>reject(req.error);
-      });
-    }
-    async function idbDelPDF(key){
-      const db = await openDB();
-      return new Promise((resolve, reject)=>{
-        const tx = db.transaction(DB_STORE, 'readwrite');
-        tx.objectStore(DB_STORE).delete(key);
-        tx.oncomplete = ()=>resolve(true);
-        tx.onerror = ()=>reject(tx.error);
-      });
-    }
-
-    /* ===========================
-       Match de cliente (Leads / FSBO / Angariações) — robusto
-    =========================== */
-    const LS_LEADS_KEYS = ['gpp_leads_v5','gpp_leads_v4'];
-    const LS_FSBO_KEYS  = ['gpp_particulares_v2','gpp_particulares_v1','gpp_fsbo_v1'];
-    const LS_ANG_KEYS   = ['gpp_angariacoes_v2','gpp_angariacoes_v1'];
-
-    function loadModuleList(storageKey){
-      const raw = localStorage.getItem(storageKey);
-      const data = safeJSONParse(raw, null);
-      if(!data) return [];
-      if(Array.isArray(data)) return data;
-      if(Array.isArray(data.items)) return data.items;
-      if(Array.isArray(data.list)) return data.list;
-      if(Array.isArray(data.records)) return data.records;
-      return [];
-    }
-    function loadModuleListMulti(keys){
-      for(const k of (keys||[])){
-        const list = loadModuleList(k);
-        if(list && list.length) return list;
-      }
-      return [];
-    }
-    function getField(obj, candidates){
-      for(const k of candidates){
-        if(obj && obj[k] != null && String(obj[k]).trim() !== '') return obj[k];
-      }
-      return '';
-    }
-    function mapLeadToClient(item){
-      return {
-        source:'Leads',
-        nome: getField(item, ['nome','name','cliente','clienteNome','leadNome','fullName']),
-        tel:  getField(item, ['contacto','telefone','tel','phone','telemovel','mobile','leadPhone']),
-        email:getField(item, ['email','mail','e-mail','leadEmail']),
-        zona: getField(item, ['zona','localizacao','local','bairro','area']),
-        tipologia: getField(item, ['tipologia','tipologiaPretendida','tipologia_alvo','tipologiaDesejada']),
-        negocio: getField(item, ['tipo_negocio','negocio','objetivo','tipoNegocio']),
-        raw:item
-      };
-    }
-    function mapFSBOToClient(item){
-      return {
-        source:'FSBO',
-        nome: getField(item, ['nome','nomeProp','proprietario','owner','cliente','contactName']),
-        tel:  getField(item, ['telefone','tel','telemovel','contacto','telProp','phone','mobile']),
-        email:getField(item, ['email','mail','emailProp','contactEmail']),
-        zona: getField(item, ['zona','localizacao','local','morada','bairro','area']),
-        tipologia: getField(item, ['tipologia','tipo','tipologiaImovel']),
-        negocio: 'Venda',
-        raw:item
-      };
-    }
-    function mapAngToClient(item){
-      return {
-        source:'Angariações',
-        nome: getField(item, ['nomeProp','proprietario','nome','owner','cliente']),
-        tel:  getField(item, ['telProp','telefone','telemovel','contacto','tel']),
-        email:getField(item, ['emailProp','email','mail']),
-        zona: getField(item, ['zona','localizacao','freguesia','concelho','morada','area']),
-        tipologia: getField(item, ['tipologia','tipo','tipologiaImovel']),
-        negocio: 'Venda',
-        raw:item
-      };
-    }
-
-    function scoreClientMatch(input, cand){
-      let score = 0;
-      const inEmail = normEmail(input.email);
-      const inTel = normPhone(input.tel);
-      const inNome = normName(input.nome);
-
-      const cEmail = normEmail(cand.email);
-      const cTel = normPhone(cand.tel);
-      const cNome = normName(cand.nome);
-
-      if(inEmail && cEmail && inEmail === cEmail) score += 110;
-      if(inTel && cTel && inTel === cTel) score += 95;
-
-      if(inNome && cNome){
-        if(cNome === inNome) score += 70;
-        else if(cNome.includes(inNome) || inNome.includes(cNome)) score += 55;
-        else{
-          const a = new Set(inNome.split(' ').filter(Boolean));
-          const b = new Set(cNome.split(' ').filter(Boolean));
-          let inter = 0;
-          a.forEach(x=>{ if(b.has(x)) inter++; });
-          if(inter >= 2) score += 35;
-          else if(inter === 1) score += 18;
+      pdfs: [],
+      analysis: {
+        metrics: { precoM2:'—', intervalo:'—', tendencia:'—', tempo:'—' },
+        chapters: [],
+        sum: {
+          relevante: normStr(sumRelevante.value),
+          riscos: normStr(sumRiscos.value),
+          oportunidades: normStr(sumOport.value)
         }
+      },
+
+      report: {
+        sections: {
+          exec: !!sExec.checked,
+          contexto: !!sContexto.checked,
+          mercado: !!sMercado.checked,
+          comps: !!sComps.checked,
+          cenarios: !!sCenarios.checked,
+          recomend: !!sRecomend.checked,
+          plano: !!sPlano.checked,
+          anexos: !!sAnexos.checked
+        },
+        tom: normStr(rTom.value),
+        cta: normStr(rCTA.value),
+        recomendacaoFinal: normStr(rRecomend.value)
       }
-      return score;
-    }
+    };
 
-    function findBestClientMatch(input){
-      const candidates = [];
-      loadModuleListMulti(LS_LEADS_KEYS).forEach(it=>candidates.push(mapLeadToClient(it)));
-      loadModuleListMulti(LS_FSBO_KEYS).forEach(it=>candidates.push(mapFSBOToClient(it)));
-      loadModuleListMulti(LS_ANG_KEYS).forEach(it=>candidates.push(mapAngToClient(it)));
+    const existing = ACTIVE_REPORT_ID ? getReport(ACTIVE_REPORT_ID) : null;
+    base.createdAt = existing?.createdAt || todayISO();
+    base.status = existing?.status || 'draft';
+    base.pdfs = existing?.pdfs || [];
+    base.analysis = existing?.analysis || base.analysis;
 
-      let best = null;
-      let bestScore = 0;
-      for(const c of candidates){
-        const s = scoreClientMatch(input, c);
-        if(s > bestScore){ bestScore = s; best = c; }
-      }
-      if(bestScore < 60) return null; // evita falsos positivos
-      return { ...best, score: bestScore };
-    }
+    return base;
+  }
 
-    function inferClienteTipo(match){
-      if(!match) return '';
-      if(match.source === 'Leads'){
-        const n = String(match.negocio||'').toLowerCase();
-        if(n.includes('venda')) return 'Proprietário';
-        if(n.includes('compra')) return 'Comprador';
-        if(n.includes('invest')) return 'Investidor';
-        if(n.includes('arrend')) return 'Comprador';
-        return 'Comprador';
-      }
-      return (match.source === 'FSBO' || match.source === 'Angariações') ? 'Proprietário' : '';
-    }
-    function inferObjetivo(match){
-      if(!match) return '';
-      const n = String(match.negocio||'').toLowerCase();
-      if(n.includes('venda')) return 'Vender';
-      if(n.includes('avali')) return 'Avaliar';
-      if(n.includes('repos')) return 'Reposicionar';
-      if(n.includes('tim')) return 'Timing';
-      if(n.includes('invest')) return 'Investir';
-      if(n.includes('compra')) return 'Investir';
-      return '';
-    }
+  function fillForm(report){
+    if(!report) return;
 
-    /* ===========================
-       UI refs
-    =========================== */
-    const tabList = el('tabList');
-    const tabWizard = el('tabWizard');
-    const viewList = el('viewList');
-    const viewWizard = el('viewWizard');
+    ACTIVE_REPORT_ID = report.id;
 
-    const btnNew = el('btnNew');
-    const btnGoWizard = el('btnGoWizard');
-    const btnBackToList = el('btnBackToList');
-    const btnSaveDraft = el('btnSaveDraft');
+    cTipo.value = report.cliente?.tipo || '';
+    cNome.value = report.cliente?.nome || '';
+    cTel.value = report.cliente?.tel || '';
+    cEmail.value = report.cliente?.email || '';
+    cIdioma.value = report.cliente?.idioma || 'pt';
+    cDetalhe.value = report.cliente?.detalhe || 'exec';
+    cConf.value = report.cliente?.confidencial ? 'yes' : 'no';
+    cNotas.value = report.cliente?.notas || '';
 
-    const steps = $$('.step');
-    const stepTitle = el('stepTitle');
-    const btnPrev = el('btnPrev');
-    const btnNext = el('btnNext');
-    const stepEls = [null, el('step1'), el('step2'), el('step3'), el('step4'), el('step5')];
+    oObjetivo.value = report.objetivo?.objetivo || '';
+    oHorizonte.value = report.objetivo?.horizonte || '';
+    oRisco.value = report.objetivo?.risco || '';
+    const selected = new Set(report.objetivo?.preocupacoes || []);
+    Array.from(oPreocup.options).forEach(opt=> opt.selected = selected.has(opt.value));
+    oBrief.value = report.objetivo?.brief || '';
 
-    const q = el('q');
-    const fStatus = el('fStatus');
-    const fTipo = el('fTipo');
-    const fDataDe = el('fDataDe');
-    const fDataAte = el('fDataAte');
-    const fConfidencial = el('fConfidencial');
-    const btnApply = el('btnApply');
-    const btnClear = el('btnClear');
-
-    const reportsTbody = el('reportsTbody');
-
-    // Step fields
-    const cTipo = el('cTipo');
-    const cNome = el('cNome');
-    const cTel = el('cTel');
-    const cEmail = el('cEmail');
-    const matchStatus = el('matchStatus');
-    const clientMatchHint = el('clientMatchHint');
-
-    const cIdioma = el('cIdioma');
-    const cDetalhe = el('cDetalhe');
-    const cConf = el('cConf');
-    const cNotas = el('cNotas');
-
-    const oObjetivo = el('oObjetivo');
-    const oHorizonte = el('oHorizonte');
-    const oRisco = el('oRisco');
-    const oPreocup = el('oPreocup');
-    const oBrief = el('oBrief');
-
-    const aFonte = el('aFonte');
-    const aSearch = el('aSearch');
-    const aZona = el('aZona');
-    const aTipologia = el('aTipologia');
-    const aPreco = el('aPreco');
-    const aObs = el('aObs');
-
-    const zZona = el('zZona');
-    const zTipologia = el('zTipologia');
-    const zSegmento = el('zSegmento');
-    const zMin = el('zMin');
-    const zMax = el('zMax');
-
-    const pdfFile = el('pdfFile');
-    const btnPickPdf = el('btnPickPdf');
-    const btnReprocess = el('btnReprocess');
-    const pdfList = el('pdfList');
-
-    const mPrecoM2 = el('mPrecoM2');
-    const mIntervalo = el('mIntervalo');
-    const mTendencia = el('mTendencia');
-    const mTempo = el('mTempo');
-    const mCapitulos = el('mCapitulos');
-    const sumRelevante = el('sumRelevante');
-    const sumRiscos = el('sumRiscos');
-    const sumOport = el('sumOport');
-
-    const sExec = el('sExec');
-    const sContexto = el('sContexto');
-    const sMercado = el('sMercado');
-    const sComps = el('sComps');
-    const sCenarios = el('sCenarios');
-    const sRecomend = el('sRecomend');
-    const sPlano = el('sPlano');
-    const sAnexos = el('sAnexos');
-
-    const rTom = el('rTom');
-    const rCTA = el('rCTA');
-    const rRecomend = el('rRecomend');
-
-    const btnBuildPdf = el('btnBuildPdf');
-    const btnBuildExec = el('btnBuildExec');
-    const btnDuplicate = el('btnDuplicate');
-
-    /* ===========================
-       Views / Steps
-    =========================== */
-    let currentStep = 1;
-    let ACTIVE_REPORT_ID = null;
-
-    function setTab(which){
-      const isList = which === 'list';
-      tabList.classList.toggle('active', isList);
-      tabWizard.classList.toggle('active', !isList);
-      viewList.classList.toggle('hidden', !isList);
-      viewWizard.classList.toggle('hidden', isList);
-    }
-
-    function setStep(n){
-      currentStep = Math.min(5, Math.max(1, n));
-      steps.forEach(s => s.classList.toggle('active', Number(s.dataset.step) === currentStep));
-      stepEls.forEach((node, idx)=>{ if(node) node.classList.toggle('hidden', idx !== currentStep); });
-
-      const titles = {
-        1:'Passo 1 — Identificação do Cliente',
-        2:'Passo 2 — Objetivo e Perfil de Decisão',
-        3:'Passo 3 — Ativo / Zona em análise',
-        4:'Passo 4 — Importar PDF & Análise',
-        5:'Passo 5 — Construção do Relatório'
-      };
-      stepTitle.textContent = titles[currentStep] || 'Passo';
-      btnPrev.disabled = currentStep === 1;
-      btnNext.textContent = (currentStep === 5) ? 'Concluir' : 'Seguinte';
-    }
-
-    function getSelectedAssetMode(){
-      return document.querySelector('input[name="assetMode"]:checked')?.value || 'imovel';
-    }
-
-    // Toggle imovel vs zona
+    const mode = report.ativo?.mode || 'imovel';
+    const radios = $$('input[name="assetMode"]');
+    radios.forEach(r=>{ r.checked = (r.value === mode); });
     const assetImovel = el('assetImovel');
     const assetZona = el('assetZona');
-    $$('input[name="assetMode"]').forEach(r=>{
-      r.addEventListener('change', ()=>{
-        const v = getSelectedAssetMode();
-        assetImovel.classList.toggle('hidden', v !== 'imovel');
-        assetZona.classList.toggle('hidden', v !== 'zona');
-        scheduleAutosave();
-      });
-    });
+    assetImovel.classList.toggle('hidden', mode !== 'imovel');
+    assetZona.classList.toggle('hidden', mode !== 'zona');
 
-    /* ===========================
-       Form collect / fill
-    =========================== */
-    function collectForm(){
-      const mode = getSelectedAssetMode();
-      const preocup = Array.from(oPreocup?.selectedOptions || []).map(o=>o.value);
+    aFonte.value = report.ativo?.imovel?.fonte || 'Manual';
+    aSearch.value = report.ativo?.imovel?.query || '';
+    aZona.value = report.ativo?.imovel?.zona || '';
+    aTipologia.value = report.ativo?.imovel?.tipologia || '';
+    aPreco.value = report.ativo?.imovel?.preco || '';
+    aObs.value = report.ativo?.imovel?.obs || '';
 
-      const base = {
-        id: ACTIVE_REPORT_ID || uid('rpt'),
-        createdAt: null,
-        updatedAt: todayISO(),
-        status: 'draft',
+    zZona.value = report.ativo?.zona?.zona || '';
+    zTipologia.value = report.ativo?.zona?.tipologia || '';
+    zSegmento.value = report.ativo?.zona?.segmento || 'Novo';
+    zMin.value = report.ativo?.zona?.min || '';
+    zMax.value = report.ativo?.zona?.max || '';
 
-        cliente: {
-          tipo: normStr(cTipo.value),
-          nome: normStr(cNome.value),
-          tel: normStr(cTel.value),
-          email: normStr(cEmail.value),
-          idioma: normStr(cIdioma.value || 'pt'),
-          detalhe: normStr(cDetalhe.value || 'exec'),
-          confidencial: (cConf.value === 'yes'),
-          notas: normStr(cNotas.value)
-        },
+    const met = report.analysis?.metrics || {};
+    mPrecoM2.textContent = met.precoM2 || '—';
+    mIntervalo.textContent = met.intervalo || '—';
+    mTendencia.textContent = met.tendencia || '—';
+    mTempo.textContent = met.tempo || '—';
 
-        objetivo: {
-          objetivo: normStr(oObjetivo.value),
-          horizonte: normStr(oHorizonte.value),
-          risco: normStr(oRisco.value),
-          preocupacoes: preocup,
-          brief: normStr(oBrief.value)
-        },
+    const ch = report.analysis?.chapters || [];
+    mCapitulos.textContent = ch.length ? ch.map(c=>'• '+c).join('\n') : 'Sem análise ainda. Após importação, será gerada uma estrutura (editável).';
+    mCapitulos.style.whiteSpace = 'pre-line';
 
-        ativo: {
-          mode,
-          imovel: {
-            fonte: normStr(aFonte.value),
-            query: normStr(aSearch.value),
-            zona: normStr(aZona.value),
-            tipologia: normStr(aTipologia.value),
-            preco: normStr(aPreco.value),
-            obs: normStr(aObs.value)
-          },
-          zona: {
-            zona: normStr(zZona.value),
-            tipologia: normStr(zTipologia.value),
-            segmento: normStr(zSegmento.value),
-            min: normStr(zMin.value),
-            max: normStr(zMax.value)
-          }
-        },
+    sumRelevante.value = report.analysis?.sum?.relevante || '';
+    sumRiscos.value = report.analysis?.sum?.riscos || '';
+    sumOport.value = report.analysis?.sum?.oportunidades || '';
 
-        pdfs: [],
-        analysis: {
-          metrics: { precoM2:'—', intervalo:'—', tendencia:'—', tempo:'—' },
-          chapters: [],
-          sum: {
-            relevante: normStr(sumRelevante.value),
-            riscos: normStr(sumRiscos.value),
-            oportunidades: normStr(sumOport.value)
-          }
-        },
+    const sec = report.report?.sections || {};
+    sExec.checked = !!sec.exec;
+    sContexto.checked = !!sec.contexto;
+    sMercado.checked = !!sec.mercado;
+    sComps.checked = !!sec.comps;
+    sCenarios.checked = !!sec.cenarios;
+    sRecomend.checked = !!sec.recomend;
+    sPlano.checked = !!sec.plano;
+    sAnexos.checked = !!sec.anexos;
 
-        report: {
-          sections: {
-            exec: !!sExec.checked,
-            contexto: !!sContexto.checked,
-            mercado: !!sMercado.checked,
-            comps: !!sComps.checked,
-            cenarios: !!sCenarios.checked,
-            recomend: !!sRecomend.checked,
-            plano: !!sPlano.checked,
-            anexos: !!sAnexos.checked
-          },
-          tom: normStr(rTom.value),
-          cta: normStr(rCTA.value),
-          recomendacaoFinal: normStr(rRecomend.value)
-        }
-      };
+    rTom.value = report.report?.tom || 'Neutro';
+    rCTA.value = report.report?.cta || 'Agendar reunião';
+    rRecomend.value = report.report?.recomendacaoFinal || '';
 
-      const existing = ACTIVE_REPORT_ID ? getReport(ACTIVE_REPORT_ID) : null;
-      base.createdAt = existing?.createdAt || todayISO();
-      base.status = existing?.status || 'draft';
-      base.pdfs = existing?.pdfs || [];
-      base.analysis = existing?.analysis || base.analysis;
+    renderPDFList(report);
+  }
 
-      return base;
-    }
-
-    function fillForm(report){
-      if(!report) return;
-      ACTIVE_REPORT_ID = report.id;
-
-      cTipo.value = report.cliente?.tipo || '';
-      cNome.value = report.cliente?.nome || '';
-      cTel.value = report.cliente?.tel || '';
-      cEmail.value = report.cliente?.email || '';
-      cIdioma.value = report.cliente?.idioma || 'pt';
-      cDetalhe.value = report.cliente?.detalhe || 'exec';
-      cConf.value = report.cliente?.confidencial ? 'yes' : 'no';
-      cNotas.value = report.cliente?.notas || '';
-
-      oObjetivo.value = report.objetivo?.objetivo || '';
-      oHorizonte.value = report.objetivo?.horizonte || '';
-      oRisco.value = report.objetivo?.risco || '';
-      const selected = new Set(report.objetivo?.preocupacoes || []);
-      Array.from(oPreocup.options).forEach(opt=> opt.selected = selected.has(opt.value));
-      oBrief.value = report.objetivo?.brief || '';
-
-      const mode = report.ativo?.mode || 'imovel';
-      $$('input[name="assetMode"]').forEach(r=>{ r.checked = (r.value === mode); });
-      assetImovel.classList.toggle('hidden', mode !== 'imovel');
-      assetZona.classList.toggle('hidden', mode !== 'zona');
-
-      aFonte.value = report.ativo?.imovel?.fonte || 'Manual';
-      aSearch.value = report.ativo?.imovel?.query || '';
-      aZona.value = report.ativo?.imovel?.zona || '';
-      aTipologia.value = report.ativo?.imovel?.tipologia || '';
-      aPreco.value = report.ativo?.imovel?.preco || '';
-      aObs.value = report.ativo?.imovel?.obs || '';
-
-      zZona.value = report.ativo?.zona?.zona || '';
-      zTipologia.value = report.ativo?.zona?.tipologia || '';
-      zSegmento.value = report.ativo?.zona?.segmento || 'Novo';
-      zMin.value = report.ativo?.zona?.min || '';
-      zMax.value = report.ativo?.zona?.max || '';
-
-      const met = report.analysis?.metrics || {};
-      mPrecoM2.textContent = met.precoM2 || '—';
-      mIntervalo.textContent = met.intervalo || '—';
-      mTendencia.textContent = met.tendencia || '—';
-      mTempo.textContent = met.tempo || '—';
-
-      const ch = report.analysis?.chapters || [];
-      mCapitulos.textContent = ch.length ? ch.map(c=>'• '+c).join('\\n') : 'Sem análise ainda. Após importação, será gerada uma estrutura (editável).';
-      mCapitulos.style.whiteSpace = 'pre-line';
-
-      sumRelevante.value = report.analysis?.sum?.relevante || '';
-      sumRiscos.value = report.analysis?.sum?.riscos || '';
-      sumOport.value = report.analysis?.sum?.oportunidades || '';
-
-      const sec = report.report?.sections || {};
-      sExec.checked = !!sec.exec;
-      sContexto.checked = !!sec.contexto;
-      sMercado.checked = !!sec.mercado;
-      sComps.checked = !!sec.comps;
-      sCenarios.checked = !!sec.cenarios;
-      sRecomend.checked = !!sec.recomend;
-      sPlano.checked = !!sec.plano;
-      sAnexos.checked = !!sec.anexos;
-
-      rTom.value = report.report?.tom || 'Neutro';
-      rCTA.value = report.report?.cta || 'Agendar reunião';
-      rRecomend.value = report.report?.recomendacaoFinal || '';
-
-      renderPDFList(report);
-      updateMatchStatus();
-    }
-
-    function getContextForSummary(report){
-      const mode = report.ativo?.mode || 'imovel';
-      if(mode==='imovel'){
-        return { zona: report.ativo?.imovel?.zona || '', tipologia: report.ativo?.imovel?.tipologia || '', objetivo: report.objetivo?.objetivo || '' };
-      }
-      return { zona: report.ativo?.zona?.zona || '', tipologia: report.ativo?.zona?.tipologia || '', objetivo: report.objetivo?.objetivo || '' };
-    }
-
-    /* ===========================
-       Match status UI
-    =========================== */
-    function updateMatchStatus(){
-      if(!matchStatus) return;
-      const input = { nome: cNome?.value, tel: cTel?.value, email: cEmail?.value };
-      const best = findBestClientMatch(input);
-      if(!best){
-        matchStatus.textContent = 'Detecção de cliente: —';
-        return;
-      }
-      if(best.score >= 95){
-        matchStatus.innerHTML = `Detecção de cliente: <strong>OK</strong> · Fonte: <strong>${best.source}</strong> · Score: ${best.score}`;
-      }else if(best.score >= 60){
-        matchStatus.innerHTML = `Detecção de cliente: <strong>Parcial</strong> · Fonte: <strong>${best.source}</strong> · Score: ${best.score} — confirme telefone/email.`;
-      }else{
-        matchStatus.innerHTML = `Detecção de cliente: <strong>Sem correspondência sólida</strong> — preencha email/telefone (9 dígitos).`;
-      }
-    }
-
-    function applyClientMatchToForm(match){
-      if(!match) return;
-
-      if(!normStr(cNome.value)) cNome.value = match.nome || '';
-      if(!normStr(cTel.value)) cTel.value = match.tel || '';
-      if(!normStr(cEmail.value)) cEmail.value = match.email || '';
-
-      const tipo = inferClienteTipo(match);
-      if(!normStr(cTipo.value) && tipo) cTipo.value = tipo;
-
-      const objetivo = inferObjetivo(match);
-      if(!normStr(oObjetivo.value) && objetivo) oObjetivo.value = objetivo;
-
-      const mode = getSelectedAssetMode();
-      if(mode==='imovel'){
-        if(!normStr(aZona.value) && match.zona) aZona.value = match.zona;
-        if(!normStr(aTipologia.value) && match.tipologia) aTipologia.value = match.tipologia;
-      }else{
-        if(!normStr(zZona.value) && match.zona) zZona.value = match.zona;
-        if(!normStr(zTipologia.value) && match.tipologia) zTipologia.value = match.tipologia;
-      }
-
-      const stamp = `Auto-deteção: ${match.source} (score ${match.score}).`;
-      const existing = normStr(cNotas.value);
-      if(!existing.includes(stamp)){
-        cNotas.value = (existing ? (existing + '\\n') : '') + stamp;
-      }
-
-      if(clientMatchHint){
-        clientMatchHint.textContent = `Correspondência: ${match.source} · score ${match.score} · ${match.nome || '—'}`;
-      }
-
-      updateMatchStatus();
-      scheduleAutosave();
-    }
-
-    el('btnDetectCliente')?.addEventListener('click', (e)=>{
-      e.preventDefault();
-      const input = { nome: cNome.value, tel: cTel.value, email: cEmail.value };
-      const match = findBestClientMatch(input);
-      if(!match){
-        if(clientMatchHint) clientMatchHint.textContent = 'Sem correspondência sólida (verifique nome/telefone/email).';
-        alert('Não foi encontrada uma correspondência sólida. Experimente preencher email ou telefone (9 dígitos) e tente novamente.');
-        return;
-      }
-      applyClientMatchToForm(match);
-    });
-
-    [cNome, cTel, cEmail].forEach(inp=>{
-      inp?.addEventListener('input', updateMatchStatus, { passive:true });
-      inp?.addEventListener('change', updateMatchStatus, { passive:true });
-      inp?.addEventListener('blur', ()=>{
-        const m = findBestClientMatch({ nome:cNome.value, tel:cTel.value, email:cEmail.value });
-        if(m) applyClientMatchToForm(m);
-      }, { passive:true });
-    });
-
-    /* ===========================
-       Lista: render + filtros
-    =========================== */
-    function badgeEstado(status){
-      if(status==='final') return '<span class="pill ok">Final</span>';
-      if(status==='sent') return '<span class="pill ok">Enviado</span>';
-      return '<span class="pill info">Rascunho</span>';
-    }
-
-    function matchFilters(r){
-      const txt = (q.value||'').toLowerCase().trim();
-      if(txt){
-        const hay = [r.cliente?.nome, r.cliente?.tipo, r.objetivo?.objetivo, r.ativo?.imovel?.zona, r.ativo?.zona?.zona, r.status]
-          .filter(Boolean).join(' ').toLowerCase();
-        if(!hay.includes(txt)) return false;
-      }
-      if(fStatus.value && r.status !== fStatus.value) return false;
-      if(fTipo.value && (r.cliente?.tipo||'') !== fTipo.value) return false;
-
-      if(fConfidencial.checked && !r.cliente?.confidencial) return false;
-
-      const de = fDataDe.value || '';
-      const ate = fDataAte.value || '';
-      const dt = r.updatedAt || r.createdAt || '';
-      if(de && dt && dt < de) return false;
-      if(ate && dt && dt > ate) return false;
-
-      return true;
-    }
-
-    function renderList(){
-      const list = loadAllReports().filter(matchFilters);
-      reportsTbody.innerHTML = '';
-
-      if(!list.length){
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td colspan="5"><div style="padding:10px 0;color:var(--muted);font-size:12px">Sem relatórios com os filtros atuais. Clique em <strong>+ Novo Relatório</strong>.</div></td>`;
-        reportsTbody.appendChild(tr);
-        return;
-      }
-
-      list.forEach(r=>{
-        const mode = r.ativo?.mode || 'imovel';
-        const zona = mode==='imovel' ? (r.ativo?.imovel?.zona||'—') : (r.ativo?.zona?.zona||'—');
-        const tip = mode==='imovel' ? (r.ativo?.imovel?.tipologia||'') : (r.ativo?.zona?.tipologia||'');
-        const obj = r.objetivo?.objetivo || '—';
-        const detalhe = (r.cliente?.detalhe === 'full') ? 'Completo' : 'Executivo';
-        const conf = r.cliente?.confidencial ? 'Sim' : 'Não';
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>
-            <div><strong>${htmlEscape(r.cliente?.nome || '—')}</strong></div>
-            <span class="td-sub">${htmlEscape(r.cliente?.tipo || '—')} · Idioma ${((r.cliente?.idioma||'pt')==='en'?'EN':'PT')} · ${detalhe}</span>
-          </td>
-          <td>
-            <div><strong>${htmlEscape(obj)}</strong></div>
-            <span class="td-sub">Zona: ${htmlEscape(zona)}${tip ? ' · Tipologia: '+htmlEscape(tip) : ''}</span>
-          </td>
-          <td>
-            <div><strong>${htmlEscape(toPTDate(r.createdAt || ''))}</strong></div>
-            <span class="td-sub">Atualizado: ${htmlEscape(toPTDate(r.updatedAt || ''))}</span>
-          </td>
-          <td>
-            ${badgeEstado(r.status)}
-            <span class="td-sub">Confidencial: ${conf}</span>
-          </td>
-          <td>
-            <div class="row-actions">
-              <button class="btn-xs primary" data-act="open" data-id="${r.id}">Abrir</button>
-              <button class="btn-xs" data-act="duplicate" data-id="${r.id}">Duplicar</button>
-              <button class="btn-xs" data-act="export" data-id="${r.id}">Exportar PDF</button>
-              <button class="btn-xs ghost" data-act="delete" data-id="${r.id}">Remover</button>
-            </div>
-          </td>
-        `;
-        reportsTbody.appendChild(tr);
-      });
-    }
-
-    reportsTbody.addEventListener('click', async (e)=>{
-      const btn = e.target.closest('button[data-act]');
-      if(!btn) return;
-      const act = btn.dataset.act;
-      const id = btn.dataset.id;
-
-      if(act==='open'){
-        const r = getReport(id);
-        if(!r) return;
-        fillForm(r);
-        setTab('wizard');
-        setStep(1);
-        return;
-      }
-
-      if(act==='duplicate'){
-        const r = getReport(id);
-        if(!r) return;
-        const copy = JSON.parse(JSON.stringify(r));
-        copy.id = uid('rpt');
-        copy.createdAt = todayISO();
-        copy.updatedAt = todayISO();
-        copy.status = 'draft';
-        upsertReport(copy);
-        renderList();
-        return;
-      }
-
-      if(act==='delete'){
-        if(!confirm('Remover este relatório? (esta ação não pode ser desfeita)')) return;
-        const r = getReport(id);
-        if(r?.pdfs?.length){
-          for(const p of r.pdfs){
-            if(p.key){ try{ await idbDelPDF(p.key); }catch{} }
-          }
-        }
-        deleteReport(id);
-        renderList();
-        return;
-      }
-
-      if(act==='export'){
-        const r = getReport(id);
-        if(!r) return;
-        exportReportToPrintPDF(r, false);
-        return;
-      }
-    });
-
-    btnApply?.addEventListener('click', renderList);
-    btnClear?.addEventListener('click', ()=>{
-      q.value=''; fStatus.value=''; fTipo.value=''; fDataDe.value=''; fDataAte.value=''; fConfidencial.checked=false;
-      renderList();
-    });
-
-    /* ===========================
-       Wizard: criar/guardar
-    =========================== */
-    function ensureActiveReport(){
-      if(!ACTIVE_REPORT_ID){
-        const r = newEmptyReport();
-        ACTIVE_REPORT_ID = r.id;
-        upsertReport(r);
-        return r;
-      }
-      const r = getReport(ACTIVE_REPORT_ID);
-      if(!r){
-        const nr = newEmptyReport();
-        ACTIVE_REPORT_ID = nr.id;
-        upsertReport(nr);
-        return nr;
-      }
-      return r;
-    }
-
-    function newEmptyReport(){
+  function getContextForSummary(report){
+    const mode = report.ativo?.mode || 'imovel';
+    if(mode==='imovel'){
       return {
-        id: uid('rpt'),
-        createdAt: todayISO(),
-        updatedAt: todayISO(),
-        status: 'draft',
-        cliente:{tipo:'',nome:'',tel:'',email:'',idioma:'pt',detalhe:'exec',confidencial:false,notas:''},
-        objetivo:{objetivo:'',horizonte:'',risco:'',preocupacoes:[],brief:''},
-        ativo:{mode:'imovel',imovel:{fonte:'Manual',query:'',zona:'',tipologia:'',preco:'',obs:''},zona:{zona:'',tipologia:'',segmento:'Novo',min:'',max:''}},
-        pdfs:[],
-        analysis:{metrics:{precoM2:'—',intervalo:'—',tendencia:'—',tempo:'—'},chapters:[],sum:{relevante:'',riscos:'',oportunidades:''}},
-        report:{sections:{exec:true,contexto:true,mercado:true,comps:false,cenarios:true,recomend:true,plano:true,anexos:true},tom:'Neutro',cta:'Agendar reunião',recomendacaoFinal:''}
+        zona: report.ativo?.imovel?.zona || '',
+        tipologia: report.ativo?.imovel?.tipologia || '',
+        objetivo: report.objetivo?.objetivo || ''
       };
     }
+    return {
+      zona: report.ativo?.zona?.zona || '',
+      tipologia: report.ativo?.zona?.tipologia || '',
+      objetivo: report.objetivo?.objetivo || ''
+    };
+  }
 
-    function saveDraft(silent=false){
-      const r = collectForm();
-      r.updatedAt = todayISO();
-      r.status = 'draft';
-      upsertReport(r);
+  /* ===========================
+     Lista: render + filtros
+  =========================== */
+  function badgeEstado(status){
+    if(status==='final') return '<span class="pill ok">Final</span>';
+    if(status==='sent') return '<span class="pill ok">Enviado</span>';
+    return '<span class="pill info">Rascunho</span>';
+  }
+
+  function matchFilters(r){
+    const txt = (q.value||'').toLowerCase().trim();
+    if(txt){
+      const hay = [
+        r.cliente?.nome, r.cliente?.tipo,
+        r.objetivo?.objetivo,
+        r.ativo?.imovel?.zona, r.ativo?.zona?.zona,
+        r.status
+      ].filter(Boolean).join(' ').toLowerCase();
+      if(!hay.includes(txt)) return false;
+    }
+    if(fStatus.value && r.status !== fStatus.value) return false;
+    if(fTipo.value && (r.cliente?.tipo||'') !== fTipo.value) return false;
+
+    if(fConfidencial.checked && !r.cliente?.confidencial) return false;
+
+    const de = fDataDe.value || '';
+    const ate = fDataAte.value || '';
+    const dt = r.updatedAt || r.createdAt || '';
+    if(de && dt && dt < de) return false;
+    if(ate && dt && dt > ate) return false;
+
+    return true;
+  }
+
+  function renderList(){
+    const list = loadAllReports().filter(matchFilters);
+    reportsTbody.innerHTML = '';
+
+    if(!list.length){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td colspan="5">
+          <div style="padding:10px 0;color:var(--muted);font-size:12px">
+            Sem relatórios com os filtros atuais. Clique em <strong>+ Novo Relatório</strong>.
+          </div>
+        </td>`;
+      reportsTbody.appendChild(tr);
+      return;
+    }
+
+    list.forEach(r=>{
+      const mode = r.ativo?.mode || 'imovel';
+      const zona = mode==='imovel' ? (r.ativo?.imovel?.zona||'—') : (r.ativo?.zona?.zona||'—');
+      const tip = mode==='imovel' ? (r.ativo?.imovel?.tipologia||'') : (r.ativo?.zona?.tipologia||'');
+      const obj = r.objetivo?.objetivo || '—';
+      const detalhe = (r.cliente?.detalhe === 'full') ? 'Completo' : 'Executivo';
+      const conf = r.cliente?.confidencial ? 'Sim' : 'Não';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <div><strong>${r.cliente?.nome || '—'}</strong></div>
+          <span class="td-sub">${r.cliente?.tipo || '—'} · Idioma ${((r.cliente?.idioma||'pt')==='en'?'EN':'PT')} · ${detalhe}</span>
+        </td>
+        <td>
+          <div><strong>${obj}</strong></div>
+          <span class="td-sub">Zona: ${zona}${tip ? ' · Tipologia: '+tip : ''}</span>
+        </td>
+        <td>
+          <div><strong>${toPTDate(r.createdAt || '')}</strong></div>
+          <span class="td-sub">Atualizado: ${toPTDate(r.updatedAt || '')}</span>
+        </td>
+        <td>
+          ${badgeEstado(r.status)}
+          <span class="td-sub">Confidencial: ${conf}</span>
+        </td>
+        <td>
+          <div class="row-actions">
+            <button class="btn-xs primary" data-act="open" data-id="${r.id}">Abrir</button>
+            <button class="btn-xs" data-act="duplicate" data-id="${r.id}">Duplicar</button>
+            <button class="btn-xs" data-act="export" data-id="${r.id}">Exportar PDF</button>
+            <button class="btn-xs ghost" data-act="delete" data-id="${r.id}">Remover</button>
+          </div>
+        </td>
+      `;
+      reportsTbody.appendChild(tr);
+    });
+  }
+
+  /* ===========================
+     Wizard: criar/guardar
+  =========================== */
+  function newReport(){
+    const r = collectForm();
+    r.id = uid('rpt');
+    r.createdAt = todayISO();
+    r.updatedAt = todayISO();
+    r.status = 'draft';
+    upsertReport(r);
+    fillForm(r);
+    return r;
+  }
+
+  function saveDraft(){
+    const r = collectForm();
+    r.updatedAt = todayISO();
+    r.status = 'draft';
+    upsertReport(r);
+    ACTIVE_REPORT_ID = r.id;
+    renderList();
+    return r;
+  }
+
+  btnNew?.addEventListener('click', ()=>{
+    ACTIVE_REPORT_ID = null;
+    const empty = {
+      id: uid('rpt'),
+      createdAt: todayISO(),
+      updatedAt: todayISO(),
+      status: 'draft',
+      cliente:{tipo:'',nome:'',tel:'',email:'',idioma:'pt',detalhe:'exec',confidencial:false,notas:''},
+      objetivo:{objetivo:'',horizonte:'',risco:'',preocupacoes:[],brief:''},
+      ativo:{mode:'imovel',imovel:{fonte:'Manual',query:'',zona:'',tipologia:'',preco:'',obs:''},zona:{zona:'',tipologia:'',segmento:'Novo',min:'',max:''}},
+      pdfs:[],
+      analysis:{metrics:{precoM2:'—',intervalo:'—',tendencia:'—',tempo:'—'},chapters:[],sum:{relevante:'',riscos:'',oportunidades:''}},
+      report:{sections:{exec:true,contexto:true,mercado:true,comps:false,cenarios:true,recomend:true,plano:true,anexos:true},tom:'Neutro',cta:'Agendar reunião',recomendacaoFinal:''}
+    };
+    fillForm(empty);
+    setTab('wizard'); setStep(1);
+  });
+
+  btnGoWizard?.addEventListener('click', ()=>{
+    ACTIVE_REPORT_ID = null;
+    btnNew.click();
+  });
+
+  btnBackToList?.addEventListener('click', ()=>{
+    setTab('list');
+    renderList();
+  });
+
+  btnSaveDraft?.addEventListener('click', ()=>{
+    saveDraft();
+    alert('Rascunho guardado.');
+  });
+
+  steps.forEach(s=>{
+    s.addEventListener('click', ()=>{
+      saveDraft();
+      setStep(Number(s.dataset.step));
+    });
+  });
+
+  btnPrev?.addEventListener('click', ()=>{
+    saveDraft();
+    setStep(currentStep-1);
+  });
+  btnNext?.addEventListener('click', ()=>{
+    saveDraft();
+    if(currentStep < 5) setStep(currentStep+1);
+    else { setTab('list'); renderList(); }
+  });
+
+  // Autosave suave
+  let autosaveTimer = null;
+  function scheduleAutosave(){
+    clearTimeout(autosaveTimer);
+    autosaveTimer = setTimeout(()=>{ if(viewWizard && !viewWizard.classList.contains('hidden')) saveDraft(); }, 600);
+  }
+  ['input','change','keyup'].forEach(ev=>{
+    viewWizard?.addEventListener(ev, scheduleAutosave, true);
+  });
+
+  /* ===========================
+     PDFs: Importar / Reprocessar / Ver / Remover — FIX
+     - suporte drag & drop
+     - validação + mensagens consistentes
+  =========================== */
+  function ensureActiveReport(){
+    if(!ACTIVE_REPORT_ID){
+      const r = newReport();
       ACTIVE_REPORT_ID = r.id;
-      renderList();
-      if(!silent) alert('Rascunho guardado.');
       return r;
     }
-
-    btnNew?.addEventListener('click', ()=>{
-      const empty = newEmptyReport();
-      ACTIVE_REPORT_ID = empty.id;
-      upsertReport(empty);
-      fillForm(empty);
-      setTab('wizard'); setStep(1);
-    });
-    btnGoWizard?.addEventListener('click', ()=>btnNew.click());
-    btnBackToList?.addEventListener('click', ()=>{ setTab('list'); renderList(); });
-    btnSaveDraft?.addEventListener('click', ()=>saveDraft(false));
-
-    steps.forEach(s=>{
-      s.addEventListener('click', ()=>{ saveDraft(true); setStep(Number(s.dataset.step)); });
-    });
-
-    btnPrev?.addEventListener('click', ()=>{ saveDraft(true); setStep(currentStep-1); });
-    btnNext?.addEventListener('click', ()=>{
-      saveDraft(true);
-      if(currentStep < 5) setStep(currentStep+1);
-      else { setTab('list'); renderList(); }
-    });
-
-    /* ===========================
-       Autosave
-    =========================== */
-    let autosaveTimer = null;
-    function scheduleAutosave(){
-      clearTimeout(autosaveTimer);
-      autosaveTimer = setTimeout(()=>{ if(viewWizard && !viewWizard.classList.contains('hidden')) saveDraft(true); }, 650);
+    const r = getReport(ACTIVE_REPORT_ID);
+    if(!r){
+      const nr = newReport();
+      ACTIVE_REPORT_ID = nr.id;
+      return nr;
     }
-    ['input','change','keyup'].forEach(ev=>{
-      viewWizard?.addEventListener(ev, scheduleAutosave, true);
-    });
+    return r;
+  }
 
-    /* ===========================
-       PDFs: UI + Importar / Reprocessar / Ver / Remover / Analisar
-    =========================== */
-    function renderPDFList(report){
-      pdfList.innerHTML = '';
-      const list = report?.pdfs || [];
-      if(!list.length){
-        const div = document.createElement('div');
-        div.className = 'file';
-        div.innerHTML = `
-          <div>
-            <div class="f-name" style="color:var(--muted);font-weight:700">Sem PDFs importados</div>
-            <div class="f-meta">Importe um estudo para iniciar a extração automática.</div>
-          </div>
-          <div class="f-actions"><button class="btn-xs" disabled>Ver</button></div>
-        `;
-        pdfList.appendChild(div);
-        return;
-      }
-
-      list.forEach(p=>{
-        const div = document.createElement('div');
-        div.className = 'file';
-        div.innerHTML = `
-          <div>
-            <div class="f-name">${htmlEscape(p.name || 'PDF')}</div>
-            <div class="f-meta">${htmlEscape(toPTDate(p.addedAt || ''))} · ${htmlEscape(String(p.pagesUsed || p.pages || '—'))} páginas · ${htmlEscape(p.sizeMB || '—')}</div>
-          </div>
-          <div class="f-actions">
-            <button class="btn-xs" data-act="view" data-key="${p.key}">Ver</button>
-            <button class="btn-xs" data-act="analyze" data-key="${p.key}">Analisar</button>
-            <button class="btn-xs" data-act="remove" data-key="${p.key}">Remover</button>
-          </div>
-        `;
-        pdfList.appendChild(div);
-      });
+  function renderPDFList(report){
+    pdfList.innerHTML = '';
+    const list = report?.pdfs || [];
+    if(!list.length){
+      const div = document.createElement('div');
+      div.className = 'file';
+      div.innerHTML = `
+        <div>
+          <div class="f-name" style="color:var(--muted);font-weight:700">Sem PDFs importados</div>
+          <div class="f-meta">Importe um estudo para iniciar a extração automática.</div>
+        </div>
+        <div class="f-actions">
+          <button class="btn-xs" disabled>Ver</button>
+        </div>
+      `;
+      pdfList.appendChild(div);
+      return;
     }
+
+    list.forEach(p=>{
+      const div = document.createElement('div');
+      div.className = 'file';
+      div.innerHTML = `
+        <div>
+          <div class="f-name">${p.name || 'PDF'}</div>
+          <div class="f-meta">${toPTDate(p.addedAt || '')} · ${p.pages || '—'} páginas · ${p.sizeMB || '—'}</div>
+        </div>
+        <div class="f-actions">
+          <button class="btn-xs" data-act="view" data-key="${p.key}">Ver</button>
+          <button class="btn-xs" data-act="remove" data-key="${p.key}">Remover</button>
+        </div>
+      `;
+      pdfList.appendChild(div);
+    });
+  }
 
     async function processPDFAndUpdateReport(file){
-      const report = ensureActiveReport();
-      const key = uid('pdf');
-      const addedAt = todayISO();
+    const report = ensureActiveReport();
 
-      await idbPutPDF(key, file, { name:file.name, addedAt });
-
-      const { text, pagesTotal, pagesUsed } = await pdfToText(file, 35);
-      if(!text || !text.trim()){
-        alert('Não foi possível extrair texto do PDF neste browser. O anexo foi guardado, mas a análise automática não correu.');
-        return;
-      }
-
-      const metrics = extractMetrics(text);
-      const chapters = detectChapters(text);
-      const ctx = getContextForSummary(report);
-      const sum = buildAutoSummary(text, ctx);
-
-      report.updatedAt = todayISO();
-      report.pdfs = (report.pdfs || []);
-      report.pdfs.unshift({
-        key,
-        name: file.name,
-        size: file.size,
-        sizeMB: bytesToMB(file.size),
-        pages: pagesTotal,
-        pagesUsed,
-        addedAt,
-        extractedAt: todayISO(),
-        metrics,
-        chapters,
-        textSample: text.slice(0, 1600)
-      });
-
-      report.analysis = report.analysis || {};
-      report.analysis.metrics = metrics;
-      report.analysis.chapters = chapters;
-      report.analysis.sum = report.analysis.sum || {relevante:'',riscos:'',oportunidades:''};
-
-      if(!report.analysis.sum.relevante) report.analysis.sum.relevante = sum.rel;
-      if(!report.analysis.sum.riscos) report.analysis.sum.riscos = sum.risk;
-      if(!report.analysis.sum.oportunidades) report.analysis.sum.oportunidades = sum.opp;
-
-      upsertReport(report);
-      fillForm(report);
-      alert('PDF importado e analisado com sucesso.');
+    if(file.type !== 'application/pdf'){
+      alert('Por favor selecione um ficheiro PDF.');
+      return;
     }
 
-    btnPickPdf?.addEventListener('click', ()=>pdfFile.click());
-    pdfFile?.addEventListener('change', async ()=>{
-      const f = pdfFile.files && pdfFile.files[0];
+    const mb = file.size / 1024 / 1024;
+    if(mb > 25){
+      if(!confirm(`Este PDF tem ${mb.toFixed(1)}MB. Pode falhar em alguns browsers. Pretende tentar na mesma?`)) return;
+    }
+
+    const key = uid('pdf');
+    const addedAt = todayISO();
+
+    // guardar como anexo normal
+    await idbPutPDF(key, file, { name:file.name, addedAt });
+
+    // (opcional) contar páginas sem PDF.js
+    const pages = await getPdfPageCount(file);
+
+    report.updatedAt = todayISO();
+    report.pdfs = (report.pdfs || []);
+    report.pdfs.unshift({
+      key,
+      name: file.name,
+      size: file.size,
+      sizeMB: bytesToMB(file.size),
+      pages: (pages ?? '—'),
+      addedAt,
+      extractedAt: null,
+      metrics: null,
+      chapters: null,
+      textSample: null
+    });
+
+    // mantém campos de análise editáveis (manual)
+    report.analysis = report.analysis || {};
+    report.analysis.metrics = report.analysis.metrics || { precoM2:'—', intervalo:'—', tendencia:'—', tempo:'—' };
+    report.analysis.chapters = report.analysis.chapters || [];
+    report.analysis.sum = report.analysis.sum || { relevante:'', riscos:'', oportunidades:'' };
+
+    upsertReport(report);
+    fillForm(report);
+
+    alert('PDF importado com sucesso (anexo).');
+  }
+
+  function pickPdf(){
+    // gesto direto (browser-friendly)
+    pdfFile.value = '';
+    pdfFile.click();
+  }
+
+  btnPickPdf?.addEventListener('click', (e)=>{
+    e.preventDefault();
+    pickPdf();
+  });
+
+  pdfFile?.addEventListener('change', async ()=>{
+    const f = pdfFile.files && pdfFile.files[0];
+    if(!f) return;
+    try{
+      btnPickPdf.disabled = true;
+      btnReprocess.disabled = true;
+      await processPDFAndUpdateReport(f);
+       }catch(err){
+      console.error(err);
+      alert('Falha ao importar PDF. Tente novamente (ou experimente um PDF mais leve).');
+    }finally{
+      btnPickPdf.disabled = false;
+      btnReprocess.disabled = false;
+      pdfFile.value = '';
+    }
+  });
+
+  // Drag & Drop no bloco #pdfDrop — FIX
+  if(pdfDrop){
+    const on = (name, fn)=>pdfDrop.addEventListener(name, fn, false);
+
+    on('dragenter', (e)=>{ e.preventDefault(); e.stopPropagation(); pdfDrop.style.outline='2px solid rgba(163,139,99,.55)'; });
+    on('dragover',  (e)=>{ e.preventDefault(); e.stopPropagation(); });
+    on('dragleave', (e)=>{ e.preventDefault(); e.stopPropagation(); pdfDrop.style.outline='none'; });
+    on('drop', async (e)=>{
+      e.preventDefault(); e.stopPropagation();
+      pdfDrop.style.outline='none';
+      const f = e.dataTransfer?.files?.[0];
       if(!f) return;
-      if(f.type !== 'application/pdf'){
-        alert('Por favor selecione um ficheiro PDF.');
-        pdfFile.value = '';
-        return;
-      }
       try{
         btnPickPdf.disabled = true;
         btnReprocess.disabled = true;
         await processPDFAndUpdateReport(f);
       }catch(err){
         console.error(err);
-        if(String(err?.message||'').includes('PDFJS_MISSING')){
-          alert('Não foi possível analisar: PDF.js não carregou (offline/bloqueio).');
-        }else{
-          alert('Falha ao processar PDF. Tente novamente. (Se for muito grande, divida o PDF.)');
-        }
+        alert('Falha ao processar PDF via drag&drop. Tente importar pelo botão.');
       }finally{
         btnPickPdf.disabled = false;
         btnReprocess.disabled = false;
-        pdfFile.value = '';
       }
     });
+  }
 
-    async function analyzePdfKey(report, key){
+  pdfList?.addEventListener('click', async (e)=>{
+    const b = e.target.closest('button[data-act]');
+    if(!b) return;
+
+    const report = ensureActiveReport();
+    const act = b.dataset.act;
+    const key = b.dataset.key;
+
+    if(act==='remove'){
+      if(!confirm('Remover este PDF do relatório?')) return;
+      try{ await idbDelPDF(key); }catch{}
+      report.pdfs = (report.pdfs||[]).filter(p=>p.key!==key);
+      upsertReport(report);
+      fillForm(report);
+      return;
+    }
+
+    if(act==='view'){
       const rec = await idbGetPDF(key);
       if(!rec?.blob){
         alert('PDF não encontrado (cache/DB). Reimporte o ficheiro.');
         return;
       }
-      const { text, pagesTotal, pagesUsed } = await pdfToText(rec.blob, 35);
-      if(!text || !text.trim()){
-        alert('Não foi possível extrair texto do PDF neste browser. O anexo foi guardado, mas a análise automática não correu.');
-        return;
-      }
-      const metrics = extractMetrics(text);
-      const chapters = detectChapters(text);
-      const ctx = getContextForSummary(report);
-      const auto = buildAutoSummary(text, ctx);
-
-      report.analysis = report.analysis || {};
-      report.analysis.metrics = metrics;
-      report.analysis.chapters = chapters;
-      report.analysis.sum = report.analysis.sum || { relevante:'', riscos:'', oportunidades:'' };
-
-      if(!normStr(sumRelevante.value)) report.analysis.sum.relevante = auto.rel || report.analysis.sum.relevante || '';
-      if(!normStr(sumRiscos.value)) report.analysis.sum.riscos = auto.risk || report.analysis.sum.riscos || '';
-      if(!normStr(sumOport.value)) report.analysis.sum.oportunidades = auto.opp || report.analysis.sum.oportunidades || '';
-
-      const p = (report.pdfs || []).find(x=>x.key === key);
-      if(p){
-        p.extractedAt = todayISO();
-        p.pages = pagesTotal;
-        p.pagesUsed = pagesUsed;
-        p.metrics = metrics;
-        p.chapters = chapters;
-        p.textSample = text.slice(0, 1600);
-      }
-
-      report.updatedAt = todayISO();
-      upsertReport(report);
-      fillForm(report);
-      alert('Análise concluída: métricas, capítulos e resumo operacional atualizados.');
+      const url = URL.createObjectURL(rec.blob);
+      window.open(url, '_blank', 'noopener,noreferrer');
+      setTimeout(()=>URL.revokeObjectURL(url), 15000);
+      return;
     }
+  });
 
-    btnReprocess?.addEventListener('click', async (e)=>{
-      e.preventDefault();
-      const report = ensureActiveReport();
-      const p = (report.pdfs || [])[0];
-      if(!p || !p.key){
-        alert('Sem PDFs importados. Importe um PDF primeiro.');
-        return;
-      }
+  btnReprocess?.addEventListener('click', ()=>{
+    alert('Reprocessar está indisponível neste modo (PDFs como anexos, sem análise automática).');
+  });
+
+  /* ===========================
+     Exportação “PDF” — FIX (sem pop-ups)
+     - imprime via IFRAME invisível (evita bloqueio de janela)
+  =========================== */
+  function htmlEscape(s){
+    return String(s||'')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+
+  function printHTMLInFrame(html){
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    iframe.style.opacity = '0';
+    iframe.setAttribute('aria-hidden','true');
+
+    document.body.appendChild(iframe);
+
+    const cleanup = ()=>{
+      try{ iframe.remove(); }catch{}
+    };
+
+    const w = iframe.contentWindow;
+    const d = iframe.contentDocument || w.document;
+
+    d.open();
+    d.write(html);
+    d.close();
+
+    // Espera que fonts/layout estejam prontos, depois imprime
+    const firePrint = async ()=>{
       try{
-        btnPickPdf.disabled = true;
-        btnReprocess.disabled = true;
-        await analyzePdfKey(report, p.key);
+        if(d.fonts && d.fonts.ready) await d.fonts.ready;
+      }catch{}
+      try{
+        w.focus();
+        w.print();
       }catch(err){
         console.error(err);
-        alert('Falha no reprocessamento. Reimporte o PDF se necessário.');
-      }finally{
-        btnPickPdf.disabled = false;
-        btnReprocess.disabled = false;
+        alert('Falha ao abrir impressão. Tente novamente.');
+        cleanup();
       }
-    });
+    };
 
-    pdfList?.addEventListener('click', async (e)=>{
-      const b = e.target.closest('button[data-act]');
-      if(!b) return;
-      const report = ensureActiveReport();
-      const act = b.dataset.act;
-      const key = b.dataset.key;
+    // afterprint para limpeza
+    const onAfter = ()=>{
+      w.removeEventListener('afterprint', onAfter);
+      setTimeout(cleanup, 250);
+    };
+    w.addEventListener('afterprint', onAfter);
 
-      if(act==='remove'){
-        if(!confirm('Remover este PDF do relatório?')) return;
-        try{ await idbDelPDF(key); }catch{}
-        report.pdfs = (report.pdfs||[]).filter(p=>p.key!==key);
-        upsertReport(report);
-        fillForm(report);
-        return;
-      }
+    // alguns browsers não disparam afterprint consistentemente
+    setTimeout(firePrint, 250);
+    setTimeout(cleanup, 60000);
+  }
 
-      if(act==='view'){
-        const rec = await idbGetPDF(key);
-        if(!rec?.blob){
-          alert('PDF não encontrado (cache/DB). Reimporte o ficheiro.');
-          return;
+  function exportReportToPrintPDF(report, forceExec=false){
+    const cliente = report.cliente || {};
+    const obj = report.objetivo || {};
+    const ativo = report.ativo || {};
+    const mode = ativo.mode || 'imovel';
+
+    const zona = mode==='imovel' ? (ativo.imovel?.zona || '—') : (ativo.zona?.zona || '—');
+    const tip = mode==='imovel' ? (ativo.imovel?.tipologia || '') : (ativo.zona?.tipologia || '');
+    const preco = mode==='imovel' ? moneyGuessToPretty(ativo.imovel?.preco || '') : '';
+    const detalhe = forceExec ? 'exec' : (cliente.detalhe || 'exec');
+
+    const sec = report.report?.sections || {};
+    const use = (k)=> forceExec ? (k==='exec' || k==='recomend' || k==='plano' || k==='mercado' ) : !!sec[k];
+
+    const met = report.analysis?.metrics || {};
+    const ch = report.analysis?.chapters || [];
+    const sum = report.analysis?.sum || {};
+
+    const confTag = cliente.confidencial ? 'CONFIDENCIAL' : 'INTERNO';
+    const title = `Relatório para Cliente — ${cliente.nome || 'Cliente'} (${toPTDate(report.updatedAt || report.createdAt)})`;
+
+    const styles = `
+      <style>
+        :root{--gold:#A38B63;--muted:#666;--txt:#111}
+        *{box-sizing:border-box}
+        body{font-family:Arial,Helvetica,sans-serif;color:var(--txt);margin:0;background:#fff}
+        .page{max-width:920px;margin:0 auto;padding:28px 34px}
+        .top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+        .brand{font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);font-size:14px}
+        .meta{font-size:12px;color:var(--muted);text-align:right;line-height:1.4}
+        .h1{margin:18px 0 6px;font-size:20px;letter-spacing:.02em}
+        .tag{display:inline-block;padding:4px 10px;border:1px solid #ddd;border-radius:999px;font-size:11px;color:#333;background:#fafafa}
+        .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+        .card{border:1px solid #eee;border-radius:14px;padding:12px 12px}
+        .card h3{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#444}
+        .kv{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
+        .kv:last-child{border-bottom:none}
+        .kv b{color:#555;font-weight:700}
+        .sec{margin-top:16px}
+        .sec h2{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.14em;color:#444}
+        .p{font-size:13px;line-height:1.55;color:#222;margin:0 0 8px}
+        ul{margin:6px 0 0 18px}
+        li{margin:4px 0;font-size:13px;line-height:1.45}
+        .foot{margin-top:18px;padding-top:10px;border-top:1px solid #eee;font-size:11px;color:#777;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+        @media print{
+          .page{padding:18px 24px}
         }
-        const url = URL.createObjectURL(rec.blob);
-        // tentativa 1: window.open (user gesture)
-        const w = window.open(url, '_blank', 'noopener,noreferrer');
-        if(!w){
-          // fallback: link programático
-          const a = document.createElement('a');
-          a.href = url;
-          a.target = '_blank';
-          a.rel = 'noopener noreferrer';
-          a.click();
-        }
-        setTimeout(()=>URL.revokeObjectURL(url), 20000);
-        return;
-      }
+      </style>
+    `;
 
-      if(act==='analyze'){
-        try{
-          btnPickPdf.disabled = true;
-          btnReprocess.disabled = true;
-          await analyzePdfKey(report, key);
-        }catch(err){
-          console.error(err);
-          alert('Falha na análise do PDF.');
-        }finally{
-          btnPickPdf.disabled = false;
-          btnReprocess.disabled = false;
-        }
-      }
-    });
-
-    /* ===========================
-       Exportação: impressão em IFRAME (sem pop-up)
-    =========================== */
-    function printHTMLInFrame(html){
-      const iframe = document.createElement('iframe');
-      iframe.style.position = 'fixed';
-      iframe.style.right = '0';
-      iframe.style.bottom = '0';
-      iframe.style.width = '0';
-      iframe.style.height = '0';
-      iframe.style.border = '0';
-      iframe.style.opacity = '0';
-      iframe.setAttribute('aria-hidden','true');
-      document.body.appendChild(iframe);
-
-      const w = iframe.contentWindow;
-      const d = iframe.contentDocument || w.document;
-
-      const cleanup = ()=>{ try{ iframe.remove(); }catch{} };
-
-      d.open(); d.write(html); d.close();
-
-      const fire = async ()=>{
-        try{ if(d.fonts && d.fonts.ready) await d.fonts.ready; }catch{}
-        try{ w.focus(); w.print(); }catch(err){ console.error(err); alert('Falha ao abrir impressão.'); cleanup(); }
-      };
-
-      const onAfter = ()=>{ w.removeEventListener('afterprint', onAfter); setTimeout(cleanup, 250); };
-      w.addEventListener('afterprint', onAfter);
-
-      setTimeout(fire, 250);
-      setTimeout(cleanup, 60000);
-    }
-
-    function exportReportToPrintPDF(report, forceExec=false){
-      const cliente = report.cliente || {};
-      const obj = report.objetivo || {};
-      const ativo = report.ativo || {};
-      const mode = ativo.mode || 'imovel';
-
-      const zona = mode==='imovel' ? (ativo.imovel?.zona || '—') : (ativo.zona?.zona || '—');
-      const tip = mode==='imovel' ? (ativo.imovel?.tipologia || '') : (ativo.zona?.tipologia || '');
-      const preco = mode==='imovel' ? moneyGuessToPretty(ativo.imovel?.preco || '') : '';
-      const detalhe = forceExec ? 'exec' : (cliente.detalhe || 'exec');
-
-      const sec = report.report?.sections || {};
-      const use = (k)=> forceExec ? (k==='exec' || k==='recomend' || k==='plano') : !!sec[k];
-
-      const met = report.analysis?.metrics || {};
-      const ch = report.analysis?.chapters || [];
-      const sum = report.analysis?.sum || {};
-
-      const confTag = cliente.confidencial ? 'CONFIDENCIAL' : 'INTERNO';
-      const title = `Relatório para Cliente — ${cliente.nome || 'Cliente'} (${toPTDate(report.updatedAt || report.createdAt)})`;
-
-      const styles = `
-        <style>
-          :root{--gold:#A38B63;--muted:#666;--txt:#111}
-          *{box-sizing:border-box}
-          body{font-family:Arial,Helvetica,sans-serif;color:var(--txt);margin:0;background:#fff}
-          .page{max-width:920px;margin:0 auto;padding:28px 34px}
-          .top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
-          .brand{font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);font-size:14px}
-          .meta{font-size:12px;color:var(--muted);text-align:right;line-height:1.4}
-          .h1{margin:18px 0 6px;font-size:20px;letter-spacing:.02em}
-          .tag{display:inline-block;padding:4px 10px;border:1px solid #ddd;border-radius:999px;font-size:11px;color:#333;background:#fafafa}
-          .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
-          .card{border:1px solid #eee;border-radius:14px;padding:12px 12px}
-          .card h3{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#444}
-          .kv{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
-          .kv:last-child{border-bottom:none}
-          .kv b{color:#555;font-weight:700}
-          .sec{margin-top:16px}
-          .sec h2{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.14em;color:#444}
-          .p{font-size:13px;line-height:1.55;color:#222;margin:0 0 8px}
-          ul{margin:6px 0 0 18px}
-          li{margin:4px 0;font-size:13px;line-height:1.45}
-          .foot{margin-top:18px;padding-top:10px;border-top:1px solid #eee;font-size:11px;color:#777;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
-          @media print{ .page{padding:18px 24px} }
-        </style>
-      `;
-
-      const blockResumoExec = ()=>{
-        const rec = (report.report?.recomendacaoFinal || '').trim() || '(preencher recomendação final)';
-        return `
-          <div class="sec">
-            <h2>Resumo Executivo</h2>
-            <p class="p"><strong>Objetivo:</strong> ${htmlEscape(obj.objetivo || '—')} · <strong>Zona:</strong> ${htmlEscape(zona)} ${tip?('· <strong>Tipologia:</strong> '+htmlEscape(tip)) : ''} ${preco?('· <strong>Preço:</strong> '+htmlEscape(preco)) : ''}</p>
-            <p class="p">${htmlEscape(rec).replace(/\\n/g,'<br>')}</p>
-          </div>
-        `;
-      };
-
-      const blockContexto = ()=>{
-        const preocup = (obj.preocupacoes||[]).length ? (obj.preocupacoes.join(', ')) : '—';
-        return `
-          <div class="sec">
-            <h2>Contexto do Cliente</h2>
-            <div class="grid">
-              <div class="card">
-                <h3>Briefing</h3>
-                <div class="kv"><b>Tipo</b><span>${htmlEscape(cliente.tipo||'—')}</span></div>
-                <div class="kv"><b>Horizonte</b><span>${htmlEscape(obj.horizonte||'—')}</span></div>
-                <div class="kv"><b>Risco</b><span>${htmlEscape(obj.risco||'—')}</span></div>
-                <div class="kv"><b>Preocupações</b><span>${htmlEscape(preocup)}</span></div>
-              </div>
-              <div class="card">
-                <h3>Notas</h3>
-                <p class="p">${htmlEscape(obj.brief||cliente.notas||'—').replace(/\\n/g,'<br>')}</p>
-              </div>
-            </div>
-          </div>
-        `;
-      };
-
-      const blockMercado = ()=>{
-        const caps = ch.length ? ('<ul>' + ch.slice(0,8).map(c=>`<li>${htmlEscape(c)}</li>`).join('') + '</ul>') : '<p class="p">Sem capítulos detetados (importe um PDF para análise).</p>';
-        return `
-          <div class="sec">
-            <h2>Enquadramento de Mercado</h2>
-            <div class="grid">
-              <div class="card">
-                <h3>Métricas (do PDF)</h3>
-                <div class="kv"><b>Preço médio/m²</b><span>${htmlEscape(met.precoM2||'—')}</span></div>
-                <div class="kv"><b>Intervalo</b><span>${htmlEscape(met.intervalo||'—')}</span></div>
-                <div class="kv"><b>Tendência</b><span>${htmlEscape(met.tendencia||'—')}</span></div>
-                <div class="kv"><b>Tempo médio</b><span>${htmlEscape(met.tempo||'—')}</span></div>
-              </div>
-              <div class="card">
-                <h3>Estrutura / Capítulos</h3>
-                ${caps}
-              </div>
-            </div>
-
-            <div class="grid" style="margin-top:12px">
-              <div class="card">
-                <h3>Relevante para o cliente</h3>
-                <p class="p">${htmlEscape(sum.relevante||'—').replace(/\\n/g,'<br>')}</p>
-              </div>
-              <div class="card">
-                <h3>Riscos / Alertas</h3>
-                <p class="p">${htmlEscape(sum.riscos||'—').replace(/\\n/g,'<br>')}</p>
-              </div>
-            </div>
-
-            <div class="card" style="margin-top:12px">
-              <h3>Oportunidades</h3>
-              <p class="p">${htmlEscape(sum.oportunidades||'—').replace(/\\n/g,'<br>')}</p>
-            </div>
-          </div>
-        `;
-      };
-
-      const blockCenarios = ()=>`
+    function blockResumoExec(){
+      const rec = (report.report?.recomendacaoFinal || '').trim() || '(preencher recomendação final)';
+      return `
         <div class="sec">
-          <h2>Cenários</h2>
-          <p class="p">Placeholder (Nível 2): simulação de cenários (preço vs timing vs estratégia) com base nos teus dados internos.</p>
+          <h2>Resumo Executivo</h2>
+          <p class="p"><strong>Objetivo:</strong> ${htmlEscape(obj.objetivo || '—')} · <strong>Zona:</strong> ${htmlEscape(zona)} ${tip?('· <strong>Tipologia:</strong> '+htmlEscape(tip)) : ''} ${preco?('· <strong>Preço:</strong> '+htmlEscape(preco)) : ''}</p>
+          <p class="p">${htmlEscape(rec).replace(/\n/g,'<br>')}</p>
         </div>
       `;
-
-      const blockPlano = ()=>{
-        const cta = report.report?.cta || 'Agendar reunião';
-        return `
-          <div class="sec">
-            <h2>Próximos passos</h2>
-            <ul>
-              <li>Validar objetivo e critérios de decisão do cliente (10–15 min).</li>
-              <li>Confirmar dados do ativo/zona e recolher informação crítica (documentos, comparáveis, restrições).</li>
-              <li>Alinhar estratégia e calendarização (marketing, posicionamento, negociação).</li>
-              <li><strong>CTA final:</strong> ${htmlEscape(cta)}.</li>
-            </ul>
-          </div>
-        `;
-      };
-
-      const html = `
-        <!doctype html>
-        <html>
-          <head>
-            <meta charset="utf-8">
-            <title>${htmlEscape(title)}</title>
-            ${styles}
-          </head>
-          <body>
-            <div class="page">
-              <div class="top">
-                <div>
-                  <div class="brand">Garvetur Luxury Porto</div>
-                  <div class="h1">Relatório para Cliente</div>
-                  <span class="tag">${htmlEscape(confTag)}</span>
-                </div>
-                <div class="meta">
-                  <div><strong>Cliente:</strong> ${htmlEscape(cliente.nome||'—')}</div>
-                  <div><strong>Data:</strong> ${htmlEscape(toPTDate(report.updatedAt||report.createdAt||todayISO()))}</div>
-                  <div><strong>Formato:</strong> ${detalhe==='full'?'Completo':'Executivo'}</div>
-                </div>
-              </div>
-
-              ${use('exec') ? blockResumoExec() : ''}
-              ${use('contexto') ? blockContexto() : ''}
-              ${use('mercado') ? blockMercado() : ''}
-              ${use('cenarios') ? blockCenarios() : ''}
-              ${use('plano') ? blockPlano() : ''}
-
-              <div class="foot">
-                <span>${htmlEscape(confTag)} · Uso interno / cliente · Não distribuir sem autorização.</span>
-                <span>Gerado em ${htmlEscape(toPTDate(todayISO()))}</span>
-              </div>
-            </div>
-          </body>
-        </html>
-      `;
-
-      printHTMLInFrame(html);
     }
 
-    btnBuildPdf?.addEventListener('click', ()=>{ const r = saveDraft(true); exportReportToPrintPDF(r, false); });
-    btnBuildExec?.addEventListener('click', ()=>{ const r = saveDraft(true); exportReportToPrintPDF(r, true); });
-    btnDuplicate?.addEventListener('click', ()=>{
-      const r = saveDraft(true);
+    function blockContexto(){
+      const preocup = (obj.preocupacoes||[]).length ? (obj.preocupacoes.join(', ')) : '—';
+      return `
+        <div class="sec">
+          <h2>Contexto do Cliente</h2>
+          <div class="grid">
+            <div class="card">
+              <h3>Briefing</h3>
+              <div class="kv"><b>Tipo</b><span>${htmlEscape(cliente.tipo||'—')}</span></div>
+              <div class="kv"><b>Horizonte</b><span>${htmlEscape(obj.horizonte||'—')}</span></div>
+              <div class="kv"><b>Risco</b><span>${htmlEscape(obj.risco||'—')}</span></div>
+              <div class="kv"><b>Preocupações</b><span>${htmlEscape(preocup)}</span></div>
+            </div>
+            <div class="card">
+              <h3>Notas</h3>
+              <p class="p">${htmlEscape(obj.brief||cliente.notas||'—').replace(/\n/g,'<br>')}</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function blockMercado(){
+      const caps = ch.length ? ('<ul>' + ch.slice(0,8).map(c=>`<li>${htmlEscape(c)}</li>`).join('') + '</ul>') : '<p class="p">Sem capítulos detetados (importe um PDF para análise).</p>';
+      return `
+        <div class="sec">
+          <h2>Enquadramento de Mercado</h2>
+          <div class="grid">
+            <div class="card">
+              <h3>Métricas (do PDF)</h3>
+              <div class="kv"><b>Preço médio/m²</b><span>${htmlEscape(met.precoM2||'—')}</span></div>
+              <div class="kv"><b>Intervalo</b><span>${htmlEscape(met.intervalo||'—')}</span></div>
+              <div class="kv"><b>Tendência</b><span>${htmlEscape(met.tendencia||'—')}</span></div>
+              <div class="kv"><b>Tempo médio</b><span>${htmlEscape(met.tempo||'—')}</span></div>
+            </div>
+            <div class="card">
+              <h3>Estrutura / Capítulos</h3>
+              ${caps}
+            </div>
+          </div>
+
+          <div class="grid" style="margin-top:12px">
+            <div class="card">
+              <h3>Relevante para o cliente</h3>
+              <p class="p">${htmlEscape(sum.relevante||'—').replace(/\n/g,'<br>')}</p>
+            </div>
+            <div class="card">
+              <h3>Riscos / Alertas</h3>
+              <p class="p">${htmlEscape(sum.riscos||'—').replace(/\n/g,'<br>')}</p>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:12px">
+            <h3>Oportunidades</h3>
+            <p class="p">${htmlEscape(sum.oportunidades||'—').replace(/\n/g,'<br>')}</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function blockCenarios(){
+      return `
+        <div class="sec">
+          <h2>Cenários</h2>
+          <p class="p">Sugestão (placeholder): aqui ligamos no próximo sprint a simulação de cenários (preço vs timing vs estratégia), com base nos teus dados internos.</p>
+        </div>
+      `;
+    }
+
+    function blockPlano(){
+      const cta = report.report?.cta || 'Agendar reunião';
+      return `
+        <div class="sec">
+          <h2>Próximos passos</h2>
+          <ul>
+            <li>Validar objetivo e critérios de decisão do cliente (10–15 min).</li>
+            <li>Confirmar dados do ativo/zona e recolher informação crítica (documentos, comparáveis, restrições).</li>
+            <li>Alinhar estratégia e calendarização (marketing, posicionamento, negociação).</li>
+            <li><strong>CTA final:</strong> ${htmlEscape(cta)}.</li>
+          </ul>
+        </div>
+      `;
+    }
+
+    const html = `
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>${htmlEscape(title)}</title>
+          ${styles}
+        </head>
+        <body>
+          <div class="page">
+            <div class="top">
+              <div>
+                <div class="brand">Garvetur Luxury Porto</div>
+                <div class="h1">Relatório para Cliente</div>
+                <span class="tag">${htmlEscape(confTag)}</span>
+              </div>
+              <div class="meta">
+                <div><strong>Cliente:</strong> ${htmlEscape(cliente.nome||'—')}</div>
+                <div><strong>Data:</strong> ${htmlEscape(toPTDate(report.updatedAt||report.createdAt||todayISO()))}</div>
+                <div><strong>Formato:</strong> ${detalhe==='full'?'Completo':'Executivo'}</div>
+              </div>
+            </div>
+
+            ${use('exec') ? blockResumoExec() : ''}
+            ${use('contexto') ? blockContexto() : ''}
+            ${use('mercado') ? blockMercado() : ''}
+            ${use('cenarios') ? blockCenarios() : ''}
+            ${use('plano') ? blockPlano() : ''}
+
+            <div class="foot">
+              <span>${htmlEscape(confTag)} · Uso interno / cliente · Não distribuir sem autorização.</span>
+              <span>Gerado em ${htmlEscape(toPTDate(todayISO()))}</span>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    printHTMLInFrame(html);
+  }
+
+  /* ===========================
+     List Actions + Export
+  =========================== */
+  reportsTbody.addEventListener('click', async (e)=>{
+    const btn = e.target.closest('button[data-act]');
+    if(!btn) return;
+    const act = btn.dataset.act;
+    const id = btn.dataset.id;
+
+    if(act==='open'){
+      const r = getReport(id);
+      if(!r) return;
+      fillForm(r);
+      setTab('wizard');
+      setStep(1);
+      return;
+    }
+
+    if(act==='duplicate'){
+      const r = getReport(id);
+      if(!r) return;
       const copy = JSON.parse(JSON.stringify(r));
       copy.id = uid('rpt');
       copy.createdAt = todayISO();
@@ -2318,21 +2336,88 @@
       copy.status = 'draft';
       upsertReport(copy);
       renderList();
-      alert('Template duplicado. Pode abrir a cópia na lista.');
-    });
+      return;
+    }
 
-    /* ===========================
-       Tabs init
-    =========================== */
-    tabList?.addEventListener('click', ()=>setTab('list'));
-    tabWizard?.addEventListener('click', ()=>setTab('wizard'));
+    if(act==='delete'){
+      if(!confirm('Remover este relatório? (esta ação não pode ser desfeita)')) return;
+      const r = getReport(id);
+      if(r?.pdfs?.length){
+        for(const p of r.pdfs){
+          if(p.key) { try{ await idbDelPDF(p.key); }catch{} }
+        }
+      }
+      deleteReport(id);
+      renderList();
+      return;
+    }
 
-    // init
-    setTab('list');
-    setStep(1);
+    if(act==='export'){
+      const r = getReport(id);
+      if(!r) return;
+      exportReportToPrintPDF(r, false);
+      return;
+    }
+  });
+
+  btnApply?.addEventListener('click', renderList);
+  btnClear?.addEventListener('click', ()=>{
+    q.value = '';
+    fStatus.value = '';
+    fTipo.value = '';
+    fDataDe.value = '';
+    fDataAte.value = '';
+    fConfidencial.checked = false;
     renderList();
+  });
 
-  })();
-  </script>
+  /* ===========================
+     Export Buttons
+  =========================== */
+  btnBuildPdf?.addEventListener('click', ()=>{
+    const r = saveDraft();
+    exportReportToPrintPDF(r, false);
+  });
+
+  btnBuildExec?.addEventListener('click', ()=>{
+    const r = saveDraft();
+    exportReportToPrintPDF(r, true);
+  });
+
+  btnDuplicate?.addEventListener('click', ()=>{
+    const r = saveDraft();
+    const copy = JSON.parse(JSON.stringify(r));
+    copy.id = uid('rpt');
+    copy.createdAt = todayISO();
+    copy.updatedAt = todayISO();
+    copy.status = 'draft';
+    upsertReport(copy);
+    renderList();
+    alert('Template duplicado. Pode abrir a cópia na lista.');
+  });
+
+  /* ===========================
+     Tabs + init
+  =========================== */
+  tabList?.addEventListener('click', ()=>setTab('list'));
+  tabWizard?.addEventListener('click', ()=>setTab('wizard'));
+
+  // Toggle imovel vs zona
+  const assetImovel = el('assetImovel');
+  const assetZona = el('assetZona');
+  Array.from(document.querySelectorAll('input[name="assetMode"]')).forEach(r=>{
+    r.addEventListener('change', ()=>{
+      const v = document.querySelector('input[name="assetMode"]:checked')?.value;
+      assetImovel.classList.toggle('hidden', v !== 'imovel');
+      assetZona.classList.toggle('hidden', v !== 'zona');
+    });
+  });
+
+  setTab('list');
+  setStep(1);
+  renderList();
+
+})();
+</script>
 </body>
 </html>
