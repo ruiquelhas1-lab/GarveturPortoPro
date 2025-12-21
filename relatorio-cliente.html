@@ -770,6 +770,11 @@
                   </div>
                 </div>
 
+                <div class="hint" id="matchStatus" style="margin-top:8px">
+                  Detecção de cliente: — 
+                </div>
+
+
                 <div class="grid-3">
                   <div class="field">
                     <label for="cIdioma">Idioma do relatório</label>
@@ -1250,6 +1255,176 @@
   function stripExtraSpaces(t){
     return (t||'').replace(/\s+/g,' ').trim();
   }
+  /* ===========================
+     PDF.js: Extrair texto (100% local no browser)
+     - Nota: a biblioteca é carregada via CDN; se quiser 100% offline, pode colocar pdf.min.js/pdf.worker.min.js localmente.
+  =========================== */
+  function ensurePDFJS(){
+    const lib = window.pdfjsLib;
+    if(!lib) return null;
+    try{
+      if(!lib.GlobalWorkerOptions.workerSrc){
+        lib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      }
+    }catch{}
+    return lib;
+  }
+
+  async function extractTextFromPDFBlob(blob, maxPages=30){
+    const lib = ensurePDFJS();
+    if(!lib) throw new Error('PDFJS_MISSING');
+
+    const ab = await blob.arrayBuffer();
+    const pdf = await lib.getDocument({ data: ab }).promise;
+    const total = pdf.numPages || 0;
+    const pages = Math.min(total, maxPages);
+
+    let out = '';
+    for(let p=1; p<=pages; p++){
+      const page = await pdf.getPage(p);
+      const content = await page.getTextContent();
+      const strings = content.items.map(it => it.str || '').filter(Boolean);
+      out += strings.join(' ') + '\n';
+    }
+    return { text: out, totalPages: total, usedPages: pages };
+  }
+
+  /* ===========================
+     Match de cliente (Leads / FSBO / Angariações)
+     - Lê dados de localStorage (sem servidor)
+     - Match por email/telefone/nome com score
+  =========================== */
+  const MODULE_KEYS = {
+    leads: 'gpp_leads_v5',
+    fsbo: 'gpp_particulares_v2',
+    angariacoes: 'gpp_angariacoes_v2'
+  };
+
+  function normEmail(v){
+    return (v||'').toString().trim().toLowerCase();
+  }
+  function normPhone(v){
+    const d = (v||'').toString().replace(/\D/g,'');
+    if(!d) return '';
+    // suporta +351 / 00351 / 9 dígitos PT
+    if(d.length > 9) return d.slice(-9);
+    return d;
+  }
+  function normName(v){
+    const s = (v||'').toString().trim().toLowerCase();
+    // remove acentos
+    return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ');
+  }
+  function levenshtein(a,b){
+    a = a||''; b=b||'';
+    const m=a.length, n=b.length;
+    if(!m) return n;
+    if(!n) return m;
+    const dp = new Array(n+1);
+    for(let j=0;j<=n;j++) dp[j]=j;
+    for(let i=1;i<=m;i++){
+      let prev=dp[0];
+      dp[0]=i;
+      for(let j=1;j<=n;j++){
+        const tmp=dp[j];
+        const cost = a[i-1]===b[j-1] ? 0 : 1;
+        dp[j]=Math.min(dp[j]+1, dp[j-1]+1, prev+cost);
+        prev=tmp;
+      }
+    }
+    return dp[n];
+  }
+  function nameSimilarity(a,b){
+    const A=normName(a), B=normName(b);
+    if(!A || !B) return 0;
+    if(A===B) return 1;
+    if(A.includes(B) || B.includes(A)) return 0.85;
+    const dist = levenshtein(A,B);
+    const maxLen = Math.max(A.length,B.length);
+    return maxLen ? (1 - dist/maxLen) : 0;
+  }
+
+  function safeGetLS(key){
+    try{ return safeJSONParse(localStorage.getItem(key), []); }catch{ return []; }
+  }
+
+  function extractContactFields(obj){
+    if(!obj || typeof obj!=='object') return { name:'', email:'', phone:'' };
+
+    const pick = (...keys)=>{
+      for(const k of keys){
+        if(obj[k]!=null && String(obj[k]).trim()!=='') return String(obj[k]).trim();
+      }
+      return '';
+    };
+
+    const name = pick('nome','name','cliente','clienteNome','contactName','proprietario','owner','ownerName','leadName','fullName','empresa','company');
+    const email = pick('email','mail','eMail','contactEmail','ownerEmail','leadEmail');
+    const phone = pick('telefone','tel','phone','contacto','contact','telemovel','mobile','ownerPhone','leadPhone');
+
+    return { name, email, phone };
+  }
+
+  function flattenToRecords(list, sourceLabel){
+    const out = [];
+    (list||[]).forEach(item=>{
+      const c = extractContactFields(item);
+      if(c.name || c.email || c.phone){
+        out.push({ source: sourceLabel, raw:item, ...c });
+      }
+    });
+    return out;
+  }
+
+  function buildAllContactsIndex(){
+    const leads = flattenToRecords(safeGetLS(MODULE_KEYS.leads), 'Leads');
+    const fsbo  = flattenToRecords(safeGetLS(MODULE_KEYS.fsbo), 'FSBO');
+    const ang   = flattenToRecords(safeGetLS(MODULE_KEYS.angariacoes), 'Angariações');
+    return [...fsbo, ...leads, ...ang];
+  }
+
+  function scoreMatch(query, rec){
+    const qEmail = normEmail(query.email);
+    const qPhone = normPhone(query.phone);
+    const qName  = normName(query.name);
+
+    const rEmail = normEmail(rec.email);
+    const rPhone = normPhone(rec.phone);
+    const rName  = normName(rec.name);
+
+    let score = 0;
+    const reasons = [];
+
+    if(qEmail && rEmail && qEmail === rEmail){ score += 100; reasons.push('email'); }
+    if(qPhone && rPhone && qPhone === rPhone){ score += 85; reasons.push('telefone'); }
+    if(qName && rName){
+      const sim = nameSimilarity(qName, rName);
+      if(sim >= 0.92){ score += 55; reasons.push('nome'); }
+      else if(sim >= 0.80){ score += 35; reasons.push('nome~'); }
+      else if(sim >= 0.70){ score += 18; reasons.push('nome≈'); }
+    }
+
+    return { score, reasons };
+  }
+
+  function findBestClientMatch(query){
+    const q = { name: normStr(query.name), email: normStr(query.email), phone: normStr(query.phone) };
+    if(!q.name && !q.email && !q.phone) return null;
+
+    const records = buildAllContactsIndex();
+    let best = null;
+
+    for(const rec of records){
+      const s = scoreMatch(q, rec);
+      if(!best || s.score > best.score){
+        best = { ...rec, score: s.score, reasons: s.reasons };
+      }
+    }
+
+    return best;
+  }
+
+
 
   
   /* ===========================
@@ -1868,6 +2043,8 @@
   const cNome = el('cNome');
   const cTel = el('cTel');
   const cEmail = el('cEmail');
+  const matchStatus = el('matchStatus');
+
   const cIdioma = el('cIdioma');
   const cDetalhe = el('cDetalhe');
   const cConf = el('cConf');
@@ -2046,6 +2223,24 @@
     return base;
   }
 
+
+  function updateMatchStatus(){
+    if(!matchStatus) return;
+    const best = findBestClientMatch({ name: cNome?.value, email: cEmail?.value, phone: cTel?.value });
+    if(!best){
+      matchStatus.textContent = 'Detecção de cliente: —';
+      return;
+    }
+    const solid = best.score >= 85 || (best.score >= 100);
+    if(solid){
+      matchStatus.innerHTML = `Detecção de cliente: <strong>OK</strong> · Fonte: <strong>${best.source}</strong> · Score: ${best.score} · (${best.reasons.join(', ')})`;
+    }else if(best.score >= 55){
+      matchStatus.innerHTML = `Detecção de cliente: <strong>Parcial</strong> · Fonte: <strong>${best.source}</strong> · Score: ${best.score} · (${best.reasons.join(', ')}) — confirme telefone/email.`;
+    }else{
+      matchStatus.innerHTML = `Detecção de cliente: <strong>Sem correspondência sólida</strong> — Experimente preencher email ou telefone (9 dígitos).`;
+    }
+  }
+
   function fillForm(report){
     if(!report) return;
 
@@ -2123,6 +2318,7 @@
 
     // pdfs list
     renderPDFList(report);
+    updateMatchStatus();
   }
 
   function getContextForSummary(report){
@@ -2390,6 +2586,13 @@
   }
   [cNome,cTel,cEmail].forEach(x=> x && x.addEventListener('blur', ()=>{ try{ tryAutoDetectSilent(); }catch(e){} }));
 
+
+  // Detecção automática de cliente (nome/telefone/email)
+  [cNome, cTel, cEmail].forEach(inp=>{
+    inp?.addEventListener('input', ()=>{ updateMatchStatus(); }, { passive:true });
+    inp?.addEventListener('change', ()=>{ updateMatchStatus(); }, { passive:true });
+  });
+
   // Autosave suave (sem “spam”)
   let autosaveTimer = null;
   function scheduleAutosave(){
@@ -2530,6 +2733,70 @@
     }
   });
 
+
+  async function analyzeLatestPDF(){
+    const report = ensureActiveReport();
+    const p = (report.pdfs || [])[0];
+    if(!p || !p.key){
+      alert('Sem PDFs importados. Importe um PDF primeiro.');
+      return;
+    }
+
+    const rec = await idbGetPDF(p.key);
+    if(!rec?.blob){
+      alert('PDF não encontrado (cache/DB). Reimporte o ficheiro.');
+      return;
+    }
+
+    try{
+      btnPickPdf.disabled = true;
+      btnReprocess.disabled = true;
+
+      const { text } = await extractTextFromPDFBlob(rec.blob, 35);
+
+      // métricas + capítulos + sumário automático
+      const metrics = extractMetrics(text);
+      const chapters = detectChapters(text);
+      const ctx = getContextForSummary(report);
+      const auto = buildAutoSummary(text, ctx);
+
+      report.analysis = report.analysis || {};
+      report.analysis.metrics = metrics;
+      report.analysis.chapters = chapters;
+      report.analysis.sum = report.analysis.sum || { relevante:'', riscos:'', oportunidades:'' };
+
+      // Só preenche se o utilizador ainda não escreveu (para não esmagar trabalho manual)
+      if(!normStr(sumRelevante.value)) report.analysis.sum.relevante = auto.rel || '';
+      if(!normStr(sumRiscos.value)) report.analysis.sum.riscos = auto.risk || '';
+      if(!normStr(sumOport.value)) report.analysis.sum.oportunidades = auto.opp || '';
+
+      // guarda amostra (opcional) para debug futuro
+      p.extractedAt = todayISO();
+      p.textSample = (text || '').slice(0, 4500);
+
+      report.updatedAt = todayISO();
+      upsertReport(report);
+      fillForm(report);
+
+      alert('Análise concluída. Métricas, capítulos e resumo foram atualizados.');
+    }catch(err){
+      console.error(err);
+      if(String(err?.message||'').includes('PDFJS_MISSING')){
+        alert('Não foi possível analisar: PDF.js não carregou (offline/bloqueio).');
+      }else{
+        alert('Não foi possível extrair texto deste PDF neste browser. O anexo foi guardado, mas a análise automática não correu.');
+      }
+    }finally{
+      btnPickPdf.disabled = false;
+      btnReprocess.disabled = false;
+    }
+  }
+
+  btnReprocess?.addEventListener('click', (e)=>{
+    e.preventDefault();
+    analyzeLatestPDF();
+  });
+
   pdfList?.addEventListener('click', async (e)=>{
     const b = e.target.closest('button[data-act]');
     if(!b) return;
@@ -2576,9 +2843,7 @@
     }
   });
 
-  btnReprocess?.addEventListener('click', async ()=>{
-    const report = ensureActiveReport();
-    if(!report.pdfs || !report.pdfs.length){
+      if(!report.pdfs || !report.pdfs.length){
       alert('Sem PDFs para reprocessar.');
       return;
     }
@@ -2861,7 +3126,7 @@ function exportReportToPrintPDF(report, forceExec=false){
     `;
 
     const w = window.open('', '_blank', 'noopener,noreferrer');
-    if(!w){ alert('O browser bloqueou a nova janela. Permita pop-ups para exportar PDF.'); return; }
+    if(!w){ alert('Falha ao exportar. Tente novamente.'); return; }
     w.document.open();
     w.document.write(html);
     w.document.close();
