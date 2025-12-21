@@ -1,0 +1,1203 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <title>Garvetur Porto Pro — Relatório para Cliente (Admin)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root{
+      --gold:#A38B63;
+      --gold-soft:rgba(163,139,99,.35);
+      --bg:#0B0B0B;
+      --panel:#121212;
+      --panel-soft:#181818;
+      --text:#FFFFFF;
+      --muted:#A0A0A0;
+      --border:rgba(255,255,255,.14);
+      --danger:#E53935;
+      --success:#43A047;
+      --info:#1E88E5;
+
+      --radius-lg:18px;
+      --radius-md:12px;
+      --shadow:0 18px 34px rgba(0,0,0,.55);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:radial-gradient(circle at top,#1c1c1c 0,#050505 55%,#000 100%);color:var(--text)}
+    a{color:inherit}
+    .hidden{display:none !important}
+
+    /* Shell */
+    .app{
+      display:grid;
+      grid-template-rows:64px 1fr;
+      height:100%;
+      overflow:hidden;
+    }
+
+    header.app-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:10px 16px;
+      border-bottom:1px solid rgba(163,139,99,.35);
+      background:linear-gradient(90deg,#050505,#111,#050505);
+      position:sticky;top:0;z-index:20;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .brand{
+      display:flex;align-items:center;gap:10px;
+    }
+    .brand-icon{
+      width:30px;height:30px;border-radius:999px;border:1px solid var(--gold);
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 0 0 1px rgba(163,139,99,.35);
+    }
+    .brand h1{margin:0;font-size:16px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
+    .brand .sub{display:block;font-size:11px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-top:2px}
+
+    .header-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .badge{
+      font-size:11px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(163,139,99,.45);
+      color:var(--muted);
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      background:rgba(0,0,0,.35);
+      white-space:nowrap;
+    }
+    .btn{
+      border-radius:999px;
+      border:1px solid var(--gold-soft);
+      background:rgba(12,12,12,.92);
+      color:var(--text);
+      padding:8px 12px;
+      font-size:13px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      cursor:pointer;
+      transition:.18s border-color,.18s transform,.18s background;
+      text-decoration:none;
+      user-select:none;
+    }
+    .btn:hover{border-color:var(--gold);transform:translateY(-1px)}
+    .btn.primary{background:var(--gold);color:#0A0A0A;border-color:var(--gold);font-weight:700}
+    .btn.secondary{border-color:rgba(255,255,255,.18);color:var(--muted);background:transparent}
+
+    /* Layout */
+    .layout{
+      display:grid;
+      grid-template-columns:320px minmax(0,1fr);
+      height:100%;
+      overflow:hidden;
+    }
+    @media (max-width: 980px){
+      .layout{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+    }
+
+    /* Sidebar */
+    aside.sidebar{
+      border-right:1px solid rgba(163,139,99,.24);
+      background:radial-gradient(circle at top left,#141414,#060606);
+      padding:12px 12px;
+      overflow:auto;
+    }
+    .side-card{
+      background:rgba(0,0,0,.45);
+      border:1px solid rgba(163,139,99,.18);
+      border-radius:var(--radius-md);
+      padding:10px 10px;
+      margin-bottom:10px;
+      box-shadow:0 12px 22px rgba(0,0,0,.35);
+    }
+    .side-card h3{
+      margin:0 0 8px;
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+    .field{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+    .field label{
+      font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase
+    }
+    .input, select, textarea{
+      width:100%;
+      background:rgba(0,0,0,.70);
+      color:var(--text);
+      border:1px solid rgba(163,139,99,.22);
+      border-radius:10px;
+      padding:8px 10px;
+      outline:none;
+      font-size:13px;
+    }
+    textarea{min-height:84px;resize:vertical}
+    .input:focus, select:focus, textarea:focus{
+      border-color:var(--gold);
+      box-shadow:0 0 0 1px rgba(163,139,99,.35);
+    }
+    .checks{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+    .checks label{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--muted);line-height:1.35}
+    .checks input{accent-color:var(--gold);margin-top:2px}
+
+    .hint{font-size:11px;color:var(--muted);line-height:1.45}
+    .divider{height:1px;background:rgba(255,255,255,.10);margin:10px 0}
+
+    /* Main */
+    main.main{
+      padding:14px 16px 18px;
+      overflow:auto;
+      background:radial-gradient(circle at top,#1a1a1a,#050505 55%,#000 100%);
+    }
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .topbar h2{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+    .topbar p{margin:2px 0 0;font-size:12px;color:var(--muted);line-height:1.45;max-width:920px}
+
+    .panel{
+      border-radius:var(--radius-lg);
+      border:1px solid rgba(163,139,99,.24);
+      background:rgba(3,3,3,.88);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .panel-head{
+      padding:10px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      background:linear-gradient(90deg,#050505,#111,#050505);
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .panel-head .title{
+      display:flex;align-items:center;gap:10px;
+      font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:12px;color:var(--gold);
+    }
+    .panel-body{padding:12px 12px 12px}
+    .panel-foot{
+      padding:10px 12px;
+      border-top:1px solid rgba(255,255,255,.10);
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      background:rgba(0,0,0,.35);
+    }
+
+    /* Tabs (Lista vs Wizard) */
+    .tabs{
+      display:flex;gap:6px;flex-wrap:wrap;align-items:center;
+    }
+    .tab{
+      border-radius:999px;
+      padding:6px 10px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.35);
+      font-size:12px;
+      color:var(--muted);
+      cursor:pointer;
+      user-select:none;
+    }
+    .tab.active{
+      border-color:var(--gold);
+      color:#0A0A0A;
+      background:var(--gold);
+      font-weight:800;
+    }
+
+    /* Table list */
+    .table-wrap{overflow:auto}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:860px;
+    }
+    th,td{
+      padding:10px 10px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      vertical-align:top;
+    }
+    th{
+      position:sticky;top:0;
+      background:rgba(0,0,0,.55);
+      color:var(--muted);
+      font-size:11px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      z-index:2;
+    }
+    td{font-size:13px;color:#e9e9e9}
+    .td-sub{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      padding:4px 9px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      font-size:11px;
+      letter-spacing:.10em;
+      text-transform:uppercase;
+      color:var(--muted);
+      background:rgba(0,0,0,.35);
+      white-space:nowrap;
+    }
+    .pill.ok{border-color:rgba(67,160,71,.55);color:#A5D6A7}
+    .pill.warn{border-color:rgba(229,57,53,.55);color:#ffb4b4}
+    .pill.info{border-color:rgba(30,136,229,.55);color:#bbdefb}
+    .row-actions{display:flex;gap:6px;flex-wrap:wrap}
+
+    .btn-xs{
+      border-radius:999px;
+      padding:6px 10px;
+      border:1px solid rgba(163,139,99,.60);
+      background:rgba(0,0,0,.70);
+      color:var(--gold);
+      font-size:11px;
+      text-decoration:none;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      transition:.18s border-color,.18s transform,.18s background;
+      user-select:none;
+    }
+    .btn-xs:hover{transform:translateY(-1px);border-color:var(--gold)}
+    .btn-xs.primary{background:var(--gold);color:#0A0A0A;border-color:var(--gold);font-weight:800}
+    .btn-xs.ghost{border-color:rgba(255,255,255,.16);color:var(--muted);background:transparent}
+
+    /* Wizard */
+    .wizard{
+      display:grid;
+      grid-template-columns:260px minmax(0,1fr);
+      gap:12px;
+      align-items:start;
+    }
+    @media (max-width: 980px){
+      .wizard{grid-template-columns:1fr}
+    }
+
+    .steps{
+      border-radius:var(--radius-lg);
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.35);
+      padding:10px 10px;
+      position:sticky;
+      top:84px;
+    }
+    @media (max-width: 980px){
+      .steps{position:relative;top:auto}
+    }
+    .steps h4{
+      margin:0 0 8px;
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+    .step{
+      display:flex;gap:10px;align-items:flex-start;
+      padding:8px 8px;
+      border-radius:12px;
+      border:1px solid transparent;
+      cursor:pointer;
+    }
+    .step:hover{border-color:rgba(163,139,99,.22);background:rgba(163,139,99,.08)}
+    .step.active{border-color:rgba(163,139,99,.45);background:rgba(163,139,99,.12)}
+    .step .n{
+      width:24px;height:24px;border-radius:999px;
+      display:flex;align-items:center;justify-content:center;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.45);
+      color:var(--muted);
+      font-size:12px;
+      flex-shrink:0;
+    }
+    .step.active .n{background:var(--gold);border-color:var(--gold);color:#0A0A0A;font-weight:900}
+    .step .t{
+      font-size:12px;color:#f0f0f0;font-weight:700;
+      line-height:1.2;
+    }
+    .step .s{
+      display:block;margin-top:2px;
+      font-size:11px;color:var(--muted);font-weight:500;
+      line-height:1.25;
+    }
+
+    .step-panel{
+      border-radius:var(--radius-lg);
+      border:1px solid rgba(163,139,99,.24);
+      background:rgba(3,3,3,.88);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .step-head{
+      padding:10px 12px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+      background:linear-gradient(90deg,#050505,#111,#050505);
+    }
+    .step-head .left{
+      display:flex;flex-direction:column;gap:2px;
+    }
+    .step-head .kicker{
+      font-size:11px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;
+    }
+    .step-head .name{
+      font-size:13px;color:var(--gold);font-weight:900;letter-spacing:.06em;text-transform:uppercase;
+    }
+    .step-body{padding:12px 12px}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media (max-width: 980px){.grid-2{grid-template-columns:1fr}}
+    .grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+    @media (max-width: 980px){.grid-3{grid-template-columns:1fr}}
+
+    .radio-row, .toggle-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .radio{
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.35);
+      border-radius:12px;
+      padding:8px 10px;
+      display:flex;gap:8px;align-items:flex-start;
+      cursor:pointer;
+      min-width:220px;
+      flex:1;
+    }
+    .radio input{accent-color:var(--gold);margin-top:2px}
+    .radio .rt{font-size:12px;font-weight:800;color:#f0f0f0}
+    .radio .rs{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.3}
+
+    .section-title{
+      margin:12px 0 6px;
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+
+    /* Upload */
+    .drop{
+      border:1px dashed rgba(163,139,99,.55);
+      background:rgba(163,139,99,.08);
+      border-radius:16px;
+      padding:12px 12px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .drop .d-left{max-width:720px}
+    .drop .d-title{font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#f5f5f5;font-size:12px;margin:0 0 4px}
+    .drop .d-sub{margin:0;font-size:12px;color:var(--muted);line-height:1.45}
+    .drop .d-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+    /* Attachments list */
+    .files{
+      margin-top:10px;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      overflow:hidden;
+      background:rgba(0,0,0,.35);
+    }
+    .file{
+      display:flex;justify-content:space-between;gap:10px;align-items:flex-start;
+      padding:10px 10px;border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .file:last-child{border-bottom:none}
+    .file .f-name{font-weight:800}
+    .file .f-meta{font-size:11px;color:var(--muted);margin-top:2px}
+    .file .f-actions{display:flex;gap:6px;flex-wrap:wrap}
+
+    /* Analysis cards */
+    .analysis{
+      margin-top:10px;
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+    }
+    @media (max-width: 980px){.analysis{grid-template-columns:1fr}}
+    .mini-card{
+      border-radius:16px;
+      border:1px solid rgba(163,139,99,.22);
+      background:rgba(0,0,0,.35);
+      padding:10px 10px;
+    }
+    .mini-card h5{
+      margin:0 0 6px;
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+    .kv{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+    .kv:last-child{border-bottom:none}
+    .kv span{font-size:12px;color:#e9e9e9}
+    .kv b{font-size:12px;color:var(--muted);font-weight:700}
+
+    /* Report builder */
+    .switches{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:8px;
+      margin-top:8px;
+    }
+    @media (max-width: 980px){.switches{grid-template-columns:1fr}}
+    .sw{
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      background:rgba(0,0,0,.35);
+      padding:10px 10px;
+      display:flex;justify-content:space-between;gap:10px;align-items:center;
+    }
+    .sw .l{display:flex;flex-direction:column;gap:2px}
+    .sw .l b{font-size:12px;color:#f5f5f5}
+    .sw .l span{font-size:11px;color:var(--muted);line-height:1.3}
+    .sw input{accent-color:var(--gold);transform:scale(1.05)}
+
+    .cta-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .status{
+      font-size:11px;
+      color:var(--muted);
+      display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+    }
+    .dot{width:10px;height:10px;border-radius:999px;background:rgba(255,255,255,.22);border:1px solid rgba(0,0,0,.25)}
+    .dot.ok{background:rgba(67,160,71,.9)}
+    .dot.warn{background:rgba(229,57,53,.9)}
+    .dot.info{background:rgba(30,136,229,.9)}
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M8 12.5l2.5 2.5L16 9"></path>
+          </svg>
+        </div>
+        <div>
+          <h1>Relatório para Cliente</h1>
+          <span class="sub">Admin · PDF + Personalização + Exportação</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <span class="badge">Privado</span>
+        <a class="btn secondary" href="./admin.html">Voltar ao Admin</a>
+        <button class="btn primary" id="btnNew">+ Novo Relatório</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <div class="side-card">
+          <h3>Pesquisa & Filtros</h3>
+
+          <div class="field">
+            <label for="q">Pesquisa</label>
+            <input class="input" id="q" type="text" placeholder="Cliente, zona, objetivo, estado…" />
+          </div>
+
+          <div class="field">
+            <label for="fStatus">Estado</label>
+            <select id="fStatus">
+              <option value="">Todos</option>
+              <option value="draft">Rascunho</option>
+              <option value="final">Final</option>
+              <option value="sent">Enviado</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="fTipo">Tipo de cliente</label>
+            <select id="fTipo">
+              <option value="">Todos</option>
+              <option>Proprietário</option>
+              <option>Investidor</option>
+              <option>Promotor</option>
+              <option>Comprador</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="fDataDe">Data (de / até)</label>
+            <div style="display:flex;gap:6px">
+              <input class="input" id="fDataDe" type="date" />
+              <input class="input" id="fDataAte" type="date" />
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="checks">
+            <label><input type="checkbox" id="fConfidencial" /> Apenas confidenciais</label>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+            <button class="btn" id="btnApply">Aplicar</button>
+            <button class="btn secondary" id="btnClear">Limpar</button>
+          </div>
+
+          <div class="divider"></div>
+          <div class="hint">
+            Este módulo cria relatórios prontos para decisão: <strong>executivo</strong> (1–2 páginas) ou <strong>completo</strong> (4–8+),
+            com anexos PDF e narrativa orientada ao cliente.
+          </div>
+        </div>
+
+        <div class="side-card">
+          <h3>Estado do módulo</h3>
+          <div class="status">
+            <span class="dot ok"></span><span>UI pronta (layout)</span>
+          </div>
+          <div class="status" style="margin-top:8px">
+            <span class="dot info"></span><span>Hooks JS por IDs (próximo passo)</span>
+          </div>
+          <div class="status" style="margin-top:8px">
+            <span class="dot warn"></span><span>Extração PDF/Exportação (a implementar)</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN -->
+      <main class="main">
+        <div class="topbar">
+          <div>
+            <h2>Relatórios</h2>
+            <p>Gestão central de relatórios personalizados. Pode importar estudos genéricos em PDF, extrair insights e gerar um PDF final com recomendação e plano de ação.</p>
+          </div>
+
+          <div class="tabs" aria-label="Vistas">
+            <div class="tab active" id="tabList">Lista</div>
+            <div class="tab" id="tabWizard">Novo / Editar</div>
+          </div>
+        </div>
+
+        <!-- LISTA -->
+        <section class="panel" id="viewList">
+          <div class="panel-head">
+            <div class="title">
+              <span style="display:inline-flex;width:26px;height:26px;border-radius:999px;border:1px solid var(--gold);align-items:center;justify-content:center;">
+                <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
+                  <path d="M7 7h10M7 12h10M7 17h10" />
+                </svg>
+              </span>
+              <span>Lista de relatórios</span>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn secondary" id="btnImportTemplate">Templates</button>
+              <button class="btn" id="btnExportAll">Exportações</button>
+            </div>
+          </div>
+
+          <div class="panel-body">
+            <div class="table-wrap">
+              <table aria-label="Relatórios">
+                <thead>
+                  <tr>
+                    <th style="min-width:260px">Cliente</th>
+                    <th style="min-width:220px">Objetivo / Ativo</th>
+                    <th style="min-width:160px">Data</th>
+                    <th style="min-width:150px">Estado</th>
+                    <th style="min-width:280px">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="reportsTbody">
+                  <!-- Exemplo (placeholder) -->
+                  <tr>
+                    <td>
+                      <div><strong>Exemplo — Cliente</strong></div>
+                      <span class="td-sub">Investidor · Idioma PT · Executivo</span>
+                    </td>
+                    <td>
+                      <div><strong>Investir</strong></div>
+                      <span class="td-sub">Zona: Foz · Tipologia: T2/T3</span>
+                    </td>
+                    <td>
+                      <div><strong>20/12/2025</strong></div>
+                      <span class="td-sub">Atualizado: 20/12/2025</span>
+                    </td>
+                    <td>
+                      <span class="pill info">Rascunho</span>
+                      <span class="td-sub">Confidencial: Sim</span>
+                    </td>
+                    <td>
+                      <div class="row-actions">
+                        <button class="btn-xs primary" data-act="open">Abrir</button>
+                        <button class="btn-xs" data-act="duplicate">Duplicar</button>
+                        <button class="btn-xs" data-act="export">Exportar PDF</button>
+                        <button class="btn-xs ghost" data-act="delete">Remover</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <!-- /placeholder -->
+                </tbody>
+              </table>
+            </div>
+
+            <div class="hint" style="margin-top:10px">
+              Nota: nesta fase o layout já está pronto. No próximo passo ligamos esta lista ao storage (localStorage/IndexedDB) e à geração PDF.
+            </div>
+          </div>
+
+          <div class="panel-foot">
+            <div class="hint">Dica operacional: use “Duplicar” para criar variações (executivo vs completo) sem recomeçar do zero.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn" id="btnGoWizard">Criar novo</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- WIZARD -->
+        <section class="wizard hidden" id="viewWizard">
+          <!-- Steps -->
+          <div class="steps">
+            <h4>Passos</h4>
+
+            <div class="step active" data-step="1">
+              <div class="n">1</div>
+              <div>
+                <div class="t">Cliente</div>
+                <span class="s">Identificação e formato</span>
+              </div>
+            </div>
+
+            <div class="step" data-step="2">
+              <div class="n">2</div>
+              <div>
+                <div class="t">Objetivo</div>
+                <span class="s">Risco, horizonte e preocupações</span>
+              </div>
+            </div>
+
+            <div class="step" data-step="3">
+              <div class="n">3</div>
+              <div>
+                <div class="t">Ativo / Zona</div>
+                <span class="s">Imóvel específico ou análise de zona</span>
+              </div>
+            </div>
+
+            <div class="step" data-step="4">
+              <div class="n">4</div>
+              <div>
+                <div class="t">PDF & Análise</div>
+                <span class="s">Importar estudo e extrair insights</span>
+              </div>
+            </div>
+
+            <div class="step" data-step="5">
+              <div class="n">5</div>
+              <div>
+                <div class="t">Relatório</div>
+                <span class="s">Estrutura, tom e exportação</span>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="hint">
+              Para manter consistência premium, o relatório final é construído por secções (ativar/desativar),
+              com <strong>recomendação</strong> e <strong>próximos passos</strong>.
+            </div>
+          </div>
+
+          <!-- Step panel -->
+          <div class="step-panel">
+            <div class="step-head">
+              <div class="left">
+                <div class="kicker">Novo relatório</div>
+                <div class="name" id="stepTitle">Passo 1 — Identificação do Cliente</div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn secondary" id="btnBackToList">Voltar à lista</button>
+                <button class="btn" id="btnSaveDraft">Guardar rascunho</button>
+              </div>
+            </div>
+
+            <div class="step-body">
+
+              <!-- STEP 1 -->
+              <div id="step1">
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="cTipo">Tipo de Cliente</label>
+                    <select id="cTipo">
+                      <option value="">(Selecionar)</option>
+                      <option>Proprietário</option>
+                      <option>Investidor</option>
+                      <option>Promotor</option>
+                      <option>Comprador</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label for="cNome">Nome do Cliente / Empresa</label>
+                    <input class="input" id="cNome" type="text" placeholder="Ex.: Family Office X / Sr. Manuel Silva" />
+                  </div>
+
+                  <div class="field">
+                    <label for="cTel">Contacto</label>
+                    <input class="input" id="cTel" type="text" placeholder="Telefone" />
+                  </div>
+
+                  <div class="field">
+                    <label for="cEmail">Email</label>
+                    <input class="input" id="cEmail" type="text" placeholder="email@cliente.com" />
+                  </div>
+                </div>
+
+                <div class="grid-3">
+                  <div class="field">
+                    <label for="cIdioma">Idioma do relatório</label>
+                    <select id="cIdioma">
+                      <option value="pt">Português (PT)</option>
+                      <option value="en">English</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label for="cDetalhe">Nível de detalhe</label>
+                    <select id="cDetalhe">
+                      <option value="exec">Executivo (1–2 páginas)</option>
+                      <option value="full">Completo (4–8 páginas)</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label for="cConf">Confidencial</label>
+                    <select id="cConf">
+                      <option value="no">Não</option>
+                      <option value="yes">Sim</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label for="cNotas">Notas internas</label>
+                  <textarea id="cNotas" placeholder="Briefing do cliente, contexto, pontos críticos…"></textarea>
+                </div>
+              </div>
+
+              <!-- STEP 2 -->
+              <div id="step2" class="hidden">
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="oObjetivo">Objetivo principal</label>
+                    <select id="oObjetivo">
+                      <option value="">(Selecionar)</option>
+                      <option>Vender</option>
+                      <option>Investir</option>
+                      <option>Avaliar</option>
+                      <option>Reposicionar</option>
+                      <option>Timing</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label for="oHorizonte">Horizonte temporal</label>
+                    <select id="oHorizonte">
+                      <option value="">(Selecionar)</option>
+                      <option>0–30 dias</option>
+                      <option>30–90 dias</option>
+                      <option>3–6 meses</option>
+                      <option>6–12 meses</option>
+                      <option>&gt;12 meses</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="oRisco">Perfil de risco</label>
+                    <select id="oRisco">
+                      <option value="">(Selecionar)</option>
+                      <option>Conservador</option>
+                      <option>Equilibrado</option>
+                      <option>Agressivo</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label for="oPreocup">Preocupações (multi)</label>
+                    <select id="oPreocup" multiple style="min-height:120px">
+                      <option>Liquidez</option>
+                      <option>Maximizar preço</option>
+                      <option>Risco fiscal</option>
+                      <option>Obras</option>
+                      <option>Inquilino</option>
+                      <option>Segurança jurídica</option>
+                      <option>Prazo</option>
+                      <option>Financiamento</option>
+                    </select>
+                    <div class="hint" style="margin-top:6px">CTRL/⌘ para selecionar múltiplas opções.</div>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label for="oBrief">Notas do briefing</label>
+                  <textarea id="oBrief" placeholder="O que o cliente quer realmente decidir? Quais as barreiras/receios?"></textarea>
+                </div>
+              </div>
+
+              <!-- STEP 3 -->
+              <div id="step3" class="hidden">
+                <div class="section-title">Tipo de relatório</div>
+                <div class="radio-row">
+                  <label class="radio">
+                    <input type="radio" name="assetMode" value="imovel" checked />
+                    <div>
+                      <div class="rt">Imóvel específico</div>
+                      <div class="rs">Selecionar um ativo concreto (Mapa/Angariações/FSBO/Manual).</div>
+                    </div>
+                  </label>
+
+                  <label class="radio">
+                    <input type="radio" name="assetMode" value="zona" />
+                    <div>
+                      <div class="rt">Zona / Tipologia</div>
+                      <div class="rs">Análise por zona, segmento e intervalo de preço.</div>
+                    </div>
+                  </label>
+                </div>
+
+                <div id="assetImovel" style="margin-top:10px">
+                  <div class="grid-2">
+                    <div class="field">
+                      <label for="aFonte">Fonte do ativo</label>
+                      <select id="aFonte">
+                        <option>Mapa</option>
+                        <option>Angariações</option>
+                        <option>FSBO</option>
+                        <option>Manual</option>
+                      </select>
+                    </div>
+
+                    <div class="field">
+                      <label for="aSearch">Pesquisar ativo</label>
+                      <input class="input" id="aSearch" type="text" placeholder="Pesquisar por nome/ref/zona…" />
+                    </div>
+                  </div>
+
+                  <div class="grid-2">
+                    <div class="field">
+                      <label for="aZona">Zona (auto/preencher)</label>
+                      <input class="input" id="aZona" type="text" placeholder="Ex.: Foz · Porto" />
+                    </div>
+
+                    <div class="field">
+                      <label for="aTipologia">Tipologia</label>
+                      <input class="input" id="aTipologia" type="text" placeholder="Ex.: T3" />
+                    </div>
+                  </div>
+
+                  <div class="grid-2">
+                    <div class="field">
+                      <label for="aPreco">Preço pedido</label>
+                      <input class="input" id="aPreco" type="text" placeholder="Ex.: 780000" />
+                    </div>
+
+                    <div class="field">
+                      <label for="aObs">Observações</label>
+                      <input class="input" id="aObs" type="text" placeholder="Notas rápidas do ativo (opcional)" />
+                    </div>
+                  </div>
+
+                  <div class="hint">
+                    Nota: aqui ligamos depois ao teu dataset (Mapa/Angariações/FSBO) para autopreencher e evitar duplicação.
+                  </div>
+                </div>
+
+                <div id="assetZona" class="hidden" style="margin-top:10px">
+                  <div class="grid-2">
+                    <div class="field">
+                      <label for="zZona">Zona</label>
+                      <input class="input" id="zZona" type="text" placeholder="Ex.: Foz · Porto" />
+                    </div>
+                    <div class="field">
+                      <label for="zTipologia">Tipologia</label>
+                      <input class="input" id="zTipologia" type="text" placeholder="Ex.: T2/T3" />
+                    </div>
+                  </div>
+
+                  <div class="grid-3">
+                    <div class="field">
+                      <label for="zSegmento">Segmento</label>
+                      <select id="zSegmento">
+                        <option>Novo</option>
+                        <option>Usado</option>
+                        <option>Reabilitado</option>
+                        <option>Luxo</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label for="zMin">Preço alvo (mín.)</label>
+                      <input class="input" id="zMin" type="text" placeholder="€" />
+                    </div>
+                    <div class="field">
+                      <label for="zMax">Preço alvo (máx.)</label>
+                      <input class="input" id="zMax" type="text" placeholder="€" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- STEP 4 -->
+              <div id="step4" class="hidden">
+                <div class="drop" id="pdfDrop">
+                  <div class="d-left">
+                    <div class="d-title">Estudos de mercado (PDF)</div>
+                    <p class="d-sub">
+                      Carregue um PDF genérico para análise. No passo seguinte o sistema irá extrair métricas, capítulos e
+                      gerar um resumo operacional (editável).
+                    </p>
+                    <p class="d-sub" style="margin-top:6px">
+                      <strong>Recomendação:</strong> PDFs até ~15MB (dependendo do browser). Para volumes grandes, dividir por capítulos.
+                    </p>
+                  </div>
+                  <div class="d-actions">
+                    <input id="pdfFile" type="file" accept="application/pdf" class="hidden" />
+                    <button class="btn primary" id="btnPickPdf">Importar PDF</button>
+                    <button class="btn secondary" id="btnReprocess">Reprocessar</button>
+                  </div>
+                </div>
+
+                <div class="files" id="pdfList">
+                  <!-- placeholder -->
+                  <div class="file">
+                    <div>
+                      <div class="f-name">Exemplo.pdf</div>
+                      <div class="f-meta">20/12/2025 · 18 páginas · Fonte: upload</div>
+                    </div>
+                    <div class="f-actions">
+                      <button class="btn-xs" data-act="view">Ver</button>
+                      <button class="btn-xs" data-act="remove">Remover</button>
+                    </div>
+                  </div>
+                  <!-- /placeholder -->
+                </div>
+
+                <div class="analysis">
+                  <div class="mini-card">
+                    <h5>Métricas detetadas</h5>
+                    <div class="kv"><b>Preço médio/m²</b><span id="mPrecoM2">—</span></div>
+                    <div class="kv"><b>Intervalo</b><span id="mIntervalo">—</span></div>
+                    <div class="kv"><b>Tendência</b><span id="mTendencia">—</span></div>
+                    <div class="kv"><b>Tempo médio</b><span id="mTempo">—</span></div>
+                  </div>
+
+                  <div class="mini-card">
+                    <h5>Capítulos / Estrutura</h5>
+                    <div class="hint" id="mCapitulos">Sem análise ainda. Após importação, será gerada uma estrutura (editável).</div>
+                  </div>
+
+                  <div class="mini-card">
+                    <h5>Resumo operacional</h5>
+                    <div class="hint">Três blocos editáveis para preparar a narrativa do relatório.</div>
+                    <div class="divider"></div>
+                    <div class="field" style="margin:0">
+                      <label for="sumRelevante">Relevante para o cliente</label>
+                      <textarea id="sumRelevante" placeholder="Pontos do PDF que interessam diretamente ao cliente…"></textarea>
+                    </div>
+                    <div class="field" style="margin:0">
+                      <label for="sumRiscos">Riscos / alertas</label>
+                      <textarea id="sumRiscos" placeholder="Riscos e condicionantes que o cliente deve considerar…"></textarea>
+                    </div>
+                    <div class="field" style="margin:0">
+                      <label for="sumOport">Oportunidades</label>
+                      <textarea id="sumOport" placeholder="Oportunidades e alavancas de valor…"></textarea>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- STEP 5 -->
+              <div id="step5" class="hidden">
+                <div class="section-title">Estrutura do relatório</div>
+
+                <div class="switches">
+                  <label class="sw"><span class="l"><b>Resumo Executivo</b><span>1 página com decisão + mensagem final.</span></span><input id="sExec" type="checkbox" checked></label>
+                  <label class="sw"><span class="l"><b>Contexto do Cliente</b><span>Objetivo, preocupações e perfil.</span></span><input id="sContexto" type="checkbox" checked></label>
+                  <label class="sw"><span class="l"><b>Enquadramento de Mercado</b><span>Insights do PDF + dados internos.</span></span><input id="sMercado" type="checkbox" checked></label>
+                  <label class="sw"><span class="l"><b>Comparáveis</b><span>Concorrência e posicionamento (quando aplicável).</span></span><input id="sComps" type="checkbox"></label>
+                  <label class="sw"><span class="l"><b>Cenários</b><span>Impacto de preço/timing/estratégia.</span></span><input id="sCenarios" type="checkbox" checked></label>
+                  <label class="sw"><span class="l"><b>Recomendação Garvetur</b><span>O “o que fazer” com racional.</span></span><input id="sRecomend" type="checkbox" checked></label>
+                  <label class="sw"><span class="l"><b>Plano de ação</b><span>Próximos passos, prazos, responsabilidades.</span></span><input id="sPlano" type="checkbox" checked></label>
+                  <label class="sw"><span class="l"><b>Anexos</b><span>PDFs, excertos e material de suporte.</span></span><input id="sAnexos" type="checkbox" checked></label>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="rTom">Tom</label>
+                    <select id="rTom">
+                      <option>Conservador</option>
+                      <option selected>Neutro</option>
+                      <option>Assertivo</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label for="rCTA">Call-to-action final</label>
+                    <select id="rCTA">
+                      <option>Agendar reunião</option>
+                      <option>Avaliação presencial</option>
+                      <option>Ajuste de preço</option>
+                      <option>Estratégia de marketing</option>
+                      <option>Mandato</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label for="rRecomend">Recomendação final (obrigatório)</label>
+                  <textarea id="rRecomend" placeholder="Mensagem final para o cliente: decisão sugerida, racional, e próximos passos."></textarea>
+                </div>
+
+                <div class="cta-row">
+                  <button class="btn primary" id="btnBuildPdf">Gerar PDF</button>
+                  <button class="btn" id="btnBuildExec">Gerar versão executiva</button>
+                  <button class="btn secondary" id="btnDuplicate">Duplicar como template</button>
+                </div>
+
+                <div class="hint" style="margin-top:10px">
+                  Nota: a geração PDF será ligada no próximo passo (JS) com o teu layout premium e rodapés (confidencial, data, marca).
+                </div>
+              </div>
+
+            </div>
+
+            <div class="panel-foot">
+              <div class="hint" id="wizardHint">Preencha os campos essenciais e avance. O sistema guardará rascunho automaticamente (a ligar no JS).</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn secondary" id="btnPrev">Anterior</button>
+                <button class="btn primary" id="btnNext">Seguinte</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // UI mínima (layout-only): tabs + navegação de passos. A lógica real (storage, PDF, export) liga-se depois por IDs.
+
+    const el = (id)=>document.getElementById(id);
+
+    const tabList = el('tabList');
+    const tabWizard = el('tabWizard');
+    const viewList = el('viewList');
+    const viewWizard = el('viewWizard');
+
+    const btnNew = el('btnNew');
+    const btnGoWizard = el('btnGoWizard');
+    const btnBackToList = el('btnBackToList');
+
+    const steps = Array.from(document.querySelectorAll('.step'));
+    const stepTitle = el('stepTitle');
+
+    const btnPrev = el('btnPrev');
+    const btnNext = el('btnNext');
+
+    const stepEls = [null, el('step1'), el('step2'), el('step3'), el('step4'), el('step5')];
+
+    let currentStep = 1;
+
+    function setTab(which){
+      const isList = which === 'list';
+      tabList.classList.toggle('active', isList);
+      tabWizard.classList.toggle('active', !isList);
+      viewList.classList.toggle('hidden', !isList);
+      viewWizard.classList.toggle('hidden', isList);
+    }
+
+    function setStep(n){
+      currentStep = Math.min(5, Math.max(1, n));
+      steps.forEach(s => s.classList.toggle('active', Number(s.dataset.step) === currentStep));
+      stepEls.forEach((node, idx)=>{
+        if(!node) return;
+        node.classList.toggle('hidden', idx !== currentStep);
+      });
+
+      const titles = {
+        1:'Passo 1 — Identificação do Cliente',
+        2:'Passo 2 — Objetivo e Perfil de Decisão',
+        3:'Passo 3 — Ativo / Zona em análise',
+        4:'Passo 4 — Importar PDF & Análise',
+        5:'Passo 5 — Construção do Relatório'
+      };
+      stepTitle.textContent = titles[currentStep] || 'Passo';
+      btnPrev.disabled = currentStep === 1;
+      btnNext.textContent = (currentStep === 5) ? 'Concluir' : 'Seguinte';
+    }
+
+    tabList.addEventListener('click', ()=>setTab('list'));
+    tabWizard.addEventListener('click', ()=>setTab('wizard'));
+
+    btnNew.addEventListener('click', ()=>{
+      setTab('wizard'); setStep(1);
+    });
+    btnGoWizard.addEventListener('click', ()=>{
+      setTab('wizard'); setStep(1);
+    });
+    btnBackToList.addEventListener('click', ()=>{
+      setTab('list');
+    });
+
+    steps.forEach(s=>{
+      s.addEventListener('click', ()=>setStep(Number(s.dataset.step)));
+    });
+
+    btnPrev.addEventListener('click', ()=>setStep(currentStep-1));
+    btnNext.addEventListener('click', ()=>{
+      if(currentStep < 5) setStep(currentStep+1);
+      else setTab('list');
+    });
+
+    // Toggle imovel vs zona
+    const assetImovel = el('assetImovel');
+    const assetZona = el('assetZona');
+    Array.from(document.querySelectorAll('input[name="assetMode"]')).forEach(r=>{
+      r.addEventListener('change', ()=>{
+        const v = document.querySelector('input[name="assetMode"]:checked')?.value;
+        assetImovel.classList.toggle('hidden', v !== 'imovel');
+        assetZona.classList.toggle('hidden', v !== 'zona');
+      });
+    });
+
+    // Upload button triggers (layout only)
+    const pdfFile = el('pdfFile');
+    el('btnPickPdf').addEventListener('click', ()=>pdfFile.click());
+
+    // init
+    setTab('list');
+    setStep(1);
+  </script>
+</body>
+</html>
