@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -1260,9 +1259,14 @@
   =========================== */
 
   // Storage keys (módulos existentes)
-  const LS_LEADS_KEY = 'gpp_leads_v5';
-  const LS_FSBO_KEY  = 'gpp_particulares_v2';
-  const LS_ANG_KEY   = 'gpp_angariacoes_v2';
+  const LS_LEADS_KEYS = ['gpp_leads_v5','gpp_leads_v4'];
+  const LS_FSBO_KEYS  = ['gpp_particulares_v2','gpp_particulares_v1','gpp_fsbo_v1'];
+  const LS_ANG_KEYS   = ['gpp_angariacoes_v2','gpp_angariacoes_v1'];
+  // Backward-compat (se existir código legado)
+  const LS_LEADS_KEY = LS_LEADS_KEYS[0];
+  const LS_FSBO_KEY  = LS_FSBO_KEYS[0];
+  const LS_ANG_KEY   = LS_ANG_KEYS[0];
+
 
   function stripDiacritics(str){
     try{
@@ -1293,6 +1297,15 @@
     if(Array.isArray(data.records)) return data.records;
     return [];
   }
+
+  function loadModuleListMulti(keys){
+    for(const k of (keys||[])){
+      const list = loadModuleList(k);
+      if(list && list.length) return list;
+    }
+    return [];
+  }
+
 
   function getField(obj, candidates){
     for(const k of candidates){
@@ -1365,9 +1378,9 @@
   function findBestClientMatch(input){
     const candidates = [];
 
-    loadModuleList(LS_LEADS_KEY).forEach(it=>candidates.push(mapLeadToClient(it)));
-    loadModuleList(LS_FSBO_KEY).forEach(it=>candidates.push(mapFSBOToClient(it)));
-    loadModuleList(LS_ANG_KEY).forEach(it=>candidates.push(mapAngToClient(it)));
+    loadModuleListMulti(LS_LEADS_KEYS).forEach(it=>candidates.push(mapLeadToClient(it)));
+    loadModuleListMulti(LS_FSBO_KEYS).forEach(it=>candidates.push(mapFSBOToClient(it)));
+    loadModuleListMulti(LS_ANG_KEYS).forEach(it=>candidates.push(mapAngToClient(it)));
 
     let best = null;
     let bestScore = 0;
@@ -1452,25 +1465,42 @@
   /* ===========================
      PDF: extração local (pdf.js)
   =========================== */
-  async function extractTextWithPdfJs(blob, opts){
-    opts = opts || {};
-    const maxPages = opts.maxPages || 30;
+  async function extractTextWithPdfJs(blob){
+    try{
+      if(!window.pdfjsLib) throw new Error('pdfjsLib not loaded');
 
-    if(!window.pdfjsLib) return null;
+      // Worker config (robusto em file:// e browsers mais restritivos)
+      try{
+        if(pdfjsLib.GlobalWorkerOptions && !pdfjsLib.GlobalWorkerOptions.workerSrc){
+          pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.js';
+        }
+      }catch{}
 
-    const ab = await blob.arrayBuffer();
-    const loadingTask = pdfjsLib.getDocument({ data: ab });
-    const pdf = await loadingTask.promise;
+      const ab = await blob.arrayBuffer();
 
-    const total = Math.min(pdf.numPages, maxPages);
-    let out = '';
-    for(let p=1; p<=total; p++){
-      const page = await pdf.getPage(p);
-      const tc = await page.getTextContent();
-      const pageText = tc.items.map(it=>it.str || '').join(' ');
-      out += '\n' + pageText;
+      async function loadOnce(){
+        const task = pdfjsLib.getDocument({ data: ab, disableWorker: !!pdfjsLib.disableWorker });
+        const pdf = await task.promise;
+        let full = '';
+        for(let i=1;i<=pdf.numPages;i++){
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          const strings = (content.items||[]).map(it=>it.str).filter(Boolean);
+          full += strings.join(' ') + '\n';
+        }
+        return full;
+      }
+
+      try{
+        return await loadOnce();
+      }catch(err){
+        try{ pdfjsLib.disableWorker = true; }catch{}
+        return await loadOnce();
+      }
+    }catch(err){
+      console.error(err);
+      return null;
     }
-    return out.trim();
   }
 
   async function analyzePdfForReport(report, pdfKey){
@@ -2609,7 +2639,40 @@
       .replace(/"/g,'&quot;');
   }
 
-  function exportReportToPrintPDF(report, forceExec=false){
+  
+  // Impressão sem pop-ups: IFRAME invisível (evita bloqueios do browser)
+  function printHTMLInFrame(html){
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    iframe.style.opacity = '0';
+    iframe.setAttribute('aria-hidden','true');
+    document.body.appendChild(iframe);
+
+    const w = iframe.contentWindow;
+    const d = iframe.contentDocument || w.document;
+
+    const cleanup = ()=>{ try{ iframe.remove(); }catch{} };
+
+    d.open(); d.write(html); d.close();
+
+    const fire = async ()=>{
+      try{ if(d.fonts && d.fonts.ready) await d.fonts.ready; }catch{}
+      try{ w.focus(); w.print(); }catch(err){ console.error(err); alert('Falha ao abrir impressão. Tente novamente.'); cleanup(); }
+    };
+
+    const onAfter = ()=>{ w.removeEventListener('afterprint', onAfter); setTimeout(cleanup, 250); };
+    w.addEventListener('afterprint', onAfter);
+
+    setTimeout(fire, 250);
+    setTimeout(cleanup, 60000);
+  }
+
+function exportReportToPrintPDF(report, forceExec=false){
     const cliente = report.cliente || {};
     const obj = report.objetivo || {};
     const ativo = report.ativo || {};
