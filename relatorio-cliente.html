@@ -1,5 +1,3 @@
-
-
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -1090,137 +1088,325 @@
     saveAllReports(list);
   }
 
-  /* ===========================
+      /* ===========================
      Cross-module import (FSBO | Leads | Angariações)
-     Keys identificadas nos teus módulos:
-       - FSBO/Particulares: gpp_particulares_v2   (ownerName/ownerPhone/ownerEmail)
-       - Leads/Kanban:      gpp_leads_v5          (nome/contacto/email)
-       - Angariações:       gpp_angariacoes_v2    (nomeProp/telProp/emailProp)
+     Objetivo:
+     - NÃO depender de keys fixas.
+     - Varre TODO o localStorage (JSON) e extrai “contactos” (nome/telemóvel/email).
+     - Prioridade de pesquisa: 1) Nome 2) Telefone 3) Email
+     Nota:
+     - Apenas autopreenche campos vazios (não sobrepõe o que já escreveu).
+     - Mantém tudo local (browser), sem servidor.
   =========================== */
-  const KEY_FSBO = 'gpp_particulares_v2';
-  const KEY_LEADS = 'gpp_leads_v5';
-  const KEY_ANG = 'gpp_angariacoes_v2';
 
-  function loadFSBO(){ return safeJSONParse(localStorage.getItem(KEY_FSBO), []); }
-  function loadLeads(){ return safeJSONParse(localStorage.getItem(KEY_LEADS), []); }
-  function loadAng(){ return safeJSONParse(localStorage.getItem(KEY_ANG), []); }
+  // Campos (sinónimos) mais comuns encontrados nos módulos
+  const CONTACT_FIELD_MAP = {
+    name:   ['nome','name','cliente','client','proprietario','proprietário','owner','contacto','contato','titular','empresa','company','lead','leadName'],
+    phone:  ['telemovel','telemóvel','telefone','tel','phone','mobile','contactoTel','contactTel','whatsapp'],
+    email:  ['email','e-mail','mail','contactoEmail','contactEmail']
+  };
 
-  function buildContactIndex(){
-    const out = [];
-
-    // FSBO
-    for(const p of (loadFSBO()||[])){
-      const name = p?.ownerName || '';
-      const phone = p?.ownerPhone || '';
-      const email = p?.ownerEmail || '';
-      if(!(name||phone||email)) continue;
-      out.push({
-        source: 'FSBO',
-        sourceKey: KEY_FSBO,
-        id: p?.id || p?.uid || p?.key || null,
-        nome: name,
-        tel: phone,
-        email,
-        raw: p
-      });
-    }
-
-    // Leads
-    for(const l of (loadLeads()||[])){
-      const name = l?.nome || l?.name || '';
-      const phone = l?.contacto || l?.telefone || l?.telemovel || '';
-      const email = l?.email || '';
-      if(!(name||phone||email)) continue;
-      out.push({
-        source: 'Leads',
-        sourceKey: KEY_LEADS,
-        id: l?.id || l?.uid || null,
-        nome: name,
-        tel: phone,
-        email,
-        raw: l
-      });
-    }
-
-    // Angariações
-    for(const a of (loadAng()||[])){
-      const name = a?.nomeProp || a?.proprietarioNome || '';
-      const phone = a?.telProp || a?.telemovelProp || a?.telefoneProp || '';
-      const email = a?.emailProp || '';
-      if(!(name||phone||email)) continue;
-      out.push({
-        source: 'Angariações',
-        sourceKey: KEY_ANG,
-        id: a?.id || a?.uid || null,
-        nome: name,
-        tel: phone,
-        email,
-        raw: a
-      });
-    }
-
-    return out;
+  function onlyDigits(s){ return (s||'').toString().replace(/\D+/g,''); }
+  function normEmail(s){ return (s||'').toString().trim().toLowerCase(); }
+  function normName(s){
+    return (s||'')
+      .toString()
+      .trim()
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // remove acentos
+      .replace(/\s+/g,' ');
   }
 
-  function scoreCandidate(q, c){
-    let score = 0;
-    const qEmail = normEmail(q.email);
-    const qPhone = normPhone(q.tel);
-    const qName  = normName(q.nome);
-
-    const cEmail = normEmail(c.email);
-    const cPhone = normPhone(c.tel);
-    const cName  = normName(c.nome);
-
-    if(qEmail && cEmail && qEmail === cEmail) score += 120;
-    if(qPhone && cPhone && qPhone === cPhone) score += 90;
-
-    if(qName && cName){
-      if(qName === cName) score += 60;
-      else if(cName.includes(qName) || qName.includes(cName)) score += 25;
-    }
-
-    // bónus se tem mais campos completos
-    score += (cEmail?5:0) + (cPhone?5:0) + (cName?5:0);
-
-    return score;
-  }
-
-  function findBestContact({ nome, tel, email }){
-    const q = { nome:normStr(nome), tel:normStr(tel), email:normStr(email) };
-    const hasAny = !!(q.nome || q.tel || q.email);
-    if(!hasAny) return null;
-
-    const candidates = buildContactIndex();
-    let best = null;
-    let bestScore = 0;
-
-    for(const c of candidates){
-      const s = scoreCandidate(q, c);
-      if(s > bestScore){
-        bestScore = s;
-        best = c;
+  function pickFirstString(o, keys){
+    for(const k of keys){
+      if(o && typeof o === 'object' && k in o){
+        const v = o[k];
+        if(typeof v === 'string' && v.trim()) return v.trim();
+        if(typeof v === 'number' && isFinite(v)) return String(v);
       }
-    }
-
-    // limiar: evita falsos positivos quando só existe nome muito genérico
-    if(!best) return null;
-    const strictNeeded = (q.email || q.tel);
-    const threshold = strictNeeded ? 80 : 70;
-    return bestScore >= threshold ? { ...best, _score: bestScore } : null;
-  }
-
-  function suggestTipoFromSource(source, raw){
-    if(source === 'FSBO' || source === 'Angariações') return 'Proprietário';
-    if(source === 'Leads'){
-      // se existir “tipo” na lead, respeitar; caso contrário manter em branco para o utilizador decidir
-      const t = raw?.tipo || raw?.perfil || '';
-      if(t && /invest/i.test(t)) return 'Investidor';
-      if(t && /compr/i.test(t)) return 'Comprador';
-      return '';
     }
     return '';
   }
+
+  function buildContactFromObject(obj, sourceKey){
+    if(!obj || typeof obj !== 'object') return null;
+
+    // tenta detectar campos diretos
+    const nome = pickFirstString(obj, CONTACT_FIELD_MAP.name);
+    const tel  = pickFirstString(obj, CONTACT_FIELD_MAP.phone);
+    const mail = pickFirstString(obj, CONTACT_FIELD_MAP.email);
+
+    // também tenta dentro de subobjetos típicos
+    const subCandidates = ['cliente','contacto','contato','owner','proprietario','proprietário','lead','dados','pessoa','person','empresa'];
+    let nome2='', tel2='', mail2='';
+    for(const s of subCandidates){
+      const sub = obj[s];
+      if(sub && typeof sub === 'object'){
+        nome2 = nome2 || pickFirstString(sub, CONTACT_FIELD_MAP.name);
+        tel2  = tel2  || pickFirstString(sub, CONTACT_FIELD_MAP.phone);
+        mail2 = mail2 || pickFirstString(sub, CONTACT_FIELD_MAP.email);
+      }
+    }
+
+    const finalName = (nome || nome2 || '').trim();
+    const finalPhone = (tel || tel2 || '').trim();
+    const finalEmail = (mail || mail2 || '').trim();
+
+    if(!finalName && !finalPhone && !finalEmail) return null;
+
+    return {
+      nameRaw: finalName,
+      phoneRaw: finalPhone,
+      emailRaw: finalEmail,
+      name: normName(finalName),
+      phone: onlyDigits(finalPhone),
+      email: normEmail(finalEmail),
+      sourceKey: sourceKey || '',
+      // campos extra úteis (se existirem)
+      notes: pickFirstString(obj, ['notas','notes','obs','observacoes','observações','descricao','descrição','comentarios','comentários']) || ''
+    };
+  }
+
+  function extractContactsDeep(value, sourceKey, out, depth=0){
+    if(depth > 4) return; // limite para evitar varreduras pesadas
+    if(value == null) return;
+
+    if(Array.isArray(value)){
+      for(const item of value){
+        if(out.length > 2500) break;
+        extractContactsDeep(item, sourceKey, out, depth+1);
+      }
+      return;
+    }
+
+    if(typeof value === 'object'){
+      const c = buildContactFromObject(value, sourceKey);
+      if(c) out.push(c);
+
+      const likelyCollections = ['items','data','rows','list','cards','leads','clientes','contacts','contactos','contatos','registos','records'];
+      for(const k of likelyCollections){
+        if(value[k] != null){
+          extractContactsDeep(value[k], sourceKey, out, depth+1);
+        }
+      }
+
+      const keys = Object.keys(value);
+      for(let i=0;i<Math.min(keys.length, 24);i++){
+        const k = keys[i];
+        const v = value[k];
+        if(v && typeof v === 'object'){
+          extractContactsDeep(v, sourceKey, out, depth+1);
+        }
+      }
+    }
+  }
+
+  // Cache simples para não varrer sempre
+  let CONTACT_INDEX_CACHE = null;
+  let CONTACT_INDEX_CACHE_AT = 0;
+
+  function scanLocalStorageForContacts(){
+    const now = Date.now();
+    if(CONTACT_INDEX_CACHE && (now - CONTACT_INDEX_CACHE_AT) < 2500){
+      return CONTACT_INDEX_CACHE;
+    }
+
+    const contacts = [];
+    const seen = new Set(); // dedupe por (name|phone|email)
+
+    for(let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      if(!k) continue;
+
+      // evita varrer o próprio módulo de relatórios e chaves óbvias
+      if(k === LS_KEY) continue;
+      if(k.startsWith('gpp_relatorios_cliente_')) continue;
+
+      const raw = localStorage.getItem(k);
+      if(!raw || raw.length < 2) continue;
+      if(raw.length > 6_000_000) continue;
+
+      let parsed = null;
+      try{ parsed = JSON.parse(raw); }catch{ continue; }
+
+      extractContactsDeep(parsed, k, contacts, 0);
+      if(contacts.length > 2500) break;
+    }
+
+    const cleaned = [];
+    for(const c of contacts){
+      const sig = `${c.name}|${c.phone}|${c.email}`;
+      if(seen.has(sig)) continue;
+
+      const hasSomething = (c.name && c.name.length >= 3) || (c.phone && c.phone.length >= 7) || (c.email && c.email.includes('@'));
+      if(!hasSomething) continue;
+
+      seen.add(sig);
+      cleaned.push(c);
+      if(cleaned.length > 2000) break;
+    }
+
+    CONTACT_INDEX_CACHE = cleaned;
+    CONTACT_INDEX_CACHE_AT = now;
+    return cleaned;
+  }
+
+  function pickBestByCompleteness(list){
+    if(!list || !list.length) return null;
+    const score = (c)=>(c.name?2:0) + (c.phone?2:0) + (c.email?2:0) + (c.notes?1:0);
+    return list.slice().sort((a,b)=>score(b)-score(a))[0] || null;
+  }
+
+  function findContactPriority({name, phone, email}){
+    const idx = scanLocalStorageForContacts();
+
+    const nameN = normName(name);
+    const phoneN = onlyDigits(phone);
+    const emailN = normEmail(email);
+
+    // 1) Nome
+    if(nameN && nameN.length >= 3){
+      const exact = idx.filter(c=>c.name && c.name === nameN);
+      if(exact.length) return pickBestByCompleteness(exact);
+
+      const includes = idx.filter(c=>c.name && (c.name.includes(nameN) || nameN.includes(c.name)));
+      if(includes.length) return pickBestByCompleteness(includes);
+    }
+
+    // 2) Telefone
+    if(phoneN && phoneN.length >= 7){
+      const byPhone = idx.filter(c=>c.phone && (c.phone === phoneN || c.phone.endsWith(phoneN) || phoneN.endsWith(c.phone)));
+      if(byPhone.length) return pickBestByCompleteness(byPhone);
+    }
+
+    // 3) Email
+    if(emailN && emailN.includes('@')){
+      const byEmail = idx.filter(c=>c.email && c.email === emailN);
+      if(byEmail.length) return pickBestByCompleteness(byEmail);
+    }
+
+    return null;
+  }
+
+
+  function sourceLabelFromKey(k){
+    const s = (k||'').toLowerCase();
+    if(s.includes('fsbo') || s.includes('particul')) return 'FSBO';
+    if(s.includes('lead') || s.includes('kanban')) return 'Leads';
+    if(s.includes('angaria') || s.includes('listing')) return 'Angariações';
+    return k || 'localStorage';
+  }
+
+  // Compatibilidade com versões anteriores do módulo (UI existente)
+  function findBestContact({ nome, tel, email }){
+    const hit = findContactPriority({ name: nome, phone: tel, email });
+    if(!hit) return null;
+    return {
+      nome: hit.nameRaw || '',
+      tel: hit.phoneRaw || '',
+      email: hit.emailRaw || '',
+      sourceKey: hit.sourceKey || '',
+      source: sourceLabelFromKey(hit.sourceKey),
+      raw: hit,
+      id: null
+    };
+  }
+
+  function initCrossModuleImport(){
+    const iNome  = el('cNome');
+    const iTel   = el('cTel');
+    const iEmail = el('cEmail');
+    const iNotas = el('cNotas');
+
+    if(!iNome || !iTel || !iEmail) return;
+
+    function ensureAutoHint(){
+      let node = document.getElementById('autoImportHint');
+      if(node) return node;
+
+      const emailField = iEmail.closest('.field');
+      if(!emailField) return null;
+
+      node = document.createElement('div');
+      node.id = 'autoImportHint';
+      node.className = 'hint';
+      node.style.marginTop = '6px';
+      node.textContent = 'Auto-importação: pronta (procura em FSBO | Leads | Angariações quando existir histórico).';
+      emailField.appendChild(node);
+      return node;
+    }
+
+    function showMsg(msg, type='info'){
+      const node = ensureAutoHint();
+      if(!node) return;
+      node.textContent = msg;
+      node.style.color = (type==='ok') ? '#A5D6A7' : (type==='warn' ? '#ffb4b4' : 'var(--muted)');
+    }
+
+    function applyContact(contact){
+      if(!contact) return false;
+      let changed = false;
+
+      if(!normStr(iNome.value) && contact.nameRaw){
+        iNome.value = contact.nameRaw;
+        changed = true;
+      }
+      if(!normStr(iTel.value) && contact.phoneRaw){
+        iTel.value = contact.phoneRaw;
+        changed = true;
+      }
+      if(!normStr(iEmail.value) && contact.emailRaw){
+        iEmail.value = contact.emailRaw;
+        changed = true;
+      }
+
+      const note = (contact.notes || '').trim();
+      if(note && iNotas && !normStr(iNotas.value).includes(note)){
+        iNotas.value = (normStr(iNotas.value) ? (iNotas.value.trim() + "\n") : '') + `Importado do histórico: ${note}`;
+        changed = true;
+      }
+
+      if(changed && typeof scheduleAutosave === 'function'){
+        scheduleAutosave();
+      }
+      return changed;
+    }
+
+    let timer = null;
+    function schedule(){
+      clearTimeout(timer);
+      timer = setTimeout(()=>{
+        const query = { name: normStr(iNome.value), phone: normStr(iTel.value), email: normStr(iEmail.value) };
+        const hit = findContactPriority(query);
+
+        if(hit){
+          const changed = applyContact(hit);
+          showMsg(
+            changed ? `Auto-importação: dados carregados do histórico (${hit.sourceKey}).`
+                    : `Auto-importação: encontrado no histórico (${hit.sourceKey}).`,
+            'ok'
+          );
+        }else{
+          showMsg('Auto-importação: sem correspondência (pode inserir manualmente).','info');
+        }
+      }, 450);
+    }
+
+    [iNome, iTel, iEmail].forEach(inp=>{
+      inp.addEventListener('input', schedule);
+      inp.addEventListener('change', schedule);
+      inp.addEventListener('blur', schedule);
+    });
+
+    window.addEventListener('storage', ()=>{
+      CONTACT_INDEX_CACHE = null;
+      CONTACT_INDEX_CACHE_AT = 0;
+    });
+
+    // primeira verificação (se já vierem campos preenchidos)
+    schedule();
+  }
+
 
   /* ===========================
      UI Elements
@@ -1991,7 +2177,8 @@
   setTab('list');
   setStep(1);
   renderList();
-  setAutoImportUI(null);
+  // liga auto-importação com módulos existentes (FSBO | Leads | Angariações)
+  try{ initCrossModuleImport(); }catch(e){ console.warn('Auto-import indisponível', e); }
 
 })();
 </script>
