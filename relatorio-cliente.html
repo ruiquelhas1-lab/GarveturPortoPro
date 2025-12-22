@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -2841,7 +2842,7 @@ function tryAutoImport(){
 
     pdfExtractStatus && (pdfExtractStatus.textContent = `A extrair "${meta.name}"…`);
     try{
-      const blob = await getPdfBlob(pdfId);
+      const blob = await loadPdfBlob(pdfId);
       const {lines, medFont, pages} = await pdfExtractTextLines(blob);
       const chapters = buildChaptersFromLines(lines, medFont);
       const sum = summarizeInsights(lines);
@@ -2871,8 +2872,12 @@ function tryAutoImport(){
       pdfExtractStatus && (pdfExtractStatus.textContent = `Extração concluída: ${chapters.length} capítulo(s) · ${pages} página(s).`);
       return r;
     }catch(err){
-      console.warn(err);
-      pdfExtractStatus && (pdfExtractStatus.textContent = 'Falha na extração do PDF. Confirme o ficheiro e tente novamente.');
+      console.warn('PDF extract failed', err);
+      const emsg = (err && err.message) ? err.message : String(err||'erro');
+      if(pdfExtractStatus){
+        pdfExtractStatus.textContent = 'Falha na extração do PDF: ' + emsg;
+        pdfExtractStatus.style.color = 'var(--danger)';
+      }
       return null;
     }
   }
