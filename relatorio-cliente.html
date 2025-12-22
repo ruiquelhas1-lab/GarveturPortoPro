@@ -2190,21 +2190,23 @@ function tryAutoImport(){
   }
 
   // tentativas ao escrever (debounce)
-  [cNome, cTel, cEmail].forEach(inp=>{
-    if(!inp) return;
-    inp.addEventListener('input', scheduleAutoImport);
-    inp.addEventListener('blur', ()=>{ scheduleAutoImport(); });
+[cNome, cTel, cEmail].forEach(inp=>{
+  if(!inp) return;
+  inp.addEventListener('input', scheduleAutoImport);
+  inp.addEventListener('blur', scheduleAutoImport);
+});
 
-  const btnResetCliente = el('btnResetCliente');
-  btnResetCliente?.addEventListener('click', ()=>{
-    if(!confirm('Limpar dados do cliente?')) return;
-    cNome.value=''; cTel.value=''; cEmail.value='';
-    if(cNotas) cNotas.value='';
-    const r = saveDraftSilent();
-    if(r && r.cliente) r.cliente.importedFrom = null;
-    upsertReport(r);
-    setAutoImportUI(null);
-  });
+// Botão "Limpar" (registar 1x)
+const btnResetCliente = el('btnResetCliente');
+btnResetCliente?.addEventListener('click', ()=>{
+  if(!confirm('Limpar dados do cliente?')) return;
+  cNome.value=''; cTel.value=''; cEmail.value='';
+  if(cNotas) cNotas.value='';
+  const r = saveDraftSilent();
+  if(r && r.cliente) r.cliente.importedFrom = null;
+  upsertReport(r);
+  setAutoImportUI(null);
+});
   });
 
   /* ===========================
