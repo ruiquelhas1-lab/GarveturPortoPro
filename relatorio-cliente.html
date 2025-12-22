@@ -2664,8 +2664,7 @@ function tryAutoImport(){
       try{
         const w = window.pdfjsLib.GlobalWorkerOptions;
         if(w && !w.workerSrc){
-          // tentar apontar para o mesmo CDN (se falhar, o pdf.js cai para modo sem worker em alguns casos)
-          w.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.js';
+          w.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.worker.min.js';
         }
       }catch(e){}
       return window.pdfjsLib;
@@ -2685,12 +2684,13 @@ function tryAutoImport(){
 
     // 3) carregar dinamicamente (múltiplos CDNs)
     const sources = [
-      // cdnjs costuma ser estável
-      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.js',
-      // jsdelivr como fallback
-      'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.js',
-      // unpkg como último recurso
-      'https://unpkg.com/pdfjs-dist@4.10.38/build/pdf.min.js'
+      // Recomendado: build LEGACY (UMD) — funciona de forma fiável em <script> normal (sem type="module")
+      "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.min.js",
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js",
+      // Fallbacks antigos (ainda UMD)
+      "https://unpkg.com/pdfjs-dist@3.11.174/legacy/build/pdf.min.js",
+      "https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/legacy/build/pdf.min.js",
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"
     ];
 
     window.__gpp_pdfjs_loading_promise = (async ()=>{
