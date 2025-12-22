@@ -1,4 +1,5 @@
 
+
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -297,12 +298,17 @@
       .wizard{grid-template-columns:1fr}
     }
 
-    /* Step 5 centrado (mantém sidebar à esquerda) */
-    .wizard.step5-center .step-panel{
+    /* Step 5 em destaque (centrado) */
+    .wizard.step5-full{
+      grid-template-columns:260px 1fr;
+    }
+    .wizard.step5-full .steps{
+      display:block;
+    }
+    .wizard.step5-full .step-panel{
       max-width:1100px;
       margin:0 auto;
     }
-
 
     .steps{
       border-radius:var(--radius-lg);
@@ -1067,13 +1073,13 @@
                 </div>
 
                 <div class="cta-row">
-                  <button class="btn primary" id="btnBuildPdf">Gerar PDF Final</button>
+                  <button class="btn primary" id="btnBuildPdf">Gerar PDF</button>
                   <button class="btn" id="btnBuildExec">Gerar versão executiva</button>
                   <button class="btn secondary" id="btnDuplicate">Duplicar como template</button>
                 </div>
 
                 <div class="hint" style="margin-top:10px">
-                  Nota: a geração PDF aqui é “impressão” (sem servidor). A exportação premium ficará para a fase seguinte.
+                  Nota: a geração PDF é local (impressão) com pré‑visualização. Para guardar em PDF, use “Imprimir / Guardar em PDF” no modal.
                 </div>
               </div>
 
@@ -1206,7 +1212,8 @@
     zona: ['zona','localizacao','localização','area','área','bairro','district','concelho','freguesia','cidade','city','location','morada','endereco','endereço','address'],
     tipologia: ['tipologia','typology','tipo','tipoImovel','tipoImóvel','tipo_imovel','quartos','bedrooms','tipologiasEmp','tipologias'],
     preco: ['preco','preço','valor','price','precoPedido','preco_pedido','precoAnuncio','preco_anuncio','asking','askingPrice','valorPedido','valor_pedido'],
-    obs: ['obs','observacoes','observações','notas','notes','descricao','descrição','comentarios','comentários','remarks','observacao','observação','obsInternas','obsCliente'],
+    obs: ['obs','observacoes','observações','notas','notes','descricao','descrição','comentarios','comentários','remarks','observacao','observação','obsInternas','obsCliente','resumo','resumoAnuncio','resumo_anuncio','resumoDoAnuncio','resumo_do_anuncio','anuncioResumo','anuncio_resumo','kitResumo','kit_resumo','resumoKit','resumo_kit','textoAnuncio','texto_anuncio','descricaoAnuncio','descricao_anuncio','descricaoPublica','descricao_publica','publicDescricao','public_description'],
+    resumo: ['resumo','resumoAnuncio','resumo_anuncio','resumoDoAnuncio','resumo_do_anuncio','anuncioResumo','anuncio_resumo','kitResumo','kit_resumo','resumoKit','resumo_kit'],
     ref: ['ref','referencia','referência','id','codigo','código','code','reference','refInterna'],
     titulo: ['titulo','título','nomeImovel','nomeEmp','tituloImovel','title','empreendimento','imovel','imóvel','nome','designacao','designação']
   };
@@ -1263,10 +1270,11 @@
     const tip1  = pickFirstString(obj, ASSET_FIELD_MAP.tipologia);
     const preco1= pickFirstString(obj, ASSET_FIELD_MAP.preco);
     const obs1  = pickFirstString(obj, ASSET_FIELD_MAP.obs);
+    const resumo1 = pickFirstString(obj, ASSET_FIELD_MAP.resumo);
     const ref1  = pickFirstString(obj, ASSET_FIELD_MAP.ref);
     const tit1  = pickFirstString(obj, ASSET_FIELD_MAP.titulo);
 
-    let zona2='', tip2='', preco2='', obs2='', ref2='', tit2='';
+    let zona2='', tip2='', preco2='', obs2='', resumo2='', ref2='', tit2='';
     for(const s of subCandidates){
       const sub = obj[s];
       if(sub && typeof sub === 'object'){
@@ -1274,6 +1282,7 @@
         tip2  = tip2  || pickFirstString(sub, ASSET_FIELD_MAP.tipologia);
         preco2= preco2|| pickFirstString(sub, ASSET_FIELD_MAP.preco);
         obs2  = obs2  || pickFirstString(sub, ASSET_FIELD_MAP.obs);
+        resumo2 = resumo2 || pickFirstString(sub, ASSET_FIELD_MAP.resumo);
         ref2  = ref2  || pickFirstString(sub, ASSET_FIELD_MAP.ref);
         tit2  = tit2  || pickFirstString(sub, ASSET_FIELD_MAP.titulo);
       }
@@ -1284,6 +1293,7 @@
       tipologia: (tip1 || tip2 || '').trim(),
       preco: (preco1 || preco2 || '').trim(),
       obs: (obs1 || obs2 || '').trim(),
+      resumo: (resumo1 || resumo2 || '').trim(),
       ref: (ref1 || ref2 || '').trim(),
       titulo: (tit1 || tit2 || '').trim()
     };
@@ -1718,7 +1728,7 @@
   function setStep(n){
     currentStep = Math.min(5, Math.max(1, n));
     // Passo 5: modo centrado (oculta lista de passos para dar espaço ao relatório)
-    try{ viewWizard.classList.toggle('step5-center', currentStep === 5); }catch(e){}
+    try{ viewWizard.classList.toggle('step5-full', currentStep === 5); }catch(e){}
     steps.forEach(s => s.classList.toggle('active', Number(s.dataset.step) === currentStep));
     stepEls.forEach((node, idx)=>{ if(node) node.classList.toggle('hidden', idx !== currentStep); });
 
@@ -1726,8 +1736,8 @@
       1:'Passo 1 — Identificação do Cliente',
       2:'Passo 2 — Objetivo e Perfil de Decisão',
       3:'Passo 3 — Ativo / Zona em análise',
-      4:'Passo 4 — Estudo (extração assistida)',
-      5:'Passo 5 — PDF Final Premium'
+      4:'Passo 4 — PDF (adiado)',
+      5:'Passo 5 — Construção do Relatório'
     };
     stepTitle.textContent = titles[currentStep] || 'Passo';
     btnPrev.disabled = false;
@@ -1949,13 +1959,16 @@
     const tip  = (hit.asset.tipologia || '').trim();
     const preco= (hit.asset.preco || '').trim();
     const obs  = (hit.asset.obs || '').trim();
+    const resumo = (hit.asset.resumo || '').trim();
+    const srcLabel = sourceLabelFromKey(hit.sourceKey);
+    const obsFinal = (srcLabel==='FSBO' && resumo) ? resumo : obs;
     const titulo = (hit.asset.titulo || '').trim();
     const ref = (hit.asset.ref || '').trim();
 
     if(aZona && !normStr(aZona.value) && zona){ aZona.value = zona; changed = true; }
     if(aTipologia && !normStr(aTipologia.value) && tip){ aTipologia.value = tip; changed = true; }
     if(aPreco && !normStr(aPreco.value) && preco){ aPreco.value = preco; changed = true; }
-    if(aObs && !normStr(aObs.value) && obs){ aObs.value = obs; changed = true; }
+    if(aObs && !normStr(aObs.value) && obsFinal){ aObs.value = obsFinal; changed = true; }
 
     // se houver título/ref e aSearch estiver vazio, preenche como contexto
     if(aSearch && !normStr(aSearch.value)){
@@ -2384,17 +2397,10 @@ function tryAutoImport(){
   =========================== */
 
   const pdfAssistText = el('pdfAssistText');
-  const btnAssistParse = el('btnAssistExtract'); // alinhado com UI
+  const btnAssistParse = el('btnAssistExtract');
   const btnAssistClear = el('btnAssistClear');
   const assistPreview = el('assistPreview');
-  const assistStats = el('assistStatus'); // alinhado com UI
-
-  function setAssistStatus(msg, kind=''){
-    if(!assistStats) return;
-    assistStats.textContent = msg || '—';
-    const c = kind==='ok' ? 'var(--ok)' : (kind==='warn' ? 'var(--warn)' : 'var(--muted)');
-    assistStats.style.color = c;
-  }
+  const assistStats = el('assistStatus');
 
   const STOPWORDS_PT = new Set([
     'a','o','os','as','um','uma','uns','umas','de','da','do','das','dos','e','ou','em','no','na','nos','nas',
@@ -2494,7 +2500,7 @@ function tryAutoImport(){
     const ch = report?.analysis?.chapters || [];
     const kw = report?.analysis?.keywords || [];
     if(!ch.length){
-      assistPreview.innerHTML = '<span style="color:var(--muted)">Ainda sem extração assistida. Cole o texto e clique em “Gerar capítulos &amp; insights”.</span>';
+      assistPreview.innerHTML = '<span style="color:var(--muted)">Ainda sem extração assistida. Cole o texto e clique em “Estruturar (capítulos + insights)”.</span>';
       assistStats.textContent = '—';
       return;
     }
@@ -2533,25 +2539,16 @@ function tryAutoImport(){
   btnAssistParse?.addEventListener('click', ()=>{
     try{
       const txt = (pdfAssistText?.value || '').trim();
-      if(!txt){
-        setAssistStatus('Cole primeiro o texto relevante do estudo e volte a clicar em “Estruturar Estudo”.', 'warn');
-        return;
-      }
-      setAssistStatus('A estruturar…', 'warn');
+      if(!txt){ alert('Cole primeiro o texto relevante do estudo (PDF) para estruturar.'); return; }
       const extraction = assistedExtract(txt);
-      if(!extraction.chapters?.length){
-        setAssistStatus('Não foi possível estruturar: confirme o texto colado (deve incluir títulos/segmentos) e tente novamente.', 'warn');
-        return;
-      }
+      if(!extraction.chapters?.length){ alert('Não foi possível identificar conteúdo. Confirme o texto colado e tente novamente.'); return; }
       saveAssistExtractionToReport(extraction);
-      setAssistStatus(`Estrutura guardada no relatório: ${extraction.chapters.length} capítulo(s) · ${extraction.keywords?.length||0} palavra(s)-chave.`, 'ok');
-      try{ renderAssistPreviewFromReport(getReport(ACTIVE_REPORT_ID)); }catch(e){}
+      alert('Extração assistida concluída e integrada no relatório.');
     }catch(err){
       console.error(err);
-      setAssistStatus('Falha na extração assistida. Verifique o texto colado e tente novamente.', 'warn');
+      alert('Falha na extração assistida. Verifique o texto colado e tente novamente.');
     }
   });
-
 
   btnAssistClear?.addEventListener('click', ()=>{
     if(!confirm('Limpar o texto colado?')) return;
@@ -2764,6 +2761,36 @@ function tryAutoImport(){
   let pdfModalUrl = null;
   let pdfModalMeta = null;
 
+  // Abrir pré-visualização do relatório (HTML) no modal, com impressão segura
+  function openReportPreview(html, title='Documento'){
+    if(!pdfModal || !pdfModalFrame) return;
+
+    // limpar qualquer src anterior
+    try{ pdfModalFrame.removeAttribute('src'); }catch{}
+    try{ pdfModalFrame.srcdoc = html; }catch{ pdfModalFrame.src = 'about:blank'; }
+
+    pdfModalTitle.textContent = String(title||'Documento').toUpperCase();
+    pdfModal.classList.remove('hidden');
+    pdfModal.setAttribute('aria-hidden','false');
+
+    // Botão principal: imprimir/guardar em PDF
+    if(pdfModalDownload){
+      pdfModalDownload.textContent = 'Imprimir / Guardar em PDF';
+      pdfModalDownload.onclick = ()=>{
+        try{
+          const w = pdfModalFrame.contentWindow;
+          if(!w){ alert('Não foi possível iniciar a impressão.'); return; }
+          w.focus();
+          w.print();
+        }catch(e){
+          console.error(e);
+          alert('Falha ao abrir a impressão. Verifique permissões de popups/impressão.');
+        }
+      };
+    }
+  }
+
+
   function closePdfModal(){
     if(!pdfModal) return;
     pdfModal.classList.add('hidden');
@@ -2775,202 +2802,6 @@ function tryAutoImport(){
     }
     pdfModalMeta = null;
   }
-  // ===========================
-  // Fase 2.2 — Pré-visualização + “PDF” (print seguro) em iframe
-  // Sem dependências externas: o utilizador imprime/guarda como PDF a partir do browser.
-  // ===========================
-  function openReportPreview(html, title){
-    if(!pdfModal) return;
-    if(pdfModalTitle) pdfModalTitle.textContent = title || 'Relatório';
-    // limpar URL anterior (PDF blob), se existir
-    if(pdfModalUrl){
-      try{ URL.revokeObjectURL(pdfModalUrl); }catch{}
-      pdfModalUrl = null;
-    }
-    pdfModalMeta = { mode:'report' };
-    // usar srcdoc para não abrir popups nem depender de ficheiros externos
-    if(pdfModalFrame){
-      pdfModalFrame.removeAttribute('src');
-      pdfModalFrame.srcdoc = html;
-    }
-    pdfModal.classList.remove('hidden');
-    pdfModal.setAttribute('aria-hidden','false');
-
-    // Botão “Download” passa a ser “Imprimir / Guardar PDF”
-    if(pdfModalDownload){
-      pdfModalDownload.textContent = 'Imprimir / Guardar PDF';
-      pdfModalDownload.onclick = ()=>{
-        try{
-          const w = pdfModalFrame?.contentWindow;
-          if(!w){ alert('Pré-visualização indisponível.'); return; }
-          w.focus();
-          w.print();
-        }catch(e){
-          console.error(e);
-          alert('Falha ao abrir a impressão. Verifique as permissões do browser.');
-        }
-      };
-    }
-  }
-
-  function buildPremiumReportHTML(report, forceExec=false){
-    const cliente = report.cliente || {};
-    const obj = report.objetivo || {};
-    const ativo = report.ativo || {};
-    const rec = report.recomendacao || {};
-    const analysis = report.analysis || {};
-
-    const safe = (s)=> String(s||'').replace(/[&<>"]/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
-    const dateStr = new Date().toLocaleString('pt-PT');
-
-    const zona = (ativo.mode==='zona') ? (ativo.zona?.zona||'—') : (ativo.imovel?.zona||'—');
-    const tip  = (ativo.mode==='zona') ? (ativo.zona?.tipologia||'—') : (ativo.imovel?.tipologia||'—');
-
-    const chapters = Array.isArray(analysis.chapters) ? analysis.chapters : [];
-    const keywords = Array.isArray(analysis.keywords) ? analysis.keywords : [];
-
-    const studyHtml = chapters.length ? `
-      <section class="card">
-        <div class="h">
-          <div class="k">📊 Dados do Estudo</div>
-          <div class="s">Síntese objetiva (extração assistida, sem PDF.js)</div>
-        </div>
-        <div class="b">
-          ${keywords.length ? `<div class="chips">
-            ${keywords.slice(0,18).map(k=>`<span class="chip">${safe(k.w)} <em>${k.c}</em></span>`).join('')}
-          </div>` : ``}
-
-          ${chapters.slice(0,8).map(ch=>`
-            <div class="block">
-              <div class="t">${safe(ch.title||'Capítulo')}</div>
-              ${(ch.insights||[]).length ? `<ul>${(ch.insights||[]).slice(0,6).map(i=>`<li>${safe(i)}</li>`).join('')}</ul>` : ``}
-              ${(ch.paragraphs||[]).length ? `<div class="p">${safe((ch.paragraphs||[]).slice(0,2).join('\n\n'))}</div>` : ``}
-            </div>
-          `).join('')}
-        </div>
-      </section>
-    ` : `
-      <section class="card">
-        <div class="h">
-          <div class="k">📊 Dados do Estudo</div>
-          <div class="s">Não incluído (sem texto colado / sem extração).</div>
-        </div>
-      </section>
-    `;
-
-    const execOnly = forceExec === true;
-
-    return `<!doctype html>
-<html lang="pt-PT">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>${safe('Relatório — ' + (cliente.nome||'Cliente'))}</title>
-<style>
-  :root{ --gold:#A38B63; --ink:#101114; --mut:#4b5563; --bg:#f6f7fb; --card:#ffffff; --line:#e6e7ee; }
-  *{ box-sizing:border-box; }
-  body{ margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:var(--bg); color:var(--ink); }
-  .page{ max-width:900px; margin:0 auto; padding:28px 26px 40px; }
-  .top{ display:flex; justify-content:space-between; gap:14px; align-items:flex-start; }
-  .brand{ font-weight:900; letter-spacing:.08em; text-transform:uppercase; color:var(--gold); font-size:12px; }
-  .title{ margin:10px 0 0; font-size:28px; letter-spacing:.2px; }
-  .sub{ margin:6px 0 0; color:var(--mut); font-size:13px; }
-  .bar{ height:3px; background:linear-gradient(90deg, var(--gold), rgba(163,139,99,.15)); margin:18px 0 18px; border-radius:6px; }
-  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  .card{ border:1px solid var(--line); background:var(--card); border-radius:14px; overflow:hidden; }
-  .card .h{ padding:12px 14px; border-bottom:1px solid var(--line); }
-  .card .h .k{ font-weight:800; }
-  .card .h .s{ color:var(--mut); font-size:12px; margin-top:2px; }
-  .card .b{ padding:12px 14px; }
-  .kv{ display:grid; grid-template-columns:150px 1fr; gap:8px; font-size:13px; padding:8px 0; border-bottom:1px dashed var(--line); }
-  .kv:last-child{ border-bottom:0; }
-  .kv b{ color:var(--mut); font-weight:700; }
-  .chips{ display:flex; flex-wrap:wrap; gap:6px; margin:0 0 10px; }
-  .chip{ border:1px solid var(--line); border-radius:999px; padding:5px 9px; font-size:11px; color:var(--mut); background:#fff; }
-  .chip em{ font-style:normal; color:var(--ink); font-weight:700; margin-left:6px; }
-  .block{ border-top:1px dashed var(--line); padding-top:10px; margin-top:10px; }
-  .block:first-child{ border-top:0; padding-top:0; margin-top:0; }
-  .block .t{ font-weight:800; margin-bottom:6px; }
-  ul{ margin:0 0 8px 18px; }
-  li{ margin:0 0 6px; }
-  .p{ white-space:pre-wrap; color:var(--mut); font-size:12px; line-height:1.45; }
-  .secTitle{ font-size:14px; font-weight:900; margin:18px 0 10px; }
-  .txt{ white-space:pre-wrap; font-size:13px; line-height:1.55; color:var(--ink); }
-  .mut{ color:var(--mut); font-size:12px; }
-  .footer{ margin-top:18px; color:var(--mut); font-size:11px; display:flex; justify-content:space-between; gap:10px; }
-  @media print{
-    body{ background:#fff; }
-    .page{ max-width:none; margin:0; padding:18mm 16mm; }
-    .card{ break-inside:avoid; }
-    .footer{ position:fixed; bottom:10mm; left:16mm; right:16mm; }
-  }
-</style>
-</head>
-<body>
-  <div class="page">
-    <div class="top">
-      <div>
-        <div class="brand">Garvetur Luxury Porto</div>
-        <div class="title">Relatório para Cliente</div>
-        <div class="sub">${safe(cliente.nome||'—')} · ${safe(zona)} · ${safe(tip)}</div>
-      </div>
-      <div class="mut" style="text-align:right">
-        <div><b>Data:</b> ${safe(dateStr)}</div>
-        <div><b>Consultor:</b> ${safe(report?.meta?.consultorNome || report?.consultor?.nome || '—')}</div>
-      </div>
-    </div>
-    <div class="bar"></div>
-
-    <div class="grid">
-      <section class="card">
-        <div class="h"><div class="k">Cliente</div><div class="s">Identificação e enquadramento</div></div>
-        <div class="b">
-          <div class="kv"><b>Nome</b><span>${safe(cliente.nome||'—')}</span></div>
-          <div class="kv"><b>Email</b><span>${safe(cliente.email||'—')}</span></div>
-          <div class="kv"><b>Telefone</b><span>${safe(cliente.telefone||'—')}</span></div>
-          <div class="kv"><b>Perfil</b><span>${safe(obj.perfil||'—')}</span></div>
-          <div class="kv"><b>Horizonte</b><span>${safe(obj.horizonte||'—')}</span></div>
-          <div class="kv"><b>Risco</b><span>${safe(obj.risco||'—')}</span></div>
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="h"><div class="k">Ativo / Zona</div><div class="s">Foco de análise</div></div>
-        <div class="b">
-          <div class="kv"><b>Zona</b><span>${safe(zona)}</span></div>
-          <div class="kv"><b>Tipologia</b><span>${safe(tip)}</span></div>
-          <div class="kv"><b>Preço ref.</b><span>${safe(ativo.mode==='zona' ? (ativo.zona?.preco||'—') : (ativo.imovel?.preco||'—'))}</span></div>
-          <div class="kv"><b>Observações</b><span>${safe(ativo.mode==='zona' ? (ativo.zona?.obs||'—') : (ativo.imovel?.obs||'—'))}</span></div>
-        </div>
-      </section>
-    </div>
-
-    ${execOnly ? '' : studyHtml}
-
-    <div class="secTitle">🧠 Leitura Garvetur</div>
-    <section class="card">
-      <div class="h"><div class="k">Análise</div><div class="s">Posicionamento profissional (formal / executivo)</div></div>
-      <div class="b"><div class="txt">${safe(rec.texto||rec.analise||'—')}</div></div>
-    </section>
-
-    <div class="secTitle">🎯 Recomendação Final</div>
-    <section class="card">
-      <div class="h"><div class="k">Decisão sugerida</div><div class="s">Clara, orientada a próximos passos</div></div>
-      <div class="b">
-        <div class="txt">${safe(report?.final?.texto || report?.final?.recomendacao || report?.rRecomend || report?.recomendacaoFinal || '—')}</div>
-        <div class="mut" style="margin-top:10px"><b>CTA:</b> ${safe(report?.final?.cta || report?.rCTA || 'Agendar próxima reunião / visitas e validação financeira.')}</div>
-      </div>
-    </section>
-
-    <div class="footer">
-      <div>Garvetur Luxury Porto · Documento cliente-ready</div>
-      <div>${safe(dateStr)}</div>
-    </div>
-  </div>
-</body>
-</html>`;
-  }
-
   pdfModalClose?.addEventListener('click', closePdfModal);
   pdfModal?.addEventListener('click', (e)=>{ if(e.target === pdfModal) closePdfModal(); });
   window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closePdfModal(); });
@@ -3012,9 +2843,9 @@ function tryAutoImport(){
       pdfModal.setAttribute('aria-hidden','false');
 
       // preparar botão download
-      pdfModalDownload.textContent = 'Download';
       pdfModalDownload.onclick = ()=> openPdf(pdfId, true);
-      return;
+      
+      pdfModalDownload.textContent = 'Download';return;
     }
 
     // fallback: tentar nova aba sem await (melhor tolerância a bloqueios)
@@ -3283,7 +3114,7 @@ async function removePdf(pdfId){
       </html>
     `;
 
-    printHTMLInFrame(html);
+    return html;
   }
 
   /* ===========================
@@ -3351,18 +3182,14 @@ async function removePdf(pdfId){
   =========================== */
   btnBuildPdf?.addEventListener('click', ()=>{
     const r = saveDraft();
-    try{
-      const html = buildPremiumReportHTML(r, false);
-      openReportPreview(html, `Relatório — ${r?.cliente?.nome||'Cliente'}`);
-    }catch(err){
-      console.error(err);
-      exportReportToPrintPDF(r, false); // fallback estável
-    }
+    const html = exportReportToPrintPDF(r, false);
+    openReportPreview(html, `Relatório — ${r?.cliente?.nome || 'Cliente'}`);
   });
 
   btnBuildExec?.addEventListener('click', ()=>{
     const r = saveDraft();
-    exportReportToPrintPDF(r, true);
+    const html = exportReportToPrintPDF(r, true);
+    openReportPreview(html, `Relatório Executivo — ${r?.cliente?.nome || 'Cliente'}`);
   });
 
   btnDuplicate?.addEventListener('click', ()=>{
