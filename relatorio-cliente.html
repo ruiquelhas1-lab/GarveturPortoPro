@@ -870,7 +870,8 @@
                       <label for="aFonte">Fonte do ativo</label>
                       <select id="aFonte">
                         <option>Mapa</option>
-                        <option>Angariações</option>
+                                                <option>Leads</option>
+<option>Angariações</option>
                         <option>FSBO</option>
                         <option>Manual</option>
                       </select>
@@ -1107,6 +1108,15 @@
     phone:  ['telemovel', 'telemóvel', 'telefone', 'tel', 'phone', 'mobile', 'contactoTel', 'contactTel', 'whatsapp', 'telProp', 'telefoneProp', 'telemovelProp', 'telemóvelProp', 'ownerPhone', 'ownerMobile', 'contactPhone', 'contactMobile', 'clienteTel', 'clienteTelefone'],
     email:  ['email', 'e-mail', 'mail', 'contactoEmail', 'contactEmail', 'emailProp', 'ownerEmail', 'clienteEmail']
   };
+  const ASSET_FIELD_MAP = {
+    zona: ['zona','localizacao','localização','area','área','bairro','district','concelho','freguesia','cidade','city','location','morada','endereco','endereço','address'],
+    tipologia: ['tipologia','typology','tipo','tipoImovel','tipoImóvel','tipo_imovel','quartos','bedrooms','tipologiasEmp','tipologias'],
+    preco: ['preco','preço','valor','price','precoPedido','preco_pedido','precoAnuncio','preco_anuncio','asking','askingPrice','valorPedido','valor_pedido'],
+    obs: ['obs','observacoes','observações','notas','notes','descricao','descrição','comentarios','comentários','remarks','observacao','observação','obsInternas','obsCliente'],
+    ref: ['ref','referencia','referência','id','codigo','código','code','reference','refInterna'],
+    titulo: ['titulo','título','nomeImovel','nomeEmp','tituloImovel','title','empreendimento','imovel','imóvel','nome','designacao','designação']
+  };
+
 
   function onlyDigits(s){ return (s||'').toString().replace(/\D+/g,''); }
   function normEmail(s){ return (s||'').toString().trim().toLowerCase(); }
@@ -1154,6 +1164,36 @@
     const finalPhone = (tel || tel2 || '').trim();
     const finalEmail = (mail || mail2 || '').trim();
 
+    // tenta extrair campos de ativo (zona/tipologia/preço/obs) quando existirem
+    const zona1 = pickFirstString(obj, ASSET_FIELD_MAP.zona);
+    const tip1  = pickFirstString(obj, ASSET_FIELD_MAP.tipologia);
+    const preco1= pickFirstString(obj, ASSET_FIELD_MAP.preco);
+    const obs1  = pickFirstString(obj, ASSET_FIELD_MAP.obs);
+    const ref1  = pickFirstString(obj, ASSET_FIELD_MAP.ref);
+    const tit1  = pickFirstString(obj, ASSET_FIELD_MAP.titulo);
+
+    let zona2='', tip2='', preco2='', obs2='', ref2='', tit2='';
+    for(const s of subCandidates){
+      const sub = obj[s];
+      if(sub && typeof sub === 'object'){
+        zona2 = zona2 || pickFirstString(sub, ASSET_FIELD_MAP.zona);
+        tip2  = tip2  || pickFirstString(sub, ASSET_FIELD_MAP.tipologia);
+        preco2= preco2|| pickFirstString(sub, ASSET_FIELD_MAP.preco);
+        obs2  = obs2  || pickFirstString(sub, ASSET_FIELD_MAP.obs);
+        ref2  = ref2  || pickFirstString(sub, ASSET_FIELD_MAP.ref);
+        tit2  = tit2  || pickFirstString(sub, ASSET_FIELD_MAP.titulo);
+      }
+    }
+
+    const asset = {
+      zona: (zona1 || zona2 || '').trim(),
+      tipologia: (tip1 || tip2 || '').trim(),
+      preco: (preco1 || preco2 || '').trim(),
+      obs: (obs1 || obs2 || '').trim(),
+      ref: (ref1 || ref2 || '').trim(),
+      titulo: (tit1 || tit2 || '').trim()
+    };
+
     if(!finalName && !finalPhone && !finalEmail) return null;
 
     return {
@@ -1164,6 +1204,7 @@
       phone: onlyDigits(finalPhone),
       email: normEmail(finalEmail),
       sourceKey: sourceKey || '',
+      asset,
       // campos extra úteis (se existirem)
       notes: pickFirstString(obj, ['notas','notes','obs','observacoes','observações','descricao','descrição','comentarios','comentários']) || ''
     };
@@ -1596,6 +1637,23 @@
     btnPrev.disabled = false;
     btnPrev.textContent = (currentStep === 1) ? 'Voltar' : 'Anterior';
     btnNext.textContent = (currentStep === 5) ? 'Concluir' : 'Seguinte';
+
+    // ao entrar no Passo 3, tentar carregar dados do ativo a partir do histórico (se ainda vazio)
+    if(currentStep === 3){
+      try{
+        const emptyAsset = (!normStr(aZona?.value) && !normStr(aTipologia?.value) && !normStr(aPreco?.value) && !normStr(aObs?.value));
+        if(emptyAsset){
+          // se ainda estiver em Manual/Mapa e o cliente já foi reconhecido, assumir a fonte mais provável
+          if(aFonte && ['Manual','Mapa',''].includes(normStr(aFonte.value))){
+            const r0 = (ACTIVE_REPORT_ID ? getReport(ACTIVE_REPORT_ID) : null);
+            const src0 = r0?.cliente?.importedFrom?.source || '';
+            if(['Angariações','FSBO','Leads'].includes(src0)) aFonte.value = src0;
+          }
+          // tentar preencher (se houver correspondência em qualquer módulo)
+          tryAutoFillAssetFromModules();
+        }
+      }catch(e){}
+    }
   }
 
   function getSelectedAssetMode(){
@@ -1768,7 +1826,143 @@
   }
 
   
-  function tryAutoImport(){
+    /* ===========================
+     Auto-fill Ativo/Zona a partir do registo reconhecido
+     - Preenche apenas se os campos estiverem vazios
+     - Tenta também definir a fonte automaticamente (Angariações | FSBO | Leads)
+  =========================== */
+  function applyAssetFromHit(hit){
+    if(!hit || !hit.asset) return false;
+
+    // fonte automática (apenas se ainda não estiver definida numa fonte explícita)
+    try{
+      const src = sourceLabelFromKey(hit.sourceKey);
+      if(aFonte && src && (normStr(aFonte.value)==='' || ['Manual','Mapa'].includes(normStr(aFonte.value)))){
+        if(['Angariações','FSBO','Leads'].includes(src)) aFonte.value = src;
+      }
+    }catch(e){}
+
+    let changed = false;
+    const zona = (hit.asset.zona || '').trim();
+    const tip  = (hit.asset.tipologia || '').trim();
+    const preco= (hit.asset.preco || '').trim();
+    const obs  = (hit.asset.obs || '').trim();
+    const titulo = (hit.asset.titulo || '').trim();
+    const ref = (hit.asset.ref || '').trim();
+
+    if(aZona && !normStr(aZona.value) && zona){ aZona.value = zona; changed = true; }
+    if(aTipologia && !normStr(aTipologia.value) && tip){ aTipologia.value = tip; changed = true; }
+    if(aPreco && !normStr(aPreco.value) && preco){ aPreco.value = preco; changed = true; }
+    if(aObs && !normStr(aObs.value) && obs){ aObs.value = obs; changed = true; }
+
+    // se houver título/ref e aSearch estiver vazio, preenche como contexto
+    if(aSearch && !normStr(aSearch.value)){
+      const ctx = [ref, titulo].filter(Boolean).join(' · ').trim();
+      if(ctx){ aSearch.value = ctx; changed = true; }
+    }
+
+    if(changed && typeof scheduleAutosave === 'function') scheduleAutosave();
+    return changed;
+  }
+
+  function findAssetCandidatesBySource(sourceLabel, query){
+    const idx = scanLocalStorageForContacts();
+    const src = (sourceLabel || '').toLowerCase();
+
+    // filtra por fonte (se definida) e por existência de dados de ativo
+    let list = idx.filter(c=>{
+      const lab = sourceLabelFromKey(c.sourceKey).toLowerCase();
+      const okSrc = !src || lab === src;
+      const hasAsset = c.asset && (c.asset.zona || c.asset.tipologia || c.asset.preco || c.asset.obs || c.asset.titulo || c.asset.ref);
+      return okSrc && hasAsset;
+    });
+
+    // restringe por cliente (nome/tel/email) com a mesma prioridade
+    const hit = findContactPriority(query);
+    if(hit){
+      const n = hit.name, p = hit.phone, e = hit.email;
+      list = list.filter(c=>{
+        if(n && c.name && c.name===n) return true;
+        if(p && c.phone && (c.phone===p || c.phone.endsWith(p) || p.endsWith(c.phone))) return true;
+        if(e && c.email && c.email===e) return true;
+        return false;
+      });
+    }
+
+    // se houver texto em aSearch, tenta filtrar por referência/título/zona
+    const qtxt = normStr(aSearch?.value || '');
+    if(qtxt){
+      const qn = normName(qtxt);
+      const qd = (qtxt||'').toString().replace(/\D/g,'');
+      const qe = normEmail(qtxt);
+      list = list.filter(c=>{
+        const hay = [c.asset?.ref, c.asset?.titulo, c.asset?.zona, c.asset?.tipologia, c.asset?.preco, c.asset?.obs].filter(Boolean).join(' ');
+        const hn = normName(hay);
+        if(qd && hay.replace(/\D/g,'').includes(qd)) return true;
+        if(qe && hay.toLowerCase().includes(qe)) return true;
+        return hn.includes(qn);
+      });
+    }
+
+    // ordena por completude
+    const score = (c)=>(c.asset?.zona?2:0)+(c.asset?.tipologia?2:0)+(c.asset?.preco?2:0)+(c.asset?.obs?1:0)+(c.asset?.titulo?1:0)+(c.asset?.ref?1:0);
+    return list.sort((a,b)=>score(b)-score(a)).slice(0,20);
+  }
+
+  function showAssetChooser(matches){
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:9999;display:flex;align-items:center;justify-content:center;padding:14px;';
+    wrap.innerHTML = `
+      <div style="background:#0f0f0f;border:1px solid rgba(163,139,99,.35);border-radius:16px;max-width:720px;width:100%;padding:14px;box-shadow:0 18px 40px rgba(0,0,0,.6)">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
+          <div style="font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#A38B63;font-size:12px">Selecionar Ativo</div>
+          <button class="btn secondary" id="assetChooserClose">Fechar</button>
+        </div>
+        <div style="margin-top:10px;max-height:60vh;overflow:auto;border-top:1px solid rgba(255,255,255,.08)">
+          ${matches.map((m,i)=>`
+            <div data-i="${i}" style="padding:10px 6px;border-bottom:1px solid rgba(255,255,255,.08);cursor:pointer">
+              <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+                <div><strong>${htmlEscape(m.asset?.titulo || m.asset?.ref || 'Ativo')}</strong></div>
+                <div style="color:rgba(255,255,255,.65);font-size:12px">${htmlEscape(sourceLabelFromKey(m.sourceKey))}</div>
+              </div>
+              <div style="margin-top:4px;color:rgba(255,255,255,.75);font-size:12px">
+                ${htmlEscape(m.asset?.zona || '—')}${m.asset?.tipologia ? (' · ' + htmlEscape(m.asset.tipologia)) : ''}${m.asset?.preco ? (' · ' + htmlEscape(m.asset.preco)) : ''}
+              </div>
+              ${m.asset?.obs ? `<div style="margin-top:4px;color:rgba(255,255,255,.55);font-size:11px">${htmlEscape(m.asset.obs).slice(0,220)}</div>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+    document.body.appendChild(wrap);
+
+    wrap.addEventListener('click', (e)=>{
+      if(e.target && e.target.id==='assetChooserClose'){ wrap.remove(); return; }
+      const row = e.target.closest('[data-i]');
+      if(!row) return;
+      const i = Number(row.dataset.i);
+      const chosen = matches[i];
+      applyAssetFromHit(chosen);
+      wrap.remove();
+    });
+  }
+
+  function tryAutoFillAssetFromModules(){
+    const src = normStr(aFonte?.value || '');
+    const query = { name: normStr(cNome?.value), phone: normStr(cTel?.value), email: normStr(cEmail?.value) };
+
+    const useSrc = (['Angariações','FSBO','Leads'].includes(src)) ? src : '';
+    const matches = findAssetCandidatesBySource(useSrc, query);
+
+    if(!matches.length) return false;
+    if(matches.length === 1){
+      return applyAssetFromHit(matches[0]);
+    }
+    showAssetChooser(matches);
+    return true;
+  }
+
+function tryAutoImport(){
     const nome = cNome.value;
     const tel  = cTel.value;
     const email = cEmail.value;
@@ -1831,7 +2025,10 @@
       cNotas.value = (notes ? (notes + '\n') : '') + stamp;
     }
 
-    // guardar estado “importado de”
+        // tentar autopreencher campos do Passo 3 (ativo/zona) a partir do mesmo registo
+    try{ applyAssetFromHit(found.raw); }catch(e){}
+
+// guardar estado “importado de”
     const r = saveDraftSilent();
     r.cliente.importedFrom = { source: found.source, matchBy, at: todayISO(), sourceKey: found.sourceKey, sourceId: found.id };
     upsertReport(r);
@@ -2292,6 +2489,16 @@
   renderList();
   // liga auto-importação com módulos existentes (FSBO | Leads | Angariações)
   try{ initCrossModuleImport(); }catch(e){ console.warn('Auto-import indisponível', e); }
+
+  // Auto-preencher dados do Ativo/Zona quando o cliente já foi reconhecido
+  aFonte?.addEventListener('change', ()=>{
+    if(['Manual','Mapa'].includes(normStr(aFonte.value))) return;
+    tryAutoFillAssetFromModules();
+  });
+  aSearch?.addEventListener('blur', ()=>{
+    if(['Angariações','FSBO','Leads'].includes(normStr(aFonte?.value))) tryAutoFillAssetFromModules();
+  });
+
 
 })();
 </script>
