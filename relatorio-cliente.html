@@ -2078,29 +2078,81 @@
   }
 
 function tryAutoImport(){
-    const nome = cNome.value;
-    const tel  = cTel.value;
-    const email = cEmail.value;
+  const nome = cNome.value;
+  const tel  = cTel.value;
+  const email = cEmail.value;
 
-    const matches = findContactsPriorityList({ name: nome, phone: tel, email }, 8);
-    if(!matches.length){
-      return false;
+  const matches = findContactsPriorityList({ name: nome, phone: tel, email }, 8);
+  if(!matches.length){
+    return false;
+  }
+
+  const applyPick = (pick)=>{
+    const found = {
+      nome: pick.nameRaw || '',
+      tel: pick.phoneRaw || '',
+      email: pick.emailRaw || '',
+      sourceKey: pick.sourceKey || '',
+      source: sourceLabelFromKey(pick.sourceKey),
+      raw: pick,
+      id: null
+    };
+
+    // evitar sobre-escrita agressiva: só preenche campos vazios
+    const current = collectForm();
+    const before = {
+      nome: current.cliente.nome,
+      tel: current.cliente.tel,
+      email: current.cliente.email,
+      tipo: current.cliente.tipo
+    };
+
+    const fNome  = normStr(found.nome);
+    const fTel   = normStr(found.tel);
+    const fEmail = normStr(found.email);
+
+    // inferência do campo que deu match
+    let matchBy = 'nome';
+    if(email && fEmail && normEmail(email) === normEmail(fEmail)) matchBy = 'email';
+    else if(tel && fTel && normPhone(tel) === normPhone(fTel)) matchBy = 'telemóvel';
+    else if(nome && fNome) matchBy = 'nome';
+
+    if(!before.nome && fNome) cNome.value = fNome;
+    if(!before.tel && fTel) cTel.value = fTel;
+    if(!before.email && fEmail) cEmail.value = fEmail;
+
+    // tipo: só se ainda não foi selecionado
+    if(!before.tipo){
+      const suggested = suggestTipoFromSource(found.source, found.raw);
+      if(suggested) cTipo.value = suggested;
     }
 
-    const applyPick = (pick)=>{
-      const found = {
-        nome: pick.nameRaw || '',
-        tel: pick.phoneRaw || '',
-        email: pick.emailRaw || '',
-        sourceKey: pick.sourceKey || '',
-        source: sourceLabelFromKey(pick.sourceKey),
-        raw: pick,
-        id: null
-      };
+    // notas: acrescentar linha, sem duplicar
+    const stamp = `[Importado de ${found.source} · match: ${matchBy} · ${toPTDate(todayISO())}]`;
+    const notes = (cNotas.value || '').trim();
+    if(!notes.includes(stamp)){
+      cNotas.value = (notes ? (notes + '\n') : '') + stamp;
+    }
 
-    showContactChooser(matches, applyPick);
+    // tentar autopreencher Passo 3 (ativo/zona) a partir do mesmo registo
+    try{ applyAssetFromHit(found.raw); }catch(e){}
+
+    // guardar estado “importado de”
+    const r = saveDraftSilent();
+    r.cliente.importedFrom = { source: found.source, matchBy, at: todayISO(), sourceKey: found.sourceKey, sourceId: found.id };
+    upsertReport(r);
+    setAutoImportUI(r.cliente.importedFrom);
+  };
+
+  // Se houver 1 match, aplica direto; se houver vários, abre chooser
+  if(matches.length === 1){
+    applyPick(matches[0]);
     return true;
   }
+
+  showContactChooser(matches, applyPick);
+  return true;
+}
 
 
     // evitar “sobre-escrita agressiva”: só preenche campos vazios (exceto o que o utilizador está a introduzir)
