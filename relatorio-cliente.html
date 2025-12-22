@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -3080,48 +3081,51 @@ async function removePdf(pdfId){
   /* ===========================
      List Actions + Export
   =========================== */
+  if(reportsTbody){
   reportsTbody.addEventListener('click', async (e)=>{
-    const btn = e.target.closest('button[data-act]');
-    if(!btn) return;
-    const act = btn.dataset.act;
-    const id = btn.dataset.id;
+      const btn = e.target.closest('button[data-act]');
+      if(!btn) return;
+      const act = btn.dataset.act;
+      const id = btn.dataset.id;
+  
+      if(act==='open'){
+        const r = getReport(id);
+        if(!r) return;
+        fillForm(r);
+        setTab('wizard');
+        setStep(1);
+        return;
+      }
+  
+      if(act==='duplicate'){
+        const r = getReport(id);
+        if(!r) return;
+        const copy = JSON.parse(JSON.stringify(r));
+        copy.id = uid('rpt');
+        copy.createdAt = todayISO();
+        copy.updatedAt = todayISO();
+        copy.status = 'draft';
+        upsertReport(copy);
+        renderList();
+        return;
+      }
+  
+      if(act==='delete'){
+        if(!confirm('Remover este relatório? (esta ação não pode ser desfeita)')) return;
+        deleteReport(id);
+        renderList();
+        return;
+      }
+  
+      if(act==='export'){
+        const r = getReport(id);
+        if(!r) return;
+        exportReportToPrintPDF(r, false);
+        return;
+      }
+    });
+}
 
-    if(act==='open'){
-      const r = getReport(id);
-      if(!r) return;
-      fillForm(r);
-      setTab('wizard');
-      setStep(1);
-      return;
-    }
-
-    if(act==='duplicate'){
-      const r = getReport(id);
-      if(!r) return;
-      const copy = JSON.parse(JSON.stringify(r));
-      copy.id = uid('rpt');
-      copy.createdAt = todayISO();
-      copy.updatedAt = todayISO();
-      copy.status = 'draft';
-      upsertReport(copy);
-      renderList();
-      return;
-    }
-
-    if(act==='delete'){
-      if(!confirm('Remover este relatório? (esta ação não pode ser desfeita)')) return;
-      deleteReport(id);
-      renderList();
-      return;
-    }
-
-    if(act==='export'){
-      const r = getReport(id);
-      if(!r) return;
-      exportReportToPrintPDF(r, false);
-      return;
-    }
-  });
 
   btnApply?.addEventListener('click', renderList);
   btnClear?.addEventListener('click', ()=>{
@@ -3164,7 +3168,11 @@ async function removePdf(pdfId){
      Tabs + init
   =========================== */
   tabList?.addEventListener('click', ()=>setTab('list'));
-  tabWizard?.addEventListener('click', ()=>setTab('wizard'));
+  tabWizard?.addEventListener('click', ()=>{
+    setTab('wizard');
+    // inicializar importação cruzada apenas quando entra no wizard (evita bloqueios na lista)
+    try{ initCrossModuleImport(); }catch(e){ console.warn('Auto-import indisponível', e); }
+  });
 
   // Toggle imovel vs zona
   const assetImovel = el('assetImovel');
@@ -3172,28 +3180,24 @@ async function removePdf(pdfId){
   Array.from(document.querySelectorAll('input[name="assetMode"]')).forEach(r=>{
     r.addEventListener('change', ()=>{
       const v = document.querySelector('input[name="assetMode"]:checked')?.value;
-      assetImovel.classList.toggle('hidden', v !== 'imovel');
-      assetZona.classList.toggle('hidden', v !== 'zona');
+      if(assetImovel) assetImovel.classList.toggle('hidden', v !== 'imovel');
+      if(assetZona) assetZona.classList.toggle('hidden', v !== 'zona');
     });
   });
 
-  setTab('list');
-  setStep(1);
-  renderList();
-  // liga auto-importação com módulos existentes (FSBO | Leads | Angariações)
-  try{ initCrossModuleImport(); }catch(e){ console.warn('Auto-import indisponível', e); }
-  // Fase 2: anexar PDFs ao relatório
-  try{ initPdfPhase2(); }catch(e){ console.warn('PDFs indisponíveis', e); }
+  function safeInit(){
+    try{
+      setTab('list');
+      setStep(1);
+      renderList();
+      // NÃO iniciar scan localStorage aqui; só quando necessário (wizard/passo 1)
+    }catch(err){
+      console.error('Falha no arranque do módulo:', err);
+      alert('O módulo iniciou com erro. Abra a Consola (F12) para ver o detalhe e partilhe o erro.');
+    }
+  }
 
-  // Auto-preencher dados do Ativo/Zona quando o cliente já foi reconhecido
-  aFonte?.addEventListener('change', ()=>{
-    if(['Manual','Mapa'].includes(normStr(aFonte.value))) return;
-    tryAutoFillAssetFromModules();
-  });
-  aSearch?.addEventListener('blur', ()=>{
-    if(['Angariações','FSBO','Leads'].includes(normStr(aFonte?.value))) tryAutoFillAssetFromModules();
-  });
-
+  safeInit();
 
 })();</script>
 </body>
