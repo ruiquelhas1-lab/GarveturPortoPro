@@ -1250,7 +1250,11 @@
     const mail = pickFirstString(obj, CONTACT_FIELD_MAP.email);
 
     // também tenta dentro de subobjetos típicos
-    const subCandidates = ['cliente','contacto','contato','owner','proprietario','proprietário','lead','dados','pessoa','person','empresa'];
+    const subCandidates = [
+  'cliente','contacto','contato','owner','proprietario','proprietário','lead','dados','pessoa','person','empresa',
+  // IMPORTANTES p/ FSBO / anúncios:
+  'kit','anuncio','anúncio','imovel','imóvel','ativo','asset','property'
+];
     let nome2='', tel2='', mail2='';
     for(const s of subCandidates){
       const sub = obj[s];
