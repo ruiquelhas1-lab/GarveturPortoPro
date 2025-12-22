@@ -2120,11 +2120,11 @@ function tryAutoImport(){
     if(!before.tel && fTel) cTel.value = fTel;
     if(!before.email && fEmail) cEmail.value = fEmail;
 
-    // tipo: só se ainda não foi selecionado
-    if(!before.tipo){
-      const suggested = suggestTipoFromSource(found.source, found.raw);
-      if(suggested) cTipo.value = suggested;
-    }
+   // tipo: só se ainda não foi selecionado (e apenas se a função existir)
+if(!before.tipo && typeof suggestTipoFromSource === 'function'){
+  const suggested = suggestTipoFromSource(found.source, found.raw);
+  if(suggested) cTipo.value = suggested;
+}
 
     // notas: acrescentar linha, sem duplicar
     const stamp = `[Importado de ${found.source} · match: ${matchBy} · ${toPTDate(todayISO())}]`;
