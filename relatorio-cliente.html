@@ -1512,23 +1512,6 @@ function showContactChooser(matches, onPick){
   });
 }
 
-
-    // 2) Telefone
-    if(phoneN && phoneN.length >= 7){
-      const byPhone = idx.filter(c=>c.phone && (c.phone === phoneN || c.phone.endsWith(phoneN) || phoneN.endsWith(c.phone)));
-      if(byPhone.length) return pickBestByCompleteness(byPhone);
-    }
-
-    // 3) Email
-    if(emailN && emailN.includes('@')){
-      const byEmail = idx.filter(c=>c.email && c.email === emailN);
-      if(byEmail.length) return pickBestByCompleteness(byEmail);
-    }
-
-    return null;
-  }
-
-
   function sourceLabelFromKey(k){
     const s = (k||'').toLowerCase();
     if(s.includes('fsbo') || s.includes('particul')) return 'FSBO';
