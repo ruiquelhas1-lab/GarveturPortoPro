@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -2648,40 +2647,79 @@ function tryAutoImport(){
   const btnClearInsights = el('btnClearInsights');
 
   async function ensurePdfJs(){
-    // Já carregado?
-    if(window.pdfjsLib && window.pdfjsLib.getDocument) return true;
+    // 1) já disponível (diferentes builds expõem nomes diferentes)
+    const getGlobal = ()=>(
+      window.pdfjsLib ||
+      window['pdfjs-dist/build/pdf'] ||
+      window['pdfjs-dist/build/pdf.min'] ||
+      window.pdfjsDistBuildPdf ||
+      window.PDFJS
+    );
 
-    // Helper para carregar scripts de forma dinâmica (evita falhas silenciosas)
-    const loadScript = (src)=> new Promise((resolve, reject)=>{
-      const s = document.createElement('script');
-      s.src = src;
-      s.crossOrigin = 'anonymous';
-      s.onload = ()=> resolve(true);
-      s.onerror = ()=> reject(new Error('Falha ao carregar: ' + src));
-      document.head.appendChild(s);
-    });
+    const attachAndConfig = (lib)=>{
+      if(!lib) return null;
+      // normalizar para window.pdfjsLib (resto do código usa este nome)
+      if(!window.pdfjsLib) window.pdfjsLib = lib;
+      // worker (obrigatório para getDocument em alguns browsers)
+      try{
+        const w = window.pdfjsLib.GlobalWorkerOptions;
+        if(w && !w.workerSrc){
+          // tentar apontar para o mesmo CDN (se falhar, o pdf.js cai para modo sem worker em alguns casos)
+          w.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.js';
+        }
+      }catch(e){}
+      return window.pdfjsLib;
+    };
 
-    // Tenta CDNs mais estáveis primeiro
-    const candidates = [
-      { lib:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.js',
-        worker:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.js' },
-      { lib:'https://unpkg.com/pdfjs-dist@4.10.38/build/pdf.min.js',
-        worker:'https://unpkg.com/pdfjs-dist@4.10.38/build/pdf.worker.min.js' }
+    // já está carregado
+    const already = attachAndConfig(getGlobal());
+    if(already) return true;
+
+    // 2) evitar múltiplas cargas em paralelo
+    if(window.__gpp_pdfjs_loading_promise){
+      try{
+        await window.__gpp_pdfjs_loading_promise;
+      }catch(e){}
+      return !!attachAndConfig(getGlobal());
+    }
+
+    // 3) carregar dinamicamente (múltiplos CDNs)
+    const sources = [
+      // cdnjs costuma ser estável
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.js',
+      // jsdelivr como fallback
+      'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.js',
+      // unpkg como último recurso
+      'https://unpkg.com/pdfjs-dist@4.10.38/build/pdf.min.js'
     ];
 
-    for(const c of candidates){
-      try{
-        await loadScript(c.lib);
-        if(window.pdfjsLib && window.pdfjsLib.GlobalWorkerOptions){
-          window.pdfjsLib.GlobalWorkerOptions.workerSrc = c.worker;
+    window.__gpp_pdfjs_loading_promise = (async ()=>{
+      let ok = false;
+      for(const src of sources){
+        try{
+          await loadScript(src);
+          // dar um tick para o global ficar disponível
+          await new Promise(r=>setTimeout(r, 0));
+          const lib = attachAndConfig(getGlobal());
+          if(lib){
+            ok = true;
+            break;
+          }
+        }catch(e){
+          // tenta o próximo
         }
-        if(window.pdfjsLib && window.pdfjsLib.getDocument) return true;
-      }catch(e){
-        // continua para o próximo candidato
-        console.warn('[PDF.js] ', e);
       }
+      return ok;
+    })();
+
+    let res = false;
+    try{
+      res = await window.__gpp_pdfjs_loading_promise;
+    }finally{
+      // libertar referência (mas manter pdfjsLib em cache)
+      window.__gpp_pdfjs_loading_promise = null;
     }
-    return !!(window.pdfjsLib && window.pdfjsLib.getDocument);
+    return !!attachAndConfig(getGlobal()) && !!res;
   }
 
   function clampText(s, max=220){
