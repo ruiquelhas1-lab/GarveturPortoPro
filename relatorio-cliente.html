@@ -964,72 +964,84 @@
                 </div>
               </div>
 
-              <!-- STEP 4 (adiado) -->
-              <div id="step4" class="hidden">
+<!-- STEP 4 (adiado) -->
+<div id="step4" class="hidden">
 
-                <div class="drop" id="pdfDrop">
-                  <div class="d-left">
-                    <p class="d-title">PDF — Anexos do relatório</p>
-                    <p class="d-sub">
-                      Adicione PDFs (estudos, plantas, relatórios externos). Ficam ligados ao relatório e podem ser abertos/transferidos localmente.
-                      <br><span class="hint">Nota: os ficheiros são guardados no seu browser (sem servidor). Para ficheiros grandes, é usada uma base de dados local (IndexedDB).</span>
-                    </p>
-                  </div>
-                  <div class="d-actions">
-                    <input id="pdfInput" type="file" accept="application/pdf" multiple class="hidden" />
-                    <button class="btn primary" id="btnAddPdf">+ Adicionar PDF</button>
-                    <button class="btn secondary" id="btnClearPdfs">Limpar PDFs</button>
-                  </div>
-                </div>
+  <div class="drop" id="pdfDrop">
+    <div class="d-left">
+      <p class="d-title">PDF — Anexos do relatório</p>
+      <p class="d-sub">
+        Adicione PDFs (estudos, plantas, relatórios externos). Ficam ligados ao relatório e podem ser abertos/transferidos localmente.
+        <br><span class="hint">Nota: os ficheiros são guardados no seu browser (sem servidor). Para ficheiros grandes, é usada uma base de dados local (IndexedDB).</span>
+      </p>
+    </div>
+    <div class="d-actions">
+      <input id="pdfInput" type="file" accept="application/pdf" multiple class="hidden" />
+      <button class="btn primary" id="btnAddPdf">+ Adicionar PDF</button>
+      <button class="btn secondary" id="btnClearPdfs">Limpar PDFs</button>
+    </div>
+  </div>
 
-                <div class="files" id="pdfList" aria-label="Lista de PDFs" style="margin-top:12px">
-                  <!-- preenchido por JS -->
-                </div>
+  <div class="files" id="pdfList" aria-label="Lista de PDFs" style="margin-top:12px">
+    <!-- preenchido por JS -->
+  </div>
 
-                <div class="analysis" style="margin-top:12px">
-                  <div class="mini-card">
-                    <h5>Estado</h5>
-                    <div class="kv"><b>Anexos</b><span id="pdfCount">0</span></div>
-                    <div class="kv"><b>Armazenamento</b><span id="pdfStoreMode">—</span></div>
-                    <div class="kv"><b>Última ação</b><span id="pdfLastAction">—</span></div>
-                  </div>
-                  <div class="mini-card">
-                    <h5>Extração assistida</h5>
-                    <div class="hint">Sem PDF.js: cole aqui texto relevante do estudo (copiado do PDF) e o sistema estrutura em <strong>capítulos</strong>, <strong>insights</strong> e <strong>palavras‑chave</strong>, para integração direta no PDF final.</div>
-                    <div class="divider" style="margin:10px 0"></div>
-                    <div class="field" style="margin-bottom:8px">
-                      <label for="pdfAssistText">Texto do estudo (colar)</label>
-                      <textarea id="pdfAssistText" placeholder="Cole aqui texto do PDF (ex.: resumo, conclusões, indicadores, páginas relevantes)…"></textarea>
-                    </div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap">
-                      <button class="btn primary" id="btnAssistExtract">Estruturar (capítulos + insights)</button>
-                      <button class="btn secondary" id="btnAssistClear">Limpar</button>
-                    </div>
-                    <div id="assistStatus" class="hint" style="margin-top:8px">—</div>
-                  </div>
-                  <div class="mini-card">
-                    <h5>Boas práticas</h5>
-                    <div class="hint">Use PDFs com nomes claros (ex.: “Estudo_Mercado_Foz_2025.pdf”). Evite anexos duplicados para manter o relatório leve.</div>
-                  </div>
-                </div>
+  <div class="analysis" style="margin-top:12px">
+    <div class="mini-card">
+      <h5>Estado</h5>
+      <div class="kv"><b>Anexos</b><span id="pdfCount">0</span></div>
+      <div class="kv"><b>Armazenamento</b><span id="pdfStoreMode">—</span></div>
+      <div class="kv"><b>Última ação</b><span id="pdfLastAction">—</span></div>
+    </div>
 
-                <div class="panel" style="margin-top:12px" id="assistPreviewPanel">
-                  <div class="panel-head">
-                    <div class="title">
-                      <span style="display:inline-flex;width:26px;height:26px;border-radius:999px;border:1px solid var(--gold);align-items:center;justify-content:center;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
-                          <path d="M4 6h16M4 12h16M4 18h10" />
-                        </svg>
-                      </span>
-                      <span>Pré‑visualização da extração</span>
-                    </div>
-                    <div class="hint" style="margin:0">Guardado no relatório atual</div>
-                  </div>
-                                   <div class="panel-body">
-                    <div id="assistPreview" class="hint">Sem extração ainda. Cole texto e clique em <strong>Estruturar</strong>.</div>
-                  </div>
-                </div>
-              </div>
+    <div class="mini-card">
+      <h5>Extração assistida</h5>
+      <div class="hint">
+        Sem PDF.js: cole aqui texto relevante do estudo (copiado do PDF) e o sistema estrutura em
+        <strong>capítulos</strong>, <strong>insights</strong> e <strong>palavras-chave</strong>,
+        para integração direta no PDF final.
+      </div>
+      <div class="divider" style="margin:10px 0"></div>
+      <div class="field" style="margin-bottom:8px">
+        <label for="pdfAssistText">Texto do estudo (colar)</label>
+        <textarea id="pdfAssistText" placeholder="Cole aqui texto do PDF (ex.: resumo, conclusões, indicadores, páginas relevantes)…"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn primary" id="btnAssistExtract">Estruturar (capítulos + insights)</button>
+        <button class="btn secondary" id="btnAssistClear">Limpar</button>
+      </div>
+      <div id="assistStatus" class="hint" style="margin-top:8px">—</div>
+    </div>
+
+    <div class="mini-card">
+      <h5>Boas práticas</h5>
+      <div class="hint">
+        Use PDFs com nomes claros (ex.: “Estudo_Mercado_Foz_2025.pdf”). Evite anexos duplicados para manter o relatório leve.
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:12px" id="assistPreviewPanel">
+    <div class="panel-head">
+      <div class="title">
+        <span style="display:inline-flex;width:26px;height:26px;border-radius:999px;border:1px solid var(--gold);align-items:center;justify-content:center;">
+          <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
+            <path d="M4 6h16M4 12h16M4 18h10" />
+          </svg>
+        </span>
+        <span>Pré-visualização da extração</span>
+      </div>
+      <div class="hint" style="margin:0">Guardado no relatório atual</div>
+    </div>
+
+    <div class="panel-body">
+      <div id="assistPreview" class="hint">
+        Sem extração ainda. Cole texto e clique em <strong>Estruturar</strong>.
+      </div>
+    </div>
+  </div>
+
+</div>
 
               <!-- STEP 5 -->
               <div id="step5" class="hidden">
