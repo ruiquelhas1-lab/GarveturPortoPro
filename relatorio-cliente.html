@@ -1740,6 +1740,11 @@ function showContactChooser(matches, onPick){
       5:'Passo 5 — Construção do Relatório'
     };
     stepTitle.textContent = titles[currentStep] || 'Passo';
+    // inicializar PDFs quando entra no passo 4 (1x)
+if(currentStep === 4 && !PDF_READY){
+  PDF_READY = true;
+  try{ initPdfPhase2(); }catch(e){ console.warn('PDF init falhou', e); }
+}
     btnPrev.disabled = false;
     btnPrev.textContent = (currentStep === 1) ? 'Voltar' : 'Anterior';
     btnNext.textContent = (currentStep === 5) ? 'Concluir' : 'Seguinte';
