@@ -1404,97 +1404,113 @@
     return list.slice().sort((a,b)=>score(b)-score(a))[0] || null;
   }
 
-  function findContactPriority({name, phone, email}){
-    const idx = scanLocalStorageForContacts();
+function findContactPriority({name, phone, email}){
+  const idx = scanLocalStorageForContacts();
 
-    const nameN = normName(name);
-    const phoneN = onlyDigits(phone);
-    const emailN = normEmail(email);
+  const nameN  = normName(name);
+  const phoneN = onlyDigits(phone);
+  const emailN = normEmail(email);
 
-    // 1) Nome
-    if(nameN && nameN.length >= 3){
-      const exact = idx.filter(c=>c.name && c.name === nameN);
-      if(exact.length) return pickBestByCompleteness(exact);
+  // 1) Nome
+  if(nameN && nameN.length >= 3){
+    const exact = idx.filter(c=>c.name && c.name === nameN);
+    if(exact.length) return pickBestByCompleteness(exact);
 
-      const includes = idx.filter(c=>c.name && (c.name.includes(nameN) || nameN.includes(c.name)));
-      if(includes.length) return pickBestByCompleteness(includes);
-    }
-
-  // Lista de correspondências (para escolha quando existir ambiguidade)
-  function findContactsPriorityList({name, phone, email}, maxResults=8){
-    const idx = scanLocalStorageForContacts();
-    const nameN = normName(name);
-    const phoneN = onlyDigits(phone);
-    const emailN = normEmail(email);
-
-    const scored = [];
-
-    for(const c of idx){
-      let score = 0;
-
-      if(nameN && c.name){
-        if(c.name === nameN) score += 30;
-        else if(c.name.includes(nameN) || nameN.includes(c.name)) score += 18;
-      }
-
-      if(phoneN && c.phone){
-        if(c.phone === phoneN || c.phone.endsWith(phoneN) || phoneN.endsWith(c.phone)) score += 20;
-      }
-
-      if(emailN && c.email){
-        if(c.email === emailN) score += 12;
-      }
-
-      score += (c.name?3:0) + (c.phone?3:0) + (c.email?3:0) + (c.notes?1:0);
-
-      if(score>0) scored.push({ ...c, _score: score });
-    }
-
-    scored.sort((a,b)=> b._score - a._score);
-    return scored.slice(0, maxResults);
+    const includes = idx.filter(c=>c.name && (c.name.includes(nameN) || nameN.includes(c.name)));
+    if(includes.length) return pickBestByCompleteness(includes);
   }
 
-  function showContactChooser(matches, onPick){
-    const overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:14px;';
-    overlay.innerHTML = `
-      <div style="max-width:760px;width:100%;background:#0f0f0f;border:1px solid rgba(163,139,99,.35);border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.7)">
-        <div style="padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.10);display:flex;justify-content:space-between;gap:10px;align-items:center">
-          <div style="font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#A38B63;font-size:12px">Selecionar registo para importar</div>
-          <button id="gppCloseChooser" class="btn secondary" style="padding:6px 10px;font-size:12px">Cancelar</button>
-        </div>
-        <div style="max-height:60vh;overflow:auto">
-          ${matches.map((m,i)=>`
-            <div data-i="${i}" style="padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.08);cursor:pointer">
-              <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap">
-                <div>
-                  <div style="font-weight:800;color:#fff">${htmlEscape(m.nameRaw || '—')}</div>
-                  <div style="color:#aaa;font-size:12px;margin-top:3px">${htmlEscape(m.phoneRaw || '—')} · ${htmlEscape(m.emailRaw || '—')}</div>
-                </div>
-                <div style="text-align:right;color:#aaa;font-size:12px">
-                  <div>${htmlEscape(sourceLabelFromKey(m.sourceKey))}</div>
-                  <div style="opacity:.8">score: ${m._score}</div>
-                </div>
+  // 2) Telefone
+  if(phoneN && phoneN.length >= 7){
+    const byPhone = idx.filter(c=>c.phone && (c.phone === phoneN || c.phone.endsWith(phoneN) || phoneN.endsWith(c.phone)));
+    if(byPhone.length) return pickBestByCompleteness(byPhone);
+  }
+
+  // 3) Email
+  if(emailN && emailN.includes('@')){
+    const byEmail = idx.filter(c=>c.email && c.email === emailN);
+    if(byEmail.length) return pickBestByCompleteness(byEmail);
+  }
+
+  return null;
+}
+
+// Lista de correspondências (para escolha quando existir ambiguidade)
+function findContactsPriorityList({name, phone, email}, maxResults=8){
+  const idx = scanLocalStorageForContacts();
+  const nameN  = normName(name);
+  const phoneN = onlyDigits(phone);
+  const emailN = normEmail(email);
+
+  const scored = [];
+
+  for(const c of idx){
+    let score = 0;
+
+    if(nameN && c.name){
+      if(c.name === nameN) score += 30;
+      else if(c.name.includes(nameN) || nameN.includes(c.name)) score += 18;
+    }
+
+    if(phoneN && c.phone){
+      if(c.phone === phoneN || c.phone.endsWith(phoneN) || phoneN.endsWith(c.phone)) score += 20;
+    }
+
+    if(emailN && c.email){
+      if(c.email === emailN) score += 12;
+    }
+
+    // bónus por completude
+    score += (c.name?3:0) + (c.phone?3:0) + (c.email?3:0) + (c.notes?1:0);
+
+    if(score>0) scored.push({ ...c, _score: score });
+  }
+
+  scored.sort((a,b)=> b._score - a._score);
+  return scored.slice(0, maxResults);
+}
+
+function showContactChooser(matches, onPick){
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:14px;';
+  overlay.innerHTML = `
+    <div style="max-width:760px;width:100%;background:#0f0f0f;border:1px solid rgba(163,139,99,.35);border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.7)">
+      <div style="padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.10);display:flex;justify-content:space-between;gap:10px;align-items:center">
+        <div style="font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#A38B63;font-size:12px">Selecionar registo para importar</div>
+        <button id="gppCloseChooser" class="btn secondary" style="padding:6px 10px;font-size:12px">Cancelar</button>
+      </div>
+      <div style="max-height:60vh;overflow:auto">
+        ${matches.map((m,i)=>`
+          <div data-i="${i}" style="padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.08);cursor:pointer">
+            <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap">
+              <div>
+                <div style="font-weight:800;color:#fff">${htmlEscape(m.nameRaw || '—')}</div>
+                <div style="color:#aaa;font-size:12px;margin-top:3px">${htmlEscape(m.phoneRaw || '—')} · ${htmlEscape(m.emailRaw || '—')}</div>
+              </div>
+              <div style="text-align:right;color:#aaa;font-size:12px">
+                <div>${htmlEscape(sourceLabelFromKey(m.sourceKey))}</div>
+                <div style="opacity:.8">score: ${m._score}</div>
               </div>
             </div>
-          `).join('')}
-        </div>
+          </div>
+        `).join('')}
       </div>
-    `;
-    document.body.appendChild(overlay);
+    </div>
+  `;
+  document.body.appendChild(overlay);
 
-    const close = ()=>{ try{ overlay.remove(); }catch{} };
-    overlay.addEventListener('click', (e)=>{
-      if(e.target === overlay) return close();
-      if(e.target.closest('#gppCloseChooser')) return close();
-      const row = e.target.closest('[data-i]');
-      if(row){
-        const pick = matches[Number(row.dataset.i)];
-        close();
-        onPick && onPick(pick);
-      }
-    });
-  }
+  const close = ()=>{ try{ overlay.remove(); }catch{} };
+  overlay.addEventListener('click', (e)=>{
+    if(e.target === overlay) return close();
+    if(e.target.closest('#gppCloseChooser')) return close();
+    const row = e.target.closest('[data-i]');
+    if(row){
+      const pick = matches[Number(row.dataset.i)];
+      close();
+      onPick && onPick(pick);
+    }
+  });
+}
 
 
     // 2) Telefone
