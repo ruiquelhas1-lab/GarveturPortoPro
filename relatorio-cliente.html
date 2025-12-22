@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -1058,6 +1057,29 @@
       </main>
     </div>
   </div>
+
+
+<!-- PDF Preview Modal -->
+<div id="pdfModal" class="hidden" aria-hidden="true" style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.70);display:flex;align-items:center;justify-content:center;padding:18px">
+  <div style="width:min(1100px,96vw);height:min(86vh,860px);background:#0b0b0b;border:1px solid rgba(163,139,99,.35);border-radius:18px;box-shadow:0 22px 44px rgba(0,0,0,.65);overflow:hidden;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.10);background:linear-gradient(90deg,#050505,#111,#050505);flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <div style="font-size:11px;color:rgba(255,255,255,.65);letter-spacing:.14em;text-transform:uppercase">Pré-visualização PDF</div>
+        <div id="pdfModalTitle" style="font-size:12px;color:#A38B63;font-weight:900;letter-spacing:.06em;text-transform:uppercase">Documento</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="pdfModalDownload">Download</button>
+        <button class="btn secondary" id="pdfModalClose">Fechar</button>
+      </div>
+    </div>
+    <div style="flex:1;min-height:0;background:#000">
+      <iframe id="pdfModalFrame" title="PDF" style="width:100%;height:100%;border:0;background:#000"></iframe>
+    </div>
+    <div style="padding:10px 12px;border-top:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.35)">
+      <div class="hint">Se o seu navegador bloquear a abertura em nova aba, utilize esta pré-visualização. Para melhor exportação em “Imprimir para PDF”, desative “Cabeçalhos e rodapés” nas opções de impressão.</div>
+    </div>
+  </div>
+</div>
 
 <script>
 (function(){
@@ -2508,12 +2530,82 @@ function tryAutoImport(){
     renderPdfList();
   }
 
+  // Modal de pré-visualização (evita bloqueio de popups)
+  const pdfModal = document.getElementById('pdfModal');
+  const pdfModalFrame = document.getElementById('pdfModalFrame');
+  const pdfModalClose = document.getElementById('pdfModalClose');
+  const pdfModalDownload = document.getElementById('pdfModalDownload');
+  const pdfModalTitle = document.getElementById('pdfModalTitle');
+  let pdfModalUrl = null;
+  let pdfModalMeta = null;
+
+  function closePdfModal(){
+    if(!pdfModal) return;
+    pdfModal.classList.add('hidden');
+    pdfModal.setAttribute('aria-hidden','true');
+    if(pdfModalFrame) pdfModalFrame.src = 'about:blank';
+    if(pdfModalUrl){
+      try{ URL.revokeObjectURL(pdfModalUrl); }catch{}
+      pdfModalUrl = null;
+    }
+    pdfModalMeta = null;
+  }
+  pdfModalClose?.addEventListener('click', closePdfModal);
+  pdfModal?.addEventListener('click', (e)=>{ if(e.target === pdfModal) closePdfModal(); });
+  window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closePdfModal(); });
+
   async function openPdf(pdfId, download=false){
     const blob = await loadPdfBlob(pdfId);
     if(!blob){
       alert('Não foi possível abrir este PDF (não encontrado no armazenamento local).');
       return;
     }
+    const r = getReport(ACTIVE_REPORT_ID);
+    const meta = (r?.pdfs||[]).find(x=>x.id===pdfId) || null;
+
+    const url = URL.createObjectURL(blob);
+
+    // download direto (sem popup)
+    if(download){
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = meta?.name || 'documento.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 3000);
+      return;
+    }
+
+    // Abrir no modal (default) — não é bloqueado por popups
+    if(pdfModal && pdfModalFrame){
+      if(pdfModalUrl){
+        try{ URL.revokeObjectURL(pdfModalUrl); }catch{}
+        pdfModalUrl = null;
+      }
+      pdfModalUrl = url;
+      pdfModalMeta = meta;
+      pdfModalTitle.textContent = (meta?.name || 'Documento').toUpperCase();
+      pdfModalFrame.src = url;
+      pdfModal.classList.remove('hidden');
+      pdfModal.setAttribute('aria-hidden','false');
+
+      // preparar botão download
+      pdfModalDownload.onclick = ()=> openPdf(pdfId, true);
+      return;
+    }
+
+    // fallback: tentar nova aba sem await (melhor tolerância a bloqueios)
+    const w = window.open('about:blank', '_blank', 'noopener');
+    if(!w){
+      alert('O seu navegador bloqueou a abertura em nova aba. Utilize a opção Download.');
+      setTimeout(()=>URL.revokeObjectURL(url), 3000);
+      return;
+    }
+    try{ w.location.href = url; }catch{}
+    setTimeout(()=>URL.revokeObjectURL(url), 30_000);
+  }
+
     const url = URL.createObjectURL(blob);
     if(download){
       const a = document.createElement('a');
