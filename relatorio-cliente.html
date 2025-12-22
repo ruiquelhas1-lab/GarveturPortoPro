@@ -3208,12 +3208,13 @@ async function removePdf(pdfId){
         return;
       }
   
-      if(act==='export'){
-        const r = getReport(id);
-        if(!r) return;
-        exportReportToPrintPDF(r, false);
-        return;
-      }
+     if(act==='export'){
+  const r = getReport(id);
+  if(!r) return;
+  const html = exportReportToPrintPDF(r, false);
+  openReportPreview(html, `Relatório — ${r?.cliente?.nome || 'Cliente'}`);
+  return;
+}
     });
 }
 
