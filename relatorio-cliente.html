@@ -1967,10 +1967,24 @@ if(currentStep === 4 && !PDF_READY){
     const zona = (hit.asset.zona || '').trim();
     const tip  = (hit.asset.tipologia || '').trim();
     const preco= (hit.asset.preco || '').trim();
-    const obs  = (hit.asset.obs || '').trim();
-    const resumo = (hit.asset.resumo || '').trim();
-    const srcLabel = sourceLabelFromKey(hit.sourceKey);
-    const obsFinal = (srcLabel==='FSBO' && resumo) ? resumo : obs;
+   const obs  = (hit.asset.obs || '').trim();
+const resumo = (hit.asset.resumo || '').trim();
+const srcLabel = sourceLabelFromKey(hit.sourceKey);
+
+// Regra de negócio: se for FSBO e existir resumo (do KIT), Observações deve ser ESSE texto.
+const obsFinal = (srcLabel === 'FSBO' && resumo) ? resumo : obs;
+
+// Preenche/atualiza Observações:
+// - se estiver vazio, preenche
+// - se for FSBO e houver resumo, substitui mesmo que já tenha algo curto (para garantir o texto “igual ao KIT”)
+if(aObs && obsFinal){
+  const cur = normStr(aObs.value);
+  const shouldOverrideFSBO = (srcLabel === 'FSBO' && resumo && (cur.length < 40 || cur === obs));
+  if(!cur || shouldOverrideFSBO){
+    aObs.value = obsFinal;
+    changed = true;
+  }
+}
     const titulo = (hit.asset.titulo || '').trim();
     const ref = (hit.asset.ref || '').trim();
 
