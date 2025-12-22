@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -485,7 +486,6 @@
     .dot.warn{background:rgba(229,57,53,.9)}
     .dot.info{background:rgba(30,136,229,.9)}
   </style>
-  <script src="https://unpkg.com/pdfjs-dist@4.10.38/build/pdf.min.js"></script>
 </head>
 
 <body>
@@ -972,26 +972,17 @@
                   <div class="mini-card">
                     <h5>Estado</h5>
                     <div class="kv"><b>Anexos</b><span id="pdfCount">0</span></div>
-                    
-                  <div class="mini-card">
-                    <h5>Extração (capítulos + insights)</h5>
-                    <div class="hint" id="pdfExtractStatus">Importe um PDF e clique em <strong>Extrair agora</strong> (ou aguarde a extração automática após importação).</div>
-                    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-                      <button class="btn-xs primary" id="btnExtractNow" type="button">Extrair agora</button>
-                      <button class="btn-xs" id="btnRebuildChapters" type="button">Regerar capítulos</button>
-                    </div>
+                    <div class="kv"><b>Armazenamento</b><span id="pdfStoreMode">—</span></div>
+                    <div class="kv"><b>Última ação</b><span id="pdfLastAction">—</span></div>
                   </div>
-
                   <div class="mini-card">
-                    <h5>Capítulos identificados</h5>
-                    <div class="hint" id="pdfChaptersHint">—</div>
-                    <div id="pdfChapters" style="margin-top:8px;display:flex;flex-direction:column;gap:8px;max-height:220px;overflow:auto"></div>
-                    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-                      <button class="btn-xs" id="btnUseInsights" type="button">Usar insights no relatório</button>
-                      <button class="btn-xs ghost" id="btnClearInsights" type="button">Limpar insights</button>
-                    </div>
+                    <h5>Próximo passo</h5>
+                    <div class="hint">Na fase seguinte ligamos a <strong>extração de texto</strong> e <strong>insights</strong> a partir do PDF, para alimentar o relatório automaticamente.</div>
                   </div>
-</div>
+                  <div class="mini-card">
+                    <h5>Boas práticas</h5>
+                    <div class="hint">Use PDFs com nomes claros (ex.: “Estudo_Mercado_Foz_2025.pdf”). Evite anexos duplicados para manter o relatório leve.</div>
+                  </div>
                 </div>
 
               </div>
@@ -1872,14 +1863,7 @@
     rRecomend.value = report.report?.recomendacaoFinal || '';
 
     // PDFs (Fase 2)
-    try{ renderPdfList();
-
-    // render capítulos/insights (se existirem)
-    try{
-      const last = (report.pdfs||[])[(report.pdfs||[]).length-1];
-      if(last && last.id) renderChaptersUI(report, last.id);
-    }catch(e){}
- }catch(e){}
+    try{ renderPdfList(); }catch(e){}
   }
 
   /* ===========================
@@ -2545,13 +2529,6 @@ function tryAutoImport(){
 
     setPdfStatus({action:'PDF(s) adicionados.'});
     renderPdfList();
-
-    // extração automática do último PDF (capítulos + insights)
-    try{
-      const last = (r.pdfs||[])[(r.pdfs||[]).length-1];
-      if(last && last.id) schedulePdfExtraction(last.id, 900);
-    }catch(e){}
-
   }
 
   // Modal de pré-visualização (evita bloqueio de popups)
@@ -2620,447 +2597,18 @@ function tryAutoImport(){
     }
 
     // fallback: tentar nova aba sem await (melhor tolerância a bloqueios)
-    const a = document.createElement('a');
-    a.href = url;
-    a.target = '_blank';
-    a.rel = 'noopener';
-    document.body.appendChild(a);
-    try{ a.click(); }catch{}
-    a.remove();
-    // se o browser bloquear, o utilizador pode sempre usar o Download no modal
+    const w = window.open('about:blank', '_blank', 'noopener');
+    if(!w){
+      alert('O seu navegador bloqueou a abertura em nova aba. Utilize a opção Download.');
+      setTimeout(()=>URL.revokeObjectURL(url), 3000);
+      return;
+    }
+    try{ w.location.href = url; }catch{}
     setTimeout(()=>URL.revokeObjectURL(url), 30_000);
   }
 
-  /* ===========================
-     PDF → Extração (capítulos + insights)
-     - Usa PDF.js (client-side)
-     - Guarda apenas estrutura/resumo no relatório (evita texto integral gigantesco)
-  =========================== */
-
-  // UI refs (step 4)
-  const pdfExtractStatus = el('pdfExtractStatus');
-  const btnExtractNow = el('btnExtractNow');
-  const btnRebuildChapters = el('btnRebuildChapters');
-  const pdfChapters = el('pdfChapters');
-  const pdfChaptersHint = el('pdfChaptersHint');
-  const btnUseInsights = el('btnUseInsights');
-  const btnClearInsights = el('btnClearInsights');
-
-  async function ensurePdfJs(){
-    // 1) já disponível (diferentes builds expõem nomes diferentes)
-    const getGlobal = ()=>(
-      window.pdfjsLib ||
-      window['pdfjs-dist/build/pdf'] ||
-      window['pdfjs-dist/build/pdf.min'] ||
-      window.pdfjsDistBuildPdf ||
-      window.PDFJS
-    );
-
-    const attachAndConfig = (lib)=>{
-      if(!lib) return null;
-      // normalizar para window.pdfjsLib (resto do código usa este nome)
-      if(!window.pdfjsLib) window.pdfjsLib = lib;
-      // worker (obrigatório para getDocument em alguns browsers)
-      try{
-        const w = window.pdfjsLib.GlobalWorkerOptions;
-        if(w && !w.workerSrc){
-          w.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.worker.min.js';
-        }
-      }catch(e){}
-      return window.pdfjsLib;
-    };
-
-    // já está carregado
-    const already = attachAndConfig(getGlobal());
-    if(already) return true;
-
-    // 2) evitar múltiplas cargas em paralelo
-    if(window.__gpp_pdfjs_loading_promise){
-      try{
-        await window.__gpp_pdfjs_loading_promise;
-      }catch(e){}
-      return !!attachAndConfig(getGlobal());
-    }
-
-    // 3) carregar dinamicamente (múltiplos CDNs)
-    const sources = [
-      // Recomendado: build LEGACY (UMD) — funciona de forma fiável em <script> normal (sem type="module")
-      "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.min.js",
-      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js",
-      // Fallbacks antigos (ainda UMD)
-      "https://unpkg.com/pdfjs-dist@3.11.174/legacy/build/pdf.min.js",
-      "https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/legacy/build/pdf.min.js",
-      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"
-    ];
-
-    window.__gpp_pdfjs_loading_promise = (async ()=>{
-      let ok = false;
-      for(const src of sources){
-        try{
-          await loadScript(src);
-          // dar um tick para o global ficar disponível
-          await new Promise(r=>setTimeout(r, 0));
-          const lib = attachAndConfig(getGlobal());
-          if(lib){
-            ok = true;
-            break;
-          }
-        }catch(e){
-          // tenta o próximo
-        }
-      }
-      return ok;
-    })();
-
-    let res = false;
-    try{
-      res = await window.__gpp_pdfjs_loading_promise;
-    }finally{
-      // libertar referência (mas manter pdfjsLib em cache)
-      window.__gpp_pdfjs_loading_promise = null;
-    }
-    return !!attachAndConfig(getGlobal()) && !!res;
-  }
-
-  function clampText(s, max=220){
-    s = (s||'').toString().replace(/\s+/g,' ').trim();
-    return s.length>max ? (s.slice(0,max-1)+'…') : s;
-  }
-
-  function detectHeading(line, fontH, medFont){
-    const t = (line||'').trim();
-    if(!t) return false;
-    if(t.length <= 3) return false;
-    // tamanho de fonte acima da mediana
-    if(fontH && medFont && fontH >= medFont*1.45 && t.length <= 90) return true;
-    // heurística: caps e curto
-    const up = t.toUpperCase();
-    const letters = t.replace(/[^A-Za-zÀ-ÿ]/g,'').length;
-    const isMostlyCaps = letters>=6 && (t === up || (t.replace(/[^A-ZÀ-Ý]/g,'').length/letters) > 0.75);
-    if(isMostlyCaps && t.length <= 80) return true;
-    // heurística: começa por "1." / "I." / "Capítulo"
-    if(/^(cap[íi]tulo|sec[cç][aã]o|an[áa]lise|conclus[ãa]o|sum[áa]rio)\b/i.test(t)) return true;
-    if(/^\d+[\.\)]\s+\S+/.test(t) && t.length <= 90) return true;
-    return false;
-  }
-
-  function extractKeyMetrics(text){
-    const out = {precoM2:null, percentuais:[], valores:[], datas:[]};
-    const t = text || '';
-    // €/m2 ou €/m²
-    const m2 = t.match(/€\s?\d[\d\.\s]*\s*(?:\/\s?m2|\/\s?m²|m2|m²)/ig);
-    if(m2 && m2.length) out.precoM2 = m2[0].replace(/\s+/g,' ').trim();
-
-    const perc = t.match(/\d{1,3}(?:[\,\.]\d+)?\s?%/g);
-    if(perc) out.percentuais = Array.from(new Set(perc)).slice(0,10);
-
-    const euros = t.match(/€\s?\d[\d\.\s]*(?:[\,\.]\d+)?/g);
-    if(euros) out.valores = Array.from(new Set(euros.map(x=>x.replace(/\s+/g,' ').trim()))).slice(0,10);
-
-    const dates = t.match(/\b\d{1,2}[\/\.-]\d{1,2}[\/\.-]\d{2,4}\b/g);
-    if(dates) out.datas = Array.from(new Set(dates)).slice(0,10);
-    return out;
-  }
-
-  async function pdfExtractTextLines(blob){
-    if(!(await ensurePdfJs())) throw new Error('PDF.js não carregado');
-    const ab = await blob.arrayBuffer();
-    const pdf = await window.pdfjsLib.getDocument({data: ab}).promise;
-
-    const lines = [];
-    const fontHeights = [];
-    for(let p=1; p<=pdf.numPages; p++){
-      const page = await pdf.getPage(p);
-      const tc = await page.getTextContent();
-      // agrupar por linha (y aproximado)
-      const buckets = new Map();
-      for(const it of tc.items){
-        const str = (it.str||'').trim();
-        if(!str) continue;
-        const tr = it.transform || [1,0,0,1,0,0];
-        const fontH = Math.hypot(tr[2], tr[3]) || Math.abs(tr[3]) || 0;
-        const y = Math.round(tr[5]*2)/2;
-        const key = y.toFixed(1);
-
-        if(!buckets.has(key)) buckets.set(key, {y, parts:[], fontH:0});
-        const b = buckets.get(key);
-        b.parts.push(str);
-        b.fontH = Math.max(b.fontH, fontH);
-        if(fontH) fontHeights.push(fontH);
-      }
-      const sorted = Array.from(buckets.values()).sort((a,b)=>b.y-a.y);
-      for(const row of sorted){
-        const text = row.parts.join(' ').replace(/\s+/g,' ').trim();
-        if(text) lines.push({page:p, text, fontH: row.fontH || 0});
-      }
-    }
-
-    // mediana de font size
-    fontHeights.sort((a,b)=>a-b);
-    const medFont = fontHeights.length ? fontHeights[Math.floor(fontHeights.length/2)] : 0;
-
-    return {lines, medFont, pages: pdf.numPages};
-  }
-
-  function buildChaptersFromLines(lines, medFont){
-    const chapters = [];
-    let current = {title:'Introdução', pages:new Set(), points:[], include:true};
-    const pushCurrent = ()=>{
-      const pts = current.points.filter(Boolean);
-      if(pts.length || current.pages.size){
-        chapters.push({
-          id: uid('ch'),
-          title: current.title || 'Capítulo',
-          pages: Array.from(current.pages).sort((a,b)=>a-b),
-          points: pts.slice(0,8).map(p=>clampText(p, 240)),
-          include: current.include !== false
-        });
-      }
-    };
-
-    for(const ln of lines){
-      const t = (ln.text||'').trim();
-      if(!t) continue;
-
-      const isHead = detectHeading(t, ln.fontH, medFont);
-
-      if(isHead){
-        pushCurrent();
-        current = {title: t, pages:new Set([ln.page]), points:[], include:true};
-        continue;
-      }
-
-      current.pages.add(ln.page);
-
-      // guardar frases “boas” (não muito longas) como pontos
-      if(t.length >= 35 && t.length <= 240){
-        // reduzir ruído: evitar linhas só com números/tabelas
-        const letters = t.replace(/[^A-Za-zÀ-ÿ]/g,'').length;
-        if(letters >= 18) current.points.push(t);
-      }
-    }
-
-    pushCurrent();
-
-    // fallback: se só um capítulo vazio, cria 2-3 com base em páginas
-    if(chapters.length <= 1 && lines.length){
-      const byPage = new Map();
-      for(const ln of lines){
-        if(!byPage.has(ln.page)) byPage.set(ln.page, []);
-        byPage.get(ln.page).push(ln.text);
-      }
-      const pages = Array.from(byPage.keys()).sort((a,b)=>a-b);
-      const pack = [];
-      let chunk = [];
-      for(const p of pages){
-        chunk.push(p);
-        if(chunk.length>=3){
-          pack.push(chunk); chunk=[];
-        }
-      }
-      if(chunk.length) pack.push(chunk);
-      return pack.map((ps,idx)=>({
-        id: uid('ch'),
-        title: `Secção ${idx+1}`,
-        pages: ps,
-        points: (ps.flatMap(p=>byPage.get(p)||[])).filter(t=>t.length>35 && t.length<240).slice(0,8).map(t=>clampText(t,240)),
-        include:true
-      }));
-    }
-
-    return chapters.slice(0,18);
-  }
-
-  function summarizeInsights(lines){
-    const text = lines.map(x=>x.text).join(' \n ');
-    const metrics = extractKeyMetrics(text);
-
-    // keywords simples (PT/EN) com stopwords mínimas
-    const stop = new Set(['de','da','do','das','dos','a','o','os','as','e','ou','em','para','por','com','sem','na','no','nas','nos','que','uma','um','ao','à','às','the','and','or','to','in','for','with','on','of','is','are']);
-    const words = text.toLowerCase()
-      .replace(/[^\wÀ-ÿ\s\-]/g,' ')
-      .split(/\s+/)
-      .map(w=>w.trim())
-      .filter(w=>w.length>=4 && !stop.has(w));
-
-    const freq = new Map();
-    for(const w of words){
-      freq.set(w, (freq.get(w)||0)+1);
-    }
-    const top = Array.from(freq.entries()).sort((a,b)=>b[1]-a[1]).slice(0,12).map(([w,n])=>`${w} (${n})`);
-
-    const insights = [];
-    if(metrics.precoM2) insights.push(`Referência de preço/m² identificada no estudo: ${metrics.precoM2}.`);
-    if(metrics.percentuais.length) insights.push(`Variações/percentuais relevantes (amostra): ${metrics.percentuais.slice(0,6).join(', ')}.`);
-    if(metrics.valores.length) insights.push(`Valores monetários destacados (amostra): ${metrics.valores.slice(0,6).join(', ')}.`);
-    if(top.length) insights.push(`Temas recorrentes (palavras-chave): ${top.slice(0,8).join(', ')}.`);
-
-    return {metrics, insights: insights.slice(0,6)};
-  }
-
-  async function extractPdfIntoReport(pdfId){
-    const r = getReport(ACTIVE_REPORT_ID);
-    if(!r) return null;
-
-    const meta = (r.pdfs||[]).find(x=>x.id===pdfId);
-    if(!meta) return null;
-
-    pdfExtractStatus && (pdfExtractStatus.textContent = `A extrair "${meta.name}"…`);
-    try{
-      const blob = await loadPdfBlob(pdfId);
-      const {lines, medFont, pages} = await pdfExtractTextLines(blob);
-      const chapters = buildChaptersFromLines(lines, medFont);
-      const sum = summarizeInsights(lines);
-
-      r.analysis = r.analysis || {};
-      r.analysis.pdf = r.analysis.pdf || {};
-      r.analysis.pdf[pdfId] = {
-        id: pdfId,
-        name: meta.name,
-        pages,
-        extractedAt: todayISO(),
-        chapters,
-        insights: sum.insights,
-        metrics: sum.metrics
-      };
-
-      // “vista agregada” (para o relatório final)
-      r.analysis.chapters = chapters;
-      r.analysis.sum = r.analysis.sum || {relevante:'', riscos:'', oportunidades:''};
-      r.analysis.metrics = r.analysis.metrics || {precoM2:'—', intervalo:'—', tendencia:'—', tempo:'—'};
-      if(sum.metrics.precoM2) r.analysis.metrics.precoM2 = sum.metrics.precoM2;
-
-      // guardar
-      upsertReport(r);
-      renderChaptersUI(r, pdfId);
-
-      pdfExtractStatus && (pdfExtractStatus.textContent = `Extração concluída: ${chapters.length} capítulo(s) · ${pages} página(s).`);
-      return r;
-    }catch(err){
-      console.warn('PDF extract failed', err);
-      const emsg = (err && err.message) ? err.message : String(err||'erro');
-      if(pdfExtractStatus){
-        pdfExtractStatus.textContent = 'Falha na extração do PDF: ' + emsg;
-        pdfExtractStatus.style.color = 'var(--danger)';
-      }
-      return null;
-    }
-  }
-
-  function renderChaptersUI(report, pdfId){
-    if(!pdfChapters) return;
-    const pdfInfo = report?.analysis?.pdf?.[pdfId] || null;
-    const chapters = pdfInfo?.chapters || report?.analysis?.chapters || [];
-    const insights = pdfInfo?.insights || [];
-
-    pdfChapters.innerHTML = '';
-    pdfChaptersHint && (pdfChaptersHint.textContent = chapters.length ? `Capítulos: ${chapters.length} · Insights: ${insights.length}` : 'Sem extração ainda.');
-
-    if(!chapters.length){
-      const d = document.createElement('div');
-      d.className = 'hint';
-      d.textContent = 'Ainda não existem capítulos extraídos.';
-      pdfChapters.appendChild(d);
-      return;
-    }
-
-    chapters.forEach((ch, idx)=>{
-      const row = document.createElement('div');
-      row.style.border = '1px solid rgba(255,255,255,.10)';
-      row.style.borderRadius = '14px';
-      row.style.padding = '10px 10px';
-      row.style.background = 'rgba(0,0,0,.28)';
-
-      const pages = (ch.pages||[]).length ? ('p.' + (ch.pages||[]).join(',')) : '—';
-      row.innerHTML = `
-        <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
-          <div style="min-width:0">
-            <div style="font-weight:900;color:#f0f0f0">${htmlEscape(ch.title || ('Capítulo '+(idx+1)))}</div>
-            <div class="hint" style="margin-top:3px">Páginas: ${htmlEscape(pages)} · ${ch.points?.length||0} pontos</div>
-          </div>
-          <label class="pill" style="cursor:pointer">
-            <input type="checkbox" data-ch="${idx}" ${ch.include!==false?'checked':''} style="accent-color:var(--gold);margin-right:6px"> Incluir
-          </label>
-        </div>
-        <div class="hint" style="margin-top:8px">${htmlEscape((ch.points||[])[0] || '—')}</div>
-      `;
-      pdfChapters.appendChild(row);
-    });
-
-    // wire include toggles
-    pdfChapters.querySelectorAll('input[type="checkbox"][data-ch]').forEach(cb=>{
-      cb.addEventListener('change', ()=>{
-        const i = Number(cb.dataset.ch);
-        const rr = getReport(ACTIVE_REPORT_ID);
-        if(!rr) return;
-        const info = rr.analysis?.pdf?.[pdfId];
-        if(!info || !info.chapters || !info.chapters[i]) return;
-        info.chapters[i].include = cb.checked;
-        rr.analysis.chapters = info.chapters;
-        upsertReport(rr);
-      });
-    });
-  }
-
-  let PDF_EXTRACT_TIMER = null;
-  function schedulePdfExtraction(pdfId, ms=650){
-    clearTimeout(PDF_EXTRACT_TIMER);
-    PDF_EXTRACT_TIMER = setTimeout(()=>extractPdfIntoReport(pdfId), ms);
-  }
-
-  function getLatestPdfIdFromActive(){
-    const r = getReport(ACTIVE_REPORT_ID);
-    const list = r?.pdfs || [];
-    return list.length ? list[list.length-1].id : null;
-  }
-
-  // Step 4 buttons
-  btnExtractNow?.addEventListener('click', ()=>{
-    const pdfId = getLatestPdfIdFromActive();
-    if(!pdfId){ alert('Não existe PDF importado.'); return; }
-    extractPdfIntoReport(pdfId);
-  });
-
-  btnRebuildChapters?.addEventListener('click', ()=>{
-    const pdfId = getLatestPdfIdFromActive();
-    if(!pdfId){ alert('Não existe PDF importado.'); return; }
-    extractPdfIntoReport(pdfId);
-  });
-
-  btnUseInsights?.addEventListener('click', ()=>{
-    const r = getReport(ACTIVE_REPORT_ID);
-    if(!r) return;
-    const pdfId = getLatestPdfIdFromActive();
-    const info = r.analysis?.pdf?.[pdfId];
-    if(!info){ alert('Ainda não existe extração.'); return; }
-
-    // puxar 1-2 insights para recomendação se vazio (opcional)
-    const rec = (r.report?.recomendacaoFinal||'').trim();
-    if(!rec && info.insights?.length){
-      r.report = r.report || {};
-      r.report.recomendacaoFinal = 'Com base no estudo importado:\n- ' + info.insights.slice(0,3).join('\n- ');
-    }
-    upsertReport(r);
-    alert('Insights prontos para integração no relatório (Passo 5).');
-  });
-
-  btnClearInsights?.addEventListener('click', ()=>{
-    const r = getReport(ACTIVE_REPORT_ID);
-    if(!r) return;
-    if(!confirm('Limpar capítulos/insights extraídos do relatório?')) return;
-    const pdfId = getLatestPdfIdFromActive();
-    if(r.analysis?.pdf?.[pdfId]){
-      delete r.analysis.pdf[pdfId];
-    }
-    r.analysis.chapters = [];
-    r.analysis.sum = {relevante:'', riscos:'', oportunidades:''};
-    upsertReport(r);
-    renderChaptersUI(r, pdfId);
-    pdfExtractStatus && (pdfExtractStatus.textContent = 'Insights limpos.');
-  });
-
-
-  async function removePdf(pdfId){
+    
+async function removePdf(pdfId){
     const r = getReport(ACTIVE_REPORT_ID);
     if(!r) return;
     const meta = (r.pdfs||[]).find(x=>x.id===pdfId);
@@ -3213,33 +2761,7 @@ function tryAutoImport(){
       </style>
     `;
 
-
     const rec = (report.report?.recomendacaoFinal || '').trim() || '(preencher recomendação final)';
-
-    // PDF insights (capítulos selecionados)
-    const _pdfInfo = (report.analysis && report.analysis.pdf) ? (Object.values(report.analysis.pdf)[0] || null) : null;
-    const _chapters = (_pdfInfo?.chapters || report.analysis?.chapters || []).filter(c=>c && c.include!==false);
-    const _ins = _pdfInfo?.insights || [];
-    let pdfInsightsHtml = '';
-    if(_chapters.length || _ins.length){
-      const lis = _chapters.slice(0,6).map(ch=>{
-        const pts = (ch.points||[]).slice(0,3).map(p=>`<li>${htmlEscape(p)}</li>`).join('');
-        return `<div class="card" style="margin-top:10px">
-                  <h3>${htmlEscape(ch.title||'Capítulo')}</h3>
-                  <div class="kv"><b>Páginas</b><span>${htmlEscape((ch.pages||[]).length ? ('p.'+(ch.pages||[]).join(',')) : '—')}</span></div>
-                  <ul>${pts || '<li>(sem pontos extraídos)</li>'}</ul>
-                </div>`;
-      }).join('');
-
-      const insList = _ins.length ? ('<ul>' + _ins.slice(0,6).map(x=>`<li>${htmlEscape(x)}</li>`).join('') + '</ul>') : '';
-      pdfInsightsHtml = `
-        <div class="sec">
-          <h2>Insights do Estudo (PDF)</h2>
-          ${insList}
-          ${lis}
-        </div>
-      `;
-    }
 
     const html = `
       <!doctype html>
@@ -3248,7 +2770,7 @@ function tryAutoImport(){
           <meta charset="utf-8">
           <title>${htmlEscape(title)}</title>
           ${styles}
-          </head>
+        </head>
         <body>
           <div class="page">
             <div class="top">
@@ -3286,8 +2808,6 @@ function tryAutoImport(){
                 </div>
               </div>
             </div>
-
-            ${pdfInsightsHtml}
 
             <div class="sec">
               <h2>Próximos passos</h2>
