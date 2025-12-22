@@ -2170,56 +2170,6 @@ function tryAutoImport(){
   return true;
 }
 
-
-    // evitar “sobre-escrita agressiva”: só preenche campos vazios (exceto o que o utilizador está a introduzir)
-    const current = collectForm();
-    const before = {
-      nome: current.cliente.nome,
-      tel: current.cliente.tel,
-      email: current.cliente.email,
-      tipo: current.cliente.tipo
-    };
-
-    const fNome = normStr(found.nome);
-    const fTel  = normStr(found.tel);
-    const fEmail= normStr(found.email);
-
-    // inferência do campo que deu match (para log/visibilidade)
-    let matchBy = 'nome';
-    if(email && fEmail && normEmail(email) === normEmail(fEmail)) matchBy = 'email';
-    else if(tel && fTel && normPhone(tel) === normPhone(fTel)) matchBy = 'telemóvel';
-    else if(nome && fNome) matchBy = 'nome';
-
-    // preencher apenas se vazio
-    if(!before.nome && fNome) cNome.value = fNome;
-    if(!before.tel && fTel) cTel.value = fTel;
-    if(!before.email && fEmail) cEmail.value = fEmail;
-
-    // tipo: só se ainda não foi selecionado
-    if(!before.tipo){
-      const suggested = suggestTipoFromSource(found.source, found.raw);
-      if(suggested) cTipo.value = suggested;
-    }
-
-    // notas: acrescentar linha, sem duplicar
-    const stamp = `[Importado de ${found.source} · match: ${matchBy} · ${toPTDate(todayISO())}]`;
-    const notes = (cNotas.value || '').trim();
-    if(!notes.includes(stamp)){
-      cNotas.value = (notes ? (notes + '\n') : '') + stamp;
-    }
-
-        // tentar autopreencher campos do Passo 3 (ativo/zona) a partir do mesmo registo
-    try{ applyAssetFromHit(found.raw); }catch(e){}
-
-// guardar estado “importado de”
-    const r = saveDraftSilent();
-    r.cliente.importedFrom = { source: found.source, matchBy, at: todayISO(), sourceKey: found.sourceKey, sourceId: found.id };
-    upsertReport(r);
-    setAutoImportUI(r.cliente.importedFrom);
-
-    return true;
-  }
-
   // Guarda sem alertas (para autosave e auto-import)
   function saveDraftSilent(){
     const r = collectForm();
