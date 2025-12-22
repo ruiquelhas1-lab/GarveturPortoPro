@@ -1,1632 +1,3418 @@
+
 <!doctype html>
-<html lang="pt">
+<html lang="pt-PT">
 <head>
   <meta charset="utf-8" />
+  <title>Garvetur Porto Pro — Relatório para Cliente (Admin)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Garvetur Porto Pro — Relatório Cliente (Admin) v11 — Fase 2.2 (PDF Final Premium)</title>
-  <meta name="color-scheme" content="light dark" />
+
   <style>
     :root{
-      --bg:#0b0e12;
-      --card:#101622;
-      --card2:#0f141d;
-      --text:#e9eef7;
-      --muted:#a9b4c7;
-      --line:#22304a;
       --gold:#A38B63;
-      --danger:#ff5b5b;
-      --ok:#4ade80;
-      --warn:#fbbf24;
-      --shadow: 0 12px 30px rgba(0,0,0,.35);
-      --radius:18px;
-      --radius2:14px;
-      --pad:14px;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      --gold-soft:rgba(163,139,99,.35);
+      --bg:#0B0B0B;
+      --panel:#121212;
+      --panel-soft:#181818;
+      --text:#FFFFFF;
+      --muted:#A0A0A0;
+      --border:rgba(255,255,255,.14);
+      --danger:#E53935;
+      --success:#43A047;
+      --info:#1E88E5;
+
+      --radius-lg:18px;
+      --radius-md:12px;
+      --shadow:0 18px 34px rgba(0,0,0,.55);
     }
-    @media (prefers-color-scheme: light){
-      :root{
-        --bg:#f6f7fb;
-        --card:#ffffff;
-        --card2:#fafbff;
-        --text:#121826;
-        --muted:#5b6476;
-        --line:#e6e9f2;
-        --shadow: 0 12px 30px rgba(12,18,38,.12);
-      }
-    }
+
     *{box-sizing:border-box}
-    body{
-      margin:0; font-family:var(--sans);
-      background: radial-gradient(1200px 600px at 20% -10%, rgba(163,139,99,.25), transparent 50%),
-                  radial-gradient(900px 500px at 90% 0%, rgba(80,140,255,.18), transparent 55%),
-                  var(--bg);
-      color:var(--text);
-      min-height:100vh;
-    }
-    header{
-      position:sticky; top:0; z-index:20;
-      backdrop-filter: blur(10px);
-      background: color-mix(in srgb, var(--bg) 82%, transparent);
-      border-bottom:1px solid var(--line);
-    }
-    .wrap{max-width:1200px;margin:0 auto;padding:14px 16px}
-    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
-    .brand{display:flex;align-items:center;gap:12px}
-    .mark{
-      width:36px;height:36px;border-radius:12px;
-      background: linear-gradient(135deg, rgba(163,139,99,.95), rgba(163,139,99,.35));
-      box-shadow: 0 10px 18px rgba(163,139,99,.18);
-      border:1px solid color-mix(in srgb, var(--gold) 60%, var(--line));
-    }
-    .brand h1{font-size:15px;margin:0;letter-spacing:.2px}
-    .brand .sub{font-size:12px;color:var(--muted);margin-top:2px}
-    .pill{
-      display:inline-flex;align-items:center;gap:8px;
-      font-size:12px; padding:7px 10px;border-radius:999px;
-      border:1px solid var(--line); background:color-mix(in srgb, var(--card) 75%, transparent);
-      color:var(--muted);
-    }
-    .pill b{color:var(--text);font-weight:600}
-    nav{
-      margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;
-    }
-    .tab{
-      border:1px solid var(--line);
-      background: color-mix(in srgb, var(--card) 70%, transparent);
-      color:var(--muted);
-      padding:10px 12px;border-radius:999px;
-      cursor:pointer; user-select:none;
-      transition: transform .06s ease, background .15s ease, color .15s ease, border-color .15s ease;
-      font-size:13px;
-    }
-    .tab:hover{transform: translateY(-1px)}
-    .tab.active{
-      color:var(--text);
-      border-color: color-mix(in srgb, var(--gold) 55%, var(--line));
-      background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 20%, var(--card)),
-                                        color-mix(in srgb, var(--card) 85%, transparent));
-    }
+    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:radial-gradient(circle at top,#1c1c1c 0,#050505 55%,#000 100%);color:var(--text)}
+    a{color:inherit}
+    .hidden{display:none !important}
 
-    main{padding:18px 0 28px}
-    .grid{display:grid;grid-template-columns: 380px 1fr;gap:16px}
-    @media (max-width: 980px){.grid{grid-template-columns:1fr}}
-
-    .card{
-      border:1px solid var(--line);
-      background: linear-gradient(180deg, color-mix(in srgb, var(--card) 92%, transparent), var(--card2));
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
+    /* Shell */
+    .app{
+      display:grid;
+      grid-template-rows:64px 1fr;
+      height:100%;
       overflow:hidden;
     }
-    .card .hd{
-      padding:14px 14px 10px;
-      border-bottom:1px solid var(--line);
-      display:flex;align-items:center;justify-content:space-between;gap:10px;
+
+    header.app-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:10px 16px;
+      border-bottom:1px solid rgba(163,139,99,.35);
+      background:linear-gradient(90deg,#050505,#111,#050505);
+      position:sticky;top:0;z-index:20;
+      gap:12px;
+      flex-wrap:wrap;
     }
-    .card .hd h2{margin:0;font-size:14px;letter-spacing:.2px}
-    .card .hd .meta{font-size:12px;color:var(--muted)}
-    .card .bd{padding:14px}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .row > *{flex: 1 1 auto}
-    .btn{
-      appearance:none; border:1px solid var(--line);
-      background: color-mix(in srgb, var(--card) 86%, transparent);
-      color:var(--text);
-      padding:10px 12px;border-radius:12px;
-      cursor:pointer; font-size:13px;
-      transition: transform .06s ease, filter .15s ease, border-color .15s ease;
-      display:inline-flex;align-items:center;justify-content:center;gap:8px;
-      min-height:40px;
+    .brand{
+      display:flex;align-items:center;gap:10px;
     }
-    .btn:hover{transform: translateY(-1px); filter: brightness(1.03)}
-    .btn:active{transform: translateY(0px)}
-    .btn.primary{
-      border-color: color-mix(in srgb, var(--gold) 55%, var(--line));
-      background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 25%, var(--card)),
-                                        color-mix(in srgb, var(--card) 85%, transparent));
+    .brand-icon{
+      width:30px;height:30px;border-radius:999px;border:1px solid var(--gold);
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 0 0 1px rgba(163,139,99,.35);
     }
-    .btn.danger{border-color: color-mix(in srgb, var(--danger) 50%, var(--line))}
-    .btn.ghost{background:transparent}
-    .btn[disabled]{opacity:.55; cursor:not-allowed; transform:none}
-    .input, textarea, select{
-      width:100%;
-      border:1px solid var(--line);
-      background: color-mix(in srgb, var(--card) 80%, transparent);
-      color:var(--text);
-      border-radius:12px;
-      padding:10px 11px;
-      outline:none;
-      font-size:13px;
-      min-height:40px;
-    }
-    textarea{min-height:110px; resize:vertical}
-    label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px 2px}
-    .field{margin-bottom:12px}
-    .small{font-size:12px;color:var(--muted)}
-    .kpi{display:flex;gap:10px;flex-wrap:wrap}
-    .kpi .box{
-      flex: 1 1 140px;
-      padding:10px 12px; border:1px solid var(--line); border-radius:14px;
-      background: color-mix(in srgb, var(--card) 70%, transparent);
-    }
-    .kpi .box .v{font-size:16px;font-weight:700;letter-spacing:.2px}
-    .kpi .box .t{font-size:12px;color:var(--muted);margin-top:2px}
-    .list{display:flex;flex-direction:column;gap:10px}
-    .item{
-      padding:12px;
-      border:1px solid var(--line);
-      background: color-mix(in srgb, var(--card) 70%, transparent);
-      border-radius: var(--radius2);
-      cursor:pointer;
-      transition: transform .06s ease, border-color .15s ease;
-    }
-    .item:hover{transform: translateY(-1px)}
-    .item.active{border-color: color-mix(in srgb, var(--gold) 55%, var(--line))}
-    .item .title{font-size:13px;font-weight:700;margin:0 0 4px}
-    .item .meta{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:10px}
+    .brand h1{margin:0;font-size:16px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
+    .brand .sub{display:block;font-size:11px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-top:2px}
+
+    .header-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
     .badge{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:5px 8px;border-radius:999px;
-      border:1px solid var(--line);
-      font-size:12px;color:var(--muted);
-      background: color-mix(in srgb, var(--card) 78%, transparent);
+      font-size:11px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(163,139,99,.45);
+      color:var(--muted);
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      background:rgba(0,0,0,.35);
       white-space:nowrap;
     }
-    .badge.gold{border-color: color-mix(in srgb, var(--gold) 55%, var(--line)); color: color-mix(in srgb, var(--gold) 75%, var(--text))}
-    .badge.ok{border-color: color-mix(in srgb, var(--ok) 45%, var(--line)); color: color-mix(in srgb, var(--ok) 70%, var(--text))}
-    .badge.warn{border-color: color-mix(in srgb, var(--warn) 55%, var(--line)); color: color-mix(in srgb, var(--warn) 70%, var(--text))}
-
-    /* Wizard */
-    .wizard{display:flex;flex-direction:column;gap:12px}
-    .steps{
-      display:flex;gap:8px;flex-wrap:wrap;
-      padding:12px 14px;border-bottom:1px solid var(--line);
-      background: color-mix(in srgb, var(--card) 72%, transparent);
-    }
-    .step{
-      display:inline-flex;align-items:center;gap:10px;
-      padding:10px 12px;border-radius:14px;border:1px solid var(--line);
-      background: color-mix(in srgb, var(--card) 80%, transparent);
-      color:var(--muted); font-size:13px; cursor:pointer;
+    .btn{
+      border-radius:999px;
+      border:1px solid var(--gold-soft);
+      background:rgba(12,12,12,.92);
+      color:var(--text);
+      padding:8px 12px;
+      font-size:13px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      cursor:pointer;
+      transition:.18s border-color,.18s transform,.18s background;
+      text-decoration:none;
       user-select:none;
     }
-    .step .n{
-      width:22px;height:22px;border-radius:999px;
-      display:inline-flex;align-items:center;justify-content:center;
-      border:1px solid var(--line);
-      font-family:var(--mono);font-size:12px;
-      color:var(--muted);
-    }
-    .step.active{
-      color:var(--text);
-      border-color: color-mix(in srgb, var(--gold) 55%, var(--line));
-      background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 16%, var(--card)),
-                                        color-mix(in srgb, var(--card) 88%, transparent));
-    }
-    .step.active .n{border-color: color-mix(in srgb, var(--gold) 55%, var(--line)); color:var(--text)}
-    .panel{padding:14px}
-    .panel h3{margin:0 0 10px;font-size:14px}
-    .split{display:grid;grid-template-columns: 1fr 1fr; gap:12px}
-    @media (max-width: 980px){.split{grid-template-columns:1fr}}
+    .btn:hover{border-color:var(--gold);transform:translateY(-1px)}
+    .btn.primary{background:var(--gold);color:#0A0A0A;border-color:var(--gold);font-weight:700}
+    .btn.secondary{border-color:rgba(255,255,255,.18);color:var(--muted);background:transparent}
 
-    /* Step 5 centered container */
-    .step5center{
-      display:flex;
-      justify-content:center;
-      padding: 10px 0 0;
-    }
-    .step5box{
-      width:min(900px, 100%);
-      border:1px solid var(--line);
-      border-radius: var(--radius);
-      background: linear-gradient(180deg, color-mix(in srgb, var(--card) 92%, transparent), var(--card2));
-      box-shadow: var(--shadow);
+    /* Layout */
+    .layout{
+      display:grid;
+      grid-template-columns:320px minmax(0,1fr);
+      height:100%;
       overflow:hidden;
     }
-    .step5box .hd{padding:14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}
-    .step5box .bd{padding:14px}
-    .hr{height:1px;background:var(--line);margin:12px 0}
-    .note{
-      border:1px dashed color-mix(in srgb, var(--gold) 40%, var(--line));
-      background: color-mix(in srgb, var(--gold) 10%, transparent);
-      padding:10px 12px;border-radius:14px;
+    @media (max-width: 980px){
+      .layout{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+    }
+
+    /* Sidebar */
+    aside.sidebar{
+      border-right:1px solid rgba(163,139,99,.24);
+      background:radial-gradient(circle at top left,#141414,#060606);
+      padding:12px 12px;
+      overflow:auto;
+    }
+    .side-card{
+      background:rgba(0,0,0,.45);
+      border:1px solid rgba(163,139,99,.18);
+      border-radius:var(--radius-md);
+      padding:10px 10px;
+      margin-bottom:10px;
+      box-shadow:0 12px 22px rgba(0,0,0,.35);
+    }
+    .side-card h3{
+      margin:0 0 8px;
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+    .field{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+    .field label{
+      font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase
+    }
+    .input, select, textarea{
+      width:100%;
+      background:rgba(0,0,0,.70);
+      color:var(--text);
+      border:1px solid rgba(163,139,99,.22);
+      border-radius:10px;
+      padding:8px 10px;
+      outline:none;
+      font-size:13px;
+    }
+    textarea{min-height:84px;resize:vertical}
+    .input:focus, select:focus, textarea:focus{
+      border-color:var(--gold);
+      box-shadow:0 0 0 1px rgba(163,139,99,.35);
+    }
+    .checks{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+    .checks label{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--muted);line-height:1.35}
+    .checks input{accent-color:var(--gold);margin-top:2px}
+
+    .hint{font-size:11px;color:var(--muted);line-height:1.45}
+    .divider{height:1px;background:rgba(255,255,255,.10);margin:10px 0}
+
+    /* Main */
+    main.main{
+      padding:14px 16px 18px;
+      overflow:auto;
+      background:radial-gradient(circle at top,#1a1a1a,#050505 55%,#000 100%);
+    }
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .topbar h2{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+    .topbar p{margin:2px 0 0;font-size:12px;color:var(--muted);line-height:1.45;max-width:920px}
+
+    .panel{
+      border-radius:var(--radius-lg);
+      border:1px solid rgba(163,139,99,.24);
+      background:rgba(3,3,3,.88);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .panel-head{
+      padding:10px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      background:linear-gradient(90deg,#050505,#111,#050505);
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .panel-head .title{
+      display:flex;align-items:center;gap:10px;
+      font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:12px;color:var(--gold);
+    }
+    .panel-body{padding:12px 12px 12px}
+    .panel-foot{
+      padding:10px 12px;
+      border-top:1px solid rgba(255,255,255,.10);
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      background:rgba(0,0,0,.35);
+    }
+
+    /* Tabs (Lista vs Wizard) */
+    .tabs{
+      display:flex;gap:6px;flex-wrap:wrap;align-items:center;
+    }
+    .tab{
+      border-radius:999px;
+      padding:6px 10px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.35);
+      font-size:12px;
+      color:var(--muted);
+      cursor:pointer;
+      user-select:none;
+    }
+    .tab.active{
+      border-color:var(--gold);
+      color:#0A0A0A;
+      background:var(--gold);
+      font-weight:800;
+    }
+
+    /* Table list */
+    .table-wrap{overflow:auto}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:860px;
+    }
+    th,td{
+      padding:10px 10px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      vertical-align:top;
+    }
+    th{
+      position:sticky;top:0;
+      background:rgba(0,0,0,.55);
+      color:var(--muted);
+      font-size:11px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      z-index:2;
+    }
+    td{font-size:13px;color:#e9e9e9}
+    .td-sub{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      padding:4px 9px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      font-size:11px;
+      letter-spacing:.10em;
+      text-transform:uppercase;
+      color:var(--muted);
+      background:rgba(0,0,0,.35);
+      white-space:nowrap;
+    }
+    .pill.ok{border-color:rgba(67,160,71,.55);color:#A5D6A7}
+    .pill.warn{border-color:rgba(229,57,53,.55);color:#ffb4b4}
+    .pill.info{border-color:rgba(30,136,229,.55);color:#bbdefb}
+    .row-actions{display:flex;gap:6px;flex-wrap:wrap}
+
+    .btn-xs{
+      border-radius:999px;
+      padding:6px 10px;
+      border:1px solid rgba(163,139,99,.60);
+      background:rgba(0,0,0,.70);
+      color:var(--gold);
+      font-size:11px;
+      text-decoration:none;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      transition:.18s border-color,.18s transform,.18s background;
+      user-select:none;
+    }
+    .btn-xs:hover{transform:translateY(-1px);border-color:var(--gold)}
+    .btn-xs.primary{background:var(--gold);color:#0A0A0A;border-color:var(--gold);font-weight:800}
+    .btn-xs.ghost{border-color:rgba(255,255,255,.16);color:var(--muted);background:transparent}
+
+    /* Wizard */
+    .wizard{
+      display:grid;
+      grid-template-columns:260px minmax(0,1fr);
+      gap:12px;
+      align-items:start;
+    }
+    @media (max-width: 980px){
+      .wizard{grid-template-columns:1fr}
+    }
+
+    /* Step 5 centrado (mantém sidebar à esquerda) */
+    .wizard.step5-center .step-panel{
+      max-width:1100px;
+      margin:0 auto;
+    }
+
+
+    .steps{
+      border-radius:var(--radius-lg);
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.35);
+      padding:10px 10px;
+      position:sticky;
+      top:84px;
+    }
+    @media (max-width: 980px){
+      .steps{position:relative;top:auto}
+    }
+    .steps h4{
+      margin:0 0 8px;
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+    .step{
+      display:flex;gap:10px;align-items:flex-start;
+      padding:8px 8px;
+      border-radius:12px;
+      border:1px solid transparent;
+      cursor:pointer;
+    }
+    .step:hover{border-color:rgba(163,139,99,.22);background:rgba(163,139,99,.08)}
+    .step.active{border-color:rgba(163,139,99,.45);background:rgba(163,139,99,.12)}
+    .step .n{
+      width:24px;height:24px;border-radius:999px;
+      display:flex;align-items:center;justify-content:center;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.45);
       color:var(--muted);
       font-size:12px;
+      flex-shrink:0;
+    }
+    .step.active .n{background:var(--gold);border-color:var(--gold);color:#0A0A0A;font-weight:900}
+    .step .t{
+      font-size:12px;color:#f0f0f0;font-weight:700;
+      line-height:1.2;
+    }
+    .step .s{
+      display:block;margin-top:2px;
+      font-size:11px;color:var(--muted);font-weight:500;
+      line-height:1.25;
     }
 
-    /* Modal */
-    .modalBack{
-      position:fixed; inset:0;
-      background: rgba(0,0,0,.55);
-      display:none; align-items:center; justify-content:center;
-      z-index:50;
-      padding:18px;
-    }
-    .modal{
-      width:min(1000px, 100%);
-      height:min(760px, 100%);
-      border-radius: 18px;
-      background: var(--card);
-      border:1px solid var(--line);
-      box-shadow: var(--shadow);
+    .step-panel{
+      border-radius:var(--radius-lg);
+      border:1px solid rgba(163,139,99,.24);
+      background:rgba(3,3,3,.88);
+      box-shadow:var(--shadow);
       overflow:hidden;
-      display:flex; flex-direction:column;
     }
-    .modal .mh{
-      padding:12px 14px;
-      border-bottom:1px solid var(--line);
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-    }
-    .modal .mh h4{margin:0;font-size:14px}
-    .modal .mb{
-      flex:1; background: color-mix(in srgb, var(--bg) 60%, transparent);
-    }
-    .modal iframe{width:100%;height:100%;border:0;background:white}
-    .toast{
-      position:fixed; right:16px; bottom:16px;
-      max-width: 420px;
+    .step-head{
       padding:10px 12px;
-      border-radius: 14px;
-      border:1px solid var(--line);
-      background: color-mix(in srgb, var(--card) 88%, transparent);
-      box-shadow: var(--shadow);
-      display:none;
-      z-index:60;
-      font-size:13px;
-      color:var(--text);
+      border-bottom:1px solid rgba(255,255,255,.10);
+      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+      background:linear-gradient(90deg,#050505,#111,#050505);
     }
-    .toast .mut{color:var(--muted);font-size:12px;margin-top:3px}
-    .muted{color:var(--muted)}
-    .right{justify-content:flex-end}
+    .step-head .left{
+      display:flex;flex-direction:column;gap:2px;
+    }
+    .step-head .kicker{
+      font-size:11px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;
+    }
+    .step-head .name{
+      font-size:13px;color:var(--gold);font-weight:900;letter-spacing:.06em;text-transform:uppercase;
+    }
+    .step-body{padding:12px 12px}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media (max-width: 980px){.grid-2{grid-template-columns:1fr}}
+    .grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+    @media (max-width: 980px){.grid-3{grid-template-columns:1fr}}
+
+    .radio-row, .toggle-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .radio{
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.35);
+      border-radius:12px;
+      padding:8px 10px;
+      display:flex;gap:8px;align-items:flex-start;
+      cursor:pointer;
+      min-width:220px;
+      flex:1;
+    }
+    .radio input{accent-color:var(--gold);margin-top:2px}
+    .radio .rt{font-size:12px;font-weight:800;color:#f0f0f0}
+    .radio .rs{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.3}
+
+    .section-title{
+      margin:12px 0 6px;
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+
+    /* Upload */
+    .drop{
+      border:1px dashed rgba(163,139,99,.55);
+      background:rgba(163,139,99,.08);
+      border-radius:16px;
+      padding:12px 12px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .drop .d-left{max-width:720px}
+    .drop .d-title{font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#f5f5f5;font-size:12px;margin:0 0 4px}
+    .drop .d-sub{margin:0;font-size:12px;color:var(--muted);line-height:1.45}
+    .drop .d-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+    /* Attachments list */
+    .files{
+      margin-top:10px;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      overflow:hidden;
+      background:rgba(0,0,0,.35);
+    }
+    .file{
+      display:flex;justify-content:space-between;gap:10px;align-items:flex-start;
+      padding:10px 10px;border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .file:last-child{border-bottom:none}
+    .file .f-name{font-weight:800}
+    .file .f-meta{font-size:11px;color:var(--muted);margin-top:2px}
+    .file .f-actions{display:flex;gap:6px;flex-wrap:wrap}
+
+    /* Analysis cards */
+    .analysis{
+      margin-top:10px;
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+    }
+    @media (max-width: 980px){.analysis{grid-template-columns:1fr}}
+    .mini-card{
+      border-radius:16px;
+      border:1px solid rgba(163,139,99,.22);
+      background:rgba(0,0,0,.35);
+      padding:10px 10px;
+    }
+    .mini-card h5{
+      margin:0 0 6px;
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+    .kv{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+    .kv:last-child{border-bottom:none}
+    .kv span{font-size:12px;color:#e9e9e9}
+    .kv b{font-size:12px;color:var(--muted);font-weight:700}
+
+    /* Report builder */
+    .switches{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:8px;
+      margin-top:8px;
+    }
+    @media (max-width: 980px){.switches{grid-template-columns:1fr}}
+    .sw{
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      background:rgba(0,0,0,.35);
+      padding:10px 10px;
+      display:flex;justify-content:space-between;gap:10px;align-items:center;
+    }
+    .sw .l{display:flex;flex-direction:column;gap:2px}
+    .sw .l b{font-size:12px;color:#f5f5f5}
+    .sw .l span{font-size:11px;color:var(--muted);line-height:1.3}
+    .sw input{accent-color:var(--gold);transform:scale(1.05)}
+
+    .cta-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .status{
+      font-size:11px;
+      color:var(--muted);
+      display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+    }
+    .dot{width:10px;height:10px;border-radius:999px;background:rgba(255,255,255,.22);border:1px solid rgba(0,0,0,.25)}
+    .dot.ok{background:rgba(67,160,71,.9)}
+    .dot.warn{background:rgba(229,57,53,.9)}
+    .dot.info{background:rgba(30,136,229,.9)}
   </style>
 </head>
+
 <body>
-<header>
-  <div class="wrap">
-    <div class="topbar">
+  <div class="app">
+    <header class="app-header">
       <div class="brand">
-        <div class="mark" aria-hidden="true"></div>
+        <div class="brand-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M8 12.5l2.5 2.5L16 9"></path>
+          </svg>
+        </div>
         <div>
-          <h1>Garvetur Luxury Porto — Relatório Cliente (Admin)</h1>
-          <div class="sub">v11 · Fase 2.2 — PDF Final Premium (estável, assistido, sem parsing automático de PDF)</div>
+          <h1>Relatório para Cliente</h1>
+          <span class="sub">Admin · PDF + Personalização + Exportação</span>
         </div>
       </div>
-      <div class="pill"><span>Estado:</span> <b id="statePill">Pronto</b></div>
-    </div>
-    <nav>
-      <div class="tab active" data-tab="relatorios">Relatórios</div>
-      <div class="tab" data-tab="leads">Leads</div>
-      <div class="tab" data-tab="fsbo">FSBO</div>
-      <div class="tab" data-tab="angariacoes">Angariações</div>
-      <div class="tab" data-tab="config">Configuração</div>
-    </nav>
-  </div>
-</header>
 
-<main class="wrap">
-  <div id="view-relatorios" class="grid">
-    <!-- Left: list -->
-    <section class="card">
-      <div class="hd">
-        <div>
-          <h2>Lista de Relatórios</h2>
-          <div class="meta">Selecione um relatório para abrir o wizard.</div>
-        </div>
-        <span class="badge gold" id="countReports">0</span>
+      <div class="header-actions">
+        <span class="badge">Privado</span>
+        <a class="btn secondary" href="./admin.html">Voltar ao Admin</a>
+        <button class="btn primary" id="btnNew">+ Novo Relatório</button>
       </div>
-      <div class="bd">
-        <div class="row" style="margin-bottom:12px">
-          <button class="btn primary" id="btnNew">+ Novo Relatório</button>
-          <button class="btn" id="btnDup" title="Duplicar o relatório selecionado">Duplicar</button>
-          <button class="btn danger" id="btnDel" title="Eliminar o relatório selecionado">Eliminar</button>
-        </div>
-        <div class="field">
-          <label>Pesquisa</label>
-          <input class="input" id="search" placeholder="Nome do cliente / consultor / estado…" />
-        </div>
-        <div class="kpi" style="margin-bottom:12px">
-          <div class="box"><div class="v" id="kpiDraft">0</div><div class="t">Em rascunho</div></div>
-          <div class="box"><div class="v" id="kpiReady">0</div><div class="t">Prontos p/ PDF</div></div>
-          <div class="box"><div class="v" id="kpiPdf">0</div><div class="t">PDF gerado</div></div>
-        </div>
-        <div id="list" class="list"></div>
-        <div class="hr"></div>
-        <div class="note">
-          <b>Nota de estabilidade:</b> Nesta Fase 2.2 o PDF pode ser anexado como referência visual, mas não é interpretado automaticamente no browser (evita bloqueios).
-        </div>
-      </div>
-    </section>
+    </header>
 
-    <!-- Right: wizard -->
-    <section class="card">
-      <div class="hd">
-        <div>
-          <h2>Wizard do Relatório</h2>
-          <div class="meta" id="wizMeta">Selecione um relatório à esquerda.</div>
-        </div>
-        <span class="badge" id="wizBadge">—</span>
-      </div>
-      <div class="wizard">
-        <div class="steps" id="stepsBar" aria-label="Passos do wizard">
-          <div class="step active" data-step="1"><span class="n">1</span>Cliente</div>
-          <div class="step" data-step="2"><span class="n">2</span>Contexto</div>
-          <div class="step" data-step="3"><span class="n">3</span>Inputs Consultor</div>
-          <div class="step" data-step="4"><span class="n">4</span>Estudo / PDF</div>
-          <div class="step" data-step="5"><span class="n">5</span>PDF Final Premium</div>
-        </div>
+    <div class="layout">
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <div class="side-card">
+          <h3>Pesquisa & Filtros</h3>
 
-        <div class="panel" id="panel-1"></div>
-        <div class="panel" id="panel-2" style="display:none"></div>
-        <div class="panel" id="panel-3" style="display:none"></div>
-        <div class="panel" id="panel-4" style="display:none"></div>
-        <div class="panel" id="panel-5" style="display:none"></div>
-      </div>
-    </section>
-  </div>
-
-  <!-- Placeholder views -->
-  <div id="view-leads" style="display:none">
-    <section class="card">
-      <div class="hd"><h2>Leads</h2><div class="meta">Módulo estável (placeholder). Integração completa poderá ser feita sem afetar a Fase 2.2.</div></div>
-      <div class="bd">
-        <div class="note">Este separador mantém o espaço funcional, mas o foco desta entrega é o fecho do módulo <b>Relatório Cliente</b> com <b>PDF Final Premium</b>.</div>
-      </div>
-    </section>
-  </div>
-
-  <div id="view-fsbo" style="display:none">
-    <section class="card">
-      <div class="hd"><h2>FSBO</h2><div class="meta">Módulo estável (placeholder).</div></div>
-      <div class="bd"><div class="note">Placeholder funcional.</div></div>
-    </section>
-  </div>
-
-  <div id="view-angariacoes" style="display:none">
-    <section class="card">
-      <div class="hd"><h2>Angariações</h2><div class="meta">Módulo estável (placeholder).</div></div>
-      <div class="bd"><div class="note">Placeholder funcional.</div></div>
-    </section>
-  </div>
-
-  <div id="view-config" style="display:none">
-    <section class="card">
-      <div class="hd"><h2>Configuração</h2><div class="meta">Definições locais do utilizador (guardadas no browser).</div></div>
-      <div class="bd">
-        <div class="split">
-          <div>
-            <div class="field">
-              <label>Assinatura (nome do consultor)</label>
-              <input class="input" id="cfgSignature" placeholder="Ex.: Rui Quelhas" />
-            </div>
-            <div class="field">
-              <label>Email do consultor</label>
-              <input class="input" id="cfgEmail" placeholder="ex.: rui@garvetur.pt" />
-            </div>
-            <button class="btn primary" id="cfgSave">Guardar</button>
-          </div>
-          <div>
-            <div class="note">
-              <b>Recomendação:</b> Configure aqui o nome e email do consultor para preencher automaticamente o PDF.
-              <div class="muted" style="margin-top:6px">Estes dados ficam apenas no seu browser (localStorage).</div>
-            </div>
-            <div class="hr"></div>
-            <button class="btn danger" id="cfgReset">Repor dados locais (perigoso)</button>
-          </div>
-        </div>
-      </div>
-    </section>
-  </div>
-</main>
-
-<!-- Modal PDF Preview -->
-<div class="modalBack" id="pdfModalBack" role="dialog" aria-modal="true" aria-label="Pré-visualização do PDF">
-  <div class="modal">
-    <div class="mh">
-      <h4>Pré-visualização — PDF Final Premium</h4>
-      <div class="row right" style="gap:8px;flex-wrap:nowrap">
-        <button class="btn" id="btnPdfDownload">Download</button>
-        <button class="btn ghost" id="btnPdfClose">Fechar</button>
-      </div>
-    </div>
-    <div class="mb"><iframe id="pdfFrame" title="PDF preview"></iframe></div>
-  </div>
-</div>
-
-<div class="toast" id="toast">
-  <div id="toastMsg">—</div>
-  <div class="mut" id="toastSub">—</div>
-</div>
-
-<!-- jsPDF (client-side PDF generation) -->
-<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" crossorigin="anonymous"></script>
-
-<script>
-/* =========================
-   Storage & IndexedDB (PDF attachment)
-   ========================= */
-const LS_KEY = "glp_reports_v11_phase2_2";
-const LS_CFG = "glp_config_v11";
-const DB_NAME = "glp_reports_db";
-const DB_STORE = "pdfs";
-const DB_VER = 1;
-
-function nowISO(){ return new Date().toISOString(); }
-function uid(){ return "r_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16); }
-
-function toast(msg, sub=""){
-  const t = document.getElementById("toast");
-  document.getElementById("toastMsg").textContent = msg;
-  document.getElementById("toastSub").textContent = sub || "";
-  t.style.display = "block";
-  clearTimeout(toast._tm);
-  toast._tm = setTimeout(()=> t.style.display="none", 3200);
-}
-
-function setStatePill(text, kind=""){
-  const el = document.getElementById("statePill");
-  el.textContent = text;
-  el.style.color = kind==="ok" ? "var(--ok)" : (kind==="warn" ? "var(--warn)" : "");
-}
-
-function loadCfg(){
-  try{ return JSON.parse(localStorage.getItem(LS_CFG) || "{}"); }catch(e){ return {}; }
-}
-function saveCfg(cfg){
-  localStorage.setItem(LS_CFG, JSON.stringify(cfg||{}));
-}
-
-function loadData(){
-  try{
-    const raw = localStorage.getItem(LS_KEY);
-    if(!raw) return [];
-    const data = JSON.parse(raw);
-    if(Array.isArray(data)) return data;
-    return [];
-  }catch(e){ return []; }
-}
-function saveData(data){
-  localStorage.setItem(LS_KEY, JSON.stringify(data));
-}
-
-/* IndexedDB minimal wrapper */
-function idbOpen(){
-  return new Promise((resolve, reject)=>{
-    const req = indexedDB.open(DB_NAME, DB_VER);
-    req.onupgradeneeded = (ev)=>{
-      const db = req.result;
-      if(!db.objectStoreNames.contains(DB_STORE)){
-        db.createObjectStore(DB_STORE);
-      }
-    };
-    req.onsuccess = ()=> resolve(req.result);
-    req.onerror = ()=> reject(req.error);
-  });
-}
-async function idbSet(key, value){
-  const db = await idbOpen();
-  return new Promise((resolve, reject)=>{
-    const tx = db.transaction(DB_STORE, "readwrite");
-    tx.objectStore(DB_STORE).put(value, key);
-    tx.oncomplete = ()=>{ db.close(); resolve(true); };
-    tx.onerror = ()=>{ db.close(); reject(tx.error); };
-  });
-}
-async function idbGet(key){
-  const db = await idbOpen();
-  return new Promise((resolve, reject)=>{
-    const tx = db.transaction(DB_STORE, "readonly");
-    const req = tx.objectStore(DB_STORE).get(key);
-    req.onsuccess = ()=>{ const v = req.result; db.close(); resolve(v); };
-    req.onerror = ()=>{ db.close(); reject(req.error); };
-  });
-}
-async function idbDel(key){
-  const db = await idbOpen();
-  return new Promise((resolve, reject)=>{
-    const tx = db.transaction(DB_STORE, "readwrite");
-    tx.objectStore(DB_STORE).delete(key);
-    tx.oncomplete = ()=>{ db.close(); resolve(true); };
-    tx.onerror = ()=>{ db.close(); reject(tx.error); };
-  });
-}
-
-/* =========================
-   App State
-   ========================= */
-let reports = loadData();
-let activeId = null;
-let activeStep = 1;
-let lastPdfBlob = null;
-let lastPdfFilename = null;
-
-function seedIfEmpty(){
-  if(reports.length) return;
-  reports = [{
-    id: uid(),
-    createdAt: nowISO(),
-    updatedAt: nowISO(),
-    status: "RASCUNHO", // RASCUNHO | PRONTO | PDF_GERADO
-    client: {
-      nome: "Cliente Exemplo",
-      email: "cliente@exemplo.com",
-      telefone: "+351 9XX XXX XXX",
-      perfil: "Investidor / Residencial",
-      objetivo: "Compra",
-      zona: "Porto / Foz / Boavista",
-      budget: "—",
-      prazo: "—"
-    },
-    contexto: {
-      origem: "Contacto direto / Referência",
-      notas: "Resumo do contexto e do enquadramento do cliente."
-    },
-    consultor: {
-      nome: "",
-      email: "",
-      inputs: "Registe aqui os inputs do consultor (necessidades, objeções, critérios, preferências)."
-    },
-    estudo: {
-      modo: "IGNORAR", // COLAR | PDF | IGNORAR
-      textoColado: "",
-      estruturado: { titulos:[], blocos:[], insights:[] },
-      pdfKey: null,
-      pdfName: null
-    },
-    recomendacao: {
-      analise: "Análise & Recomendação Garvetur (tom formal / executivo).",
-      proximosPassos: "Próximos passos sugeridos (ex.: shortlist, visitas, negociação, documentação)."
-    },
-    pdf: {
-      lastGeneratedAt: null,
-      lastFilename: null
-    }
-  }];
-  saveData(reports);
-}
-seedIfEmpty();
-
-/* =========================
-   UI helpers
-   ========================= */
-const $ = (s, r=document)=> r.querySelector(s);
-const $$ = (s, r=document)=> Array.from(r.querySelectorAll(s));
-
-function fmtDate(iso){
-  try{
-    const d = new Date(iso);
-    return d.toLocaleString("pt-PT", { year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit"});
-  }catch(e){ return "—"; }
-}
-
-function calcKpi(){
-  const draft = reports.filter(r=>r.status==="RASCUNHO").length;
-  const ready = reports.filter(r=>r.status==="PRONTO").length;
-  const pdf = reports.filter(r=>r.status==="PDF_GERADO").length;
-  $("#kpiDraft").textContent = draft;
-  $("#kpiReady").textContent = ready;
-  $("#kpiPdf").textContent = pdf;
-  $("#countReports").textContent = reports.length;
-}
-
-function badgeForStatus(st){
-  if(st==="PDF_GERADO") return `<span class="badge ok">PDF gerado</span>`;
-  if(st==="PRONTO") return `<span class="badge warn">Pronto p/ PDF</span>`;
-  return `<span class="badge">Rascunho</span>`;
-}
-
-/* =========================
-   Tabs (no blocking)
-   ========================= */
-$$(".tab").forEach(t=>{
-  t.addEventListener("click", ()=>{
-    $$(".tab").forEach(x=>x.classList.remove("active"));
-    t.classList.add("active");
-    const tab = t.dataset.tab;
-    ["relatorios","leads","fsbo","angariacoes","config"].forEach(k=>{
-      const v = document.getElementById("view-"+k);
-      if(v) v.style.display = (k===tab) ? "" : "none";
-    });
-  });
-});
-
-/* =========================
-   List rendering
-   ========================= */
-function renderList(){
-  const q = ($("#search").value || "").toLowerCase().trim();
-  const list = $("#list");
-  list.innerHTML = "";
-  const filtered = reports
-    .slice()
-    .sort((a,b)=> (b.updatedAt||"").localeCompare(a.updatedAt||""))
-    .filter(r=>{
-      const hay = [
-        r.client?.nome, r.consultor?.nome, r.status,
-        r.client?.zona, r.client?.perfil, r.client?.objetivo
-      ].join(" ").toLowerCase();
-      return !q || hay.includes(q);
-    });
-
-  if(!filtered.length){
-    list.innerHTML = `<div class="note">Sem resultados. Crie um novo relatório ou altere a pesquisa.</div>`;
-    calcKpi();
-    return;
-  }
-
-  for(const r of filtered){
-    const div = document.createElement("div");
-    div.className = "item" + (r.id===activeId ? " active" : "");
-    const metaLeft = `${r.client?.perfil || "—"} · ${r.client?.objetivo || "—"} · ${r.client?.zona || "—"}`;
-    const metaRight = fmtDate(r.updatedAt || r.createdAt);
-    div.innerHTML = `
-      <div class="title">${escapeHtml(r.client?.nome || "Sem nome")}</div>
-      <div class="meta">
-        <span>${escapeHtml(metaLeft)}</span>
-        <span>${metaRight}</span>
-      </div>
-      <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:space-between">
-        ${badgeForStatus(r.status)}
-        <span class="badge gold">ID: <span style="font-family:var(--mono)">${r.id.slice(0,8)}</span></span>
-      </div>
-    `;
-    div.addEventListener("click", ()=>{
-      activeId = r.id;
-      activeStep = 1;
-      renderList();
-      renderWizard();
-    });
-    list.appendChild(div);
-  }
-  calcKpi();
-}
-
-function escapeHtml(s){
-  return (s||"").replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
-}
-
-$("#search").addEventListener("input", renderList);
-
-/* =========================
-   CRUD buttons
-   ========================= */
-$("#btnNew").addEventListener("click", ()=>{
-  const cfg = loadCfg();
-  const r = {
-    id: uid(),
-    createdAt: nowISO(),
-    updatedAt: nowISO(),
-    status:"RASCUNHO",
-    client:{ nome:"Novo Cliente", email:"", telefone:"", perfil:"", objetivo:"", zona:"", budget:"", prazo:"" },
-    contexto:{ origem:"", notas:"" },
-    consultor:{ nome: cfg.signature||"", email: cfg.email||"", inputs:"" },
-    estudo:{ modo:"IGNORAR", textoColado:"", estruturado:{titulos:[],blocos:[],insights:[]}, pdfKey:null, pdfName:null },
-    recomendacao:{ analise:"", proximosPassos:"" },
-    pdf:{ lastGeneratedAt:null, lastFilename:null }
-  };
-  reports.unshift(r);
-  activeId = r.id;
-  activeStep = 1;
-  saveData(reports);
-  renderList();
-  renderWizard();
-  toast("Relatório criado", "Pode avançar no wizard e gerar o PDF no passo 5.");
-});
-
-$("#btnDup").addEventListener("click", ()=>{
-  const r = getActive();
-  if(!r){ toast("Selecione um relatório", "Nada foi duplicado."); return; }
-  const copy = JSON.parse(JSON.stringify(r));
-  copy.id = uid();
-  copy.createdAt = nowISO();
-  copy.updatedAt = nowISO();
-  copy.status = "RASCUNHO";
-  copy.pdf = { lastGeneratedAt:null, lastFilename:null };
-  // PDF attachment: keep reference, but new key to avoid accidental overwrite
-  if(copy.estudo?.pdfKey){
-    copy.estudo.pdfKey = null;
-    copy.estudo.pdfName = null;
-  }
-  reports.unshift(copy);
-  activeId = copy.id;
-  activeStep = 1;
-  saveData(reports);
-  renderList();
-  renderWizard();
-  toast("Relatório duplicado", "O anexo PDF não foi copiado por segurança.");
-});
-
-$("#btnDel").addEventListener("click", async ()=>{
-  const r = getActive();
-  if(!r){ toast("Selecione um relatório", "Nada foi eliminado."); return; }
-  const ok = confirm("Confirma a eliminação deste relatório? Esta ação é irreversível.");
-  if(!ok) return;
-  // delete attached PDF from IndexedDB if any
-  if(r.estudo?.pdfKey){
-    try{ await idbDel(r.estudo.pdfKey); }catch(e){}
-  }
-  reports = reports.filter(x=>x.id!==r.id);
-  if(activeId===r.id) activeId = reports[0]?.id || null;
-  saveData(reports);
-  renderList();
-  renderWizard();
-  toast("Relatório eliminado", "Dados removidos do storage local.");
-});
-
-function getActive(){
-  return reports.find(r=>r.id===activeId) || null;
-}
-function patchActive(patcher){
-  const idx = reports.findIndex(r=>r.id===activeId);
-  if(idx<0) return;
-  const r = reports[idx];
-  patcher(r);
-  r.updatedAt = nowISO();
-  reports[idx] = r;
-  saveData(reports);
-  renderList();
-  renderWizardMetaOnly();
-}
-
-function renderWizardMetaOnly(){
-  const r = getActive();
-  if(!r){
-    $("#wizMeta").textContent = "Selecione um relatório à esquerda.";
-    $("#wizBadge").textContent = "—";
-    return;
-  }
-  $("#wizMeta").textContent = `${r.client?.nome || "Sem nome"} · atualizado em ${fmtDate(r.updatedAt)}`;
-  $("#wizBadge").textContent = r.status || "—";
-}
-
-/* =========================
-   Wizard navigation
-   ========================= */
-$("#stepsBar").addEventListener("click", (ev)=>{
-  const stepEl = ev.target.closest(".step");
-  if(!stepEl) return;
-  if(!getActive()){ toast("Selecione um relatório", "Depois use os passos do wizard."); return; }
-  activeStep = Number(stepEl.dataset.step || 1);
-  renderWizard();
-});
-
-function setActiveStepUI(){
-  $$(".step").forEach(s=>{
-    s.classList.toggle("active", Number(s.dataset.step)===activeStep);
-  });
-  for(let i=1;i<=5;i++){
-    const p = document.getElementById("panel-"+i);
-    if(p) p.style.display = (i===activeStep) ? "" : "none";
-  }
-}
-
-/* =========================
-   Panels content
-   ========================= */
-function renderWizard(){
-  setActiveStepUI();
-  const r = getActive();
-  renderWizardMetaOnly();
-
-  if(!r){
-    // show empty panels minimal
-    for(let i=1;i<=5;i++){
-      const p = $("#panel-"+i);
-      p.innerHTML = `<div class="note">Selecione um relatório na lista para começar.</div>`;
-    }
-    return;
-  }
-
-  renderPanel1(r);
-  renderPanel2(r);
-  renderPanel3(r);
-  renderPanel4(r);
-  renderPanel5(r);
-
-  // update readiness
-  computeReadiness(r);
-}
-
-function computeReadiness(r){
-  // Minimal criteria to be PRONTO:
-  const hasClient = (r.client?.nome || "").trim().length>=2;
-  const hasConsultor = (r.consultor?.nome || "").trim().length>=2;
-  const hasRecomendacao = (r.recomendacao?.analise || "").trim().length>=10;
-  const ready = hasClient && hasConsultor && hasRecomendacao;
-  const newStatus = (r.status==="PDF_GERADO") ? "PDF_GERADO" : (ready ? "PRONTO" : "RASCUNHO");
-  if(newStatus !== r.status){
-    r.status = newStatus;
-    r.updatedAt = nowISO();
-    saveData(reports);
-    renderList();
-    renderWizardMetaOnly();
-  }
-}
-
-function renderPanel1(r){
-  const p = $("#panel-1");
-  p.innerHTML = `
-    <h3>1) Cliente</h3>
-    <div class="split">
-      <div>
-        <div class="field"><label>Nome do cliente</label><input class="input" id="c_nome" value="${escapeHtml(r.client?.nome||"")}" /></div>
-        <div class="field"><label>Email</label><input class="input" id="c_email" value="${escapeHtml(r.client?.email||"")}" /></div>
-        <div class="field"><label>Telefone</label><input class="input" id="c_tel" value="${escapeHtml(r.client?.telefone||"")}" /></div>
-        <div class="field"><label>Perfil</label><input class="input" id="c_perfil" placeholder="Ex.: Investidor / Residencial / Corporate" value="${escapeHtml(r.client?.perfil||"")}" /></div>
-      </div>
-      <div>
-        <div class="field"><label>Objetivo</label>
-          <select id="c_obj" class="input">
-            ${["","Compra","Venda","Arrendamento","Investimento"].map(v=>`<option ${((r.client?.objetivo||"")==v)?"selected":""}>${v}</option>`).join("")}
-          </select>
-        </div>
-        <div class="field"><label>Zona / Localização</label><input class="input" id="c_zona" value="${escapeHtml(r.client?.zona||"")}" /></div>
-        <div class="field"><label>Budget (opcional)</label><input class="input" id="c_budget" value="${escapeHtml(r.client?.budget||"")}" /></div>
-        <div class="field"><label>Prazo (opcional)</label><input class="input" id="c_prazo" value="${escapeHtml(r.client?.prazo||"")}" /></div>
-      </div>
-    </div>
-    <div class="row right">
-      <button class="btn primary" id="p1_next">Seguinte →</button>
-    </div>
-  `;
-  $("#p1_next").onclick = ()=>{ activeStep=2; renderWizard(); };
-  // Bind
-  const bind = (id, path)=>{
-    const el = document.getElementById(id);
-    el.addEventListener("input", ()=>{
-      patchActive(rep=>{
-        const [a,b] = path.split(".");
-        rep[a][b] = el.value;
-      });
-    });
-  };
-  bind("c_nome","client.nome");
-  bind("c_email","client.email");
-  bind("c_tel","client.telefone");
-  bind("c_perfil","client.perfil");
-  $("#c_obj").addEventListener("change", ()=> patchActive(rep=> rep.client.objetivo = $("#c_obj").value ));
-  bind("c_zona","client.zona");
-  bind("c_budget","client.budget");
-  bind("c_prazo","client.prazo");
-}
-
-function renderPanel2(r){
-  const p = $("#panel-2");
-  p.innerHTML = `
-    <h3>2) Contexto</h3>
-    <div class="split">
-      <div>
-        <div class="field">
-          <label>Origem do contacto</label>
-          <input class="input" id="ctx_origem" placeholder="Ex.: Referência / Campanha / Walk-in / Parceiro" value="${escapeHtml(r.contexto?.origem||"")}" />
-        </div>
-        <div class="field">
-          <label>Notas de enquadramento</label>
-          <textarea id="ctx_notas" class="input" placeholder="Resumo objetivo do contexto.">${escapeHtml(r.contexto?.notas||"")}</textarea>
-        </div>
-      </div>
-      <div>
-        <div class="note">
-          O objetivo é garantir um relatório <b>executivo</b> e orientado a decisão: contexto, critérios e proposta Garvetur.
-          <div class="muted" style="margin-top:6px">Evite excesso de texto; foque o essencial e os próximos passos.</div>
-        </div>
-      </div>
-    </div>
-    <div class="row" style="justify-content:space-between">
-      <button class="btn" id="p2_prev">← Anterior</button>
-      <button class="btn primary" id="p2_next">Seguinte →</button>
-    </div>
-  `;
-  $("#p2_prev").onclick = ()=>{ activeStep=1; renderWizard(); };
-  $("#p2_next").onclick = ()=>{ activeStep=3; renderWizard(); };
-  $("#ctx_origem").addEventListener("input", ()=> patchActive(rep=> rep.contexto.origem = $("#ctx_origem").value ));
-  $("#ctx_notas").addEventListener("input", ()=> patchActive(rep=> rep.contexto.notas = $("#ctx_notas").value ));
-}
-
-function renderPanel3(r){
-  const p = $("#panel-3");
-  p.innerHTML = `
-    <h3>3) Inputs do Consultor</h3>
-    <div class="split">
-      <div>
-        <div class="field"><label>Consultor</label><input class="input" id="co_nome" placeholder="Nome do consultor" value="${escapeHtml(r.consultor?.nome||"")}" /></div>
-        <div class="field"><label>Email do consultor</label><input class="input" id="co_email" placeholder="Email" value="${escapeHtml(r.consultor?.email||"")}" /></div>
-        <div class="field">
-          <label>Inputs (necessidades, preferências, objeções)</label>
-          <textarea id="co_inputs" class="input" placeholder="Registe inputs de forma clara e objetiva.">${escapeHtml(r.consultor?.inputs||"")}</textarea>
-        </div>
-      </div>
-      <div>
-        <div class="field">
-          <label>Análise & Recomendação Garvetur</label>
-          <textarea id="rec_analise" class="input" placeholder="Posicionamento profissional Garvetur, com tom formal e executivo.">${escapeHtml(r.recomendacao?.analise||"")}</textarea>
-        </div>
-        <div class="field">
-          <label>Próximos passos</label>
-          <textarea id="rec_passos" class="input" placeholder="Ex.: shortlist, visitas, validação financeira, proposta, documentação.">${escapeHtml(r.recomendacao?.proximosPassos||"")}</textarea>
-        </div>
-      </div>
-    </div>
-    <div class="row" style="justify-content:space-between">
-      <button class="btn" id="p3_prev">← Anterior</button>
-      <button class="btn primary" id="p3_next">Seguinte →</button>
-    </div>
-  `;
-  $("#p3_prev").onclick = ()=>{ activeStep=2; renderWizard(); };
-  $("#p3_next").onclick = ()=>{ activeStep=4; renderWizard(); };
-  $("#co_nome").addEventListener("input", ()=> patchActive(rep=> rep.consultor.nome = $("#co_nome").value ));
-  $("#co_email").addEventListener("input", ()=> patchActive(rep=> rep.consultor.email = $("#co_email").value ));
-  $("#co_inputs").addEventListener("input", ()=> patchActive(rep=> rep.consultor.inputs = $("#co_inputs").value ));
-  $("#rec_analise").addEventListener("input", ()=> patchActive(rep=> rep.recomendacao.analise = $("#rec_analise").value ));
-  $("#rec_passos").addEventListener("input", ()=> patchActive(rep=> rep.recomendacao.proximosPassos = $("#rec_passos").value ));
-}
-
-function renderPanel4(r){
-  const p = $("#panel-4");
-  const modo = r.estudo?.modo || "IGNORAR";
-  const hasStruct = (r.estudo?.estruturado?.titulos?.length || 0) + (r.estudo?.estruturado?.insights?.length || 0) > 0;
-  p.innerHTML = `
-    <h3>4) Estudo / PDF (assistido e estável)</h3>
-    <div class="note" style="margin-bottom:12px">
-      Nesta Fase 2.2 <b>não existe leitura automática de PDF</b> no browser (evita bloqueios). Pode colar texto, anexar PDF apenas como referência visual, ou ignorar o estudo.
-    </div>
-
-    <div class="field">
-      <label>Modo</label>
-      <select id="st_modo" class="input">
-        <option value="COLAR" ${modo==="COLAR"?"selected":""}>a) Colar texto do estudo / relatório</option>
-        <option value="PDF" ${modo==="PDF"?"selected":""}>b) Upload PDF (anexo visual)</option>
-        <option value="IGNORAR" ${modo==="IGNORAR"?"selected":""}>c) Ignorar estudo</option>
-      </select>
-    </div>
-
-    <div id="mode_COLAR" style="display:${modo==="COLAR"?"":"none"}">
-      <div class="field">
-        <label>Texto do estudo (colar)</label>
-        <textarea id="st_texto" class="input" placeholder="Cole aqui o texto do estudo / relatório.">${escapeHtml(r.estudo?.textoColado||"")}</textarea>
-      </div>
-      <div class="row" style="margin-bottom:10px">
-        <button class="btn primary" id="btnEstruturar">Estruturar conteúdo</button>
-        <span class="badge ${hasStruct?"ok":""}">${hasStruct?"Estruturado":"Por estruturar"}</span>
-      </div>
-      <div class="split">
-        <div>
           <div class="field">
-            <label>Títulos / subtítulos</label>
-            <textarea id="st_titulos" class="input" placeholder="(gerado)">${escapeHtml((r.estudo?.estruturado?.titulos||[]).join("\n"))}</textarea>
+            <label for="q">Pesquisa</label>
+            <input class="input" id="q" type="text" placeholder="Cliente, zona, objetivo, estado…" />
           </div>
+
           <div class="field">
-            <label>Blocos relevantes</label>
-            <textarea id="st_blocos" class="input" placeholder="(gerado)">${escapeHtml((r.estudo?.estruturado?.blocos||[]).join("\n\n"))}</textarea>
+            <label for="fStatus">Estado</label>
+            <select id="fStatus">
+              <option value="">Todos</option>
+              <option value="draft">Rascunho</option>
+              <option value="final">Final</option>
+              <option value="sent">Enviado</option>
+            </select>
           </div>
-        </div>
-        <div>
+
           <div class="field">
-            <label>Insights-chave (bullet points)</label>
-            <textarea id="st_insights" class="input" placeholder="(gerado)">${escapeHtml((r.estudo?.estruturado?.insights||[]).map(x=>"• "+x).join("\n"))}</textarea>
+            <label for="fTipo">Tipo de cliente</label>
+            <select id="fTipo">
+              <option value="">Todos</option>
+              <option>Proprietário</option>
+              <option>Investidor</option>
+              <option>Promotor</option>
+              <option>Comprador</option>
+            </select>
           </div>
-          <div class="note">
-            Pode editar o conteúdo gerado antes de avançar para o PDF. O objetivo é obter uma síntese objetiva e executiva.
+
+          <div class="field">
+            <label for="fDataDe">Data (de / até)</label>
+            <div style="display:flex;gap:6px">
+              <input class="input" id="fDataDe" type="date" />
+              <input class="input" id="fDataAte" type="date" />
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="checks">
+            <label><input type="checkbox" id="fConfidencial" /> Apenas confidenciais</label>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+            <button class="btn" id="btnApply">Aplicar</button>
+            <button class="btn secondary" id="btnClear">Limpar</button>
+          </div>
+
+          <div class="divider"></div>
+          <div class="hint">
+            Este módulo cria relatórios prontos para decisão: <strong>executivo</strong> (1–2 páginas) ou <strong>completo</strong> (4–8+),
+            com anexos PDF e narrativa orientada ao cliente.
           </div>
         </div>
-      </div>
-    </div>
 
-    <div id="mode_PDF" style="display:${modo==="PDF"?"":"none"}">
-      <div class="field">
-        <label>Anexar PDF (referência visual)</label>
-        <input type="file" id="pdfFile" class="input" accept="application/pdf" />
-        <div class="small" style="margin-top:8px">
-          PDF atual: <b>${escapeHtml(r.estudo?.pdfName||"—")}</b>
+        <div class="side-card">
+          <h3>Estado do módulo</h3>
+          <div class="status">
+            <span class="dot ok"></span><span>UI pronta (layout)</span>
+          </div>
+          <div class="status" style="margin-top:8px">
+            <span class="dot info"></span><span>Ligação a módulos (FSBO | Leads | Angariações)</span>
+          </div>
+          <div class="status" style="margin-top:8px">
+            <span class="dot warn"></span><span>Extração PDF/Exportação (adiada)</span>
+          </div>
         </div>
-      </div>
-      <div class="row">
-        <button class="btn" id="btnAbrirAnexo" ${r.estudo?.pdfKey ? "" : "disabled"}>Abrir anexo</button>
-        <button class="btn danger" id="btnRemoverAnexo" ${r.estudo?.pdfKey ? "" : "disabled"}>Remover anexo</button>
-      </div>
-      <div class="hr"></div>
-      <div class="note">
-        <b>Importante:</b> o PDF é guardado localmente (IndexedDB) e fica acessível no passo 5 como referência. Não é interpretado automaticamente.
-      </div>
-    </div>
+      </aside>
 
-    <div id="mode_IGNORAR" style="display:${modo==="IGNORAR"?"":"none"}">
-      <div class="note">
-        O relatório seguirá apenas com o histórico/contexto do cliente, inputs do consultor e recomendação Garvetur.
-      </div>
-    </div>
-
-    <div class="row" style="justify-content:space-between; margin-top:12px">
-      <button class="btn" id="p4_prev">← Anterior</button>
-      <button class="btn primary" id="p4_next">Seguinte →</button>
-    </div>
-  `;
-
-  $("#p4_prev").onclick = ()=>{ activeStep=3; renderWizard(); };
-  $("#p4_next").onclick = ()=>{ activeStep=5; renderWizard(); };
-
-  $("#st_modo").addEventListener("change", ()=>{
-    const v = $("#st_modo").value;
-    patchActive(rep=> rep.estudo.modo = v);
-    renderWizard(); // safe, deterministic
-  });
-
-  // COLAR mode bindings
-  if(modo==="COLAR"){
-    $("#st_texto").addEventListener("input", ()=> patchActive(rep=> rep.estudo.textoColado = $("#st_texto").value ));
-    $("#btnEstruturar").addEventListener("click", ()=>{
-      const text = ($("#st_texto").value || "").trim();
-      if(!text){ toast("Sem texto", "Cole o texto do estudo e volte a tentar."); return; }
-      const out = structureText(text);
-      patchActive(rep=> rep.estudo.estruturado = out);
-      toast("Conteúdo estruturado", "Pode editar antes de avançar para o PDF.");
-      // re-render panel 4 to reflect
-      renderWizard();
-      activeStep = 4;
-      setActiveStepUI();
-    });
-
-    // allow manual edits to structured fields
-    $("#st_titulos").addEventListener("input", ()=>{
-      const lines = ($("#st_titulos").value||"").split("\n").map(s=>s.trim()).filter(Boolean);
-      patchActive(rep=> rep.estudo.estruturado.titulos = lines);
-    });
-    $("#st_blocos").addEventListener("input", ()=>{
-      const blocks = ($("#st_blocos").value||"").split(/\n\s*\n/).map(s=>s.trim()).filter(Boolean);
-      patchActive(rep=> rep.estudo.estruturado.blocos = blocks);
-    });
-    $("#st_insights").addEventListener("input", ()=>{
-      const lines = ($("#st_insights").value||"").split("\n")
-        .map(s=>s.replace(/^•\s*/,"").trim()).filter(Boolean);
-      patchActive(rep=> rep.estudo.estruturado.insights = lines);
-    });
-  }
-
-  // PDF mode bindings
-  if(modo==="PDF"){
-    const input = $("#pdfFile");
-    input.addEventListener("change", async ()=>{
-      const file = input.files && input.files[0];
-      if(!file) return;
-      if(file.type !== "application/pdf"){
-        toast("Ficheiro inválido", "Selecione um PDF.");
-        input.value = "";
-        return;
-      }
-      setStatePill("A guardar PDF…","warn");
-      try{
-        const buf = await file.arrayBuffer();
-        const key = "pdf_" + activeId;
-        await idbSet(key, { name: file.name, type: file.type, buf });
-        patchActive(rep=>{
-          rep.estudo.pdfKey = key;
-          rep.estudo.pdfName = file.name;
-        });
-        toast("PDF anexado", "Ficará disponível no passo 5.");
-      }catch(e){
-        console.error(e);
-        toast("Falha ao guardar PDF", "Verifique permissões do browser.");
-      }finally{
-        setStatePill("Pronto","ok");
-        renderWizard();
-        activeStep = 4;
-        setActiveStepUI();
-      }
-    });
-
-    $("#btnAbrirAnexo").addEventListener("click", async ()=>{
-      const key = r.estudo?.pdfKey;
-      if(!key) return;
-      try{
-        const rec = await idbGet(key);
-        if(!rec?.buf){ toast("Anexo indisponível", "Não foi possível carregar do storage."); return; }
-        const blob = new Blob([rec.buf], {type:"application/pdf"});
-        const url = URL.createObjectURL(blob);
-        window.open(url, "_blank", "noopener,noreferrer");
-      }catch(e){
-        console.error(e);
-        toast("Erro ao abrir", "Não foi possível abrir o anexo.");
-      }
-    });
-
-    $("#btnRemoverAnexo").addEventListener("click", async ()=>{
-      const ok = confirm("Remover anexo PDF deste relatório?");
-      if(!ok) return;
-      const key = r.estudo?.pdfKey;
-      if(key){
-        try{ await idbDel(key); }catch(e){}
-      }
-      patchActive(rep=>{
-        rep.estudo.pdfKey = null;
-        rep.estudo.pdfName = null;
-      });
-      toast("Anexo removido", "O relatório mantém-se intacto.");
-      renderWizard();
-      activeStep = 4;
-      setActiveStepUI();
-    });
-  }
-}
-
-function structureText(text){
-  // Heurística simples, determinística e rápida (evita qualquer bloqueio)
-  const lines = text.split("\n").map(l=>l.trim()).filter(Boolean);
-  const titulos = [];
-  const blocos = [];
-  const insights = [];
-  let current = [];
-
-  const pushBlock = ()=>{
-    if(current.length){
-      const block = current.join(" ");
-      if(block.length>30) blocos.push(block);
-      current = [];
-    }
-  };
-
-  for(const l of lines){
-    const isTitle = (
-      l.length<=70 &&
-      (l.toUpperCase()===l && /[A-ZÁÉÍÓÚÂÊÔÃÕÇ]/.test(l)) ||
-      /^[0-9]+\.\s+/.test(l) ||
-      /:$/.test(l)
-    );
-    if(isTitle){
-      pushBlock();
-      const t = l.replace(/:$/,"").replace(/^[0-9]+\.\s+/,"").trim();
-      if(t && !titulos.includes(t)) titulos.push(t);
-      continue;
-    }
-    current.push(l);
-    // extract bullet-ish insights
-    const bullet = l.replace(/^[-•]\s*/,"").trim();
-    if(/^[-•]/.test(l) && bullet.length>=12) insights.push(bullet);
-  }
-  pushBlock();
-
-  // fallback insights: pick top 5 sentences containing numbers / % / € / keywords
-  if(insights.length<3){
-    const sentences = text
-      .replace(/\s+/g," ")
-      .split(/(?<=[\.\!\?])\s+/)
-      .map(s=>s.trim()).filter(Boolean);
-    const scored = sentences.map(s=>{
-      let score = 0;
-      if(/[0-9]/.test(s)) score += 2;
-      if(/%|€|eur|m2|m²|IMT|IMI|taxa|rentabilidade|yield/i.test(s)) score += 2;
-      if(/procura|oferta|tendênc|valoriz|risco|oportunidade|conclus|recomend/i.test(s)) score += 1;
-      score += Math.min(2, Math.floor(s.length/120));
-      return {s, score};
-    }).sort((a,b)=>b.score-a.score);
-    for(const it of scored.slice(0,5)){
-      if(it.s.length>=40) insights.push(it.s.replace(/\s+/g," ").trim());
-    }
-  }
-
-  return {
-    titulos: titulos.slice(0,12),
-    blocos: blocos.slice(0,10),
-    insights: insights.slice(0,10)
-  };
-}
-
-/* =========================
-   Step 5 — PDF Final Premium
-   ========================= */
-function renderPanel5(r){
-  const p = $("#panel-5");
-  const hasAttach = !!r.estudo?.pdfKey;
-  const modo = r.estudo?.modo || "IGNORAR";
-  const hasStudy = (modo==="COLAR" && ((r.estudo?.textoColado||"").trim().length>0 || (r.estudo?.estruturado?.insights||[]).length>0)) || (modo==="PDF" && hasAttach);
-
-  p.innerHTML = `
-    <div class="step5center">
-      <div class="step5box">
-        <div class="hd">
+      <!-- MAIN -->
+      <main class="main">
+        <div class="topbar">
           <div>
-            <h3 style="margin:0;font-size:14px">5) PDF Final Premium</h3>
-            <div class="meta">Geração local com jsPDF (estável). Pré-visualização e download imediato.</div>
+            <h2>Relatórios</h2>
+            <p>Gestão central de relatórios personalizados. Pode importar estudos genéricos em PDF, extrair insights e gerar um PDF final com recomendação e plano de ação.</p>
           </div>
-          <span class="badge ${r.status==="PRONTO"||r.status==="PDF_GERADO"?"ok":"warn"}">${r.status==="RASCUNHO"?"Em rascunho":"Pronto"}</span>
+
+          <div class="tabs" aria-label="Vistas">
+            <div class="tab active" id="tabList">Lista</div>
+            <div class="tab" id="tabWizard">Novo / Editar</div>
+          </div>
         </div>
-        <div class="bd">
-          <div class="split">
-            <div>
-              <div class="note">
-                <b>Estrutura:</b> Capa · Enquadramento · Síntese do Estudo (se existir) · Recomendação Garvetur · Próximos Passos.
-                <div class="muted" style="margin-top:6px">Separação visual: “Dados do Estudo” vs “Análise & Recomendação Garvetur”.</div>
-              </div>
-              <div class="hr"></div>
-              <div class="field">
-                <label>Título do relatório</label>
-                <input id="pdf_title" class="input" value="${escapeHtml(`Relatório Cliente — ${r.client?.nome||"Cliente"}`)}" />
-              </div>
-              <div class="field">
-                <label>Subtítulo (opcional)</label>
-                <input id="pdf_sub" class="input" placeholder="Ex.: Porto · Mercado Residencial · Q4 2025" value="${escapeHtml("")}" />
-              </div>
-              <div class="field">
-                <label>Nota executiva (opcional)</label>
-                <textarea id="pdf_exec" class="input" placeholder="Mensagem curta e alinhada com a decisão do cliente (1-3 linhas)."></textarea>
-              </div>
-              <div class="row">
-                <button class="btn" id="btnOpenAttachment" ${hasAttach ? "" : "disabled"}>Abrir anexo (PDF)</button>
-                <span class="badge">${hasStudy ? "Síntese do estudo: ativa" : "Síntese do estudo: não incluída"}</span>
+
+        <!-- LISTA -->
+        <section class="panel" id="viewList">
+          <div class="panel-head">
+            <div class="title">
+              <span style="display:inline-flex;width:26px;height:26px;border-radius:999px;border:1px solid var(--gold);align-items:center;justify-content:center;">
+                <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
+                  <path d="M7 7h10M7 12h10M7 17h10" />
+                </svg>
+              </span>
+              <span>Lista de relatórios</span>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn secondary" id="btnImportTemplate">Templates</button>
+              <button class="btn" id="btnExportAll">Exportações</button>
+            </div>
+          </div>
+
+          <div class="panel-body">
+            <div class="table-wrap">
+              <table aria-label="Relatórios">
+                <thead>
+                  <tr>
+                    <th style="min-width:260px">Cliente</th>
+                    <th style="min-width:220px">Objetivo / Ativo</th>
+                    <th style="min-width:160px">Data</th>
+                    <th style="min-width:150px">Estado</th>
+                    <th style="min-width:280px">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="reportsTbody">
+                  <!-- Placeholder -->
+                </tbody>
+              </table>
+            </div>
+
+            <div class="hint" style="margin-top:10px">
+              Nota: esta fase foca a <strong>ligação aos módulos</strong> (FSBO | Leads | Angariações) para auto-preenchimento.
+            </div>
+          </div>
+
+          <div class="panel-foot">
+            <div class="hint">Dica operacional: ao escrever nome/telemóvel/email, o sistema tenta reconhecer o cliente e preencher automaticamente.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn" id="btnGoWizard">Criar novo</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- WIZARD -->
+        <section class="wizard hidden" id="viewWizard">
+          <!-- Steps -->
+          <div class="steps">
+            <h4>Passos</h4>
+
+            <div class="step active" data-step="1">
+              <div class="n">1</div>
+              <div>
+                <div class="t">Cliente</div>
+                <span class="s">Identificação e formato</span>
               </div>
             </div>
 
-            <div>
-              <div class="field">
-                <label>Pré-visualização (checklist)</label>
-                <div class="note" style="margin-bottom:10px">
-                  <div>• Cliente: <b>${escapeHtml(r.client?.nome||"—")}</b></div>
-                  <div>• Consultor: <b>${escapeHtml(r.consultor?.nome||"—")}</b></div>
-                  <div>• Estudo: <b>${modo==="IGNORAR"?"Ignorado":(modo==="PDF"?"PDF anexo":"Texto colado")}</b></div>
-                  <div>• Último PDF: <b>${escapeHtml(r.pdf?.lastFilename||"—")}</b></div>
+            <div class="step" data-step="2">
+              <div class="n">2</div>
+              <div>
+                <div class="t">Objetivo</div>
+                <span class="s">Risco, horizonte e preocupações</span>
+              </div>
+            </div>
+
+            <div class="step" data-step="3">
+              <div class="n">3</div>
+              <div>
+                <div class="t">Ativo / Zona</div>
+                <span class="s">Imóvel específico ou análise de zona</span>
+              </div>
+            </div>
+
+            <div class="step" data-step="4">
+              <div class="n">4</div>
+              <div>
+                <div class="t">PDF & Análise</div>
+                <span class="s">(adiado)</span>
+              </div>
+            </div>
+
+            <div class="step" data-step="5">
+              <div class="n">5</div>
+              <div>
+                <div class="t">Relatório</div>
+                <span class="s">Estrutura, tom e exportação</span>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="hint">
+              Nesta fase: <strong>auto-importação de dados</strong> a partir dos módulos existentes,
+              para acelerar onboarding do relatório e aumentar contexto do cliente.
+            </div>
+          </div>
+
+          <!-- Step panel -->
+          <div class="step-panel">
+            <div class="step-head">
+              <div class="left">
+                <div class="kicker">Novo relatório</div>
+                <div class="name" id="stepTitle">Passo 1 — Identificação do Cliente</div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn secondary" id="btnBackToList">Voltar à lista</button>
+                <button class="btn" id="btnSaveDraft">Guardar rascunho</button>
+              </div>
+            </div>
+
+            <div class="step-body">
+
+              <!-- STEP 1 -->
+              <div id="step1">
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="cTipo">Tipo de Cliente</label>
+                    <select id="cTipo">
+                      <option value="">(Selecionar)</option>
+                      <option>Proprietário</option>
+                      <option>Investidor</option>
+                      <option>Promotor</option>
+                      <option>Comprador</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label for="cNome">Nome do Cliente / Empresa</label>
+                    <input class="input" id="cNome" type="text" placeholder="Ex.: Family Office X / Sr. Manuel Silva" />
+                  </div>
+
+                  <div class="field">
+                    <label for="cTel">Contacto</label>
+                    <input class="input" id="cTel" type="text" placeholder="Telefone/telemóvel" />
+                  </div>
+
+                  <div class="field">
+                    <label for="cEmail">Email</label>
+                    <input class="input" id="cEmail" type="text" placeholder="email@cliente.com" />
+                  </div>
+                </div>
+
+                <div class="hint" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0 10px">
+                  <span id="autoImportBadge" class="pill info hidden">Importação automática</span>
+                  <span id="autoImportText">Escreva nome/telemóvel/email para tentar reconhecer o cliente nos módulos <strong>FSBO</strong>, <strong>Leads</strong> e <strong>Angariações</strong>.</span>
+                  <button class="btn secondary" type="button" id="btnResetCliente" style="padding:6px 10px;font-size:12px">Limpar</button>
+                </div>
+
+                <div class="grid-3">
+                  <div class="field">
+                    <label for="cIdioma">Idioma do relatório</label>
+                    <select id="cIdioma">
+                      <option value="pt">Português (PT)</option>
+                      <option value="en">English</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label for="cDetalhe">Nível de detalhe</label>
+                    <select id="cDetalhe">
+                      <option value="exec">Executivo (1–2 páginas)</option>
+                      <option value="full">Completo (4–8 páginas)</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label for="cConf">Confidencial</label>
+                    <select id="cConf">
+                      <option value="no">Não</option>
+                      <option value="yes">Sim</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label for="cNotas">Notas internas</label>
+                  <textarea id="cNotas" placeholder="Briefing do cliente, contexto, pontos críticos…"></textarea>
                 </div>
               </div>
 
-              <div class="row" style="gap:10px">
-                <button class="btn primary" id="btnGenPdf">Gerar PDF Premium</button>
-                <button class="btn" id="btnMarkReady" title="Forçar 'Pronto' (não gera PDF)">Marcar como Pronto</button>
+              <!-- STEP 2 -->
+              <div id="step2" class="hidden">
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="oObjetivo">Objetivo principal</label>
+                    <select id="oObjetivo">
+                      <option value="">(Selecionar)</option>
+                      <option>Vender</option>
+                      <option>Investir</option>
+                      <option>Avaliar</option>
+                      <option>Reposicionar</option>
+                      <option>Timing</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label for="oHorizonte">Horizonte temporal</label>
+                    <select id="oHorizonte">
+                      <option value="">(Selecionar)</option>
+                      <option>0–30 dias</option>
+                      <option>30–90 dias</option>
+                      <option>3–6 meses</option>
+                      <option>6–12 meses</option>
+                      <option>&gt;12 meses</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="oRisco">Perfil de risco</label>
+                    <select id="oRisco">
+                      <option value="">(Selecionar)</option>
+                      <option>Conservador</option>
+                      <option>Equilibrado</option>
+                      <option>Agressivo</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label for="oPreocup">Preocupações (multi)</label>
+                    <select id="oPreocup" multiple style="min-height:120px">
+                      <option>Liquidez</option>
+                      <option>Maximizar preço</option>
+                      <option>Risco fiscal</option>
+                      <option>Obras</option>
+                      <option>Inquilino</option>
+                      <option>Segurança jurídica</option>
+                      <option>Prazo</option>
+                      <option>Financiamento</option>
+                    </select>
+                    <div class="hint" style="margin-top:6px">CTRL/⌘ para selecionar múltiplas opções.</div>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label for="oBrief">Notas do briefing</label>
+                  <textarea id="oBrief" placeholder="O que o cliente quer realmente decidir? Quais as barreiras/receios?"></textarea>
+                </div>
               </div>
-              <div class="hr"></div>
-              <div class="note">
-                <b>Entrega cliente-ready:</b> a geração é local e imediata. Se o relatório estiver incompleto, o PDF ainda pode ser gerado, mas ficará sinalizado (recomendado preencher Cliente + Consultor + Recomendação).
+
+              <!-- STEP 3 -->
+              <div id="step3" class="hidden">
+                <div class="section-title">Tipo de relatório</div>
+                <div class="radio-row">
+                  <label class="radio">
+                    <input type="radio" name="assetMode" value="imovel" checked />
+                    <div>
+                      <div class="rt">Imóvel específico</div>
+                      <div class="rs">Selecionar um ativo concreto (Mapa/Angariações/FSBO/Manual).</div>
+                    </div>
+                  </label>
+
+                  <label class="radio">
+                    <input type="radio" name="assetMode" value="zona" />
+                    <div>
+                      <div class="rt">Zona / Tipologia</div>
+                      <div class="rs">Análise por zona, segmento e intervalo de preço.</div>
+                    </div>
+                  </label>
+                </div>
+
+                <div id="assetImovel" style="margin-top:10px">
+                  <div class="grid-2">
+                    <div class="field">
+                      <label for="aFonte">Fonte do ativo</label>
+                      <select id="aFonte">
+                        <option>Mapa</option>
+                                                <option>Leads</option>
+<option>Angariações</option>
+                        <option>FSBO</option>
+                        <option>Manual</option>
+                      </select>
+                    </div>
+
+                    <div class="field">
+                      <label for="aSearch">Pesquisar ativo</label>
+                      <input class="input" id="aSearch" type="text" placeholder="Pesquisar por nome/ref/zona…" />
+                    </div>
+                  </div>
+
+                  <div class="grid-2">
+                    <div class="field">
+                      <label for="aZona">Zona (auto/preencher)</label>
+                      <input class="input" id="aZona" type="text" placeholder="Ex.: Foz · Porto" />
+                    </div>
+
+                    <div class="field">
+                      <label for="aTipologia">Tipologia</label>
+                      <input class="input" id="aTipologia" type="text" placeholder="Ex.: T3" />
+                    </div>
+                  </div>
+
+                  <div class="grid-2">
+                    <div class="field">
+                      <label for="aPreco">Preço pedido</label>
+                      <input class="input" id="aPreco" type="text" placeholder="Ex.: 780000" />
+                    </div>
+
+                    <div class="field">
+                      <label for="aObs">Observações</label>
+                      <input class="input" id="aObs" type="text" placeholder="Notas rápidas do ativo (opcional)" />
+                    </div>
+                  </div>
+
+                  <div class="hint">
+                    Nota: aqui ligamos depois ao teu dataset (Mapa/Angariações/FSBO) para autopreencher e evitar duplicação.
+                  </div>
+                </div>
+
+                <div id="assetZona" class="hidden" style="margin-top:10px">
+                  <div class="grid-2">
+                    <div class="field">
+                      <label for="zZona">Zona</label>
+                      <input class="input" id="zZona" type="text" placeholder="Ex.: Foz · Porto" />
+                    </div>
+                    <div class="field">
+                      <label for="zTipologia">Tipologia</label>
+                      <input class="input" id="zTipologia" type="text" placeholder="Ex.: T2/T3" />
+                    </div>
+                  </div>
+
+                  <div class="grid-3">
+                    <div class="field">
+                      <label for="zSegmento">Segmento</label>
+                      <select id="zSegmento">
+                        <option>Novo</option>
+                        <option>Usado</option>
+                        <option>Reabilitado</option>
+                        <option>Luxo</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label for="zMin">Preço alvo (mín.)</label>
+                      <input class="input" id="zMin" type="text" placeholder="€" />
+                    </div>
+                    <div class="field">
+                      <label for="zMax">Preço alvo (máx.)</label>
+                      <input class="input" id="zMax" type="text" placeholder="€" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- STEP 4 (adiado) -->
+              <div id="step4" class="hidden">
+
+                <div class="drop" id="pdfDrop">
+                  <div class="d-left">
+                    <p class="d-title">PDF — Anexos do relatório</p>
+                    <p class="d-sub">
+                      Adicione PDFs (estudos, plantas, relatórios externos). Ficam ligados ao relatório e podem ser abertos/transferidos localmente.
+                      <br><span class="hint">Nota: os ficheiros são guardados no seu browser (sem servidor). Para ficheiros grandes, é usada uma base de dados local (IndexedDB).</span>
+                    </p>
+                  </div>
+                  <div class="d-actions">
+                    <input id="pdfInput" type="file" accept="application/pdf" multiple class="hidden" />
+                    <button class="btn primary" id="btnAddPdf">+ Adicionar PDF</button>
+                    <button class="btn secondary" id="btnClearPdfs">Limpar PDFs</button>
+                  </div>
+                </div>
+
+                <div class="files" id="pdfList" aria-label="Lista de PDFs" style="margin-top:12px">
+                  <!-- preenchido por JS -->
+                </div>
+
+                <div class="analysis" style="margin-top:12px">
+                  <div class="mini-card">
+                    <h5>Estado</h5>
+                    <div class="kv"><b>Anexos</b><span id="pdfCount">0</span></div>
+                    <div class="kv"><b>Armazenamento</b><span id="pdfStoreMode">—</span></div>
+                    <div class="kv"><b>Última ação</b><span id="pdfLastAction">—</span></div>
+                  </div>
+                  <div class="mini-card">
+                    <h5>Extração assistida</h5>
+                    <div class="hint">Sem PDF.js: cole aqui texto relevante do estudo (copiado do PDF) e o sistema estrutura em <strong>capítulos</strong>, <strong>insights</strong> e <strong>palavras‑chave</strong>, para integração direta no PDF final.</div>
+                    <div class="divider" style="margin:10px 0"></div>
+                    <div class="field" style="margin-bottom:8px">
+                      <label for="pdfAssistText">Texto do estudo (colar)</label>
+                      <textarea id="pdfAssistText" placeholder="Cole aqui texto do PDF (ex.: resumo, conclusões, indicadores, páginas relevantes)…"></textarea>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                      <button class="btn primary" id="btnAssistExtract">Estruturar (capítulos + insights)</button>
+                      <button class="btn secondary" id="btnAssistClear">Limpar</button>
+                    </div>
+                    <div id="assistStatus" class="hint" style="margin-top:8px">—</div>
+                  </div>
+                  <div class="mini-card">
+                    <h5>Boas práticas</h5>
+                    <div class="hint">Use PDFs com nomes claros (ex.: “Estudo_Mercado_Foz_2025.pdf”). Evite anexos duplicados para manter o relatório leve.</div>
+                  </div>
+                </div>
+
+                <div class="panel" style="margin-top:12px" id="assistPreviewPanel">
+                  <div class="panel-head">
+                    <div class="title">
+                      <span style="display:inline-flex;width:26px;height:26px;border-radius:999px;border:1px solid var(--gold);align-items:center;justify-content:center;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
+                          <path d="M4 6h16M4 12h16M4 18h10" />
+                        </svg>
+                      </span>
+                      <span>Pré‑visualização da extração</span>
+                    </div>
+                    <div class="hint" style="margin:0">Guardado no relatório atual</div>
+                  </div>
+                  <div class="panel-body">
+                    <div id="assistPreview" class="hint">Sem extração ainda. Cole texto e clique em <strong>Estruturar</strong>.</div>
+                  </div>
+                </div>
+
+              </div>
+              </div>
+
+              <!-- STEP 5 -->
+              <div id="step5" class="hidden">
+                <div class="section-title">Estrutura do relatório</div>
+
+                <div class="switches">
+                  <label class="sw"><span class="l"><b>Resumo Executivo</b><span>1 página com decisão + mensagem final.</span></span><input id="sExec" type="checkbox" checked></label>
+                  <label class="sw"><span class="l"><b>Contexto do Cliente</b><span>Objetivo, preocupações e perfil.</span></span><input id="sContexto" type="checkbox" checked></label>
+                  <label class="sw"><span class="l"><b>Enquadramento de Mercado</b><span>Insights (a ligar mais tarde).</span></span><input id="sMercado" type="checkbox" checked></label>
+                  <label class="sw"><span class="l"><b>Comparáveis</b><span>Concorrência e posicionamento (quando aplicável).</span></span><input id="sComps" type="checkbox"></label>
+                  <label class="sw"><span class="l"><b>Cenários</b><span>Impacto de preço/timing/estratégia.</span></span><input id="sCenarios" type="checkbox" checked></label>
+                  <label class="sw"><span class="l"><b>Recomendação Garvetur</b><span>O “o que fazer” com racional.</span></span><input id="sRecomend" type="checkbox" checked></label>
+                  <label class="sw"><span class="l"><b>Plano de ação</b><span>Próximos passos, prazos, responsabilidades.</span></span><input id="sPlano" type="checkbox" checked></label>
+                  <label class="sw"><span class="l"><b>Anexos</b><span>(a ligar depois).</span></span><input id="sAnexos" type="checkbox" checked></label>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="rTom">Tom</label>
+                    <select id="rTom">
+                      <option>Conservador</option>
+                      <option selected>Neutro</option>
+                      <option>Assertivo</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label for="rCTA">Call-to-action final</label>
+                    <select id="rCTA">
+                      <option>Agendar reunião</option>
+                      <option>Avaliação presencial</option>
+                      <option>Ajuste de preço</option>
+                      <option>Estratégia de marketing</option>
+                      <option>Mandato</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label for="rRecomend">Recomendação final (obrigatório)</label>
+                  <textarea id="rRecomend" placeholder="Mensagem final para o cliente: decisão sugerida, racional, e próximos passos."></textarea>
+                </div>
+
+                <div class="cta-row">
+                  <button class="btn primary" id="btnBuildPdf">Gerar PDF Final</button>
+                  <button class="btn" id="btnBuildExec">Gerar versão executiva</button>
+                  <button class="btn secondary" id="btnDuplicate">Duplicar como template</button>
+                </div>
+
+                <div class="hint" style="margin-top:10px">
+                  Nota: a geração PDF aqui é “impressão” (sem servidor). A exportação premium ficará para a fase seguinte.
+                </div>
+              </div>
+
+            </div>
+
+            <div class="panel-foot">
+              <div class="hint" id="wizardHint">Preencha os campos essenciais e avance. O sistema guarda rascunho automaticamente.</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn secondary" id="btnPrev">Anterior</button>
+                <button class="btn primary" id="btnNext">Seguinte</button>
               </div>
             </div>
           </div>
+        </section>
 
-          <div class="row" style="justify-content:space-between; margin-top:12px">
-            <button class="btn" id="p5_prev">← Anterior</button>
-            <button class="btn" id="p5_go1">Voltar ao passo 1</button>
-          </div>
-        </div>
+      </main>
+    </div>
+  </div>
+
+
+<!-- PDF Preview Modal -->
+<div id="pdfModal" class="hidden" aria-hidden="true" style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.70);display:flex;align-items:center;justify-content:center;padding:18px">
+  <div style="width:min(1100px,96vw);height:min(86vh,860px);background:#0b0b0b;border:1px solid rgba(163,139,99,.35);border-radius:18px;box-shadow:0 22px 44px rgba(0,0,0,.65);overflow:hidden;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.10);background:linear-gradient(90deg,#050505,#111,#050505);flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <div style="font-size:11px;color:rgba(255,255,255,.65);letter-spacing:.14em;text-transform:uppercase">Pré-visualização PDF</div>
+        <div id="pdfModalTitle" style="font-size:12px;color:#A38B63;font-weight:900;letter-spacing:.06em;text-transform:uppercase">Documento</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="pdfModalDownload">Download</button>
+        <button class="btn secondary" id="pdfModalClose">Fechar</button>
       </div>
     </div>
-  `;
+    <div style="flex:1;min-height:0;background:#000">
+      <iframe id="pdfModalFrame" title="PDF" style="width:100%;height:100%;border:0;background:#000"></iframe>
+    </div>
+    <div style="padding:10px 12px;border-top:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.35)">
+      <div class="hint">Se o seu navegador bloquear a abertura em nova aba, utilize esta pré-visualização. Para melhor exportação em “Imprimir para PDF”, desative “Cabeçalhos e rodapés” nas opções de impressão.</div>
+    </div>
+  </div>
+</div>
 
-  $("#p5_prev").onclick = ()=>{ activeStep=4; renderWizard(); };
-  $("#p5_go1").onclick = ()=>{ activeStep=1; renderWizard(); };
+<script>
+(function(){
+  /* ===========================
+     Helpers
+  =========================== */
+  const el = (id)=>document.getElementById(id);
+  const $$ = (sel, root=document)=>Array.from(root.querySelectorAll(sel));
+  const todayISO = ()=> new Date().toISOString().slice(0,10);
 
-  $("#btnMarkReady").onclick = ()=>{
-    patchActive(rep=> rep.status = "PRONTO");
-    toast("Estado atualizado", "Relatório marcado como PRONTO.");
-  };
-
-  $("#btnOpenAttachment").onclick = async ()=>{
-    const key = r.estudo?.pdfKey;
-    if(!key) return;
+  function safeJSONParse(raw, fallback){
+    try{ return raw ? JSON.parse(raw) : fallback; }catch{ return fallback; }
+  }
+  function uid(prefix='rpt'){
+    return prefix + '_' + Math.random().toString(16).slice(2) + '_' + Date.now().toString(16);
+  }
+  function toPTDate(iso){
     try{
-      const rec = await idbGet(key);
-      if(!rec?.buf){ toast("Anexo indisponível", "Não foi possível carregar do storage."); return; }
-      const blob = new Blob([rec.buf], {type:"application/pdf"});
-      const url = URL.createObjectURL(blob);
-      window.open(url, "_blank", "noopener,noreferrer");
-    }catch(e){
-      console.error(e);
-      toast("Erro ao abrir", "Não foi possível abrir o anexo.");
-    }
-  };
+      const d = new Date(iso);
+      if(isNaN(d.getTime())) return iso;
+      return d.toLocaleDateString('pt-PT');
+    }catch{ return iso; }
+  }
+  function normStr(s){ return (s||'').toString().trim(); }
 
-  $("#btnGenPdf").onclick = async ()=>{
+  function htmlEscape(s){
+    return String(s||'')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+
+  function stripAccents(s){
     try{
-      setStatePill("A gerar PDF…","warn");
-      const title = ($("#pdf_title").value||"Relatório Cliente").trim();
-      const subtitle = ($("#pdf_sub").value||"").trim();
-      const execNote = ($("#pdf_exec").value||"").trim();
-
-      const blob = await buildPdfPremium(r, {title, subtitle, execNote});
-      const fname = safeFilename(`${title} — Garvetur Luxury Porto.pdf`);
-      lastPdfBlob = blob;
-      lastPdfFilename = fname;
-
-      patchActive(rep=>{
-        rep.status = "PDF_GERADO";
-        rep.pdf.lastGeneratedAt = nowISO();
-        rep.pdf.lastFilename = fname;
-      });
-
-      openPdfModal(blob, fname);
-      toast("PDF gerado", "Pré-visualização aberta. Pode fazer download.");
-      setStatePill("Pronto","ok");
-    }catch(e){
-      console.error(e);
-      toast("Falha ao gerar PDF", "Verifique a consola do browser para detalhes.");
-      setStatePill("Erro","warn");
+      return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    }catch{
+      return (s||'');
     }
-  };
-}
-
-function safeFilename(name){
-  return (name||"relatorio.pdf")
-    .replace(/[\\\/:*?"<>|]/g,"-")
-    .replace(/\s+/g," ")
-    .trim();
-}
-
-async function buildPdfPremium(r, opts){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit:"pt", format:"a4" });
-  const W = doc.internal.pageSize.getWidth();
-  const H = doc.internal.pageSize.getHeight();
-  const margin = 52;
-
-  // Helpers
-  const line = (y)=>{
-    doc.setDrawColor(180);
-    doc.setLineWidth(0.6);
-    doc.line(margin, y, W-margin, y);
-  };
-  const heading = (txt, y)=>{
-    doc.setFont("helvetica","bold");
-    doc.setFontSize(14);
-    doc.text(txt, margin, y);
-  };
-  const para = (txt, y, maxW=W-2*margin, size=11, leading=15)=>{
-    doc.setFont("helvetica","normal");
-    doc.setFontSize(size);
-    const lines = doc.splitTextToSize((txt||"").replace(/\s+/g," ").trim(), maxW);
-    doc.text(lines, margin, y);
-    return y + lines.length*leading;
-  };
-  const boxTitle = (txt, y)=>{
-    doc.setFont("helvetica","bold");
-    doc.setFontSize(11);
-    doc.text(txt, margin, y);
-    return y + 10;
-  };
-  const small = (txt, x, y)=>{
-    doc.setFont("helvetica","normal"); doc.setFontSize(9);
-    doc.setTextColor(90);
-    doc.text(txt, x, y);
-    doc.setTextColor(0);
-  };
-
-  // ---------- Page 1: Cover
-  doc.setFillColor(245,245,245);
-  doc.rect(0,0,W,H,"F");
-  doc.setFillColor(255,255,255);
-  doc.roundedRect(margin, 92, W-2*margin, H-184, 14, 14, "F");
-
-  doc.setTextColor(0);
-  doc.setFont("helvetica","bold");
-  doc.setFontSize(18);
-  doc.text("Garvetur Luxury Porto", margin+22, 140);
-  doc.setFontSize(12);
-  doc.setFont("helvetica","normal");
-  doc.setTextColor(60);
-  doc.text("Relatório Cliente — PDF Final Premium", margin+22, 164);
-
-  doc.setTextColor(0);
-  doc.setFont("helvetica","bold");
-  doc.setFontSize(20);
-  doc.text(opts.title || "Relatório Cliente", margin+22, 220);
-
-  doc.setFont("helvetica","normal");
-  doc.setFontSize(12);
-  doc.setTextColor(60);
-  if(opts.subtitle){
-    doc.text(opts.subtitle, margin+22, 246);
+  }
+  function normEmail(s){ return (s||'').toString().trim().toLowerCase(); }
+  function normPhone(s){
+    const d = (s||'').toString().replace(/\D/g,'');
+    // PT typical last 9 digits
+    return d.length>9 ? d.slice(-9) : d;
+  }
+  function normName(s){
+    return stripAccents((s||'').toString().trim().toLowerCase()).replace(/\s+/g,' ');
   }
 
-  // Key client block
-  doc.setTextColor(0);
-  doc.setFont("helvetica","bold"); doc.setFontSize(12);
-  doc.text("Cliente", margin+22, 302);
-  doc.setFont("helvetica","normal"); doc.setTextColor(40); doc.setFontSize(11);
-  const c = r.client||{};
-  const co = r.consultor||{};
-  const leftX = margin+22;
-  let y = 324;
-  const rows = [
-    ["Nome", c.nome||"—"],
-    ["Email", c.email||"—"],
-    ["Telefone", c.telefone||"—"],
-    ["Perfil", c.perfil||"—"],
-    ["Objetivo", c.objetivo||"—"],
-    ["Zona", c.zona||"—"],
-    ["Budget", c.budget||"—"],
-    ["Prazo", c.prazo||"—"]
-  ];
-  for(const [k,v] of rows){
-    doc.setFont("helvetica","bold"); doc.text(`${k}:`, leftX, y);
-    doc.setFont("helvetica","normal"); doc.text(String(v), leftX+72, y);
-    y += 16;
-    if(y>520){ break; }
+  /* ===========================
+     Storage: Relatórios (meta)
+  =========================== */
+  const LS_KEY = 'gpp_relatorios_cliente_v1';
+
+  function loadAllReports(){ return safeJSONParse(localStorage.getItem(LS_KEY), []); }
+  function saveAllReports(list){ localStorage.setItem(LS_KEY, JSON.stringify(list || [])); }
+  function getReport(id){ return loadAllReports().find(r=>r.id===id) || null; }
+  function upsertReport(report){
+    const list = loadAllReports();
+    const idx = list.findIndex(r=>r.id===report.id);
+    if(idx>=0) list[idx] = report;
+    else list.unshift(report);
+    saveAllReports(list);
+  }
+  function deleteReport(id){
+    const list = loadAllReports().filter(r=>r.id!==id);
+    saveAllReports(list);
   }
 
-  // Executive note
-  if(opts.execNote){
-    doc.setTextColor(0);
-    doc.setFont("helvetica","bold"); doc.setFontSize(12);
-    doc.text("Nota Executiva", margin+22, 560);
-    doc.setTextColor(40);
-    doc.setFont("helvetica","normal"); doc.setFontSize(11);
-    const lines = doc.splitTextToSize(opts.execNote, W-2*margin-44);
-    doc.text(lines, margin+22, 582);
+      /* ===========================
+     Cross-module import (FSBO | Leads | Angariações)
+     Objetivo:
+     - NÃO depender de keys fixas.
+     - Varre TODO o localStorage (JSON) e extrai “contactos” (nome/telemóvel/email).
+     - Prioridade de pesquisa: 1) Nome 2) Telefone 3) Email
+     Nota:
+     - Apenas autopreenche campos vazios (não sobrepõe o que já escreveu).
+     - Mantém tudo local (browser), sem servidor.
+  =========================== */
+
+  // Campos (sinónimos) mais comuns encontrados nos módulos
+  const CONTACT_FIELD_MAP = {
+    name:   ['nome', 'name', 'cliente', 'client', 'proprietario', 'proprietário', 'owner', 'contacto', 'contato', 'titular', 'empresa', 'company', 'lead', 'leadName', 'nomeProp', 'ownerName', 'leadNome', 'clienteNome', 'nomeCliente', 'contactName'],
+    phone:  ['telemovel', 'telemóvel', 'telefone', 'tel', 'phone', 'mobile', 'contactoTel', 'contactTel', 'whatsapp', 'telProp', 'telefoneProp', 'telemovelProp', 'telemóvelProp', 'ownerPhone', 'ownerMobile', 'contactPhone', 'contactMobile', 'clienteTel', 'clienteTelefone'],
+    email:  ['email', 'e-mail', 'mail', 'contactoEmail', 'contactEmail', 'emailProp', 'ownerEmail', 'clienteEmail']
+  };
+  const ASSET_FIELD_MAP = {
+    zona: ['zona','localizacao','localização','area','área','bairro','district','concelho','freguesia','cidade','city','location','morada','endereco','endereço','address'],
+    tipologia: ['tipologia','typology','tipo','tipoImovel','tipoImóvel','tipo_imovel','quartos','bedrooms','tipologiasEmp','tipologias'],
+    preco: ['preco','preço','valor','price','precoPedido','preco_pedido','precoAnuncio','preco_anuncio','asking','askingPrice','valorPedido','valor_pedido'],
+    obs: ['obs','observacoes','observações','notas','notes','descricao','descrição','comentarios','comentários','remarks','observacao','observação','obsInternas','obsCliente'],
+    ref: ['ref','referencia','referência','id','codigo','código','code','reference','refInterna'],
+    titulo: ['titulo','título','nomeImovel','nomeEmp','tituloImovel','title','empreendimento','imovel','imóvel','nome','designacao','designação']
+  };
+
+
+  function onlyDigits(s){ return (s||'').toString().replace(/\D+/g,''); }
+  function normEmail(s){ return (s||'').toString().trim().toLowerCase(); }
+  function normName(s){
+    return (s||'')
+      .toString()
+      .trim()
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // remove acentos
+      .replace(/\s+/g,' ');
   }
 
-  // Footer
-  const dt = new Date();
-  doc.setTextColor(90);
-  doc.setFontSize(9);
-  doc.text(`Gerado em ${dt.toLocaleDateString("pt-PT")} · Consultor: ${co.nome||"—"} · ${co.email||""}`, margin, H-28);
+  function pickFirstString(o, keys){
+    for(const k of keys){
+      if(o && typeof o === 'object' && k in o){
+        const v = o[k];
+        if(typeof v === 'string' && v.trim()) return v.trim();
+        if(typeof v === 'number' && isFinite(v)) return String(v);
+      }
+    }
+    return '';
+  }
 
-  // ---------- Page 2: Enquadramento
-  doc.addPage();
-  y = 76;
-  heading("Enquadramento do Cliente", y); y += 18;
-  line(y); y += 18;
-  y = para((r.contexto?.notas||"").trim() || "—", y);
+  function buildContactFromObject(obj, sourceKey){
+    if(!obj || typeof obj !== 'object') return null;
 
-  y += 10;
-  heading("Inputs do Consultor", Math.min(y+10, H-120));
-  y += 30;
-  y = para((r.consultor?.inputs||"").trim() || "—", y);
+    // tenta detectar campos diretos
+    const nome = pickFirstString(obj, CONTACT_FIELD_MAP.name);
+    const tel  = pickFirstString(obj, CONTACT_FIELD_MAP.phone);
+    const mail = pickFirstString(obj, CONTACT_FIELD_MAP.email);
 
-  small("Documento interno — utilização profissional", margin, H-26);
+    // também tenta dentro de subobjetos típicos
+    const subCandidates = ['cliente','contacto','contato','owner','proprietario','proprietário','lead','dados','pessoa','person','empresa'];
+    let nome2='', tel2='', mail2='';
+    for(const s of subCandidates){
+      const sub = obj[s];
+      if(sub && typeof sub === 'object'){
+        nome2 = nome2 || pickFirstString(sub, CONTACT_FIELD_MAP.name);
+        tel2  = tel2  || pickFirstString(sub, CONTACT_FIELD_MAP.phone);
+        mail2 = mail2 || pickFirstString(sub, CONTACT_FIELD_MAP.email);
+      }
+    }
 
-  // ---------- Page 3: Síntese do estudo (se existir)
-  const modo = r.estudo?.modo || "IGNORAR";
-  const hasAttach = !!r.estudo?.pdfKey;
-  const hasStudy = (modo==="COLAR" && ((r.estudo?.textoColado||"").trim().length>0 || (r.estudo?.estruturado?.insights||[]).length>0)) || (modo==="PDF" && hasAttach);
+    const finalName = (nome || nome2 || '').trim();
+    const finalPhone = (tel || tel2 || '').trim();
+    const finalEmail = (mail || mail2 || '').trim();
 
-  if(hasStudy){
-    doc.addPage();
-    y = 76;
-    heading("Dados do Estudo — Síntese Objetiva", y); y += 18;
-    line(y); y += 18;
+    // tenta extrair campos de ativo (zona/tipologia/preço/obs) quando existirem
+    const zona1 = pickFirstString(obj, ASSET_FIELD_MAP.zona);
+    const tip1  = pickFirstString(obj, ASSET_FIELD_MAP.tipologia);
+    const preco1= pickFirstString(obj, ASSET_FIELD_MAP.preco);
+    const obs1  = pickFirstString(obj, ASSET_FIELD_MAP.obs);
+    const ref1  = pickFirstString(obj, ASSET_FIELD_MAP.ref);
+    const tit1  = pickFirstString(obj, ASSET_FIELD_MAP.titulo);
 
-    if(modo==="PDF" && hasAttach){
-      doc.setFont("helvetica","normal"); doc.setFontSize(11);
-      doc.text("Fonte: PDF anexado (referência visual).", margin, y); y += 18;
-      doc.setTextColor(60); doc.setFontSize(10);
-      doc.text(`Ficheiro: ${r.estudo?.pdfName || "—"}`, margin, y); y += 16;
-      doc.setTextColor(0);
-      y += 10;
-      y = para("Nota: nesta fase não existe leitura automática do PDF no browser. Caso pretenda, a equipa pode transcrever os principais pontos no modo 'Colar texto' para uma síntese mais completa.", y);
-    } else {
-      const st = r.estudo?.estruturado || { titulos:[], blocos:[], insights:[] };
-      const tit = st.titulos || [];
-      const ins = st.insights || [];
-      const bl = st.blocos || [];
+    let zona2='', tip2='', preco2='', obs2='', ref2='', tit2='';
+    for(const s of subCandidates){
+      const sub = obj[s];
+      if(sub && typeof sub === 'object'){
+        zona2 = zona2 || pickFirstString(sub, ASSET_FIELD_MAP.zona);
+        tip2  = tip2  || pickFirstString(sub, ASSET_FIELD_MAP.tipologia);
+        preco2= preco2|| pickFirstString(sub, ASSET_FIELD_MAP.preco);
+        obs2  = obs2  || pickFirstString(sub, ASSET_FIELD_MAP.obs);
+        ref2  = ref2  || pickFirstString(sub, ASSET_FIELD_MAP.ref);
+        tit2  = tit2  || pickFirstString(sub, ASSET_FIELD_MAP.titulo);
+      }
+    }
 
-      if(tit.length){
-        boxTitle("Tópicos", y); y += 6;
-        doc.setFont("helvetica","normal"); doc.setFontSize(11);
-        const joined = tit.map(t=>"• "+t).join("\n");
-        const lines = doc.splitTextToSize(joined, W-2*margin);
-        doc.text(lines, margin, y);
-        y += lines.length*15 + 10;
+    const asset = {
+      zona: (zona1 || zona2 || '').trim(),
+      tipologia: (tip1 || tip2 || '').trim(),
+      preco: (preco1 || preco2 || '').trim(),
+      obs: (obs1 || obs2 || '').trim(),
+      ref: (ref1 || ref2 || '').trim(),
+      titulo: (tit1 || tit2 || '').trim()
+    };
+
+    if(!finalName && !finalPhone && !finalEmail) return null;
+
+    return {
+      nameRaw: finalName,
+      phoneRaw: finalPhone,
+      emailRaw: finalEmail,
+      name: normName(finalName),
+      phone: onlyDigits(finalPhone),
+      email: normEmail(finalEmail),
+      sourceKey: sourceKey || '',
+      asset,
+      // campos extra úteis (se existirem)
+      notes: pickFirstString(obj, ['notas','notes','obs','observacoes','observações','descricao','descrição','comentarios','comentários']) || ''
+    };
+  }
+
+  function extractContactsDeep(value, sourceKey, out, depth=0){
+    if(depth > 4) return; // limite para evitar varreduras pesadas
+    if(value == null) return;
+
+    if(Array.isArray(value)){
+      for(const item of value){
+        if(out.length > 2500) break;
+        extractContactsDeep(item, sourceKey, out, depth+1);
+      }
+      return;
+    }
+
+    if(typeof value === 'object'){
+      const c = buildContactFromObject(value, sourceKey);
+      if(c) out.push(c);
+
+      const likelyCollections = ['items','data','rows','list','cards','leads','clientes','contacts','contactos','contatos','registos','records'];
+      for(const k of likelyCollections){
+        if(value[k] != null){
+          extractContactsDeep(value[k], sourceKey, out, depth+1);
+        }
       }
 
-      if(ins.length){
-        boxTitle("Insights-chave", y); y += 6;
-        const joined = ins.map(t=>"• "+t).join("\n");
-        const lines = doc.splitTextToSize(joined, W-2*margin);
-        doc.setFont("helvetica","normal"); doc.setFontSize(11);
-        doc.text(lines, margin, y);
-        y += lines.length*15 + 10;
-      }
-
-      if(bl.length){
-        boxTitle("Resumo", y); y += 6;
-        for(const b of bl.slice(0,3)){
-          y = para(b, y);
-          y += 8;
-          if(y>H-120){ break; }
+      const keys = Object.keys(value);
+      for(let i=0;i<Math.min(keys.length, 24);i++){
+        const k = keys[i];
+        const v = value[k];
+        if(v && typeof v === 'object'){
+          extractContactsDeep(v, sourceKey, out, depth+1);
         }
       }
     }
-    small("Secção separada: Dados do Estudo", margin, H-26);
   }
 
-  // ---------- Final: Recomendação Garvetur
-  doc.addPage();
-  y = 76;
-  heading("Análise & Recomendação Garvetur", y); y += 18;
-  line(y); y += 18;
-  y = para((r.recomendacao?.analise||"").trim() || "—", y);
+  // Cache simples para não varrer sempre
+  let CONTACT_INDEX_CACHE = null;
+  let CONTACT_INDEX_CACHE_AT = 0;
 
-  y += 10;
-  heading("Próximos Passos", y); y += 22;
-  const passos = (r.recomendacao?.proximosPassos||"").trim();
-  if(passos){
-    y = para(passos, y);
-  }else{
-    y = para("—", y);
-  }
-
-  // Footer
-  doc.setTextColor(90);
-  doc.setFontSize(9);
-  doc.text("Garvetur Luxury Porto — Documento de apoio à decisão (cliente-ready)", margin, H-26);
-  doc.setTextColor(0);
-
-  // Produce Blob
-  const arr = doc.output("arraybuffer");
-  return new Blob([arr], { type:"application/pdf" });
-}
-
-/* =========================
-   PDF Modal
-   ========================= */
-function openPdfModal(blob, filename){
-  const back = $("#pdfModalBack");
-  const frame = $("#pdfFrame");
-  const url = URL.createObjectURL(blob);
-  frame.src = url;
-  back.style.display = "flex";
-
-  $("#btnPdfClose").onclick = ()=>{
-    back.style.display = "none";
-    // Keep last blob for download; do not revoke immediately to avoid blank iframe
-  };
-  $("#btnPdfDownload").onclick = ()=>{
-    if(!lastPdfBlob) return;
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(lastPdfBlob);
-    a.download = lastPdfFilename || filename || "relatorio.pdf";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  };
-  back.addEventListener("click", (ev)=>{
-    if(ev.target === back){
-      back.style.display = "none";
+  function scanLocalStorageForContacts(){
+    const now = Date.now();
+    if(CONTACT_INDEX_CACHE && (now - CONTACT_INDEX_CACHE_AT) < 2500){
+      return CONTACT_INDEX_CACHE;
     }
-  }, { once:true });
-}
 
-/* =========================
-   Config view
-   ========================= */
-function renderConfig(){
-  const cfg = loadCfg();
-  $("#cfgSignature").value = cfg.signature || "";
-  $("#cfgEmail").value = cfg.email || "";
-  $("#cfgSave").onclick = ()=>{
-    const n = ($("#cfgSignature").value||"").trim();
-    const e = ($("#cfgEmail").value||"").trim();
-    saveCfg({ signature:n, email:e });
-    toast("Configuração guardada", "Será aplicada nos novos relatórios.");
-  };
-  $("#cfgReset").onclick = async ()=>{
-    const ok = confirm("Isto irá eliminar TODOS os relatórios guardados localmente e anexos PDF. Confirma?");
-    if(!ok) return;
-    localStorage.removeItem(LS_KEY);
-    localStorage.removeItem(LS_CFG);
-    // best-effort clear DB store
+    const contacts = [];
+    const seen = new Set(); // dedupe por (name|phone|email)
+
+    for(let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      if(!k) continue;
+
+      // evita varrer o próprio módulo de relatórios e chaves óbvias
+      if(k === LS_KEY) continue;
+      if(k.startsWith('gpp_relatorios_cliente_')) continue;
+
+      const raw = localStorage.getItem(k);
+      if(!raw || raw.length < 2) continue;
+      if(raw.length > 6_000_000) continue;
+
+      let parsed = null;
+      try{ parsed = JSON.parse(raw); }catch{ continue; }
+
+      extractContactsDeep(parsed, k, contacts, 0);
+      if(contacts.length > 2500) break;
+    }
+
+    const cleaned = [];
+    for(const c of contacts){
+      const sig = `${c.name}|${c.phone}|${c.email}`;
+      if(seen.has(sig)) continue;
+
+      const hasSomething = (c.name && c.name.length >= 3) || (c.phone && c.phone.length >= 7) || (c.email && c.email.includes('@'));
+      if(!hasSomething) continue;
+
+      seen.add(sig);
+      cleaned.push(c);
+      if(cleaned.length > 2000) break;
+    }
+
+    CONTACT_INDEX_CACHE = cleaned;
+    CONTACT_INDEX_CACHE_AT = now;
+    return cleaned;
+  }
+
+  function pickBestByCompleteness(list){
+    if(!list || !list.length) return null;
+    const score = (c)=>(c.name?2:0) + (c.phone?2:0) + (c.email?2:0) + (c.notes?1:0);
+    return list.slice().sort((a,b)=>score(b)-score(a))[0] || null;
+  }
+
+  function findContactPriority({name, phone, email}){
+    const idx = scanLocalStorageForContacts();
+
+    const nameN = normName(name);
+    const phoneN = onlyDigits(phone);
+    const emailN = normEmail(email);
+
+    // 1) Nome
+    if(nameN && nameN.length >= 3){
+      const exact = idx.filter(c=>c.name && c.name === nameN);
+      if(exact.length) return pickBestByCompleteness(exact);
+
+      const includes = idx.filter(c=>c.name && (c.name.includes(nameN) || nameN.includes(c.name)));
+      if(includes.length) return pickBestByCompleteness(includes);
+    }
+
+  // Lista de correspondências (para escolha quando existir ambiguidade)
+  function findContactsPriorityList({name, phone, email}, maxResults=8){
+    const idx = scanLocalStorageForContacts();
+    const nameN = normName(name);
+    const phoneN = onlyDigits(phone);
+    const emailN = normEmail(email);
+
+    const scored = [];
+
+    for(const c of idx){
+      let score = 0;
+
+      if(nameN && c.name){
+        if(c.name === nameN) score += 30;
+        else if(c.name.includes(nameN) || nameN.includes(c.name)) score += 18;
+      }
+
+      if(phoneN && c.phone){
+        if(c.phone === phoneN || c.phone.endsWith(phoneN) || phoneN.endsWith(c.phone)) score += 20;
+      }
+
+      if(emailN && c.email){
+        if(c.email === emailN) score += 12;
+      }
+
+      score += (c.name?3:0) + (c.phone?3:0) + (c.email?3:0) + (c.notes?1:0);
+
+      if(score>0) scored.push({ ...c, _score: score });
+    }
+
+    scored.sort((a,b)=> b._score - a._score);
+    return scored.slice(0, maxResults);
+  }
+
+  function showContactChooser(matches, onPick){
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:14px;';
+    overlay.innerHTML = `
+      <div style="max-width:760px;width:100%;background:#0f0f0f;border:1px solid rgba(163,139,99,.35);border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.7)">
+        <div style="padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.10);display:flex;justify-content:space-between;gap:10px;align-items:center">
+          <div style="font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#A38B63;font-size:12px">Selecionar registo para importar</div>
+          <button id="gppCloseChooser" class="btn secondary" style="padding:6px 10px;font-size:12px">Cancelar</button>
+        </div>
+        <div style="max-height:60vh;overflow:auto">
+          ${matches.map((m,i)=>`
+            <div data-i="${i}" style="padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.08);cursor:pointer">
+              <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap">
+                <div>
+                  <div style="font-weight:800;color:#fff">${htmlEscape(m.nameRaw || '—')}</div>
+                  <div style="color:#aaa;font-size:12px;margin-top:3px">${htmlEscape(m.phoneRaw || '—')} · ${htmlEscape(m.emailRaw || '—')}</div>
+                </div>
+                <div style="text-align:right;color:#aaa;font-size:12px">
+                  <div>${htmlEscape(sourceLabelFromKey(m.sourceKey))}</div>
+                  <div style="opacity:.8">score: ${m._score}</div>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const close = ()=>{ try{ overlay.remove(); }catch{} };
+    overlay.addEventListener('click', (e)=>{
+      if(e.target === overlay) return close();
+      if(e.target.closest('#gppCloseChooser')) return close();
+      const row = e.target.closest('[data-i]');
+      if(row){
+        const pick = matches[Number(row.dataset.i)];
+        close();
+        onPick && onPick(pick);
+      }
+    });
+  }
+
+
+    // 2) Telefone
+    if(phoneN && phoneN.length >= 7){
+      const byPhone = idx.filter(c=>c.phone && (c.phone === phoneN || c.phone.endsWith(phoneN) || phoneN.endsWith(c.phone)));
+      if(byPhone.length) return pickBestByCompleteness(byPhone);
+    }
+
+    // 3) Email
+    if(emailN && emailN.includes('@')){
+      const byEmail = idx.filter(c=>c.email && c.email === emailN);
+      if(byEmail.length) return pickBestByCompleteness(byEmail);
+    }
+
+    return null;
+  }
+
+
+  function sourceLabelFromKey(k){
+    const s = (k||'').toLowerCase();
+    if(s.includes('fsbo') || s.includes('particul')) return 'FSBO';
+    if(s.includes('lead') || s.includes('kanban')) return 'Leads';
+    if(s.includes('angaria') || s.includes('listing')) return 'Angariações';
+    return k || 'localStorage';
+  }
+
+  // Compatibilidade com versões anteriores do módulo (UI existente)
+  function findBestContact({ nome, tel, email }){
+    const hit = findContactPriority({ name: nome, phone: tel, email });
+    if(!hit) return null;
+    return {
+      nome: hit.nameRaw || '',
+      tel: hit.phoneRaw || '',
+      email: hit.emailRaw || '',
+      sourceKey: hit.sourceKey || '',
+      source: sourceLabelFromKey(hit.sourceKey),
+      raw: hit,
+      id: null
+    };
+  }
+
+  function initCrossModuleImport(){
+    const iNome  = el('cNome');
+    const iTel   = el('cTel');
+    const iEmail = el('cEmail');
+    const iNotas = el('cNotas');
+
+    if(!iNome || !iTel || !iEmail) return;
+
+    function ensureAutoHint(){
+      let node = document.getElementById('autoImportHint');
+      if(node) return node;
+
+      const emailField = iEmail.closest('.field');
+      if(!emailField) return null;
+
+      node = document.createElement('div');
+      node.id = 'autoImportHint';
+      node.className = 'hint';
+      node.style.marginTop = '6px';
+      node.textContent = 'Auto-importação: pronta (procura em FSBO | Leads | Angariações quando existir histórico).';
+      emailField.appendChild(node);
+      return node;
+    }
+
+    function showMsg(msg, type='info'){
+      const node = ensureAutoHint();
+      if(!node) return;
+      node.textContent = msg;
+      node.style.color = (type==='ok') ? '#A5D6A7' : (type==='warn' ? '#ffb4b4' : 'var(--muted)');
+    }
+
+    function applyContact(contact){
+      if(!contact) return false;
+      let changed = false;
+
+      if(!normStr(iNome.value) && contact.nameRaw){
+        iNome.value = contact.nameRaw;
+        changed = true;
+      }
+      if(!normStr(iTel.value) && contact.phoneRaw){
+        iTel.value = contact.phoneRaw;
+        changed = true;
+      }
+      if(!normStr(iEmail.value) && contact.emailRaw){
+        iEmail.value = contact.emailRaw;
+        changed = true;
+      }
+
+      const note = (contact.notes || '').trim();
+      if(note && iNotas && !normStr(iNotas.value).includes(note)){
+        iNotas.value = (normStr(iNotas.value) ? (iNotas.value.trim() + "\n") : '') + `Importado do histórico: ${note}`;
+        changed = true;
+      }
+
+      if(changed && typeof scheduleAutosave === 'function'){
+        scheduleAutosave();
+      }
+      return changed;
+    }
+
+    let timer = null;
+    function schedule(){
+      clearTimeout(timer);
+      timer = setTimeout(()=>{
+        const query = { name: normStr(iNome.value), phone: normStr(iTel.value), email: normStr(iEmail.value) };
+        const hit = findContactPriority(query);
+
+        if(hit){
+          const changed = applyContact(hit);
+          showMsg(
+            changed ? `Auto-importação: dados carregados do histórico (${hit.sourceKey}).`
+                    : `Auto-importação: encontrado no histórico (${hit.sourceKey}).`,
+            'ok'
+          );
+        }else{
+          showMsg('Auto-importação: sem correspondência (pode inserir manualmente).','info');
+        }
+      }, 450);
+    }
+
+    [iNome, iTel, iEmail].forEach(inp=>{
+      inp.addEventListener('input', schedule);
+      inp.addEventListener('change', schedule);
+      inp.addEventListener('blur', schedule);
+    });
+
+    window.addEventListener('storage', ()=>{
+      CONTACT_INDEX_CACHE = null;
+      CONTACT_INDEX_CACHE_AT = 0;
+    });
+
+    // primeira verificação (se já vierem campos preenchidos)
+    schedule();
+  }
+
+
+  /* ===========================
+     UI Elements
+  =========================== */
+  const q = el('q');
+  const fStatus = el('fStatus');
+  const fTipo = el('fTipo');
+  const fDataDe = el('fDataDe');
+  const fDataAte = el('fDataAte');
+  const fConfidencial = el('fConfidencial');
+
+  const btnApply = el('btnApply');
+  const btnClear = el('btnClear');
+
+  const reportsTbody = el('reportsTbody');
+
+  const tabList = el('tabList');
+  const tabWizard = el('tabWizard');
+  const viewList = el('viewList');
+  const viewWizard = el('viewWizard');
+
+  const btnNew = el('btnNew');
+  const btnGoWizard = el('btnGoWizard');
+  const btnBackToList = el('btnBackToList');
+  const btnSaveDraft = el('btnSaveDraft');
+
+  const btnPrev = el('btnPrev');
+  const btnNext = el('btnNext');
+
+  const steps = $$('.step');
+  const stepTitle = el('stepTitle');
+
+  // Step fields
+  const cTipo = el('cTipo');
+  const cNome = el('cNome');
+  const cTel = el('cTel');
+  const cEmail = el('cEmail');
+  const cIdioma = el('cIdioma');
+  const cDetalhe = el('cDetalhe');
+  const cConf = el('cConf');
+  const cNotas = el('cNotas');
+
+  const autoImportBadge = el('autoImportBadge');
+  const autoImportText = el('autoImportText');
+
+  const oObjetivo = el('oObjetivo');
+  const oHorizonte = el('oHorizonte');
+  const oRisco = el('oRisco');
+  const oPreocup = el('oPreocup');
+  const oBrief = el('oBrief');
+
+  const aFonte = el('aFonte');
+  const aSearch = el('aSearch');
+  const aZona = el('aZona');
+  const aTipologia = el('aTipologia');
+  const aPreco = el('aPreco');
+  const aObs = el('aObs');
+
+  const zZona = el('zZona');
+  const zTipologia = el('zTipologia');
+  const zSegmento = el('zSegmento');
+  const zMin = el('zMin');
+  const zMax = el('zMax');
+
+  const sExec = el('sExec');
+  const sContexto = el('sContexto');
+  const sMercado = el('sMercado');
+  const sComps = el('sComps');
+  const sCenarios = el('sCenarios');
+  const sRecomend = el('sRecomend');
+  const sPlano = el('sPlano');
+  const sAnexos = el('sAnexos');
+
+  const rTom = el('rTom');
+  const rCTA = el('rCTA');
+  const rRecomend = el('rRecomend');
+
+  const btnBuildPdf = el('btnBuildPdf');
+  const btnBuildExec = el('btnBuildExec');
+  const btnDuplicate = el('btnDuplicate');
+
+  // Views & steps
+  const stepEls = [null, el('step1'), el('step2'), el('step3'), el('step4'), el('step5')];
+  let currentStep = 1;
+  let ACTIVE_REPORT_ID = null; // relatório em edição
+
+  function setTab(which){
+    const isList = which === 'list';
+    tabList.classList.toggle('active', isList);
+    tabWizard.classList.toggle('active', !isList);
+    viewList.classList.toggle('hidden', !isList);
+    viewWizard.classList.toggle('hidden', isList);
+  }
+
+  function setStep(n){
+    currentStep = Math.min(5, Math.max(1, n));
+    // Passo 5: modo centrado (oculta lista de passos para dar espaço ao relatório)
+    try{ viewWizard.classList.toggle('step5-center', currentStep === 5); }catch(e){}
+    steps.forEach(s => s.classList.toggle('active', Number(s.dataset.step) === currentStep));
+    stepEls.forEach((node, idx)=>{ if(node) node.classList.toggle('hidden', idx !== currentStep); });
+
+    const titles = {
+      1:'Passo 1 — Identificação do Cliente',
+      2:'Passo 2 — Objetivo e Perfil de Decisão',
+      3:'Passo 3 — Ativo / Zona em análise',
+      4:'Passo 4 — Estudo (extração assistida)',
+      5:'Passo 5 — PDF Final Premium'
+    };
+    stepTitle.textContent = titles[currentStep] || 'Passo';
+    btnPrev.disabled = false;
+    btnPrev.textContent = (currentStep === 1) ? 'Voltar' : 'Anterior';
+    btnNext.textContent = (currentStep === 5) ? 'Concluir' : 'Seguinte';
+
+    // ao entrar no Passo 3, tentar carregar dados do ativo a partir do histórico (se ainda vazio)
+    if(currentStep === 3){
+      try{
+        const emptyAsset = (!normStr(aZona?.value) && !normStr(aTipologia?.value) && !normStr(aPreco?.value) && !normStr(aObs?.value));
+        if(emptyAsset){
+          // se ainda estiver em Manual/Mapa e o cliente já foi reconhecido, assumir a fonte mais provável
+          if(aFonte && ['Manual','Mapa',''].includes(normStr(aFonte.value))){
+            const r0 = (ACTIVE_REPORT_ID ? getReport(ACTIVE_REPORT_ID) : null);
+            const src0 = r0?.cliente?.importedFrom?.source || '';
+            if(['Angariações','FSBO','Leads'].includes(src0)) aFonte.value = src0;
+          }
+          // tentar preencher (se houver correspondência em qualquer módulo)
+          tryAutoFillAssetFromModules();
+        }
+      }catch(e){}
+    }
+  }
+
+  function getSelectedAssetMode(){
+    return document.querySelector('input[name="assetMode"]:checked')?.value || 'imovel';
+  }
+
+  function collectForm(){
+    const mode = getSelectedAssetMode();
+    const preocup = Array.from(oPreocup?.selectedOptions || []).map(o=>o.value);
+
+    const base = {
+      id: ACTIVE_REPORT_ID || uid('rpt'),
+      createdAt: null,
+      updatedAt: todayISO(),
+      status: 'draft',
+
+      cliente: {
+        tipo: normStr(cTipo.value),
+        nome: normStr(cNome.value),
+        tel: normStr(cTel.value),
+        email: normStr(cEmail.value),
+        idioma: normStr(cIdioma.value || 'pt'),
+        detalhe: normStr(cDetalhe.value || 'exec'),
+        confidencial: (cConf.value === 'yes'),
+        notas: normStr(cNotas.value),
+        importedFrom: null
+      },
+
+      objetivo: {
+        objetivo: normStr(oObjetivo.value),
+        horizonte: normStr(oHorizonte.value),
+        risco: normStr(oRisco.value),
+        preocupacoes: preocup,
+        brief: normStr(oBrief.value)
+      },
+
+      ativo: {
+        mode,
+        imovel: {
+          fonte: normStr(aFonte.value),
+          query: normStr(aSearch.value),
+          zona: normStr(aZona.value),
+          tipologia: normStr(aTipologia.value),
+          preco: normStr(aPreco.value),
+          obs: normStr(aObs.value)
+        },
+        zona: {
+          zona: normStr(zZona.value),
+          tipologia: normStr(zTipologia.value),
+          segmento: normStr(zSegmento.value),
+          min: normStr(zMin.value),
+          max: normStr(zMax.value)
+        }
+      },
+
+      pdfs: [],
+      analysis: {
+        metrics: { precoM2:'—', intervalo:'—', tendencia:'—', tempo:'—' },
+        chapters: [],
+        sum: { relevante:'', riscos:'', oportunidades:'' }
+      },
+
+      report: {
+        sections: {
+          exec: !!sExec.checked,
+          contexto: !!sContexto.checked,
+          mercado: !!sMercado.checked,
+          comps: !!sComps.checked,
+          cenarios: !!sCenarios.checked,
+          recomend: !!sRecomend.checked,
+          plano: !!sPlano.checked,
+          anexos: !!sAnexos.checked
+        },
+        tom: normStr(rTom.value),
+        cta: normStr(rCTA.value),
+        recomendacaoFinal: normStr(rRecomend.value)
+      }
+    };
+
+    const existing = ACTIVE_REPORT_ID ? getReport(ACTIVE_REPORT_ID) : null;
+    base.createdAt = existing?.createdAt || todayISO();
+    base.status = existing?.status || 'draft';
+    base.pdfs = existing?.pdfs || [];
+    base.analysis = existing?.analysis || base.analysis;
+    base.cliente.importedFrom = existing?.cliente?.importedFrom || null;
+
+    return base;
+  }
+
+  function fillForm(report){
+    if(!report) return;
+
+    ACTIVE_REPORT_ID = report.id;
+
+    cTipo.value = report.cliente?.tipo || '';
+    cNome.value = report.cliente?.nome || '';
+    cTel.value = report.cliente?.tel || '';
+    cEmail.value = report.cliente?.email || '';
+    cIdioma.value = report.cliente?.idioma || 'pt';
+    cDetalhe.value = report.cliente?.detalhe || 'exec';
+    cConf.value = report.cliente?.confidencial ? 'yes' : 'no';
+    cNotas.value = report.cliente?.notas || '';
+
+    const imp = report.cliente?.importedFrom;
+    setAutoImportUI(imp);
+
+    oObjetivo.value = report.objetivo?.objetivo || '';
+    oHorizonte.value = report.objetivo?.horizonte || '';
+    oRisco.value = report.objetivo?.risco || '';
+    const selected = new Set(report.objetivo?.preocupacoes || []);
+    Array.from(oPreocup.options).forEach(opt=> opt.selected = selected.has(opt.value));
+    oBrief.value = report.objetivo?.brief || '';
+
+    const mode = report.ativo?.mode || 'imovel';
+    const radios = $$('input[name="assetMode"]');
+    radios.forEach(r=>{ r.checked = (r.value === mode); });
+    const assetImovel = el('assetImovel');
+    const assetZona = el('assetZona');
+    assetImovel.classList.toggle('hidden', mode !== 'imovel');
+    assetZona.classList.toggle('hidden', mode !== 'zona');
+
+    aFonte.value = report.ativo?.imovel?.fonte || 'Manual';
+    aSearch.value = report.ativo?.imovel?.query || '';
+    aZona.value = report.ativo?.imovel?.zona || '';
+    aTipologia.value = report.ativo?.imovel?.tipologia || '';
+    aPreco.value = report.ativo?.imovel?.preco || '';
+    aObs.value = report.ativo?.imovel?.obs || '';
+
+    zZona.value = report.ativo?.zona?.zona || '';
+    zTipologia.value = report.ativo?.zona?.tipologia || '';
+    zSegmento.value = report.ativo?.zona?.segmento || 'Novo';
+    zMin.value = report.ativo?.zona?.min || '';
+    zMax.value = report.ativo?.zona?.max || '';
+
+    const sec = report.report?.sections || {};
+    sExec.checked = !!sec.exec;
+    sContexto.checked = !!sec.contexto;
+    sMercado.checked = !!sec.mercado;
+    sComps.checked = !!sec.comps;
+    sCenarios.checked = !!sec.cenarios;
+    sRecomend.checked = !!sec.recomend;
+    sPlano.checked = !!sec.plano;
+    sAnexos.checked = !!sec.anexos;
+
+    rTom.value = report.report?.tom || 'Neutro';
+    rCTA.value = report.report?.cta || 'Agendar reunião';
+    rRecomend.value = report.report?.recomendacaoFinal || '';
+
+    // PDFs (Fase 2)
+    try{ renderPdfList(); }catch(e){}
+
+    // Extração assistida (Fase 2.1)
+    try{ renderAssistPreviewFromReport(report); }catch(e){}
+  }
+
+  /* ===========================
+     Auto-import UI & logic
+  =========================== */
+  function setAutoImportUI(importedFrom){
+    if(!autoImportBadge || !autoImportText) return;
+
+    if(importedFrom?.source){
+      autoImportBadge.classList.remove('hidden');
+      autoImportBadge.className = 'pill ok';
+      autoImportBadge.textContent = 'Importado: ' + importedFrom.source;
+      const extra = [];
+      if(importedFrom.matchBy) extra.push('match: ' + importedFrom.matchBy);
+      if(importedFrom.at) extra.push('em ' + toPTDate(importedFrom.at));
+      autoImportText.innerHTML = `Dados reconhecidos automaticamente (${extra.join(' · ') || '—'}). Se necessário, pode editar manualmente.`;
+    }else{
+      autoImportBadge.classList.add('hidden');
+      autoImportBadge.className = 'pill info hidden';
+      autoImportBadge.textContent = 'Importação automática';
+      autoImportText.innerHTML = `Escreva nome/telemóvel/email para tentar reconhecer o cliente nos módulos <strong>FSBO</strong>, <strong>Leads</strong> e <strong>Angariações</strong>.`;
+    }
+  }
+
+  
+    /* ===========================
+     Auto-fill Ativo/Zona a partir do registo reconhecido
+     - Preenche apenas se os campos estiverem vazios
+     - Tenta também definir a fonte automaticamente (Angariações | FSBO | Leads)
+  =========================== */
+  function applyAssetFromHit(hit){
+    if(!hit || !hit.asset) return false;
+
+    // fonte automática (apenas se ainda não estiver definida numa fonte explícita)
     try{
-      const db = await idbOpen();
-      const tx = db.transaction(DB_STORE,"readwrite");
-      tx.objectStore(DB_STORE).clear();
-      tx.oncomplete = ()=> db.close();
-      tx.onerror = ()=> db.close();
+      const src = sourceLabelFromKey(hit.sourceKey);
+      if(aFonte && src && (normStr(aFonte.value)==='' || ['Manual','Mapa'].includes(normStr(aFonte.value)))){
+        if(['Angariações','FSBO','Leads'].includes(src)) aFonte.value = src;
+      }
     }catch(e){}
-    reports = [];
-    activeId = null;
-    seedIfEmpty();
-    reports = loadData();
+
+    let changed = false;
+    const zona = (hit.asset.zona || '').trim();
+    const tip  = (hit.asset.tipologia || '').trim();
+    const preco= (hit.asset.preco || '').trim();
+    const obs  = (hit.asset.obs || '').trim();
+    const titulo = (hit.asset.titulo || '').trim();
+    const ref = (hit.asset.ref || '').trim();
+
+    if(aZona && !normStr(aZona.value) && zona){ aZona.value = zona; changed = true; }
+    if(aTipologia && !normStr(aTipologia.value) && tip){ aTipologia.value = tip; changed = true; }
+    if(aPreco && !normStr(aPreco.value) && preco){ aPreco.value = preco; changed = true; }
+    if(aObs && !normStr(aObs.value) && obs){ aObs.value = obs; changed = true; }
+
+    // se houver título/ref e aSearch estiver vazio, preenche como contexto
+    if(aSearch && !normStr(aSearch.value)){
+      const ctx = [ref, titulo].filter(Boolean).join(' · ').trim();
+      if(ctx){ aSearch.value = ctx; changed = true; }
+    }
+
+    if(changed && typeof scheduleAutosave === 'function') scheduleAutosave();
+    return changed;
+  }
+
+  function findAssetCandidatesBySource(sourceLabel, query){
+    const idx = scanLocalStorageForContacts();
+    const src = (sourceLabel || '').toLowerCase();
+
+    // filtra por fonte (se definida) e por existência de dados de ativo
+    let list = idx.filter(c=>{
+      const lab = sourceLabelFromKey(c.sourceKey).toLowerCase();
+      const okSrc = !src || lab === src;
+      const hasAsset = c.asset && (c.asset.zona || c.asset.tipologia || c.asset.preco || c.asset.obs || c.asset.titulo || c.asset.ref);
+      return okSrc && hasAsset;
+    });
+
+    // restringe por cliente (nome/tel/email) com a mesma prioridade
+    const hit = findContactPriority(query);
+    if(hit){
+      const n = hit.name, p = hit.phone, e = hit.email;
+      list = list.filter(c=>{
+        if(n && c.name && c.name===n) return true;
+        if(p && c.phone && (c.phone===p || c.phone.endsWith(p) || p.endsWith(c.phone))) return true;
+        if(e && c.email && c.email===e) return true;
+        return false;
+      });
+    }
+
+    // se houver texto em aSearch, tenta filtrar por referência/título/zona
+    const qtxt = normStr(aSearch?.value || '');
+    if(qtxt){
+      const qn = normName(qtxt);
+      const qd = (qtxt||'').toString().replace(/\D/g,'');
+      const qe = normEmail(qtxt);
+      list = list.filter(c=>{
+        const hay = [c.asset?.ref, c.asset?.titulo, c.asset?.zona, c.asset?.tipologia, c.asset?.preco, c.asset?.obs].filter(Boolean).join(' ');
+        const hn = normName(hay);
+        if(qd && hay.replace(/\D/g,'').includes(qd)) return true;
+        if(qe && hay.toLowerCase().includes(qe)) return true;
+        return hn.includes(qn);
+      });
+    }
+
+    // ordena por completude
+    const score = (c)=>(c.asset?.zona?2:0)+(c.asset?.tipologia?2:0)+(c.asset?.preco?2:0)+(c.asset?.obs?1:0)+(c.asset?.titulo?1:0)+(c.asset?.ref?1:0);
+    return list.sort((a,b)=>score(b)-score(a)).slice(0,20);
+  }
+
+  function showAssetChooser(matches){
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:9999;display:flex;align-items:center;justify-content:center;padding:14px;';
+    wrap.innerHTML = `
+      <div style="background:#0f0f0f;border:1px solid rgba(163,139,99,.35);border-radius:16px;max-width:720px;width:100%;padding:14px;box-shadow:0 18px 40px rgba(0,0,0,.6)">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
+          <div style="font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#A38B63;font-size:12px">Selecionar Ativo</div>
+          <button class="btn secondary" id="assetChooserClose">Fechar</button>
+        </div>
+        <div style="margin-top:10px;max-height:60vh;overflow:auto;border-top:1px solid rgba(255,255,255,.08)">
+          ${matches.map((m,i)=>`
+            <div data-i="${i}" style="padding:10px 6px;border-bottom:1px solid rgba(255,255,255,.08);cursor:pointer">
+              <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+                <div><strong>${htmlEscape(m.asset?.titulo || m.asset?.ref || 'Ativo')}</strong></div>
+                <div style="color:rgba(255,255,255,.65);font-size:12px">${htmlEscape(sourceLabelFromKey(m.sourceKey))}</div>
+              </div>
+              <div style="margin-top:4px;color:rgba(255,255,255,.75);font-size:12px">
+                ${htmlEscape(m.asset?.zona || '—')}${m.asset?.tipologia ? (' · ' + htmlEscape(m.asset.tipologia)) : ''}${m.asset?.preco ? (' · ' + htmlEscape(m.asset.preco)) : ''}
+              </div>
+              ${m.asset?.obs ? `<div style="margin-top:4px;color:rgba(255,255,255,.55);font-size:11px">${htmlEscape(m.asset.obs).slice(0,220)}</div>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+    document.body.appendChild(wrap);
+
+    wrap.addEventListener('click', (e)=>{
+      if(e.target && e.target.id==='assetChooserClose'){ wrap.remove(); return; }
+      const row = e.target.closest('[data-i]');
+      if(!row) return;
+      const i = Number(row.dataset.i);
+      const chosen = matches[i];
+      applyAssetFromHit(chosen);
+      wrap.remove();
+    });
+  }
+
+  function tryAutoFillAssetFromModules(){
+    const src = normStr(aFonte?.value || '');
+    const query = { name: normStr(cNome?.value), phone: normStr(cTel?.value), email: normStr(cEmail?.value) };
+
+    const useSrc = (['Angariações','FSBO','Leads'].includes(src)) ? src : '';
+    const matches = findAssetCandidatesBySource(useSrc, query);
+
+    if(!matches.length) return false;
+    if(matches.length === 1){
+      return applyAssetFromHit(matches[0]);
+    }
+    showAssetChooser(matches);
+    return true;
+  }
+
+function tryAutoImport(){
+    const nome = cNome.value;
+    const tel  = cTel.value;
+    const email = cEmail.value;
+
+    const matches = findContactsPriorityList({ name: nome, phone: tel, email }, 8);
+    if(!matches.length){
+      return false;
+    }
+
+    const applyPick = (pick)=>{
+      const found = {
+        nome: pick.nameRaw || '',
+        tel: pick.phoneRaw || '',
+        email: pick.emailRaw || '',
+        sourceKey: pick.sourceKey || '',
+        source: sourceLabelFromKey(pick.sourceKey),
+        raw: pick,
+        id: null
+      };
+
+    showContactChooser(matches, applyPick);
+    return true;
+  }
+
+
+    // evitar “sobre-escrita agressiva”: só preenche campos vazios (exceto o que o utilizador está a introduzir)
+    const current = collectForm();
+    const before = {
+      nome: current.cliente.nome,
+      tel: current.cliente.tel,
+      email: current.cliente.email,
+      tipo: current.cliente.tipo
+    };
+
+    const fNome = normStr(found.nome);
+    const fTel  = normStr(found.tel);
+    const fEmail= normStr(found.email);
+
+    // inferência do campo que deu match (para log/visibilidade)
+    let matchBy = 'nome';
+    if(email && fEmail && normEmail(email) === normEmail(fEmail)) matchBy = 'email';
+    else if(tel && fTel && normPhone(tel) === normPhone(fTel)) matchBy = 'telemóvel';
+    else if(nome && fNome) matchBy = 'nome';
+
+    // preencher apenas se vazio
+    if(!before.nome && fNome) cNome.value = fNome;
+    if(!before.tel && fTel) cTel.value = fTel;
+    if(!before.email && fEmail) cEmail.value = fEmail;
+
+    // tipo: só se ainda não foi selecionado
+    if(!before.tipo){
+      const suggested = suggestTipoFromSource(found.source, found.raw);
+      if(suggested) cTipo.value = suggested;
+    }
+
+    // notas: acrescentar linha, sem duplicar
+    const stamp = `[Importado de ${found.source} · match: ${matchBy} · ${toPTDate(todayISO())}]`;
+    const notes = (cNotas.value || '').trim();
+    if(!notes.includes(stamp)){
+      cNotas.value = (notes ? (notes + '\n') : '') + stamp;
+    }
+
+        // tentar autopreencher campos do Passo 3 (ativo/zona) a partir do mesmo registo
+    try{ applyAssetFromHit(found.raw); }catch(e){}
+
+// guardar estado “importado de”
+    const r = saveDraftSilent();
+    r.cliente.importedFrom = { source: found.source, matchBy, at: todayISO(), sourceKey: found.sourceKey, sourceId: found.id };
+    upsertReport(r);
+    setAutoImportUI(r.cliente.importedFrom);
+
+    return true;
+  }
+
+  // Guarda sem alertas (para autosave e auto-import)
+  function saveDraftSilent(){
+    const r = collectForm();
+    r.updatedAt = todayISO();
+    r.status = 'draft';
+    upsertReport(r);
+    ACTIVE_REPORT_ID = r.id;
+    return r;
+  }
+
+  let importTimer = null;
+  function scheduleAutoImport(){
+    clearTimeout(importTimer);
+    importTimer = setTimeout(()=> {
+      // só tentar quando estamos no wizard e no passo 1
+      if(viewWizard && !viewWizard.classList.contains('hidden')) tryAutoImport();
+    }, 420);
+  }
+
+  // tentativas ao escrever (debounce)
+  [cNome, cTel, cEmail].forEach(inp=>{
+    if(!inp) return;
+    inp.addEventListener('input', scheduleAutoImport);
+    inp.addEventListener('blur', ()=>{ scheduleAutoImport(); });
+
+  const btnResetCliente = el('btnResetCliente');
+  btnResetCliente?.addEventListener('click', ()=>{
+    if(!confirm('Limpar dados do cliente?')) return;
+    cNome.value=''; cTel.value=''; cEmail.value='';
+    if(cNotas) cNotas.value='';
+    const r = saveDraftSilent();
+    if(r && r.cliente) r.cliente.importedFrom = null;
+    upsertReport(r);
+    setAutoImportUI(null);
+  });
+  });
+
+  /* ===========================
+     Lista: render + filtros
+  =========================== */
+  function badgeEstado(status){
+    if(status==='final') return '<span class="pill ok">Final</span>';
+    if(status==='sent') return '<span class="pill ok">Enviado</span>';
+    return '<span class="pill info">Rascunho</span>';
+  }
+
+  function matchFilters(r){
+    const txt = (q.value||'').toLowerCase().trim();
+    if(txt){
+      const hay = [
+        r.cliente?.nome, r.cliente?.tipo,
+        r.objetivo?.objetivo,
+        r.ativo?.imovel?.zona, r.ativo?.zona?.zona,
+        r.status
+      ].filter(Boolean).join(' ').toLowerCase();
+      if(!hay.includes(txt)) return false;
+    }
+    if(fStatus.value && r.status !== fStatus.value) return false;
+    if(fTipo.value && (r.cliente?.tipo||'') !== fTipo.value) return false;
+
+    if(fConfidencial.checked && !r.cliente?.confidencial) return false;
+
+    const de = fDataDe.value || '';
+    const ate = fDataAte.value || '';
+    const dt = r.updatedAt || r.createdAt || '';
+    if(de && dt && dt < de) return false;
+    if(ate && dt && dt > ate) return false;
+
+    return true;
+  }
+
+  function renderList(){
+    const list = loadAllReports().filter(matchFilters);
+    reportsTbody.innerHTML = '';
+
+    if(!list.length){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td colspan="5">
+          <div style="padding:10px 0;color:var(--muted);font-size:12px">
+            Sem relatórios com os filtros atuais. Clique em <strong>+ Novo Relatório</strong>.
+          </div>
+        </td>`;
+      reportsTbody.appendChild(tr);
+      return;
+    }
+
+    list.forEach(r=>{
+      const mode = r.ativo?.mode || 'imovel';
+      const zona = mode==='imovel' ? (r.ativo?.imovel?.zona||'—') : (r.ativo?.zona?.zona||'—');
+      const tip = mode==='imovel' ? (r.ativo?.imovel?.tipologia||'') : (r.ativo?.zona?.tipologia||'');
+      const obj = r.objetivo?.objetivo || '—';
+      const detalhe = (r.cliente?.detalhe === 'full') ? 'Completo' : 'Executivo';
+      const conf = r.cliente?.confidencial ? 'Sim' : 'Não';
+      const imp = r.cliente?.importedFrom?.source ? (' · Importado: ' + r.cliente.importedFrom.source) : '';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <div><strong>${htmlEscape(r.cliente?.nome || '—')}</strong></div>
+          <span class="td-sub">${htmlEscape(r.cliente?.tipo || '—')} · Idioma ${((r.cliente?.idioma||'pt')==='en'?'EN':'PT')} · ${detalhe}${imp}</span>
+        </td>
+        <td>
+          <div><strong>${htmlEscape(obj)}</strong></div>
+          <span class="td-sub">Zona: ${htmlEscape(zona)}${tip ? ' · Tipologia: '+htmlEscape(tip) : ''}</span>
+        </td>
+        <td>
+          <div><strong>${htmlEscape(toPTDate(r.createdAt || ''))}</strong></div>
+          <span class="td-sub">Atualizado: ${htmlEscape(toPTDate(r.updatedAt || ''))}</span>
+        </td>
+        <td>
+          ${badgeEstado(r.status)}
+          <span class="td-sub">Confidencial: ${conf}</span>
+        </td>
+        <td>
+          <div class="row-actions">
+            <button class="btn-xs primary" data-act="open" data-id="${r.id}">Abrir</button>
+            <button class="btn-xs" data-act="duplicate" data-id="${r.id}">Duplicar</button>
+            <button class="btn-xs" data-act="export" data-id="${r.id}">Exportar PDF</button>
+            <button class="btn-xs ghost" data-act="delete" data-id="${r.id}">Remover</button>
+          </div>
+        </td>
+      `;
+      reportsTbody.appendChild(tr);
+    });
+  }
+
+  /* ===========================
+     Wizard: criar/guardar
+  =========================== */
+  function saveDraft(){
+    const r = collectForm();
+    r.updatedAt = todayISO();
+    r.status = 'draft';
+    upsertReport(r);
+    ACTIVE_REPORT_ID = r.id;
     renderList();
-    renderWizard();
-    renderConfig();
-    toast("Reposição concluída", "Dados locais foram limpos.");
-  };
+    return r;
+  }
+
+  btnNew?.addEventListener('click', ()=>{
+    ACTIVE_REPORT_ID = null;
+    const empty = {
+      id: uid('rpt'),
+      createdAt: todayISO(),
+      updatedAt: todayISO(),
+      status: 'draft',
+      cliente:{tipo:'',nome:'',tel:'',email:'',idioma:'pt',detalhe:'exec',confidencial:false,notas:'', importedFrom:null},
+      objetivo:{objetivo:'',horizonte:'',risco:'',preocupacoes:[],brief:''},
+      ativo:{mode:'imovel',imovel:{fonte:'Manual',query:'',zona:'',tipologia:'',preco:'',obs:''},zona:{zona:'',tipologia:'',segmento:'Novo',min:'',max:''}},
+      pdfs:[],
+      analysis:{metrics:{precoM2:'—',intervalo:'—',tendencia:'—',tempo:'—'},chapters:[],sum:{relevante:'',riscos:'',oportunidades:''}},
+      report:{sections:{exec:true,contexto:true,mercado:true,comps:false,cenarios:true,recomend:true,plano:true,anexos:true},tom:'Neutro',cta:'Agendar reunião',recomendacaoFinal:''}
+    };
+    fillForm(empty);
+    try{ renderAssistPreviewFromReport(empty); }catch(e){}
+    setTab('wizard'); setStep(1);
+    setAutoImportUI(null);
+  });
+
+  btnGoWizard?.addEventListener('click', ()=>{
+    ACTIVE_REPORT_ID = null;
+    btnNew.click();
+  });
+
+  btnBackToList?.addEventListener('click', ()=>{
+    setTab('list');
+    renderList();
+  });
+
+  btnSaveDraft?.addEventListener('click', ()=>{
+    saveDraft();
+    alert('Rascunho guardado.');
+  });
+
+  steps.forEach(s=>{
+    s.addEventListener('click', ()=>{
+      saveDraft();
+      setStep(Number(s.dataset.step));
+    });
+  });
+
+  btnPrev?.addEventListener('click', ()=>{
+    if(currentStep === 1){
+      saveDraft();
+      setTab('list');
+      renderList();
+      return;
+    }
+    saveDraft();
+    setStep(currentStep-1);
+  });
+  btnNext?.addEventListener('click', ()=>{
+    saveDraft();
+    if(currentStep < 5) setStep(currentStep+1);
+    else { setTab('list'); renderList(); }
+  });
+
+  // Autosave suave
+  let autosaveTimer = null;
+  function scheduleAutosave(){
+    clearTimeout(autosaveTimer);
+    autosaveTimer = setTimeout(()=>{ if(viewWizard && !viewWizard.classList.contains('hidden')) saveDraftSilent(); }, 650);
+  }
+  ['input','change','keyup'].forEach(ev=>{
+    viewWizard?.addEventListener(ev, scheduleAutosave, true);
+  });
+
+
+  /* ===========================
+     PDFs (Fase 2) — anexos por relatório
+     - Guarda metadados no próprio relatório (localStorage)
+     - Guarda o ficheiro (Blob) em IndexedDB para evitar limites do localStorage
+  =========================== */
+
+  const pdfDrop = el('pdfDrop');
+  const pdfInput = el('pdfInput');
+  const btnAddPdf = el('btnAddPdf');
+  const btnClearPdfs = el('btnClearPdfs');
+  const pdfList = el('pdfList');
+  const pdfCount = el('pdfCount');
+  const pdfStoreMode = el('pdfStoreMode');
+  const pdfLastAction = el('pdfLastAction');
+
+
+  const PDF_DB = 'gpp_pdf_store_v1';
+  const PDF_STORE = 'pdfs';
+  let pdfDb = null;
+  let pdfStorageMode = 'IndexedDB';
+
+  function setPdfStatus({count=null, mode=null, action=null}={}){
+    if(pdfCount && count!=null) pdfCount.textContent = String(count);
+    if(pdfStoreMode && mode) pdfStoreMode.textContent = mode;
+    if(pdfLastAction && action) pdfLastAction.textContent = action;
+  }
+
+  /* ===========================
+     Fase 2.1 — Extração Assistida (sem PDF.js)
+     Como funciona:
+     - O utilizador abre o PDF no visor do browser e copia/cola texto relevante.
+     - O módulo estrutura automaticamente: capítulos, parágrafos, insights e palavras‑chave.
+     - Esta estrutura entra diretamente no relatório final (secção “Dados do Estudo”).
+  =========================== */
+
+  const pdfAssistText = el('pdfAssistText');
+  const btnAssistParse = el('btnAssistExtract'); // alinhado com UI
+  const btnAssistClear = el('btnAssistClear');
+  const assistPreview = el('assistPreview');
+  const assistStats = el('assistStatus'); // alinhado com UI
+
+  function setAssistStatus(msg, kind=''){
+    if(!assistStats) return;
+    assistStats.textContent = msg || '—';
+    const c = kind==='ok' ? 'var(--ok)' : (kind==='warn' ? 'var(--warn)' : 'var(--muted)');
+    assistStats.style.color = c;
+  }
+
+  const STOPWORDS_PT = new Set([
+    'a','o','os','as','um','uma','uns','umas','de','da','do','das','dos','e','ou','em','no','na','nos','nas',
+    'por','para','com','sem','ao','aos','à','às','que','quem','quando','onde','como','mais','menos','muito','muita',
+    'muitos','muitas','já','ainda','entre','até','sobre','sob','se','ser','são','foi','foram','é','era','eram',
+    'ter','tem','têm','tinha','tinham','há','haver','num','numa','nuns','numas','este','esta','estes','estas',
+    'isso','isto','aquele','aquela','aqueles','aquelas','mesmo','mesma','mesmos','mesmas','também','assim','pelo','pela',
+    'pelos','pelas','seu','sua','seus','suas','lhe','lhes','me','te','nos','vos','eles','elas','eu','tu','ele','ela'
+  ]);
+
+  function clampLen(s, n){ s = String(s||''); return s.length>n ? (s.slice(0,n-1)+'…') : s; }
+
+  function splitLines(txt){
+    return String(txt||'')
+      .replace(/\r\n/g,'\n')
+      .replace(/\r/g,'\n')
+      .split('\n')
+      .map(l=>l.replace(/\s+/g,' ').trim());
+  }
+
+  function isHeading(line){
+    if(!line) return false;
+    if(line.length < 4) return false;
+    if(line.length > 86) return false;
+    // padrões típicos: "1." "1.1" "I." "CAPÍTULO" "RESUMO EXECUTIVO" "CONCLUSÕES:" etc.
+    if(/^\d{1,2}(?:[\.|\)]\d{1,2})*[\.|\)]\s+/.test(line)) return true;
+    if(/^[IVX]{1,6}[\.|\)]\s+/.test(line)) return true;
+    if(/:\s*$/.test(line) && line.length < 70) return true;
+    const letters = line.replace(/[^A-Za-zÀ-ÿ]/g,'');
+    const uppers  = line.replace(/[^A-ZÀ-Ý]/g,'');
+    if(letters.length >= 6 && uppers.length/Math.max(1,letters.length) > 0.78) return true;
+    return false;
+  }
+
+  function tokenize(txt){
+    return String(txt||'')
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-z0-9\s-]/g,' ')
+      .split(/\s+/)
+      .map(w=>w.trim())
+      .filter(w=>w && w.length>=4 && !STOPWORDS_PT.has(w));
+  }
+
+  function buildKeywords(text, topN=12){
+    const freq = new Map();
+    tokenize(text).forEach(w=>freq.set(w,(freq.get(w)||0)+1));
+    return Array.from(freq.entries())
+      .sort((a,b)=>b[1]-a[1])
+      .slice(0, topN)
+      .map(([w,c])=>({w,c}));
+  }
+
+  function assistedExtract(rawText){
+    const lines = splitLines(rawText).filter(Boolean);
+    const chapters = [];
+    let current = null;
+    let bodyBuf = [];
+
+    function flush(){
+      if(!current) return;
+      const body = bodyBuf.join('\n').trim();
+      const paras = body ? body.split(/\n{2,}|\n(?=\S)/).map(p=>p.trim()).filter(Boolean) : [];
+      const textAll = [current.title, ...paras].join('\n');
+      const kw = buildKeywords(textAll, 10);
+      const insights = paras
+        .filter(p=>p.length>=80)
+        .slice(0, 6)
+        .map(p=>clampLen(p, 220));
+      current.paragraphs = paras;
+      current.insights = insights;
+      current.keywords = kw;
+      chapters.push(current);
+      current = null;
+      bodyBuf = [];
+    }
+
+    for(const line of lines){
+      if(isHeading(line)){
+        flush();
+        current = { title: line.replace(/:\s*$/,'').trim(), paragraphs:[], insights:[], keywords:[] };
+      }else{
+        if(!current) current = { title: 'Síntese do Estudo', paragraphs:[], insights:[], keywords:[] };
+        bodyBuf.push(line);
+      }
+    }
+    flush();
+
+    // agregados
+    const allText = chapters.map(c=>[c.title,...(c.paragraphs||[])].join('\n')).join('\n');
+    const globalKw = buildKeywords(allText, 18);
+    return { chapters, keywords: globalKw };
+  }
+
+  function renderAssistPreviewFromReport(report){
+    if(!assistPreview || !assistStats) return;
+    const ch = report?.analysis?.chapters || [];
+    const kw = report?.analysis?.keywords || [];
+    if(!ch.length){
+      assistPreview.innerHTML = '<span style="color:var(--muted)">Ainda sem extração assistida. Cole o texto e clique em “Gerar capítulos &amp; insights”.</span>';
+      assistStats.textContent = '—';
+      return;
+    }
+
+    assistStats.textContent = `${ch.length} capítulo(s) · ${kw.length} palavra(s)-chave`;
+    const html = ch.map((c,idx)=>{
+      const bullets = (c.insights||[]).slice(0,4).map(i=>`<li>${htmlEscape(i)}</li>`).join('');
+      const kws = (c.keywords||[]).slice(0,6).map(k=>`<span class="pill" style="margin-right:6px">${htmlEscape(k.w)}<span style="opacity:.7"> (${k.c})</span></span>`).join('');
+      return `
+        <div style="padding:10px 10px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(0,0,0,.25);margin-top:10px">
+          <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap">
+            <div style="font-weight:900;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;font-size:12px">${idx+1}. ${htmlEscape(c.title||'Capítulo')}</div>
+          </div>
+          ${kws ? `<div style="margin-top:8px">${kws}</div>` : ''}
+          ${bullets ? `<ul style="margin:8px 0 0 18px;color:#e9e9e9">${bullets}</ul>` : '<div style="margin-top:8px;color:var(--muted);font-size:12px">(Sem insights automáticos — pode editar o texto e voltar a gerar.)</div>'}
+        </div>
+      `;
+    }).join('');
+    assistPreview.innerHTML = html;
+  }
+
+  function saveAssistExtractionToReport(extraction){
+    const r = saveDraftSilent();
+    r.analysis = r.analysis || {};
+    r.analysis.chapters = extraction.chapters || [];
+    r.analysis.keywords = extraction.keywords || [];
+    // um resumo simples para o relatório final
+    const topKw = (r.analysis.keywords||[]).slice(0,10).map(k=>k.w);
+    r.analysis.sum = r.analysis.sum || {};
+    r.analysis.sum.relevante = topKw.length ? ('Palavras‑chave: ' + topKw.join(', ')) : (r.analysis.sum.relevante || '');
+    upsertReport(r);
+    renderAssistPreviewFromReport(r);
+    setPdfStatus({ action: 'Extração assistida guardada no relatório.' });
+  }
+
+  btnAssistParse?.addEventListener('click', ()=>{
+    try{
+      const txt = (pdfAssistText?.value || '').trim();
+      if(!txt){
+        setAssistStatus('Cole primeiro o texto relevante do estudo e volte a clicar em “Estruturar Estudo”.', 'warn');
+        return;
+      }
+      setAssistStatus('A estruturar…', 'warn');
+      const extraction = assistedExtract(txt);
+      if(!extraction.chapters?.length){
+        setAssistStatus('Não foi possível estruturar: confirme o texto colado (deve incluir títulos/segmentos) e tente novamente.', 'warn');
+        return;
+      }
+      saveAssistExtractionToReport(extraction);
+      setAssistStatus(`Estrutura guardada no relatório: ${extraction.chapters.length} capítulo(s) · ${extraction.keywords?.length||0} palavra(s)-chave.`, 'ok');
+      try{ renderAssistPreviewFromReport(getReport(ACTIVE_REPORT_ID)); }catch(e){}
+    }catch(err){
+      console.error(err);
+      setAssistStatus('Falha na extração assistida. Verifique o texto colado e tente novamente.', 'warn');
+    }
+  });
+
+
+  btnAssistClear?.addEventListener('click', ()=>{
+    if(!confirm('Limpar o texto colado?')) return;
+    if(pdfAssistText) pdfAssistText.value = '';
+  });
+
+  function openPdfDb(){
+    return new Promise((resolve, reject)=>{
+      if(!('indexedDB' in window)){
+        pdfStorageMode = 'LocalStorage (limitado)';
+        resolve(null);
+        return;
+      }
+      const req = indexedDB.open(PDF_DB, 1);
+      req.onupgradeneeded = (ev)=>{
+        const db = req.result;
+        if(!db.objectStoreNames.contains(PDF_STORE)){
+          db.createObjectStore(PDF_STORE, { keyPath: 'id' });
+        }
+      };
+      req.onsuccess = ()=>{
+        pdfDb = req.result;
+        pdfDb.onversionchange = ()=>{ try{ pdfDb.close(); }catch{} };
+        resolve(pdfDb);
+      };
+      req.onerror = ()=> reject(req.error);
+    });
+  }
+
+  function idbPutPdf(id, blob){
+    if(!pdfDb) return Promise.resolve(false);
+    return new Promise((resolve, reject)=>{
+      const tx = pdfDb.transaction(PDF_STORE,'readwrite');
+      tx.oncomplete = ()=>resolve(true);
+      tx.onerror = ()=>reject(tx.error);
+      tx.objectStore(PDF_STORE).put({ id, blob, updatedAt: Date.now() });
+    });
+  }
+
+  function idbGetPdf(id){
+    if(!pdfDb) return Promise.resolve(null);
+    return new Promise((resolve, reject)=>{
+      const tx = pdfDb.transaction(PDF_STORE,'readonly');
+      const req = tx.objectStore(PDF_STORE).get(id);
+      req.onsuccess = ()=> resolve(req.result?.blob || null);
+      req.onerror = ()=> reject(req.error);
+    });
+  }
+
+  function idbDelPdf(id){
+    if(!pdfDb) return Promise.resolve(false);
+    return new Promise((resolve, reject)=>{
+      const tx = pdfDb.transaction(PDF_STORE,'readwrite');
+      tx.oncomplete = ()=>resolve(true);
+      tx.onerror = ()=>reject(tx.error);
+      tx.objectStore(PDF_STORE).delete(id);
+    });
+  }
+
+  // Fallback base64 (apenas ficheiros pequenos)
+  function blobToDataURL(blob){
+    return new Promise((resolve, reject)=>{
+      const r = new FileReader();
+      r.onload = ()=>resolve(r.result);
+      r.onerror = ()=>reject(r.error);
+      r.readAsDataURL(blob);
+    });
+  }
+
+  async function storePdfBlob(pdfId, file){
+    // preferir IndexedDB
+    try{
+      if(pdfDb){
+        await idbPutPdf(pdfId, file);
+        pdfStorageMode = 'IndexedDB';
+        return { store: 'idb', ok: true };
+      }
+    }catch(e){
+      console.warn('IndexedDB falhou, fallback localStorage', e);
+    }
+
+    // fallback: base64 para ficheiros pequenos
+    try{
+      const MAX = 1_500_000; // ~1.5MB (base64 cresce)
+      if(file.size > MAX) return { store: 'none', ok:false, reason:'Ficheiro demasiado grande para fallback.' };
+      const dataUrl = await blobToDataURL(file);
+      localStorage.setItem('gpp_pdf_b64_'+pdfId, dataUrl);
+      pdfStorageMode = 'LocalStorage (base64)';
+      return { store: 'lsb64', ok:true };
+    }catch(e){
+      return { store: 'none', ok:false, reason:String(e||'erro') };
+    }
+  }
+
+  async function loadPdfBlob(pdfId){
+    // idb
+    if(pdfDb){
+      const b = await idbGetPdf(pdfId);
+      if(b) return b;
+    }
+    // fallback base64
+    const b64 = localStorage.getItem('gpp_pdf_b64_'+pdfId);
+    if(b64 && b64.startsWith('data:application/pdf')){
+      const res = await fetch(b64);
+      return await res.blob();
+    }
+    return null;
+  }
+
+  function getActiveReportSafe(){
+    // garante que existe um rascunho para anexar PDFs
+    if(!ACTIVE_REPORT_ID){
+      const r = saveDraftSilent();
+      ACTIVE_REPORT_ID = r.id;
+      return r;
+    }
+    const r = getReport(ACTIVE_REPORT_ID) || saveDraftSilent();
+    return r;
+  }
+
+  function renderPdfList(){
+    if(!pdfList) return;
+    const r = ACTIVE_REPORT_ID ? getReport(ACTIVE_REPORT_ID) : null;
+    const pdfs = r?.pdfs || [];
+    setPdfStatus({count: pdfs.length, mode: pdfStorageMode});
+
+    if(!pdfs.length){
+      pdfList.innerHTML = `
+        <div class="file">
+          <div>
+            <div class="f-name">Sem anexos</div>
+            <div class="f-meta">Adicione PDFs para manter o dossiê do cliente completo.</div>
+          </div>
+        </div>`;
+      return;
+    }
+
+    pdfList.innerHTML = '';
+    pdfs
+      .slice()
+      .sort((a,b)=>(b.addedAt||0)-(a.addedAt||0))
+      .forEach(p=>{
+        const row = document.createElement('div');
+        row.className = 'file';
+        row.innerHTML = `
+          <div>
+            <div class="f-name">${htmlEscape(p.name||'PDF')}</div>
+            <div class="f-meta">
+              ${(p.size?Math.round(p.size/1024)+' KB':'—')} · Adicionado: ${htmlEscape(toPTDate(p.addedAtISO || todayISO()))}
+              ${p.source ? ' · Fonte: '+htmlEscape(p.source) : ''}
+            </div>
+          </div>
+          <div class="f-actions">
+            <button class="btn-xs" data-pdf-act="open" data-pdf-id="${p.id}">Abrir</button>
+            <button class="btn-xs" data-pdf-act="download" data-pdf-id="${p.id}">Download</button>
+            <button class="btn-xs ghost" data-pdf-act="remove" data-pdf-id="${p.id}">Remover</button>
+          </div>
+        `;
+        pdfList.appendChild(row);
+      });
+  }
+
+  async function addPdfFiles(fileList){
+    const files = Array.from(fileList || []).filter(f=>f && f.type === 'application/pdf');
+    if(!files.length){
+      setPdfStatus({action:'Nenhum PDF válido selecionado.'});
+      return;
+    }
+
+    const r = getActiveReportSafe();
+    r.pdfs = Array.isArray(r.pdfs) ? r.pdfs : [];
+
+    for(const file of files){
+      const pdfId = uid('pdf');
+      const storeRes = await storePdfBlob(pdfId, file);
+      if(!storeRes.ok){
+        alert(`Não foi possível guardar "${file.name}". ${storeRes.reason || ''}`.trim());
+        continue;
+      }
+
+      // evitar duplicados por nome+size (heurística simples)
+      const exists = r.pdfs.some(x => (x.name===file.name && x.size===file.size));
+      if(exists) continue;
+
+      r.pdfs.push({
+        id: pdfId,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        addedAt: Date.now(),
+        addedAtISO: todayISO(),
+        store: storeRes.store
+      });
+    }
+
+    r.updatedAt = todayISO();
+    upsertReport(r);
+    ACTIVE_REPORT_ID = r.id;
+
+    setPdfStatus({action:'PDF(s) adicionados.'});
+    renderPdfList();
+  }
+
+  // Modal de pré-visualização (evita bloqueio de popups)
+  const pdfModal = document.getElementById('pdfModal');
+  const pdfModalFrame = document.getElementById('pdfModalFrame');
+  const pdfModalClose = document.getElementById('pdfModalClose');
+  const pdfModalDownload = document.getElementById('pdfModalDownload');
+  const pdfModalTitle = document.getElementById('pdfModalTitle');
+  let pdfModalUrl = null;
+  let pdfModalMeta = null;
+
+  function closePdfModal(){
+    if(!pdfModal) return;
+    pdfModal.classList.add('hidden');
+    pdfModal.setAttribute('aria-hidden','true');
+    if(pdfModalFrame) pdfModalFrame.src = 'about:blank';
+    if(pdfModalUrl){
+      try{ URL.revokeObjectURL(pdfModalUrl); }catch{}
+      pdfModalUrl = null;
+    }
+    pdfModalMeta = null;
+  }
+  // ===========================
+  // Fase 2.2 — Pré-visualização + “PDF” (print seguro) em iframe
+  // Sem dependências externas: o utilizador imprime/guarda como PDF a partir do browser.
+  // ===========================
+  function openReportPreview(html, title){
+    if(!pdfModal) return;
+    if(pdfModalTitle) pdfModalTitle.textContent = title || 'Relatório';
+    // limpar URL anterior (PDF blob), se existir
+    if(pdfModalUrl){
+      try{ URL.revokeObjectURL(pdfModalUrl); }catch{}
+      pdfModalUrl = null;
+    }
+    pdfModalMeta = { mode:'report' };
+    // usar srcdoc para não abrir popups nem depender de ficheiros externos
+    if(pdfModalFrame){
+      pdfModalFrame.removeAttribute('src');
+      pdfModalFrame.srcdoc = html;
+    }
+    pdfModal.classList.remove('hidden');
+    pdfModal.setAttribute('aria-hidden','false');
+
+    // Botão “Download” passa a ser “Imprimir / Guardar PDF”
+    if(pdfModalDownload){
+      pdfModalDownload.textContent = 'Imprimir / Guardar PDF';
+      pdfModalDownload.onclick = ()=>{
+        try{
+          const w = pdfModalFrame?.contentWindow;
+          if(!w){ alert('Pré-visualização indisponível.'); return; }
+          w.focus();
+          w.print();
+        }catch(e){
+          console.error(e);
+          alert('Falha ao abrir a impressão. Verifique as permissões do browser.');
+        }
+      };
+    }
+  }
+
+  function buildPremiumReportHTML(report, forceExec=false){
+    const cliente = report.cliente || {};
+    const obj = report.objetivo || {};
+    const ativo = report.ativo || {};
+    const rec = report.recomendacao || {};
+    const analysis = report.analysis || {};
+
+    const safe = (s)=> String(s||'').replace(/[&<>"]/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+    const dateStr = new Date().toLocaleString('pt-PT');
+
+    const zona = (ativo.mode==='zona') ? (ativo.zona?.zona||'—') : (ativo.imovel?.zona||'—');
+    const tip  = (ativo.mode==='zona') ? (ativo.zona?.tipologia||'—') : (ativo.imovel?.tipologia||'—');
+
+    const chapters = Array.isArray(analysis.chapters) ? analysis.chapters : [];
+    const keywords = Array.isArray(analysis.keywords) ? analysis.keywords : [];
+
+    const studyHtml = chapters.length ? `
+      <section class="card">
+        <div class="h">
+          <div class="k">📊 Dados do Estudo</div>
+          <div class="s">Síntese objetiva (extração assistida, sem PDF.js)</div>
+        </div>
+        <div class="b">
+          ${keywords.length ? `<div class="chips">
+            ${keywords.slice(0,18).map(k=>`<span class="chip">${safe(k.w)} <em>${k.c}</em></span>`).join('')}
+          </div>` : ``}
+
+          ${chapters.slice(0,8).map(ch=>`
+            <div class="block">
+              <div class="t">${safe(ch.title||'Capítulo')}</div>
+              ${(ch.insights||[]).length ? `<ul>${(ch.insights||[]).slice(0,6).map(i=>`<li>${safe(i)}</li>`).join('')}</ul>` : ``}
+              ${(ch.paragraphs||[]).length ? `<div class="p">${safe((ch.paragraphs||[]).slice(0,2).join('\n\n'))}</div>` : ``}
+            </div>
+          `).join('')}
+        </div>
+      </section>
+    ` : `
+      <section class="card">
+        <div class="h">
+          <div class="k">📊 Dados do Estudo</div>
+          <div class="s">Não incluído (sem texto colado / sem extração).</div>
+        </div>
+      </section>
+    `;
+
+    const execOnly = forceExec === true;
+
+    return `<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>${safe('Relatório — ' + (cliente.nome||'Cliente'))}</title>
+<style>
+  :root{ --gold:#A38B63; --ink:#101114; --mut:#4b5563; --bg:#f6f7fb; --card:#ffffff; --line:#e6e7ee; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:var(--bg); color:var(--ink); }
+  .page{ max-width:900px; margin:0 auto; padding:28px 26px 40px; }
+  .top{ display:flex; justify-content:space-between; gap:14px; align-items:flex-start; }
+  .brand{ font-weight:900; letter-spacing:.08em; text-transform:uppercase; color:var(--gold); font-size:12px; }
+  .title{ margin:10px 0 0; font-size:28px; letter-spacing:.2px; }
+  .sub{ margin:6px 0 0; color:var(--mut); font-size:13px; }
+  .bar{ height:3px; background:linear-gradient(90deg, var(--gold), rgba(163,139,99,.15)); margin:18px 0 18px; border-radius:6px; }
+  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .card{ border:1px solid var(--line); background:var(--card); border-radius:14px; overflow:hidden; }
+  .card .h{ padding:12px 14px; border-bottom:1px solid var(--line); }
+  .card .h .k{ font-weight:800; }
+  .card .h .s{ color:var(--mut); font-size:12px; margin-top:2px; }
+  .card .b{ padding:12px 14px; }
+  .kv{ display:grid; grid-template-columns:150px 1fr; gap:8px; font-size:13px; padding:8px 0; border-bottom:1px dashed var(--line); }
+  .kv:last-child{ border-bottom:0; }
+  .kv b{ color:var(--mut); font-weight:700; }
+  .chips{ display:flex; flex-wrap:wrap; gap:6px; margin:0 0 10px; }
+  .chip{ border:1px solid var(--line); border-radius:999px; padding:5px 9px; font-size:11px; color:var(--mut); background:#fff; }
+  .chip em{ font-style:normal; color:var(--ink); font-weight:700; margin-left:6px; }
+  .block{ border-top:1px dashed var(--line); padding-top:10px; margin-top:10px; }
+  .block:first-child{ border-top:0; padding-top:0; margin-top:0; }
+  .block .t{ font-weight:800; margin-bottom:6px; }
+  ul{ margin:0 0 8px 18px; }
+  li{ margin:0 0 6px; }
+  .p{ white-space:pre-wrap; color:var(--mut); font-size:12px; line-height:1.45; }
+  .secTitle{ font-size:14px; font-weight:900; margin:18px 0 10px; }
+  .txt{ white-space:pre-wrap; font-size:13px; line-height:1.55; color:var(--ink); }
+  .mut{ color:var(--mut); font-size:12px; }
+  .footer{ margin-top:18px; color:var(--mut); font-size:11px; display:flex; justify-content:space-between; gap:10px; }
+  @media print{
+    body{ background:#fff; }
+    .page{ max-width:none; margin:0; padding:18mm 16mm; }
+    .card{ break-inside:avoid; }
+    .footer{ position:fixed; bottom:10mm; left:16mm; right:16mm; }
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="top">
+      <div>
+        <div class="brand">Garvetur Luxury Porto</div>
+        <div class="title">Relatório para Cliente</div>
+        <div class="sub">${safe(cliente.nome||'—')} · ${safe(zona)} · ${safe(tip)}</div>
+      </div>
+      <div class="mut" style="text-align:right">
+        <div><b>Data:</b> ${safe(dateStr)}</div>
+        <div><b>Consultor:</b> ${safe(report?.meta?.consultorNome || report?.consultor?.nome || '—')}</div>
+      </div>
+    </div>
+    <div class="bar"></div>
+
+    <div class="grid">
+      <section class="card">
+        <div class="h"><div class="k">Cliente</div><div class="s">Identificação e enquadramento</div></div>
+        <div class="b">
+          <div class="kv"><b>Nome</b><span>${safe(cliente.nome||'—')}</span></div>
+          <div class="kv"><b>Email</b><span>${safe(cliente.email||'—')}</span></div>
+          <div class="kv"><b>Telefone</b><span>${safe(cliente.telefone||'—')}</span></div>
+          <div class="kv"><b>Perfil</b><span>${safe(obj.perfil||'—')}</span></div>
+          <div class="kv"><b>Horizonte</b><span>${safe(obj.horizonte||'—')}</span></div>
+          <div class="kv"><b>Risco</b><span>${safe(obj.risco||'—')}</span></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="h"><div class="k">Ativo / Zona</div><div class="s">Foco de análise</div></div>
+        <div class="b">
+          <div class="kv"><b>Zona</b><span>${safe(zona)}</span></div>
+          <div class="kv"><b>Tipologia</b><span>${safe(tip)}</span></div>
+          <div class="kv"><b>Preço ref.</b><span>${safe(ativo.mode==='zona' ? (ativo.zona?.preco||'—') : (ativo.imovel?.preco||'—'))}</span></div>
+          <div class="kv"><b>Observações</b><span>${safe(ativo.mode==='zona' ? (ativo.zona?.obs||'—') : (ativo.imovel?.obs||'—'))}</span></div>
+        </div>
+      </section>
+    </div>
+
+    ${execOnly ? '' : studyHtml}
+
+    <div class="secTitle">🧠 Leitura Garvetur</div>
+    <section class="card">
+      <div class="h"><div class="k">Análise</div><div class="s">Posicionamento profissional (formal / executivo)</div></div>
+      <div class="b"><div class="txt">${safe(rec.texto||rec.analise||'—')}</div></div>
+    </section>
+
+    <div class="secTitle">🎯 Recomendação Final</div>
+    <section class="card">
+      <div class="h"><div class="k">Decisão sugerida</div><div class="s">Clara, orientada a próximos passos</div></div>
+      <div class="b">
+        <div class="txt">${safe(report?.final?.texto || report?.final?.recomendacao || report?.rRecomend || report?.recomendacaoFinal || '—')}</div>
+        <div class="mut" style="margin-top:10px"><b>CTA:</b> ${safe(report?.final?.cta || report?.rCTA || 'Agendar próxima reunião / visitas e validação financeira.')}</div>
+      </div>
+    </section>
+
+    <div class="footer">
+      <div>Garvetur Luxury Porto · Documento cliente-ready</div>
+      <div>${safe(dateStr)}</div>
+    </div>
+  </div>
+</body>
+</html>`;
+  }
+
+  pdfModalClose?.addEventListener('click', closePdfModal);
+  pdfModal?.addEventListener('click', (e)=>{ if(e.target === pdfModal) closePdfModal(); });
+  window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closePdfModal(); });
+
+  async function openPdf(pdfId, download=false){
+    const blob = await loadPdfBlob(pdfId);
+    if(!blob){
+      alert('Não foi possível abrir este PDF (não encontrado no armazenamento local).');
+      return;
+    }
+    const r = getReport(ACTIVE_REPORT_ID);
+    const meta = (r?.pdfs||[]).find(x=>x.id===pdfId) || null;
+
+    const url = URL.createObjectURL(blob);
+
+    // download direto (sem popup)
+    if(download){
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = meta?.name || 'documento.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 3000);
+      return;
+    }
+
+    // Abrir no modal (default) — não é bloqueado por popups
+    if(pdfModal && pdfModalFrame){
+      if(pdfModalUrl){
+        try{ URL.revokeObjectURL(pdfModalUrl); }catch{}
+        pdfModalUrl = null;
+      }
+      pdfModalUrl = url;
+      pdfModalMeta = meta;
+      pdfModalTitle.textContent = (meta?.name || 'Documento').toUpperCase();
+      pdfModalFrame.src = url;
+      pdfModal.classList.remove('hidden');
+      pdfModal.setAttribute('aria-hidden','false');
+
+      // preparar botão download
+      pdfModalDownload.textContent = 'Download';
+      pdfModalDownload.onclick = ()=> openPdf(pdfId, true);
+      return;
+    }
+
+    // fallback: tentar nova aba sem await (melhor tolerância a bloqueios)
+    const w = window.open('about:blank', '_blank', 'noopener');
+    if(!w){
+      alert('O seu navegador bloqueou a abertura em nova aba. Utilize a opção Download.');
+      setTimeout(()=>URL.revokeObjectURL(url), 3000);
+      return;
+    }
+    try{ w.location.href = url; }catch{}
+    setTimeout(()=>URL.revokeObjectURL(url), 30_000);
+  }
+
+    
+async function removePdf(pdfId){
+    const r = getReport(ACTIVE_REPORT_ID);
+    if(!r) return;
+    const meta = (r.pdfs||[]).find(x=>x.id===pdfId);
+    if(!confirm(`Remover o PDF "${meta?.name || 'anexo'}"?`)) return;
+
+    // limpar blobs
+    try{ await idbDelPdf(pdfId); }catch{}
+    try{ localStorage.removeItem('gpp_pdf_b64_'+pdfId); }catch{}
+
+    r.pdfs = (r.pdfs||[]).filter(x=>x.id!==pdfId);
+    r.updatedAt = todayISO();
+    upsertReport(r);
+
+    setPdfStatus({action:'PDF removido.'});
+    renderPdfList();
+  }
+
+  async function clearAllPdfs(){
+    const r = getReport(ACTIVE_REPORT_ID);
+    if(!r || !(r.pdfs||[]).length) return;
+    if(!confirm('Remover TODOS os PDFs deste relatório?')) return;
+
+    for(const p of (r.pdfs||[])){
+      try{ await idbDelPdf(p.id); }catch{}
+      try{ localStorage.removeItem('gpp_pdf_b64_'+p.id); }catch{}
+    }
+
+    r.pdfs = [];
+    r.updatedAt = todayISO();
+    upsertReport(r);
+
+    setPdfStatus({action:'PDFs removidos.'});
+    renderPdfList();
+  }
+
+  function wirePdfUI(){
+    if(btnAddPdf && pdfInput){
+      btnAddPdf.addEventListener('click', ()=> pdfInput.click());
+      pdfInput.addEventListener('change', (e)=>{
+        addPdfFiles(e.target.files);
+        pdfInput.value = '';
+      });
+    }
+    if(btnClearPdfs) btnClearPdfs.addEventListener('click', clearAllPdfs);
+
+    if(pdfDrop){
+      pdfDrop.addEventListener('dragover', (e)=>{ e.preventDefault(); pdfDrop.style.borderColor = 'var(--gold)'; });
+      pdfDrop.addEventListener('dragleave', ()=>{ pdfDrop.style.borderColor = 'rgba(163,139,99,.55)'; });
+      pdfDrop.addEventListener('drop', (e)=>{
+        e.preventDefault();
+        pdfDrop.style.borderColor = 'rgba(163,139,99,.55)';
+        addPdfFiles(e.dataTransfer.files);
+      });
+    }
+
+    if(pdfList){
+      pdfList.addEventListener('click', (e)=>{
+        const b = e.target.closest('button[data-pdf-act]');
+        if(!b) return;
+        const act = b.dataset.pdfAct;
+        const id = b.dataset.pdfId;
+        if(act==='open') openPdf(id, false);
+        if(act==='download') openPdf(id, true);
+        if(act==='remove') removePdf(id);
+      });
+    }
+  }
+
+  async function initPdfPhase2(){
+    try{
+      await openPdfDb();
+    }catch(e){
+      console.warn('IndexedDB indisponível', e);
+      pdfDb = null;
+      pdfStorageMode = 'LocalStorage (limitado)';
+    }
+    wirePdfUI();
+    renderPdfList();
+    setPdfStatus({mode: pdfStorageMode, action:'Pronto.'});
+  }
+
+  /* ===========================
+     Exportação “PDF” (impressão)
+  =========================== */
+  function printHTMLInFrame(html){
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    iframe.style.opacity = '0';
+    iframe.setAttribute('aria-hidden','true');
+    document.body.appendChild(iframe);
+
+    const cleanup = ()=>{ try{ iframe.remove(); }catch{} };
+
+    const w = iframe.contentWindow;
+    const d = iframe.contentDocument || w.document;
+
+    d.open(); d.write(html); d.close();
+
+    const firePrint = async ()=>{
+      try{ if(d.fonts && d.fonts.ready) await d.fonts.ready; }catch{}
+      try{ w.focus(); w.print(); }catch(err){ console.error(err); alert('Falha ao abrir impressão.'); cleanup(); }
+    };
+    const onAfter = ()=>{ w.removeEventListener('afterprint', onAfter); setTimeout(cleanup, 250); };
+    w.addEventListener('afterprint', onAfter);
+
+    setTimeout(firePrint, 250);
+    setTimeout(cleanup, 60000);
+  }
+
+  function exportReportToPrintPDF(report, forceExec=false){
+    const cliente = report.cliente || {};
+    const obj = report.objetivo || {};
+    const ativo = report.ativo || {};
+    const mode = ativo.mode || 'imovel';
+
+    const zona = mode==='imovel' ? (ativo.imovel?.zona || '—') : (ativo.zona?.zona || '—');
+    const tip = mode==='imovel' ? (ativo.imovel?.tipologia || '') : (ativo.zona?.tipologia || '');
+    const detalhe = forceExec ? 'exec' : (cliente.detalhe || 'exec');
+    const confTag = cliente.confidencial ? 'CONFIDENCIAL' : 'INTERNO';
+    const title = `Relatório para Cliente — ${cliente.nome || 'Cliente'} (${toPTDate(report.updatedAt || report.createdAt)})`;
+
+    const styles = `
+      <style>
+        :root{--gold:#A38B63;--muted:#666;--txt:#111}
+        *{box-sizing:border-box}
+        body{font-family:Arial,Helvetica,sans-serif;color:var(--txt);margin:0;background:#fff}
+        .page{max-width:920px;margin:0 auto;padding:28px 34px}
+        .top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+        .brand{font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);font-size:14px}
+        .meta{font-size:12px;color:var(--muted);text-align:right;line-height:1.4}
+        .h1{margin:18px 0 6px;font-size:20px;letter-spacing:.02em}
+        .tag{display:inline-block;padding:4px 10px;border:1px solid #ddd;border-radius:999px;font-size:11px;color:#333;background:#fafafa}
+        .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+        .card{border:1px solid #eee;border-radius:14px;padding:12px 12px}
+        .card h3{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#444}
+        .kv{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
+        .kv:last-child{border-bottom:none}
+        .kv b{color:#555;font-weight:700}
+        .sec{margin-top:16px}
+        .sec h2{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.14em;color:#444}
+        .p{font-size:13px;line-height:1.55;color:#222;margin:0 0 8px}
+        ul{margin:6px 0 0 18px}
+        li{margin:4px 0;font-size:13px;line-height:1.45}
+        .foot{margin-top:18px;padding-top:10px;border-top:1px solid #eee;font-size:11px;color:#777;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+      </style>
+    `;
+
+    const rec = (report.report?.recomendacaoFinal || '').trim() || '(preencher recomendação final)';
+
+    // Dados do estudo (Fase 2.1 — extração assistida)
+    const chapters = Array.isArray(report.analysis?.chapters) ? report.analysis.chapters : [];
+    const studySummary = report.analysis?.sum || {};
+
+    const safe = (s)=> htmlEscape(String(s||''));
+
+    const studyHTML = chapters.length ? `
+      <div class="sec">
+        <h2>Dados do Estudo (síntese)</h2>
+        <p class="p">Conteúdo estruturado a partir do PDF/estudo importado (extração assistida). Esta secção reflete o estudo; a recomendação Garvetur encontra-se separada abaixo.</p>
+        ${studySummary.relevante ? `<p class="p"><strong>Relevante:</strong> ${safe(studySummary.relevante).replace(/\\n/g,'<br>')}</p>` : ``}
+        ${studySummary.riscos ? `<p class="p"><strong>Riscos:</strong> ${safe(studySummary.riscos).replace(/\\n/g,'<br>')}</p>` : ``}
+        ${studySummary.oportunidades ? `<p class="p"><strong>Oportunidades:</strong> ${safe(studySummary.oportunidades).replace(/\\n/g,'<br>')}</p>` : ``}
+
+        <div class="card" style="margin-top:10px">
+          <h3>Capítulos</h3>
+          ${chapters.slice(0,12).map((ch, idx)=>{
+            const t = safe(ch.title || `Capítulo ${idx+1}`);
+            const ins = Array.isArray(ch.insights) ? ch.insights.filter(Boolean).slice(0,4) : [];
+            const pars = Array.isArray(ch.paragraphs) ? ch.paragraphs.filter(Boolean).slice(0,2) : [];
+            return `
+              <div style="padding:8px 0;border-bottom:1px solid #f0f0f0">
+                <div style="font-weight:800">${idx+1}. ${t}</div>
+                ${ins.length ? `<ul>${ins.map(i=>`<li>${safe(i)}</li>`).join('')}</ul>` : ``}
+                ${(!ins.length && pars.length) ? `<p class="p">${safe(pars.join(' '))}</p>` : ``}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    ` : ``;
+
+    const html = `
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>${htmlEscape(title)}</title>
+          ${styles}
+        </head>
+        <body>
+          <div class="page">
+            <div class="top">
+              <div>
+                <div class="brand">Garvetur Luxury Porto</div>
+                <div class="h1">Relatório para Cliente</div>
+                <span class="tag">${htmlEscape(confTag)}</span>
+              </div>
+              <div class="meta">
+                <div><strong>Cliente:</strong> ${htmlEscape(cliente.nome||'—')}</div>
+                <div><strong>Contacto:</strong> ${htmlEscape(cliente.tel||'—')} · ${htmlEscape(cliente.email||'—')}</div>
+                <div><strong>Data:</strong> ${htmlEscape(toPTDate(report.updatedAt||report.createdAt||todayISO()))}</div>
+                <div><strong>Formato:</strong> ${detalhe==='full'?'Completo':'Executivo'}</div>
+              </div>
+            </div>
+
+            <div class="sec">
+              <h2>Resumo Executivo</h2>
+              <p class="p"><strong>Objetivo:</strong> ${htmlEscape(obj.objetivo || '—')} · <strong>Zona:</strong> ${htmlEscape(zona)} ${tip?('· <strong>Tipologia:</strong> '+htmlEscape(tip)) : ''}</p>
+              <p class="p">${htmlEscape(rec).replace(/\\n/g,'<br>')}</p>
+            </div>
+
+            <div class="sec">
+              <h2>Contexto (inputs do módulo)</h2>
+              <div class="grid">
+                <div class="card">
+                  <h3>Briefing</h3>
+                  <div class="kv"><b>Tipo</b><span>${htmlEscape(cliente.tipo||'—')}</span></div>
+                  <div class="kv"><b>Horizonte</b><span>${htmlEscape(obj.horizonte||'—')}</span></div>
+                  <div class="kv"><b>Risco</b><span>${htmlEscape(obj.risco||'—')}</span></div>
+                </div>
+                <div class="card">
+                  <h3>Notas internas</h3>
+                  <p class="p">${htmlEscape(cliente.notas||'—').replace(/\\n/g,'<br>')}</p>
+                </div>
+              </div>
+            </div>
+
+            ${studyBlock}
+
+            <div class="sec">
+              <h2>Próximos passos</h2>
+              <ul>
+                <li>Validar objetivo e critérios de decisão do cliente (10–15 min).</li>
+                <li>Confirmar informação crítica já existente nos módulos (FSBO | Leads | Angariações).</li>
+                <li>Alinhar estratégia e calendarização.</li>
+                <li><strong>CTA final:</strong> ${htmlEscape(report.report?.cta || 'Agendar reunião')}.</li>
+              </ul>
+            </div>
+
+            <div class="foot">
+              <span>${htmlEscape(confTag)} · Uso interno / cliente · Não distribuir sem autorização.</span>
+              <span>Gerado em ${htmlEscape(toPTDate(todayISO()))}</span>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    printHTMLInFrame(html);
+  }
+
+  /* ===========================
+     List Actions + Export
+  =========================== */
+  if(reportsTbody){
+  reportsTbody.addEventListener('click', async (e)=>{
+      const btn = e.target.closest('button[data-act]');
+      if(!btn) return;
+      const act = btn.dataset.act;
+      const id = btn.dataset.id;
+  
+      if(act==='open'){
+        const r = getReport(id);
+        if(!r) return;
+        fillForm(r);
+        setTab('wizard');
+        setStep(1);
+        return;
+      }
+  
+      if(act==='duplicate'){
+        const r = getReport(id);
+        if(!r) return;
+        const copy = JSON.parse(JSON.stringify(r));
+        copy.id = uid('rpt');
+        copy.createdAt = todayISO();
+        copy.updatedAt = todayISO();
+        copy.status = 'draft';
+        upsertReport(copy);
+        renderList();
+        return;
+      }
+  
+      if(act==='delete'){
+        if(!confirm('Remover este relatório? (esta ação não pode ser desfeita)')) return;
+        deleteReport(id);
+        renderList();
+        return;
+      }
+  
+      if(act==='export'){
+        const r = getReport(id);
+        if(!r) return;
+        exportReportToPrintPDF(r, false);
+        return;
+      }
+    });
 }
 
-/* =========================
-   Init
-   ========================= */
-function init(){
-  renderList();
-  if(!activeId) activeId = reports[0]?.id || null;
-  renderWizard();
-  renderConfig();
-  setStatePill("Pronto","ok");
-}
-init();
-</script>
+
+  btnApply?.addEventListener('click', renderList);
+  btnClear?.addEventListener('click', ()=>{
+    q.value = '';
+    fStatus.value = '';
+    fTipo.value = '';
+    fDataDe.value = '';
+    fDataAte.value = '';
+    fConfidencial.checked = false;
+    renderList();
+  });
+
+  /* ===========================
+     Export Buttons
+  =========================== */
+  btnBuildPdf?.addEventListener('click', ()=>{
+    const r = saveDraft();
+    try{
+      const html = buildPremiumReportHTML(r, false);
+      openReportPreview(html, `Relatório — ${r?.cliente?.nome||'Cliente'}`);
+    }catch(err){
+      console.error(err);
+      exportReportToPrintPDF(r, false); // fallback estável
+    }
+  });
+
+  btnBuildExec?.addEventListener('click', ()=>{
+    const r = saveDraft();
+    exportReportToPrintPDF(r, true);
+  });
+
+  btnDuplicate?.addEventListener('click', ()=>{
+    const r = saveDraft();
+    const copy = JSON.parse(JSON.stringify(r));
+    copy.id = uid('rpt');
+    copy.createdAt = todayISO();
+    copy.updatedAt = todayISO();
+    copy.status = 'draft';
+    upsertReport(copy);
+    renderList();
+    alert('Template duplicado. Pode abrir a cópia na lista.');
+  });
+
+  
+/* ===========================
+     Tabs + init
+  =========================== */
+  tabList?.addEventListener('click', ()=>setTab('list'));
+  tabWizard?.addEventListener('click', ()=>{
+    setTab('wizard');
+    // inicializar importação cruzada apenas quando entra no wizard (evita bloqueios na lista)
+    try{ initCrossModuleImport(); }catch(e){ console.warn('Auto-import indisponível', e); }
+  });
+
+  // Toggle imovel vs zona
+  const assetImovel = el('assetImovel');
+  const assetZona = el('assetZona');
+  Array.from(document.querySelectorAll('input[name="assetMode"]')).forEach(r=>{
+    r.addEventListener('change', ()=>{
+      const v = document.querySelector('input[name="assetMode"]:checked')?.value;
+      if(assetImovel) assetImovel.classList.toggle('hidden', v !== 'imovel');
+      if(assetZona) assetZona.classList.toggle('hidden', v !== 'zona');
+    });
+  });
+
+  function safeInit(){
+    try{
+      setTab('list');
+      setStep(1);
+      renderList();
+      // NÃO iniciar scan localStorage aqui; só quando necessário (wizard/passo 1)
+    }catch(err){
+      console.error('Falha no arranque do módulo:', err);
+      alert('O módulo iniciou com erro. Abra a Consola (F12) para ver o detalhe e partilhe o erro.');
+    }
+  }
+
+  safeInit();
+
+})();</script>
 </body>
 </html>
