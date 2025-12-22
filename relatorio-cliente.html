@@ -975,47 +975,41 @@
                     <div class="kv"><b>Última ação</b><span id="pdfLastAction">—</span></div>
                   </div>
                   <div class="mini-card">
-                    <h5>Extração Assistida</h5>
-                    <div class="hint" style="margin-bottom:8px">
-                      Sem PDF.js: cole aqui o texto do estudo (copiado do PDF) para criar <strong>capítulos</strong>, <strong>insights</strong> e <strong>palavras‑chave</strong>.
+                    <h5>Extração assistida</h5>
+                    <div class="hint">Sem PDF.js: cole aqui texto relevante do estudo (copiado do PDF) e o sistema estrutura em <strong>capítulos</strong>, <strong>insights</strong> e <strong>palavras‑chave</strong>, para integração direta no PDF final.</div>
+                    <div class="divider" style="margin:10px 0"></div>
+                    <div class="field" style="margin-bottom:8px">
+                      <label for="pdfAssistText">Texto do estudo (colar)</label>
+                      <textarea id="pdfAssistText" placeholder="Cole aqui texto do PDF (ex.: resumo, conclusões, indicadores, páginas relevantes)…"></textarea>
                     </div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-                      <button class="btn-xs" id="btnAssistPaste">Colar do Clipboard</button>
-                      <button class="btn-xs primary" id="btnAssistExtract">Estruturar</button>
-                      <button class="btn-xs ghost" id="btnAssistClear">Limpar</button>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                      <button class="btn primary" id="btnAssistExtract">Estruturar (capítulos + insights)</button>
+                      <button class="btn secondary" id="btnAssistClear">Limpar</button>
                     </div>
-                    <textarea id="assistText" class="input" style="min-height:110px" placeholder="Cole aqui o texto do PDF (Ctrl+V)…"></textarea>
-                    <div class="hint" style="margin-top:8px">
-                      Capítulos: <strong><span id="assistChCount">0</span></strong> · Insights: <strong><span id="assistInCount">0</span></strong>
-                    </div>
-                  </div></div>
+                    <div id="assistStatus" class="hint" style="margin-top:8px">—</div>
+                  </div>
                   <div class="mini-card">
                     <h5>Boas práticas</h5>
                     <div class="hint">Use PDFs com nomes claros (ex.: “Estudo_Mercado_Foz_2025.pdf”). Evite anexos duplicados para manter o relatório leve.</div>
                   </div>
                 </div>
 
-              </div>
-                <div class="divider"></div>
-
-                <div id="assistResults" class="hidden">
-                  <div class="section-title">Conteúdo estruturado (pré-visualização)</div>
-
-                  <div class="grid-2">
-                    <div class="mini-card">
-                      <h5>Palavras‑chave</h5>
-                      <div id="assistKeywords" class="hint">—</div>
+                <div class="panel" style="margin-top:12px" id="assistPreviewPanel">
+                  <div class="panel-head">
+                    <div class="title">
+                      <span style="display:inline-flex;width:26px;height:26px;border-radius:999px;border:1px solid var(--gold);align-items:center;justify-content:center;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
+                          <path d="M4 6h16M4 12h16M4 18h10" />
+                        </svg>
+                      </span>
+                      <span>Pré‑visualização da extração</span>
                     </div>
-                    <div class="mini-card">
-                      <h5>Insights (resumo)</h5>
-                      <div id="assistInsights" class="hint">—</div>
-                    </div>
+                    <div class="hint" style="margin:0">Guardado no relatório atual</div>
                   </div>
-
-                  <div class="section-title" style="margin-top:10px">Capítulos</div>
-                  <div id="assistChapters" class="files"></div>
+                  <div class="panel-body">
+                    <div id="assistPreview" class="hint">Sem extração ainda. Cole texto e clique em <strong>Estruturar</strong>.</div>
+                  </div>
                 </div>
-
               </div>
 
               <!-- STEP 5 -->
@@ -1849,7 +1843,6 @@
 
     const imp = report.cliente?.importedFrom;
     setAutoImportUI(imp);
-    try{ renderAssistAnalysisIntoUI(report.analysis || null); }catch(e){}
 
     oObjetivo.value = report.objetivo?.objetivo || '';
     oHorizonte.value = report.objetivo?.horizonte || '';
@@ -1895,6 +1888,9 @@
 
     // PDFs (Fase 2)
     try{ renderPdfList(); }catch(e){}
+
+    // Extração assistida (Fase 2.1)
+    try{ renderAssistPreviewFromReport(report); }catch(e){}
   }
 
   /* ===========================
@@ -2165,7 +2161,6 @@ function tryAutoImport(){
     if(r && r.cliente) r.cliente.importedFrom = null;
     upsertReport(r);
     setAutoImportUI(null);
-    try{ renderAssistAnalysisIntoUI(null); }catch(e){}
   });
   });
 
@@ -2287,6 +2282,7 @@ function tryAutoImport(){
       report:{sections:{exec:true,contexto:true,mercado:true,comps:false,cenarios:true,recomend:true,plano:true,anexos:true},tom:'Neutro',cta:'Agendar reunião',recomendacaoFinal:''}
     };
     fillForm(empty);
+    try{ renderAssistPreviewFromReport(empty); }catch(e){}
     setTab('wizard'); setStep(1);
     setAutoImportUI(null);
   });
@@ -2350,22 +2346,19 @@ function tryAutoImport(){
   const pdfInput = el('pdfInput');
   const btnAddPdf = el('btnAddPdf');
   const btnClearPdfs = el('btnClearPdfs');
-
-  // Assistida (texto do estudo)
-  const assistText = el('assistText');
-  const btnAssistPaste = el('btnAssistPaste');
-  const btnAssistExtract = el('btnAssistExtract');
-  const btnAssistClear = el('btnAssistClear');
-  const assistResults = el('assistResults');
-  const assistKeywords = el('assistKeywords');
-  const assistInsights = el('assistInsights');
-  const assistChapters = el('assistChapters');
-  const assistChCount = el('assistChCount');
-  const assistInCount = el('assistInCount');
   const pdfList = el('pdfList');
   const pdfCount = el('pdfCount');
   const pdfStoreMode = el('pdfStoreMode');
   const pdfLastAction = el('pdfLastAction');
+
+  // Fase 2.1 (Assistida) — sem PDF.js
+  // O objetivo aqui é: permitir que o utilizador cole texto do estudo (ou notas) e o módulo
+  // estruture automaticamente capítulos + insights + keywords, guardando no relatório.
+  const pdfAssistText = el('pdfAssistText');
+  const btnAssistParse = el('btnAssistParse');
+  const btnAssistClear = el('btnAssistClear');
+  const assistPreview = el('assistPreview');
+  const assistMeta = el('assistMeta');
 
   const PDF_DB = 'gpp_pdf_store_v1';
   const PDF_STORE = 'pdfs';
@@ -2377,6 +2370,173 @@ function tryAutoImport(){
     if(pdfStoreMode && mode) pdfStoreMode.textContent = mode;
     if(pdfLastAction && action) pdfLastAction.textContent = action;
   }
+
+  /* ===========================
+     Fase 2.1 — Extração Assistida (sem PDF.js)
+     Como funciona:
+     - O utilizador abre o PDF no visor do browser e copia/cola texto relevante.
+     - O módulo estrutura automaticamente: capítulos, parágrafos, insights e palavras‑chave.
+     - Esta estrutura entra diretamente no relatório final (secção “Dados do Estudo”).
+  =========================== */
+
+  const pdfAssistText = el('pdfAssistText');
+  const btnAssistParse = el('btnAssistParse');
+  const btnAssistClear = el('btnAssistClear');
+  const assistPreview = el('assistPreview');
+  const assistStats = el('assistStats');
+
+  const STOPWORDS_PT = new Set([
+    'a','o','os','as','um','uma','uns','umas','de','da','do','das','dos','e','ou','em','no','na','nos','nas',
+    'por','para','com','sem','ao','aos','à','às','que','quem','quando','onde','como','mais','menos','muito','muita',
+    'muitos','muitas','já','ainda','entre','até','sobre','sob','se','ser','são','foi','foram','é','era','eram',
+    'ter','tem','têm','tinha','tinham','há','haver','num','numa','nuns','numas','este','esta','estes','estas',
+    'isso','isto','aquele','aquela','aqueles','aquelas','mesmo','mesma','mesmos','mesmas','também','assim','pelo','pela',
+    'pelos','pelas','seu','sua','seus','suas','lhe','lhes','me','te','nos','vos','eles','elas','eu','tu','ele','ela'
+  ]);
+
+  function clampLen(s, n){ s = String(s||''); return s.length>n ? (s.slice(0,n-1)+'…') : s; }
+
+  function splitLines(txt){
+    return String(txt||'')
+      .replace(/\r\n/g,'\n')
+      .replace(/\r/g,'\n')
+      .split('\n')
+      .map(l=>l.replace(/\s+/g,' ').trim());
+  }
+
+  function isHeading(line){
+    if(!line) return false;
+    if(line.length < 4) return false;
+    if(line.length > 86) return false;
+    // padrões típicos: "1." "1.1" "I." "CAPÍTULO" "RESUMO EXECUTIVO" "CONCLUSÕES:" etc.
+    if(/^\d{1,2}(?:[\.|\)]\d{1,2})*[\.|\)]\s+/.test(line)) return true;
+    if(/^[IVX]{1,6}[\.|\)]\s+/.test(line)) return true;
+    if(/:\s*$/.test(line) && line.length < 70) return true;
+    const letters = line.replace(/[^A-Za-zÀ-ÿ]/g,'');
+    const uppers  = line.replace(/[^A-ZÀ-Ý]/g,'');
+    if(letters.length >= 6 && uppers.length/Math.max(1,letters.length) > 0.78) return true;
+    return false;
+  }
+
+  function tokenize(txt){
+    return String(txt||'')
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-z0-9\s-]/g,' ')
+      .split(/\s+/)
+      .map(w=>w.trim())
+      .filter(w=>w && w.length>=4 && !STOPWORDS_PT.has(w));
+  }
+
+  function buildKeywords(text, topN=12){
+    const freq = new Map();
+    tokenize(text).forEach(w=>freq.set(w,(freq.get(w)||0)+1));
+    return Array.from(freq.entries())
+      .sort((a,b)=>b[1]-a[1])
+      .slice(0, topN)
+      .map(([w,c])=>({w,c}));
+  }
+
+  function assistedExtract(rawText){
+    const lines = splitLines(rawText).filter(Boolean);
+    const chapters = [];
+    let current = null;
+    let bodyBuf = [];
+
+    function flush(){
+      if(!current) return;
+      const body = bodyBuf.join('\n').trim();
+      const paras = body ? body.split(/\n{2,}|\n(?=\S)/).map(p=>p.trim()).filter(Boolean) : [];
+      const textAll = [current.title, ...paras].join('\n');
+      const kw = buildKeywords(textAll, 10);
+      const insights = paras
+        .filter(p=>p.length>=80)
+        .slice(0, 6)
+        .map(p=>clampLen(p, 220));
+      current.paragraphs = paras;
+      current.insights = insights;
+      current.keywords = kw;
+      chapters.push(current);
+      current = null;
+      bodyBuf = [];
+    }
+
+    for(const line of lines){
+      if(isHeading(line)){
+        flush();
+        current = { title: line.replace(/:\s*$/,'').trim(), paragraphs:[], insights:[], keywords:[] };
+      }else{
+        if(!current) current = { title: 'Síntese do Estudo', paragraphs:[], insights:[], keywords:[] };
+        bodyBuf.push(line);
+      }
+    }
+    flush();
+
+    // agregados
+    const allText = chapters.map(c=>[c.title,...(c.paragraphs||[])].join('\n')).join('\n');
+    const globalKw = buildKeywords(allText, 18);
+    return { chapters, keywords: globalKw };
+  }
+
+  function renderAssistPreviewFromReport(report){
+    if(!assistPreview || !assistStats) return;
+    const ch = report?.analysis?.chapters || [];
+    const kw = report?.analysis?.keywords || [];
+    if(!ch.length){
+      assistPreview.innerHTML = '<span style="color:var(--muted)">Ainda sem extração assistida. Cole o texto e clique em “Gerar capítulos &amp; insights”.</span>';
+      assistStats.textContent = '—';
+      return;
+    }
+
+    assistStats.textContent = `${ch.length} capítulo(s) · ${kw.length} palavra(s)-chave`;
+    const html = ch.map((c,idx)=>{
+      const bullets = (c.insights||[]).slice(0,4).map(i=>`<li>${htmlEscape(i)}</li>`).join('');
+      const kws = (c.keywords||[]).slice(0,6).map(k=>`<span class="pill" style="margin-right:6px">${htmlEscape(k.w)}<span style="opacity:.7"> (${k.c})</span></span>`).join('');
+      return `
+        <div style="padding:10px 10px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(0,0,0,.25);margin-top:10px">
+          <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap">
+            <div style="font-weight:900;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;font-size:12px">${idx+1}. ${htmlEscape(c.title||'Capítulo')}</div>
+          </div>
+          ${kws ? `<div style="margin-top:8px">${kws}</div>` : ''}
+          ${bullets ? `<ul style="margin:8px 0 0 18px;color:#e9e9e9">${bullets}</ul>` : '<div style="margin-top:8px;color:var(--muted);font-size:12px">(Sem insights automáticos — pode editar o texto e voltar a gerar.)</div>'}
+        </div>
+      `;
+    }).join('');
+    assistPreview.innerHTML = html;
+  }
+
+  function saveAssistExtractionToReport(extraction){
+    const r = saveDraftSilent();
+    r.analysis = r.analysis || {};
+    r.analysis.chapters = extraction.chapters || [];
+    r.analysis.keywords = extraction.keywords || [];
+    // um resumo simples para o relatório final
+    const topKw = (r.analysis.keywords||[]).slice(0,10).map(k=>k.w);
+    r.analysis.sum = r.analysis.sum || {};
+    r.analysis.sum.relevante = topKw.length ? ('Palavras‑chave: ' + topKw.join(', ')) : (r.analysis.sum.relevante || '');
+    upsertReport(r);
+    renderAssistPreviewFromReport(r);
+    setPdfStatus({ action: 'Extração assistida guardada no relatório.' });
+  }
+
+  btnAssistParse?.addEventListener('click', ()=>{
+    try{
+      const txt = (pdfAssistText?.value || '').trim();
+      if(!txt){ alert('Cole primeiro o texto relevante do estudo (PDF) para estruturar.'); return; }
+      const extraction = assistedExtract(txt);
+      if(!extraction.chapters?.length){ alert('Não foi possível identificar conteúdo. Confirme o texto colado e tente novamente.'); return; }
+      saveAssistExtractionToReport(extraction);
+      alert('Extração assistida concluída e integrada no relatório.');
+    }catch(err){
+      console.error(err);
+      alert('Falha na extração assistida. Verifique o texto colado e tente novamente.');
+    }
+  });
+
+  btnAssistClear?.addEventListener('click', ()=>{
+    if(!confirm('Limpar o texto colado?')) return;
+    if(pdfAssistText) pdfAssistText.value = '';
+  });
 
   function openPdfDb(){
     return new Promise((resolve, reject)=>{
@@ -2734,296 +2894,7 @@ async function removePdf(pdfId){
     setPdfStatus({mode: pdfStorageMode, action:'Pronto.'});
   }
 
-  
   /* ===========================
-     Fase 2.1 — Extração Assistida (sem PDF.js)
-     - O utilizador cola o texto do estudo (copiado do PDF)
-     - Estruturamos: capítulos (títulos + parágrafos), insights e palavras‑chave
-     - Guardamos no report.analysis para integrar no PDF final premium
-  =========================== */
-
-  const STOPWORDS_PT = new Set(('a o os as um uma uns umas de do da dos das em no na nos nas por para com sem e ou que quem onde quando qual quais como mais menos muito muita muitos muitas já também ainda até desde entre sobre após antes durante ao aos à às lhe lhes seu sua seus suas isto isso aquilo esta esse aquele estas esses aqueles eu tu ele ela nós vós eles elas').split(/\s+/));
-  const STOPWORDS_EN = new Set(('the a an and or but if then else of to in on for with without from as at by this that those these is are was were be been being it its into over under about after before during'.split(/\s+/)));
-
-  function hashText(s){
-    // hash simples para identificar mudanças (não criptográfico)
-    let h = 2166136261;
-    for(let i=0;i<s.length;i++){
-      h ^= s.charCodeAt(i);
-      h = (h * 16777619) >>> 0;
-    }
-    return 'h'+h.toString(16);
-  }
-
-  function splitLines(text){
-    return (text||'').replace(/\r/g,'').split('\n').map(l=>l.trim()).filter(Boolean);
-  }
-
-  function isHeading(line){
-    if(!line) return false;
-    const l = line.trim();
-    if(l.length < 5) return false;
-    // Heurísticas: tudo em maiúsculas / termina em ":" / começa por "capítulo", "secção", "1.", "1 -"
-    const upperRatio = (l.replace(/[^A-ZÁÀÂÃÉÈÊÍÌÎÓÒÔÕÚÙÛÇ]/g,'').length) / Math.max(1, l.replace(/[^A-Za-zÁÀÂÃÉÈÊÍÌÎÓÒÔÕÚÙÛÇ]/g,'').length);
-    if(upperRatio > 0.85 && l.length <= 90) return true;
-    if(/:\s*$/.test(l) && l.length <= 90) return true;
-    if(/^(cap[ií]tulo|capitulo|sec[cç][aã]o|secao)\b/i.test(l)) return true;
-    if(/^\d+(\.\d+)*\s*[-–—.]?\s+\S+/.test(l) && l.length <= 110) return true;
-    return false;
-  }
-
-  function sentenceSplit(text){
-    const cleaned = (text||'').replace(/\s+/g,' ').trim();
-    if(!cleaned) return [];
-    // split por pontuação comum
-    return cleaned.split(/(?<=[\.\!\?])\s+/).map(s=>s.trim()).filter(s=>s.length>=25);
-  }
-
-  function extractKeywords(text, limit=14){
-    const t = stripAccents((text||'').toLowerCase());
-    const words = t.match(/[a-zà-ÿ0-9€%]{3,}/gi) || [];
-    const freq = new Map();
-    for(const w0 of words){
-      const w = w0.toLowerCase();
-      if(STOPWORDS_PT.has(w) || STOPWORDS_EN.has(w)) continue;
-      if(/^\d+$/.test(w)) continue;
-      const v = (freq.get(w)||0)+1;
-      freq.set(w,v);
-    }
-    const ranked = [...freq.entries()].sort((a,b)=>b[1]-a[1]).slice(0, limit).map(x=>x[0]);
-    return ranked;
-  }
-
-  function extractInsights(text, limit=8){
-    const sents = sentenceSplit(text);
-    const scored = sents.map(s=>{
-      let score = 0;
-      if(/%|€|eur|\bmilh(?:ão|oes|ões)\b/i.test(s)) score += 3;
-      if(/\b(crescimento|queda|tend[eê]ncia|procura|oferta|pre[cç]o|valoriz|desconto|rentabilidade|ocup[aã]o|liquidez)\b/i.test(s)) score += 2;
-      if(/\b(porto|foz|boavista|matosinhos|gaia|centro|baixa)\b/i.test(s)) score += 1;
-      score += Math.min(2, Math.floor(s.length / 120));
-      return { s, score };
-    }).filter(x=>x.score>0);
-    scored.sort((a,b)=>b.score-a.score);
-    return scored.slice(0,limit).map(x=>x.s);
-  }
-
-  function structureTextToChapters(text){
-    const lines = splitLines(text);
-    const chapters = [];
-    let current = null;
-
-    const pushCurrent = ()=>{
-      if(!current) return;
-      const body = current.paragraphs.join('\n').trim();
-      if(body.length < 40 && !current.title) return;
-      current.keywords = extractKeywords(current.title + ' ' + body, 10);
-      current.insights = extractInsights(body, 4);
-      chapters.push(current);
-    };
-
-    for(const line of lines){
-      if(isHeading(line)){
-        pushCurrent();
-        current = { title: line.replace(/:\s*$/,''), paragraphs: [] };
-      }else{
-        if(!current) current = { title: 'Síntese do Estudo', paragraphs: [] };
-        current.paragraphs.push(line);
-      }
-      if(current && current.paragraphs.length > 40){
-        // corta capítulos gigantes
-        pushCurrent();
-        current = null;
-      }
-    }
-    pushCurrent();
-
-    // se houver apenas 1 capítulo e for muito grande, tenta fatiar por "—" ou parágrafos longos
-    if(chapters.length === 1){
-      const big = chapters[0];
-      const body = big.paragraphs.join('\n');
-      if(body.length > 6000){
-        const parts = body.split(/\n{1,2}(?=\d+\s*[-–—.]|\b[A-ZÁÀÂÃÉÈÊÍÌÎÓÒÔÕÚÙÛÇ]{6,}\b)/g).filter(p=>p.trim().length>200);
-        if(parts.length >= 2){
-          const out = [];
-          parts.forEach((p, i)=>{
-            out.push({
-              title: (i===0 ? big.title : `Secção ${i+1}`),
-              paragraphs: splitLines(p),
-              keywords: extractKeywords(p, 10),
-              insights: extractInsights(p, 4)
-            });
-          });
-          return out;
-        }
-      }
-    }
-
-    return chapters.slice(0, 18);
-  }
-
-  function renderAssistAnalysisIntoUI(analysis){
-    if(!assistText) return;
-    const chapters = analysis?.chapters || [];
-    const keywords = analysis?.keywords || [];
-    const insights = analysis?.sum?.relevante ? analysis.sum.relevante.split('\n').filter(Boolean) : (analysis?.insights || []);
-
-    if(assistChCount) assistChCount.textContent = String(chapters.length || 0);
-    if(assistInCount) assistInCount.textContent = String((insights||[]).length || 0);
-
-    if(!assistResults) return;
-
-    if(!chapters.length && !keywords.length && !(insights||[]).length){
-      assistResults.classList.add('hidden');
-      return;
-    }
-    assistResults.classList.remove('hidden');
-
-    if(assistKeywords) assistKeywords.textContent = keywords.length ? keywords.join(' · ') : '—';
-    if(assistInsights) assistInsights.innerHTML = (insights && insights.length)
-      ? ('<ul style="margin:0;padding-left:18px">' + insights.slice(0,10).map(s=>'<li style="margin:6px 0">'+htmlEscape(s)+'</li>').join('') + '</ul>')
-      : '—';
-
-    if(assistChapters){
-      assistChapters.innerHTML = '';
-      chapters.forEach((ch, idx)=>{
-        const div = document.createElement('div');
-        div.className = 'file';
-        const p = (ch.paragraphs || []).slice(0, 6).join('\n');
-        const more = (ch.paragraphs || []).length > 6 ? `<div class="f-meta">+ ${(ch.paragraphs.length-6)} parágrafos</div>` : '';
-        div.innerHTML = `
-          <div style="max-width:800px">
-            <div class="f-name">${htmlEscape(ch.title || ('Capítulo ' + (idx+1)))}</div>
-            <div class="f-meta">${htmlEscape((ch.keywords||[]).slice(0,8).join(' · ') || '—')}</div>
-            <div class="hint" style="margin-top:6px;white-space:pre-wrap">${htmlEscape(p || '—')}</div>
-            ${more}
-          </div>
-          <div class="f-actions">
-            <button class="btn-xs" data-act="assistOpen" data-idx="${idx}">Ver</button>
-          </div>
-        `;
-        assistChapters.appendChild(div);
-      });
-    }
-  }
-
-  function applyAssistExtraction(){
-    const text = (assistText?.value || '').trim();
-    if(!text){
-      alert('Cole primeiro o texto do estudo (copiado do PDF).');
-      return;
-    }
-
-    const chapters = structureTextToChapters(text);
-    const keywords = extractKeywords(text, 14);
-    const insights = extractInsights(text, 10);
-
-    const r = saveDraftSilent();
-    r.analysis = r.analysis || { metrics:{}, chapters:[], sum:{relevante:'',riscos:'',oportunidades:''} };
-    r.analysis.source = r.analysis.source || {};
-    r.analysis.source.type = 'assistida';
-    r.analysis.source.hash = hashText(text);
-    r.analysis.source.updatedAt = todayISO();
-    r.analysis.source.length = text.length;
-
-    r.analysis.keywords = keywords;
-    r.analysis.chapters = chapters;
-
-    // sumários (texto curto para PDF final)
-    r.analysis.sum = r.analysis.sum || { relevante:'', riscos:'', oportunidades:'' };
-    r.analysis.sum.relevante = insights.slice(0,6).join('\n');
-
-    // métricas simples (placeholder)
-    r.analysis.metrics = r.analysis.metrics || {};
-    r.analysis.metrics.tendencia = (/(crescimento|valoriz)/i.test(text) ? 'Tendência positiva' : (/(queda|desaceler)/i.test(text) ? 'Tendência negativa' : '—'));
-    r.analysis.metrics.intervalo = '—';
-    r.analysis.metrics.tempo = '—';
-
-    upsertReport(r);
-    renderList();
-    renderAssistAnalysisIntoUI(r.analysis);
-
-    alert('Extração assistida concluída. Os capítulos/insights ficam guardados no relatório.');
-  }
-
-  function clearAssistExtraction(){
-    if(!confirm('Limpar o texto e a extração assistida deste relatório?')) return;
-
-    if(assistText) assistText.value = '';
-    const r = saveDraftSilent();
-    if(r.analysis){
-      r.analysis.source = null;
-      r.analysis.keywords = [];
-      r.analysis.chapters = [];
-      if(r.analysis.sum) r.analysis.sum.relevante = '';
-    }
-    upsertReport(r);
-    renderAssistAnalysisIntoUI(r.analysis);
-  }
-
-  async function pasteFromClipboard(){
-    try{
-      if(!navigator.clipboard || !navigator.clipboard.readText){
-        alert('O navegador não permite acesso ao clipboard. Use Ctrl+V no campo de texto.');
-        return;
-      }
-      const t = await navigator.clipboard.readText();
-      if(assistText) assistText.value = t || '';
-    }catch(err){
-      console.warn(err);
-      alert('Não foi possível ler do clipboard. Use Ctrl+V no campo de texto.');
-    }
-  }
-
-  btnAssistExtract?.addEventListener('click', applyAssistExtraction);
-  btnAssistClear?.addEventListener('click', clearAssistExtraction);
-  btnAssistPaste?.addEventListener('click', pasteFromClipboard);
-
-
-  // Ver capítulo completo (modal simples)
-  assistChapters?.addEventListener('click', (e)=>{
-    const b = e.target.closest('button[data-act="assistOpen"]');
-    if(!b) return;
-    const idx = Number(b.dataset.idx||0);
-    const r = (ACTIVE_REPORT_ID && getReport(ACTIVE_REPORT_ID)) ? getReport(ACTIVE_REPORT_ID) : collectForm();
-    const ch = (r.analysis?.chapters||[])[idx];
-    if(!ch) return;
-
-    const overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:14px;';
-    overlay.innerHTML = `
-      <div style="background:#0f0f0f;border:1px solid rgba(163,139,99,.35);border-radius:16px;max-width:920px;width:95%;max-height:85vh;overflow:auto;box-shadow:0 20px 45px rgba(0,0,0,.6);">
-        <div style="padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.10);display:flex;justify-content:space-between;gap:10px;align-items:center;">
-          <div style="font-weight:900;color:var(--gold);letter-spacing:.08em;text-transform:uppercase;font-size:12px;">${htmlEscape(ch.title || ('Capítulo '+(idx+1)))}</div>
-          <button class="btn-xs ghost" id="assistClose">Fechar</button>
-        </div>
-        <div style="padding:14px 14px">
-          ${(ch.keywords||[]).length ? `<div class="hint" style="margin-bottom:10px"><strong>Palavras‑chave:</strong> ${(ch.keywords||[]).map(htmlEscape).join(' · ')}</div>` : ''}
-          <pre style="white-space:pre-wrap;margin:0;font-family:inherit;color:#e9e9e9;line-height:1.55;font-size:13px;">${htmlEscape((ch.paragraphs||[]).join('\n'))}</pre>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(overlay);
-    overlay.addEventListener('click',(ev)=>{
-      if(ev.target.id==='assistClose' || ev.target===overlay) overlay.remove();
-    });
-  });
-
-
-  assistChapters?.addEventListener('click', (e)=>{
-    const b = e.target.closest('button[data-act="assistOpen"]');
-    if(!b) return;
-    const idx = Number(b.dataset.idx||0);
-    const r = getReport(ACTIVE_REPORT_ID) || collectForm();
-    const ch = (r.analysis?.chapters||[])[idx];
-    if(!ch) return;
-    const title = ch.title || ('Capítulo ' + (idx+1));
-    const body = (ch.paragraphs||[]).join('\n');
-    alert(title + "\n\n" + body.slice(0, 3500));
-  });
-
-
-/* ===========================
      Exportação “PDF” (impressão)
   =========================== */
   function printHTMLInFrame(html){
@@ -3096,31 +2967,37 @@ async function removePdf(pdfId){
 
     const rec = (report.report?.recomendacaoFinal || '').trim() || '(preencher recomendação final)';
 
-    // Conteúdo do estudo (extração assistida)
-    const analysis = report.analysis || {};
-    const kws = (analysis.keywords || []).slice(0, 14);
-    const chs = (analysis.chapters || []).slice(0, 10);
+    // Dados do estudo (Fase 2.1 — extração assistida)
+    const chapters = Array.isArray(report.analysis?.chapters) ? report.analysis.chapters : [];
+    const studySummary = report.analysis?.sum || {};
 
-    const studyInsights = (analysis.sum?.relevante || '').trim().split('\n').filter(Boolean).slice(0, 6);
-    const studyHTML = (chs.length || kws.length || studyInsights.length) ? `
+    const safe = (s)=> htmlEscape(String(s||''));
+
+    const studyHTML = chapters.length ? `
       <div class="sec">
-        <h2>Dados do estudo (síntese)</h2>
-        ${kws.length ? `<p class="p"><strong>Palavras‑chave:</strong> ${kws.map(htmlEscape).join(' · ')}</p>` : ''}
-        ${studyInsights.length ? `<ul>${studyInsights.map(s=>`<li>${htmlEscape(s)}</li>`).join('')}</ul>` : ''}
-        ${chs.length ? chs.map(ch=>{
-          const ps = (ch.paragraphs||[]).slice(0,4).join(' ');
-          const ins = (ch.insights||[]).slice(0,2);
-          return `
-            <div class="card" style="margin-top:10px">
-              <h3>${htmlEscape(ch.title||'Capítulo')}</h3>
-              ${ps ? `<p class="p">${htmlEscape(ps)}</p>` : ''}
-              ${ins.length ? `<ul>${ins.map(s=>`<li>${htmlEscape(s)}</li>`).join('')}</ul>` : ''}
-            </div>
-          `;
-        }).join('') : ''}
-        <p class="p" style="color:var(--muted)"><em>Nota:</em> esta secção resulta de extração assistida (texto colado do PDF). Validar sempre com o documento original.</p>
+        <h2>Dados do Estudo (síntese)</h2>
+        <p class="p">Conteúdo estruturado a partir do PDF/estudo importado (extração assistida). Esta secção reflete o estudo; a recomendação Garvetur encontra-se separada abaixo.</p>
+        ${studySummary.relevante ? `<p class="p"><strong>Relevante:</strong> ${safe(studySummary.relevante).replace(/\\n/g,'<br>')}</p>` : ``}
+        ${studySummary.riscos ? `<p class="p"><strong>Riscos:</strong> ${safe(studySummary.riscos).replace(/\\n/g,'<br>')}</p>` : ``}
+        ${studySummary.oportunidades ? `<p class="p"><strong>Oportunidades:</strong> ${safe(studySummary.oportunidades).replace(/\\n/g,'<br>')}</p>` : ``}
+
+        <div class="card" style="margin-top:10px">
+          <h3>Capítulos</h3>
+          ${chapters.slice(0,12).map((ch, idx)=>{
+            const t = safe(ch.title || `Capítulo ${idx+1}`);
+            const ins = Array.isArray(ch.insights) ? ch.insights.filter(Boolean).slice(0,4) : [];
+            const pars = Array.isArray(ch.paragraphs) ? ch.paragraphs.filter(Boolean).slice(0,2) : [];
+            return `
+              <div style="padding:8px 0;border-bottom:1px solid #f0f0f0">
+                <div style="font-weight:800">${idx+1}. ${t}</div>
+                ${ins.length ? `<ul>${ins.map(i=>`<li>${safe(i)}</li>`).join('')}</ul>` : ``}
+                ${(!ins.length && pars.length) ? `<p class="p">${safe(pars.join(' '))}</p>` : ``}
+              </div>
+            `;
+          }).join('')}
+        </div>
       </div>
-    ` : '';
+    ` : ``;
 
     const html = `
       <!doctype html>
@@ -3152,8 +3029,6 @@ async function removePdf(pdfId){
               <p class="p">${htmlEscape(rec).replace(/\\n/g,'<br>')}</p>
             </div>
 
-            ${studyHTML}
-
             <div class="sec">
               <h2>Contexto (inputs do módulo)</h2>
               <div class="grid">
@@ -3169,6 +3044,8 @@ async function removePdf(pdfId){
                 </div>
               </div>
             </div>
+
+            ${studyBlock}
 
             <div class="sec">
               <h2>Próximos passos</h2>
@@ -3274,7 +3151,219 @@ async function removePdf(pdfId){
     alert('Template duplicado. Pode abrir a cópia na lista.');
   });
 
+  
   /* ===========================
+     Fase 2.1 — Extração Assistida (SEM PDF.js)
+  =========================== */
+  const pdfAssistText = el('pdfAssistText');
+  const btnAssistExtract = el('btnAssistExtract');
+  const btnAssistClear = el('btnAssistClear');
+  const assistStatus = el('assistStatus');
+  const assistPreviewPanel = el('assistPreviewPanel');
+  const assistChapters = el('assistChapters');
+  const assistInsights = el('assistInsights');
+  const assistKeywords = el('assistKeywords');
+
+  function setAssistStatus(msg, type='info'){
+    if(!assistStatus) return;
+    assistStatus.innerHTML = msg;
+    assistStatus.style.color = (type==='ok') ? '#A5D6A7' : (type==='warn' ? '#ffb4b4' : 'var(--muted)');
+  }
+
+  const STOPWORDS_PT = new Set([
+    'a','o','os','as','um','uma','uns','umas','de','do','da','dos','das','em','no','na','nos','nas','por','para',
+    'com','sem','e','ou','que','se','ao','à','às','aos','é','são','ser','foi','era','sendo','tem','têm','ter',
+    'mais','menos','muito','muita','muitos','muitas','já','ainda','também','como','quando','onde','qual','quais',
+    'este','esta','estes','estas','esse','essa','esses','essas','isto','isso','aquilo','sua','seu','suas','seus',
+    'num','numa','nuns','numas','pela','pelo','pelas','pelos','entre','até','após','antes','sobre','sob','desde',
+    'cada','todo','toda','todos','todas','há','não','sim','faz','fazer','pode','podem','deve','devem','vai','vão',
+    'outra','outro','outras','outros','mesmo','mesma','mesmos','mesmas'
+  ]);
+
+  function isHeading(line){
+    const l = (line||'').trim();
+    if(!l) return false;
+    if(l.length > 88) return false;
+    if(/^\d+(\.\d+)*\s+/.test(l)) return true;
+    if(/^[A-ZÁÀÂÃÉÊÍÓÔÕÚÇ0-9][A-ZÁÀÂÃÉÊÍÓÔÕÚÇ0-9\s\-\–\—]{6,}$/.test(l) && l.split(/\s+/).length <= 10) return true;
+    if(/:$/.test(l) && l.length <= 60) return true;
+    if(/^(resumo|sumário|introdução|metodologia|contexto|enquadramento|análise|mercado|conclusões|recomendação|riscos|oportunidades)\b/i.test(l)) return true;
+    return false;
+  }
+
+  function extractKeywords(text, limit=14){
+    const t = (text||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const words = t.replace(/[^a-z0-9\s\-]/g,' ').split(/\s+/).filter(Boolean);
+    const freq = new Map();
+    for(const w of words){
+      if(w.length < 4) continue;
+      if(STOPWORDS_PT.has(w)) continue;
+      freq.set(w, (freq.get(w)||0) + 1);
+    }
+    return Array.from(freq.entries()).sort((a,b)=>b[1]-a[1]).slice(0, limit).map(x=>x[0]);
+  }
+
+  function buildInsights(chapters){
+    const out = [];
+    if(!chapters || !chapters.length) return out;
+    const byLen = chapters.slice().sort((a,b)=>(b.text||'').length - (a.text||'').length);
+    for(const c of byLen.slice(0, 4)){
+      const t = (c.text||'').replace(/\s+/g,' ').trim();
+      if(!t) continue;
+      const first = t.split(/(?<=[\.\!\?])\s+/)[0] || t;
+      out.push(first.length > 220 ? (first.slice(0,220)+'…') : first);
+    }
+    return out.slice(0, 6);
+  }
+
+  function assistExtract(text){
+    const cleaned = (text||'').replace(/\r/g,'\n').trim();
+    const lines = cleaned.split('\n').map(l=>l.trim()).filter(Boolean);
+
+    const chapters = [];
+    let current = { title:'(Sem título)', text:'' };
+
+    const push = ()=>{
+      const ttl = (current.title||'').trim() || '(Sem título)';
+      const tx = (current.text||'').trim();
+      if(ttl || tx) chapters.push({ title: ttl.replace(/:$/,''), text: tx });
+    };
+
+    for(const line of lines){
+      if(isHeading(line)){
+        if(current.title !== '(Sem título)' || current.text.trim()) push();
+        current = { title: line, text:'' };
+      }else{
+        current.text += (current.text ? '\n' : '') + line;
+      }
+    }
+    push();
+
+    const cleanedCh = chapters.filter(c=>c.title || c.text).slice(0, 14);
+    const flat = cleanedCh.map(c=>c.title+'\n'+c.text).join('\n');
+    return {
+      chapters: cleanedCh,
+      keywords: extractKeywords(flat, 14),
+      insights: buildInsights(cleanedCh)
+    };
+  }
+
+  function renderAssistPreview(data){
+    if(!assistPreviewPanel) return;
+    assistPreviewPanel.classList.toggle('hidden', false);
+
+    // capítulos
+    if(assistChapters){
+      if(!data.chapters?.length){
+        assistChapters.textContent = '—';
+      }else{
+        const ul = document.createElement('ul');
+        ul.style.margin = '6px 0 0 18px';
+        ul.style.color = '#e9e9e9';
+        ul.style.fontSize = '13px';
+        ul.style.lineHeight = '1.45';
+        data.chapters.forEach((c, i)=>{
+          const li = document.createElement('li');
+          li.textContent = c.title || ('Capítulo ' + (i+1));
+          ul.appendChild(li);
+        });
+        assistChapters.innerHTML = '';
+        assistChapters.appendChild(ul);
+      }
+    }
+
+    // insights
+    if(assistInsights){
+      assistInsights.innerHTML = '';
+      (data.insights||[]).slice(0,6).forEach(s=>{
+        const li = document.createElement('li');
+        li.textContent = s;
+        assistInsights.appendChild(li);
+      });
+      if(!(data.insights||[]).length){
+        const li = document.createElement('li'); li.textContent='—'; assistInsights.appendChild(li);
+      }
+    }
+
+    // keywords
+    if(assistKeywords){
+      assistKeywords.innerHTML = '';
+      (data.keywords||[]).slice(0,14).forEach(k=>{
+        const span = document.createElement('span');
+        span.className = 'pill info';
+        span.textContent = k;
+        assistKeywords.appendChild(span);
+      });
+      if(!(data.keywords||[]).length){
+        const span = document.createElement('span'); span.className='pill info'; span.textContent='—'; assistKeywords.appendChild(span);
+      }
+    }
+  }
+
+  function loadAssistFromReport(){
+    const r = ACTIVE_REPORT_ID ? getReport(ACTIVE_REPORT_ID) : null;
+    if(!r || !r.analysis) return;
+    const data = {
+      chapters: r.analysis.chapters || [],
+      keywords: r.analysis.keywords || [],
+      insights: r.analysis.insights || []
+    };
+    if(data.chapters.length || data.keywords.length || data.insights.length){
+      renderAssistPreview(data);
+      setAssistStatus('Conteúdo já extraído e guardado neste relatório.', 'ok');
+    }
+  }
+
+  btnAssistExtract?.addEventListener('click', ()=>{
+    const txt = (pdfAssistText?.value || '').trim();
+    if(!txt){
+      setAssistStatus('Sem texto para extrair. Cole conteúdo do estudo no campo acima.', 'warn');
+      return;
+    }
+    try{
+      const data = assistExtract(txt);
+
+      const r = saveDraftSilent();
+      r.analysis = r.analysis || {};
+      r.analysis.chapters = data.chapters || [];
+      r.analysis.keywords = data.keywords || [];
+      r.analysis.insights = data.insights || [];
+      r.analysis.sum = r.analysis.sum || { relevante:'', riscos:'', oportunidades:'' };
+      if(data.insights[0]) r.analysis.sum.relevante = data.insights[0];
+      if(data.insights[1] && !r.analysis.sum.oportunidades) r.analysis.sum.oportunidades = data.insights[1];
+      if(data.insights[2] && !r.analysis.sum.riscos) r.analysis.sum.riscos = data.insights[2];
+
+      upsertReport(r);
+      ACTIVE_REPORT_ID = r.id;
+
+      renderAssistPreview(data);
+      setAssistStatus(`Extração concluída: ${data.chapters.length} capítulo(s) · ${data.keywords.length} palavra(s)-chave.`, 'ok');
+    }catch(err){
+      console.error(err);
+      setAssistStatus('Falha na extração assistida. Verifique o texto e tente novamente.', 'warn');
+    }
+  });
+
+  btnAssistClear?.addEventListener('click', ()=>{
+    if(!confirm('Limpar texto colado e resultados extraídos?')) return;
+    if(pdfAssistText) pdfAssistText.value = '';
+    const r = saveDraftSilent();
+    r.analysis = r.analysis || {};
+    r.analysis.chapters = [];
+    r.analysis.keywords = [];
+    r.analysis.insights = [];
+    r.analysis.sum = { relevante:'', riscos:'', oportunidades:'' };
+    upsertReport(r);
+
+    if(assistPreviewPanel) assistPreviewPanel.classList.add('hidden');
+    if(assistChapters) assistChapters.textContent='—';
+    if(assistInsights) assistInsights.innerHTML='';
+    if(assistKeywords) assistKeywords.innerHTML='';
+    setAssistStatus('Extração limpa. Pode colar novo conteúdo e extrair novamente.', 'info');
+  });
+
+
+/* ===========================
      Tabs + init
   =========================== */
   tabList?.addEventListener('click', ()=>setTab('list'));
