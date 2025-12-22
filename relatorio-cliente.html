@@ -296,6 +296,18 @@
       .wizard{grid-template-columns:1fr}
     }
 
+    /* Step 5 em destaque (centrado) */
+    .wizard.step5-full{
+      grid-template-columns:1fr;
+    }
+    .wizard.step5-full .steps{
+      display:none;
+    }
+    .wizard.step5-full .step-panel{
+      max-width:1100px;
+      margin:0 auto;
+    }
+
     .steps{
       border-radius:var(--radius-lg);
       border:1px solid rgba(255,255,255,.10);
@@ -1010,6 +1022,8 @@
                     <div id="assistPreview" class="hint">Sem extração ainda. Cole texto e clique em <strong>Estruturar</strong>.</div>
                   </div>
                 </div>
+
+              </div>
               </div>
 
               <!-- STEP 5 -->
@@ -1707,6 +1721,8 @@
 
   function setStep(n){
     currentStep = Math.min(5, Math.max(1, n));
+    // Passo 5: modo centrado (oculta lista de passos para dar espaço ao relatório)
+    try{ viewWizard.classList.toggle('step5-full', currentStep === 5); }catch(e){}
     steps.forEach(s => s.classList.toggle('active', Number(s.dataset.step) === currentStep));
     stepEls.forEach((node, idx)=>{ if(node) node.classList.toggle('hidden', idx !== currentStep); });
 
