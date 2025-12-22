@@ -948,7 +948,44 @@
 
               <!-- STEP 4 (adiado) -->
               <div id="step4" class="hidden">
-                <div class="hint">Este passo (PDF) está temporariamente adiado para estabilizarmos a ligação entre módulos.</div>
+
+                <div class="drop" id="pdfDrop">
+                  <div class="d-left">
+                    <p class="d-title">PDF — Anexos do relatório</p>
+                    <p class="d-sub">
+                      Adicione PDFs (estudos, plantas, relatórios externos). Ficam ligados ao relatório e podem ser abertos/transferidos localmente.
+                      <br><span class="hint">Nota: os ficheiros são guardados no seu browser (sem servidor). Para ficheiros grandes, é usada uma base de dados local (IndexedDB).</span>
+                    </p>
+                  </div>
+                  <div class="d-actions">
+                    <input id="pdfInput" type="file" accept="application/pdf" multiple class="hidden" />
+                    <button class="btn primary" id="btnAddPdf">+ Adicionar PDF</button>
+                    <button class="btn secondary" id="btnClearPdfs">Limpar PDFs</button>
+                  </div>
+                </div>
+
+                <div class="files" id="pdfList" aria-label="Lista de PDFs" style="margin-top:12px">
+                  <!-- preenchido por JS -->
+                </div>
+
+                <div class="analysis" style="margin-top:12px">
+                  <div class="mini-card">
+                    <h5>Estado</h5>
+                    <div class="kv"><b>Anexos</b><span id="pdfCount">0</span></div>
+                    <div class="kv"><b>Armazenamento</b><span id="pdfStoreMode">—</span></div>
+                    <div class="kv"><b>Última ação</b><span id="pdfLastAction">—</span></div>
+                  </div>
+                  <div class="mini-card">
+                    <h5>Próximo passo</h5>
+                    <div class="hint">Na fase seguinte ligamos a <strong>extração de texto</strong> e <strong>insights</strong> a partir do PDF, para alimentar o relatório automaticamente.</div>
+                  </div>
+                  <div class="mini-card">
+                    <h5>Boas práticas</h5>
+                    <div class="hint">Use PDFs com nomes claros (ex.: “Estudo_Mercado_Foz_2025.pdf”). Evite anexos duplicados para manter o relatório leve.</div>
+                  </div>
+                </div>
+
+              </div>
               </div>
 
               <!-- STEP 5 -->
@@ -1801,6 +1838,9 @@
     rTom.value = report.report?.tom || 'Neutro';
     rCTA.value = report.report?.cta || 'Agendar reunião';
     rRecomend.value = report.report?.recomendacaoFinal || '';
+
+    // PDFs (Fase 2)
+    try{ renderPdfList(); }catch(e){}
   }
 
   /* ===========================
@@ -2244,6 +2284,335 @@ function tryAutoImport(){
     viewWizard?.addEventListener(ev, scheduleAutosave, true);
   });
 
+
+  /* ===========================
+     PDFs (Fase 2) — anexos por relatório
+     - Guarda metadados no próprio relatório (localStorage)
+     - Guarda o ficheiro (Blob) em IndexedDB para evitar limites do localStorage
+  =========================== */
+
+  const pdfDrop = el('pdfDrop');
+  const pdfInput = el('pdfInput');
+  const btnAddPdf = el('btnAddPdf');
+  const btnClearPdfs = el('btnClearPdfs');
+  const pdfList = el('pdfList');
+  const pdfCount = el('pdfCount');
+  const pdfStoreMode = el('pdfStoreMode');
+  const pdfLastAction = el('pdfLastAction');
+
+  const PDF_DB = 'gpp_pdf_store_v1';
+  const PDF_STORE = 'pdfs';
+  let pdfDb = null;
+  let pdfStorageMode = 'IndexedDB';
+
+  function setPdfStatus({count=null, mode=null, action=null}={}){
+    if(pdfCount && count!=null) pdfCount.textContent = String(count);
+    if(pdfStoreMode && mode) pdfStoreMode.textContent = mode;
+    if(pdfLastAction && action) pdfLastAction.textContent = action;
+  }
+
+  function openPdfDb(){
+    return new Promise((resolve, reject)=>{
+      if(!('indexedDB' in window)){
+        pdfStorageMode = 'LocalStorage (limitado)';
+        resolve(null);
+        return;
+      }
+      const req = indexedDB.open(PDF_DB, 1);
+      req.onupgradeneeded = (ev)=>{
+        const db = req.result;
+        if(!db.objectStoreNames.contains(PDF_STORE)){
+          db.createObjectStore(PDF_STORE, { keyPath: 'id' });
+        }
+      };
+      req.onsuccess = ()=>{
+        pdfDb = req.result;
+        pdfDb.onversionchange = ()=>{ try{ pdfDb.close(); }catch{} };
+        resolve(pdfDb);
+      };
+      req.onerror = ()=> reject(req.error);
+    });
+  }
+
+  function idbPutPdf(id, blob){
+    if(!pdfDb) return Promise.resolve(false);
+    return new Promise((resolve, reject)=>{
+      const tx = pdfDb.transaction(PDF_STORE,'readwrite');
+      tx.oncomplete = ()=>resolve(true);
+      tx.onerror = ()=>reject(tx.error);
+      tx.objectStore(PDF_STORE).put({ id, blob, updatedAt: Date.now() });
+    });
+  }
+
+  function idbGetPdf(id){
+    if(!pdfDb) return Promise.resolve(null);
+    return new Promise((resolve, reject)=>{
+      const tx = pdfDb.transaction(PDF_STORE,'readonly');
+      const req = tx.objectStore(PDF_STORE).get(id);
+      req.onsuccess = ()=> resolve(req.result?.blob || null);
+      req.onerror = ()=> reject(req.error);
+    });
+  }
+
+  function idbDelPdf(id){
+    if(!pdfDb) return Promise.resolve(false);
+    return new Promise((resolve, reject)=>{
+      const tx = pdfDb.transaction(PDF_STORE,'readwrite');
+      tx.oncomplete = ()=>resolve(true);
+      tx.onerror = ()=>reject(tx.error);
+      tx.objectStore(PDF_STORE).delete(id);
+    });
+  }
+
+  // Fallback base64 (apenas ficheiros pequenos)
+  function blobToDataURL(blob){
+    return new Promise((resolve, reject)=>{
+      const r = new FileReader();
+      r.onload = ()=>resolve(r.result);
+      r.onerror = ()=>reject(r.error);
+      r.readAsDataURL(blob);
+    });
+  }
+
+  async function storePdfBlob(pdfId, file){
+    // preferir IndexedDB
+    try{
+      if(pdfDb){
+        await idbPutPdf(pdfId, file);
+        pdfStorageMode = 'IndexedDB';
+        return { store: 'idb', ok: true };
+      }
+    }catch(e){
+      console.warn('IndexedDB falhou, fallback localStorage', e);
+    }
+
+    // fallback: base64 para ficheiros pequenos
+    try{
+      const MAX = 1_500_000; // ~1.5MB (base64 cresce)
+      if(file.size > MAX) return { store: 'none', ok:false, reason:'Ficheiro demasiado grande para fallback.' };
+      const dataUrl = await blobToDataURL(file);
+      localStorage.setItem('gpp_pdf_b64_'+pdfId, dataUrl);
+      pdfStorageMode = 'LocalStorage (base64)';
+      return { store: 'lsb64', ok:true };
+    }catch(e){
+      return { store: 'none', ok:false, reason:String(e||'erro') };
+    }
+  }
+
+  async function loadPdfBlob(pdfId){
+    // idb
+    if(pdfDb){
+      const b = await idbGetPdf(pdfId);
+      if(b) return b;
+    }
+    // fallback base64
+    const b64 = localStorage.getItem('gpp_pdf_b64_'+pdfId);
+    if(b64 && b64.startsWith('data:application/pdf')){
+      const res = await fetch(b64);
+      return await res.blob();
+    }
+    return null;
+  }
+
+  function getActiveReportSafe(){
+    // garante que existe um rascunho para anexar PDFs
+    if(!ACTIVE_REPORT_ID){
+      const r = saveDraftSilent();
+      ACTIVE_REPORT_ID = r.id;
+      return r;
+    }
+    const r = getReport(ACTIVE_REPORT_ID) || saveDraftSilent();
+    return r;
+  }
+
+  function renderPdfList(){
+    if(!pdfList) return;
+    const r = ACTIVE_REPORT_ID ? getReport(ACTIVE_REPORT_ID) : null;
+    const pdfs = r?.pdfs || [];
+    setPdfStatus({count: pdfs.length, mode: pdfStorageMode});
+
+    if(!pdfs.length){
+      pdfList.innerHTML = `
+        <div class="file">
+          <div>
+            <div class="f-name">Sem anexos</div>
+            <div class="f-meta">Adicione PDFs para manter o dossiê do cliente completo.</div>
+          </div>
+        </div>`;
+      return;
+    }
+
+    pdfList.innerHTML = '';
+    pdfs
+      .slice()
+      .sort((a,b)=>(b.addedAt||0)-(a.addedAt||0))
+      .forEach(p=>{
+        const row = document.createElement('div');
+        row.className = 'file';
+        row.innerHTML = `
+          <div>
+            <div class="f-name">${htmlEscape(p.name||'PDF')}</div>
+            <div class="f-meta">
+              ${(p.size?Math.round(p.size/1024)+' KB':'—')} · Adicionado: ${htmlEscape(toPTDate(p.addedAtISO || todayISO()))}
+              ${p.source ? ' · Fonte: '+htmlEscape(p.source) : ''}
+            </div>
+          </div>
+          <div class="f-actions">
+            <button class="btn-xs" data-pdf-act="open" data-pdf-id="${p.id}">Abrir</button>
+            <button class="btn-xs" data-pdf-act="download" data-pdf-id="${p.id}">Download</button>
+            <button class="btn-xs ghost" data-pdf-act="remove" data-pdf-id="${p.id}">Remover</button>
+          </div>
+        `;
+        pdfList.appendChild(row);
+      });
+  }
+
+  async function addPdfFiles(fileList){
+    const files = Array.from(fileList || []).filter(f=>f && f.type === 'application/pdf');
+    if(!files.length){
+      setPdfStatus({action:'Nenhum PDF válido selecionado.'});
+      return;
+    }
+
+    const r = getActiveReportSafe();
+    r.pdfs = Array.isArray(r.pdfs) ? r.pdfs : [];
+
+    for(const file of files){
+      const pdfId = uid('pdf');
+      const storeRes = await storePdfBlob(pdfId, file);
+      if(!storeRes.ok){
+        alert(`Não foi possível guardar "${file.name}". ${storeRes.reason || ''}`.trim());
+        continue;
+      }
+
+      // evitar duplicados por nome+size (heurística simples)
+      const exists = r.pdfs.some(x => (x.name===file.name && x.size===file.size));
+      if(exists) continue;
+
+      r.pdfs.push({
+        id: pdfId,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        addedAt: Date.now(),
+        addedAtISO: todayISO(),
+        store: storeRes.store
+      });
+    }
+
+    r.updatedAt = todayISO();
+    upsertReport(r);
+    ACTIVE_REPORT_ID = r.id;
+
+    setPdfStatus({action:'PDF(s) adicionados.'});
+    renderPdfList();
+  }
+
+  async function openPdf(pdfId, download=false){
+    const blob = await loadPdfBlob(pdfId);
+    if(!blob){
+      alert('Não foi possível abrir este PDF (não encontrado no armazenamento local).');
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    if(download){
+      const a = document.createElement('a');
+      const r = getReport(ACTIVE_REPORT_ID);
+      const meta = (r?.pdfs||[]).find(x=>x.id===pdfId);
+      a.href = url;
+      a.download = meta?.name || 'documento.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 3000);
+      return;
+    }
+    window.open(url, '_blank', 'noopener');
+    setTimeout(()=>URL.revokeObjectURL(url), 30_000);
+  }
+
+  async function removePdf(pdfId){
+    const r = getReport(ACTIVE_REPORT_ID);
+    if(!r) return;
+    const meta = (r.pdfs||[]).find(x=>x.id===pdfId);
+    if(!confirm(`Remover o PDF "${meta?.name || 'anexo'}"?`)) return;
+
+    // limpar blobs
+    try{ await idbDelPdf(pdfId); }catch{}
+    try{ localStorage.removeItem('gpp_pdf_b64_'+pdfId); }catch{}
+
+    r.pdfs = (r.pdfs||[]).filter(x=>x.id!==pdfId);
+    r.updatedAt = todayISO();
+    upsertReport(r);
+
+    setPdfStatus({action:'PDF removido.'});
+    renderPdfList();
+  }
+
+  async function clearAllPdfs(){
+    const r = getReport(ACTIVE_REPORT_ID);
+    if(!r || !(r.pdfs||[]).length) return;
+    if(!confirm('Remover TODOS os PDFs deste relatório?')) return;
+
+    for(const p of (r.pdfs||[])){
+      try{ await idbDelPdf(p.id); }catch{}
+      try{ localStorage.removeItem('gpp_pdf_b64_'+p.id); }catch{}
+    }
+
+    r.pdfs = [];
+    r.updatedAt = todayISO();
+    upsertReport(r);
+
+    setPdfStatus({action:'PDFs removidos.'});
+    renderPdfList();
+  }
+
+  function wirePdfUI(){
+    if(btnAddPdf && pdfInput){
+      btnAddPdf.addEventListener('click', ()=> pdfInput.click());
+      pdfInput.addEventListener('change', (e)=>{
+        addPdfFiles(e.target.files);
+        pdfInput.value = '';
+      });
+    }
+    if(btnClearPdfs) btnClearPdfs.addEventListener('click', clearAllPdfs);
+
+    if(pdfDrop){
+      pdfDrop.addEventListener('dragover', (e)=>{ e.preventDefault(); pdfDrop.style.borderColor = 'var(--gold)'; });
+      pdfDrop.addEventListener('dragleave', ()=>{ pdfDrop.style.borderColor = 'rgba(163,139,99,.55)'; });
+      pdfDrop.addEventListener('drop', (e)=>{
+        e.preventDefault();
+        pdfDrop.style.borderColor = 'rgba(163,139,99,.55)';
+        addPdfFiles(e.dataTransfer.files);
+      });
+    }
+
+    if(pdfList){
+      pdfList.addEventListener('click', (e)=>{
+        const b = e.target.closest('button[data-pdf-act]');
+        if(!b) return;
+        const act = b.dataset.pdfAct;
+        const id = b.dataset.pdfId;
+        if(act==='open') openPdf(id, false);
+        if(act==='download') openPdf(id, true);
+        if(act==='remove') removePdf(id);
+      });
+    }
+  }
+
+  async function initPdfPhase2(){
+    try{
+      await openPdfDb();
+    }catch(e){
+      console.warn('IndexedDB indisponível', e);
+      pdfDb = null;
+      pdfStorageMode = 'LocalStorage (limitado)';
+    }
+    wirePdfUI();
+    renderPdfList();
+    setPdfStatus({mode: pdfStorageMode, action:'Pronto.'});
+  }
+
   /* ===========================
      Exportação “PDF” (impressão)
   =========================== */
@@ -2489,6 +2858,8 @@ function tryAutoImport(){
   renderList();
   // liga auto-importação com módulos existentes (FSBO | Leads | Angariações)
   try{ initCrossModuleImport(); }catch(e){ console.warn('Auto-import indisponível', e); }
+  // Fase 2: anexar PDFs ao relatório
+  try{ initPdfPhase2(); }catch(e){ console.warn('PDFs indisponíveis', e); }
 
   // Auto-preencher dados do Ativo/Zona quando o cliente já foi reconhecido
   aFonte?.addEventListener('change', ()=>{
