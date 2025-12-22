@@ -2606,24 +2606,8 @@ function tryAutoImport(){
     setTimeout(()=>URL.revokeObjectURL(url), 30_000);
   }
 
-    const url = URL.createObjectURL(blob);
-    if(download){
-      const a = document.createElement('a');
-      const r = getReport(ACTIVE_REPORT_ID);
-      const meta = (r?.pdfs||[]).find(x=>x.id===pdfId);
-      a.href = url;
-      a.download = meta?.name || 'documento.pdf';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(()=>URL.revokeObjectURL(url), 3000);
-      return;
-    }
-    window.open(url, '_blank', 'noopener');
-    setTimeout(()=>URL.revokeObjectURL(url), 30_000);
-  }
-
-  async function removePdf(pdfId){
+    
+async function removePdf(pdfId){
     const r = getReport(ACTIVE_REPORT_ID);
     if(!r) return;
     const meta = (r.pdfs||[]).find(x=>x.id===pdfId);
