@@ -3704,11 +3704,16 @@ const studyHTML = chapters.length ? `
 
   const rec = (report.report?.recomendacaoFinal || '').trim() || '(preencher recomendação final)';
   const cta = (report.report?.cta || 'Agendar reunião');
-    const SHOW_NOTAS_INTERNAS = false;
-const notasInternasHTML = (SHOW_NOTAS_INTERNAS && (cliente.notas||'').trim()) ? `
-
- ${notasInternasHTML}
-
+    const SHOW_NOTAS_INTERNAS = false; // manter false para ocultar no Premium
+const notasInternasHTML =
+  (SHOW_NOTAS_INTERNAS && (cliente.notas || '').trim())
+    ? `
+      <div class="card" style="margin-top:12px">
+        <h3>Notas internas</h3>
+        <p class="p">${safe(cliente.notas || '—').replace(/\n/g,'<br>')}</p>
+      </div>
+    `
+    : '';
   // preocupações
   const preocup = Array.isArray(obj.preocupacoes) ? obj.preocupacoes.filter(Boolean) : [];
 
