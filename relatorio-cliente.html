@@ -1943,6 +1943,60 @@ function openManualModal(){
     if(e.key === 'Escape'){
       if(manualModal && !manualModal.classList.contains('hidden')) closeManualModal();
     }
+
+/* ===========================
+   Relatório Premium (Modal)
+=========================== */
+const btnRelatorioPremium = el('btnRelatorioPremium');
+
+const premiumModal = document.getElementById('premiumModal');
+const premiumModalFrame = document.getElementById('premiumModalFrame');
+const premiumModalClose = document.getElementById('premiumModalClose');
+const premiumModalPrint = document.getElementById('premiumModalPrint');
+const premiumModalTitle = document.getElementById('premiumModalTitle');
+
+function openPremiumModal(){
+  if(!premiumModal || !premiumModalFrame) return;
+
+  premiumModalFrame.removeAttribute('srcdoc');
+  premiumModalFrame.src = './relatorio-premium.html';
+
+  if(premiumModalTitle) premiumModalTitle.textContent = 'RELATÓRIO PREMIUM — GARVETUR LUXURY';
+
+  premiumModal.classList.remove('hidden');
+  premiumModal.setAttribute('aria-hidden','false');
+
+  if(premiumModalPrint){
+    premiumModalPrint.onclick = ()=>{
+      try{
+        const w = premiumModalFrame.contentWindow;
+        if(!w){ alert('Não foi possível iniciar a impressão.'); return; }
+        w.focus();
+        w.print();
+      }catch(e){
+        console.error(e);
+        alert('Falha ao abrir a impressão. Verifique permissões do navegador.');
+      }
+    };
+  }
+}
+
+function closePremiumModal(){
+  if(!premiumModal) return;
+  premiumModal.classList.add('hidden');
+  premiumModal.setAttribute('aria-hidden','true');
+  if(premiumModalFrame) premiumModalFrame.src = 'about:blank';
+}
+
+btnRelatorioPremium?.addEventListener('click', openPremiumModal);
+premiumModalClose?.addEventListener('click', closePremiumModal);
+premiumModal?.addEventListener('click', (e)=>{ if(e.target === premiumModal) closePremiumModal(); });
+
+window.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape'){
+    if(premiumModal && !premiumModal.classList.contains('hidden')) closePremiumModal();
+  }
+    
   });
 
   // Views & steps
