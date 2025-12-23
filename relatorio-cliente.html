@@ -4111,38 +4111,28 @@ const notasInternasHTML =
     openReportPreview(html, `Relatório Executivo — ${r?.cliente?.nome || 'Cliente'}`);
   });
 
-  btnBuildPremium?.addEventListener('click', ()=>{
-  const r = saveDraft();
-  const html = exportReportToPremiumHTML(r, {});
-  openReportPreview(html, `Relatório Premium — ${r?.cliente?.nome || 'Cliente'}`);
-});
+ btnBuildPremium?.addEventListener('click', ()=>{
+  try{
+    console.log('[Premium] click');
 
-  if(btnApplyTemplates){
-  btnApplyTemplates.addEventListener('click', ()=>{
-    applyOfficialTemplates();
-    // opcional: guardar já no draft para não se perder
-    try{ saveDraftSilent(); }catch{}
-  });
-}
-
-if(btnResetTemplates){
-  btnResetTemplates.addEventListener('click', ()=>{
-    resetTemplatesUI();
-  });
-}
-
-  btnDuplicate?.addEventListener('click', ()=>{
     const r = saveDraft();
-    const copy = JSON.parse(JSON.stringify(r));
-    copy.id = uid('rpt');
-    copy.createdAt = todayISO();
-    copy.updatedAt = todayISO();
-    copy.status = 'draft';
-    upsertReport(copy);
-    renderList();
-    alert('Template duplicado. Pode abrir a cópia na lista.');
-  });
+    console.log('[Premium] draft ok', r?.id);
 
+    const html = exportReportToPremiumHTML(r, {});
+    console.log('[Premium] html size', (html||'').length);
+
+    // Se openReportPreview existir, usa. Se não existir, avisa.
+    if(typeof openReportPreview === 'function'){
+      openReportPreview(html, `Relatório Premium — ${r?.cliente?.nome || 'Cliente'}`);
+    }else{
+      alert('openReportPreview() não está definido. O preview Premium não foi aberto.');
+      console.warn('openReportPreview() missing');
+    }
+  }catch(e){
+    console.error('[Premium] erro', e);
+    alert('Erro ao gerar Relatório Premium. Abra a Consola (F12) para ver o detalhe.');
+  }
+});
   
 /* ===========================
      Tabs + init
