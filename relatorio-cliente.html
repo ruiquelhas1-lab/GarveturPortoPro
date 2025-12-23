@@ -1859,33 +1859,33 @@ function showContactChooser(matches, onPick){
     `;
   }
 
-  function openManualModal(){
-    if(!manualModal || !manualModalFrame) return;
+function openManualModal(){
+  if(!manualModal || !manualModalFrame) return;
 
-    
+  // Carrega o manual externo (ficheiro ao mesmo nível do relatorio-cliente.html)
+  manualModalFrame.removeAttribute('srcdoc'); // importante: desliga o modo srcdoc
+  manualModalFrame.src = './manual.html';
 
-    try{ manualModalFrame.removeAttribute('src'); }catch{}
-    try{ manualModalFrame.srcdoc = html; }catch{ manualModalFrame.src = 'about:blank'; }
+  if(manualModalTitle) manualModalTitle.textContent = 'PLAYBOOK DE RELATÓRIO — GARVETUR LUXURY';
 
-    if(manualModalTitle) manualModalTitle.textContent = 'PLAYBOOK DE RELATÓRIO — GARVETUR LUXURY';
+  manualModal.classList.remove('hidden');
+  manualModal.setAttribute('aria-hidden','false');
 
-    manualModal.classList.remove('hidden');
-    manualModal.setAttribute('aria-hidden','false');
-
-    if(manualModalPrint){
-      manualModalPrint.onclick = ()=>{
-        try{
-          const w = manualModalFrame.contentWindow;
-          if(!w){ alert('Não foi possível iniciar a impressão.'); return; }
-          w.focus();
-          w.print();
-        }catch(e){
-          console.error(e);
-          alert('Falha ao abrir a impressão. Verifique permissões do navegador.');
-        }
-      };
-    }
+  // Imprimir / Guardar em PDF (imprime o conteúdo do iframe)
+  if(manualModalPrint){
+    manualModalPrint.onclick = ()=>{
+      try{
+        const w = manualModalFrame.contentWindow;
+        if(!w){ alert('Não foi possível iniciar a impressão.'); return; }
+        w.focus();
+        w.print();
+      }catch(e){
+        console.error(e);
+        alert('Falha ao abrir a impressão. Verifique permissões do navegador.');
+      }
+    };
   }
+}
 
   function closeManualModal(){
     if(!manualModal) return;
