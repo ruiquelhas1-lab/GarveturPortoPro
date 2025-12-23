@@ -3749,6 +3749,12 @@ async function removePdf(pdfId){
     openReportPreview(html, `Relatório Executivo — ${r?.cliente?.nome || 'Cliente'}`);
   });
 
+  btnBuildPremium?.addEventListener('click', ()=>{
+  const r = saveDraft();
+  const html = exportReportToPremiumHTML(r, {});
+  openReportPreview(html, `Relatório Premium — ${r?.cliente?.nome || 'Cliente'}`);
+});
+
   btnDuplicate?.addEventListener('click', ()=>{
     const r = saveDraft();
     const copy = JSON.parse(JSON.stringify(r));
