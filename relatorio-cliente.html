@@ -3529,6 +3529,41 @@ async function removePdf(pdfId){
     const chapters = Array.isArray(report.analysis?.chapters) ? report.analysis.chapters : [];
     const studySummary = report.analysis?.sum || {};
 
+    function buildCuradoriaExecutiva(chapters){
+  // 1) recolhe insights já calculados pela extração assistida
+  const all = [];
+  for(const ch of (chapters||[])){
+    for(const ins of (ch.insights||[])){
+      const s = String(ins||'').trim();
+      if(s && s.length >= 40) all.push(s);
+    }
+  }
+
+  // 2) dedupe simples
+  const seen = new Set();
+  const uniq = [];
+  for(const s of all){
+    const k = s.toLowerCase().slice(0,120);
+    if(seen.has(k)) continue;
+    seen.add(k);
+    uniq.push(s);
+  }
+
+  // 3) escolhe top (premium = curto e forte)
+  const top = uniq.slice(0, 9);
+
+  // 4) Implicações (heurística simples, mas útil)
+  //    (Podes evoluir depois para regras por objetivo: vender/investir/etc.)
+  const implicacoes = [];
+  if(top.length){
+    implicacoes.push("O estudo suporta uma decisão com base em sinais consistentes (procura/posicionamento) — evitar indecisão prolongada.");
+    implicacoes.push("A estratégia deve privilegiar clareza de proposta e execução (timing + narrativa + preço/condições).");
+    implicacoes.push("O risco principal é perder janela de mercado/atenção — a resposta recomendada é plano com marcos e controlo semanal.");
+  }
+
+  return { topInsights: top, implicacoes };
+}
+
     const safe = (s)=> htmlEscape(String(s||''));
 
     const studyHTML = chapters.length ? `
