@@ -3780,97 +3780,6 @@ const notasInternasHTML =
       font-size:11px;color:#777;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap
     }
 
-    /* ===== Bloco 2.3 — Curadoria do Estudo (premium) ===== */
-.cols3{
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr;
-  gap:10px;
-  margin-top:10px;
-}
-@media (max-width: 720px){
-  .cols3{ grid-template-columns:1fr; }
-}
-.mini{
-  border:1px solid var(--line);
-  border-radius:14px;
-  padding:10px 10px;
-  background:#fff;
-}
-.mini h4{
-  margin:0 0 6px;
-  font-size:11px;
-  letter-spacing:.16em;
-  text-transform:uppercase;
-  color:#444;
-}
-.mini p{
-  margin:0;
-  font-size:13px;
-  line-height:1.62;
-  color:#222;
-}
-
-.kws{
-  margin-top:10px;
-}
-.kw{
-  display:inline-block;
-  margin:0 6px 6px 0;
-  border:1px solid var(--line);
-  border-radius:999px;
-  padding:5px 10px;
-  font-size:11px;
-  background:#fafafa;
-  color:#333;
-}
-
-.chgrid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-top:10px;
-}
-@media (max-width: 720px){
-  .chgrid{ grid-template-columns:1fr; }
-}
-.ch{
-  border:1px solid var(--line);
-  border-radius:16px;
-  padding:12px;
-  background:#fff;
-}
-.chTop{
-  display:flex;
-  gap:10px;
-  align-items:flex-start;
-}
-.badgeNum{
-  width:28px;height:28px;
-  border-radius:10px;
-  border:1px solid var(--line);
-  display:flex;align-items:center;justify-content:center;
-  font-weight:900;
-  color:#222;
-  background:linear-gradient(180deg,#fff,var(--soft));
-  flex:0 0 auto;
-}
-.chTitle{
-  font-weight:900;
-  font-size:13px;
-  line-height:1.35;
-}
-.ch ul{
-  margin:8px 0 0 18px;
-}
-.ch li{
-  margin:5px 0;
-  font-size:13px;
-  line-height:1.55;
-}
-
-/* evitar cortes feios em impressão */
-.mini, .ch{ break-inside:avoid; page-break-inside:avoid; }
-
     /* Impressão */
     @media print{
       .doc{padding:0 10mm}
@@ -3943,62 +3852,116 @@ const notasInternasHTML =
     </div>
   `;
 
-const blocoEstudo = hasStudy ? `
-  <div class="sec">
-    <h2>Curadoria do Estudo</h2>
-    <p class="p">Síntese estruturada a partir do estudo importado (extração assistida). Esta secção reflete o estudo; a Recomendação Garvetur mantém-se independente.</p>
-
-    <div class="cols3">
-      <div class="mini">
-        <h4>Relevante</h4>
-        <p>${safe(studySummary?.relevante || '—').replace(/\n/g,'<br>')}</p>
+  const blocoEstudo = hasStudy ? `
+    <div class="sec">
+      <h2>Dados do Estudo (extração assistida)</h2>
+      <div class="card">
+        <h3>Síntese</h3>
+        <p class="p">Conteúdo estruturado a partir de texto colado (PDF/estudo). Esta secção suporta a decisão; a recomendação Garvetur está abaixo.</p>
+        ${topKw.length ? `<div class="kws">${topKw.map(w=>`<span class="kw">${safe(w)}</span>`).join('')}</div>` : ``}
       </div>
-      <div class="mini">
-        <h4>Riscos</h4>
-        <p>${safe(studySummary?.riscos || '—').replace(/\n/g,'<br>')}</p>
-      </div>
-      <div class="mini">
-        <h4>Oportunidades</h4>
-        <p>${safe(studySummary?.oportunidades || '—').replace(/\n/g,'<br>')}</p>
-      </div>
-    </div>
 
-    ${topKw.length ? `
-      <div class="kws">
-        <h3 style="margin:12px 0 8px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#444">Palavras-chave</h3>
-        ${topKw.map(w=>`<span class="kw">${safe(w)}</span>`).join('')}
-      </div>
-    ` : ``}
-
-    <div class="divider"></div>
-
-    <div class="card" style="padding:14px">
-      <h3>Capítulos (curadoria)</h3>
-
-      <div class="chgrid">
-        ${chapters.slice(0,12).map((ch, idx)=>{
-          const t = safe(ch.title || `Capítulo ${idx+1}`);
-          const ins = Array.isArray(ch.insights) ? ch.insights.filter(Boolean).slice(0,4) : [];
-          const pars = Array.isArray(ch.paragraphs) ? ch.paragraphs.filter(Boolean).slice(0,2) : [];
-
-          const body = ins.length
-            ? `<ul>${ins.map(i=>`<li>${safe(i)}</li>`).join('')}</ul>`
-            : (pars.length ? `<p class="p" style="margin:10px 0 0">${safe(pars.join(' '))}</p>` : `<p class="p" style="margin:10px 0 0">—</p>`);
-
+      <div class="card" style="margin-top:12px">
+        <h3>Capítulos & insights</h3>
+        ${chapters.slice(0,10).map((ch, i)=>{
+          const t = safe(ch?.title || `Capítulo ${i+1}`);
+          const ins = Array.isArray(ch?.insights) ? ch.insights.filter(Boolean).slice(0,4) : [];
+          const fallback = Array.isArray(ch?.paragraphs) ? ch.paragraphs.filter(Boolean).slice(0,1) : [];
           return `
-            <div class="ch">
-              <div class="chTop">
-                <div class="badgeNum">${idx+1}</div>
-                <div class="chTitle">${t}</div>
-              </div>
-              ${body}
+            <div style="padding:10px 0;border-bottom:1px solid #f1f1f1">
+              <div style="font-weight:900;color:#333">${i+1}. ${t}</div>
+              ${ins.length ? `<ul class="list">${ins.map(x=>`<li>${safe(x)}</li>`).join('')}</ul>` : (fallback.length ? `<p class="p">${safe(fallback[0])}</p>` : `<p class="p" style="color:var(--muted)">(Sem insights automáticos.)</p>`)}
             </div>
           `;
         }).join('')}
       </div>
     </div>
+  ` : `
+    <div class="sec">
+      <h2>Dados do Estudo</h2>
+      <div class="card">
+        <h3>Nota</h3>
+        <p class="p" style="color:var(--muted)">Sem extração assistida associada a este relatório. (Opcional) Adicione texto no Passo 4 para estruturar capítulos/insights.</p>
+      </div>
+    </div>
+  `;
+
+  const blocoRecomendacao = `
+    <div class="sec">
+      <h2>Recomendação Garvetur</h2>
+      <div class="card">
+        <h3>Decisão recomendada</h3>
+        <p class="p">${safe(rec).replace(/\\n/g,'<br>')}</p>
+        <div class="divider"></div>
+        <p class="p"><strong>Call-to-action:</strong> ${safe(cta)}</p>
+      </div>
+    </div>
+  `;
+
+  const blocoProximosPassos = `
+    <div class="sec">
+      <h2>Plano de ação</h2>
+      <div class="card">
+        <h3>Próximos passos</h3>
+        <ul class="list">
+          <li>Validar critérios de decisão e prioridade (10–15 min).</li>
+          <li>Confirmar dados críticos existentes nos módulos (FSBO | Leads | Angariações).</li>
+          <li>Definir estratégia e calendarização operacional.</li>
+          <li><strong>Fecho:</strong> ${safe(cta)}.</li>
+        </ul>
+      </div>
+    </div>
+  `;
+
+  const html = `
+  <!doctype html>
+  <html lang="pt-PT">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>${safe(title)}</title>
+      ${premiumStyles}
+    </head>
+    <body>
+      <div class="doc">
+        <div class="brandline">
+          <div>
+            <div class="brand">Garvetur Luxury Porto</div>
+            <div style="margin-top:6px">
+              <span class="tag">${safe(confTag)}</span>
+            </div>
+          </div>
+          <div class="meta">
+            <div><strong>Cliente:</strong> ${safe(cliente.nome || '—')}</div>
+            <div><strong>Data:</strong> ${ptDate(report.updatedAt || report.createdAt)}</div>
+            <div><strong>Idioma:</strong> ${(cliente.idioma||'pt')==='en' ? 'EN' : 'PT'}</div>
+          </div>
+        </div>
+
+        <div class="hero">
+          <div class="h1">Relatório Premium — Análise & Decisão</div>
+          <div class="sub">
+            Documento orientado à decisão, com narrativa executiva e recomendação final.
+            <br><strong>Objetivo:</strong> ${safe(obj.objetivo || '—')} · <strong>Zona:</strong> ${safe(zona)} ${tip ? ('· <strong>Tipologia:</strong> '+safe(tip)) : ''}
+          </div>
+          <div class="goldbar"></div>
+        </div>
+        
+${resumoFinal ? `
+  <div class="sec">
+    <h2>Resumo Executivo</h2>
+    <div class="callout">
+      <h3>Leitura rápida</h3>
+      <p class="lead">${safe(resumoFinal).replace(/\n/g,'<br>')}</p>
+      <div class="kws" style="margin-top:12px">
+        <span class="badge">Fonte: ${safe(badgeFonte)}</span>
+        <span class="badge">Zona: ${safe(badgeZona)}</span>
+        <span class="badge">${safe(badgeConf)}</span>
+      </div>
+    </div>
   </div>
-` : '';
+  <div class="rule"></div>
+` : ``}
         ${blocoContexto}
         ${blocoAtivo}
         ${blocoEstudo}
@@ -4174,4 +4137,3 @@ if(btnResetTemplates){
 })();</script>
 </body>
 </html>
-
