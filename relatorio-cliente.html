@@ -3109,7 +3109,11 @@ btnResetCliente?.addEventListener('click', ()=>{
     if(!pdfModal) return;
     pdfModal.classList.add('hidden');
     pdfModal.setAttribute('aria-hidden','true');
-    if(pdfModalFrame) pdfModalFrame.src = 'about:blank';
+    
+    if(pdfModalFrame){
+  try{ pdfModalFrame.removeAttribute('srcdoc'); }catch{}
+  pdfModalFrame.src = 'about:blank';
+}
     if(pdfModalUrl){
       try{ URL.revokeObjectURL(pdfModalUrl); }catch{}
       pdfModalUrl = null;
