@@ -3754,10 +3754,28 @@ const studyHTML = chapters.length ? `
             </div>
 
             <div class="sec">
-              <h2>Resumo Executivo</h2>
-              <p class="p"><strong>Objetivo:</strong> ${htmlEscape(obj.objetivo || '—')} · <strong>Zona:</strong> ${htmlEscape(zona)} ${tip?('· <strong>Tipologia:</strong> '+htmlEscape(tip)) : ''}</p>
-              <p class="p">${htmlEscape(rec).replace(/\\n/g,'<br>')}</p>
-            </div>
+  <h2>Resumo Executivo</h2>
+
+  <div class="callout">
+    <h3>Leitura rápida</h3>
+
+    <p class="p">
+      ${htmlEscape(resumoFinal || rec || 'Síntese a preencher.').replace(/\n/g,'<br>')}
+    </p>
+
+    <div class="hr"></div>
+
+    <p class="p">
+      <strong>Próximo passo recomendado:</strong> ${htmlEscape(cta || 'Agendar reunião')}
+    </p>
+  </div>
+
+  <p class="p" style="margin-top:10px">
+    <strong>Objetivo:</strong> ${htmlEscape(obj.objetivo || '—')}
+    · <strong>Zona:</strong> ${htmlEscape(zona)}
+    ${tip ? ('· <strong>Tipologia:</strong> ' + htmlEscape(tip)) : ''}
+  </p>
+</div>
 
             <div class="sec">
               <h2>Contexto (inputs do módulo)</h2>
