@@ -3926,6 +3926,20 @@ async function removePdf(pdfId){
   openReportPreview(html, `Relatório Premium — ${r?.cliente?.nome || 'Cliente'}`);
 });
 
+  if(btnApplyTemplates){
+  btnApplyTemplates.addEventListener('click', ()=>{
+    applyOfficialTemplates();
+    // opcional: guardar já no draft para não se perder
+    try{ saveDraftSilent(); }catch{}
+  });
+}
+
+if(btnResetTemplates){
+  btnResetTemplates.addEventListener('click', ()=>{
+    resetTemplatesUI();
+  });
+}
+
   btnDuplicate?.addEventListener('click', ()=>{
     const r = saveDraft();
     const copy = JSON.parse(JSON.stringify(r));
