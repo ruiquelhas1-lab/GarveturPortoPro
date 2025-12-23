@@ -4047,7 +4047,10 @@ if(btnResetTemplates){
 /* ===========================
      Tabs + init
   =========================== */
-  tabList?.addEventListener('click', ()=>setTab('list'));
+  tabList?.addEventListener('click', ()=>{
+  setTab('list');
+  renderList(); // garante que a lista “volta a aparecer” e fica atualizada
+});
   tabWizard?.addEventListener('click', ()=>{
     setTab('wizard');
     // inicializar importação cruzada apenas quando entra no wizard (evita bloqueios na lista)
