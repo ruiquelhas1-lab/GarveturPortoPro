@@ -2065,6 +2065,15 @@ if(currentStep === 4 && !PDF_READY){
   PDF_READY = true;
   try{ initPdfPhase2(); }catch(e){ console.warn('PDF init falhou', e); }
 }
+    /* ===========================
+   PASSO 4 — Extração Assistida (Modo Foco)
+=========================== */
+try{
+  const analysisPanel = document.querySelector('.analysis');
+  if(analysisPanel){
+    analysisPanel.classList.toggle('assist-focus', currentStep === 4);
+  }
+}catch(e){}
     btnPrev.disabled = false;
     btnPrev.textContent = (currentStep === 1) ? 'Voltar' : 'Anterior';
     btnNext.textContent = (currentStep === 5) ? 'Concluir' : 'Seguinte';
