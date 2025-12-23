@@ -3486,6 +3486,40 @@ async function removePdf(pdfId){
         ul{margin:6px 0 0 18px}
         li{margin:4px 0;font-size:13px;line-height:1.45}
         .foot{margin-top:18px;padding-top:10px;border-top:1px solid #eee;font-size:11px;color:#777;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+        /* ===== Premium print polish ===== */
+@media print{
+  @page { margin: 14mm 14mm; }
+  .page{ max-width: none; padding: 0; }
+  .no-print{ display:none !important; }
+}
+
+.h1{ font-size:22px; margin:16px 0 6px; }
+.tag{ font-weight:700; }
+
+.callout{
+  border:1px solid #e6e0d6;
+  background:#fbfaf8;
+  border-radius:14px;
+  padding:12px 12px;
+  margin-top:10px;
+}
+.callout h3{
+  margin:0 0 6px;
+  font-size:12px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:#444;
+}
+.bullets{ margin:6px 0 0 18px; }
+.bullets li{ margin:5px 0; }
+
+.hr{ height:1px; background:#eee; margin:14px 0; }
+
+/* Page number (simples e compatível) */
+@media print{
+  body{ counter-reset: page; }
+  .pagenum:after{ content: counter(page); }
+}
       </style>
     `;
 
