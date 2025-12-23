@@ -3704,10 +3704,11 @@ const studyHTML = chapters.length ? `
 
   const rec = (report.report?.recomendacaoFinal || '').trim() || '(preencher recomendação final)';
   const cta = (report.report?.cta || 'Agendar reunião');
-    // Bloco 2.2 — Resumo executivo curto (ritmo de leitura)
+   // ===== Sprint 2.4 — Resumo Executivo curto (anti-repetição) =====
 const resumoExec = (report.report?.sumExec || '').trim();
-const resumoFallback = rec ? `Síntese: ${rec}` : '';
-const resumoFinal = resumoExec || resumoFallback;
+const resumoFinal = resumoExec
+  ? takeFirstSentences(resumoExec, 280)
+  : takeFirstSentences(rec, 260);
 
 // pequenos “sinais” de leitura
 const badgeConf = cliente.confidencial ? 'CONFIDENCIAL' : 'INTERNO';
