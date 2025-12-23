@@ -3736,6 +3736,49 @@ const notasInternasHTML =
   const topKw = keywords.slice(0,12).map(k=>k?.w).filter(Boolean);
 
   const hasStudy = chapters.length > 0;
+    // ===== Sprint 2.4 — Editorial fino (helpers) =====
+function splitLines(txt){
+  return String(txt||'').split('\n').map(s=>s.trim()).filter(Boolean);
+}
+
+function takeFirstSentences(txt, maxChars=260){
+  const s = String(txt||'').replace(/\s+/g,' ').trim();
+  if(!s) return '';
+  if(s.length <= maxChars) return s;
+  // tenta cortar por frase
+  const cut = s.slice(0, maxChars);
+  const lastDot = Math.max(cut.lastIndexOf('.'), cut.lastIndexOf('!'), cut.lastIndexOf('?'));
+  return (lastDot > 120) ? cut.slice(0,lastDot+1) : (cut.trim() + '…');
+}
+
+// Recomendação “clean”: remove linhas que começam por "Síntese:" ou repetem o primeiro parágrafo
+function sanitizeRecommendation(rec, resumo){
+  const lines = splitLines(rec);
+  const resumoN = String(resumo||'').toLowerCase().trim();
+  const out = [];
+
+  for(const ln of lines){
+    const l = ln.toLowerCase().trim();
+    if(l.startsWith('síntese:')) continue;
+    if(resumoN && resumoN.length > 20 && l.includes(resumoN.slice(0, Math.min(80, resumoN.length)))) continue;
+    out.push(ln);
+  }
+  return out.join('\n').trim();
+}
+
+// Extrai bullets a partir do texto do consultor (se existirem linhas com "- " ou "• ")
+function extractBullets(rec, max=3){
+  const lines = splitLines(rec);
+  const bullets = [];
+  for(const ln of lines){
+    const m = ln.match(/^(\-|\•)\s+(.*)$/);
+    if(m && m[2]){
+      bullets.push(m[2].trim());
+      if(bullets.length >= max) break;
+    }
+  }
+  return bullets;
+}
     /* ===========================
    Sprint 2.3 — Curadoria do Estudo (mínimo e seguro)
 =========================== */
