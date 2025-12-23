@@ -1137,7 +1137,44 @@
     </div>
   </div>
 </div>
+  <!-- Manual Modal (Produto Interno Premium) -->
+<div id="manualModal" class="hidden" aria-hidden="true"
+     style="position:fixed;inset:0;z-index:10010;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:18px">
 
+  <div style="width:min(1100px,96vw);height:min(86vh,860px);background:#0b0b0b;border:1px solid rgba(163,139,99,.35);
+              border-radius:18px;box-shadow:0 22px 44px rgba(0,0,0,.65);overflow:hidden;display:flex;flex-direction:column">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.10);
+                background:linear-gradient(90deg,#050505,#111,#050505);flex-wrap:wrap">
+
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <div style="font-size:11px;color:rgba(255,255,255,.65);letter-spacing:.14em;text-transform:uppercase">
+          Manual Interno Premium
+        </div>
+        <div id="manualModalTitle" style="font-size:12px;color:#A38B63;font-weight:900;letter-spacing:.06em;text-transform:uppercase">
+          Playbook de Relatório — Garvetur Luxury
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="manualModalPrint">Imprimir / Guardar em PDF</button>
+        <button class="btn secondary" id="manualModalClose">Fechar</button>
+      </div>
+    </div>
+
+    <div style="flex:1;min-height:0;background:#000">
+      <iframe id="manualModalFrame" title="Manual"
+              style="width:100%;height:100%;border:0;background:#000"></iframe>
+    </div>
+
+    <div style="padding:10px 12px;border-top:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.35)">
+      <div class="hint">
+        Este manual é um documento interno. Recomenda-se não partilhar fora da Garvetur Luxury. Para exportação, use “Imprimir / Guardar em PDF”.
+      </div>
+    </div>
+
+  </div>
+</div>
 
 <script>
 (function(){
@@ -1731,8 +1768,143 @@ function showContactChooser(matches, onPick){
   const btnBuildPdf = el('btnBuildPdf');
   const btnBuildExec = el('btnBuildExec');
   const btnDuplicate = el('btnDuplicate');
- 
- 
+
+    /* ===========================
+     Manual Interno (Modal)
+     - Modal independente do pdfModal (IDs e handlers próprios)
+     - Abre um "manual" em HTML dentro de iframe (não precisa de servidor)
+  =========================== */
+
+  const btnManual = el('btnManual');
+
+  const manualModal = document.getElementById('manualModal');
+  const manualModalFrame = document.getElementById('manualModalFrame');
+  const manualModalClose = document.getElementById('manualModalClose');
+  const manualModalPrint = document.getElementById('manualModalPrint');
+  const manualModalTitle = document.getElementById('manualModalTitle');
+
+  function buildManualHTML(){
+    // Manual v1 (base). Depois evoluímos para o Manual final, com checklist, templates e guidelines.
+    return `
+      <!doctype html>
+      <html lang="pt-PT">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Manual Interno — Relatório Premium</title>
+        <style>
+          :root{--gold:#A38B63;--muted:#666;--txt:#111;}
+          *{box-sizing:border-box}
+          body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#fff;color:var(--txt)}
+          .page{max-width:980px;margin:0 auto;padding:26px 32px}
+          .top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+          .brand{font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);font-size:14px}
+          .sub{margin-top:4px;color:var(--muted);font-size:12px;line-height:1.4}
+          h1{margin:14px 0 6px;font-size:22px}
+          h2{margin:18px 0 8px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#444}
+          p{margin:0 0 10px;font-size:13px;line-height:1.55}
+          .card{border:1px solid #eee;border-radius:14px;padding:12px 12px;margin-top:10px}
+          ul{margin:8px 0 0 18px}
+          li{margin:4px 0;font-size:13px;line-height:1.45}
+          .pill{display:inline-block;border:1px solid #ddd;border-radius:999px;padding:4px 10px;font-size:11px;background:#fafafa}
+          .foot{margin-top:18px;padding-top:10px;border-top:1px solid #eee;font-size:11px;color:#777;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+        </style>
+      </head>
+      <body>
+        <div class="page">
+          <div class="top">
+            <div>
+              <div class="brand">Garvetur Luxury Porto</div>
+              <div class="sub">Manual interno premium para produção do Relatório de Análise & Decisão.</div>
+            </div>
+            <div class="pill">Versão: Manual v1</div>
+          </div>
+
+          <h1>Playbook — Relatório Único, Singular e Decisor</h1>
+
+          <h2>Objetivo do documento</h2>
+          <p>Garantir consistência, qualidade e diferenciação: o cliente deve “rever-se” no relatório do princípio ao fim, com narrativa orientada à decisão e recomendação clara.</p>
+
+          <h2>Checklist operacional (mínimo obrigatório)</h2>
+          <div class="card">
+            <ul>
+              <li>Cliente identificado (tipo, contexto, critérios de decisão).</li>
+              <li>Objetivo claro (horizonte, risco, preocupações).</li>
+              <li>Ativo/Zona validado (dados essenciais preenchidos).</li>
+              <li>Se existir estudo externo: anexar PDF e fazer extração assistida (texto colado) com capítulos/insights.</li>
+              <li>Recomendação final escrita (clara, objetiva, com próximos passos).</li>
+            </ul>
+          </div>
+
+          <h2>Estrutura recomendada do relatório (padrão Garvetur Luxury)</h2>
+          <div class="card">
+            <ul>
+              <li><strong>Resumo Executivo:</strong> decisão recomendada + racional em linguagem simples.</li>
+              <li><strong>Contexto do Cliente:</strong> o “porquê” (objetivo, receios, critérios).</li>
+              <li><strong>Enquadramento/mercado:</strong> 3–6 pontos que importam para a decisão.</li>
+              <li><strong>Cenários:</strong> preço/timing/estratégia (impacto e trade-offs).</li>
+              <li><strong>Recomendação Garvetur:</strong> o “o que fazer” e “como fazer”.</li>
+              <li><strong>Plano de ação:</strong> passos, prazos, responsabilidades.</li>
+              <li><strong>Anexos:</strong> PDFs e síntese do estudo (extração assistida).</li>
+            </ul>
+          </div>
+
+          <div class="foot">
+            <span>Documento interno · Não distribuir sem autorização.</span>
+            <span>Gerado localmente no browser</span>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  function openManualModal(){
+    if(!manualModal || !manualModalFrame) return;
+
+    const html = buildManualHTML();
+
+    try{ manualModalFrame.removeAttribute('src'); }catch{}
+    try{ manualModalFrame.srcdoc = html; }catch{ manualModalFrame.src = 'about:blank'; }
+
+    if(manualModalTitle) manualModalTitle.textContent = 'PLAYBOOK DE RELATÓRIO — GARVETUR LUXURY';
+
+    manualModal.classList.remove('hidden');
+    manualModal.setAttribute('aria-hidden','false');
+
+    if(manualModalPrint){
+      manualModalPrint.onclick = ()=>{
+        try{
+          const w = manualModalFrame.contentWindow;
+          if(!w){ alert('Não foi possível iniciar a impressão.'); return; }
+          w.focus();
+          w.print();
+        }catch(e){
+          console.error(e);
+          alert('Falha ao abrir a impressão. Verifique permissões do navegador.');
+        }
+      };
+    }
+  }
+
+  function closeManualModal(){
+    if(!manualModal) return;
+    manualModal.classList.add('hidden');
+    manualModal.setAttribute('aria-hidden','true');
+    if(manualModalFrame) manualModalFrame.src = 'about:blank';
+  }
+
+  btnManual?.addEventListener('click', openManualModal);
+  manualModalClose?.addEventListener('click', closeManualModal);
+  manualModal?.addEventListener('click', (e)=>{ if(e.target === manualModal) closeManualModal(); });
+
+  // ESC fecha o manual, mas sem interferir com o pdfModal:
+  // (o teu código já fecha o pdfModal com ESC; aqui fechamos o manual também)
+  window.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape'){
+      if(manualModal && !manualModal.classList.contains('hidden')) closeManualModal();
+    }
+  });
 
   // Views & steps
   const stepEls = [null, el('step1'), el('step2'), el('step3'), el('step4'), el('step5')];
@@ -3250,78 +3422,6 @@ async function removePdf(pdfId){
     renderList();
     alert('Template duplicado. Pode abrir a cópia na lista.');
   });
-
-  /* ===========================
-   Manual Interno — HTML (abre no pdfModal via srcdoc)
-   - Reutiliza o pdfModal já existente
-   - Não cria IDs novos, não colide com anexos/preview
-=========================== */
-const MANUAL_V1_HTML = `
-<!doctype html>
-<html lang="pt-PT">
-<head>
-  <meta charset="utf-8">
-  <title>Manual Interno — Relatório Premium</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    :root{--gold:#A38B63;--muted:#666;--txt:#111}
-    *{box-sizing:border-box}
-    body{font-family:Arial,Helvetica,sans-serif;color:var(--txt);margin:0;background:#fff}
-    .page{max-width:920px;margin:0 auto;padding:28px 34px}
-    .brand{font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);font-size:14px}
-    h1{margin:10px 0 6px;font-size:20px}
-    .sub{color:var(--muted);font-size:12px;line-height:1.4}
-    h2{margin:18px 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.14em;color:#444}
-    ul{margin:6px 0 0 18px}
-    li{margin:6px 0;font-size:13px;line-height:1.5}
-    .box{border:1px solid #eee;border-radius:14px;padding:12px 12px;margin-top:10px}
-    .foot{margin-top:18px;padding-top:10px;border-top:1px solid #eee;font-size:11px;color:#777;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
-    .tag{display:inline-block;padding:4px 10px;border:1px solid #ddd;border-radius:999px;font-size:11px;color:#333;background:#fafafa}
-  </style>
-</head>
-<body>
-  <div class="page">
-    <div class="brand">GARVETUR LUXURY PORTO</div>
-    <h1>Manual interno premium para produção do Relatório de Análise & Decisão</h1>
-    <div class="sub">
-      <span class="tag">Versão: Manual v1</span>
-      <div style="margin-top:6px">Playbook — Relatório Único, Singular e Decisor</div>
-    </div>
-
-    <h2>Objetivo do documento</h2>
-    <div class="box">
-      Garantir consistência, qualidade e diferenciação: o cliente deve “rever-se” no relatório do princípio ao fim,
-      com narrativa orientada à decisão e recomendação clara.
-    </div>
-
-    <h2>Checklist operacional (mínimo obrigatório)</h2>
-    <ul>
-      <li>Cliente identificado (tipo, contexto, critérios de decisão).</li>
-      <li>Objetivo claro (horizonte, risco, preocupações).</li>
-      <li>Ativo/Zona validado (dados essenciais preenchidos).</li>
-      <li>Se existir estudo externo: anexar PDF e fazer extração assistida (texto colado) com capítulos/insights.</li>
-      <li>Recomendação final escrita (clara, objetiva, com próximos passos).</li>
-    </ul>
-
-    <h2>Estrutura recomendada do relatório (padrão Garvetur Luxury)</h2>
-    <ul>
-      <li>Resumo Executivo: decisão recomendada + racional em linguagem simples.</li>
-      <li>Contexto do Cliente: o “porquê” (objetivo, receios, critérios).</li>
-      <li>Enquadramento/mercado: 3–6 pontos que importam para a decisão.</li>
-      <li>Cenários: preço/timing/estratégia (impacto e trade-offs).</li>
-      <li>Recomendação Garvetur: o “o que fazer” e “como fazer”.</li>
-      <li>Plano de ação: passos, prazos, responsabilidades.</li>
-      <li>Anexos: PDFs e síntese do estudo (extração assistida).</li>
-    </ul>
-
-    <div class="foot">
-      <span>Documento interno · Não distribuir sem autorização.</span>
-      <span>Gerado localmente no browser</span>
-    </div>
-  </div>
-</body>
-</html>
-`;
 
   
 /* ===========================
