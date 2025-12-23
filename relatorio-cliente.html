@@ -3736,6 +3736,71 @@ const notasInternasHTML =
   const topKw = keywords.slice(0,12).map(k=>k?.w).filter(Boolean);
 
   const hasStudy = chapters.length > 0;
+    /* ===========================
+   Sprint 2.3 — Curadoria do Estudo (mínimo e seguro)
+=========================== */
+function buildCuradoriaMin(chapters){
+  const all = [];
+  for(const ch of (chapters || [])){
+    const ins = Array.isArray(ch.insights) ? ch.insights : [];
+    for(const i of ins){
+      const s = String(i || '').trim();
+      if(s && s.length >= 30) all.push(s);
+    }
+  }
+
+  // dedupe simples (evita repetições)
+  const seen = new Set();
+  const uniq = [];
+  for(const s of all){
+    const k = s.toLowerCase().slice(0, 140);
+    if(seen.has(k)) continue;
+    seen.add(k);
+    uniq.push(s);
+  }
+
+  return {
+    top: uniq.slice(0, 7) // curto e premium
+  };
+}
+
+const curMin = buildCuradoriaMin(chapters);
+
+const blocoEstudoMin = hasStudy ? `
+  <div class="sec">
+    <h2>Curadoria do Estudo (mínimo)</h2>
+
+    <div class="callout">
+      <h3>Insights que importam para a decisão</h3>
+      ${curMin.top.length ? `
+        <ul class="bullets">
+          ${curMin.top.map(x=>`<li>${safe(x)}</li>`).join('')}
+        </ul>
+      ` : `<p class="p">Sem insights suficientes. Sugestão: cole mais texto no Passo 4.</p>`}
+    </div>
+
+    ${topKw.length ? `
+      <div class="kws">
+        <h3 style="margin:12px 0 8px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#444">Palavras-chave</h3>
+        ${topKw.map(w=>`<span class="kw">${safe(w)}</span>`).join('')}
+      </div>
+    ` : ``}
+
+    <div class="hr"></div>
+
+    <div class="card" style="padding:14px">
+      <h3>Capítulos (síntese)</h3>
+      ${chapters.slice(0,10).map((ch, idx)=>{
+        const t = safe(ch.title || `Capítulo ${idx+1}`);
+        return `
+          <div style="padding:8px 0;border-bottom:1px solid #f0f0f0">
+            <div style="font-weight:800">${idx+1}. ${t}</div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  </div>
+` : ``;
 
   const premiumStyles = `
   <style>
