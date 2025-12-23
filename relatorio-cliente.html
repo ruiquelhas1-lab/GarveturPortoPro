@@ -4163,29 +4163,16 @@ const notasInternasHTML =
     openReportPreview(html, `Relatório Executivo — ${r?.cliente?.nome || 'Cliente'}`);
   });
 
- btnBuildPremium?.addEventListener('click', ()=>{
+btnBuildPremium?.addEventListener('click', ()=>{
   try{
-    console.log('[Premium] click');
-
     const r = saveDraft();
-    console.log('[Premium] draft ok', r?.id);
-
     const html = exportReportToPremiumHTML(r, {});
-    console.log('[Premium] html size', (html||'').length);
-
-    // Se openReportPreview existir, usa. Se não existir, avisa.
-    if(typeof openReportPreview === 'function'){
-      openReportPreview(html, `Relatório Premium — ${r?.cliente?.nome || 'Cliente'}`);
-    }else{
-      alert('openReportPreview() não está definido. O preview Premium não foi aberto.');
-      console.warn('openReportPreview() missing');
-    }
+    openPremiumPreview(html, `Relatório Premium — ${r?.cliente?.nome || 'Cliente'}`);
   }catch(e){
     console.error('[Premium] erro', e);
     alert('Erro ao gerar Relatório Premium. Abra a Consola (F12) para ver o detalhe.');
   }
 });
-  
 /* ===========================
      Tabs + init
   =========================== */
