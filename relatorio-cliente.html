@@ -3430,6 +3430,249 @@ async function removePdf(pdfId){
     return html;
   }
 
+  function exportReportToPremiumHTML(report, opts={}){
+  const cliente = report.cliente || {};
+  const obj = report.objetivo || {};
+  const ativo = report.ativo || {};
+  const mode = ativo.mode || 'imovel';
+
+  const zona = mode==='imovel' ? (ativo.imovel?.zona || '—') : (ativo.zona?.zona || '—');
+  const tip  = mode==='imovel' ? (ativo.imovel?.tipologia || '') : (ativo.zona?.tipologia || '');
+  const fonte = mode==='imovel' ? (ativo.imovel?.fonte || '—') : 'Zona';
+  const detalhe = (cliente.detalhe === 'full') ? 'Completo' : 'Executivo';
+  const confTag = cliente.confidencial ? 'CONFIDENCIAL' : 'INTERNO';
+
+  const safe = (s)=> htmlEscape(String(s||''));
+  const ptDate = (iso)=> safe(toPTDate(iso || todayISO()));
+  const title = `Relatório Premium — ${cliente.nome || 'Cliente'} — ${ptDate(report.updatedAt || report.createdAt)}`;
+
+  const rec = (report.report?.recomendacaoFinal || '').trim() || '(preencher recomendação final)';
+  const cta = (report.report?.cta || 'Agendar reunião');
+
+  // preocupações
+  const preocup = Array.isArray(obj.preocupacoes) ? obj.preocupacoes.filter(Boolean) : [];
+
+  // Step 3 (ativo)
+  const preco = mode==='imovel' ? (ativo.imovel?.preco || '') : '';
+  const obs = mode==='imovel' ? (ativo.imovel?.obs || '') : '';
+
+  // Extração assistida (Fase 2.1)
+  const chapters = Array.isArray(report.analysis?.chapters) ? report.analysis.chapters : [];
+  const keywords = Array.isArray(report.analysis?.keywords) ? report.analysis.keywords : [];
+  const topKw = keywords.slice(0,12).map(k=>k?.w).filter(Boolean);
+
+  const hasStudy = chapters.length > 0;
+
+  const premiumStyles = `
+  <style>
+    :root{
+      --gold:#A38B63;
+      --ink:#121212;
+      --muted:#6f6f6f;
+      --paper:#ffffff;
+      --line:#e9e9e9;
+      --soft:#f7f6f4;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:Arial,Helvetica,sans-serif}
+    .doc{max-width:980px;margin:0 auto;padding:30px 42px}
+    .brandline{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
+    .brand{
+      font-weight:900;letter-spacing:.10em;text-transform:uppercase;
+      color:var(--gold);font-size:13px;line-height:1.2
+    }
+    .meta{font-size:12px;color:var(--muted);text-align:right;line-height:1.45}
+    .tag{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:5px 10px;font-size:11px;background:#fafafa;color:#333}
+    .hero{margin-top:18px;padding:18px 18px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,#fff, var(--soft))}
+    .h1{margin:0;font-size:22px;letter-spacing:.02em}
+    .sub{margin-top:6px;color:var(--muted);font-size:12px;line-height:1.45}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+    .card{border:1px solid var(--line);border-radius:16px;padding:12px 12px;background:#fff}
+    .card h3{margin:0 0 8px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#444}
+    .kv{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid #f1f1f1;font-size:13px}
+    .kv:last-child{border-bottom:none}
+    .kv b{font-size:12px;color:var(--muted);font-weight:800;letter-spacing:.02em}
+    .sec{margin-top:18px}
+    .sec h2{margin:0 0 10px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#444}
+    .p{margin:0 0 10px;font-size:13px;line-height:1.62;color:#222}
+    .list{margin:8px 0 0 18px}
+    .list li{margin:5px 0;font-size:13px;line-height:1.55}
+    .kws{margin-top:10px}
+    .kw{display:inline-block;margin:0 6px 6px 0;border:1px solid var(--line);border-radius:999px;padding:5px 10px;font-size:11px;background:#fafafa;color:#333}
+    .divider{height:1px;background:var(--line);margin:16px 0}
+    .goldbar{height:3px;background:var(--gold);border-radius:999px;margin-top:10px;opacity:.9}
+    .foot{
+      margin-top:18px;padding-top:10px;border-top:1px solid var(--line);
+      font-size:11px;color:#777;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap
+    }
+
+    /* Impressão */
+    @media print{
+      .doc{padding:0 10mm}
+      .hero{break-inside:avoid}
+      .card{break-inside:avoid}
+      .sec{break-inside:avoid-page}
+    }
+  </style>`;
+
+  const blocoContexto = `
+    <div class="sec">
+      <h2>Contexto do Cliente</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Cliente</h3>
+          <div class="kv"><b>Tipo</b><span>${safe(cliente.tipo || '—')}</span></div>
+          <div class="kv"><b>Contacto</b><span>${safe(cliente.tel || '—')}</span></div>
+          <div class="kv"><b>Email</b><span>${safe(cliente.email || '—')}</span></div>
+          <div class="kv"><b>Formato</b><span>${safe(detalhe)}</span></div>
+        </div>
+        <div class="card">
+          <h3>Decisão</h3>
+          <div class="kv"><b>Objetivo</b><span>${safe(obj.objetivo || '—')}</span></div>
+          <div class="kv"><b>Horizonte</b><span>${safe(obj.horizonte || '—')}</span></div>
+          <div class="kv"><b>Risco</b><span>${safe(obj.risco || '—')}</span></div>
+          <div class="kv"><b>Preocupações</b><span>${preocup.length ? safe(preocup.join(', ')) : '—'}</span></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <h3>Notas internas</h3>
+        <p class="p">${safe(cliente.notas || '—').replace(/\\n/g,'<br>')}</p>
+      </div>
+    </div>
+  `;
+
+  const blocoAtivo = `
+    <div class="sec">
+      <h2>Ativo / Zona em análise</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Resumo</h3>
+          <div class="kv"><b>Modo</b><span>${mode==='imovel' ? 'Imóvel específico' : 'Zona / Tipologia'}</span></div>
+          <div class="kv"><b>Fonte</b><span>${safe(fonte)}</span></div>
+          <div class="kv"><b>Zona</b><span>${safe(zona)}</span></div>
+          ${tip ? `<div class="kv"><b>Tipologia</b><span>${safe(tip)}</span></div>` : ``}
+          ${preco ? `<div class="kv"><b>Preço pedido</b><span>${safe(preco)}</span></div>` : ``}
+        </div>
+        <div class="card">
+          <h3>Observações</h3>
+          <p class="p">${safe(obs || '—').replace(/\\n/g,'<br>')}</p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const blocoEstudo = hasStudy ? `
+    <div class="sec">
+      <h2>Dados do Estudo (extração assistida)</h2>
+      <div class="card">
+        <h3>Síntese</h3>
+        <p class="p">Conteúdo estruturado a partir de texto colado (PDF/estudo). Esta secção suporta a decisão; a recomendação Garvetur está abaixo.</p>
+        ${topKw.length ? `<div class="kws">${topKw.map(w=>`<span class="kw">${safe(w)}</span>`).join('')}</div>` : ``}
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h3>Capítulos & insights</h3>
+        ${chapters.slice(0,10).map((ch, i)=>{
+          const t = safe(ch?.title || `Capítulo ${i+1}`);
+          const ins = Array.isArray(ch?.insights) ? ch.insights.filter(Boolean).slice(0,4) : [];
+          const fallback = Array.isArray(ch?.paragraphs) ? ch.paragraphs.filter(Boolean).slice(0,1) : [];
+          return `
+            <div style="padding:10px 0;border-bottom:1px solid #f1f1f1">
+              <div style="font-weight:900;color:#333">${i+1}. ${t}</div>
+              ${ins.length ? `<ul class="list">${ins.map(x=>`<li>${safe(x)}</li>`).join('')}</ul>` : (fallback.length ? `<p class="p">${safe(fallback[0])}</p>` : `<p class="p" style="color:var(--muted)">(Sem insights automáticos.)</p>`)}
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  ` : `
+    <div class="sec">
+      <h2>Dados do Estudo</h2>
+      <div class="card">
+        <h3>Nota</h3>
+        <p class="p" style="color:var(--muted)">Sem extração assistida associada a este relatório. (Opcional) Adicione texto no Passo 4 para estruturar capítulos/insights.</p>
+      </div>
+    </div>
+  `;
+
+  const blocoRecomendacao = `
+    <div class="sec">
+      <h2>Recomendação Garvetur</h2>
+      <div class="card">
+        <h3>Decisão recomendada</h3>
+        <p class="p">${safe(rec).replace(/\\n/g,'<br>')}</p>
+        <div class="divider"></div>
+        <p class="p"><strong>Call-to-action:</strong> ${safe(cta)}</p>
+      </div>
+    </div>
+  `;
+
+  const blocoProximosPassos = `
+    <div class="sec">
+      <h2>Plano de ação</h2>
+      <div class="card">
+        <h3>Próximos passos</h3>
+        <ul class="list">
+          <li>Validar critérios de decisão e prioridade (10–15 min).</li>
+          <li>Confirmar dados críticos existentes nos módulos (FSBO | Leads | Angariações).</li>
+          <li>Definir estratégia e calendarização operacional.</li>
+          <li><strong>Fecho:</strong> ${safe(cta)}.</li>
+        </ul>
+      </div>
+    </div>
+  `;
+
+  const html = `
+  <!doctype html>
+  <html lang="pt-PT">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>${safe(title)}</title>
+      ${premiumStyles}
+    </head>
+    <body>
+      <div class="doc">
+        <div class="brandline">
+          <div>
+            <div class="brand">Garvetur Luxury Porto</div>
+            <div style="margin-top:6px">
+              <span class="tag">${safe(confTag)}</span>
+            </div>
+          </div>
+          <div class="meta">
+            <div><strong>Cliente:</strong> ${safe(cliente.nome || '—')}</div>
+            <div><strong>Data:</strong> ${ptDate(report.updatedAt || report.createdAt)}</div>
+            <div><strong>Idioma:</strong> ${(cliente.idioma||'pt')==='en' ? 'EN' : 'PT'}</div>
+          </div>
+        </div>
+
+        <div class="hero">
+          <div class="h1">Relatório Premium — Análise & Decisão</div>
+          <div class="sub">
+            Documento orientado à decisão, com narrativa executiva e recomendação final.
+            <br><strong>Objetivo:</strong> ${safe(obj.objetivo || '—')} · <strong>Zona:</strong> ${safe(zona)} ${tip ? ('· <strong>Tipologia:</strong> '+safe(tip)) : ''}
+          </div>
+          <div class="goldbar"></div>
+        </div>
+
+        ${blocoContexto}
+        ${blocoAtivo}
+        ${blocoEstudo}
+        ${blocoRecomendacao}
+        ${blocoProximosPassos}
+
+        <div class="foot">
+          <span>${safe(confTag)} · Uso interno/cliente · Não distribuir sem autorização.</span>
+          <span>Gerado em ${ptDate(todayISO())}</span>
+        </div>
+      </div>
+    </body>
+  </html>
+  `;
+  return html;
+}
+
   /* ===========================
      List Actions + Export
   =========================== */
