@@ -3704,6 +3704,15 @@ const studyHTML = chapters.length ? `
 
   const rec = (report.report?.recomendacaoFinal || '').trim() || '(preencher recomendação final)';
   const cta = (report.report?.cta || 'Agendar reunião');
+    // Bloco 2.2 — Resumo executivo curto (ritmo de leitura)
+const resumoExec = (report.report?.sumExec || '').trim();
+const resumoFallback = rec ? `Síntese: ${rec}` : '';
+const resumoFinal = resumoExec || resumoFallback;
+
+// pequenos “sinais” de leitura
+const badgeConf = cliente.confidencial ? 'CONFIDENCIAL' : 'INTERNO';
+const badgeFonte = (mode==='imovel' ? (ativo.imovel?.fonte || '—') : 'Zona');
+const badgeZona  = zona || '—';
     const SHOW_NOTAS_INTERNAS = false; // manter false para ocultar no Premium
 const notasInternasHTML =
   (SHOW_NOTAS_INTERNAS && (cliente.notas || '').trim())
