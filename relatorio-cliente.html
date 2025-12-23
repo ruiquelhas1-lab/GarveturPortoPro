@@ -3152,6 +3152,9 @@ btnResetCliente?.addEventListener('click', ()=>{
       pdfModalUrl = url;
       pdfModalMeta = meta;
       pdfModalTitle.textContent = (meta?.name || 'Documento').toUpperCase();
+      // garantir que não fica preso ao srcdoc do preview HTML
+try{ pdfModalFrame.removeAttribute('srcdoc'); }catch{}
+pdfModalFrame.src = url;
       pdfModalFrame.src = url;
       pdfModal.classList.remove('hidden');
       pdfModal.setAttribute('aria-hidden','false');
