@@ -2940,6 +2940,69 @@ btnResetCliente?.addEventListener('click', ()=>{
     setPdfStatus({ action: 'Extração assistida guardada no relatório.' });
   }
 
+  const GARVETUR_OFFICIAL_TEMPLATES_V1 = {
+  tom: {
+    assertivo: {
+      value: "Assertivo",
+      hint: "Decisão clara, linguagem direta, foco em execução."
+    },
+    prudente: {
+      value: "Prudente",
+      hint: "Consultivo, validações explícitas, gestão de risco e alternativas."
+    }
+  },
+  recomendacao: {
+    decisiva: (ctx)=>`DECISÃO RECOMENDADA
+Com base nos critérios e na evidência reunida, a recomendação é avançar com uma decisão objetiva nas próximas 48–72 horas, para proteger posicionamento e timing.
+
+O QUE FAZER AGORA (EXECUÇÃO)
+1) Validar critérios finais e orçamento (10–15 min).
+2) Confirmar disponibilidade/condições do ativo e documentação crítica.
+3) Definir estratégia (proposta / negociação) e calendarização.
+4) Agendar reunião de alinhamento e fecho.
+
+NOTA GARVETUR
+A execução disciplinada (timing + posicionamento) é o fator que mais influencia o resultado.`,
+
+    consultiva: (ctx)=>`RECOMENDAÇÃO GARVETUR (CONSULTIVA)
+A recomendação é avançar para uma validação estruturada antes da decisão final, garantindo conforto e controlo de risco.
+
+VALIDAÇÕES (PRÓXIMOS PASSOS)
+1) Confirmar prioridades e critérios (10–15 min).
+2) Rever dados críticos do caso (ativo/zona/condições).
+3) Comparar 2–3 cenários e respetivos trade-offs (preço, timing, estratégia).
+4) Definir o plano de ação e só depois formalizar decisão.
+
+NOTA GARVETUR
+O objetivo é decidir com clareza, sem precipitação, mas com ritmo e método.`
+  }
+};
+
+function applyOfficialTemplates(){
+  if(!rTom || !rRecomend) return;
+
+  const kTom = (tplTom && tplTom.value) ? tplTom.value : "assertivo";
+  const kRec = (tplRec && tplRec.value) ? tplRec.value : "decisiva";
+
+  // 1) Tom
+  const t = GARVETUR_OFFICIAL_TEMPLATES_V1.tom[kTom] || GARVETUR_OFFICIAL_TEMPLATES_V1.tom.assertivo;
+  rTom.value = t.value;
+
+  // 2) Recomendação
+  // ctx fica preparado para Sprint 2 (personalização com nome/zona/objetivo)
+  const ctx = {};
+  const recFn = GARVETUR_OFFICIAL_TEMPLATES_V1.recomendacao[kRec] || GARVETUR_OFFICIAL_TEMPLATES_V1.recomendacao.decisiva;
+  rRecomend.value = recFn(ctx);
+
+  if(tplStatus) tplStatus.textContent = `Aplicado: Tom ${t.value} · Recomendação ${kRec.toUpperCase()}`;
+}
+
+function resetTemplatesUI(){
+  if(tplTom) tplTom.value = "assertivo";
+  if(tplRec) tplRec.value = "decisiva";
+  if(tplStatus) tplStatus.textContent = "—";
+}
+
   btnAssistParse?.addEventListener('click', ()=>{
     try{
       const txt = (pdfAssistText?.value || '').trim();
