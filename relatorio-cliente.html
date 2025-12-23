@@ -1937,12 +1937,12 @@ function openManualModal(){
   manualModalClose?.addEventListener('click', closeManualModal);
   manualModal?.addEventListener('click', (e)=>{ if(e.target === manualModal) closeManualModal(); });
 
-  // ESC fecha o manual, mas sem interferir com o pdfModal:
-  // (o teu código já fecha o pdfModal com ESC; aqui fechamos o manual também)
-  window.addEventListener('keydown', (e)=>{
-    if(e.key === 'Escape'){
-      if(manualModal && !manualModal.classList.contains('hidden')) closeManualModal();
-    }
+ // ESC fecha o manual, mas sem interferir com o pdfModal:
+window.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape'){
+    if(manualModal && !manualModal.classList.contains('hidden')) closeManualModal();
+  }
+});
 
 /* ===========================
    Relatório Premium (Modal)
