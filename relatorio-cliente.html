@@ -1308,6 +1308,58 @@
   const el = (id)=>document.getElementById(id);
   const $$ = (sel, root=document)=>Array.from(root.querySelectorAll(sel));
   const todayISO = ()=> new Date().toISOString().slice(0,10);
+  function openPremiumPreview(html, title='Relatório Premium'){
+  const modal = document.getElementById('premiumModal');
+  const frame = document.getElementById('premiumModalFrame');
+  const t = document.getElementById('premiumModalTitle');
+  const btnClose = document.getElementById('premiumModalClose');
+  const btnPrint = document.getElementById('premiumModalPrint');
+
+  if(!modal || !frame){
+    alert('premiumModal/premiumModalFrame não encontrados no HTML.');
+    return;
+  }
+
+  if(t) t.textContent = String(title || 'Relatório Premium').toUpperCase();
+
+  // IMPORTANTE: HTML -> srcdoc (não src)
+  try{ frame.removeAttribute('src'); }catch(e){}
+  try{ frame.src = 'about:blank'; }catch(e){}
+  frame.srcdoc = String(html || '');
+
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden','false');
+
+  const close = ()=>{
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden','true');
+    try{ frame.srcdoc = ''; }catch(e){}
+    try{ frame.src = 'about:blank'; }catch(e){}
+  };
+
+  btnClose && btnClose.addEventListener('click', close, { once:true });
+
+  // clicar fora fecha
+  modal.addEventListener('click', (ev)=>{
+    if(ev.target === modal) close();
+  }, { once:true });
+
+  // ESC fecha
+  const onKey = (ev)=>{
+    if(ev.key === 'Escape'){ close(); }
+  };
+  window.addEventListener('keydown', onKey, { once:true });
+
+  // imprimir o conteúdo do iframe
+  btnPrint && btnPrint.addEventListener('click', ()=>{
+    try{
+      frame.contentWindow && frame.contentWindow.focus();
+      frame.contentWindow && frame.contentWindow.print();
+    }catch(e){
+      alert('Impressão bloqueada pelo browser. Tente abrir o relatório noutra aba.');
+    }
+  }, { once:true });
+}
 
   function safeJSONParse(raw, fallback){
     try{ return raw ? JSON.parse(raw) : fallback; }catch{ return fallback; }
