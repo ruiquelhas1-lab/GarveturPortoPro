@@ -1,0 +1,1099 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Garvetur Luxury — Relatório Premium (Documento de Consulta Interna)</title>
+
+  <style>
+    :root{
+      --gold:#A38B63;
+      --goldSoft:rgba(163,139,99,.22);
+      --bg:#0b0b0b;
+      --panel:#111;
+      --panel2:#161616;
+      --txt:#f2f2f2;
+      --muted:rgba(255,255,255,.62);
+      --border:rgba(255,255,255,.12);
+      --shadow:0 18px 44px rgba(0,0,0,.55);
+      --radius-lg:18px;
+      --radius-md:14px;
+      --radius-sm:12px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+      background: radial-gradient(circle at top,#1b1b1b 0,#070707 55%,#000 100%);
+      color:var(--txt);
+    }
+    a{color:inherit;text-decoration:none}
+    .wrap{
+      max-width:1160px;
+      margin:0 auto;
+      padding:22px 18px 40px;
+    }
+
+    /* Top header */
+    .top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:14px;
+      flex-wrap:wrap;
+      padding:14px 14px;
+      border:1px solid rgba(163,139,99,.28);
+      border-radius:var(--radius-lg);
+      background:linear-gradient(90deg,#050505,#121212,#050505);
+      box-shadow: var(--shadow);
+    }
+    .brand{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+    .mark{
+      width:38px;height:38px;border-radius:999px;
+      border:1px solid var(--gold);
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 0 0 1px rgba(163,139,99,.22);
+      flex-shrink:0;
+    }
+    .brand h1{
+      margin:0;
+      font-size:16px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--gold);
+      line-height:1.25;
+    }
+    .brand .sub{
+      margin-top:4px;
+      font-size:12px;
+      color:var(--muted);
+      letter-spacing:.06em;
+      line-height:1.45;
+      max-width:780px;
+    }
+    .meta{
+      text-align:right;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width:220px;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      justify-content:flex-end;
+      font-size:11px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:rgba(255,255,255,.72);
+    }
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      border:1px solid rgba(163,139,99,.35);
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:11px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:rgba(255,255,255,.72);
+      background:rgba(0,0,0,.35);
+      width:fit-content;
+      margin-left:auto;
+    }
+    .btnrow{
+      display:flex;
+      gap:8px;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+    }
+    .btn{
+      border-radius:999px;
+      border:1px solid rgba(163,139,99,.35);
+      background:rgba(0,0,0,.38);
+      color:var(--txt);
+      padding:8px 12px;
+      font-size:12px;
+      cursor:pointer;
+      transition:.18s transform,.18s border-color;
+      user-select:none;
+    }
+    .btn:hover{transform:translateY(-1px);border-color:var(--gold)}
+    .btn.primary{
+      background:var(--gold);
+      color:#0a0a0a;
+      border-color:var(--gold);
+      font-weight:800;
+    }
+
+    /* Layout */
+    .grid{
+      display:grid;
+      grid-template-columns:320px minmax(0,1fr);
+      gap:14px;
+      margin-top:14px;
+      align-items:start;
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns:1fr}
+    }
+
+    /* Sidebar / index */
+    .side{
+      position:sticky;
+      top:14px;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:var(--radius-lg);
+      background:rgba(0,0,0,.35);
+      padding:12px 12px;
+      box-shadow: 0 12px 28px rgba(0,0,0,.35);
+    }
+    @media (max-width: 980px){
+      .side{position:relative;top:auto}
+    }
+    .side h2{
+      margin:0 0 8px;
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+    .nav{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin-top:6px;
+    }
+    .nav a{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      padding:9px 10px;
+      border-radius:12px;
+      border:1px solid transparent;
+      background:rgba(0,0,0,.18);
+      color:rgba(255,255,255,.86);
+      font-size:12px;
+      line-height:1.25;
+    }
+    .nav a:hover{
+      border-color:rgba(163,139,99,.30);
+      background:rgba(163,139,99,.10);
+    }
+    .n{
+      width:22px;height:22px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      display:flex;align-items:center;justify-content:center;
+      color:rgba(255,255,255,.65);
+      font-size:11px;
+      flex-shrink:0;
+      background:rgba(0,0,0,.35);
+    }
+    .nav small{display:block;margin-top:2px;color:rgba(255,255,255,.58);font-size:11px;line-height:1.35}
+
+    .side .note{
+      margin-top:10px;
+      border-top:1px solid rgba(255,255,255,.10);
+      padding-top:10px;
+      font-size:11px;
+      color:rgba(255,255,255,.60);
+      line-height:1.5;
+    }
+    .kbd{
+      display:inline-block;
+      padding:2px 7px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.35);
+      font-size:11px;
+      color:rgba(255,255,255,.72);
+    }
+
+    /* Main panels */
+    .main{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .panel{
+      border-radius:var(--radius-lg);
+      border:1px solid rgba(163,139,99,.22);
+      background:rgba(3,3,3,.86);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .ph{
+      padding:12px 12px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      background:linear-gradient(90deg,#050505,#121212,#050505);
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .ph .title{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+    }
+    .ph .title b{
+      color:var(--gold);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      font-size:12px;
+    }
+    .ph .title span{
+      display:block;
+      margin-top:3px;
+      color:rgba(255,255,255,.62);
+      font-size:12px;
+      line-height:1.45;
+      max-width:920px;
+    }
+    .pb{padding:14px 14px}
+    .divider{height:1px;background:rgba(255,255,255,.10);margin:12px 0}
+
+    /* Content blocks */
+    .callout{
+      border:1px dashed rgba(163,139,99,.55);
+      background:rgba(163,139,99,.10);
+      border-radius:16px;
+      padding:12px 12px;
+      line-height:1.55;
+      color:rgba(255,255,255,.82);
+      font-size:13px;
+    }
+    .klist{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+      margin-top:10px;
+    }
+    @media (max-width: 980px){.klist{grid-template-columns:1fr}}
+    .card{
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:16px;
+      background:rgba(0,0,0,.28);
+      padding:12px 12px;
+    }
+    .card h3{
+      margin:0 0 8px;
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+    .card p{margin:0 0 10px;font-size:13px;color:rgba(255,255,255,.82);line-height:1.55}
+    ul{margin:8px 0 0 18px}
+    li{margin:4px 0;font-size:13px;color:rgba(255,255,255,.82);line-height:1.5}
+
+    .secgrid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+      margin-top:10px;
+    }
+    .template{
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:16px;
+      background:rgba(0,0,0,.26);
+      padding:12px 12px;
+    }
+    .template .k{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+      justify-content:space-between;
+      margin-bottom:8px;
+    }
+    .template .k .left{
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+    }
+    .template .k .left b{
+      color:var(--gold);
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      font-size:12px;
+    }
+    .template .k .left span{
+      color:rgba(255,255,255,.60);
+      font-size:12px;
+      line-height:1.45;
+    }
+    .badge{
+      border:1px solid rgba(163,139,99,.40);
+      border-radius:999px;
+      padding:5px 10px;
+      font-size:11px;
+      letter-spacing:.10em;
+      text-transform:uppercase;
+      color:rgba(255,255,255,.72);
+      background:rgba(0,0,0,.35);
+      white-space:nowrap;
+      align-self:flex-start;
+    }
+    .box{
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      background:rgba(0,0,0,.20);
+      padding:12px 12px;
+    }
+    .box h4{
+      margin:0 0 8px;
+      font-size:11px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:rgba(255,255,255,.62);
+    }
+    .model{
+      font-size:13px;
+      line-height:1.65;
+      color:rgba(255,255,255,.90);
+      white-space:pre-wrap;
+      margin:0;
+    }
+    .notes{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+      margin-top:10px;
+    }
+    @media (max-width: 980px){.notes{grid-template-columns:1fr}}
+    .notes .mini{
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.22);
+      padding:10px 10px;
+    }
+    .notes .mini b{
+      display:block;
+      font-size:11px;
+      color:rgba(255,255,255,.62);
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      margin-bottom:6px;
+    }
+    .notes .mini span{
+      display:block;
+      font-size:12px;
+      color:rgba(255,255,255,.80);
+      line-height:1.45;
+    }
+
+    .foot{
+      margin-top:12px;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:var(--radius-lg);
+      background:rgba(0,0,0,.35);
+      padding:12px 12px;
+      color:rgba(255,255,255,.62);
+      font-size:11px;
+      line-height:1.55;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    /* Print */
+    @media print{
+      body{background:#fff;color:#111}
+      .wrap{max-width:980px;padding:0}
+      .top,.side,.foot{box-shadow:none}
+      .top{
+        border:1px solid #ddd;
+        background:#fff;
+      }
+      .brand h1{color:#111}
+      .brand .sub,.pill,.tag{color:#444}
+      .grid{grid-template-columns:1fr}
+      .side{display:none}
+      .panel{
+        border:1px solid #ddd;
+        background:#fff;
+        box-shadow:none;
+      }
+      .ph{background:#fff;border-bottom:1px solid #eee}
+      .ph .title b{color:#111}
+      .ph .title span{color:#444}
+      .callout,.card,.template,.box,.notes .mini{
+        border:1px solid #eee;
+        background:#fff;
+        color:#111;
+      }
+      .badge{border:1px solid #ddd;color:#333;background:#fafafa}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <!-- Header -->
+    <div class="top">
+      <div class="brand">
+        <div class="mark" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M8 12.5l2.5 2.5L16 9"></path>
+          </svg>
+        </div>
+        <div>
+          <h1>Relatório Premium — Documento de Consulta Interna</h1>
+          <div class="sub">
+            Estrutura oficial, linguagem e templates editoriais para produção do <strong>Relatório de Análise &amp; Decisão</strong> (Garvetur Luxury).
+            <br>Objetivo: consistência, maturidade editorial e utilidade real para a decisão do cliente.
+          </div>
+        </div>
+      </div>
+
+      <div class="meta">
+        <div class="pill">Uso Interno · Não distribuir externamente</div>
+        <div class="tag">Garvetur Luxury · Porto</div>
+        <div class="btnrow">
+          <button class="btn" id="btnTop">Topo</button>
+          <button class="btn primary" id="btnPrint">Imprimir / Guardar em PDF</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Sidebar -->
+      <aside class="side">
+        <h2>Índice</h2>
+        <nav class="nav" aria-label="Índice">
+          <a href="#a0"><span class="n">0</span><div><div><strong>Princípios</strong></div><small>O que é, quando usar e filosofia.</small></div></a>
+          <a href="#b0"><span class="n">1</span><div><div><strong>Estrutura Oficial</strong></div><small>Ordem imutável (10 secções).</small></div></a>
+          <a href="#c2"><span class="n">2</span><div><div><strong>Templates</strong></div><small>Texto-modelo por secção + notas.</small></div></a>
+          <a href="#v1"><span class="n">V</span><div><div><strong>Núcleo de Valor</strong></div><small>Leitura GL + Recomendação final.</small></div></a>
+          <a href="#q1"><span class="n">Q</span><div><div><strong>Checklist de Qualidade</strong></div><small>Regras editoriais e controlo.</small></div></a>
+        </nav>
+
+        <div class="note">
+          <strong>Atalho útil:</strong> use <span class="kbd">Ctrl</span>+<span class="kbd">F</span> para pesquisar por “Recomendação”, “Tom”, “Resumo Executivo”.
+          <br><br>
+          <strong>Nota estratégica:</strong> este documento define o padrão. O relatório entregue ao cliente deve refletir esta lógica, mesmo em versão executiva (1–2 páginas).
+        </div>
+      </aside>
+
+      <!-- Main -->
+      <main class="main">
+
+        <!-- A) Princípios -->
+        <section class="panel" id="a0">
+          <div class="ph">
+            <div class="title">
+              <div>
+                <b>0. Enquadramento e Princípios</b>
+                <span>O relatório é um instrumento de decisão. Não é um CMA, não é um documento comercial, não é um comparativo simples.</span>
+              </div>
+            </div>
+            <div class="badge">Documento de referência</div>
+          </div>
+          <div class="pb">
+            <div class="callout">
+              <strong>Definição:</strong> O Relatório Garvetur Luxury é um documento estratégico de análise e decisão, desenvolvido para apoiar clientes em momentos críticos do seu processo imobiliário.
+              <br><br>
+              <strong>Pergunta central:</strong> “O que devo fazer, quando, porquê e com que riscos?”
+            </div>
+
+            <div class="klist">
+              <div class="card">
+                <h3>Quando utilizar</h3>
+                <ul>
+                  <li>Valor do ativo/investimento relevante</li>
+                  <li>Cliente indeciso ou sofisticado</li>
+                  <li>Múltiplos cenários possíveis</li>
+                  <li>Impacto financeiro, fiscal ou estratégico</li>
+                  <li>Investidores, Family Offices, internacionais, promotores</li>
+                </ul>
+              </div>
+
+              <div class="card">
+                <h3>Quando não utilizar</h3>
+                <ul>
+                  <li>Decisão puramente transacional</li>
+                  <li>Cliente quer apenas execução imediata</li>
+                  <li>Contexto simples e evidente</li>
+                  <li>Não há tempo mínimo para reflexão</li>
+                </ul>
+                <p style="margin-top:10px"><strong>Nota interna:</strong> o relatório não deve banalizar-se. O seu valor está na seletividade.</p>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="card">
+              <h3>Filosofia Garvetur Luxury</h3>
+              <p>A Garvetur Luxury posiciona-se como <strong>advisor</strong>, não como intermediário passivo. O relatório materializa esta filosofia:</p>
+              <ul>
+                <li>Decisão informada é superior à opinião</li>
+                <li>Estratégia é superior à improvisação</li>
+                <li>Valor é superior ao preço</li>
+                <li>Dados sem leitura não geram confiança</li>
+                <li>Narrativa sem base factual gera ruído</li>
+              </ul>
+              <p style="margin-top:10px">Clientes de alto nível valorizam clareza, estrutura e racionalidade.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- B) Estrutura Oficial -->
+        <section class="panel" id="b0">
+          <div class="ph">
+            <div class="title">
+              <div>
+                <b>1. Estrutura Oficial do Relatório</b>
+                <span>Padronizada e imutável: a profundidade varia, a lógica nunca.</span>
+              </div>
+            </div>
+            <div class="badge">Ordem obrigatória</div>
+          </div>
+          <div class="pb">
+            <div class="template">
+              <div class="k">
+                <div class="left">
+                  <b>Estrutura base (10 secções)</b>
+                  <span>O relatório final entregue ao cliente segue sempre esta ordem.</span>
+                </div>
+                <span class="badge">Padrão Garvetur</span>
+              </div>
+
+              <div class="box">
+                <ol style="margin:0 0 0 18px; padding:0; line-height:1.65; color:rgba(255,255,255,.86); font-size:13px">
+                  <li><strong>Capa</strong></li>
+                  <li><strong>Resumo Executivo</strong></li>
+                  <li><strong>Enquadramento do Cliente</strong></li>
+                  <li><strong>Contexto do Ativo / Oportunidade</strong></li>
+                  <li><strong>Enquadramento de Mercado</strong></li>
+                  <li><strong>Síntese de Estudos</strong> (factual)</li>
+                  <li><strong>Leitura Garvetur Luxury</strong> (interpretação estratégica)</li>
+                  <li><strong>Recomendação Final</strong> (posição clara)</li>
+                  <li><strong>Próximos Passos</strong> (plano de ação)</li>
+                  <li><strong>Anexos</strong></li>
+                </ol>
+              </div>
+
+              <div class="notes">
+                <div class="mini">
+                  <b>Regra de ouro</b>
+                  <span>Se um dado não influencia a decisão do cliente, não entra.</span>
+                </div>
+                <div class="mini">
+                  <b>Tom</b>
+                  <span>Calmo · Confiante · Racional · Orientado à decisão.</span>
+                </div>
+                <div class="mini">
+                  <b>Advertência</b>
+                  <span>Evitar linguagem promocional, adjetivos vazios, promessas e dramatização.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- C) Templates -->
+        <section class="panel" id="c2">
+          <div class="ph">
+            <div class="title">
+              <div>
+                <b>2. Templates editoriais por secção</b>
+                <span>Texto-modelo (cliente-ready) + objetivo + notas internas + fontes recomendadas.</span>
+              </div>
+            </div>
+            <div class="badge">Uso obrigatório</div>
+          </div>
+
+          <div class="pb">
+
+            <!-- 1) CAPA -->
+            <div class="template" id="t1">
+              <div class="k">
+                <div class="left">
+                  <b>2.1 Capa</b>
+                  <span>Identidade e rigor. Sem texto comercial, sem slogans.</span>
+                </div>
+                <span class="badge">Sem editorial</span>
+              </div>
+
+              <div class="box">
+                <h4>Template (capa)</h4>
+                <pre class="model">Relatório de Análise &amp; Decisão Imobiliária
+Cliente: [Nome do Cliente]
+Ativo / Localização: [Designação curta]
+Data: [DD/MM/AAAA]
+Consultor Responsável: [Nome]</pre>
+              </div>
+
+              <div class="notes">
+                <div class="mini">
+                  <b>Objetivo</b>
+                  <span>Posicionamento premium, sobriedade e confiança.</span>
+                </div>
+                <div class="mini">
+                  <b>Evitar</b>
+                  <span>Slogans, claims e linguagem emocional.</span>
+                </div>
+                <div class="mini">
+                  <b>Design</b>
+                  <span>Minimalista. Alta legibilidade. Espaço em branco.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2) RESUMO EXECUTIVO -->
+            <div class="template" id="t2">
+              <div class="k">
+                <div class="left">
+                  <b>2.2 Resumo Executivo</b>
+                  <span>Alta densidade de valor. Máximo 1 página. Uma conclusão clara.</span>
+                </div>
+                <span class="badge">Obrigatório</span>
+              </div>
+
+              <div class="box">
+                <h4>Texto-modelo (cliente-ready)</h4>
+                <pre class="model">O presente relatório foi elaborado no âmbito do acompanhamento estratégico prestado ao Cliente, com o objetivo de apoiar uma decisão informada relativamente a [decisão principal: venda / compra / investimento / reposicionamento].
+
+A análise efetuada considera o enquadramento específico do Cliente, as características do ativo em causa e o contexto atual do mercado, complementados por dados internos da Garvetur Luxury e por estudos de mercado relevantes.
+
+Em síntese, o enquadramento analisado indica que [conclusão principal], sendo a recomendação da Garvetur Luxury [recomendação resumida], por se tratar da opção que melhor equilibra [objetivos do Cliente] com [condições atuais de mercado].</pre>
+              </div>
+
+              <div class="notes">
+                <div class="mini">
+                  <b>Regra</b>
+                  <span>Clareza + síntese. Sem “fumo”. Sem parágrafos longos.</span>
+                </div>
+                <div class="mini">
+                  <b>Tom</b>
+                  <span>Seguro e racional. Não “vende”. Orienta.</span>
+                </div>
+                <div class="mini">
+                  <b>Controlo</b>
+                  <span>O cliente deve saber o que recomendam e porquê — já aqui.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3) ENQUADRAMENTO DO CLIENTE -->
+            <div class="template" id="t3">
+              <div class="k">
+                <div class="left">
+                  <b>2.3 Enquadramento do Cliente</b>
+                  <span>Contextualizar a decisão. Sem opinião, sem mercado, sem recomendação.</span>
+                </div>
+                <span class="badge">3.ª pessoa</span>
+              </div>
+
+              <div class="box">
+                <h4>Texto-modelo (cliente-ready)</h4>
+                <pre class="model">O presente relatório foi elaborado no contexto do acompanhamento prestado ao Cliente, que se encontra atualmente numa fase de avaliação estratégica relativamente a [objetivo principal — ex.: venda do ativo / aquisição de imóvel / decisão de investimento].
+
+O Cliente procura tomar uma decisão informada, tendo em consideração fatores como [timing pretendido], [expectativas de valor / retorno] e [condicionantes relevantes], valorizando uma análise clara do contexto atual e das opções disponíveis.</pre>
+              </div>
+
+              <div class="notes">
+                <div class="mini">
+                  <b>Notas</b>
+                  <span>Escrever sempre em terceira pessoa. Evitar adjetivos emocionais. Não antecipar conclusões.</span>
+                </div>
+                <div class="mini">
+                  <b>Fonte</b>
+                  <span>FSBO | Leads | Angariações + validação do consultor.</span>
+                </div>
+                <div class="mini">
+                  <b>Evitar</b>
+                  <span>“O Cliente está entusiasmado…” / “Excelente oportunidade…”</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4) CONTEXTO DO ATIVO -->
+            <div class="template" id="t4">
+              <div class="k">
+                <div class="left">
+                  <b>2.4 Contexto do Ativo / Oportunidade</b>
+                  <span>Factual, neutro. O resumo do KIT FSBO encaixa aqui.</span>
+                </div>
+                <span class="badge">Sem promoção</span>
+              </div>
+
+              <div class="box">
+                <h4>Texto-modelo (cliente-ready)</h4>
+                <pre class="model">O ativo em análise corresponde a [descrição objetiva do imóvel], localizado em [zona/localização], inserido num contexto urbano caracterizado por [elementos relevantes da envolvente].
+
+Do ponto de vista funcional e de posicionamento, o imóvel apresenta [principais pontos fortes], devendo igualmente ser considerados [limitações ou fatores condicionantes] no enquadramento da decisão.</pre>
+              </div>
+
+              <div class="notes">
+                <div class="mini">
+                  <b>Boas práticas</b>
+                  <span>Linguagem factual. Dados verificáveis. Evitar superlativos.</span>
+                </div>
+                <div class="mini">
+                  <b>Fonte prioritária</b>
+                  <span>Resumo do KIT FSBO / Angariações (ficha do ativo).</span>
+                </div>
+                <div class="mini">
+                  <b>Nunca</b>
+                  <span>“imperdível”, “luxuoso”, “o melhor”, “garantia”.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 5) MERCADO -->
+            <div class="template" id="t5">
+              <div class="k">
+                <div class="left">
+                  <b>2.5 Enquadramento de Mercado</b>
+                  <span>Seleção. Contexto que influencia a decisão do cliente (não um relatório macro).</span>
+                </div>
+                <span class="badge">Só o que importa</span>
+              </div>
+
+              <div class="box">
+                <h4>Texto-modelo (cliente-ready)</h4>
+                <pre class="model">O mercado imobiliário na zona em análise apresenta atualmente [tendência relevante], influenciado por fatores como [procura, oferta, perfil de comprador, contexto macro].
+
+Os indicadores analisados sugerem [dinâmica principal], com impacto direto em [preço, liquidez, timing ou negociação] para decisões como a que o Cliente se encontra a ponderar.</pre>
+              </div>
+
+              <div class="notes">
+                <div class="mini">
+                  <b>Regra</b>
+                  <span>Se um dado não altera a decisão, não entra.</span>
+                </div>
+                <div class="mini">
+                  <b>Evitar</b>
+                  <span>Dados genéricos ou descontextualizados.</span>
+                </div>
+                <div class="mini">
+                  <b>Objetivo</b>
+                  <span>Ligar mercado → impacto concreto (preço, prazo, negociação).</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 6) SÍNTESE DE ESTUDOS -->
+            <div class="template" id="t6">
+              <div class="k">
+                <div class="left">
+                  <b>2.6 Síntese de Estudos</b>
+                  <span>Factual, estruturado, técnico. Deve poder ser lido isoladamente.</span>
+                </div>
+                <span class="badge">Sem opinião</span>
+              </div>
+
+              <div class="box">
+                <h4>Template fixo</h4>
+                <pre class="model">📊 Dados e conclusões do estudo
+
+Fonte: [Nome do estudo · Entidade · Data]
+
+Principais conclusões:
+• [Insight objetivo e relevante]
+• [Insight objetivo e relevante]
+• [Insight objetivo e relevante]
+
+Indicadores-chave:
+• [Indicador 1]
+• [Indicador 2]
+
+Palavras-chave estratégicas:
+[ex.: escassez de oferta · absorção · estabilidade · pressão de procura]</pre>
+              </div>
+
+              <div class="notes">
+                <div class="mini">
+                  <b>Notas</b>
+                  <span>Aqui não há opinião. É a fotografia factual do estudo.</span>
+                </div>
+                <div class="mini">
+                  <b>Compatível</b>
+                  <span>Extração assistida do módulo (capítulos + insights + keywords).</span>
+                </div>
+                <div class="mini">
+                  <b>Validação</b>
+                  <span>Se o estudo é irrelevante para a decisão, não deve constar.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 7) LEITURA GL (núcleo) -->
+            <div class="template" id="v1">
+              <div class="k">
+                <div class="left">
+                  <b>2.7 Leitura Garvetur Luxury</b>
+                  <span>Núcleo de valor. Interpretação estratégica aplicada ao cliente (não é descrição).</span>
+                </div>
+                <span class="badge">Não automatizável</span>
+              </div>
+
+              <div class="box">
+                <h4>Texto-modelo (cliente-ready)</h4>
+                <pre class="model">À luz dos dados analisados e do enquadramento específico do Cliente, a Garvetur Luxury considera que o atual contexto apresenta [oportunidades / riscos / trade-offs] que importa ponderar de forma estratégica.
+
+Em particular, a análise realizada permite concluir que [interpretação clara dos dados], o que significa que [impacto concreto para o Cliente].
+
+Neste contexto, entendemos que a decisão deverá privilegiar [critério estratégico central], mantendo atenção a [ponto(s) de risco ou atenção].</pre>
+              </div>
+
+              <div class="notes">
+                <div class="mini">
+                  <b>Tom</b>
+                  <span>Seguro. Argumentação clara. Sem dramatizar nem suavizar em excesso.</span>
+                </div>
+                <div class="mini">
+                  <b>Prova</b>
+                  <span>Toda a leitura deve ligar-se a factos (ativos, mercado, estudo).</span>
+                </div>
+                <div class="mini">
+                  <b>Valor</b>
+                  <span>O cliente deve sentir que isto não poderia ter sido produzido por mais ninguém.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 8) RECOMENDAÇÃO FINAL -->
+            <div class="template" id="t8">
+              <div class="k">
+                <div class="left">
+                  <b>2.8 Recomendação Final</b>
+                  <span>Uma recomendação principal clara, fundamentada e assumida.</span>
+                </div>
+                <span class="badge">Decisão</span>
+              </div>
+
+              <div class="box">
+                <h4>Texto-modelo (cliente-ready)</h4>
+                <pre class="model">Face ao enquadramento apresentado, a Garvetur Luxury recomenda [ação principal], por se tratar da opção que melhor responde aos objetivos do Cliente, considerando o contexto atual do mercado.
+
+Como alternativa, poderá ser considerada [opção secundária], implicando [consequência principal].
+
+A não adoção de qualquer uma destas opções poderá resultar em [impacto provável] no médio prazo.</pre>
+              </div>
+
+              <div class="notes">
+                <div class="mini">
+                  <b>Regra crítica</b>
+                  <span>O cliente deve saber exatamente o que recomendamos e porquê.</span>
+                </div>
+                <div class="mini">
+                  <b>Evitar</b>
+                  <span>“Talvez”, “pode ser”, “eventualmente” (salvo casos muito específicos).</span>
+                </div>
+                <div class="mini">
+                  <b>Consistência</b>
+                  <span>Recomendação deve estar alinhada com o Resumo Executivo.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 9) PRÓXIMOS PASSOS -->
+            <div class="template" id="t9">
+              <div class="k">
+                <div class="left">
+                  <b>2.9 Próximos Passos</b>
+                  <span>Transforma análise em ação. Responsabilidades e momento de decisão.</span>
+                </div>
+                <span class="badge">Plano</span>
+              </div>
+
+              <div class="box">
+                <h4>Template</h4>
+                <pre class="model">Próximos passos sugeridos:
+1. [Ação concreta] — responsabilidade Garvetur Luxury
+2. [Ação concreta] — responsabilidade do Cliente
+3. [Momento de revisão / decisão]
+
+(Objetivo: calendarizar e fechar um próximo checkpoint.)</pre>
+              </div>
+
+              <div class="notes">
+                <div class="mini">
+                  <b>Objetivo</b>
+                  <span>O relatório não é o fim. É a ponte para decisão e execução.</span>
+                </div>
+                <div class="mini">
+                  <b>Regras</b>
+                  <span>Ações concretas, prazos realistas, responsáveis identificados.</span>
+                </div>
+                <div class="mini">
+                  <b>CTA</b>
+                  <span>Agendar reunião / avaliação / ajuste de estratégia (1 CTA principal).</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 10) ANEXOS -->
+            <div class="template" id="t10">
+              <div class="k">
+                <div class="left">
+                  <b>2.10 Anexos</b>
+                  <span>Sem texto editorial. Apenas referência objetiva ao que foi anexado.</span>
+                </div>
+                <span class="badge">Referência</span>
+              </div>
+
+              <div class="box">
+                <h4>Template</h4>
+                <pre class="model">Anexos incluídos:
+• [Nome do estudo / PDF]
+• [Documento técnico / planta]
+• [Outro documento relevante]
+
+(Disponíveis para consulta complementar.)</pre>
+              </div>
+
+              <div class="notes">
+                <div class="mini">
+                  <b>Regra</b>
+                  <span>Evitar anexos redundantes. Manter leve e relevante.</span>
+                </div>
+                <div class="mini">
+                  <b>Consistência</b>
+                  <span>Nomes claros: “Estudo_Mercado_Foz_2025.pdf”.</span>
+                </div>
+                <div class="mini">
+                  <b>Confidencialidade</b>
+                  <span>Confirmar permissões e sensibilidade do conteúdo anexado.</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- Núcleo de valor + papel do consultor -->
+        <section class="panel" id="v2">
+          <div class="ph">
+            <div class="title">
+              <div>
+                <b>V. Papel do Consultor e Linguagem</b>
+                <span>Advisor estratégico. Estrutura, relevância, interpretação e recomendação assumida.</span>
+              </div>
+            </div>
+            <div class="badge">Padrão de maturidade</div>
+          </div>
+
+          <div class="pb">
+            <div class="klist">
+              <div class="card">
+                <h3>O consultor deve</h3>
+                <ul>
+                  <li>Estruturar a informação</li>
+                  <li>Selecionar o que é relevante</li>
+                  <li>Interpretar dados com maturidade</li>
+                  <li>Assumir uma recomendação clara</li>
+                </ul>
+              </div>
+              <div class="card">
+                <h3>O consultor não deve</h3>
+                <ul>
+                  <li>Copiar textos de anúncios</li>
+                  <li>Reproduzir PDFs sem síntese</li>
+                  <li>Opinar sem base factual</li>
+                  <li>“Empurrar” uma decisão</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="callout">
+              <strong>Frase-guia interna:</strong><br>
+              “O relatório não vende imóveis. Ajuda clientes a tomar boas decisões.”
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="card">
+              <h3>Linguagem e tom</h3>
+              <ul>
+                <li>Linguagem clara, frases curtas e objetivas</li>
+                <li>Tom profissional, seguro, racional e orientado à decisão</li>
+                <li>Evitar jargão comercial, adjetivos vazios, promessas e emocionalidade excessiva</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- Checklist -->
+        <section class="panel" id="q1">
+          <div class="ph">
+            <div class="title">
+              <div>
+                <b>Q. Checklist de qualidade</b>
+                <span>Controlo interno antes de exportar o relatório ao cliente.</span>
+              </div>
+            </div>
+            <div class="badge">Gate de qualidade</div>
+          </div>
+
+          <div class="pb">
+            <div class="klist">
+              <div class="card">
+                <h3>Obrigatórios</h3>
+                <ul>
+                  <li>Cliente identificado e contextualizado</li>
+                  <li>Ativo / zona descritos de forma factual</li>
+                  <li>Mercado: apenas o que influencia a decisão</li>
+                  <li>Síntese de estudos (se aplicável) sem opinião</li>
+                  <li>Leitura Garvetur Luxury clara e aplicada</li>
+                  <li>Recomendação principal inequívoca</li>
+                  <li>Próximos passos com responsáveis e checkpoint</li>
+                </ul>
+              </div>
+
+              <div class="card">
+                <h3>Red flags (rever)</h3>
+                <ul>
+                  <li>Textos demasiado longos / sem estrutura</li>
+                  <li>Tom comercial / promocional</li>
+                  <li>Dados sem ligação ao impacto na decisão</li>
+                  <li>Recomendação vaga ou “duas recomendações”</li>
+                  <li>Conclusão não alinhada com o Resumo Executivo</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="callout">
+              <strong>Nota final:</strong> Este documento é vivo e deve evoluir com mercado, experiência e feedback. A estrutura mantém-se; os exemplos e linhas editoriais refinam-se.
+            </div>
+          </div>
+        </section>
+
+        <div class="foot">
+          <div><strong>GARVETUR LUXURY — Documento interno.</strong> Não partilhar fora da organização sem autorização.</div>
+          <div>Impressão recomendada: desativar “Cabeçalhos e rodapés” nas opções do browser.</div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const btnPrint = document.getElementById('btnPrint');
+      const btnTop = document.getElementById('btnTop');
+
+      btnPrint?.addEventListener('click', ()=> window.print());
+      btnTop?.addEventListener('click', ()=> window.scrollTo({top:0, behavior:'smooth'}));
+    })();
+  </script>
+</body>
+</html>
