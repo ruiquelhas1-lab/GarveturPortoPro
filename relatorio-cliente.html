@@ -4013,17 +4013,57 @@ const blocoEstudoMin = hasStudy ? `
     </div>
   `;
 
-  const blocoRecomendacao = `
-    <div class="sec">
-      <h2>Recomendação Garvetur</h2>
+// ===== Sprint 2.4 — Recomendação Garvetur estruturada =====
+const recClean = sanitizeRecommendation(rec, resumoFinal);
+const bullets = extractBullets(recClean, 3);
+
+const posicao = recClean ? takeFirstSentences(recClean, 220) : '(preencher recomendação final)';
+
+const razoes = bullets.length ? bullets : [
+  "Alinhamento entre objetivo, horizonte e posicionamento do ativo/zona.",
+  "Relação risco/retorno favorável face às alternativas disponíveis no momento.",
+  "Capacidade de execução com plano e marcos claros (reduz indecisão e desgaste)."
+];
+
+const riscosVigiar = [
+  "Volatilidade de procura/competição no curto prazo (exige disciplina de timing e proposta).",
+  "Desalinhamento entre expectativa e condições do mercado (corrigir cedo via validação)."
+];
+
+const blocoRecomendacao = `
+  <div class="sec">
+    <h2>Recomendação Garvetur</h2>
+
+    <div class="callout">
+      <h3>Posição</h3>
+      <p class="p">${safe(posicao).replace(/\n/g,'<br>')}</p>
+      <div class="small">Nota: recomenda-se decisão com base em critérios objetivos e execução calendarizada.</div>
+    </div>
+
+    <div class="kpi">
       <div class="card">
-        <h3>Decisão recomendada</h3>
-        <p class="p">${safe(rec).replace(/\\n/g,'<br>')}</p>
-        <div class="divider"></div>
-        <p class="p"><strong>Call-to-action:</strong> ${safe(cta)}</p>
+        <h3>Razões principais</h3>
+        <ul class="list">
+          ${razoes.map(x=>`<li>${safe(x)}</li>`).join('')}
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Riscos a vigiar</h3>
+        <ul class="list">
+          ${riscosVigiar.map(x=>`<li>${safe(x)}</li>`).join('')}
+        </ul>
       </div>
     </div>
-  `;
+
+    <div class="rule"></div>
+
+    <div class="callout">
+      <h3>Ação recomendada (próximo passo)</h3>
+      <p class="p"><strong>${safe(cta)}</strong> — 15 a 20 minutos para validar critérios, cenário e calendarização.</p>
+      <div class="small">A Garvetur assume acompanhamento e controlo semanal até à decisão.</div>
+    </div>
+  </div>
+`;
 
   const blocoProximosPassos = `
     <div class="sec">
