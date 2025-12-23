@@ -3423,6 +3423,78 @@ async function removePdf(pdfId){
     alert('Template duplicado. Pode abrir a cópia na lista.');
   });
 
+  /* ===========================
+   Manual Interno — HTML (abre no pdfModal via srcdoc)
+   - Reutiliza o pdfModal já existente
+   - Não cria IDs novos, não colide com anexos/preview
+=========================== */
+const MANUAL_V1_HTML = `
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <title>Manual Interno — Relatório Premium</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root{--gold:#A38B63;--muted:#666;--txt:#111}
+    *{box-sizing:border-box}
+    body{font-family:Arial,Helvetica,sans-serif;color:var(--txt);margin:0;background:#fff}
+    .page{max-width:920px;margin:0 auto;padding:28px 34px}
+    .brand{font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);font-size:14px}
+    h1{margin:10px 0 6px;font-size:20px}
+    .sub{color:var(--muted);font-size:12px;line-height:1.4}
+    h2{margin:18px 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.14em;color:#444}
+    ul{margin:6px 0 0 18px}
+    li{margin:6px 0;font-size:13px;line-height:1.5}
+    .box{border:1px solid #eee;border-radius:14px;padding:12px 12px;margin-top:10px}
+    .foot{margin-top:18px;padding-top:10px;border-top:1px solid #eee;font-size:11px;color:#777;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .tag{display:inline-block;padding:4px 10px;border:1px solid #ddd;border-radius:999px;font-size:11px;color:#333;background:#fafafa}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="brand">GARVETUR LUXURY PORTO</div>
+    <h1>Manual interno premium para produção do Relatório de Análise & Decisão</h1>
+    <div class="sub">
+      <span class="tag">Versão: Manual v1</span>
+      <div style="margin-top:6px">Playbook — Relatório Único, Singular e Decisor</div>
+    </div>
+
+    <h2>Objetivo do documento</h2>
+    <div class="box">
+      Garantir consistência, qualidade e diferenciação: o cliente deve “rever-se” no relatório do princípio ao fim,
+      com narrativa orientada à decisão e recomendação clara.
+    </div>
+
+    <h2>Checklist operacional (mínimo obrigatório)</h2>
+    <ul>
+      <li>Cliente identificado (tipo, contexto, critérios de decisão).</li>
+      <li>Objetivo claro (horizonte, risco, preocupações).</li>
+      <li>Ativo/Zona validado (dados essenciais preenchidos).</li>
+      <li>Se existir estudo externo: anexar PDF e fazer extração assistida (texto colado) com capítulos/insights.</li>
+      <li>Recomendação final escrita (clara, objetiva, com próximos passos).</li>
+    </ul>
+
+    <h2>Estrutura recomendada do relatório (padrão Garvetur Luxury)</h2>
+    <ul>
+      <li>Resumo Executivo: decisão recomendada + racional em linguagem simples.</li>
+      <li>Contexto do Cliente: o “porquê” (objetivo, receios, critérios).</li>
+      <li>Enquadramento/mercado: 3–6 pontos que importam para a decisão.</li>
+      <li>Cenários: preço/timing/estratégia (impacto e trade-offs).</li>
+      <li>Recomendação Garvetur: o “o que fazer” e “como fazer”.</li>
+      <li>Plano de ação: passos, prazos, responsabilidades.</li>
+      <li>Anexos: PDFs e síntese do estudo (extração assistida).</li>
+    </ul>
+
+    <div class="foot">
+      <span>Documento interno · Não distribuir sem autorização.</span>
+      <span>Gerado localmente no browser</span>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
   
 /* ===========================
      Tabs + init
