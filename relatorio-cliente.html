@@ -3705,6 +3705,14 @@ async function removePdf(pdfId){
         renderList();
         return;
       }
+
+    if(act==='exportPremium'){
+  const r = getReport(id);
+  if(!r) return;
+  const html = exportReportToPremiumHTML(r, {});
+  openReportPreview(html, `Relatório Premium — ${r?.cliente?.nome || 'Cliente'}`);
+  return;
+}
   
       if(act==='delete'){
         if(!confirm('Remover este relatório? (esta ação não pode ser desfeita)')) return;
