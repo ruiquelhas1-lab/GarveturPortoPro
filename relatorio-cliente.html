@@ -3946,7 +3946,22 @@ const notasInternasHTML =
           </div>
           <div class="goldbar"></div>
         </div>
-
+        
+${resumoFinal ? `
+  <div class="sec">
+    <h2>Resumo Executivo</h2>
+    <div class="callout">
+      <h3>Leitura rápida</h3>
+      <p class="lead">${safe(resumoFinal).replace(/\n/g,'<br>')}</p>
+      <div class="kws" style="margin-top:12px">
+        <span class="badge">Fonte: ${safe(badgeFonte)}</span>
+        <span class="badge">Zona: ${safe(badgeZona)}</span>
+        <span class="badge">${safe(badgeConf)}</span>
+      </div>
+    </div>
+  </div>
+  <div class="rule"></div>
+` : ``}
         ${blocoContexto}
         ${blocoAtivo}
         ${blocoEstudo}
