@@ -1308,58 +1308,6 @@
   const el = (id)=>document.getElementById(id);
   const $$ = (sel, root=document)=>Array.from(root.querySelectorAll(sel));
   const todayISO = ()=> new Date().toISOString().slice(0,10);
-  function openPremiumPreview(html, title='Relatório Premium'){
-  const modal = document.getElementById('premiumModal');
-  const frame = document.getElementById('premiumModalFrame');
-  const t = document.getElementById('premiumModalTitle');
-  const btnClose = document.getElementById('premiumModalClose');
-  const btnPrint = document.getElementById('premiumModalPrint');
-
-  if(!modal || !frame){
-    alert('premiumModal/premiumModalFrame não encontrados no HTML.');
-    return;
-  }
-
-  if(t) t.textContent = String(title || 'Relatório Premium').toUpperCase();
-
-  // IMPORTANTE: HTML -> srcdoc (não src)
-  try{ frame.removeAttribute('src'); }catch(e){}
-  try{ frame.src = 'about:blank'; }catch(e){}
-  frame.srcdoc = String(html || '');
-
-  modal.classList.remove('hidden');
-  modal.setAttribute('aria-hidden','false');
-
-  const close = ()=>{
-    modal.classList.add('hidden');
-    modal.setAttribute('aria-hidden','true');
-    try{ frame.srcdoc = ''; }catch(e){}
-    try{ frame.src = 'about:blank'; }catch(e){}
-  };
-
-  btnClose && btnClose.addEventListener('click', close, { once:true });
-
-  // clicar fora fecha
-  modal.addEventListener('click', (ev)=>{
-    if(ev.target === modal) close();
-  }, { once:true });
-
-  // ESC fecha
-  const onKey = (ev)=>{
-    if(ev.key === 'Escape'){ close(); }
-  };
-  window.addEventListener('keydown', onKey, { once:true });
-
-  // imprimir o conteúdo do iframe
-  btnPrint && btnPrint.addEventListener('click', ()=>{
-    try{
-      frame.contentWindow && frame.contentWindow.focus();
-      frame.contentWindow && frame.contentWindow.print();
-    }catch(e){
-      alert('Impressão bloqueada pelo browser. Tente abrir o relatório noutra aba.');
-    }
-  }, { once:true });
-}
 
   function safeJSONParse(raw, fallback){
     try{ return raw ? JSON.parse(raw) : fallback; }catch{ return fallback; }
@@ -3971,6 +3919,7 @@ const notasInternasHTML =
           <div class="kv"><b>Preocupações</b><span>${preocup.length ? safe(preocup.join(', ')) : '—'}</span></div>
         </div>
       </div>
+     
     </div>
   `;
 
@@ -3994,73 +3943,62 @@ const notasInternasHTML =
     </div>
   `;
 
-  const blocoEstudo = hasStudy ? `
-    <div class="sec">
-      <h2>Curadoria do Estudo</h2>
-      <p class="p">Síntese estruturada a partir do estudo importado (extração assistida). Esta secção reflete o estudo; a Recomendação Garvetur mantém-se independente.</p>
+const blocoEstudo = hasStudy ? `
+  <div class="sec">
+    <h2>Curadoria do Estudo</h2>
+    <p class="p">Síntese estruturada a partir do estudo importado (extração assistida). Esta secção reflete o estudo; a Recomendação Garvetur mantém-se independente.</p>
 
-      <div class="cols3">
-        <div class="mini">
-          <h4>Relevante</h4>
-          <p>${safe(studySummary?.relevante || '—').replace(/\\n/g,'<br>')}</p>
-        </div>
-        <div class="mini">
-          <h4>Riscos</h4>
-          <p>${safe(studySummary?.riscos || '—').replace(/\\n/g,'<br>')}</p>
-        </div>
-        <div class="mini">
-          <h4>Oportunidades</h4>
-          <p>${safe(studySummary?.oportunidades || '—').replace(/\\n/g,'<br>')}</p>
-        </div>
+    <div class="cols3">
+      <div class="mini">
+        <h4>Relevante</h4>
+        <p>${safe(studySummary?.relevante || '—').replace(/\n/g,'<br>')}</p>
       </div>
-
-      ${topKw.length ? `
-        <div class="kws">
-          <h3 style="margin:12px 0 8px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#444">Palavras-chave</h3>
-          ${topKw.map(w=>`<span class="kw">${safe(w)}</span>`).join('')}
-        </div>
-      ` : ``}
-
-      <div class="divider"></div>
-
-      <div class="card" style="padding:14px">
-        <h3>Capítulos (curadoria)</h3>
-
-        <div class="chgrid">
-          ${chapters.slice(0,12).map((ch, idx)=>{
-            const t = safe(ch.title || `Capítulo ${idx+1}`);
-            const ins = Array.isArray(ch.insights) ? ch.insights.filter(Boolean).slice(0,4) : [];
-            const pars = Array.isArray(ch.paragraphs) ? ch.paragraphs.filter(Boolean).slice(0,2) : [];
-
-            const body = ins.length
-              ? `<ul>${ins.map(i=>`<li>${safe(i)}</li>`).join('')}</ul>`
-              : (pars.length ? `<p class="p" style="margin:10px 0 0">${safe(pars.join(' '))}</p>` : `<p class="p" style="margin:10px 0 0">—</p>`);
-
-            return `
-              <div class="ch">
-                <div class="chTop">
-                  <div class="badgeNum">${idx+1}</div>
-                  <div class="chTitle">${t}</div>
-                </div>
-                ${body}
-              </div>
-            `;
-          }).join('')}
-        </div>
+      <div class="mini">
+        <h4>Riscos</h4>
+        <p>${safe(studySummary?.riscos || '—').replace(/\n/g,'<br>')}</p>
+      </div>
+      <div class="mini">
+        <h4>Oportunidades</h4>
+        <p>${safe(studySummary?.oportunidades || '—').replace(/\n/g,'<br>')}</p>
       </div>
     </div>
-  ` : '';
 
-  const html = `
-  <!doctype html>
-  <html>
-    <head>
-      <meta charset="utf-8">
-      <title>${safe(title)}</title>
-      ${premiumStyles}
-    </head>
-    <body>
-      <div class="doc">
+    ${topKw.length ? `
+      <div class="kws">
+        <h3 style="margin:12px 0 8px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#444">Palavras-chave</h3>
+        ${topKw.map(w=>`<span class="kw">${safe(w)}</span>`).join('')}
+      </div>
+    ` : ``}
+
+    <div class="divider"></div>
+
+    <div class="card" style="padding:14px">
+      <h3>Capítulos (curadoria)</h3>
+
+      <div class="chgrid">
+        ${chapters.slice(0,12).map((ch, idx)=>{
+          const t = safe(ch.title || `Capítulo ${idx+1}`);
+          const ins = Array.isArray(ch.insights) ? ch.insights.filter(Boolean).slice(0,4) : [];
+          const pars = Array.isArray(ch.paragraphs) ? ch.paragraphs.filter(Boolean).slice(0,2) : [];
+
+          const body = ins.length
+            ? `<ul>${ins.map(i=>`<li>${safe(i)}</li>`).join('')}</ul>`
+            : (pars.length ? `<p class="p" style="margin:10px 0 0">${safe(pars.join(' '))}</p>` : `<p class="p" style="margin:10px 0 0">—</p>`);
+
+          return `
+            <div class="ch">
+              <div class="chTop">
+                <div class="badgeNum">${idx+1}</div>
+                <div class="chTitle">${t}</div>
+              </div>
+              ${body}
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  </div>
+` : '';
         ${blocoContexto}
         ${blocoAtivo}
         ${blocoEstudo}
@@ -4075,7 +4013,6 @@ const notasInternasHTML =
     </body>
   </html>
   `;
-
   return html;
 }
 
@@ -4163,16 +4100,39 @@ const notasInternasHTML =
     openReportPreview(html, `Relatório Executivo — ${r?.cliente?.nome || 'Cliente'}`);
   });
 
-btnBuildPremium?.addEventListener('click', ()=>{
-  try{
-    const r = saveDraft();
-    const html = exportReportToPremiumHTML(r, {});
-    openPremiumPreview(html, `Relatório Premium — ${r?.cliente?.nome || 'Cliente'}`);
-  }catch(e){
-    console.error('[Premium] erro', e);
-    alert('Erro ao gerar Relatório Premium. Abra a Consola (F12) para ver o detalhe.');
-  }
+  btnBuildPremium?.addEventListener('click', ()=>{
+  const r = saveDraft();
+  const html = exportReportToPremiumHTML(r, {});
+  openReportPreview(html, `Relatório Premium — ${r?.cliente?.nome || 'Cliente'}`);
 });
+
+  if(btnApplyTemplates){
+  btnApplyTemplates.addEventListener('click', ()=>{
+    applyOfficialTemplates();
+    // opcional: guardar já no draft para não se perder
+    try{ saveDraftSilent(); }catch{}
+  });
+}
+
+if(btnResetTemplates){
+  btnResetTemplates.addEventListener('click', ()=>{
+    resetTemplatesUI();
+  });
+}
+
+  btnDuplicate?.addEventListener('click', ()=>{
+    const r = saveDraft();
+    const copy = JSON.parse(JSON.stringify(r));
+    copy.id = uid('rpt');
+    copy.createdAt = todayISO();
+    copy.updatedAt = todayISO();
+    copy.status = 'draft';
+    upsertReport(copy);
+    renderList();
+    alert('Template duplicado. Pode abrir a cópia na lista.');
+  });
+
+  
 /* ===========================
      Tabs + init
   =========================== */
@@ -4214,3 +4174,4 @@ btnBuildPremium?.addEventListener('click', ()=>{
 })();</script>
 </body>
 </html>
+
