@@ -3537,113 +3537,6 @@ async function removePdf(pdfId){
 
     const rec = (report.report?.recomendacaoFinal || '').trim() || '(preencher recomendação final)';
 
-// ===== Sprint 2.5/2.6/2.7 — Executivo (APENAS quando forceExec=true) =====
-const safe = (s)=> htmlEscape(String(s||''));
-const cta = (report.report?.cta || 'Agendar reunião');
-
-// Resumo executivo (prioriza campo dedicado; fallback = recomendação)
-const resumoExec = (report.report?.sumExec || '').trim();
-const resumoFinal = (resumoExec || rec || '').trim();
-
-// Curadoria mínima (se existir)
-const studySummary = report.analysis?.sum || {};
-const hasCuradoriaMin = !!(studySummary.relevante || studySummary.riscos || studySummary.oportunidades);
-
-// Bullets simples a partir de texto (se o rec vier em linhas)
-function toBullets(text, max=3){
-  const t = String(text||'').replace(/\r/g,'').trim();
-  if(!t) return [];
-  const lines = t.split('\n').map(x=>x.trim()).filter(Boolean);
-  const bullets = [];
-  for(const ln of lines){
-    const clean = ln.replace(/^[-•\u2022]+\s*/,'').trim();
-    if(clean.length >= 18) bullets.push(clean);
-    if(bullets.length >= max) break;
-  }
-  return bullets;
-}
-
-const recText = (rec || '').trim();
-const recBullets = toBullets(recText, 3);
-
-const execRazoes = recBullets.length ? recBullets : [
-  "Alinhamento entre objetivo, timing e posicionamento do ativo/zona.",
-  "Mitigação de risco através de execução por marcos (controlo semanal).",
-  "Decisão baseada em critérios objetivos, reduzindo indecisão e custo de oportunidade."
-];
-
-const execRiscos = [
-  "Perda de janela de mercado/atenção se a decisão for adiada.",
-  "Desalinhamento entre expectativa e mercado — corrigir cedo via validação."
-];
-
-// Bloco executivo pronto a injetar no HTML (só no modo executivo)
-const blocoExecFinal = forceExec ? `
-  <div class="sec">
-    <h2>Resumo Executivo</h2>
-    <div class="callout">
-      <h3>Leitura rápida</h3>
-      <p class="p">
-        ${safe(resumoFinal || 'Síntese a preencher no campo “Resumo Executivo”.').replace(/\n/g,'<br>')}
-      </p>
-      <div class="hr"></div>
-      <p class="p"><strong>Próximo passo recomendado:</strong> ${safe(cta)}</p>
-    </div>
-  </div>
-
-  ${hasCuradoriaMin ? `
-    <div class="sec">
-      <h2>Curadoria do Estudo (mínimo)</h2>
-      <div class="callout">
-        ${studySummary.relevante ? `<p class="p"><strong>Relevante:</strong> ${safe(studySummary.relevante).replace(/\n/g,'<br>')}</p>` : ``}
-        ${studySummary.riscos ? `<p class="p"><strong>Riscos:</strong> ${safe(studySummary.riscos).replace(/\n/g,'<br>')}</p>` : ``}
-        ${studySummary.oportunidades ? `<p class="p"><strong>Oportunidades:</strong> ${safe(studySummary.oportunidades).replace(/\n/g,'<br>')}</p>` : ``}
-      </div>
-    </div>
-  ` : ``}
-
-  <div class="sec">
-    <h2>Recomendação Garvetur (Executiva)</h2>
-
-    <div class="callout">
-      <h3>Decisão recomendada</h3>
-      <p class="p">${safe(recText || '(preencher recomendação final)').replace(/\n/g,'<br>')}</p>
-    </div>
-
-    <div class="grid" style="margin-top:12px">
-      <div class="card">
-        <h3>Razões principais</h3>
-        <ul>
-          ${execRazoes.map(x=>`<li>${safe(x)}</li>`).join('')}
-        </ul>
-      </div>
-      <div class="card">
-        <h3>Riscos a vigiar</h3>
-        <ul>
-          ${execRiscos.map(x=>`<li>${safe(x)}</li>`).join('')}
-        </ul>
-      </div>
-    </div>
-
-    <div class="hr"></div>
-
-    <div class="callout">
-      <h3>Ação recomendada</h3>
-      <p class="p"><strong>${safe(cta)}</strong> — 15 a 20 minutos para validar critérios, cenário e calendarização.</p>
-    </div>
-  </div>
-
-  <div class="sec">
-    <h2>Checklist final (fecho)</h2>
-    <ul>
-      <li>Objetivo e critérios de decisão confirmados (10–15 min).</li>
-      <li>Dados críticos revistos (FSBO | Leads | Angariações), sem conflitos.</li>
-      <li>Plano com marcos e responsáveis acordado.</li>
-      <li>Próximo passo agendado: <strong>${safe(cta)}</strong>.</li>
-    </ul>
-  </div>
-` : '';
-    
     // Dados do estudo (Fase 2.1 — extração assistida)
     const chapters = Array.isArray(report.analysis?.chapters) ? report.analysis.chapters : [];
     const studySummary = report.analysis?.sum || {};
@@ -3751,28 +3644,10 @@ const studyHTML = chapters.length ? `
             </div>
 
             <div class="sec">
-  <h2>Resumo Executivo</h2>
-
-  <div class="callout">
-    <h3>Leitura rápida</h3>
-
-    <p class="p">
-      ${htmlEscape(resumoFinal || rec || 'Síntese a preencher.').replace(/\n/g,'<br>')}
-    </p>
-
-    <div class="hr"></div>
-
-    <p class="p">
-      <strong>Próximo passo recomendado:</strong> ${htmlEscape(cta || 'Agendar reunião')}
-    </p>
-  </div>
-
-  <p class="p" style="margin-top:10px">
-    <strong>Objetivo:</strong> ${htmlEscape(obj.objetivo || '—')}
-    · <strong>Zona:</strong> ${htmlEscape(zona)}
-    ${tip ? ('· <strong>Tipologia:</strong> ' + htmlEscape(tip)) : ''}
-  </p>
-</div>
+              <h2>Resumo Executivo</h2>
+              <p class="p"><strong>Objetivo:</strong> ${htmlEscape(obj.objetivo || '—')} · <strong>Zona:</strong> ${htmlEscape(zona)} ${tip?('· <strong>Tipologia:</strong> '+htmlEscape(tip)) : ''}</p>
+              <p class="p">${htmlEscape(rec).replace(/\\n/g,'<br>')}</p>
+            </div>
 
             <div class="sec">
               <h2>Contexto (inputs do módulo)</h2>
