@@ -1,7 +1,6 @@
 
 
 
-
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -1985,19 +1984,7 @@ const tplStatus = el('tplStatus');
             </ul>
           </div>
 
-${forceExec ? `` : `
-            <div class="sec">
-              <h2>Próximos passos</h2>
-              <ul>
-                <li>Validar objetivo e critérios de decisão do cliente (10–15 min).</li>
-                <li>Confirmar informação crítica já existente nos módulos (FSBO | Leads | Angariações).</li>
-                <li>Alinhar estratégia e calendarização.</li>
-                <li><strong>CTA final:</strong> ${htmlEscape(report.report?.cta || 'Agendar reunião')}.</li>
-              </ul>
-            </div>
-` }
-
-            <div class="foot">
+          <div class="foot">
             <span>Documento interno · Não distribuir sem autorização.</span>
             <span>Gerado localmente no browser</span>
           </div>
@@ -3487,7 +3474,7 @@ async function removePdf(pdfId){
     const tip = mode==='imovel' ? (ativo.imovel?.tipologia || '') : (ativo.zona?.tipologia || '');
     const detalhe = forceExec ? 'exec' : (cliente.detalhe || 'exec');
     const confTag = 'CONFIDENCIAL';
-    const title = `${forceExec ? 'Relatório Executivo' : 'Relatório'} — ${cliente.nome || 'Cliente'} (${toPTDate(report.updatedAt || report.createdAt)})`;
+    const title = `Relatório para Cliente — ${cliente.nome || 'Cliente'} (${toPTDate(report.updatedAt || report.createdAt)})`;
 
     const styles = `
       <style>
@@ -3501,7 +3488,7 @@ async function removePdf(pdfId){
         .h1{margin:18px 0 6px;font-size:20px;letter-spacing:.02em}
         .tag{display:inline-block;padding:4px 10px;border:1px solid #ddd;border-radius:999px;font-size:11px;color:#333;background:#fafafa}
         .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
-        .card{border:1px solid #eee;border-radius:14px;padding:12px 12px}
+        .card{border:1.5px solid #d9d9d9;border-radius:14px;padding:12px 12px;background:#fff}
         .card h3{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#444}
         .kv{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
         .kv:last-child{border-bottom:none}
@@ -3523,7 +3510,7 @@ async function removePdf(pdfId){
 .tag{ font-weight:700; }
 
 .callout{
-  border:1px solid #e6e0d6;
+  border:1.5px solid #d9d9d9;
   background:#fbfaf8;
   border-radius:14px;
   padding:12px 12px;
@@ -3582,10 +3569,10 @@ async function removePdf(pdfId){
   //    (Podes evoluir depois para regras por objetivo: vender/investir/etc.)
   const implicacoes = [];
   if(top.length){
-    implicacoes.push("O estudo suporta uma decisão com base em sinais consistentes (procura/posicionamento) — evitar indecisão prolongada.");
-    implicacoes.push("A estratégia deve privilegiar clareza de proposta e execução (timing + narrativa + preço/condições).");
-    implicacoes.push("O risco principal é perder janela de mercado/atenção — a resposta recomendada é plano com marcos e controlo semanal.");
-  }
+    implicacoes.push("O estudo reforça critérios objetivos de decisão (procura/posicionamento) e reduz o risco de escolhas por impulso.");
+    implicacoes.push("A recomendação beneficia de uma execução calendarizada (timing + proposta + condições), com pontos de controlo claros.");
+    implicacoes.push("O principal risco é perder janela de mercado/atenção; a mitigação é um plano com marcos e revisão semanal.");
+}
 
   return { topInsights: top, implicacoes };
 }
@@ -3608,10 +3595,27 @@ const studyHTML = chapters.length ? `
     </div>
 
     <div class="callout">
-      <h3>Implicações para a sua decisão</h3>
+      <h3>Implicações para Fernando Pinto</h3>
       <ul class="bullets">
         ${cur.implicacoes.map(x=>`<li>${safe(x)}</li>`).join('')}
       </ul>
+    </div>
+
+    <div class="hr"></div>
+
+    <h2>Anexo (referência) — capítulos do estudo</h2>
+    <div class="card" style="margin-top:10px">
+      <h3>Capítulos (síntese)</h3>
+      ${chapters.slice(0,12).map((ch, idx)=>{
+        const t = safe(ch.title || `Capítulo ${idx+1}`);
+        const ins = Array.isArray(ch.insights) ? ch.insights.filter(Boolean).slice(0,3) : [];
+        return `
+          <div style="padding:8px 0;border-bottom:1px solid #f0f0f0">
+            <div style="font-weight:800">${idx+1}. ${t}</div>
+            ${ins.length ? `<ul>${ins.map(i=>`<li>${safe(i)}</li>`).join('')}</ul>` : ``}
+          </div>
+        `;
+      }).join('')}
     </div>
   </div>
 ` : ``;
@@ -3628,8 +3632,106 @@ const studyHTML = chapters.length ? `
           <div class="page">
             <div class="top">
               <div>
-                <div class="brand">Garvetur Luxury Porto</div>
-                <div class="h1">${forceExec ? "Relatório Executivo — Análise &amp; Decisão" : "Relatório"}</div>
+                <div style="display:flex;align-items:center;gap:10px"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/7QCEUGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAGgcAigAYkZCTUQwYTAwMGFiMjAxMDAwMGZiMDIwMDAwYTAwNDAwMDBlZjA0MDAwMDg4MDUwMDAwMTAwODAwMDA5ZDBiMDAwMDBkMGMwMDAwYTkwYzAwMDAzNjBkMDAwMGYyMTAwMDAwAP/bAIQABQYGCwgLCwsLCw0LCwsNDg4NDQ4ODw0ODg4NDxAQEBEREBAQEA8TEhMPEBETFBQTERMWFhYTFhUVFhkWGRYWEgEFBQUKBwoICQkICwgKCAsKCgkJCgoMCQoJCgkMDQsKCwsKCw0MCwsICwsMDAwNDQwMDQoLCg0MDQ0MExQTExOc/8IAEQgAlgCWAwEiAAIRAQMRAf/EAH0AAQACAwEBAAAAAAAAAAAAAAABBAIDBQYHEAABAwEDBgsIAQQDAAAAAAABAAIRAxIhMQQiMEFRYRATIDJCcYGRodHwBRQzQFKxweEjJGBy8WKCshEBAAEDAwIGAgMBAQAAAAAAAREAITFBUWFxgRAwkaGx8CDBQNHh8WD/2gAMAwEAAgADAAAAAa45toAAA6+3KOG63
+
+${forceExec ? `
+            <div class="sec">
+              <h2>Garvetur Luxury Porto</h2>
+              <div class="callout">
+                <p class="p">A Garvetur Luxury Porto é a unidade premium do Grupo Garvetur, focada em consultoria imobiliária de elevada exigência no Grande Porto. Atuamos com metodologia, discrição e rigor, apoiando clientes nacionais e internacionais na tomada de decisão — compra, venda ou investimento.<br>Este relatório executivo foi preparado para suportar a sua decisão, sintetizando os pontos críticos do contexto, da análise e da recomendação, com próximos passos claros e orientados à execução.</p>
+              </div>
+            </div>
+
+            <div class="sec">
+              <h2>Curadoria do Estudo</h2>
+              <div class="callout">
+                <h3>Insights que importam</h3>
+                ${cur.topInsights?.length ? `
+                  <ul class="bullets">
+                    ${cur.topInsights.slice(0,6).map(x=>`<li>${safe(x)}</li>`).join('')}
+                  </ul>
+                ` : `<p class="p">Sem insights automáticos suficientes. (Sugestão: cole mais texto no Passo 4 ou refine o excerto.)</p>`}
+              </div>
+            </div>
+
+            <div class="sec">
+              <h2>Implicações para a sua decisão</h2>
+              <div class="callout">
+                <ul class="bullets">
+                  ${cur.implicacoes.map(x=>`<li>${safe(x)}</li>`).join('')}
+                </ul>
+                <div class="hr"></div>
+                <p class="p"><strong>Próximo passo recomendado:</strong> ${safe(report.report?.cta || 'Agendar reunião')}</p>
+              </div>
+            </div>
+
+            <div class="sec">
+              <h2>Porque faz sentido agora</h2>
+              <div class="grid" style="margin-top:10px">
+                <div class="card">
+                  <h3>Razões principais</h3>
+                  <ul>
+                    <li>Alinhamento entre objetivo, horizonte e posicionamento do ativo/zona.</li>
+                    <li>Decisão baseada em critérios objetivos, com validação rápida e disciplinada.</li>
+                    <li>Execução por marcos com revisão semanal, reduzindo indecisão e custo de oportunidade.</li>
+                  </ul>
+                </div>
+                <div class="card">
+                  <h3>Riscos a vigiar</h3>
+                  <ul>
+                    <li>Perda de janela de mercado/atenção se a decisão for adiada.</li>
+                    <li>Desalinhamento entre expectativa e mercado — corrigir cedo via validação.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="sec">
+              <h2>Decisão recomendada</h2>
+              <div class="callout">
+                <h3>Recomendação Garvetur</h3>
+                <p class="p">${safe(rec).replace(/\n/g,'<br>')}</p>
+              </div>
+
+              <div class="card" style="margin-top:12px">
+                <h3>Contactos</h3>
+                <p class="p">Rui Quelhas<br>Direção Comercial Porto/ Commercial Manager Porto<br>M. 00351 915 169 010 | 969 031 692<br>(chamada para a rede móvel nacional)<br>E. manager.porto@garveturluxury.com<br>AMI 1427</p>
+              </div>
+            </div>
+` : `
+            <div class="sec">
+              <h2>Resumo Executivo</h2>
+              <p class="p"><strong>Objetivo:</strong> ${htmlEscape(obj.objetivo || '—')} · <strong>Zona:</strong> ${htmlEscape(zona)} ${tip?('· <strong>Tipologia:</strong> '+htmlEscape(tip)) : ''}</p>
+              <p class="p">${htmlEscape(rec).replace(/\n/g,'<br>')}</p>
+            </div>
+
+            <div class="sec">
+              <h2>Contexto</h2>
+              <div class="grid">
+                <div class="card">
+                  <h3>Briefing</h3>
+                  <div class="kv"><b>Tipo</b><span>${htmlEscape(cliente.tipo||'—')}</span></div>
+                  <div class="kv"><b>Horizonte</b><span>${htmlEscape(obj.horizonte||'—')}</span></div>
+                  <div class="kv"><b>Risco</b><span>${htmlEscape(obj.risco||'—')}</span></div>
+                </div>
+              </div>
+            </div>
+
+            ${studyHTML}
+
+            <div class="sec">
+              <h2>Próximos passos</h2>
+              <ul>
+                <li>Validar objetivo e critérios de decisão do cliente (10–15 min).</li>
+                <li>Confirmar informação crítica já existente nos módulos (FSBO | Leads | Angariações).</li>
+                <li>Alinhar estratégia e calendarização.</li>
+                <li><strong>CTA final:</strong> ${htmlEscape(report.report?.cta || 'Agendar reunião')}.</li>
+              </ul>
+            </div>
+`}
+
+            <div class="foot">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" alt="Garvetur Luxury" style="height:34px;width:auto;border-radius:8px;border:1px solid #ddd"><div class="brand">Garvetur Luxury Porto</div></div>
+                <div class="h1">Relatório Executivo — Análise & Decisão</div>
                 <span class="tag">${htmlEscape(confTag)}</span>
               </div>
               <div class="meta">
@@ -3639,18 +3741,8 @@ const studyHTML = chapters.length ? `
                 <div><strong>Formato:</strong> ${detalhe==='full'?'Completo':'Executivo'}</div>
               </div>
             </div>
-${forceExec ? `<div class="sec">
-              <h2>Garvetur Luxury Porto</h2>
-              <p class="p">
-                A Garvetur Luxury Porto é a unidade premium do Grupo Garvetur no Norte, dedicada a operações residenciais e de investimento
-                com abordagem consultiva e foco em resultados. Trabalhamos com uma metodologia estruturada: diagnóstico, curadoria de informação,
-                posicionamento e execução, garantindo rigor na análise e clareza na decisão.
-                <br>Atuamos com rede nacional e capacidade de mobilizar procura qualificada, combinando conhecimento local do Grande Porto
-                com visão de mercado e disciplina comercial.
-                <br>Este relatório sintetiza os elementos essenciais para apoiar a sua decisão, com recomendações práticas e próximos passos objetivos.
-              </p>
-            </div>` : ``}
 
+            
 <div class="sec">
   <h2>Resumo Executivo</h2>
   <p class="p"><strong>Objetivo:</strong> ${htmlEscape(obj.objetivo || '—')} · <strong>Zona:</strong> ${htmlEscape(zona)} ${tip?('· <strong>Tipologia:</strong> '+htmlEscape(tip)) : ''}</p>
@@ -3682,12 +3774,34 @@ ${forceExec ? `<div class="sec">
   </div>
 </div>
 
+<div class="sec">
+  <h2>Contexto (inputs do módulo)</h2>
+
+              <div class="grid">
+                <div class="card">
+                  <h3>Briefing</h3>
+                  <div class="kv"><b>Tipo</b><span>${htmlEscape(cliente.tipo||'—')}</span></div>
+                  <div class="kv"><b>Horizonte</b><span>${htmlEscape(obj.horizonte||'—')}</span></div>
+                  <div class="kv"><b>Risco</b><span>${htmlEscape(obj.risco||'—')}</span></div>
+                </div>
+               
               </div>
             </div>
 
             ${studyHTML}
+
+            <div class="sec">
+              <h2>Próximos passos</h2>
+              <ul>
+                <li>Validar objetivo e critérios de decisão do cliente (10–15 min).</li>
+                <li>Confirmar informação crítica já existente nos módulos (FSBO | Leads | Angariações).</li>
+                <li>Alinhar estratégia e calendarização.</li>
+                <li><strong>CTA final:</strong> ${htmlEscape(report.report?.cta || 'Agendar reunião')}.</li>
+              </ul>
+            </div>
+
             <div class="foot">
-              <span>CONFIDENCIAL · Documento para o Cliente · Não distribuir sem autorização.</span>
+              <span>${htmlEscape(confTag)} · Documento confidencial · Não distribuir sem autorização.</span>
               <span>Gerado em ${htmlEscape(toPTDate(todayISO()))}</span>
             </div>
           </div>
@@ -3708,7 +3822,7 @@ ${forceExec ? `<div class="sec">
   const tip  = mode==='imovel' ? (ativo.imovel?.tipologia || '') : (ativo.zona?.tipologia || '');
   const fonte = mode==='imovel' ? (ativo.imovel?.fonte || '—') : 'Zona';
   const detalhe = (cliente.detalhe === 'full') ? 'Completo' : 'Executivo';
-  const confTag = cliente.confidencial ? 'CONFIDENCIAL' : 'INTERNO';
+  const confTag = 'CONFIDENCIAL';
 
   const safe = (s)=> htmlEscape(String(s||''));
   const ptDate = (iso)=> safe(toPTDate(iso || todayISO()));
