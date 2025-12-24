@@ -1,6 +1,7 @@
 
 
 
+
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -3545,7 +3546,13 @@ async function removePdf(pdfId){
   body{ counter-reset: page; }
   .pagenum:after{ content: counter(page); }
 }
-      </style>
+      
+/* Sprint 2.7 — Consistência tipográfica */
+.lead{font-size:13px;line-height:1.55;color:#222;margin:0 0 8px;font-family:Arial,Helvetica,sans-serif}
+.kws{margin-top:10px}
+.badge{display:inline-block;padding:4px 10px;border:1px solid #ddd;border-radius:999px;font-size:11px;color:#333;background:#fafafa;font-weight:700}
+.rule{height:1px;background:#eee;margin:14px 0}
+</style>
     `;
 
     const rec = (report.report?.recomendacaoFinal || '').trim() || '(preencher recomendação final)';
@@ -3666,27 +3673,17 @@ async function removePdf(pdfId){
         <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
           <img src="${assinaturaDataURI}" alt="Assinatura" style="height:34px;opacity:.95"/>
           <div style="line-height:1.35">
-            <div style="font-weight:800;color:#111">Rui Quelhas
-    Direção Comercial Porto/ Commercial Manager Porto
-    
-    M. 00351 915 169 010 | 969 031 692
-    (chamada para a rede móvel nacional)
-    E. manager.porto@garveturluxury.com
-    
-    AMI 1427</div>
-            <div style="font-size:11px;color:#666">Diretor Comercial · Garvetur Luxury Porto</div>
-            <div style="font-size:11px;color:#666"></div>
+            <div style="font-weight:900;color:#111">Rui Quelhas</div>
+            <div style="font-size:11.5px;color:#111">Diretor Comercial · Garvetur Luxury Porto</div>
+            <div style="font-size:11px;color:#666;margin-top:2px">M. 00351 915 169 010 · 969 031 692</div>
+            <div style="font-size:11px;color:#666">E. manager.porto@garveturluxury.com · AMI 1427</div>
           </div>
         </div>
-        <div style="text-align:right;font-size:11px;color:#777">
-          <div><strong>Garvetur Luxury Porto</strong></div>
-          <div>Contacto: ${htmlEscape(cliente.tel||'—')} · ${htmlEscape(cliente.email||'—')}</div>
-          <div style="margin-top:6px">CONFIDENCIAL — Documento preparado para o destinatário identificado.</div>
+        <div style="text-align:right;font-size:11px;color:#666;line-height:1.45">
+          <div><strong>${htmlEscape(confTag)}</strong> — Documento preparado para o destinatário identificado.</div>
         </div>
       </div>
-    `;
-    
-    // Template executivo final (ordem pedida)
+    `;// Template executivo final (ordem pedida)
     const htmlExec = `
       <!doctype html>
       <html lang="pt-PT">
@@ -3743,7 +3740,7 @@ async function removePdf(pdfId){
     `;
     
 
-    function buildCuradoriaExecutiva(chapters){
+    function buildCuradoriaExecutiva(chapters, studySummary){
   // 1) recolhe insights já calculados pela extração assistida
   const all = [];
   for(const ch of (chapters||[])){
@@ -3751,6 +3748,20 @@ async function removePdf(pdfId){
       const s = String(ins||'').trim();
       if(s && s.length >= 40) all.push(s);
     }
+  }
+
+  // 1b) fallback: usa síntese do estudo (Passo 4) quando não existirem capítulos/insights
+  if(!all.length && studySummary && typeof studySummary === 'object'){
+    const parts = [studySummary.relevante, studySummary.riscos, studySummary.oportunidades]
+      .map(x=>String(x||'').trim())
+      .filter(Boolean);
+    const joined = parts.join(' ');
+    // dividir em frases curtas úteis
+    const sentences = joined
+      .split(/[\.\!\?]\s+/)
+      .map(s=>s.trim())
+      .filter(s=>s.length >= 40);
+    for(const s of sentences) all.push(s);
   }
 
   // 2) dedupe simples
@@ -3763,24 +3774,25 @@ async function removePdf(pdfId){
     uniq.push(s);
   }
 
-  // 3) escolhe top (premium = curto e forte)
-  const top = uniq.slice(0, 9);
+  // 3) escolhe top (executivo = curto e forte)
+  const top = uniq.slice(0, 8);
 
   // 4) Implicações (heurística simples, mas útil)
-  //    (Podes evoluir depois para regras por objetivo: vender/investir/etc.)
   const implicacoes = [];
   if(top.length){
-    implicacoes.push("O estudo suporta uma decisão com base em sinais consistentes (procura/posicionamento) — evitar indecisão prolongada.");
+    implicacoes.push("O estudo suporta uma decisão com base em sinais consistentes — evitar indecisão prolongada.");
     implicacoes.push("A estratégia deve privilegiar clareza de proposta e execução (timing + narrativa + preço/condições).");
-    implicacoes.push("O risco principal é perder janela de mercado/atenção — a resposta recomendada é plano com marcos e controlo semanal.");
+    implicacoes.push("Risco principal: perder janela de mercado/atenção — resposta recomendada: plano com marcos e controlo semanal.");
   }
 
   return { topInsights: top, implicacoes };
 }
 
-   const cur = buildCuradoriaExecutiva(chapters);
+   const cur = buildCuradoriaExecutiva(chapters, studySummary);
 
-const studyHTML = chapters.length ? `
+const hasStudy = !!(chapters.length || (studySummary?.relevante || studySummary?.riscos || studySummary?.oportunidades));
+
+const studyHTML = hasStudy ? `
   <div class="sec">
     <h2>Curadoria do Estudo (executivo)</h2>
 
