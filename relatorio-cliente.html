@@ -1,5 +1,6 @@
 
 
+
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -3643,15 +3644,42 @@ const studyHTML = chapters.length ? `
               </div>
             </div>
 
-            <div class="sec">
-              <h2>Resumo Executivo</h2>
-              <p class="p"><strong>Objetivo:</strong> ${htmlEscape(obj.objetivo || '—')} · <strong>Zona:</strong> ${htmlEscape(zona)} ${tip?('· <strong>Tipologia:</strong> '+htmlEscape(tip)) : ''}</p>
-              <p class="p">Leitura executiva orientada à decisão. O texto abaixo sintetiza os pontos-chave e a orientação recomendada para o próximo passo.</p>
-              <p class="p"><strong>Mensagem‑chave:</strong><br>${htmlEscape(rec).replace(/\n/g,'<br>')}</p>
-            </div>
+            
+<div class="sec">
+  <h2>Resumo Executivo</h2>
+  <p class="p"><strong>Objetivo:</strong> ${htmlEscape(obj.objetivo || '—')} · <strong>Zona:</strong> ${htmlEscape(zona)} ${tip?('· <strong>Tipologia:</strong> '+htmlEscape(tip)) : ''}</p>
 
-            <div class="sec">
-              <h2>Contexto (inputs do módulo)</h2>
+  <div class="callout">
+    <h3>Decisão recomendada</h3>
+    <p class="p">${htmlEscape(rec).replace(/
+/g,'<br>')}</p>
+    <div class="hr"></div>
+    <p class="p"><strong>Próximo passo recomendado:</strong> ${htmlEscape(report.report?.cta || 'Agendar reunião')} — 15 a 20 minutos para validar critérios, cenário e calendarização.</p>
+  </div>
+
+  <div class="grid" style="margin-top:12px">
+    <div class="card">
+      <h3>Porque faz sentido (executivo)</h3>
+      <ul class="bullets">
+        <li>Alinhamento entre objetivo, horizonte de decisão e posicionamento do ativo/zona.</li>
+        <li>Redução de incerteza com execução por marcos e controlo semanal (evita indecisão prolongada).</li>
+        <li>Capacidade de otimizar resultado via proposta clara, timing e condições.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Riscos a vigiar</h3>
+      <ul class="bullets">
+        <li>Perda de janela de mercado/atenção se a decisão for adiada.</li>
+        <li>Desalinhamento entre expectativa e realidade de mercado — corrigir cedo com validação.</li>
+        <li>Competição e volatilidade no curto prazo — requer disciplina de preço/condições e narrativa.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Contexto (inputs do módulo)</h2>
+
               <div class="grid">
                 <div class="card">
                   <h3>Briefing</h3>
