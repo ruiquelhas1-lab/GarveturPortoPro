@@ -1985,7 +1985,19 @@ const tplStatus = el('tplStatus');
             </ul>
           </div>
 
-          <div class="foot">
+${forceExec ? `` : `
+            <div class="sec">
+              <h2>Próximos passos</h2>
+              <ul>
+                <li>Validar objetivo e critérios de decisão do cliente (10–15 min).</li>
+                <li>Confirmar informação crítica já existente nos módulos (FSBO | Leads | Angariações).</li>
+                <li>Alinhar estratégia e calendarização.</li>
+                <li><strong>CTA final:</strong> ${htmlEscape(report.report?.cta || 'Agendar reunião')}.</li>
+              </ul>
+            </div>
+` }
+
+            <div class="foot">
             <span>Documento interno · Não distribuir sem autorização.</span>
             <span>Gerado localmente no browser</span>
           </div>
@@ -3475,7 +3487,7 @@ async function removePdf(pdfId){
     const tip = mode==='imovel' ? (ativo.imovel?.tipologia || '') : (ativo.zona?.tipologia || '');
     const detalhe = forceExec ? 'exec' : (cliente.detalhe || 'exec');
     const confTag = 'CONFIDENCIAL';
-    const title = `Relatório Executivo — ${cliente.nome || 'Cliente'} (${toPTDate(report.updatedAt || report.createdAt)})`;
+    const title = `${forceExec ? 'Relatório Executivo' : 'Relatório'} — ${cliente.nome || 'Cliente'} (${toPTDate(report.updatedAt || report.createdAt)})`;
 
     const styles = `
       <style>
@@ -3601,6 +3613,7 @@ const studyHTML = chapters.length ? `
         ${cur.implicacoes.map(x=>`<li>${safe(x)}</li>`).join('')}
       </ul>
     </div>
+  </div>
 ` : ``;
 
     const html = `
@@ -3616,7 +3629,7 @@ const studyHTML = chapters.length ? `
             <div class="top">
               <div>
                 <div class="brand">Garvetur Luxury Porto</div>
-                <div class="h1">Relatório Executivo</div>
+                <div class="h1">${forceExec ? "Relatório Executivo — Análise &amp; Decisão" : "Relatório"}</div>
                 <span class="tag">${htmlEscape(confTag)}</span>
               </div>
               <div class="meta">
@@ -3626,8 +3639,18 @@ const studyHTML = chapters.length ? `
                 <div><strong>Formato:</strong> ${detalhe==='full'?'Completo':'Executivo'}</div>
               </div>
             </div>
+${forceExec ? `<div class="sec">
+              <h2>Garvetur Luxury Porto</h2>
+              <p class="p">
+                A Garvetur Luxury Porto é a unidade premium do Grupo Garvetur no Norte, dedicada a operações residenciais e de investimento
+                com abordagem consultiva e foco em resultados. Trabalhamos com uma metodologia estruturada: diagnóstico, curadoria de informação,
+                posicionamento e execução, garantindo rigor na análise e clareza na decisão.
+                <br>Atuamos com rede nacional e capacidade de mobilizar procura qualificada, combinando conhecimento local do Grande Porto
+                com visão de mercado e disciplina comercial.
+                <br>Este relatório sintetiza os elementos essenciais para apoiar a sua decisão, com recomendações práticas e próximos passos objetivos.
+              </p>
+            </div>` : ``}
 
-            
 <div class="sec">
   <h2>Resumo Executivo</h2>
   <p class="p"><strong>Objetivo:</strong> ${htmlEscape(obj.objetivo || '—')} · <strong>Zona:</strong> ${htmlEscape(zona)} ${tip?('· <strong>Tipologia:</strong> '+htmlEscape(tip)) : ''}</p>
@@ -3658,6 +3681,8 @@ const studyHTML = chapters.length ? `
     </div>
   </div>
 </div>
+
+              </div>
             </div>
 
             ${studyHTML}
@@ -3673,7 +3698,17 @@ const studyHTML = chapters.length ? `
     return html;
   }
 
-   cliente.confidencial ? 'CONFIDENCIAL' : 'INTERNO';
+  function exportReportToPremiumHTML(report, opts={}){
+  const cliente = report.cliente || {};
+  const obj = report.objetivo || {};
+  const ativo = report.ativo || {};
+  const mode = ativo.mode || 'imovel';
+
+  const zona = mode==='imovel' ? (ativo.imovel?.zona || '—') : (ativo.zona?.zona || '—');
+  const tip  = mode==='imovel' ? (ativo.imovel?.tipologia || '') : (ativo.zona?.tipologia || '');
+  const fonte = mode==='imovel' ? (ativo.imovel?.fonte || '—') : 'Zona';
+  const detalhe = (cliente.detalhe === 'full') ? 'Completo' : 'Executivo';
+  const confTag = cliente.confidencial ? 'CONFIDENCIAL' : 'INTERNO';
 
   const safe = (s)=> htmlEscape(String(s||''));
   const ptDate = (iso)=> safe(toPTDate(iso || todayISO()));
