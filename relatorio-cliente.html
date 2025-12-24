@@ -3584,7 +3584,7 @@ const blocoExecFinal = forceExec ? `
     <div class="callout">
       <h3>Leitura rápida</h3>
       <p class="p">
-        ${safe(resumoFinal || 'Síntese a preencher no campo “Resumo Executivo”.').replace(/\\n/g,'<br>')}
+        ${safe(resumoFinal || 'Síntese a preencher no campo “Resumo Executivo”.').replace(/\n/g,'<br>')}
       </p>
       <div class="hr"></div>
       <p class="p"><strong>Próximo passo recomendado:</strong> ${safe(cta)}</p>
@@ -3595,9 +3595,9 @@ const blocoExecFinal = forceExec ? `
     <div class="sec">
       <h2>Curadoria do Estudo (mínimo)</h2>
       <div class="callout">
-        ${studySummary.relevante ? `<p class="p"><strong>Relevante:</strong> ${safe(studySummary.relevante).replace(/\\n/g,'<br>')}</p>` : ``}
-        ${studySummary.riscos ? `<p class="p"><strong>Riscos:</strong> ${safe(studySummary.riscos).replace(/\\n/g,'<br>')}</p>` : ``}
-        ${studySummary.oportunidades ? `<p class="p"><strong>Oportunidades:</strong> ${safe(studySummary.oportunidades).replace(/\\n/g,'<br>')}</p>` : ``}
+        ${studySummary.relevante ? `<p class="p"><strong>Relevante:</strong> ${safe(studySummary.relevante).replace(/\n/g,'<br>')}</p>` : ``}
+        ${studySummary.riscos ? `<p class="p"><strong>Riscos:</strong> ${safe(studySummary.riscos).replace(/\n/g,'<br>')}</p>` : ``}
+        ${studySummary.oportunidades ? `<p class="p"><strong>Oportunidades:</strong> ${safe(studySummary.oportunidades).replace(/\n/g,'<br>')}</p>` : ``}
       </div>
     </div>
   ` : ``}
@@ -3607,9 +3607,7 @@ const blocoExecFinal = forceExec ? `
 
     <div class="callout">
       <h3>Decisão recomendada</h3>
-      <p class="p">
-        ${safe(recText || '(preencher recomendação final)').replace(/\\n/g,'<br>')}
-      </p>
+      <p class="p">${safe(recText || '(preencher recomendação final)').replace(/\n/g,'<br>')}</p>
     </div>
 
     <div class="grid" style="margin-top:12px">
@@ -3644,8 +3642,7 @@ const blocoExecFinal = forceExec ? `
       <li>Próximo passo agendado: <strong>${safe(cta)}</strong>.</li>
     </ul>
   </div>
-` : ``;
-
+` : '';
     
     // Dados do estudo (Fase 2.1 — extração assistida)
     const chapters = Array.isArray(report.analysis?.chapters) ? report.analysis.chapters : [];
