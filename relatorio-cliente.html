@@ -1,7 +1,6 @@
 
 
 
-
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -2111,13 +2110,7 @@ window.addEventListener('keydown', (e)=>{
   // Views & steps
   const stepEls = [null, el('step1'), el('step2'), el('step3'), el('step4'), el('step5')];
   let currentStep = 1;
-  let ACTIVE_REPORT_ID = null;
-
-  // ID do relatório atualmente aberto (necessário para a Extração Assistida - Passo 4)
-  function getCurrentReportId(){
-    return ACTIVE_REPORT_ID || null;
-  }
-// relatório em edição
+  let ACTIVE_REPORT_ID = null; // relatório em edição
   let PDF_READY = false;
 
   function setTab(which){
@@ -3615,18 +3608,73 @@ async function removePdf(pdfId){
     const introGarvetur = `A Garvetur Luxury Porto é a unidade premium do Grupo Garvetur no Norte de Portugal, especializada em consultoria imobiliária para clientes exigentes, nacionais e internacionais. Combinamos conhecimento local detalhado do Grande Porto com acesso a uma rede nacional consolidada, assegurando acompanhamento completo do início ao fecho da decisão. A nossa abordagem é orientada a valor: análise de contexto, leitura de mercado, rigor documental e execução com marcos claros. Este relatório sintetiza os principais pontos de decisão e propõe o próximo passo recomendado.`;
     
     // Curadoria mínima (sem anexo)
-    const curadoriaMinHTML = (studySummary && (studySummary.relevante || studySummary.riscos || studySummary.oportunidades)) ? `
-      <div class="sec">
-        <h2>Curadoria do Estudo</h2>
-        <div class="callout">
-          ${studySummary.relevante ? `<p class="p"><strong>Relevante:</strong> ${safe(studySummary.relevante).replace(/\n/g,'<br>')}</p>` : ``}
-          ${studySummary.riscos ? `<p class="p"><strong>Riscos:</strong> ${safe(studySummary.riscos).replace(/\n/g,'<br>')}</p>` : ``}
-          ${studySummary.oportunidades ? `<p class="p"><strong>Oportunidades:</strong> ${safe(studySummary.oportunidades).replace(/\n/g,'<br>')}</p>` : ``}
-        </div>
+// - Prioridade: usar a extração assistida do Passo 4 (chapters[].insights)
+// - Fallback: usar sum (relevante/riscos/oportunidades) se existir
+const curFromChapters = (()=>{
+  const all = [];
+  for(const ch of (chapters||[])){
+    const ins = Array.isArray(ch?.insights) ? ch.insights : [];
+    for(const i of ins){
+      const s = String(i||'').trim();
+      if(s && s.length >= 40) all.push(s);
+    }
+  }
+  // dedupe simples
+  const seen = new Set();
+  const uniq = [];
+  for(const s of all){
+    const k = s.toLowerCase().slice(0,140);
+    if(seen.has(k)) continue;
+    seen.add(k);
+    uniq.push(s);
+  }
+  const top = uniq.slice(0, 6);
+  const implicacoes = top.length ? [
+    "Clarificar critérios de decisão e validar o cenário dominante (evita indecisão prolongada).",
+    "Definir um plano curto com marcos (timing, proposta e validação) para reduzir risco de execução."
+  ] : [];
+  return { top, implicacoes };
+})();
+
+const hasCuradoriaMin = (
+  (studySummary && (studySummary.relevante || studySummary.riscos || studySummary.oportunidades)) ||
+  (curFromChapters.top && curFromChapters.top.length)
+);
+
+const curadoriaMinHTML = hasCuradoriaMin ? `
+  <div class="sec">
+    <h2>Curadoria do Estudo</h2>
+
+    ${curFromChapters.top?.length ? `
+      <div class="callout">
+        <h3>Pontos-chave do estudo (extração assistida)</h3>
+        <ul class="bullets">
+          ${curFromChapters.top.map(x=>`<li>${safe(x)}</li>`).join('')}
+        </ul>
       </div>
-    ` : ``;
-    
-    // Implicações (linguagem para cliente)
+    ` : ``}
+
+    ${studySummary?.relevante || studySummary?.riscos || studySummary?.oportunidades ? `
+      <div class="callout" style="margin-top:10px">
+        <h3>Síntese (resumo)</h3>
+        ${studySummary?.relevante ? `<p class="p"><strong>Relevante:</strong> ${safe(studySummary.relevante).replace(/\n/g,'<br>')}</p>` : ``}
+        ${studySummary?.riscos ? `<p class="p"><strong>Riscos:</strong> ${safe(studySummary.riscos).replace(/\n/g,'<br>')}</p>` : ``}
+        ${studySummary?.oportunidades ? `<p class="p"><strong>Oportunidades:</strong> ${safe(studySummary.oportunidades).replace(/\n/g,'<br>')}</p>` : ``}
+      </div>
+    ` : ``}
+
+    ${curFromChapters.implicacoes?.length ? `
+      <div class="callout" style="margin-top:10px">
+        <h3>Implicações para a sua decisão</h3>
+        <ul class="bullets">
+          ${curFromChapters.implicacoes.map(x=>`<li>${safe(x)}</li>`).join('')}
+        </ul>
+      </div>
+    ` : ``}
+  </div>
+` : ``;
+
+// Implicações (linguagem para cliente)
     const implicacoesCliente = `
       <div class="sec">
         <h2>Implicações para a sua decisão</h2>
