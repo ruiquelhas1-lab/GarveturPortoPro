@@ -1,6 +1,7 @@
 
 
 
+
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -3473,8 +3474,8 @@ async function removePdf(pdfId){
     const zona = mode==='imovel' ? (ativo.imovel?.zona || '—') : (ativo.zona?.zona || '—');
     const tip = mode==='imovel' ? (ativo.imovel?.tipologia || '') : (ativo.zona?.tipologia || '');
     const detalhe = forceExec ? 'exec' : (cliente.detalhe || 'exec');
-    const confTag = cliente.confidencial ? 'CONFIDENCIAL' : 'INTERNO';
-    const title = `Relatório para Cliente — ${cliente.nome || 'Cliente'} (${toPTDate(report.updatedAt || report.createdAt)})`;
+    const confTag = 'CONFIDENCIAL';
+    const title = `Relatório Executivo — ${cliente.nome || 'Cliente'} (${toPTDate(report.updatedAt || report.createdAt)})`;
 
     const styles = `
       <style>
@@ -3600,24 +3601,6 @@ const studyHTML = chapters.length ? `
         ${cur.implicacoes.map(x=>`<li>${safe(x)}</li>`).join('')}
       </ul>
     </div>
-
-    <div class="hr"></div>
-
-    <h2>Anexo (referência) — capítulos do estudo</h2>
-    <div class="card" style="margin-top:10px">
-      <h3>Capítulos (síntese)</h3>
-      ${chapters.slice(0,12).map((ch, idx)=>{
-        const t = safe(ch.title || `Capítulo ${idx+1}`);
-        const ins = Array.isArray(ch.insights) ? ch.insights.filter(Boolean).slice(0,3) : [];
-        return `
-          <div style="padding:8px 0;border-bottom:1px solid #f0f0f0">
-            <div style="font-weight:800">${idx+1}. ${t}</div>
-            ${ins.length ? `<ul>${ins.map(i=>`<li>${safe(i)}</li>`).join('')}</ul>` : ``}
-          </div>
-        `;
-      }).join('')}
-    </div>
-  </div>
 ` : ``;
 
     const html = `
@@ -3633,7 +3616,7 @@ const studyHTML = chapters.length ? `
             <div class="top">
               <div>
                 <div class="brand">Garvetur Luxury Porto</div>
-                <div class="h1">Relatório para Cliente</div>
+                <div class="h1">Relatório Executivo</div>
                 <span class="tag">${htmlEscape(confTag)}</span>
               </div>
               <div class="meta">
@@ -3675,19 +3658,6 @@ const studyHTML = chapters.length ? `
     </div>
   </div>
 </div>
-
-<div class="sec">
-  <h2>Contexto (inputs do módulo)</h2>
-
-              <div class="grid">
-                <div class="card">
-                  <h3>Briefing</h3>
-                  <div class="kv"><b>Tipo</b><span>${htmlEscape(cliente.tipo||'—')}</span></div>
-                  <div class="kv"><b>Horizonte</b><span>${htmlEscape(obj.horizonte||'—')}</span></div>
-                  <div class="kv"><b>Risco</b><span>${htmlEscape(obj.risco||'—')}</span></div>
-                </div>
-               
-              </div>
             </div>
 
             ${studyHTML}
@@ -3703,17 +3673,7 @@ const studyHTML = chapters.length ? `
     return html;
   }
 
-  function exportReportToPremiumHTML(report, opts={}){
-  const cliente = report.cliente || {};
-  const obj = report.objetivo || {};
-  const ativo = report.ativo || {};
-  const mode = ativo.mode || 'imovel';
-
-  const zona = mode==='imovel' ? (ativo.imovel?.zona || '—') : (ativo.zona?.zona || '—');
-  const tip  = mode==='imovel' ? (ativo.imovel?.tipologia || '') : (ativo.zona?.tipologia || '');
-  const fonte = mode==='imovel' ? (ativo.imovel?.fonte || '—') : 'Zona';
-  const detalhe = (cliente.detalhe === 'full') ? 'Completo' : 'Executivo';
-  const confTag = cliente.confidencial ? 'CONFIDENCIAL' : 'INTERNO';
+   cliente.confidencial ? 'CONFIDENCIAL' : 'INTERNO';
 
   const safe = (s)=> htmlEscape(String(s||''));
   const ptDate = (iso)=> safe(toPTDate(iso || todayISO()));
