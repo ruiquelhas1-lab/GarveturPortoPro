@@ -3604,9 +3604,9 @@ async function removePdf(pdfId){
       <div class="sec">
         <h2>Curadoria do Estudo</h2>
         <div class="callout">
-          $${studySummary.relevante ? `<p class="p"><strong>Relevante:</strong> $${safe(studySummary.relevante).replace(/\n/g,'<br>')$}</p>` : ``$}
-          $${studySummary.riscos ? `<p class="p"><strong>Riscos:</strong> $${safe(studySummary.riscos).replace(/\n/g,'<br>')$}</p>` : ``$}
-          $${studySummary.oportunidades ? `<p class="p"><strong>Oportunidades:</strong> $${safe(studySummary.oportunidades).replace(/\n/g,'<br>')$}</p>` : ``$}
+          ${studySummary.relevante ? `<p class="p"><strong>Relevante:</strong> ${safe(studySummary.relevante).replace(/\n/g,'<br>')}</p>` : ``}
+          ${studySummary.riscos ? `<p class="p"><strong>Riscos:</strong> ${safe(studySummary.riscos).replace(/\n/g,'<br>')}</p>` : ``}
+          ${studySummary.oportunidades ? `<p class="p"><strong>Oportunidades:</strong> ${safe(studySummary.oportunidades).replace(/\n/g,'<br>')}</p>` : ``}
         </div>
       </div>
     ` : ``;
@@ -3633,13 +3633,13 @@ async function removePdf(pdfId){
           <div class="card">
             <h3>Razões principais</h3>
             <ul>
-              $${execRazoes.map(x=>`<li>$${safe(x)$}</li>`).join('')$}
+              ${execRazoes.map(x=>`<li>${safe(x)}</li>`).join('')}
             </ul>
           </div>
           <div class="card">
             <h3>Riscos a vigiar</h3>
             <ul>
-              $${execRiscos.map(x=>`<li>$${safe(x)$}</li>`).join('')$}
+              ${execRiscos.map(x=>`<li>${safe(x)}</li>`).join('')}
             </ul>
           </div>
         </div>
@@ -3651,9 +3651,9 @@ async function removePdf(pdfId){
       <div class="sec">
         <h2>Decisão recomendada</h2>
         <div class="callout">
-          <p class="p">$${safe(resumoFinal || rec || '(a preencher)').replace(/\n/g,'<br>')$}</p>
+          <p class="p">${safe(resumoFinal || rec || '(a preencher)').replace(/\n/g,'<br>')}</p>
           <div class="hr"></div>
-          <p class="p"><strong>Próximo passo recomendado:</strong> $${safe(cta)$}</p>
+          <p class="p"><strong>Próximo passo recomendado:</strong> ${safe(cta)}</p>
         </div>
       </div>
     `;
@@ -3662,7 +3662,7 @@ async function removePdf(pdfId){
     const assinaturaHTML = `
       <div class="foot" style="align-items:flex-start">
         <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-          <img src="$${assinaturaDataURI$}" alt="Assinatura" style="height:34px;opacity:.95"/>
+          <img src="${assinaturaDataURI}" alt="Assinatura" style="height:34px;opacity:.95"/>
           <div style="line-height:1.35">
             <div style="font-weight:800;color:#111">Rui Quelhas
     Direção Comercial Porto/ Commercial Manager Porto
@@ -3678,7 +3678,7 @@ async function removePdf(pdfId){
         </div>
         <div style="text-align:right;font-size:11px;color:#777">
           <div><strong>Garvetur Luxury Porto</strong></div>
-          <div>Contacto: $${htmlEscape(cliente.tel||'—')$} · $${htmlEscape(cliente.email||'—')$}</div>
+          <div>Contacto: ${htmlEscape(cliente.tel||'—')} · ${htmlEscape(cliente.email||'—')}</div>
           <div style="margin-top:6px">CONFIDENCIAL — Documento preparado para o destinatário identificado.</div>
         </div>
       </div>
@@ -3690,8 +3690,8 @@ async function removePdf(pdfId){
       <html lang="pt-PT">
         <head>
           <meta charset="utf-8">
-          <title>$${htmlEscape(title)$}</title>
-          $${styles$}
+          <title>${htmlEscape(title)}</title>
+          ${styles}
           <style>
             /* Ajustes de “fecho” de linhas/bordas em PDF */
             .page{ max-width:920px; margin:0 auto; padding:28px 34px; overflow:visible; }
@@ -3708,33 +3708,33 @@ async function removePdf(pdfId){
           <div class="page">
             <div class="top">
               <div class="brandRow">
-                <img class="logoMark" src="$${logoDataURI$}" alt="Garvetur Luxury"/>
+                <img class="logoMark" src="${logoDataURI}" alt="Garvetur Luxury"/>
                 <div>
                   <div class="brand">Garvetur Luxury Porto</div>
                   <div class="h1">Relatório Executivo</div>
-                  <span class="tag">$${confTagExec$}</span>
+                  <span class="tag">${confTagExec}</span>
                 </div>
               </div>
               <div class="meta">
-                <div><strong>Destinatário:</strong> $${htmlEscape(cliente.nome||'—')$}</div>
-                <div><strong>Contacto:</strong> $${htmlEscape(cliente.tel||'—')$} · $${htmlEscape(cliente.email||'—')$}</div>
-                <div><strong>Data:</strong> $${htmlEscape(toPTDate(report.updatedAt||report.createdAt||todayISO()))$}</div>
+                <div><strong>Destinatário:</strong> ${htmlEscape(cliente.nome||'—')}</div>
+                <div><strong>Contacto:</strong> ${htmlEscape(cliente.tel||'—')} · ${htmlEscape(cliente.email||'—')}</div>
+                <div><strong>Data:</strong> ${htmlEscape(toPTDate(report.updatedAt||report.createdAt||todayISO()))}</div>
               </div>
             </div>
     
             <div class="sec">
               <h2>Garvetur Luxury Porto</h2>
               <div class="callout">
-                <p class="p">$${introGarvetur$}</p>
+                <p class="p">${introGarvetur}</p>
               </div>
             </div>
     
-            $${curadoriaMinHTML$}
-            $${implicacoesCliente$}
-            $${porqueFazSentido$}
-            $${decisaoRecomendada$}
+            ${curadoriaMinHTML}
+            ${implicacoesCliente}
+            ${porqueFazSentido}
+            ${decisaoRecomendada}
     
-            $${assinaturaHTML$}
+            ${assinaturaHTML}
           </div>
         </body>
       </html>
