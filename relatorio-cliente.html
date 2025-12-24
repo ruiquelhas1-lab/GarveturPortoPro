@@ -4394,11 +4394,17 @@ ${resumoFinal ? `
       }
   
      if(act==='export'){
-  const r = getReport(id);
-  if(!r) return;
-  const html = exportReportToPrintPDF(r, false);
-  openReportPreview(html, `Relatório — ${r?.cliente?.nome || 'Cliente'}`);
-  return;
+  try{
+    const r = getReport(id);
+    if(!r) return;
+    const html = exportReportToPrintPDF(r, false);
+    openReportPreview(html, `Relatório — ${r?.cliente?.nome || 'Cliente'}`);
+    return;
+  }catch(err){
+    console.error(err);
+    alert('Erro ao exportar Relatório (PDF).\n' + (err?.message || err));
+    return;
+  }
 }
     });
 }
@@ -4419,18 +4425,28 @@ ${resumoFinal ? `
      Export Buttons
   =========================== */
   btnBuildPdf?.addEventListener('click', ()=>{
+  try{
     const r = saveDraft();
     const html = exportReportToPrintPDF(r, false);
     openReportPreview(html, `Relatório — ${r?.cliente?.nome || 'Cliente'}`);
-  });
+  }catch(err){
+    console.error(err);
+    alert('Erro ao gerar Relatório (PDF). Se o problema persistir, copie e volte a colar o ficheiro estável e avise-me do texto deste erro:\n' + (err?.message || err));
+  }
+});
 
-  btnBuildExec?.addEventListener('click', ()=>{
+btnBuildExec?.addEventListener('click', ()=>{
+  try{
     const r = saveDraft();
     const html = exportReportToPrintPDF(r, true);
     openReportPreview(html, `Relatório Executivo — ${r?.cliente?.nome || 'Cliente'}`);
-  });
+  }catch(err){
+    console.error(err);
+    alert('Erro ao gerar Relatório Executivo. Se o problema persistir, copie e volte a colar o ficheiro estável e avise-me do texto deste erro:\n' + (err?.message || err));
+  }
+});
 
-  btnBuildPremium?.addEventListener('click', ()=>{
+btnBuildPremium?.addEventListener('click', ()=>{
   const r = saveDraft();
   const html = exportReportToPremiumHTML(r, {});
   openReportPreview(html, `Relatório Premium — ${r?.cliente?.nome || 'Cliente'}`);
