@@ -3479,21 +3479,21 @@ async function removePdf(pdfId){
       <style>
         :root{--gold:#A38B63;--muted:#666;--txt:#111}
         *{box-sizing:border-box}
-        body{font-family:Arial,Helvetica,sans-serif;color:var(--txt);margin:0;background:#fff}
+        body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif;color:var(--txt);margin:0;background:#fff}
         .page{max-width:920px;margin:0 auto;padding:28px 34px}
         .top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
         .brand{font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);font-size:14px}
         .meta{font-size:12px;color:var(--muted);text-align:right;line-height:1.4}
-        .h1{margin:18px 0 6px;font-size:20px;letter-spacing:.02em}
+        .h1{margin:18px 0 6px;font-size:22px;letter-spacing:.02em;font-weight:900}
         .tag{display:inline-block;padding:4px 10px;border:1px solid #ddd;border-radius:999px;font-size:11px;color:#333;background:#fafafa}
         .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
         .card{border:1px solid #eee;border-radius:14px;padding:12px 12px}
-        .card h3{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#444}
+        .card h3{margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:#444;font-weight:900}
         .kv{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
         .kv:last-child{border-bottom:none}
         .kv b{color:#555;font-weight:700}
         .sec{margin-top:16px}
-        .sec h2{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.14em;color:#444}
+        .sec h2{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.16em;color:#444;font-weight:900}
         .p{font-size:13px;line-height:1.55;color:#222;margin:0 0 8px}
         ul{margin:6px 0 0 18px}
         li{margin:4px 0;font-size:13px;line-height:1.45}
@@ -3582,40 +3582,27 @@ async function removePdf(pdfId){
 
 const studyHTML = chapters.length ? `
   <div class="sec">
-    <h2>Curadoria do Estudo (executivo)</h2>
+    <h2>Curadoria do Estudo</h2>
 
     <div class="callout">
       <h3>Insights que importam para a decisão</h3>
       ${cur.topInsights?.length ? `
         <ul class="bullets">
-          ${cur.topInsights.map(x=>`<li>${safe(x)}</li>`).join('')}
+          ${cur.topInsights.slice(0,7).map(x=>`<li>${safe(x)}</li>`).join('')}
         </ul>
       ` : `<p class="p">Sem insights automáticos suficientes. (Sugestão: cole mais texto no Passo 4 ou refine o excerto.)</p>`}
     </div>
 
     <div class="callout">
-      <h3>Implicações para Fernando Pinto</h3>
+      <h3>Implicações para o Cliente</h3>
       <ul class="bullets">
         ${cur.implicacoes.map(x=>`<li>${safe(x)}</li>`).join('')}
       </ul>
     </div>
 
-    <div class="hr"></div>
-
-    <h2>Anexo (referência) — capítulos do estudo</h2>
-    <div class="card" style="margin-top:10px">
-      <h3>Capítulos (síntese)</h3>
-      ${chapters.slice(0,12).map((ch, idx)=>{
-        const t = safe(ch.title || `Capítulo ${idx+1}`);
-        const ins = Array.isArray(ch.insights) ? ch.insights.filter(Boolean).slice(0,3) : [];
-        return `
-          <div style="padding:8px 0;border-bottom:1px solid #f0f0f0">
-            <div style="font-weight:800">${idx+1}. ${t}</div>
-            ${ins.length ? `<ul>${ins.map(i=>`<li>${safe(i)}</li>`).join('')}</ul>` : ``}
-          </div>
-        `;
-      }).join('')}
-    </div>
+    <p class="p" style="margin-top:10px;color:#666;font-size:12px">
+      Nota: capítulos detalhados do estudo mantêm-se no módulo (não incluídos nesta versão executiva para evitar redundância).
+    </p>
   </div>
 ` : ``;
 
