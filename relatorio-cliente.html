@@ -3550,6 +3550,8 @@ async function removePdf(pdfId){
 
     const rec = (report.report?.recomendacaoFinal || '').trim() || '(preencher recomendação final)';
 
+    const safe = (s)=> htmlEscape(String(s||''));
+
     
     // ===== Sprint 2.7 (cliente) — Executivo: razões/riscos (sem mexer em botões) =====
     const cta = (report.report?.cta || 'Agendar reunião');
@@ -3775,8 +3777,6 @@ async function removePdf(pdfId){
 
   return { topInsights: top, implicacoes };
 }
-
-    const safe = (s)=> htmlEscape(String(s||''));
 
    const cur = buildCuradoriaExecutiva(chapters);
 
