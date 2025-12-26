@@ -545,13 +545,7 @@
   display: none !important;
 }
     
-  
-
-@media print{
-  /* Keep critical blocks intact across pages */
-  .no-break{ break-inside: avoid; page-break-inside: avoid; }
-}
-</style>
+  </style>
 </head>
 
 <body>
@@ -3532,6 +3526,12 @@ async function removePdf(pdfId){
   @page { margin: 14mm 14mm; }
   .page{ max-width: none; padding: 0; }
   .no-print{ display:none !important; }
+
+  /* Keep blocks intact across pages */
+  .no-break{ break-inside: avoid; page-break-inside: avoid; }
+  .sec.no-break, .callout.no-break{ break-inside: avoid; page-break-inside: avoid; }
+  p{ orphans: 3; widows: 3; }
+
 }
 
 .h1{ font-size:22px; margin:16px 0 6px; }
@@ -3678,9 +3678,9 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
 
 // Implicações (linguagem para cliente)
     const implicacoesCliente = `
-      <div class="sec">
+      <div class="sec no-break">
         <h2>Implicações para a sua decisão</h2>
-        <div class="callout">
+        <div class="callout no-break">
           ${curFromChapters.implicacoes?.length ? `           <ul class="bullets">             ${curFromChapters.implicacoes.map(x=>`<li>${safe(x)}</li>`).join('')}           </ul>         ` : ``}  <p class="p">
             A informação analisada aponta para uma decisão que deve ser tomada com critérios objetivos e um plano de execução claro.
             O ponto-chave é reduzir incerteza (e custo de oportunidade) através de validação rápida de pressupostos e calendarização.
@@ -3691,7 +3691,7 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
     
     // Porque faz sentido + riscos (executivo)
     const porqueFazSentido = `
-      <div class="sec no-break">
+      <div class="sec">
         <h2>Porque faz sentido agora</h2>
     
         <div class="grid" style="margin-top:12px">
