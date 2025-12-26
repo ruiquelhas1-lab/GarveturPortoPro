@@ -1,6 +1,7 @@
 
 
 
+
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -3654,10 +3655,8 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
 
           ${(studySummary?.riscos || studySummary?.oportunidades) ? `
             <div class="hr"></div>
-            ${studySummary.riscos ? `<p class="p"><strong>Riscos:</strong> ${safe(studySummary.riscos).replace(/
-/g,'<br>')}</p>` : ``}
-            ${studySummary.oportunidades ? `<p class="p"><strong>Oportunidades:</strong> ${safe(studySummary.oportunidades).replace(/
-/g,'<br>')}</p>` : ``}
+            ${studySummary.riscos ? `<p class="p"><strong>Riscos:</strong> ${safe(studySummary.riscos).split(String.fromCharCode(10)).join('<br>')}</p>` : ``}
+            ${studySummary.oportunidades ? `<p class="p"><strong>Oportunidades:</strong> ${safe(studySummary.oportunidades).split(String.fromCharCode(10)).join('<br>')}</p>` : ``}
           ` : ``}
         </div>
       </div>
