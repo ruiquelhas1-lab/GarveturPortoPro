@@ -1985,7 +1985,15 @@ const tplStatus = el('tplStatus');
           </div>
 
 ${forceExec ? `` : `
+            
             <div class="sec">
+              <h2>Por que trabalhar com a Garvetur Luxury Porto</h2>
+              <div class="callout">
+                <p class="p">(Conteúdo a definir — bloco preparado para responder às principais objeções e clarificar o valor da Garvetur Luxury Porto.)</p>
+              </div>
+            </div>
+
+<div class="sec" style="margin-top:26px">
               <h2>Próximos passos</h2>
               <ul>
                 <li>Validar objetivo e critérios de decisão do cliente (10–15 min).</li>
@@ -2977,10 +2985,10 @@ btnResetCliente?.addEventListener('click', ()=>{
     }
   },
   recomendacao: {
-    decisiva: (ctx)=>`DECISÃO RECOMENDADA
+    decisiva: (ctx)=>`Decisão recomendada
 Com base nos critérios e na evidência reunida, a recomendação é avançar com uma decisão objetiva nas próximas 48–72 horas, para proteger posicionamento e timing.
 
-O QUE FAZER AGORA (EXECUÇÃO)
+O que fazer agora (execução)
 1) Validar critérios finais e orçamento (10–15 min).
 2) Confirmar disponibilidade/condições do ativo e documentação crítica.
 3) Definir estratégia (proposta / negociação) e calendarização.
@@ -3521,7 +3529,7 @@ async function removePdf(pdfId){
 .h1{ font-size:22px; margin:16px 0 6px; }
 .tag{ font-weight:700; }
 
-.callout{
+.callout{max-width:100%;
   border:1px solid #e6e0d6;
   background:#fbfaf8;
   border-radius:14px;
@@ -3833,24 +3841,43 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
 
 const hasStudy = !!(chapters.length || (studySummary?.relevante || studySummary?.riscos || studySummary?.oportunidades));
 
+// Texto bruto do estudo (Passo 4). Preferimos mostrar o texto como foi colado (sem síntese automática).
+const studyRaw = (report.analysis?.text || report.analysis?.texto || report.analysis?.rawText || report.analysis?.raw || report.analysis?.inputText || '').toString().trim();
+
+// fallback: reconstruir a partir dos capítulos (quando não existe raw)
+const studyFromChapters = (chapters||[]).map(ch=>{
+  const pars = Array.isArray(ch.paragraphs) ? ch.paragraphs.filter(Boolean).join('
+
+') : '';
+  if(pars && pars.trim()) return pars.trim();
+  const ins = Array.isArray(ch.insights) ? ch.insights.filter(Boolean).join('
+') : '';
+  return ins ? ins.trim() : '';
+}).filter(Boolean).join('
+
+').trim();
+
+const studyBody = (studyRaw || studyFromChapters || '').trim();
+
 const studyHTML = hasStudy ? `
   <div class="sec">
-    <h2>Curadoria do Estudo (executivo)</h2>
+    <h2>Estudo de Mercado</h2>
 
     <div class="callout">
-      <h3>Insights que importam para a decisão</h3>
+      <h3>Texto de referência</h3>
+      ${studyBody
+        ? `<p class="p">${safe(studyBody).replace(/\n/g,'<br>')}</p>`
+        : `<p class="p">Sem conteúdo do estudo. (Cole o texto no Passo 4.)</p>`
+      }
+    </div>
+
+    <div class="callout" style="margin-top:12px">
+      <h3>Insights principais</h3>
       ${cur.topInsights?.length ? `
         <ul class="bullets">
           ${cur.topInsights.map(x=>`<li>${safe(x)}</li>`).join('')}
         </ul>
-      ` : `<p class="p">Sem insights automáticos suficientes. (Sugestão: cole mais texto no Passo 4 ou refine o excerto.)</p>`}
-    </div>
-
-    <div class="callout">
-      <h3>Implicações para a sua decisão</h3>
-      <ul class="bullets">
-        ${cur.implicacoes.map(x=>`<li>${safe(x)}</li>`).join('')}
-      </ul>
+      ` : `<p class="p">—</p>`}
     </div>
   </div>
 ` : ``;
@@ -4147,6 +4174,7 @@ const blocoEstudoMin = hasStudy ? `
       .doc{padding:0 10mm}
       .hero{break-inside:avoid}
       .card{break-inside:avoid}
+  .callout{break-inside:avoid}
       .sec{break-inside:avoid-page}
     }
 /* Bloco 2.2 — Ritmo e hierarquia */
