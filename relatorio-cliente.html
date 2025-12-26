@@ -3654,6 +3654,30 @@ const hasCuradoriaMin = (
   (curFromChapters.top && curFromChapters.top.length)
 );
 
+// Texto do estudo (Passo 4) — usar o texto como foi colado (sem síntese)
+  const studyRaw = String(
+    report.analysis?.textoEstudo ??
+    report.analysis?.studyText ??
+    report.analysis?.text ??
+    report.analysis?.raw ??
+    report.analysis?.input ??
+    ''
+  ).trim();
+
+  // Fallback: reconstruir a partir de capítulos (quando existir extração assistida)
+  const studyFromChapters = (chapters||[]).map((ch)=>{
+    const t = String(ch?.title || '').trim();
+    const pars = Array.isArray(ch?.paragraphs) ? ch.paragraphs.filter(Boolean).join(' ') : '';
+    return [t, pars].filter(Boolean).join(' — ');
+  }).filter(Boolean).join('\n\n').trim();
+
+  const studyText = (studyRaw || studyFromChapters || '').trim();
+  const hasStudyText = !!studyText;
+
+
+  // compat: alguns blocos usam 'hasStudy'
+  const hasStudy = hasStudyText;
+
 const curadoriaMinHTML = hasStudyText ? `
   <div class="sec">
     <h2>Estudo de Mercado</h2>
@@ -3829,29 +3853,6 @@ const curadoriaMinHTML = hasStudyText ? `
 
    const cur = buildCuradoriaExecutiva(chapters, studySummary);
 
-// Texto do estudo (Passo 4) — usar o texto como foi colado (sem síntese)
-  const studyRaw = String(
-    report.analysis?.textoEstudo ??
-    report.analysis?.studyText ??
-    report.analysis?.text ??
-    report.analysis?.raw ??
-    report.analysis?.input ??
-    ''
-  ).trim();
-
-  // Fallback: reconstruir a partir de capítulos (quando existir extração assistida)
-  const studyFromChapters = (chapters||[]).map((ch)=>{
-    const t = String(ch?.title || '').trim();
-    const pars = Array.isArray(ch?.paragraphs) ? ch.paragraphs.filter(Boolean).join(' ') : '';
-    return [t, pars].filter(Boolean).join(' — ');
-  }).filter(Boolean).join('\n\n').trim();
-
-  const studyText = (studyRaw || studyFromChapters || '').trim();
-  const hasStudyText = !!studyText;
-
-
-  // compat: alguns blocos usam 'hasStudy'
-  const hasStudy = hasStudyText;
 
   const studyBody = (studyRaw || studyFromChapters || '').trim();
 
