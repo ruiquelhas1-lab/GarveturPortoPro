@@ -545,7 +545,13 @@
   display: none !important;
 }
     
-  </style>
+  
+
+@media print{
+  /* Keep critical blocks intact across pages */
+  .no-break{ break-inside: avoid; page-break-inside: avoid; }
+}
+</style>
 </head>
 
 <body>
@@ -3685,7 +3691,7 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
     
     // Porque faz sentido + riscos (executivo)
     const porqueFazSentido = `
-      <div class="sec">
+      <div class="sec no-break">
         <h2>Porque faz sentido agora</h2>
     
         <div class="grid" style="margin-top:12px">
