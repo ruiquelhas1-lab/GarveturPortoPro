@@ -3643,20 +3643,34 @@ const hasCuradoriaMin = (
 
 const curadoriaMinHTML = hasCuradoriaMin ? `
   <div class="sec">
-    <h2>Estudo de Mercado</h2>
+    <h2>Curadoria do Estudo</h2>
 
-    <div class="callout">
-      <h3>Insights principais</h3>
-      ${curFromChapters.top?.length ? `
+    ${curFromChapters.top?.length ? `
+      <div class="callout">
+        <h3>Pontos-chave do estudo (extração assistida)</h3>
         <ul class="bullets">
-          ${curFromChapters.top.slice(0,5).map(x=>`<li>${safe(x)}</li>`).join('')}
+          ${curFromChapters.top.map(x=>`<li>${safe(x)}</li>`).join('')}
         </ul>
-      ` : `
-        <p class="p">
-          ${safe(studySummary?.relevante || 'Sem conteúdo suficiente importado no Passo 4.').replace(/\n/g,'<br>')}
-        </p>
-      `}
-    </div>
+      </div>
+    ` : ``}
+
+    ${studySummary?.relevante || studySummary?.riscos || studySummary?.oportunidades ? `
+      <div class="callout" style="margin-top:10px">
+        <h3>Síntese (resumo)</h3>
+        ${studySummary?.relevante ? `<p class="p"><strong>Relevante:</strong> ${safe(studySummary.relevante).replace(/\n/g,'<br>')}</p>` : ``}
+        ${studySummary?.riscos ? `<p class="p"><strong>Riscos:</strong> ${safe(studySummary.riscos).replace(/\n/g,'<br>')}</p>` : ``}
+        ${studySummary?.oportunidades ? `<p class="p"><strong>Oportunidades:</strong> ${safe(studySummary.oportunidades).replace(/\n/g,'<br>')}</p>` : ``}
+      </div>
+    ` : ``}
+
+    ${curFromChapters.implicacoes?.length ? `
+      <div class="callout" style="margin-top:10px">
+        <h3>Implicações para a sua decisão</h3>
+        <ul class="bullets">
+          ${curFromChapters.implicacoes.map(x=>`<li>${safe(x)}</li>`).join('')}
+        </ul>
+      </div>
+    ` : ``}
   </div>
 ` : ``;
 
@@ -3695,7 +3709,166 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
       </div>
     `;
     
-        const html = `
+    // Decisão recomendada (fecho)
+    const decisaoRecomendada = `
+      <div class="sec">
+        <h2>Decisão recomendada</h2>
+        <div class="callout">
+          <p class="p">${safe(resumoFinal || rec || '(a preencher)').replace(/\n/g,'<br>')}</p>
+          <div class="hr"></div>
+          <p class="p"><strong>Próximo passo recomendado:</strong> ${safe(cta)}</p>
+        </div>
+      </div>
+    `;
+    
+    // Assinatura / contactos (footer)
+    const assinaturaHTML = `
+      <div class="foot" style="align-items:flex-start">
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <img src="${assinaturaDataURI}" alt="Assinatura" style="height:34px;opacity:.95"/>
+          <div style="line-height:1.35">
+            <div style="font-weight:900;color:#111">Rui Quelhas</div>
+            <div style="font-size:11.5px;color:#111">Diretor Comercial · Garvetur Luxury Porto</div>
+            <div style="font-size:11px;color:#666;margin-top:2px">M. 00351 915 169 010 · 969 031 692</div>
+            <div style="font-size:11px;color:#666">E. manager.porto@garveturluxury.com · AMI 1427</div>
+          </div>
+        </div>
+        <div style="text-align:right;font-size:11px;color:#666;line-height:1.45">
+          <div><strong>${htmlEscape(confTag)}</strong> — Documento preparado para o destinatário identificado.</div>
+        </div>
+      </div>
+    `;// Template executivo final (ordem pedida)
+    const htmlExec = `
+      <!doctype html>
+      <html lang="pt-PT">
+        <head>
+          <meta charset="utf-8">
+          <title>${htmlEscape(title)}</title>
+          ${styles}
+          <style>
+            /* Ajustes de “fecho” de linhas/bordas em PDF */
+            .page{ max-width:920px; margin:0 auto; padding:28px 34px; overflow:visible; }
+            .card, .callout{ background:#fff; }
+            @media print{
+              @page { margin: 14mm 14mm; }
+              .page{ max-width:none; padding: 8mm 10mm; }
+            }
+            .logoMark{ width:34px; height:34px; border-radius:10px; display:block; }
+            .brandRow{ display:flex; gap:10px; align-items:center; }
+          </style>
+        </head>
+        <body>
+          <div class="page">
+            <div class="top">
+              <div class="brandRow">
+                <img class="logoMark" src="${logoDataURI}" alt="Garvetur Luxury"/>
+                <div>
+                  <div class="brand">Garvetur Luxury Porto</div>
+                  <div class="h1">Relatório Executivo</div>
+                  <span class="tag">${confTagExec}</span>
+                </div>
+              </div>
+              <div class="meta">
+                <div><strong>Destinatário:</strong> ${htmlEscape(cliente.nome||'—')}</div>
+                <div><strong>Contacto:</strong> ${htmlEscape(cliente.tel||'—')} · ${htmlEscape(cliente.email||'—')}</div>
+                <div><strong>Data:</strong> ${htmlEscape(toPTDate(report.updatedAt||report.createdAt||todayISO()))}</div>
+              </div>
+            </div>
+    
+            <div class="sec">
+              <h2>Garvetur Luxury Porto</h2>
+              <div class="callout">
+                <p class="p">${introGarvetur}</p>
+              </div>
+            </div>
+    
+            ${curadoriaMinHTML}
+            ${implicacoesCliente}
+            ${porqueFazSentido}
+            ${decisaoRecomendada}
+    
+            ${assinaturaHTML}
+          </div>
+        </body>
+      </html>
+    `;
+    
+
+    function buildCuradoriaExecutiva(chapters, studySummary){
+  // 1) recolhe insights já calculados pela extração assistida
+  const all = [];
+  for(const ch of (chapters||[])){
+    for(const ins of (ch.insights||[])){
+      const s = String(ins||'').trim();
+      if(s && s.length >= 40) all.push(s);
+    }
+  }
+
+  // 1b) fallback: usa síntese do estudo (Passo 4) quando não existirem capítulos/insights
+  if(!all.length && studySummary && typeof studySummary === 'object'){
+    const parts = [studySummary.relevante, studySummary.riscos, studySummary.oportunidades]
+      .map(x=>String(x||'').trim())
+      .filter(Boolean);
+    const joined = parts.join(' ');
+    // dividir em frases curtas úteis
+    const sentences = joined
+      .split(/[\.\!\?]\s+/)
+      .map(s=>s.trim())
+      .filter(s=>s.length >= 40);
+    for(const s of sentences) all.push(s);
+  }
+
+  // 2) dedupe simples
+  const seen = new Set();
+  const uniq = [];
+  for(const s of all){
+    const k = s.toLowerCase().slice(0,120);
+    if(seen.has(k)) continue;
+    seen.add(k);
+    uniq.push(s);
+  }
+
+  // 3) escolhe top (executivo = curto e forte)
+  const top = uniq.slice(0, 8);
+
+  // 4) Implicações (heurística simples, mas útil)
+  const implicacoes = [];
+  if(top.length){
+    implicacoes.push("O estudo suporta uma decisão com base em sinais consistentes — evitar indecisão prolongada.");
+    implicacoes.push("A estratégia deve privilegiar clareza de proposta e execução (timing + narrativa + preço/condições).");
+    implicacoes.push("Risco principal: perder janela de mercado/atenção — resposta recomendada: plano com marcos e controlo semanal.");
+  }
+
+  return { topInsights: top, implicacoes };
+}
+
+   const cur = buildCuradoriaExecutiva(chapters, studySummary);
+
+const hasStudy = !!(chapters.length || (studySummary?.relevante || studySummary?.riscos || studySummary?.oportunidades));
+
+const studyHTML = hasStudy ? `
+  <div class="sec">
+    <h2>Curadoria do Estudo (executivo)</h2>
+
+    <div class="callout">
+      <h3>Insights que importam para a decisão</h3>
+      ${cur.topInsights?.length ? `
+        <ul class="bullets">
+          ${cur.topInsights.map(x=>`<li>${safe(x)}</li>`).join('')}
+        </ul>
+      ` : `<p class="p">Sem insights automáticos suficientes. (Sugestão: cole mais texto no Passo 4 ou refine o excerto.)</p>`}
+    </div>
+
+    <div class="callout">
+      <h3>Implicações para a sua decisão</h3>
+      <ul class="bullets">
+        ${cur.implicacoes.map(x=>`<li>${safe(x)}</li>`).join('')}
+      </ul>
+    </div>
+  </div>
+` : ``;
+
+    const html = `
       <!doctype html>
       <html>
         <head>
@@ -3764,7 +3937,7 @@ ${forceExec ? `<div class="sec">
               </div>
             </div>
 
-            
+            ${studyHTML}
             <div class="foot">
               <span>CONFIDENCIAL · Documento para o Cliente · Não distribuir sem autorização.</span>
               <span>Gerado em ${htmlEscape(toPTDate(todayISO()))}</span>
@@ -3774,25 +3947,12 @@ ${forceExec ? `<div class="sec">
       </html>
     `;
 
-    // Exec: nesta versão, o HTML executivo é o mesmo layout-base (sem lógica adicional) — evita bloqueios.
-    const htmlExec = html;
-
     if(forceExec) return htmlExec;
 
     return html;
   }
 
- // Porquê trabalhar com a Garvetur (placeholder — a preencher)
-const porqueGarveturHTML = `
-  <div class="sec">
-    <h2>Porquê trabalhar com a Garvetur</h2>
-    <div class="card">
-      <p class="p"><em>(texto a definir — responder às principais objeções)</em></p>
-    </div>
-  </div>
-`;
-
- function exportReportToPremiumHTML(report, opts={}){
+  function exportReportToPremiumHTML(report, opts={}){
   const cliente = report.cliente || {};
   const obj = report.objetivo || {};
   const ativo = report.ativo || {};
