@@ -2964,6 +2964,7 @@ btnResetCliente?.addEventListener('click', ()=>{
   function saveAssistExtractionToReport(extraction){
     const r = saveDraftSilent();
     r.analysis = r.analysis || {};
+    r.analysis.textoEstudo = (pdfAssistText?.value || r.analysis.textoEstudo || '');
     r.analysis.chapters = extraction.chapters || [];
     r.analysis.keywords = extraction.keywords || [];
     // um resumo simples para o relatório final
@@ -4609,3 +4610,4 @@ if(btnResetTemplates){
 </script>
 </body>
 </html>
+
