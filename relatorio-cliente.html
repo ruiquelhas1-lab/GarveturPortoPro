@@ -3861,7 +3861,11 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
   const studyText = (studyRaw || studyFromChapters || '').trim();
   const hasStudyText = !!studyText;
 
-const studyBody = (studyRaw || studyFromChapters || '').trim();
+
+  // compat: alguns blocos usam 'hasStudy'
+  const hasStudy = hasStudyText;
+
+  const studyBody = (studyRaw || studyFromChapters || '').trim();
 
 const studyHTML = hasStudy ? `
   <div class="sec">
