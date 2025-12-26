@@ -1,6 +1,7 @@
 
 
 
+
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -1302,6 +1303,7 @@
 </div>
 
 <script>
+
 (function(){
   /* ===========================
      Helpers
@@ -3839,23 +3841,25 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
 
    const cur = buildCuradoriaExecutiva(chapters, studySummary);
 
-const hasStudy = !!(chapters.length || (studySummary?.relevante || studySummary?.riscos || studySummary?.oportunidades));
+// Texto do estudo (Passo 4) — usar o texto como foi colado (sem síntese)
+  const studyRaw = String(
+    report.analysis?.textoEstudo ??
+    report.analysis?.studyText ??
+    report.analysis?.text ??
+    report.analysis?.raw ??
+    report.analysis?.input ??
+    ''
+  ).trim();
 
-// Texto bruto do estudo (Passo 4). Preferimos mostrar o texto como foi colado (sem síntese automática).
-const studyRaw = (report.analysis?.text || report.analysis?.texto || report.analysis?.rawText || report.analysis?.raw || report.analysis?.inputText || '').toString().trim();
+  // Fallback: reconstruir a partir de capítulos (quando existir extração assistida)
+  const studyFromChapters = (chapters||[]).map((ch)=>{
+    const t = String(ch?.title || '').trim();
+    const pars = Array.isArray(ch?.paragraphs) ? ch.paragraphs.filter(Boolean).join(' ') : '';
+    return [t, pars].filter(Boolean).join(' — ');
+  }).filter(Boolean).join('\n\n').trim();
 
-// fallback: reconstruir a partir dos capítulos (quando não existe raw)
-const studyFromChapters = (chapters||[]).map(ch=>{
-  const pars = Array.isArray(ch.paragraphs) ? ch.paragraphs.filter(Boolean).join('
-
-') : '';
-  if(pars && pars.trim()) return pars.trim();
-  const ins = Array.isArray(ch.insights) ? ch.insights.filter(Boolean).join('
-') : '';
-  return ins ? ins.trim() : '';
-}).filter(Boolean).join('
-
-').trim();
+  const studyText = (studyRaw || studyFromChapters || '').trim();
+  const hasStudyText = !!studyText;
 
 const studyBody = (studyRaw || studyFromChapters || '').trim();
 
@@ -4598,6 +4602,7 @@ if(btnResetTemplates){
 
   safeInit();
 
-})();</script>
+})();
+</script>
 </body>
 </html>
