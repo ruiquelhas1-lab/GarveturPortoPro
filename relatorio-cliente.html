@@ -2,7 +2,6 @@
 
 
 
-
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -2591,7 +2590,27 @@ if(!before.tipo && typeof suggestTipoFromSource === 'function'){
 
   // Guarda sem alertas (para autosave e auto-import)
   function saveDraftSilent(){
+    const existing = ACTIVE_REPORT_ID ? getReport(ACTIVE_REPORT_ID) : null;
     const r = collectForm();
+
+    // Preservar dados pesados (Passo 4 / anexos / extração) ao guardar rascunho
+    if(existing){
+      r.createdAt = existing.createdAt || r.createdAt;
+      r.pdfs = Array.isArray(existing.pdfs) ? existing.pdfs : (r.pdfs || []);
+      r.analysis = existing.analysis || r.analysis;
+      // manter secções/flags já configuradas
+      if(existing.report && r.report){
+        r.report.sections = { ...(existing.report.sections||{}), ...(r.report.sections||{}) };
+      }
+    }
+
+    r.analysis = r.analysis || {};
+    if(pdfAssistText){
+      r.analysis.textoEstudo = (pdfAssistText.value || '').trim();
+    } else if(!r.analysis.textoEstudo && existing?.analysis?.textoEstudo){
+      r.analysis.textoEstudo = String(existing.analysis.textoEstudo||'').trim();
+    }
+
     r.updatedAt = todayISO();
     r.status = 'draft';
     upsertReport(r);
