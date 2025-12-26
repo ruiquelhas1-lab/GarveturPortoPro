@@ -2590,27 +2590,7 @@ if(!before.tipo && typeof suggestTipoFromSource === 'function'){
 
   // Guarda sem alertas (para autosave e auto-import)
   function saveDraftSilent(){
-    const existing = ACTIVE_REPORT_ID ? getReport(ACTIVE_REPORT_ID) : null;
     const r = collectForm();
-
-    // Preservar dados pesados (Passo 4 / anexos / extração) ao guardar rascunho
-    if(existing){
-      r.createdAt = existing.createdAt || r.createdAt;
-      r.pdfs = Array.isArray(existing.pdfs) ? existing.pdfs : (r.pdfs || []);
-      r.analysis = existing.analysis || r.analysis;
-      // manter secções/flags já configuradas
-      if(existing.report && r.report){
-        r.report.sections = { ...(existing.report.sections||{}), ...(r.report.sections||{}) };
-      }
-    }
-
-    r.analysis = r.analysis || {};
-    if(pdfAssistText){
-      r.analysis.textoEstudo = (pdfAssistText.value || '').trim();
-    } else if(!r.analysis.textoEstudo && existing?.analysis?.textoEstudo){
-      r.analysis.textoEstudo = String(existing.analysis.textoEstudo||'').trim();
-    }
-
     r.updatedAt = todayISO();
     r.status = 'draft';
     upsertReport(r);
@@ -2870,7 +2850,20 @@ btnResetCliente?.addEventListener('click', ()=>{
     'pelos','pelas','seu','sua','seus','suas','lhe','lhes','me','te','nos','vos','eles','elas','eu','tu','ele','ela'
   ]);
 
-  function clampLen(s, n){ s = String(s||''); return s.length>n ? (s.slice(0,n-1)+'…') : s; }
+  function clampLen(s, n){
+    s = String(s||'');
+    if(s.length<=n) return s;
+    const cut = s.slice(0, n-1).trim();
+    // tenta terminar em limite de frase para evitar frases incompletas
+    const m = cut.match(/^(.*[\.\!\?…])(\s|$)(?!.*[\.\!\?…])/);
+    if(m && m[1] && m[1].length>=40){
+      return m[1].trim() + '…';
+    }
+    // fallback: corta por palavra completa
+    const lastSpace = cut.lastIndexOf(' ');
+    const safe = (lastSpace>60 ? cut.slice(0,lastSpace) : cut).trim();
+    return safe + '…';
+  }
 
   function splitLines(txt){
     return String(txt||'')
