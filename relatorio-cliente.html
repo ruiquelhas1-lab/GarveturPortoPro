@@ -2850,20 +2850,7 @@ btnResetCliente?.addEventListener('click', ()=>{
     'pelos','pelas','seu','sua','seus','suas','lhe','lhes','me','te','nos','vos','eles','elas','eu','tu','ele','ela'
   ]);
 
-  function clampLen(s, n){
-    s = String(s||'');
-    if(s.length<=n) return s;
-    const cut = s.slice(0, n-1).trim();
-    // tenta terminar em limite de frase para evitar frases incompletas
-    const m = cut.match(/^(.*[\.\!\?…])(\s|$)(?!.*[\.\!\?…])/);
-    if(m && m[1] && m[1].length>=40){
-      return m[1].trim() + '…';
-    }
-    // fallback: corta por palavra completa
-    const lastSpace = cut.lastIndexOf(' ');
-    const safe = (lastSpace>60 ? cut.slice(0,lastSpace) : cut).trim();
-    return safe + '…';
-  }
+  function clampLen(s, n){ s = String(s||''); return s.length>n ? (s.slice(0,n-1)+'…') : s; }
 
   function splitLines(txt){
     return String(txt||'')
@@ -2921,7 +2908,7 @@ btnResetCliente?.addEventListener('click', ()=>{
       const insights = paras
         .filter(p=>p.length>=80)
         .slice(0, 6)
-        .map(p=>clampLen(p, 220));
+        .map(p=>p);
       current.paragraphs = paras;
       current.insights = insights;
       current.keywords = kw;
@@ -4623,3 +4610,4 @@ if(btnResetTemplates){
 </script>
 </body>
 </html>
+
