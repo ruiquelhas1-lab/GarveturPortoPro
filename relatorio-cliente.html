@@ -1,6 +1,7 @@
 
 
 
+
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -1988,13 +1989,13 @@ const tplStatus = el('tplStatus');
 ${forceExec ? `` : `
             
             <div class="sec">
-              <h2>Porquê trabalhar com a Garvetur Luxury Porto</h2>
+              <h2>Por que trabalhar com a Garvetur Luxury Porto</h2>
               <div class="callout">
                 <p class="p">(Conteúdo a definir — bloco preparado para responder às principais objeções e clarificar o valor da Garvetur Luxury Porto.)</p>
               </div>
             </div>
 
-<div class="sec" style="margin-top:40px">
+<div class="sec" style="margin-top:26px">
               <h2>Próximos passos</h2>
               <ul>
                 <li>Validar objetivo e critérios de decisão do cliente (10–15 min).</li>
@@ -3580,10 +3581,7 @@ async function removePdf(pdfId){
       const lines = t.split('\n').map(x=>x.trim()).filter(Boolean);
       const bullets = [];
       for(const ln of lines){
-        let clean = ln.replace(/^[-•\u2022]+\s*/,'').trim();
-        // normalizar headings comuns que podem vir em MAIÚSCULAS
-        if(clean.toUpperCase() === 'DECISÃO RECOMENDADA') clean = 'Decisão recomendada';
-        if(clean.toUpperCase().startsWith('O QUE FAZER AGORA')) clean = 'O que fazer agora (execução)';
+        const clean = ln.replace(/^[-•\u2022]+\s*/,'').trim();
         if(clean.length >= 18) bullets.push(clean);
         if(bullets.length >= max) break;
       }
@@ -3653,14 +3651,22 @@ const hasCuradoriaMin = (
   (curFromChapters.top && curFromChapters.top.length)
 );
 
-const curadoriaMinHTML = hasStudyText ? `
+const curadoriaMinHTML = hasCuradoriaMin ? `
   <div class="sec">
     <h2>Estudo de Mercado</h2>
 
-    <div class="callout">
-      <h3>Texto de referência (conforme colado)</h3>
-      <p class="p" style="white-space:pre-wrap">${safe(studyBody)}</p>
-    </div>
+    ${curFromChapters.top?.length ? `
+      <div class="callout">
+<ul class="bullets">
+          ${curFromChapters.top.map(x=>`<li>${safe(x)}</li>`).join('')}
+        </ul>
+      </div>
+    ` : ``}
+
+    ${studySummary?.relevante || studySummary?.riscos || studySummary?.oportunidades ? `
+` : ``}
+
+    
   </div>
 ` : ``;
 
@@ -3669,7 +3675,7 @@ const curadoriaMinHTML = hasStudyText ? `
       <div class="sec">
         <h2>Implicações para a sua decisão</h2>
         <div class="callout">
-          <p class="p">
+          ${curFromChapters.implicacoes?.length ? `           <ul class="bullets">             ${curFromChapters.implicacoes.map(x=>`<li>${safe(x)}</li>`).join('')}           </ul>         ` : ``}  <p class="p">
             A informação analisada aponta para uma decisão que deve ser tomada com critérios objetivos e um plano de execução claro.
             O ponto-chave é reduzir incerteza (e custo de oportunidade) através de validação rápida de pressupostos e calendarização.
           </p>
