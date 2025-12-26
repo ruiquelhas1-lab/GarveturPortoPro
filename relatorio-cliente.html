@@ -1,7 +1,6 @@
 
 
 
-
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -3643,24 +3642,30 @@ const hasCuradoriaMin = (
 );
 
 const curadoriaMinHTML = hasCuradoriaMin ? `
-      <div class="sec">
-        <h2>Estudo de Mercado</h2>
-        <div class="callout">
-          <p class="p"><strong>Insights principais</strong></p>
-          ${curFromChapters.top?.length ? `
-            <ul class="bullets">
-              ${curFromChapters.top.map(x=>`<li>${safe(x)}</li>`).join('')}
-            </ul>
-          ` : `<p class="p">Sem insights automáticos suficientes. (Sugestão: cole mais texto no Passo 4 ou refine o excerto.)</p>`}
+  <div class="sec">
+    <h2>Estudo de Mercado</h2>
 
-          ${(studySummary?.riscos || studySummary?.oportunidades) ? `
-            <div class="hr"></div>
-            ${studySummary.riscos ? `<p class="p"><strong>Riscos:</strong> ${safe(studySummary.riscos).split(String.fromCharCode(10)).join('<br>')}</p>` : ``}
-            ${studySummary.oportunidades ? `<p class="p"><strong>Oportunidades:</strong> ${safe(studySummary.oportunidades).split(String.fromCharCode(10)).join('<br>')}</p>` : ``}
-          ` : ``}
-        </div>
+    ${curFromChapters.top?.length ? `
+      <div class="callout">
+<ul class="bullets">
+          ${curFromChapters.top.map(x=>`<li>${safe(x)}</li>`).join('')}
+        </ul>
       </div>
-    ` : ``;
+    ` : ``}
+
+    ${studySummary?.relevante || studySummary?.riscos || studySummary?.oportunidades ? `
+` : ``}
+
+    ${curFromChapters.implicacoes?.length ? `
+      <div class="callout" style="margin-top:10px">
+        <h3>Implicações para a sua decisão</h3>
+        <ul class="bullets">
+          ${curFromChapters.implicacoes.map(x=>`<li>${safe(x)}</li>`).join('')}
+        </ul>
+      </div>
+    ` : ``}
+  </div>
+` : ``;
 
 // Implicações (linguagem para cliente)
     const implicacoesCliente = `
@@ -3697,35 +3702,9 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
       </div>
     `;
     
-    
-    const porqueGarveturHTML = `
-      <div class="sec">
-        <h2>Porquê trabalhar com a Garvetur</h2>
-        <div class="card">
-          <p class="p"><em>(A preencher — texto editorial a definir; responderá às principais objeções e consolidará confiança.)</em></p>
-        </div>
-      </div>
-    `;
-
-    const proximosPassosHTML = `
-      <div class="sec">
-        <h2>Próximos passos</h2>
-        <ul>
-          <li>Validar objetivo e critérios de decisão (10–15 min).</li>
-          <li>Confirmar dados críticos e eventuais conflitos (FSBO | Leads | Angariações).</li>
-          <li>Alinhar estratégia, proposta e calendarização.</li>
-          <li><strong>Próxima ação:</strong> ${safe(cta)}.</li>
-        </ul>
-      </div>
-    `;
-// Decisão recomendada (fecho)
+    // Decisão recomendada (fecho)
     const decisaoRecomendada = `
-      <div class="sec">
-        <h2>Decisão recomendada</h2>
-        <div class="callout">
-          <p class="p">${safe(resumoFinal || rec || '(a preencher)').replace(/\n/g,'<br>')}</p>
-          <div class="hr"></div>
-          <p class="p"><strong>Próximo passo recomendado:</strong> ${safe(cta)}</p>
+<p class="p"><strong>Próximo passo recomendado:</strong> ${safe(cta)}</p>
         </div>
       </div>
     `;
@@ -3743,8 +3722,7 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
           </div>
         </div>
         <div style="text-align:right;font-size:11px;color:#666;line-height:1.45">
-          <div><strong>${htmlEscape(confTag)}</strong> — Documento preparado para o destinatário identificado.</div>
-        </div>
+</div>
       </div>
     `;// Template executivo final (ordem pedida)
     const htmlExec = `
@@ -3754,38 +3732,56 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
           <meta charset="utf-8">
           <title>${htmlEscape(title)}</title>
           ${styles}
+          <style>
+            /* Ajustes de “fecho” de linhas/bordas em PDF */
+            .page{ max-width:920px; margin:0 auto; padding:28px 34px; overflow:visible; }
+            .card, .callout{ background:#fff; }
+            @media print{
+              @page { margin: 14mm 14mm; }
+              .page{ max-width:none; padding: 8mm 10mm; }
+            }
+            .logoMark{ width:34px; height:34px; border-radius:10px; display:block; }
+            .brandRow{ display:flex; gap:10px; align-items:center; }
+          </style>
         </head>
         <body>
           <div class="page">
             <div class="top">
-              <div>
-                <div class="brand">Garvetur Luxury Porto</div>
-                <div class="h1">Relatório Executivo</div>
-                <span class="tag">${htmlEscape(confTag)}</span>
+              <div class="brandRow">
+                <img class="logoMark" src="${logoDataURI}" alt="Garvetur Luxury"/>
+                <div>
+                  <div class="brand">Garvetur Luxury Porto</div>
+                  <div class="h1">Relatório Executivo</div>
+                  <span class="tag">${confTagExec}</span>
+                </div>
               </div>
               <div class="meta">
-                <div><strong>Cliente:</strong> ${htmlEscape(cliente.nome||'—')}</div>
+                <div><strong>Destinatário:</strong> ${htmlEscape(cliente.nome||'—')}</div>
                 <div><strong>Contacto:</strong> ${htmlEscape(cliente.tel||'—')} · ${htmlEscape(cliente.email||'—')}</div>
                 <div><strong>Data:</strong> ${htmlEscape(toPTDate(report.updatedAt||report.createdAt||todayISO()))}</div>
               </div>
             </div>
-
-            ${introGarvetur}
+    
+            <div class="sec">
+              <h2>Garvetur Luxury Porto</h2>
+              <div class="callout">
+                <p class="p">${introGarvetur}</p>
+              </div>
+            </div>
+    
             ${curadoriaMinHTML}
             ${implicacoesCliente}
             ${porqueFazSentido}
-            ${porqueGarveturHTML}
-            ${proximosPassosHTML}
+            ${decisaoRecomendada}
+    
             ${assinaturaHTML}
-
-            <div class="foot">
-              <span>${htmlEscape(confTag)} · Documento confidencial.</span>
-              <span>Gerado em ${htmlEscape(toPTDate(todayISO()))}</span>
-            </div>
           </div>
         </body>
       </html>
-    `;function buildCuradoriaExecutiva(chapters, studySummary){
+    `;
+    
+
+    function buildCuradoriaExecutiva(chapters, studySummary){
   // 1) recolhe insights já calculados pela extração assistida
   const all = [];
   for(const ch of (chapters||[])){
