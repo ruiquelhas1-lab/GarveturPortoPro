@@ -2,6 +2,7 @@
 
 
 
+
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -2966,6 +2967,7 @@ btnResetCliente?.addEventListener('click', ()=>{
     r.analysis = r.analysis || {};
     r.analysis.chapters = extraction.chapters || [];
     r.analysis.keywords = extraction.keywords || [];
+    r.analysis.textoEstudo = (pdfAssistText?.value || '').trim();
     // um resumo simples para o relatório final
     const topKw = (r.analysis.keywords||[]).slice(0,10).map(k=>k.w);
     r.analysis.sum = r.analysis.sum || {};
@@ -3622,14 +3624,6 @@ async function removePdf(pdfId){
     
     // Intro (máx ~10 linhas)
     const introGarvetur = `A Garvetur Luxury Porto é a unidade premium do Grupo Garvetur no Norte de Portugal, especializada em consultoria imobiliária para clientes exigentes, nacionais e internacionais. Combinamos conhecimento local detalhado do Grande Porto com acesso a uma rede nacional consolidada, assegurando acompanhamento completo do início ao fecho da decisão. A nossa abordagem é orientada a valor: análise de contexto, leitura de mercado, rigor documental e execução com marcos claros. Este relatório sintetiza os principais pontos de decisão e propõe o próximo passo recomendado.`;
-
-    ).trim();
-      )
-        report.analysis?.textoEstudo ?? report.analysis?.studyText ?? report.analysis?.text ?? report.analysis?.raw ?? report.analysis?.input ?? ''
-      (pdfAssistText && pdfAssistText.value) ? pdfAssistText.value : (
-    const studyRawExec = String(
-    // Estudo de Mercado (Passo 4) — usar o texto bruto colado (sem síntese)
-
     
     // Curadoria mínima (sem anexo)
 // - Prioridade: usar a extração assistida do Passo 4 (chapters[].insights)
@@ -3661,7 +3655,7 @@ const curFromChapters = (()=>{
 })();
 
 const hasCuradoriaMin = (
-  (studyRawExec && studyRawExec.trim()) ||
+  (studySummary && (studySummary.relevante || studySummary.riscos || studySummary.oportunidades)) ||
   (curFromChapters.top && curFromChapters.top.length)
 );
 
@@ -3669,20 +3663,20 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
   <div class="sec">
     <h2>Estudo de Mercado</h2>
 
-    <div class="callout">
-      <h3>Texto de referência</h3>
-      ${studyRawExec
-        ? `<p class="p">${safe(studyRawExec).replace(/\n/g,'<br>')}</p>`
-        : `<p class="p">Sem conteúdo do estudo. (Cole o texto no Passo 4.)</p>`
-      }
-    </div>
-
     ${curFromChapters.top?.length ? `
-      <div class="callout" style="margin-top:12px">
-        <h3>Insights principais</h3>
-        <ul class="bullets">
+      <div class="callout">
+<ul class="bullets">
           ${curFromChapters.top.map(x=>`<li>${safe(x)}</li>`).join('')}
         </ul>
+      </div>
+    ` : ``}
+
+    ${studySummary?.relevante || studySummary?.riscos || studySummary?.oportunidades ? `
+` : ``}
+
+    
+  </div>
+` : ``;
 
 // Implicações (linguagem para cliente)
     const implicacoesCliente = `
@@ -3798,7 +3792,7 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
     `;
     
 
-    function buildCuradoriaExecutiva(chapters, null){
+    function buildCuradoriaExecutiva(chapters, studySummary){
   // 1) recolhe insights já calculados pela extração assistida
   const all = [];
   for(const ch of (chapters||[])){
@@ -3846,7 +3840,7 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
   return { topInsights: top, implicacoes };
 }
 
-   const cur = buildCuradoriaExecutiva(chapters, null);
+   const cur = buildCuradoriaExecutiva(chapters, studySummary);
 
 // Texto do estudo (Passo 4) — usar o texto como foi colado (sem síntese)
   const studyRaw = String(
@@ -4617,4 +4611,3 @@ if(btnResetTemplates){
 </script>
 </body>
 </html>
-
