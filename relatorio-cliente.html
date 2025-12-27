@@ -3686,6 +3686,18 @@ async function removePdf(pdfId){
       if(t.includes('promot')) return 'promotor';
       return 'vendedor';
     })();
+    const lang = String((cIdioma && cIdioma.value) || 'pt').toLowerCase()==='en' ? 'en' : 'pt';
+    const isEN = (lang==='en');
+    const t = (pt,en)=> (isEN ? en : pt);
+    function toReportDate(iso){
+      try{
+        const d = new Date(iso);
+        if(isNaN(d)) return String(iso||'');
+        return d.toLocaleDateString(isEN ? 'en-GB' : 'pt-PT');
+      }catch(e){
+        return String(iso||'');
+      }
+    }
     const obj = report.objetivo || {};
     const ativo = report.ativo || {};
     const mode = ativo.mode || 'imovel';
@@ -3774,7 +3786,7 @@ async function removePdf(pdfId){
 
     
     // ===== Sprint 2.7 (cliente) — Executivo: razões/riscos (sem mexer em botões) =====
-    const cta = (report.report?.cta || 'Agendar reunião');
+    const cta = (report.report?.cta || (isEN ? 'Schedule a meeting' : 'Agendar reunião'));
     
     const resumoExec = (report.report?.sumExec || '').trim();
     const resumoFinal = (resumoExec || rec || '').trim();
@@ -3834,10 +3846,12 @@ async function removePdf(pdfId){
     const assinaturaDataURI = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAATkAAABwCAYAAABlwQfhAAAACXBIWXMAABcSAAAXEgFnn9JSAAAE4GlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgOS4xLWMwMDEgNzkuYThkNDc1MzQ5LCAyMDIzLzAzLzIzLTEzOjA1OjQ1ICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgMjQuNyAoTWFjaW50b3NoKSIgeG1wOkNyZWF0ZURhdGU9IjIwMjQtMTItMTFUMTA6NTg6NThaIiB4bXA6TW9kaWZ5RGF0ZT0iMjAyNC0xMi0xOVQxNDoxODowNFoiIHhtcDpNZXRhZGF0YURhdGU9IjIwMjQtMTItMTlUMTQ6MTg6MDRaIiBkYzpmb3JtYXQ9ImltYWdlL3BuZyIgcGhvdG9zaG9wOkNvbG9yTW9kZT0iMyIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDoyZDRhNGZiZS00MTkyLTQ2ZmItYTA3Ny1lOGY3YzMwMjUyNzMiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6MmQ0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';
     
     // ===== Sprint 2.7 (cliente) — Executivo orientado ao cliente =====
-    const confTagExec = 'CONFIDENCIAL';
+    const confTagExec = isEN ? 'CONFIDENTIAL' : 'CONFIDENCIAL';
     
     // Intro (máx ~10 linhas)
-    const introGarvetur = (perfil==='investidor') ? `A Garvetur Luxury Porto apoia decisões de investimento imobiliário com uma abordagem orientada a risco e retorno. Combinamos leitura de mercado do Grande Porto, acesso a uma rede nacional e execução disciplinada: análise de yield e comparáveis, validação de pressupostos e rigor documental. Este relatório sintetiza os pontos críticos para decidir com clareza e avançar com um próximo passo objetivo.` : (perfil==='promotor') ? `A Garvetur Luxury Porto atua como parceiro comercial e estratégico em projetos de promoção imobiliária. Estruturamos o go‑to‑market com base em posicionamento, pricing, qualificação de procura e controlo de execução, apoiados por conhecimento local do Grande Porto e rede nacional. Este relatório consolida os elementos-chave para tomada de decisão e define o próximo passo recomendado.` : `A Garvetur Luxury Porto é a unidade premium do Grupo Garvetur no Norte de Portugal, especializada em consultoria imobiliária para clientes exigentes, nacionais e internacionais. Combinamos conhecimento local detalhado do Grande Porto com acesso a uma rede nacional consolidada, assegurando acompanhamento completo do início ao fecho da decisão. A nossa abordagem é orientada a valor: análise de contexto, leitura de mercado, rigor documental e execução com marcos claros. Este relatório sintetiza os principais pontos de decisão e propõe o próximo passo recomendado.`;
+    const introGarveturPT = (perfil==='investidor') ? `A Garvetur Luxury Porto apoia decisões de investimento imobiliário com uma abordagem orientada a risco e retorno. Combinamos leitura de mercado do Grande Porto, acesso a uma rede nacional e execução disciplinada: análise de yield e comparáveis, validação de pressupostos e rigor documental. Este relatório sintetiza os pontos críticos para decidir com clareza e avançar com um próximo passo objetivo.` : (perfil==='promotor') ? `A Garvetur Luxury Porto atua como parceiro comercial e estratégico em projetos de promoção imobiliária. Estruturamos o go‑to‑market com base em posicionamento, pricing, qualificação de procura e controlo de execução, apoiados por conhecimento local do Grande Porto e rede nacional. Este relatório consolida os elementos-chave para tomada de decisão e define o próximo passo recomendado.` : `A Garvetur Luxury Porto é a unidade premium do Grupo Garvetur no Norte de Portugal, especializada em consultoria imobiliária para clientes exigentes, nacionais e internacionais. Combinamos conhecimento local detalhado do Grande Porto com acesso a uma rede nacional consolidada, assegurando acompanhamento completo do início ao fecho da decisão. A nossa abordagem é orientada a valor: análise de contexto, leitura de mercado, rigor documental e execução com marcos claros. Este relatório sintetiza os principais pontos de decisão e propõe o próximo passo recomendado.`;
+    const introGarveturEN_vendedor = `Garvetur Luxury Porto operates in the premium residential segment, combining in-depth local market knowledge with a structured approach focused on value protection and controlled execution. We define a clear strategy, qualify demand rigorously and conduct negotiations with method and discipline, ensuring informed decisions and peace of mind throughout the entire sales process.`;
+    const introGarvetur = (isEN && perfil==='vendedor') ? introGarveturEN_vendedor : introGarveturPT;
     
     // Curadoria mínima (sem anexo)
 // - Prioridade: usar a extração assistida do Passo 4 (chapters[].insights)
@@ -3861,10 +3875,16 @@ const curFromChapters = (()=>{
     uniq.push(s);
   }
   const top = uniq.slice(0, 6);
-  const implicacoes = top.length ? [
+  const implicacoes = top.length ? (isEN ? [
+    "Clarify decision criteria and validate the leading scenario (avoids prolonged indecision).",
+    "Define a short plan with milestones (timing, proposal and validation) to reduce execution risk."
+  ] : [
     "Clarificar critérios de decisão e validar o cenário dominante (evita indecisão prolongada).",
     "Definir um plano curto com marcos (timing, proposta e validação) para reduzir risco de execução."
-  ] : [];
+  ]) : [];
+
+
+
   return { top, implicacoes };
 })();
 
@@ -3875,7 +3895,7 @@ const hasCuradoriaMin = (
 
 const curadoriaMinHTML = hasCuradoriaMin ? `
   <div class="sec">
-    <h2>Estudo de Mercado</h2>
+    <h2>${t('Estudo de Mercado','Market Study')}</h2>
 
     ${curFromChapters.top?.length ? `
       <div class="callout">
@@ -3895,7 +3915,7 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
 // Implicações (linguagem para cliente)
     const implicacoesCliente = `
       <div class="sec no-break">
-        <h2>Implicações para a sua decisão</h2>
+        <h2>${t('Implicações para a sua decisão','Implications for Your Decision')}</h2>
         <div class="callout no-break">
           ${curFromChapters.implicacoes?.length ? `
           <ul class="bullets">
@@ -3904,8 +3924,8 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
         ` : ``}
 
 <p class="p">
-            A informação analisada aponta para uma decisão que deve ser tomada com critérios objetivos e um plano de execução claro.
-            O ponto-chave é reduzir incerteza (e custo de oportunidade) através de validação rápida de pressupostos e calendarização.
+            ${t('A informação analisada aponta para uma decisão que deve ser tomada com critérios objetivos e um plano de execução claro. O ponto-chave é reduzir incerteza (e custo de oportunidade) através de validação rápida de pressupostos e calendarização.','The analysis suggests that the decision should be made using objective criteria and a clear execution plan. The key is to reduce uncertainty (and opportunity cost) through rapid validation of assumptions and a structured timeline.')}
+
           </p>
         </div>
       </div>
@@ -3914,17 +3934,17 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
     // Porque faz sentido + riscos (executivo)
     const porqueFazSentido = `
       <div class="sec">
-        <h2>Porque faz sentido agora</h2>
+        <h2>${t('Porque faz sentido agora','Why It Makes Sense Now')}</h2>
     
         <div class="grid" style="margin-top:12px">
           <div class="card">
-            <h3>Razões principais</h3>
+            <h3>${t('Razões principais','Key reasons')}</h3>
             <ul>
               ${execRazoes.map(x=>`<li>${safe(x)}</li>`).join('')}
             </ul>
           </div>
           <div class="card">
-            <h3>Riscos a vigiar</h3>
+            <h3>${t('Riscos a vigiar','Risks to watch')}</h3>
             <ul>
               ${execRiscos.map(x=>`<li>${safe(x)}</li>`).join('')}
             </ul>
@@ -3935,10 +3955,10 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
     
     
     // Porquê escolher a Garvetur (executivo)
-    const porqueEscolherGarveturTXT = 'Escolher a Garvetur é escolher um processo de venda orientado por método, controlo e proteção de valor. Num mercado exigente, o diferencial não está na exposição “genérica”, mas na qualidade da estratégia: posicionamento correto, comunicação consistente, qualificação de procura e negociação conduzida com disciplina. Quando o objetivo é reduzir risco, evitar ruído e maximizar probabilidade de fecho nas melhores condições, a Garvetur assume a coordenação do processo com responsabilidade e rigor — garantindo alinhamento, clareza e execução profissional do início ao fim.';
+    const porqueEscolherGarveturTXT = (isEN ? 'Choosing Garvetur means opting for a sales process guided by method, control and value protection. In a demanding market, the difference lies not in generic exposure but in the quality of the strategy: correct positioning, consistent communication, qualified demand and disciplined negotiation. Garvetur coordinates the process with clarity and rigour, ensuring alignment, confidence and professional execution from start to finish.' : 'Escolher a Garvetur é escolher um processo de venda orientado por método, controlo e proteção de valor. Num mercado exigente, o diferencial não está na exposição “genérica”, mas na qualidade da estratégia: posicionamento correto, comunicação consistente, qualificação de procura e negociação conduzida com disciplina. Quando o objetivo é reduzir risco, evitar ruído e maximizar probabilidade de fecho nas melhores condições, a Garvetur assume a coordenação do processo com responsabilidade e rigor — garantindo alinhamento, clareza e execução profissional do início ao fim.');
     const porqueEscolherGarvetur = `
       <div class="sec">
-        <h2>Porquê escolher a Garvetur</h2>
+        <h2>${t('Porquê escolher a Garvetur','Why Choose Garvetur')}</h2>
         <div class="callout">
           <p class="p">${safe(porqueEscolherGarveturTXT)}</p>
         </div>
@@ -3947,7 +3967,7 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
     
     // Decisão recomendada (fecho)
     const decisaoRecomendada = `
-<p class="p"><strong>Próximo passo recomendado:</strong> ${safe(cta)}</p>
+<p class="p"><strong>${t('Próximo passo recomendado','Recommended next step')}:</strong> ${safe(cta)}</p>
         </div>
       </div>
     `;
@@ -3994,14 +4014,14 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
                 <img class="logoMark" src="${logoDataURI}" alt="Garvetur Luxury"/>
                 <div>
                   <div class="brand">Garvetur Luxury Porto</div>
-                  <div class="h1">Relatório Executivo</div>
+                  <div class="h1">${t('Relatório Executivo','Executive Report')}</div>
                   <span class="tag">${confTagExec}</span>
                 </div>
               </div>
               <div class="meta">
-                <div><strong>Destinatário:</strong> ${htmlEscape(cliente.nome||'—')}</div>
-                <div><strong>Contacto:</strong> ${htmlEscape(cliente.tel||'—')} · ${htmlEscape(cliente.email||'—')}</div>
-                <div><strong>Data:</strong> ${htmlEscape(toPTDate(report.updatedAt||report.createdAt||todayISO()))}</div>
+                <div><strong>${t('Destinatário','Recipient')}:</strong> ${htmlEscape(cliente.nome||'—')}</div>
+                <div><strong>${t('Contacto','Contact')}:</strong> ${htmlEscape(cliente.tel||'—')} · ${htmlEscape(cliente.email||'—')}</div>
+                <div><strong>${t('Data','Date')}:</strong> ${htmlEscape(toReportDate(report.updatedAt||report.createdAt||todayISO()))}</div>
               </div>
             </div>
     
@@ -4103,7 +4123,7 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
 
 const studyHTML = hasStudy ? `
   <div class="sec">
-    <h2>Estudo de Mercado</h2>
+    <h2>${t('Estudo de Mercado','Market Study')}</h2>
 
     <div class="callout">
       <h3>Texto de referência</h3>
@@ -4142,8 +4162,8 @@ const studyHTML = hasStudy ? `
               </div>
               <div class="meta">
                 <div><strong>Cliente:</strong> ${htmlEscape(cliente.nome||'—')}</div>
-                <div><strong>Contacto:</strong> ${htmlEscape(cliente.tel||'—')} · ${htmlEscape(cliente.email||'—')}</div>
-                <div><strong>Data:</strong> ${htmlEscape(toPTDate(report.updatedAt||report.createdAt||todayISO()))}</div>
+                <div><strong>${t('Contacto','Contact')}:</strong> ${htmlEscape(cliente.tel||'—')} · ${htmlEscape(cliente.email||'—')}</div>
+                <div><strong>${t('Data','Date')}:</strong> ${htmlEscape(toReportDate(report.updatedAt||report.createdAt||todayISO()))}</div>
                 <div><strong>Formato:</strong> ${detalhe==='full'?'Completo':'Executivo'}</div>
               </div>
             </div>
@@ -4167,7 +4187,7 @@ ${forceExec ? `<div class="sec">
     <h3>Decisão recomendada</h3>
     <p class="p">${htmlEscape(rec).replace(/\n/g,'<br>')}</p>
     <div class="hr"></div>
-    <p class="p"><strong>Próximo passo recomendado:</strong> ${htmlEscape(report.report?.cta || 'Agendar reunião')} — 15 a 20 minutos para validar critérios, cenário e calendarização.</p>
+    <p class="p"><strong>${t('Próximo passo recomendado','Recommended next step')}:</strong> ${htmlEscape(report.report?.cta || 'Agendar reunião')} — 15 a 20 minutos para validar critérios, cenário e calendarização.</p>
   </div>
 
   <div class="grid" style="margin-top:12px">
@@ -4180,7 +4200,7 @@ ${forceExec ? `<div class="sec">
       </ul>
     </div>
     <div class="card">
-      <h3>Riscos a vigiar</h3>
+      <h3>${t('Riscos a vigiar','Risks to watch')}</h3>
       <ul class="bullets">
         <li>Perda de janela de mercado/atenção se a decisão for adiada.</li>
         <li>Desalinhamento entre expectativa e realidade de mercado — corrigir cedo com validação.</li>
@@ -4565,13 +4585,13 @@ const blocoRecomendacao = `
 
     <div class="kpi">
       <div class="card">
-        <h3>Razões principais</h3>
+        <h3>${t('Razões principais','Key reasons')}</h3>
         <ul class="list">
           ${razoes.map(x=>`<li>${safe(x)}</li>`).join('')}
         </ul>
       </div>
       <div class="card">
-        <h3>Riscos a vigiar</h3>
+        <h3>${t('Riscos a vigiar','Risks to watch')}</h3>
         <ul class="list">
           ${riscosVigiar.map(x=>`<li>${safe(x)}</li>`).join('')}
         </ul>
@@ -4623,7 +4643,7 @@ const blocoRecomendacao = `
           </div>
           <div class="meta">
             <div><strong>Cliente:</strong> ${safe(cliente.nome || '—')}</div>
-            <div><strong>Data:</strong> ${ptDate(report.updatedAt || report.createdAt)}</div>
+            <div><strong>${t('Data','Date')}:</strong> ${ptDate(report.updatedAt || report.createdAt)}</div>
             <div><strong>Idioma:</strong> ${(cliente.idioma||'pt')==='en' ? 'EN' : 'PT'}</div>
           </div>
         </div>
