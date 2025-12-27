@@ -3680,6 +3680,12 @@ async function removePdf(pdfId){
 
   function exportReportToPrintPDF(report, forceExec=false){
     const cliente = report.cliente || {};
+    const perfil = (()=>{
+      const t = String(cliente.tipo||'').toLowerCase();
+      if(t.includes('invest')) return 'investidor';
+      if(t.includes('promot')) return 'promotor';
+      return 'vendedor';
+    })();
     const obj = report.objetivo || {};
     const ativo = report.ativo || {};
     const mode = ativo.mode || 'imovel';
@@ -3789,16 +3795,34 @@ async function removePdf(pdfId){
     const recText = (rec || '').trim();
     const recBullets = toBullets(recText, 3);
     
-    const execRazoes = recBullets.length ? recBullets : [
-      "Alinhamento entre objetivo, timing e posicionamento do ativo/zona.",
-      "Mitigação de risco através de execução por marcos (controlo semanal).",
-      "Decisão baseada em critérios objetivos, reduzindo indecisão e custo de oportunidade."
-    ];
-    
-    const execRiscos = [
-      "Perda de janela de mercado/atenção se a decisão for adiada.",
-      "Desalinhamento entre expectativa e mercado — corrigir cedo via validação."
-    ];
+    const execRazoes = recBullets.length ? recBullets : (
+      (perfil==='investidor') ? [
+        "Leitura objetiva de retorno (yield) e risco, alinhada com o seu perfil e horizonte.",
+        "Comparáveis e validação de pressupostos para reduzir incerteza antes de avançar.",
+        "Estruturação de próximo passo com marcos (proposta, diligências e fecho) para acelerar execução."
+      ] : (perfil==='promotor') ? [
+        "Melhor posicionamento e narrativa comercial para maximizar absorção e preço/m².",
+        "Estratégia de comercialização com qualificação de procura e reporting (controlo semanal).",
+        "Redução de risco de execução através de planeamento por fases e coordenação de stakeholders."
+      ] : [
+        "Alinhamento entre objetivo, timing e posicionamento do ativo/zona.",
+        "Mitigação de risco através de execução por marcos (controlo semanal).",
+        "Decisão baseada em critérios objetivos, reduzindo indecisão e custo de oportunidade."
+      ]
+    );
+
+    const execRiscos = (
+      (perfil==='investidor') ? [
+        "Risco de sobre‑pagamento se os comparáveis e premissas não forem validados cedo.",
+        "Perda de oportunidades se a decisão não tiver um calendário e critérios claros."
+      ] : (perfil==='promotor') ? [
+        "Risco de desalinhamento entre produto/preço e procura — corrigir cedo com testes de mercado.",
+        "Perda de ritmo comercial se a execução não tiver reporting e disciplina de follow‑up."
+      ] : [
+        "Perda de janela de mercado/atenção se a decisão for adiada.",
+        "Desalinhamento entre expectativa e mercado — corrigir cedo via validação."
+      ]
+    );
     
 
     // Dados do estudo (Fase 2.1 — extração assistida)
@@ -3813,7 +3837,7 @@ async function removePdf(pdfId){
     const confTagExec = 'CONFIDENCIAL';
     
     // Intro (máx ~10 linhas)
-    const introGarvetur = `A Garvetur Luxury Porto é a unidade premium do Grupo Garvetur no Norte de Portugal, especializada em consultoria imobiliária para clientes exigentes, nacionais e internacionais. Combinamos conhecimento local detalhado do Grande Porto com acesso a uma rede nacional consolidada, assegurando acompanhamento completo do início ao fecho da decisão. A nossa abordagem é orientada a valor: análise de contexto, leitura de mercado, rigor documental e execução com marcos claros. Este relatório sintetiza os principais pontos de decisão e propõe o próximo passo recomendado.`;
+    const introGarvetur = (perfil==='investidor') ? `A Garvetur Luxury Porto apoia decisões de investimento imobiliário com uma abordagem orientada a risco e retorno. Combinamos leitura de mercado do Grande Porto, acesso a uma rede nacional e execução disciplinada: análise de yield e comparáveis, validação de pressupostos e rigor documental. Este relatório sintetiza os pontos críticos para decidir com clareza e avançar com um próximo passo objetivo.` : (perfil==='promotor') ? `A Garvetur Luxury Porto atua como parceiro comercial e estratégico em projetos de promoção imobiliária. Estruturamos o go‑to‑market com base em posicionamento, pricing, qualificação de procura e controlo de execução, apoiados por conhecimento local do Grande Porto e rede nacional. Este relatório consolida os elementos-chave para tomada de decisão e define o próximo passo recomendado.` : `A Garvetur Luxury Porto é a unidade premium do Grupo Garvetur no Norte de Portugal, especializada em consultoria imobiliária para clientes exigentes, nacionais e internacionais. Combinamos conhecimento local detalhado do Grande Porto com acesso a uma rede nacional consolidada, assegurando acompanhamento completo do início ao fecho da decisão. A nossa abordagem é orientada a valor: análise de contexto, leitura de mercado, rigor documental e execução com marcos claros. Este relatório sintetiza os principais pontos de decisão e propõe o próximo passo recomendado.`;
     
     // Curadoria mínima (sem anexo)
 // - Prioridade: usar a extração assistida do Passo 4 (chapters[].insights)
@@ -4820,4 +4844,5 @@ if(btnResetTemplates){
 </script>
 </body>
 </html>
+
 
