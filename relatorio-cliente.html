@@ -570,7 +570,7 @@
         <button class="btn primary" id="btnNew">+ Novo Relatório</button>
         <button class="btn" id="btnManual">📘 Manual Estratégico</button>
         <button class="btn" id="btnRelatorioPremium">📄 Relatório Premium</button>
-        <button class="btn" id="btnGuiaRelatorioExec">🧭 Guia Relatório Executivo</button>
+        <button class="btn" id="btnGuiaExec">🧭 Guia Relatório Executivo</button>
       </div>
     </header>
 
@@ -1304,34 +1304,38 @@
 </div>
 
 
-  <!-- Guia Relatório Executivo (Modal) -->
-<div id="execGuideModal" class="hidden" aria-hidden="true"
-     style="position:fixed;inset:0;z-index:10011;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:18px">
-  <div style="width:min(1100px,96vw);height:min(86vh,860px);background:#0b0b0b;border:1px solid rgba(163,139,99,.35);
-              border-radius:18px;box-shadow:0 22px 44px rgba(0,0,0,.65);overflow:hidden;display:flex;flex-direction:column">
+<!-- MODAL — GUIA RELATÓRIO EXECUTIVO -->
+<div id="guiaExecModal" class="hidden" aria-hidden="true"
+     style="position:fixed; inset:0; z-index:10012; display:flex; align-items:center; justify-content:center; padding:18px; background:rgba(0,0,0,.72);">
+  <div style="width:min(1100px, 96vw); height:min(86vh, 860px); background:#0b0b0b; border:1px solid rgba(163,139,99,.35);
+              border-radius:18px; overflow:hidden; box-shadow:0 22px 44px rgba(0,0,0,.65); display:flex; flex-direction:column;">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.10);
                 background:linear-gradient(90deg,#050505,#111,#050505);flex-wrap:wrap">
       <div style="display:flex;flex-direction:column;gap:2px">
         <div style="font-size:11px;color:rgba(255,255,255,.65);letter-spacing:.14em;text-transform:uppercase">
           Guia Interno
         </div>
-        <div id="execGuideModalTitle" style="font-size:12px;color:#A38B63;font-weight:900;letter-spacing:.06em;text-transform:uppercase">
-          RELATÓRIO EXECUTIVO — UTILIZAÇÃO
+        <div id="guiaExecModalTitle" style="font-size:12px;color:#A38B63;font-weight:900;letter-spacing:.06em;text-transform:uppercase">
+          Relatório Executivo — Vendedor · Investidor · Promotor
         </div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn" id="execGuideModalPrint">Imprimir / Guardar em PDF</button>
-        <button class="btn secondary" id="execGuideModalClose">Fechar</button>
+        <button class="btn" id="guiaExecModalPrint">Imprimir / Guardar em PDF</button>
+        <button class="btn secondary" id="guiaExecModalClose">Fechar</button>
       </div>
     </div>
     <div style="flex:1;min-height:0;background:#000">
-      <iframe id="execGuideModalFrame" title="Guia Relatório Executivo" style="width:100%;height:100%;border:0;background:#000"></iframe>
+      <iframe id="guiaExecModalFrame" title="Guia Relatório Executivo"
+              style="width:100%;height:100%;border:0;background:#000"></iframe>
     </div>
     <div style="padding:10px 12px;border-top:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.35)">
-      <div class="hint">Documento interno · Uso exclusivo Garvetur Luxury Porto. Para imprimir/guardar, utilize “Imprimir para PDF” e desative “Cabeçalhos e rodapés”.</div>
+      <div class="hint">
+        Documento interno. Para exportar, use “Imprimir / Guardar em PDF”.
+      </div>
     </div>
   </div>
 </div>
+
 
 <script>
 
@@ -2138,116 +2142,168 @@ function closePremiumModal(){
 }
 
 btnRelatorioPremium?.addEventListener('click', openPremiumModal);
-premiumModalClose?.addEventListener('click', closePremiumModal);
-premiumModal?.addEventListener('click', (e)=>{ if(e.target === premiumModal) closePremiumModal(); });
 
-/* ===========================
-   Guia Relatório Executivo (Modal)
-=========================== */
-const btnGuiaRelatorioExec = el('btnGuiaRelatorioExec');
-const execGuideModal = document.getElementById('execGuideModal');
-const execGuideModalFrame = document.getElementById('execGuideModalFrame');
-const execGuideModalClose = document.getElementById('execGuideModalClose');
-const execGuideModalPrint = document.getElementById('execGuideModalPrint');
-const execGuideModalTitle = document.getElementById('execGuideModalTitle');
 
-function execGuideHTML(){
-  return `<!doctype html>
-<html lang="pt">
+  /* ===========================
+     Guia Relatório Executivo (Interno)
+  =========================== */
+  const btnGuiaExec = el('btnGuiaExec');
+  const guiaExecModal = document.getElementById('guiaExecModal');
+  const guiaExecModalFrame = document.getElementById('guiaExecModalFrame');
+  const guiaExecModalClose = document.getElementById('guiaExecModalClose');
+  const guiaExecModalPrint = document.getElementById('guiaExecModalPrint');
+  const guiaExecModalTitle = document.getElementById('guiaExecModalTitle');
+
+  const GUIA_EXEC_HTML = `<!doctype html>
+<html lang="pt-PT">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Guia — Relatório Executivo</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Guia Interno — Relatório Executivo</title>
 <style>
-  :root{--gold:#A38B63;--bg:#0b0b0b;--card:#111;--muted:rgba(255,255,255,.70);}
-  body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:#fff;}
-  .wrap{max-width:980px;margin:0 auto;padding:22px 18px 40px;}
-  .top{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
-  .kicker{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.65);}
-  h1{margin:0;font-size:18px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);}
-  .note{font-size:12px;color:rgba(255,255,255,.70);line-height:1.5;}
-  .card{background:linear-gradient(180deg,#0f0f0f,#0b0b0b);border:1px solid rgba(163,139,99,.28);border-radius:16px;padding:14px 14px;margin:12px 0;}
-  h2{margin:0 0 8px 0;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#fff;}
-  ul{margin:8px 0 0 18px;color:rgba(255,255,255,.78);line-height:1.55;font-size:12.5px;}
-  p{margin:8px 0;color:rgba(255,255,255,.78);line-height:1.6;font-size:12.5px;}
-  .tag{display:inline-block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.14);padding:6px 8px;border-radius:999px;margin-right:6px}
+  :root{ --gold:#A38B63; --bg:#0b0b0b; --text:#f3f3f3; --muted:#bdbdbd; --border:rgba(163,139,99,.35); }
+  *{box-sizing:border-box}
+  body{ margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; background:var(--bg); color:var(--text); }
+  .wrap{ max-width:980px; margin:0 auto; padding:22px 18px 40px; }
+  .kicker{ font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); }
+  h1{ margin:6px 0 0; color:var(--gold); letter-spacing:.06em; text-transform:uppercase; font-size:18px; }
+  .sub{ margin:6px 0 18px; color:var(--muted); font-size:12px; line-height:1.45; }
+  .card{ border:1px solid rgba(163,139,99,.22); border-radius:16px; padding:14px 14px; background:rgba(0,0,0,.35); margin:10px 0; }
+  h2{ margin:0 0 8px; font-size:12px; color:var(--gold); letter-spacing:.10em; text-transform:uppercase; }
+  p{ margin:8px 0; color:#e9e9e9; font-size:13px; line-height:1.55; }
+  ul{ margin:8px 0 0 18px; padding:0; color:#e9e9e9; font-size:13px; line-height:1.55; }
+  li{ margin:6px 0; }
+  .grid{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+  @media (max-width: 860px){ .grid{ grid-template-columns:1fr; } }
+  .pill{ display:inline-flex; padding:4px 8px; border:1px solid rgba(255,255,255,.14); border-radius:999px; font-size:11px; letter-spacing:.10em; text-transform:uppercase; color:var(--muted); background:rgba(0,0,0,.35); }
+  .rule{ border-top:1px solid rgba(255,255,255,.10); margin:10px 0; }
+  @media print{
+    body{ background:#fff; color:#111; }
+    .card{ background:#fff; border:1px solid #ddd; }
+    h1,h2{ color:#111; }
+    .kicker,.sub,.pill{ color:#333; }
+  }
 </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="top">
-      <div class="kicker">Guia Interno · Garvetur Luxury Porto</div>
-      <h1>Relatório Executivo — Utilização</h1>
-      <div class="note">Objetivo: garantir utilização consistente do relatório, com seleção correta do perfil do cliente (Vendedor / Investidor / Promotor) e inserção do Estudo de Mercado a partir do texto colado no Passo 4.</div>
-    </div>
+    <div class="kicker">Guia Interno</div>
+    <h1>Relatório Executivo — Vendedor · Investidor · Promotor</h1>
+    <div class="sub">Standard operativo Garvetur Luxury Porto. Um único relatório base, com variações de discurso por tipologia de decisor.</div>
+
     <div class="card">
-      <h2>1. Regra de Ouro</h2>
-      <p><span class="tag">1 template</span><span class="tag">3 leituras</span>O layout não muda. O tipo de cliente apenas ativa variações de texto e ênfase por bloco.</p>
+      <h2>Objetivo</h2>
+      <p>Garantir uma utilização consistente do Relatório Executivo, reforçando autoridade, confiança e clareza de decisão, sem linguagem reativa ou confrontacional.</p>
+      <p><span class="pill">Regra de ouro</span> Um relatório. Três leituras. O layout não muda; muda o foco do discurso.</p>
     </div>
+
     <div class="card">
-      <h2>2. Seleção do Tipo de Cliente</h2>
+      <h2>Quando usar cada tipologia</h2>
+      <div class="grid">
+        <div class="card" style="margin:0">
+          <h2>Vendedor (default)</h2>
+          <p>Particular/família/herança/primeira venda. Sempre que exista emocionalidade ou insegurança.</p>
+          <ul>
+            <li>Objetivo: tranquilizar e proteger valor</li>
+            <li>Tom: consultivo e pedagógico</li>
+          </ul>
+        </div>
+        <div class="card" style="margin:0">
+          <h2>Investidor</h2>
+          <p>Portefólio, retorno, timing, alternativas, liquidez.</p>
+          <ul>
+            <li>Objetivo: decisão racional (risco vs retorno)</li>
+            <li>Tom: objetivo e factual</li>
+          </ul>
+        </div>
+        <div class="card" style="margin:0">
+          <h2>Promotor / Developer</h2>
+          <p>Produto, absorção, pricing, posicionamento, go-to-market.</p>
+          <ul>
+            <li>Objetivo: parceiro estratégico de comercialização</li>
+            <li>Tom: estratégico e orientado a performance</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Passo a passo no módulo</h2>
       <ul>
-        <li><b>Vendedor</b> (default): proprietário particular/família; foco em proteção de valor e tranquilidade.</li>
-        <li><b>Investidor</b>: foco em retorno, risco, timing, eficiência.</li>
-        <li><b>Promotor</b>: foco em posicionamento, absorção, pricing e go-to-market.</li>
+        <li><b>Passo 1:</b> Selecionar o <b>Tipo de Cliente</b> (default: Vendedor).</li>
+        <li><b>Passo 4:</b> Colar o <b>texto integral do Estudo de Mercado</b> (fonte principal do bloco). A introdução é curta e varia por tipologia.</li>
+        <li><b>Passo 5:</b> Gerar o PDF. O sistema comuta os textos por tipologia mantendo o mesmo layout.</li>
       </ul>
-      <p><b>Regra prática:</b> na dúvida, usar Vendedor.</p>
+      <div class="rule"></div>
+      <p><span class="pill">Importante</span> Não “re-escrever” o Estudo de Mercado no módulo: o texto do Passo 4 é a fonte de verdade.</p>
     </div>
+
     <div class="card">
-      <h2>3. Estudo de Mercado (Passo 4)</h2>
+      <h2>Erros a evitar</h2>
       <ul>
-        <li>Colar o texto integral no Passo 4 (ajustado ao caso).</li>
-        <li>No PDF, o bloco “Estudo de Mercado” inclui: <b>introdução curta</b> (por tipologia) + <b>texto integral do Passo 4</b>.</li>
-        <li>Evitar texto genérico. O Passo 4 é a fonte de verdade.</li>
+        <li>Usar “Investidor” para vendedor emocional (perde-se empatia e confiança).</li>
+        <li>Usar “Promotor” para particular (soa técnico e distante).</li>
+        <li>Colar texto genérico no Passo 4 (reduz credibilidade do relatório).</li>
+        <li>Usar o relatório como “argumento agressivo” — o objetivo é preparar a decisão.</li>
       </ul>
     </div>
+
     <div class="card">
-      <h2>4. Boas Práticas</h2>
-      <ul>
-        <li>Usar o relatório como base de conversa (não como argumento agressivo).</li>
-        <li>Enviar antes da reunião final e referenciar os blocos-chave na apresentação.</li>
-        <li>Manter consistência de discurso com o perfil selecionado.</li>
-      </ul>
+      <h2>Mensagem à equipa</h2>
+      <p>Este relatório é parte da identidade Garvetur Luxury Porto. Usado corretamente, eleva a perceção de valor, reduz objeções e aumenta a qualidade das decisões do cliente.</p>
     </div>
   </div>
 </body>
 </html>`;
-}
 
-function openExecGuideModal(){
-  if(!execGuideModal || !execGuideModalFrame) return;
-  execGuideModalFrame.src = "about:blank";
-  execGuideModalFrame.removeAttribute("src");
-  execGuideModalFrame.srcdoc = execGuideHTML();
-  if(execGuideModalTitle) execGuideModalTitle.textContent = "RELATÓRIO EXECUTIVO — GUIA DE UTILIZAÇÃO";
-  execGuideModal.classList.remove("hidden");
-  execGuideModal.setAttribute("aria-hidden","false");
-  if(execGuideModalPrint){
-    execGuideModalPrint.onclick = ()=>{
+  function openGuiaExecModal(){
+    if(!guiaExecModal) return;
+    guiaExecModal.classList.remove('hidden');
+    guiaExecModal.setAttribute('aria-hidden','false');
+    if(guiaExecModalTitle) guiaExecModalTitle.textContent = 'Relatório Executivo — Vendedor · Investidor · Promotor';
+    if(guiaExecModalFrame){
       try{
-        const w = execGuideModalFrame.contentWindow;
-        if(!w){ alert("Não foi possível iniciar a impressão."); return; }
-        w.focus();
-        w.print();
-      }catch(e){ console.error(e); alert("Falha ao abrir a impressão."); }
-    };
+        guiaExecModalFrame.removeAttribute('src');
+        guiaExecModalFrame.srcdoc = GUIA_EXEC_HTML;
+      }catch(_){
+        guiaExecModalFrame.src = 'about:blank';
+      }
+    }
   }
-}
-function closeExecGuideModal(){
-  if(!execGuideModal) return;
-  execGuideModal.classList.add("hidden");
-  execGuideModal.setAttribute("aria-hidden","true");
-  if(execGuideModalFrame) execGuideModalFrame.src = "about:blank";
-}
-btnGuiaRelatorioExec?.addEventListener("click", openExecGuideModal);
-execGuideModalClose?.addEventListener("click", closeExecGuideModal);
-execGuideModal?.addEventListener("click", (e)=>{ if(e.target === execGuideModal) closeExecGuideModal(); });
 
+  function closeGuiaExecModal(){
+    if(!guiaExecModal) return;
+    guiaExecModal.classList.add('hidden');
+    guiaExecModal.setAttribute('aria-hidden','true');
+    if(guiaExecModalFrame){
+      guiaExecModalFrame.srcdoc = '';
+      guiaExecModalFrame.src = 'about:blank';
+    }
+  }
+
+  btnGuiaExec?.addEventListener('click', openGuiaExecModal);
+  guiaExecModalClose?.addEventListener('click', closeGuiaExecModal);
+
+  guiaExecModalPrint?.addEventListener('click', ()=>{
+    try{
+      const w = guiaExecModalFrame?.contentWindow;
+      if(!w) return alert('Não foi possível iniciar a impressão.');
+      w.focus(); w.print();
+    }catch(_){
+      alert('Não foi possível iniciar a impressão.');
+    }
+  });
+
+  window.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape' && guiaExecModal && !guiaExecModal.classList.contains('hidden')) closeGuiaExecModal();
+  });
+
+premiumModalClose?.addEventListener('click', closePremiumModal);
+premiumModal?.addEventListener('click', (e)=>{ if(e.target === premiumModal) closePremiumModal(); });
 
 window.addEventListener('keydown', (e)=>{
   if(e.key === 'Escape'){
     if(premiumModal && !premiumModal.classList.contains('hidden')) closePremiumModal();
-    if(execGuideModal && !execGuideModal.classList.contains('hidden')) closeExecGuideModal();
   }
     
   });
@@ -3817,7 +3873,13 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
       <div class="sec no-break">
         <h2>Implicações para a sua decisão</h2>
         <div class="callout no-break">
-          ${curFromChapters.implicacoes?.length ? `           <ul class="bullets">             ${curFromChapters.implicacoes.map(x=>`<li>${safe(x)}</li>`).join('')}           </ul>         ` : ``}  <p class="p">
+          ${curFromChapters.implicacoes?.length ? `
+          <ul class="bullets">
+            ${curFromChapters.implicacoes.map(x=>`<li>${safe(x)}</li>`).join('')}
+          </ul>
+        ` : ``}
+
+<p class="p">
             A informação analisada aponta para uma decisão que deve ser tomada com critérios objetivos e um plano de execução claro.
             O ponto-chave é reduzir incerteza (e custo de oportunidade) através de validação rápida de pressupostos e calendarização.
           </p>
@@ -3843,6 +3905,18 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
               ${execRiscos.map(x=>`<li>${safe(x)}</li>`).join('')}
             </ul>
           </div>
+        </div>
+      </div>
+    `;
+    
+    
+    // Porquê escolher a Garvetur (executivo)
+    const porqueEscolherGarveturTXT = 'Escolher a Garvetur é escolher um processo de venda orientado por método, controlo e proteção de valor. Num mercado exigente, o diferencial não está na exposição “genérica”, mas na qualidade da estratégia: posicionamento correto, comunicação consistente, qualificação de procura e negociação conduzida com disciplina. Quando o objetivo é reduzir risco, evitar ruído e maximizar probabilidade de fecho nas melhores condições, a Garvetur assume a coordenação do processo com responsabilidade e rigor — garantindo alinhamento, clareza e execução profissional do início ao fim.';
+    const porqueEscolherGarvetur = `
+      <div class="sec">
+        <h2>Porquê escolher a Garvetur</h2>
+        <div class="callout">
+          <p class="p">${safe(porqueEscolherGarveturTXT)}</p>
         </div>
       </div>
     `;
@@ -3917,6 +3991,7 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
             ${curadoriaMinHTML}
             ${implicacoesCliente}
             ${porqueFazSentido}
+            ${porqueEscolherGarvetur}
             ${decisaoRecomendada}
     
             ${assinaturaHTML}
@@ -4745,3 +4820,4 @@ if(btnResetTemplates){
 </script>
 </body>
 </html>
+
