@@ -1095,7 +1095,7 @@
                 <div class="section-title">Estrutura do relatório</div>
 
                 <div class="switches">
-                  <label class="sw"><span class="l"><b>Resumo Executivo</b><span>1 página com decisão + mensagem final.</span></span><input id="sExec" type="checkbox" checked></label>
+                  <label class="sw"><span class="l"><b>Executive Summary</b><span>1 página com decisão + mensagem final.</span></span><input id="sExec" type="checkbox" checked></label>
                   <label class="sw"><span class="l"><b>Contexto do Cliente</b><span>Objetivo, preocupações e perfil.</span></span><input id="sContexto" type="checkbox" checked></label>
                   <label class="sw"><span class="l"><b>Enquadramento de Mercado</b><span>Insights (a ligar mais tarde).</span></span><input id="sMercado" type="checkbox" checked></label>
                   <label class="sw"><span class="l"><b>Comparáveis</b><span>Concorrência e posicionamento (quando aplicável).</span></span><input id="sComps" type="checkbox"></label>
@@ -1121,7 +1121,7 @@
                     <label for="rCTA">Call-to-action final</label>
                     <select id="rCTA">
                       <option>Agendar reunião</option>
-                      <option>Avaliação presencial</option>
+                      <option>On-site property assessment</option>
                       <option>Ajuste de preço</option>
                       <option>Estratégia de marketing</option>
                       <option>Mandato</option>
@@ -2011,7 +2011,7 @@ const tplStatus = el('tplStatus');
           <h2>Estrutura recomendada do relatório (padrão Garvetur Luxury)</h2>
           <div class="card">
             <ul>
-              <li><strong>Resumo Executivo:</strong> decisão recomendada + racional em linguagem simples.</li>
+              <li><strong>Executive Summary:</strong> decisão recomendada + racional em linguagem simples.</li>
               <li><strong>Contexto do Cliente:</strong> o “porquê” (objetivo, receios, critérios).</li>
               <li><strong>Enquadramento/mercado:</strong> 3–6 pontos que importam para a decisão.</li>
               <li><strong>Cenários:</strong> preço/timing/estratégia (impacto e trade-offs).</li>
@@ -2231,11 +2231,11 @@ btnRelatorioPremium?.addEventListener('click', openPremiumModal);
       <h2>Passo a passo no módulo</h2>
       <ul>
         <li><b>Passo 1:</b> Selecionar o <b>Tipo de Cliente</b> (default: Vendedor).</li>
-        <li><b>Passo 4:</b> Colar o <b>texto integral do Estudo de Mercado</b> (fonte principal do bloco). A introdução é curta e varia por tipologia.</li>
+        <li><b>Passo 4:</b> Colar o <b>texto integral do Market Study</b> (fonte principal do bloco). A introdução é curta e varia por tipologia.</li>
         <li><b>Passo 5:</b> Gerar o PDF. O sistema comuta os textos por tipologia mantendo o mesmo layout.</li>
       </ul>
       <div class="rule"></div>
-      <p><span class="pill">Importante</span> Não “re-escrever” o Estudo de Mercado no módulo: o texto do Passo 4 é a fonte de verdade.</p>
+      <p><span class="pill">Importante</span> Não “re-escrever” o Market Study no módulo: o texto do Passo 4 é a fonte de verdade.</p>
     </div>
 
     <div class="card">
@@ -3680,7 +3680,6 @@ async function removePdf(pdfId){
 
   function exportReportToPrintPDF(report, forceExec=false){
     const cliente = report.cliente || {};
-    const lang = (String(cliente.idioma||'pt').toLowerCase()==='en') ? 'en' : 'pt';
     const perfil = (()=>{
       const t = String(cliente.tipo||'').toLowerCase();
       if(t.includes('invest')) return 'investidor';
@@ -3775,16 +3774,7 @@ async function removePdf(pdfId){
 
     
     // ===== Sprint 2.7 (cliente) — Executivo: razões/riscos (sem mexer em botões) =====
-    const ctaRaw = (report.report?.cta || 'Agendar reunião');
-    const ctaMapEN = {
-      'Agendar reunião': 'Schedule a meeting',
-      'Avaliação presencial': 'On-site property assessment',
-      'Ajuste de preço': 'Pricing adjustment',
-      'Estratégia de marketing': 'Marketing strategy',
-      'Mandato': 'Exclusive mandate'
-    };
-    const cta = (lang==='en' ? (ctaMapEN[ctaRaw] || ctaRaw) : ctaRaw);
-
+    const cta = (report.report?.cta || 'Agendar reunião');
     
     const resumoExec = (report.report?.sumExec || '').trim();
     const resumoFinal = (resumoExec || rec || '').trim();
@@ -3802,86 +3792,38 @@ async function removePdf(pdfId){
       return bullets;
     }
     
-    
     const recText = (rec || '').trim();
     const recBullets = toBullets(recText, 3);
-
-    // Razões / Riscos (Exec) — comutação por perfil + idioma
-    const reasonsPT = {
-      investidor: [
+    
+    const execRazoes = recBullets.length ? recBullets : (
+      (perfil==='investidor') ? [
         "Leitura objetiva de retorno (yield) e risco, alinhada com o seu perfil e horizonte.",
         "Comparáveis e validação de pressupostos para reduzir incerteza antes de avançar.",
         "Estruturação de próximo passo com marcos (proposta, diligências e fecho) para acelerar execução."
-      ],
-      promotor: [
+      ] : (perfil==='promotor') ? [
         "Melhor posicionamento e narrativa comercial para maximizar absorção e preço/m².",
         "Estratégia de comercialização com qualificação de procura e reporting (controlo semanal).",
         "Redução de risco de execução através de planeamento por fases e coordenação de stakeholders."
-      ],
-      vendedor: [
+      ] : [
         "Alinhamento entre objetivo, timing e posicionamento do ativo/zona.",
         "Mitigação de risco através de execução por marcos (controlo semanal).",
         "Decisão baseada em critérios objetivos, reduzindo indecisão e custo de oportunidade."
       ]
-    };
-
-    const reasonsEN = {
-      investidor: [
-        "Objective view of return (yield) and risk, aligned with your profile and time horizon.",
-        "Comparable evidence and assumption validation to reduce uncertainty before proceeding.",
-        "A structured next step with milestones (offer, due diligence and closing) to accelerate execution."
-      ],
-      promotor: [
-        "Stronger positioning and commercial narrative to maximise absorption and price per m².",
-        "Go-to-market strategy with demand qualification and reporting (weekly control).",
-        "Lower execution risk through phased planning and stakeholder coordination."
-      ],
-      vendedor: [
-        "Alignment between objective, timing and market positioning of the asset/area.",
-        "Risk mitigation through milestone-based execution (weekly control).",
-        "Decision-making grounded on objective criteria, reducing indecision and opportunity cost."
-      ]
-    };
-
-    const risksPT = {
-      investidor: [
-        "Risco de sobre‑pagamento se os comparáveis e premissas não forem validados cedo.",
-        "Perda de oportunidades se a decisão não tiver um calendário e critérios claros."
-      ],
-      promotor: [
-        "Risco de desalinhamento entre produto/preço e procura — corrigir cedo com testes de mercado.",
-        "Perda de ritmo comercial se a execução não tiver reporting e disciplina de follow‑up."
-      ],
-      vendedor: [
-        "Perda de janela de mercado/atenção se a decisão for adiada.",
-        "Desalinhamento entre expectativa e mercado — corrigir cedo via validação."
-      ]
-    };
-
-    const risksEN = {
-      investidor: [
-        "Risk of overpaying if comparables and assumptions are not validated early.",
-        "Missed opportunities if the decision lacks a clear timetable and criteria."
-      ],
-      promotor: [
-        "Misalignment risk between product/pricing and demand — correct early via market testing.",
-        "Loss of commercial momentum without reporting and disciplined follow‑up."
-      ],
-      vendedor: [
-        "Loss of a market window / buyer attention if the decision is delayed.",
-        "Misalignment between expectations and the market — best corrected early through validation."
-      ]
-    };
-
-    const execRazoes = recBullets.length ? recBullets : (
-      (lang==='en' ? reasonsEN : reasonsPT)[perfil] || (lang==='en' ? reasonsEN.vendedor : reasonsPT.vendedor)
     );
 
     const execRiscos = (
-      (lang==='en' ? risksEN : risksPT)[perfil] || (lang==='en' ? risksEN.vendedor : risksPT.vendedor)
+      (perfil==='investidor') ? [
+        "Risco de sobre‑pagamento se os comparáveis e premissas não forem validados cedo.",
+        "Perda de oportunidades se a decisão não tiver um calendário e critérios claros."
+      ] : (perfil==='promotor') ? [
+        "Risco de desalinhamento entre produto/preço e procura — corrigir cedo com testes de mercado.",
+        "Perda de ritmo comercial se a execução não tiver reporting e disciplina de follow‑up."
+      ] : [
+        "Perda de janela de mercado/atenção se a decisão for adiada.",
+        "Desalinhamento entre expectativa e mercado — corrigir cedo via validação."
+      ]
     );
-
-
+    
 
     // Dados do estudo (Fase 2.1 — extração assistida)
     const chapters = Array.isArray(report.analysis?.chapters) ? report.analysis.chapters : [];
@@ -3933,7 +3875,7 @@ const hasCuradoriaMin = (
 
 const curadoriaMinHTML = hasCuradoriaMin ? `
   <div class="sec">
-    <h2>Estudo de Mercado</h2>
+    <h2>Market Study</h2>
 
     ${curFromChapters.top?.length ? `
       <div class="callout">
@@ -3953,7 +3895,7 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
 // Implicações (linguagem para cliente)
     const implicacoesCliente = `
       <div class="sec no-break">
-        <h2>Implicações para a sua decisão</h2>
+        <h2>Implications for Your Decision</h2>
         <div class="callout no-break">
           ${curFromChapters.implicacoes?.length ? `
           <ul class="bullets">
@@ -3969,21 +3911,20 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
       </div>
     `;
     
-    
-    // Why it makes sense now + risks (executivo) — comutação por idioma
+    // Porque faz sentido + riscos (executivo)
     const porqueFazSentido = `
       <div class="sec">
-        <h2>${lang==='en' ? 'Why it makes sense now' : 'Porque faz sentido agora'}</h2>
-
+        <h2>Why It Makes Sense Now</h2>
+    
         <div class="grid" style="margin-top:12px">
           <div class="card">
-            <h3>${lang==='en' ? 'Key reasons' : 'Razões principais'}</h3>
+            <h3>Razões principais</h3>
             <ul>
               ${execRazoes.map(x=>`<li>${safe(x)}</li>`).join('')}
             </ul>
           </div>
           <div class="card">
-            <h3>${lang==='en' ? 'Risks to watch' : 'Riscos a vigiar'}</h3>
+            <h3>Riscos a vigiar</h3>
             <ul>
               ${execRiscos.map(x=>`<li>${safe(x)}</li>`).join('')}
             </ul>
@@ -3991,14 +3932,13 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
         </div>
       </div>
     `;
-
-
-    // Porquê escolher a Garvetur (executivo)
-
+    
+    
+    // Why Choose Garvetur (executivo)
     const porqueEscolherGarveturTXT = 'Escolher a Garvetur é escolher um processo de venda orientado por método, controlo e proteção de valor. Num mercado exigente, o diferencial não está na exposição “genérica”, mas na qualidade da estratégia: posicionamento correto, comunicação consistente, qualificação de procura e negociação conduzida com disciplina. Quando o objetivo é reduzir risco, evitar ruído e maximizar probabilidade de fecho nas melhores condições, a Garvetur assume a coordenação do processo com responsabilidade e rigor — garantindo alinhamento, clareza e execução profissional do início ao fim.';
     const porqueEscolherGarvetur = `
       <div class="sec">
-        <h2>Porquê escolher a Garvetur</h2>
+        <h2>Why Choose Garvetur</h2>
         <div class="callout">
           <p class="p">${safe(porqueEscolherGarveturTXT)}</p>
         </div>
@@ -4007,11 +3947,10 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
     
     // Decisão recomendada (fecho)
     const decisaoRecomendada = `
-<p class="p"><strong>${lang==='en' ? 'Recommended next step:' : 'Próximo passo recomendado:'}</strong> ${safe(cta)}</p>
+<p class="p"><strong>Recommended Next Step:</strong> ${safe(cta)}</p>
         </div>
       </div>
     `;
-
     
     // Assinatura / contactos (footer)
     const assinaturaHTML = `
@@ -4164,7 +4103,7 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
 
 const studyHTML = hasStudy ? `
   <div class="sec">
-    <h2>Estudo de Mercado</h2>
+    <h2>Market Study</h2>
 
     <div class="callout">
       <h3>Texto de referência</h3>
@@ -4221,14 +4160,14 @@ ${forceExec ? `<div class="sec">
             </div>` : ``}
 
 <div class="sec">
-  <h2>Resumo Executivo</h2>
+  <h2>Executive Summary</h2>
   <p class="p"><strong>Objetivo:</strong> ${htmlEscape(obj.objetivo || '—')} · <strong>Zona:</strong> ${htmlEscape(zona)} ${tip?('· <strong>Tipologia:</strong> '+htmlEscape(tip)) : ''}</p>
 
   <div class="callout">
     <h3>Decisão recomendada</h3>
     <p class="p">${htmlEscape(rec).replace(/\n/g,'<br>')}</p>
     <div class="hr"></div>
-    <p class="p"><strong>Próximo passo recomendado:</strong> ${htmlEscape(report.report?.cta || 'Agendar reunião')} — 15 a 20 minutos para validar critérios, cenário e calendarização.</p>
+    <p class="p"><strong>Recommended Next Step:</strong> ${htmlEscape(report.report?.cta || 'Agendar reunião')} — 15 a 20 minutos para validar critérios, cenário e calendarização.</p>
   </div>
 
   <div class="grid" style="margin-top:12px">
@@ -4287,7 +4226,7 @@ ${forceExec ? `<div class="sec">
 
   const rec = (report.report?.recomendacaoFinal || '').trim() || '(preencher recomendação final)';
   const cta = (report.report?.cta || 'Agendar reunião');
-   // ===== Sprint 2.4 — Resumo Executivo curto (anti-repetição) =====
+   // ===== Sprint 2.4 — Executive Summary curto (anti-repetição) =====
 const resumoExec = (report.report?.sumExec || '').trim();
 const resumoFinal = resumoExec
   ? takeFirstSentences(resumoExec, 280)
@@ -4700,7 +4639,7 @@ const blocoRecomendacao = `
         
 ${resumoFinal ? `
   <div class="sec">
-    <h2>Resumo Executivo</h2>
+    <h2>Executive Summary</h2>
     <div class="callout">
       <h3>Leitura rápida</h3>
       <p class="lead">${safe(resumoFinal).replace(/\n/g,'<br>')}</p>
@@ -4905,6 +4844,5 @@ if(btnResetTemplates){
 </script>
 </body>
 </html>
-
 
 
