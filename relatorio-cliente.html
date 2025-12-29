@@ -1095,7 +1095,7 @@
                 <div class="section-title">Estrutura do relatório</div>
 
                 <div class="switches">
-                  <label class="sw"><span class="l"><b>Executive Summary</b><span>1 página com decisão + mensagem final.</span></span><input id="sExec" type="checkbox" checked></label>
+                  <label class="sw"><span class="l"><b>Resumo Executivo</b><span>1 página com decisão + mensagem final.</span></span><input id="sExec" type="checkbox" checked></label>
                   <label class="sw"><span class="l"><b>Contexto do Cliente</b><span>Objetivo, preocupações e perfil.</span></span><input id="sContexto" type="checkbox" checked></label>
                   <label class="sw"><span class="l"><b>Enquadramento de Mercado</b><span>Insights (a ligar mais tarde).</span></span><input id="sMercado" type="checkbox" checked></label>
                   <label class="sw"><span class="l"><b>Comparáveis</b><span>Concorrência e posicionamento (quando aplicável).</span></span><input id="sComps" type="checkbox"></label>
@@ -1121,7 +1121,7 @@
                     <label for="rCTA">Call-to-action final</label>
                     <select id="rCTA">
                       <option>Agendar reunião</option>
-                      <option>On-site property assessment</option>
+                      <option>Avaliação presencial</option>
                       <option>Ajuste de preço</option>
                       <option>Estratégia de marketing</option>
                       <option>Mandato</option>
@@ -2011,7 +2011,7 @@ const tplStatus = el('tplStatus');
           <h2>Estrutura recomendada do relatório (padrão Garvetur Luxury)</h2>
           <div class="card">
             <ul>
-              <li><strong>Executive Summary:</strong> decisão recomendada + racional em linguagem simples.</li>
+              <li><strong>Resumo Executivo:</strong> decisão recomendada + racional em linguagem simples.</li>
               <li><strong>Contexto do Cliente:</strong> o “porquê” (objetivo, receios, critérios).</li>
               <li><strong>Enquadramento/mercado:</strong> 3–6 pontos que importam para a decisão.</li>
               <li><strong>Cenários:</strong> preço/timing/estratégia (impacto e trade-offs).</li>
@@ -2231,11 +2231,11 @@ btnRelatorioPremium?.addEventListener('click', openPremiumModal);
       <h2>Passo a passo no módulo</h2>
       <ul>
         <li><b>Passo 1:</b> Selecionar o <b>Tipo de Cliente</b> (default: Vendedor).</li>
-        <li><b>Passo 4:</b> Colar o <b>texto integral do Market Study</b> (fonte principal do bloco). A introdução é curta e varia por tipologia.</li>
+        <li><b>Passo 4:</b> Colar o <b>texto integral do Estudo de Mercado</b> (fonte principal do bloco). A introdução é curta e varia por tipologia.</li>
         <li><b>Passo 5:</b> Gerar o PDF. O sistema comuta os textos por tipologia mantendo o mesmo layout.</li>
       </ul>
       <div class="rule"></div>
-      <p><span class="pill">Importante</span> Não “re-escrever” o Market Study no módulo: o texto do Passo 4 é a fonte de verdade.</p>
+      <p><span class="pill">Importante</span> Não “re-escrever” o Estudo de Mercado no módulo: o texto do Passo 4 é a fonte de verdade.</p>
     </div>
 
     <div class="card">
@@ -3875,7 +3875,7 @@ const hasCuradoriaMin = (
 
 const curadoriaMinHTML = hasCuradoriaMin ? `
   <div class="sec">
-    <h2>Market Study</h2>
+    <h2>Estudo de Mercado</h2>
 
     ${curFromChapters.top?.length ? `
       <div class="callout">
@@ -3895,7 +3895,7 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
 // Implicações (linguagem para cliente)
     const implicacoesCliente = `
       <div class="sec no-break">
-        <h2>Implications for Your Decision</h2>
+        <h2>Implicações para a sua decisão</h2>
         <div class="callout no-break">
           ${curFromChapters.implicacoes?.length ? `
           <ul class="bullets">
@@ -3914,7 +3914,7 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
     // Porque faz sentido + riscos (executivo)
     const porqueFazSentido = `
       <div class="sec">
-        <h2>Why It Makes Sense Now</h2>
+        <h2>Porque faz sentido agora</h2>
     
         <div class="grid" style="margin-top:12px">
           <div class="card">
@@ -3934,11 +3934,11 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
     `;
     
     
-    // Why Choose Garvetur (executivo)
+    // Porquê escolher a Garvetur (executivo)
     const porqueEscolherGarveturTXT = 'Escolher a Garvetur é escolher um processo de venda orientado por método, controlo e proteção de valor. Num mercado exigente, o diferencial não está na exposição “genérica”, mas na qualidade da estratégia: posicionamento correto, comunicação consistente, qualificação de procura e negociação conduzida com disciplina. Quando o objetivo é reduzir risco, evitar ruído e maximizar probabilidade de fecho nas melhores condições, a Garvetur assume a coordenação do processo com responsabilidade e rigor — garantindo alinhamento, clareza e execução profissional do início ao fim.';
     const porqueEscolherGarvetur = `
       <div class="sec">
-        <h2>Why Choose Garvetur</h2>
+        <h2>Porquê escolher a Garvetur</h2>
         <div class="callout">
           <p class="p">${safe(porqueEscolherGarveturTXT)}</p>
         </div>
@@ -3947,7 +3947,7 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
     
     // Decisão recomendada (fecho)
     const decisaoRecomendada = `
-<p class="p"><strong>Recommended Next Step:</strong> ${safe(cta)}</p>
+<p class="p"><strong>Próximo passo recomendado:</strong> ${safe(cta)}</p>
         </div>
       </div>
     `;
@@ -4103,7 +4103,7 @@ const curadoriaMinHTML = hasCuradoriaMin ? `
 
 const studyHTML = hasStudy ? `
   <div class="sec">
-    <h2>Market Study</h2>
+    <h2>Estudo de Mercado</h2>
 
     <div class="callout">
       <h3>Texto de referência</h3>
@@ -4160,14 +4160,14 @@ ${forceExec ? `<div class="sec">
             </div>` : ``}
 
 <div class="sec">
-  <h2>Executive Summary</h2>
+  <h2>Resumo Executivo</h2>
   <p class="p"><strong>Objetivo:</strong> ${htmlEscape(obj.objetivo || '—')} · <strong>Zona:</strong> ${htmlEscape(zona)} ${tip?('· <strong>Tipologia:</strong> '+htmlEscape(tip)) : ''}</p>
 
   <div class="callout">
     <h3>Decisão recomendada</h3>
     <p class="p">${htmlEscape(rec).replace(/\n/g,'<br>')}</p>
     <div class="hr"></div>
-    <p class="p"><strong>Recommended Next Step:</strong> ${htmlEscape(report.report?.cta || 'Agendar reunião')} — 15 a 20 minutos para validar critérios, cenário e calendarização.</p>
+    <p class="p"><strong>Próximo passo recomendado:</strong> ${htmlEscape(report.report?.cta || 'Agendar reunião')} — 15 a 20 minutos para validar critérios, cenário e calendarização.</p>
   </div>
 
   <div class="grid" style="margin-top:12px">
@@ -4226,7 +4226,7 @@ ${forceExec ? `<div class="sec">
 
   const rec = (report.report?.recomendacaoFinal || '').trim() || '(preencher recomendação final)';
   const cta = (report.report?.cta || 'Agendar reunião');
-   // ===== Sprint 2.4 — Executive Summary curto (anti-repetição) =====
+   // ===== Sprint 2.4 — Resumo Executivo curto (anti-repetição) =====
 const resumoExec = (report.report?.sumExec || '').trim();
 const resumoFinal = resumoExec
   ? takeFirstSentences(resumoExec, 280)
@@ -4639,7 +4639,7 @@ const blocoRecomendacao = `
         
 ${resumoFinal ? `
   <div class="sec">
-    <h2>Executive Summary</h2>
+    <h2>Resumo Executivo</h2>
     <div class="callout">
       <h3>Leitura rápida</h3>
       <p class="lead">${safe(resumoFinal).replace(/\n/g,'<br>')}</p>
@@ -4844,5 +4844,4 @@ if(btnResetTemplates){
 </script>
 </body>
 </html>
-
 
