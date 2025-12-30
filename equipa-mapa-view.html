@@ -460,7 +460,7 @@ header{
         <div class="field"><input id="q" placeholder="Ex.: 'Gaia licenciado 2027 promotor X'"></div>
         <div class="hint">
           Pesquisa por ref. interna, nome, concelho, promotor, tipologias, estado,
-          conclusão, notas, notas internas, €/m² e preço pedido.
+          conclusão, notas, notas internas, equipa, €/m² e preço pedido.
         </div>
         <div class="hint" style="margin-top:6px">
           Cache local: o último dataset carregado é guardado no browser. Se houver perda de ligação, o mapa continua a abrir.
@@ -818,6 +818,13 @@ function csvToObjects(csvText){
       preco_m2: pick(r, ['preco_m2','precoM2','€/m2','eur_m2']),
       precoPedido: pick(r, ['precoPedido','preco','Preco','Preço']),
       notas: pick(r, ['notas','Notas']),
+
+      /* ✅ NOVO (CSV): equipa + notas internas (mantém compatibilidade com o painel) */
+      _consultor: pick(r, ['_consultor','consultor','Consultor','consultorNome','ConsultorNome','consultor_responsavel','ConsultorResponsavel']),
+      _gestor: pick(r, ['_gestor','gestor','Gestor','gestorNome','GestorNome']),
+      _coordenador: pick(r, ['_coordenador','coordenador','Coordenador','coordenadorNome','CoordenadorNome']),
+      _notasInternas: pick(r, ['_notasInternas','notasInternas','NotasInternas','notas_internas','notasEquipa','notas_equipa','notasInternasEquipa','NotasInternasEquipa']),
+
       link: pick(r, ['link','url','URL']),
       _lat: lat,
       _lng: lng,
@@ -1459,7 +1466,7 @@ function loadLS(){
   }
 }
 
-/* ===== Merge angariações ===== */
+/* ===== Merge angariações (corrigido: dedupe por refInterna + fallback por coordenadas) ===== */
 function parseGps(gps){
   if(!gps) return {lat:null,lng:null};
   const m = String(gps).match(/-?\d+(?:[.,]\d+)?/g);
@@ -1468,6 +1475,7 @@ function parseGps(gps){
   const lng = numPT(m[1]);
   return {lat,lng};
 }
+
 function mergeAngariacoesIntoRAW(){
   let raw=null;
   try{ raw = localStorage.getItem('gpp_angariacoes_v2'); }catch{ return; }
@@ -1479,13 +1487,17 @@ function mergeAngariacoesIntoRAW(){
 
   const deals = store.deals;
 
+  // Index por refInterna (chave estável) para evitar duplicados
+  const byRef = new Map();
   RAW.forEach(p=>{
-    if(!p._angKey && (p._fromAngariacoes || String(p.slug||'').startsWith('ang-'))){
-      p._angKey = 'ang:' + String(p.slug||'').replace(/^ang-/, '');
-    }
+    const r = String(p.refInterna || '').trim();
+    if(r) byRef.set(norm(r), p);
   });
 
-  const byAngKey = new Map(RAW.filter(p=>p._angKey).map(p=>[p._angKey, p ]));
+  // Index auxiliar por (nome + coords aproximadas) para evitar duplicados quando não há refInterna
+  function keyByNameCoords(nome, lat, lng){
+    return norm(String(nome||'')) + '|' + String(lat).slice(0,8) + '|' + String(lng).slice(0,8);
+  }
 
   deals.forEach(d=>{
     if(!d) return;
@@ -1495,9 +1507,10 @@ function mergeAngariacoesIntoRAW(){
 
     const isEmp = !!deal.isEmpreendimento;
     const nome = deal.nomeEmp || deal.tituloImovel || deal.refInterna || (isEmp ? 'Empreendimento' : 'Imóvel');
-    const baseId = deal.id || slugify(nome);
-    const slug = 'ang-' + baseId;
-    const angKey = 'ang:' + baseId;
+
+    // refInterna preferencial; fallback para id; fallback para slugify(nome)
+    const ref = String(deal.refInterna || '').trim();
+    const baseId = ref || String(deal.id || '').trim() || slugify(nome);
 
     let ano = deal.anoConclEmp || deal.anoConclusao || '';
     ano = ano ? Number(ano) : '';
@@ -1519,10 +1532,9 @@ function mergeAngariacoesIntoRAW(){
       preco_m2 = Math.round(preco/areaABP);
     }
 
-    // ✅ Objecto EQUIPA: sem proprietário/contactos
+    // ✅ Objecto EQUIPA: sem proprietário/contactos (confidencial)
     const obj = {
-      _angKey: angKey,
-      slug,
+      slug: 'ang-' + baseId,
       nome,
       concelho: deal.concelho || '',
       estado,
@@ -1540,28 +1552,47 @@ function mergeAngariacoesIntoRAW(){
       docs: [],
       _fromAngariacoes: true,
       isEmpreendimento: isEmp,
-      refInterna: deal.refInterna || '',
+      refInterna: ref || '',
 
-      // ✅ NOVO: equipa + notas internas
-      _consultor: deal.consultor || '',
-      _gestor: deal.gestor || '',
-      _coordenador: deal.coordenador || '',
-      _notasInternas: deal.notasInternas || ''
+      // ✅ EQUIPA + NOTAS INTERNAS
+      _consultor: deal.consultorNome || deal.consultor || '',
+      _gestor: deal.gestorNome || deal.gestor || '',
+      _coordenador: deal.coordenadorNome || deal.coordenador || '',
+      _notasInternas: deal.notasInternas || deal.notasEquipa || deal.notasInternasEquipa || ''
     };
 
-    if(byAngKey.has(angKey)){
-      const target = byAngKey.get(angKey);
-
-      // ✅ Limpeza defensiva: remove qualquer legado do proprietário/contactos
-      try{
-        delete target._ownerNome; delete target._ownerTelefone; delete target._ownerTelemovel; delete target._contactos;
-      }catch{}
-
-      Object.assign(target, obj);
-    }else{
-      RAW.push(obj);
-      byAngKey.set(angKey, obj);
+    // 1) merge por refInterna (estável)
+    if(ref){
+      const hit = byRef.get(norm(ref));
+      if(hit){
+        // Limpeza defensiva (caso existam campos antigos)
+        try{
+          delete hit._ownerNome; delete hit._ownerTelefone; delete hit._ownerTelemovel; delete hit._contactos;
+        }catch{}
+        Object.assign(hit, obj);
+        return;
+      }
     }
+
+    // 2) fallback: merge por (nome + coords)
+    const k2 = keyByNameCoords(nome, coords.lat, coords.lng);
+    let found = null;
+    for(const p of RAW){
+      const k = keyByNameCoords(p.nome, p._lat, p._lng);
+      if(k === k2){ found = p; break; }
+    }
+    if(found){
+      try{
+        delete found._ownerNome; delete found._ownerTelefone; delete found._ownerTelemovel; delete found._contactos;
+      }catch{}
+      Object.assign(found, obj);
+      if(ref) byRef.set(norm(ref), found);
+      return;
+    }
+
+    // 3) novo registo
+    RAW.push(obj);
+    if(ref) byRef.set(norm(ref), obj);
   });
 }
 
