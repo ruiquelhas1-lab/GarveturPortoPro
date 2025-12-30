@@ -419,6 +419,12 @@ header{
   #map{grid-row:4}
   #side-panel{top:auto;bottom:72px}
 }
+
+/* ✅ novo: notas internas (visual) */
+.ficha-section{ margin-top:10px; padding-top:10px; border-top:1px solid rgba(163,139,99,.18); }
+.ficha-section-title{ font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+.ficha-notas{ font-size:12px; color:#eaeaea; line-height:1.45; background:rgba(0,0,0,.35); border:1px solid rgba(163,139,99,.22); border-radius:12px; padding:8px 10px; }
+.muted{ color:var(--muted); }
 </style>
 </head>
 
@@ -453,8 +459,8 @@ header{
         <div class="label">Pesquisa global</div>
         <div class="field"><input id="q" placeholder="Ex.: 'Gaia licenciado 2027 promotor X'"></div>
         <div class="hint">
-          Pesquisa por ref. interna, nome, concelho, promotor, tipologias, estado, proprietário, contactos,
-          conclusão, notas, €/m² e preço pedido.
+          Pesquisa por ref. interna, nome, concelho, promotor, tipologias, estado,
+          conclusão, notas, notas internas, €/m² e preço pedido.
         </div>
         <div class="hint" style="margin-top:6px">
           Cache local: o último dataset carregado é guardado no browser. Se houver perda de ligação, o mapa continua a abrir.
@@ -662,6 +668,16 @@ function numCoord(v){
   if(s.includes(',') && !s.includes('.')) s = s.replace(',', '.');
   const n = Number(s);
   return Number.isFinite(n) ? n : null;
+}
+
+/* ✅ Sanitização simples (evita HTML nas notas) */
+function escHtml(s){
+  return String(s || '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
 }
 
 /* ===== Cache (localStorage) ===== */
@@ -922,11 +938,15 @@ function buildFacetOptions(){
 /* ===== Match & filtros ===== */
 function matchTokens(obj,tokens){
   if(!tokens.length) return true;
-  const hay=norm([
+
+  // ✅ IMPORTANTÍSSIMO: excluir totalmente proprietário/contactos da pesquisa
+  const hay = norm([
     obj.refInterna, obj.nome, obj.concelho, obj.promotor, obj.tipologias,
-    obj.estado, obj.notas, obj.conclusao, obj.preco_m2, obj.precoPedido,
-    obj._ownerNome, obj._ownerTelefone, obj._ownerTelemovel, obj._contactos
-  ].join(' '));
+    obj.estado, obj.notas, obj._notasInternas,
+    obj.conclusao, obj.preco_m2, obj.precoPedido,
+    obj._consultor, obj._gestor, obj._coordenador
+  ].filter(Boolean).join(' '));
+
   return tokens.every(tok=>hay.includes(tok));
 }
 
@@ -1306,6 +1326,12 @@ function openFicha(p,focus=false){
   ACTIVE = p;
   const precoPedidoStr = formatPrecoPedido(p);
 
+  const consultor = (p._consultor || '').trim();
+  const gestor = (p._gestor || '').trim();
+  const coordenador = (p._coordenador || '').trim();
+
+  const notasInternas = (p._notasInternas || '').trim();
+
   const html = `
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
       <div>
@@ -1324,6 +1350,7 @@ function openFicha(p,focus=false){
         <button class="btn" data-act="share">Partilhar</button>
       </div>
     </div>
+
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
       <div>
         <div class="meta-line"><b>Tipo:</b> ${tipoLabel(p)}</div>
@@ -1333,9 +1360,27 @@ function openFicha(p,focus=false){
         <div class="meta-line"><b>Conclusão:</b> ${formatConclusao(p)}</div>
         <div class="meta-line"><b>€/m²:</b> ${p.preco_m2 ? (numPT(p.preco_m2) ?? 0).toLocaleString('pt-PT') : '—'}</div>
         <div class="meta-line"><b>Preço pedido:</b> ${precoPedidoStr}</div>
-        <div class="meta-line"><b>Notas:</b> ${p.notas || '—'}</div>
-        <div class="meta-line"><b>Coordenadas:</b> ${numPT(p._lat) ?? '—'}, ${numPT(p._lng) ?? '—'}</div>
+        <div class="meta-line"><b>Notas:</b> ${p.notas ? escHtml(p.notas).replace(/\n/g,'<br>') : '—'}</div>
+
+        ${ (consultor || gestor || coordenador) ? `
+          <div class="ficha-section">
+            <div class="ficha-section-title">Equipa responsável</div>
+            <div class="meta-line"><b>Consultor:</b> ${consultor ? escHtml(consultor) : '—'}</div>
+            <div class="meta-line"><b>Gestor:</b> ${gestor ? escHtml(gestor) : '—'}</div>
+            <div class="meta-line"><b>Coordenador:</b> ${coordenador ? escHtml(coordenador) : '—'}</div>
+          </div>
+        ` : ''}
+
+        <div class="ficha-section">
+          <div class="ficha-section-title">Notas internas (Angariação)</div>
+          <div class="ficha-notas">
+            ${notasInternas ? escHtml(notasInternas).replace(/\n/g,'<br>') : '<span class="muted">—</span>'}
+          </div>
+        </div>
+
+        <div class="meta-line" style="margin-top:10px"><b>Coordenadas:</b> ${numPT(p._lat) ?? '—'}, ${numPT(p._lng) ?? '—'}</div>
       </div>
+
       <div>
         <div class="label">Documentos & Media</div>
         ${buildDocsHTML(p.docs || [])}
@@ -1474,6 +1519,7 @@ function mergeAngariacoesIntoRAW(){
       preco_m2 = Math.round(preco/areaABP);
     }
 
+    // ✅ Objecto EQUIPA: sem proprietário/contactos
     const obj = {
       _angKey: angKey,
       slug,
@@ -1495,14 +1541,23 @@ function mergeAngariacoesIntoRAW(){
       _fromAngariacoes: true,
       isEmpreendimento: isEmp,
       refInterna: deal.refInterna || '',
-      _ownerNome: deal.nomeProprietario || deal.proprietario || '',
-      _ownerTelefone: deal.telefoneProprietario || deal.telefone || '',
-      _ownerTelemovel: deal.telemovelProprietario || deal.telemovel || '',
-      _contactos: deal.contactos || ''
+
+      // ✅ NOVO: equipa + notas internas
+      _consultor: deal.consultor || '',
+      _gestor: deal.gestor || '',
+      _coordenador: deal.coordenador || '',
+      _notasInternas: deal.notasInternas || ''
     };
 
     if(byAngKey.has(angKey)){
-      Object.assign(byAngKey.get(angKey), obj);
+      const target = byAngKey.get(angKey);
+
+      // ✅ Limpeza defensiva: remove qualquer legado do proprietário/contactos
+      try{
+        delete target._ownerNome; delete target._ownerTelefone; delete target._ownerTelemovel; delete target._contactos;
+      }catch{}
+
+      Object.assign(target, obj);
     }else{
       RAW.push(obj);
       byAngKey.set(angKey, obj);
