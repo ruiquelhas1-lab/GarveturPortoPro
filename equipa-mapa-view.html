@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="pt">
 <head>
@@ -589,8 +590,8 @@ function loadScript(src){
 const AMP_CENTER=[41.15,-8.61], AMP_ZOOM=12;
 const LS_KEY='gpp_dataset_v1';
 const FILTERS_KEY='gpp_mapa_filters_v1';
-const CSV_CACHE_KEY='gpp_csv_cache_v2';
-const CSV_CACHE_META_KEY='gpp_csv_cache_meta_v2';
+const CSV_CACHE_KEY='gpp_csv_cache_v1';
+const CSV_CACHE_META_KEY='gpp_csv_cache_meta_v1';
 const PDF_INLINE_LIMIT=4*1024*1024; // 4 MB
 
 let MAP, CLUSTER, LAYER, CLUSTER_OK=false;
@@ -1794,8 +1795,7 @@ async function initData(showMessages=true){
   await detectStorageMode();
   await initData(true);
 
-  // Nota (Equipa): para garantir consistência entre computadores, NÃO fazemos merge de angariações locais (localStorage).
-  // Os campos de equipa/notas internas vêm exclusivamente do CSV publicado.
+  mergeAngariacoesIntoRAW();
   normalizeTipoImovel();
   normalizeConclusaoFields();
   autoUpdateEstadosByConclusao();
