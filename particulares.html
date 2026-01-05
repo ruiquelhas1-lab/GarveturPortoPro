@@ -1723,21 +1723,30 @@ if(out.precoAnuncio === '' || out.precoAnuncio == null){
     });
   }
 
-  /* ============ IndexedDB (PDFs) ============ */
-  function openDB(){
-    return new Promise((resolve, reject)=>{
-      const req = indexedDB.open(DB_NAME, DB_VERSION);
-      req.onupgradeneeded = (ev)=>{
-        const db = req.result;
-        if(!db.objectStoreNames.contains(STORE)){
-          const store = db.createObjectStore(STORE, { keyPath:'id' });
-          store.createIndex('by_item', 'itemId', { unique:false });
-        }
-      };
-      req.onsuccess = ()=>resolve(req.result);
-      req.onerror = ()=>reject(req.error);
-    });
-  }
+ /* ============ IndexedDB (PDFs) ============ */
+function openDB(){
+  return new Promise((resolve, reject)=>{
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+
+    req.onupgradeneeded = (ev)=>{
+      const db = req.result;
+      let store;
+
+      if(!db.objectStoreNames.contains(STORE)){
+        store = db.createObjectStore(STORE, { keyPath:'id' });
+      }else{
+        store = ev.target.transaction.objectStore(STORE);
+      }
+
+      if(!store.indexNames.contains('by_item')){
+        store.createIndex('by_item', 'itemId', { unique:false });
+      }
+    };
+
+    req.onsuccess = ()=>resolve(req.result);
+    req.onerror = ()=>reject(req.error);
+  });
+}
 
   async function addAttachment(itemId, file){
     const db = await openDB();
