@@ -1771,6 +1771,16 @@ if(out.precoAnuncio === '' || out.precoAnuncio == null){
     });
   }
 
+  async function countAttachments(itemId){
+  try{
+    const list = await listAttachments(itemId);
+    return (list || []).length;
+  }catch(e){
+    console.error('countAttachments falhou', e);
+    return 0;
+  }
+}
+
   async function deleteAttachment(attId){
     const db = await openDB();
     return new Promise((resolve, reject)=>{
