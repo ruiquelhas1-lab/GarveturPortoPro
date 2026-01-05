@@ -1855,9 +1855,20 @@ if(out.precoAnuncio === '' || out.precoAnuncio == null){
           alert('Não foi possível abrir este anexo.');
           return;
         }
-        const url = URL.createObjectURL(rec.blob);
-        window.open(url, '_blank');
-        setTimeout(()=>URL.revokeObjectURL(url), 60000);
+        let blob;
+
+if(rec.data){
+  blob = new Blob([rec.data], { type: rec.type || 'application/pdf' });
+}else if(rec.blob){
+  blob = rec.blob; // compatibilidade com anexos antigos
+}else{
+  alert('Anexo inválido ou corrompido.');
+  return;
+}
+
+const url = URL.createObjectURL(blob);
+window.open(url, '_blank');
+setTimeout(()=>URL.revokeObjectURL(url), 60000);
       });
       right.appendChild(openBtn);
 
