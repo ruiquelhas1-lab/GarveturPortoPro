@@ -3333,10 +3333,13 @@ if(urg){
       const btnEdit = document.createElement('button');
       btnEdit.className = 'btn-xs primary';
       btnEdit.textContent = 'Editar';
-      btnEdit.addEventListener('click', ()=>{
-        if(state.locked) return;
-        openModal(d);
-      });
+     btnEdit.addEventListener('click', ()=>{
+  if(state.locked){
+    openModalReadOnly(d);
+    return;
+  }
+  openModal(d);
+});
       right.appendChild(btnEdit);
 
       const btnPdf = document.createElement('button');
