@@ -1858,39 +1858,59 @@ function openDB(){
       const openBtn = document.createElement('button');
       openBtn.className = 'btn-xs';
       openBtn.textContent = 'Abrir';
-     openBtn.addEventListener('click', async ()=>{
-  const rec = await getAttachment(att.id);
+    openBtn.addEventListener('click', async ()=>{
 
-  if(!rec){
-    alert('Não foi possível abrir este anexo.');
+  // 🔒 Safari fix: abrir a janela IMEDIATAMENTE (user gesture)
+  const win = window.open('', '_blank');
+  if(!win){
+    alert('O Safari bloqueou a abertura do PDF. Ative pop-ups para este site.');
     return;
   }
 
-  // Normalizar "data" (ArrayBuffer / TypedArray / DataView)
-  let bytes = null;
-  if(rec.data){
-    if(rec.data instanceof ArrayBuffer){
-      bytes = rec.data;
-    }else if(rec.data.buffer instanceof ArrayBuffer){
-      bytes = rec.data.buffer; // ex.: Uint8Array / DataView
+  try{
+    const rec = await getAttachment(att.id);
+
+    if(!rec){
+      win.close();
+      alert('Não foi possível abrir este anexo.');
+      return;
     }
-  }
 
-  let blob = null;
-  if(bytes){
-    blob = new Blob([bytes], { type: rec.type || 'application/pdf' });
-  }else if(rec.blob){
-    blob = rec.blob; // compatibilidade com anexos antigos
-  }
+    // Normalizar "data" (ArrayBuffer / TypedArray / DataView)
+    let bytes = null;
+    if(rec.data){
+      if(rec.data instanceof ArrayBuffer){
+        bytes = rec.data;
+      }else if(rec.data.buffer instanceof ArrayBuffer){
+        bytes = rec.data.buffer;
+      }
+    }
 
-  if(!blob){
-    alert('Não foi possível abrir este anexo.');
-    return;
-  }
+    let blob = null;
+    if(bytes){
+      blob = new Blob([bytes], { type: rec.type || 'application/pdf' });
+    }else if(rec.blob){
+      blob = rec.blob; // compatibilidade com anexos antigos
+    }
 
-  const url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
-  setTimeout(()=>URL.revokeObjectURL(url), 60000);
+    if(!blob){
+      win.close();
+      alert('Não foi possível abrir este anexo.');
+      return;
+    }
+
+    const url = URL.createObjectURL(blob);
+
+    // 👉 apontar a janela já aberta para o PDF
+    win.location.href = url;
+
+    setTimeout(()=>URL.revokeObjectURL(url), 60000);
+
+  }catch(e){
+    win.close();
+    console.error('Erro ao abrir PDF:', e);
+    alert('Erro ao abrir o anexo.');
+  }
 });
       right.appendChild(openBtn);
 
