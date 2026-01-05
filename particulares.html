@@ -1917,6 +1917,13 @@ if(out.precoAnuncio === '' || out.precoAnuncio == null){
   /* ============ Modal FSBO ============ */
   function openModal(item){
     modalBackdrop.classList.add('open');
+    // Reset UI (caso venha de modo leitura)
+saveItemBtn.style.display = '';
+cancelModalBtn.textContent = 'Cancelar';
+addPdfBtn.disabled = false;
+
+const fields = modalBackdrop.querySelectorAll('input, select, textarea');
+fields.forEach(el=>{ el.disabled = false; });
 
     if(item){
       currentEditingId = item.id || '';
