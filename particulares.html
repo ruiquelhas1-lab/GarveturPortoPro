@@ -3940,10 +3940,17 @@ $('dataUltimaAcao').value = hoje;
     $('itemId').value = data.id;
 
     saveState();
-    renderCards();
-    await refreshPdfList();
-    showToast('Guardado');
-    closeModal();
+renderCards();
+
+try{
+  await refreshPdfList();
+}catch(e){
+  console.error('Falha refreshPdfList (IndexedDB)', e);
+  // Não bloqueia o fecho do modal
+}
+
+showToast('Guardado');
+closeModal();
   });
 
   filterApplyBtn.addEventListener('click', ()=>{
