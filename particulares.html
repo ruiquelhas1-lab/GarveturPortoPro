@@ -1965,6 +1965,28 @@ if(out.precoAnuncio === '' || out.precoAnuncio == null){
     pdfList.innerHTML = '';
   }
 
+  function openModalReadOnly(item){
+  openModal(item);
+
+  // Desativar inputs/selects/textarea (modo leitura)
+  const fields = modalBackdrop.querySelectorAll('input, select, textarea');
+  fields.forEach(el=>{
+    // mantém botões de anexos/fechar operacionais
+    if(el.id === 'itemId') return;
+    el.disabled = true;
+  });
+
+  // Esconder botões Guardar/Cancelar e garantir fecho
+  saveItemBtn.style.display = 'none';
+  cancelModalBtn.textContent = 'Fechar';
+
+  // Em modo leitura: não permitir anexar (apenas ver e abrir)
+  addPdfBtn.disabled = true;
+
+  // Atualizar lista de PDFs (visualização)
+  refreshPdfList();
+}
+
   function collectFormData(){
     let id = $('itemId').value || '';
     if(!id){ id = 'part_' + Date.now(); }
