@@ -3172,6 +3172,28 @@ if(urg){
   chipU.textContent = urg.text;
   chipsRow.appendChild(chipU);
 }
+      // Chip PDFs (contador) — consulta rápida por registo
+      const pdfChip = document.createElement('span');
+      pdfChip.className = 'chip';
+      pdfChip.textContent = 'PDFs: …';
+      pdfChip.title = 'Ver anexos PDF (modo leitura)';
+      pdfChip.style.cursor = 'pointer';
+
+      // Clique abre o viewer em modo leitura (se já tiver a função openPdfViewer / openModalReadOnly, pode ligar aqui)
+      pdfChip.addEventListener('click', (ev)=>{
+        ev.stopPropagation();
+        // Se já implementou openPdfViewer(itemId), use:
+        if(typeof openPdfViewer === 'function'){ openPdfViewer(d.id); }
+        else { /* fallback: não faz nada */ }
+      });
+
+      chipsRow.appendChild(pdfChip);
+
+      // Atualiza contador sem bloquear o render
+      countAttachments(d.id).then(n=>{
+        pdfChip.textContent = 'PDFs: ' + n;
+      });
+      
       if(d.consultor){
         const ch = document.createElement('span');
         ch.className = 'chip';
