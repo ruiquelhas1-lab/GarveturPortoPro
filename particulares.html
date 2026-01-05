@@ -3262,21 +3262,13 @@ if(urg){
       pdfChip.title = 'Ver anexos PDF (modo leitura)';
       pdfChip.style.cursor = 'pointer';
 
-      // Clique abre o FSBO em modo leitura, com anexos PDF visíveis
-     pdfChip.addEventListener('click', (ev)=>{
-  ev.stopPropagation();
-
-  // Abrir FSBO em modo leitura, com anexos visíveis
-  if(typeof openModalReadOnly === 'function'){
-    openModalReadOnly(d);
-    return;
-  }
-
-  // Fallback seguro
-  if(!state.locked){
-    openModal(d);
-  }
-});
+      // Clique abre o viewer em modo leitura (se já tiver a função openPdfViewer / openModalReadOnly, pode ligar aqui)
+      pdfChip.addEventListener('click', (ev)=>{
+        ev.stopPropagation();
+        // Se já implementou openPdfViewer(itemId), use:
+        if(typeof openPdfViewer === 'function'){ openPdfViewer(d.id); }
+        else { /* fallback: não faz nada */ }
+      });
 
       chipsRow.appendChild(pdfChip);
 
