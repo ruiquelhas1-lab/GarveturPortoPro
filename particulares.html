@@ -2180,6 +2180,20 @@ if(!dataIdent){
     if(!isFinite(n)) return '';
     return n.toLocaleString('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
   }
+
+  function formatPercent(v){
+  const n = parseFloat(String(v).replace(',', '.'));
+  if(!isFinite(n)) return '';
+  return n.toFixed(1).replace('.',',') + '%';
+}
+
+function classForAjust(p){
+  const n = parseFloat(String(p).replace(',', '.'));
+  if(!isFinite(n)) return '';
+  if(n < -5) return 'chip-green';
+  if(n >= -5 && n <= 0) return 'chip-yellow';
+  return 'chip-red';
+}
     /* ============ Próxima ação: urgência (cor + ordenação) ============ */
 
 
