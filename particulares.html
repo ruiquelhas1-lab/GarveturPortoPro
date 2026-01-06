@@ -2109,6 +2109,19 @@ if(!dataIdent){
   const n = Number(v);
   return isFinite(n) ? n : null;
 })(),
+      precoSugerido: (function(){
+  const v = $('precoSugerido').value;
+  if(v === '' || v == null) return null;
+  const n = Number(v);
+  return isFinite(n) ? n : null;
+})(),
+
+percentAjust: (function(){
+  const v = $('percentAjust').value;
+  if(v === '' || v == null) return null;
+  const n = Number(String(v).replace(',', '.'));
+  return isFinite(n) ? n : null;
+})(),
       observacoes: $('observacoes').value || '',
       notasInternas: $('notasInternas').value || ''
     };
