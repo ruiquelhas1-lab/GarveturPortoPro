@@ -3358,12 +3358,28 @@ if(urg){
         ch.textContent = d.tipologia;
         chipsRow.appendChild(ch);
       }
-      if(d.precoAnuncio){
-        const ch = document.createElement('span');
-        ch.className = 'chip';
-        ch.textContent = formatMoney(d.precoAnuncio);
-        chipsRow.appendChild(ch);
-      }
+     if(d.precoAnuncio){
+  const ch = document.createElement('span');
+  ch.className = 'chip';
+  ch.textContent = formatMoney(d.precoAnuncio);
+  chipsRow.appendChild(ch);
+}
+
+if(d.precoSugerido){
+  const ch = document.createElement('span');
+  ch.className = 'chip';
+  ch.textContent = 'Sugerido ' + formatMoney(d.precoSugerido);
+  chipsRow.appendChild(ch);
+}
+
+if(d.percentAjust !== undefined && d.percentAjust !== null && d.percentAjust !== ''){
+  const ch = document.createElement('span');
+  const cls = classForAjust(d.percentAjust);
+  ch.className = 'chip ' + (cls || '');
+  const txt = formatPercent(d.percentAjust);
+  ch.textContent = txt ? ('Ajust. ' + txt) : 'Ajust.';
+  chipsRow.appendChild(ch);
+}
       if(d.portal){
         const ch = document.createElement('span');
         ch.className = 'chip';
