@@ -1655,6 +1655,23 @@ if(out.precoAnuncio === '' || out.precoAnuncio == null){
   const n = Number(out.precoAnuncio);
   out.precoAnuncio = isFinite(n) ? n : null;
 }
+
+// Normalizar precoSugerido
+if(out.precoSugerido === '' || out.precoSugerido == null){
+  out.precoSugerido = null;
+}else{
+  const n = Number(out.precoSugerido);
+  out.precoSugerido = isFinite(n) ? n : null;
+}
+
+// Normalizar percentAjust
+if(out.percentAjust === '' || out.percentAjust == null){
+  out.percentAjust = null;
+}else{
+  const n = Number(String(out.percentAjust).replace(',', '.'));
+  out.percentAjust = isFinite(n) ? n : null;
+}
+   
   return out;
 }
 
