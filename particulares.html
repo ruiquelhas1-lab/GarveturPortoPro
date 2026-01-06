@@ -2126,6 +2126,16 @@ percentAjust: (function(){
       notasInternas: $('notasInternas').value || ''
     };
 
+    // Auto-cálculo do ajustamento (%) se estiver vazio e houver os 2 preços
+if((data.percentAjust === null || data.percentAjust === undefined) &&
+   data.precoAnuncio !== null && data.precoAnuncio > 0 &&
+   data.precoSugerido !== null){
+
+  // mesma lógica do módulo Angariações: ((sugerido - pedido) / pedido) * 100
+  const pct = ((data.precoSugerido - data.precoAnuncio) / data.precoAnuncio) * 100;
+  data.percentAjust = Math.round(pct * 10) / 10; // 1 casa decimal
+}
+
     return data;
   }
 
