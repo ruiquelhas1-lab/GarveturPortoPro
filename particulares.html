@@ -2243,11 +2243,20 @@ if((data.percentAjust === null || data.percentAjust === undefined) &&
 }
 
 function classForAjust(p){
+
   const n = parseFloat(String(p).replace(',', '.'));
+
   if(!isFinite(n)) return '';
-  if(n < -5) return 'chip-green';
+
+  // NEGATIVO = preço pedido acima do sugerido => deve ser VERMELHO
+  if(n < -5) return 'chip-red';
+
+  // Ligeiramente negativo/igual => alerta (amarelo)
   if(n >= -5 && n <= 0) return 'chip-yellow';
-  return 'chip-red';
+
+  // POSITIVO = pedido abaixo do sugerido => bom (verde)
+  return 'chip-green';
+
 }
     /* ============ Próxima ação: urgência (cor + ordenação) ============ */
 
