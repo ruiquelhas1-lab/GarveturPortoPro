@@ -2787,22 +2787,27 @@ Se fizer sentido, posso dar-lhe um enquadramento objetivo em 10 minutos: preço 
     const portal = (item.portal || '').trim();
     const preco = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
 
-    const saud = 'Boa tarde' + (nome ? ' ' + nome : '') + ',';
+      const saud = 'Bom dia' + (nome ? ' ' + nome : '') + ',';
 
-    return [
-      saud,
-      '',
-      `O meu nome é ${item.consultor || 'Rui Quelhas'}, da Garvetur Luxury Porto.`,
-      `Vi o seu anúncio${portal ? ' no ' + portal : ''} relativo ao ${tipo}${tipologia}${zonaCurta ? ' em ' + zonaCurta : ''}${preco ? ', com o valor pedido de ' + preco : ''}.`,
-      '',
-      `Analisei o anúncio porque este tipo de imóvel, nesta zona, continua a gerar procura — sobretudo quando o posicionamento inicial está bem alinhado com o perfil de comprador que hoje procura ${zonaCurta || 'a zona'}.`,
-      '',
-      `Em muitos casos, o desafio não está no imóvel em si, mas na forma como o mercado o interpreta nas primeiras semanas: enquadramento de preço, abordagem aos contactos e gestão da negociação.`,
-      '',
-      `Se fizer sentido, posso dar-lhe um enquadramento objetivo em 10 minutos (sem compromisso): leitura de mercado, pontos a afinar e próximos passos possíveis.`,
-      '',
-      `O imóvel continua disponível?`
-    ].join('\n');
+  return [
+    saud,
+    '',
+    'O meu nome é Rui Quelhas e sou Diretor Comercial da Garvetur Luxury Porto.',
+    'Estamos sediados na Praça Velásquez, mais concretamente na Alameda Eça de Queiroz, n.º 25.',
+    '',
+    `Tomei conhecimento do seu anúncio relativo ao imóvel situado em ${zonaLonga || (zonaCurta || '…')}${preco ? ', atualmente anunciado pelo valor de ' + preco : ', atualmente anunciado pelo valor de …'}.`,
+    '',
+    'Este tipo de imóvel continua a revelar procura no mercado — sobretudo quando o posicionamento inicial está bem alinhado com o perfil de comprador que hoje procura nesta zona.',
+    '',
+    'Em muitos casos, o principal desafio não reside no imóvel em si, mas na forma como o mercado o interpreta nas primeiras semanas de exposição: enquadramento de preço, abordagem aos contactos e gestão do processo negocial.',
+    '',
+    'Enquanto profissionais do setor, consideramos fundamental conhecer o imóvel em detalhe antes de o apresentar a potenciais compradores ou investidores, garantindo uma abordagem rigorosa e ajustada à realidade do mercado.',
+    '',
+    'Se fizer sentido para si, terei todo o gosto em partilhar um enquadramento objetivo numa breve conversa de cerca de 10 minutos, sem qualquer compromisso — análise de mercado, pontos a afinar e possíveis próximos passos.',
+    '',
+    'O imóvel mantém-se em fase de comercialização?',
+    'Seria possível agendarmos uma breve visita numa data conveniente para si?'
+  ].join('\n');
   }
 
   // Novo gerador “smart” (mantém fallback para o atual)
