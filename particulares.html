@@ -2221,11 +2221,15 @@ if((data.percentAjust === null || data.percentAjust === undefined) &&
      if(search){
 
   const normalizar = (v)=>{
-    return String(v || '')
-      .toLowerCase()
-      .replace(/\s+/g,' ')
-      .trim();
-  };
+  return String(v || '')
+    .toLowerCase()
+    .normalize('NFD')                 // separa letras e acentos
+    .replace(/[\u0300-\u036f]/g,'')   // remove acentos
+    .replace(/\s+/g,' ')
+    .trim();
+};
+
+const s = normalizar(search);
 
   const normalizarTelefone = (v)=>{
     let x = String(v || '').replace(/\D/g,'');
