@@ -1,6 +1,5 @@
 
 
-
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -2195,88 +2194,26 @@ if((data.percentAjust === null || data.percentAjust === undefined) &&
     catch(e){ console.error('Erro a guardar filtros de FSBO', e); }
   }
 
-// === Pesquisa robusta (texto + telefone) ===
-function normalizeDigits(v){
-  return String(v || '').replace(/\D+/g, '');
-}
+  function applyFilters(items){
+    const cons = filterConsultor.value;
+    const portal = filterPortal.value;
+    const est = filterEstado.value;
+    const search = (filterSearchText.value || '').trim().toLowerCase();
+    const from = filterDataDe.value;
+    const to = filterDataAte.value;
+    const showHidden = filterShowHidden.checked;
+    const onlyHidden = filterOnlyHidden.checked;
 
-// Normaliza números PT para pesquisa:
-// - remove espaços/traços/parêntesis
-// - remove prefixos 00 e 351 (quando existam)
-// - devolve, por defeito, os 9 dígitos nacionais (quando possível)
-function normalizePhoneForSearch(v){
-  let dig = normalizeDigits(v);
-  if(!dig) return '';
-  if(dig.startsWith('00')) dig = dig.slice(2);
-  if(dig.startsWith('351') && dig.length > 9) dig = dig.slice(3);
-  // manter só os últimos 9 dígitos (mobile PT), quando aplicável
-  if(dig.length > 9) dig = dig.slice(-9);
-  return dig;
-}
+    return items.filter(d=>{
+      if(cons && d.consultor !== cons) return false;
+      if(portal && d.portal !== portal) return false;
+      if(est && d.estadoProspeccao !== est) return false;
 
-function applyFilters(items){
-  const cons = filterConsultor.value;
-  const portal = filterPortal.value;
-  const est = filterEstado.value;
-
-  const searchRaw = (filterSearchText.value || '').trim();
-  const search = searchRaw.toLowerCase();
-  const searchDigits = normalizePhoneForSearch(searchRaw); // se for telefone (ou contiver dígitos)
-
-  const from = filterDataDe.value;
-  const to = filterDataAte.value;
-  const showHidden = filterShowHidden.checked;
-  const onlyHidden = filterOnlyHidden.checked;
-
-  return items.filter(d=>{
-    if(cons && d.consultor !== cons) return false;
-    if(portal && d.portal !== portal) return false;
-    if(est && d.estadoProspeccao !== est) return false;
-
-    if(onlyHidden){
-      if(d.visible !== false) return false;
-    }else if(!showHidden && d.visible === false){
-      return false;
-    }
-
-    if(from && d.dataIdentificacao && d.dataIdentificacao < from) return false;
-    if(to && d.dataIdentificacao && d.dataIdentificacao > to) return false;
-
-    if(search){
-      // 1) Pesquisa textual “normal”
-      const texto = [
-        d.tituloImovel, d.concelho, d.freguesia, d.zona,
-        d.portal, d.consultor, d.refAngariacao,
-        d.ownerName, d.ownerPhone, d.ownerEmail
-      ].filter(Boolean).join(' ').toLowerCase();
-
-      let ok = texto.includes(search);
-
-      // 2) Pesquisa por telefone “abrangente”
-      //    Exemplos a suportar:
-      //    - guardado: 913333333 | pesquisa: 913 333 333
-      //    - guardado: +351 913 333 333 | pesquisa: 913333333
-      //    - guardado: 913 333 333 | pesquisa: +351913333333
-      if(!ok && searchDigits && searchDigits.length >= 5){
-        const phoneDigits = normalizePhoneForSearch(d.ownerPhone);
-        if(phoneDigits){
-          // comparar por inclusão e por equivalência
-          ok = phoneDigits.includes(searchDigits) || searchDigits.includes(phoneDigits) || phoneDigits === searchDigits;
-        }
+      if(onlyHidden){
+        if(d.visible !== false) return false;
+      }else if(!showHidden && d.visible === false){
+        return false;
       }
-
-      // 3) (opcional) se o utilizador introduzir muitos dígitos, tentar também “match” por dígitos no texto completo
-      if(!ok && searchDigits && searchDigits.length >= 7){
-        const textoDigits = normalizeDigits(texto);
-        ok = textoDigits.includes(searchDigits);
-      }
-
-      if(!ok) return false;
-    }
-
-    return true;
-  });
-}
 
       if(from && d.dataIdentificacao && d.dataIdentificacao < from) return false;
       if(to && d.dataIdentificacao && d.dataIdentificacao > to) return false;
@@ -4729,3 +4666,4 @@ function renderFollowupPanel(){
 </script>
 </body>
 </html>
+
