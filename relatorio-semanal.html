@@ -236,35 +236,85 @@
     display:none;
   }
 
- @media print{
+@media print{
   header,.side,.toast{ display:none !important; }
 
-  body{ background:#fff !important; color:#111 !important; }
+  body{
+    background:#fff !important;
+    color:#111 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
   .wrap{ display:block; }
 
-  /* manter hierarquia, mas em versão “executiva” clara */
+  /* HERO — versão executiva clara com assinatura dourada */
   .hero{
     background:#fff !important;
-    border:1px solid rgba(163,139,99,.55) !important;
+    border:1px solid rgba(163,139,99,.75) !important;
     box-shadow:none !important;
   }
+  .hero::after{ box-shadow:none !important; }
   .hero h2{ color:#111 !important; text-shadow:none !important; }
-  .range{ color:rgba(163,139,99,.95) !important; text-shadow:none !important; }
+  .range{ color:rgba(163,139,99,1) !important; text-shadow:none !important; }
   .hero .hint, .hero .hint b{ color:#333 !important; }
 
+  /* KPIs / Cards — branco “premium”, não “vazio” */
   .kpi, .card{
     background:#fff !important;
-    border:1px solid rgba(163,139,99,.45) !important;
+    border:1px solid rgba(163,139,99,.60) !important;
     box-shadow:none !important;
   }
-  .kpi .name{ color:#444 !important; }
+
+  /* manter o detalhe premium no topo do KPI (linha dourada) */
+  .kpi::before{
+    background: linear-gradient(
+      90deg,
+      rgba(163,139,99,.10),
+      rgba(163,139,99,1),
+      rgba(163,139,99,.10)
+    ) !important;
+    opacity:.90 !important;
+  }
+
+  .kpi .name{ color:#333 !important; }
   .kpi .val{ color:#111 !important; text-shadow:none !important; }
+
+  /* Chip “Fonte” com look executivo */
+  .kpi .src{
+    border:1px solid rgba(163,139,99,.55) !important;
+    color:#333 !important;
+    background:#fff !important;
+  }
+
+  /* Último bloco (Comentário) — destaque dourado no PDF */
+  .main .card:last-of-type{
+    border:1px solid rgba(163,139,99,.80) !important;
+    background:#fff !important;
+  }
+  .main .card:last-of-type::before{
+    background: linear-gradient(
+      90deg,
+      rgba(163,139,99,.10),
+      rgba(163,139,99,1),
+      rgba(163,139,99,.10)
+    ) !important;
+    opacity:.95 !important;
+  }
+  .main .card:last-of-type .hint{
+    color: rgba(163,139,99,1) !important;
+    letter-spacing:.12em !important;
+    text-transform:uppercase !important;
+    font-weight:900 !important;
+  }
 
   textarea, input{
     background:#fff !important;
     color:#111 !important;
     border:1px solid rgba(0,0,0,.18) !important;
+    box-shadow:none !important;
   }
+
+  @page{ margin: 12mm; }
 }
 /* ===== Destaque premium — Comentário semanal do Diretor ===== */
 .main .card:last-of-type{
