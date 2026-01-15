@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Garvetur Porto Pro — Relatório Semanal</title>
+
+<style>
+  :root{
+    --gold:#A38B63;
+    --bg:#0B0B0B;
+    --panel:#141414;
+    --border:rgba(255,255,255,.14);
+    --text:#FFFFFF;
+    --muted:#A0A0A0;
+    --radius:14px;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; height:100%; }
+  body{
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background:radial-gradient(circle at top,#1c1c1c 0,#050505 55%,#000 100%);
+    color:var(--text);
+  }
+
+  header{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    padding:12px 16px;
+    border-bottom:1px solid rgba(163,139,99,.35);
+    background:linear-gradient(90deg,#050505,#111,#050505);
+  }
+  .brand{
+    display:flex;align-items:center;gap:10px;
+  }
+  .brand-icon{
+    width:26px;height:26px;border-radius:999px;border:1px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 0 0 1px rgba(163,139,99,.3);
+  }
+  .brand h1{
+    margin:0;font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);
+  }
+  .brand .sub{
+    margin-top:2px;font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;
+  }
+
+  .btn{
+    border-radius:10px;
+    border:1px solid rgba(163,139,99,.35);
+    background:rgba(12,12,12,.9);
+    color:var(--text);
+    padding:8px 12px;
+    font-size:13px;
+    cursor:pointer;
+    transition:.18s border-color,.18s transform;
+    white-space:nowrap;
+  }
+  .btn:hover{ border-color:var(--gold); transform:translateY(-1px); }
+  .btn.primary{
+    background:var(--gold);
+    color:#0A0A0A;
+    border-color:var(--gold);
+    font-weight:800;
+  }
+
+  .wrap{
+    display:grid;
+    grid-template-columns:360px minmax(0,1fr);
+    min-height:calc(100vh - 62px);
+  }
+  @media(max-width:980px){
+    .wrap{ grid-template-columns:1fr; }
+  }
+
+  .side{
+    padding:14px;
+    border-right:1px solid var(--border);
+    background:radial-gradient(circle at top left,#141414,#060606);
+  }
+  .main{
+    padding:14px 16px;
+    overflow:auto;
+  }
+
+  .card{
+    background:rgba(0,0,0,.45);
+    border:1px solid rgba(163,139,99,.22);
+    border-radius:var(--radius);
+    padding:12px;
+    margin-bottom:12px;
+  }
+
+  .hint{ color:var(--muted); font-size:12px; line-height:1.35; }
+  label{ display:block; font-size:12px; color:#dcdcdc; margin:8px 0 6px; }
+  input,textarea{
+    width:100%;
+    background:rgba(0,0,0,.7);
+    border:1px solid rgba(255,255,255,.16);
+    border-radius:10px;
+    color:#fff;
+    padding:8px 10px;
+    outline:none;
+    font-size:12px;
+  }
+  input:focus,textarea:focus{
+    border-color:var(--gold);
+    box-shadow:0 0 0 1px rgba(163,139,99,.35);
+  }
+  textarea{ min-height:90px; resize:vertical; }
+
+  .row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+
+  .hero{
+    border:1px solid rgba(163,139,99,.22);
+    background:linear-gradient(180deg, rgba(163,139,99,.12), rgba(0,0,0,.35));
+    border-radius:18px;
+    padding:12px 12px 10px;
+    margin-bottom:12px;
+  }
+  .hero .top{
+    display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  }
+  .hero h2{
+    margin:0;
+    font-size:16px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+  }
+  .range{
+    color:var(--muted);
+    font-size:12px;
+    letter-spacing:.10em;
+    text-transform:uppercase;
+  }
+
+  .kpis{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0,1fr));
+    gap:10px;
+  }
+  @media(max-width:900px){
+    .kpis{ grid-template-columns:1fr; }
+  }
+  .kpi{
+    background:#0E0E0E;
+    border:1px solid rgba(163,139,99,.55);
+    border-radius:14px;
+    padding:12px;
+    box-shadow:0 14px 24px rgba(0,0,0,.65);
+  }
+  .kpi .name{
+    font-size:11px;
+    color:#ddd;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+  }
+  .kpi .val{
+    font-size:28px;
+    font-weight:900;
+    margin-top:6px;
+  }
+  .kpi .src{
+    margin-top:8px;
+    display:inline-flex;
+    font-size:11px;
+    padding:3px 9px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.16);
+    color:#cfcfcf;
+    background:rgba(0,0,0,.55);
+  }
+
+  .toast{
+    position:fixed;
+    right:14px;
+    bottom:14px;
+    z-index:99999;
+    padding:10px 12px;
+    border-radius:12px;
+    background:rgba(0,0,0,.85);
+    border:1px solid rgba(163,139,99,.35);
+    color:#fff;
+    font-size:12px;
+    display:none;
+  }
+
+  @media print{
+    header,.side,.toast{ display:none !important; }
+    body{ background:#fff; color:#000; }
+    .wrap{ display:block; }
+    .kpi{ box-shadow:none; }
+  }
+</style>
+</head>
+
+<body>
+<header>
+  <div class="brand">
+    <div class="brand-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
+        <circle cx="12" cy="12" r="9"></circle>
+        <path d="M8 12.5l2.5 2.5L16 9"></path>
+      </svg>
+    </div>
+    <div>
+      <h1>Garvetur Porto Pro — Relatório Semanal</h1>
+      <div class="sub">Automático + comentário do Diretor/Coordenador</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <button class="btn" id="btnCopy">Copiar Email</button>
+    <button class="btn" id="btnPrint">Imprimir / PDF</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <aside class="side">
+    <div class="card">
+      <div class="hint">Semana (2.ª feira → domingo)</div>
+
+      <label for="weekStart">Início (2.ª feira)</label>
+      <input id="weekStart" type="date" />
+
+      <label for="weekEnd">Fim (domingo)</label>
+      <input id="weekEnd" type="date" />
+
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="btnRefresh">Atualizar</button>
+        <button class="btn" id="btnThisWeek">Esta semana</button>
+      </div>
+
+      <div class="hint" style="margin-top:10px">
+        Esta página é <b>só de leitura</b>. Não altera os módulos.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="hint" style="margin-bottom:8px">Assunto & destinatários (opcional)</div>
+
+      <label for="emailSubject">Assunto</label>
+      <input id="emailSubject" placeholder="Relatório Semanal — 12 a 18 Jan 2026" />
+
+      <label for="emailTo">Destinatários</label>
+      <textarea id="emailTo" placeholder="Direção / Administração"></textarea>
+
+      <div class="hint" style="margin-top:10px">
+        As observações e comentário ficam guardados por semana (localmente no navegador).
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="hero">
+      <div class="top">
+        <h2>Resumo semanal de actividade</h2>
+        <div class="range" id="rangeLabel">—</div>
+      </div>
+      <div class="hint" style="margin-top:6px">
+        KPIs calculados automaticamente a partir de <b>Leads</b> e <b>Angariações</b>. Observações e comentário são editáveis.
+      </div>
+    </div>
+
+    <section class="kpis">
+      <div class="kpi">
+        <div class="name">Leads (semana)</div>
+        <div class="val" id="kLeads">0</div>
+        <div class="src">Fonte: Kanban (lead.data)</div>
+        <label>Observações</label>
+        <textarea id="obsLeads" placeholder="Origem, qualidade, temas recorrentes, próximos passos..."></textarea>
+      </div>
+
+      <div class="kpi">
+        <div class="name">Angariações (semana)</div>
+        <div class="val" id="kAng">0</div>
+        <div class="src">Fonte: Angariações (dataAngariacao)</div>
+        <label>Observações</label>
+        <textarea id="obsAng" placeholder="Produto, exclusividade, pricing, obstáculos, ações comerciais..."></textarea>
+      </div>
+
+      <div class="kpi">
+        <div class="name">CPCV (semana)</div>
+        <div class="val" id="kCpcv">0</div>
+        <div class="src">Fonte: Kanban (fecho_cpcv_date)</div>
+        <label>Observações</label>
+        <textarea id="obsCpcv" placeholder="Principais negócios, condições, prazos, pontos críticos..."></textarea>
+      </div>
+
+      <div class="kpi">
+        <div class="name">Escrituras (semana)</div>
+        <div class="val" id="kEsc">0</div>
+        <div class="src">Fonte: Kanban (fecho_escritura_date)</div>
+        <label>Observações</label>
+        <textarea id="obsEsc" placeholder="Fechos, pendências, risco de atraso, follow-ups..."></textarea>
+      </div>
+    </section>
+
+    <div class="card" style="margin-top:12px">
+      <div class="hint" style="margin-bottom:8px">Comentário semanal do Coordenador / Diretor</div>
+      <textarea id="weeklyComment" style="min-height:170px" placeholder="Resumo executivo: principais acontecimentos, decisões tomadas, riscos, prioridades e foco para a próxima semana..."></textarea>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  // ====== Fontes (confirmadas nos seus módulos) ======
+  const LS_LEADS_KEY = 'gpp_leads_v5';        // Kanban: LEADS array (lead.data, fecho_cpcv_date, fecho_escritura_date)
+  const LS_ANG_KEY   = 'gpp_angariacoes_v2';  // Angariações: array ou {deals:[]}, usa dataAngariacao
+
+  // ====== Persistência do relatório semanal ======
+  const REPORT_KEY_PREFIX = 'gpp_weekly_report_v1:'; // por semana
+
+  const $ = (id)=>document.getElementById(id);
+
+  function toast(msg){
+    const el = $('toast');
+    el.textContent = msg;
+    el.style.display = 'block';
+    setTimeout(()=>{ el.style.display='none'; }, 2200);
+  }
+
+  function safeParse(raw){
+    if(!raw) return null;
+    try{ return JSON.parse(raw); }catch(e){ return null; }
+  }
+
+  function parseISODateUTC(s){
+    // YYYY-MM-DD
+    if(!s || typeof s !== 'string') return null;
+    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(!m) return null;
+    const dt = new Date(Date.UTC(+m[1], +m[2]-1, +m[3]));
+    return isNaN(dt.getTime()) ? null : dt;
+  }
+
+  function inRangeISO(dateStr, startUTC, endUTC){
+    const dt = parseISODateUTC(dateStr);
+    if(!dt) return false;
+    const t = dt.getTime();
+    return t >= startUTC.getTime() && t <= endUTC.getTime();
+  }
+
+  function isoYMD(dt){
+    const y = dt.getUTCFullYear();
+    const m = String(dt.getUTCMonth()+1).padStart(2,'0');
+    const d = String(dt.getUTCDate()).padStart(2,'0');
+    return y + '-' + m + '-' + d;
+  }
+
+  function getWeekBoundsUTC(baseDate){
+    // 2ª feira -> domingo
+    const d = new Date(baseDate);
+    const day = d.getDay(); // 0=Dom..1=Seg
+    const diffToMon = (day === 0) ? -6 : (1 - day);
+    d.setDate(d.getDate() + diffToMon);
+    const start = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    const end = new Date(start);
+    end.setUTCDate(end.getUTCDate() + 6);
+    return { start, end };
+  }
+
+  function reportKeyForCurrentWeek(){
+    const s = $('weekStart').value;
+    const e = $('weekEnd').value;
+    return REPORT_KEY_PREFIX + s + '|' + e;
+  }
+
+  function loadLeads(){
+    const parsed = safeParse(localStorage.getItem(LS_LEADS_KEY));
+    return Array.isArray(parsed) ? parsed : [];
+  }
+
+  function loadAngariacoes(){
+    const parsed = safeParse(localStorage.getItem(LS_ANG_KEY));
+    if(Array.isArray(parsed)) return parsed;
+    if(parsed && typeof parsed === 'object' && Array.isArray(parsed.deals)) return parsed.deals;
+    return [];
+  }
+
+  // ====== Guardar/Carregar observações por semana ======
+  function loadWeeklyNotes(){
+    const key = reportKeyForCurrentWeek();
+    const saved = safeParse(localStorage.getItem(key));
+    if(!saved || typeof saved !== 'object') return;
+
+    $('emailSubject').value = saved.emailSubject || $('emailSubject').value || '';
+    $('emailTo').value      = saved.emailTo || '';
+
+    $('obsLeads').value     = saved.obsLeads || '';
+    $('obsAng').value       = saved.obsAng || '';
+    $('obsCpcv').value      = saved.obsCpcv || '';
+    $('obsEsc').value       = saved.obsEsc || '';
+    $('weeklyComment').value= saved.weeklyComment || '';
+  }
+
+  function saveWeeklyNotes(){
+    const key = reportKeyForCurrentWeek();
+    const payload = {
+      emailSubject: $('emailSubject').value || '',
+      emailTo: $('emailTo').value || '',
+      obsLeads: $('obsLeads').value || '',
+      obsAng: $('obsAng').value || '',
+      obsCpcv: $('obsCpcv').value || '',
+      obsEsc: $('obsEsc').value || '',
+      weeklyComment: $('weeklyComment').value || '',
+      savedAt: new Date().toISOString()
+    };
+    try{
+      localStorage.setItem(key, JSON.stringify(payload));
+    }catch(e){
+      console.error('Relatório semanal: erro ao guardar notas', e);
+    }
+  }
+
+  function wireAutosave(){
+    const ids = ['emailSubject','emailTo','obsLeads','obsAng','obsCpcv','obsEsc','weeklyComment'];
+    ids.forEach(id=>{
+      const el = $(id);
+      if(!el) return;
+      el.addEventListener('input', ()=>{
+        // pequeno debounce
+        clearTimeout(el.__t);
+        el.__t = setTimeout(saveWeeklyNotes, 220);
+      });
+    });
+  }
+
+  // ====== Cálculo KPIs ======
+  function computeKPIs(){
+    const startStr = $('weekStart').value;
+    const endStr = $('weekEnd').value;
+
+    const start = parseISODateUTC(startStr);
+    const end = parseISODateUTC(endStr);
+
+    if(!start || !end){
+      toast('Datas inválidas.');
+      return;
+    }
+
+    $('rangeLabel').textContent = startStr + ' → ' + endStr;
+
+    const leads = loadLeads();
+    const angs  = loadAngariacoes();
+
+    // Leads da semana: usar o campo garantido do Kanban: lead.data (vem do input id="ld_data")
+    const leadsWeek = leads.filter(l => inRangeISO(l.data || '', start, end));
+    $('kLeads').textContent = String(leadsWeek.length);
+
+    // Angariações da semana: dataAngariacao
+    const angWeek = angs.filter(a => inRangeISO(a.dataAngariacao || '', start, end));
+    $('kAng').textContent = String(angWeek.length);
+
+    // CPCV / Escrituras: campos de fecho do Kanban
+    const cpcvWeek = leads.filter(l => inRangeISO(l.fecho_cpcv_date || '', start, end));
+    const escWeek  = leads.filter(l => inRangeISO(l.fecho_escritura_date || '', start, end));
+    $('kCpcv').textContent = String(cpcvWeek.length);
+    $('kEsc').textContent  = String(escWeek.length);
+
+    // assunto sugerido (não pisa se o Rui já escreveu)
+    if(!$('emailSubject').value.trim()){
+      $('emailSubject').value = 'Relatório Semanal — ' + startStr + ' a ' + endStr;
+    }
+
+    toast('Relatório atualizado.');
+  }
+
+  function copyEmail(){
+    const s = $('weekStart').value;
+    const e = $('weekEnd').value;
+    const subject = ($('emailSubject').value || '').trim() || ('Relatório Semanal — ' + s + ' a ' + e);
+    const to = ($('emailTo').value || '').trim();
+
+    const body =
+`Assunto: ${subject}
+${to ? ('Para: ' + to + '\n') : ''}
+Relatório Semanal de Actividade (${s} → ${e})
+
+1) Leads: ${$('kLeads').textContent}
+Observações: ${$('obsLeads').value.trim() || '-'}
+
+2) Angariações: ${$('kAng').textContent}
+Observações: ${$('obsAng').value.trim() || '-'}
+
+3) CPCV: ${$('kCpcv').textContent}
+Observações: ${$('obsCpcv').value.trim() || '-'}
+
+4) Escrituras: ${$('kEsc').textContent}
+Observações: ${$('obsEsc').value.trim() || '-'}
+
+Comentário do Coordenador/Diretor:
+${$('weeklyComment').value.trim() || '-'}
+
+Cumprimentos,
+Rui Quelhas`;
+
+    // Safari: pode bloquear clipboard — fallback para prompt
+    navigator.clipboard.writeText(body)
+      .then(()=>toast('Email copiado.'))
+      .catch(()=>{ prompt('Copie o texto do email:', body); });
+  }
+
+  // ====== Semana atual por defeito ======
+  function setThisWeek(){
+    const b = getWeekBoundsUTC(new Date());
+    $('weekStart').value = isoYMD(b.start);
+    $('weekEnd').value = isoYMD(b.end);
+  }
+
+  // quando a semana muda: carregar notas da semana e recalcular
+  function onWeekChanged(){
+    loadWeeklyNotes();
+    computeKPIs();
+  }
+
+  // ====== Boot ======
+  setThisWeek();
+  wireAutosave();
+  onWeekChanged();
+
+  $('btnRefresh').addEventListener('click', ()=>{
+    // ao atualizar, mantém as notas já carregadas e apenas recalcula KPIs
+    computeKPIs();
+  });
+
+  $('btnThisWeek').addEventListener('click', ()=>{
+    setThisWeek();
+    onWeekChanged();
+  });
+
+  $('weekStart').addEventListener('change', onWeekChanged);
+  $('weekEnd').addEventListener('change', onWeekChanged);
+
+  $('btnCopy').addEventListener('click', copyEmail);
+  $('btnPrint').addEventListener('click', ()=>window.print());
+})();
+</script>
+</body>
+</html>
