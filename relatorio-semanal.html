@@ -236,12 +236,36 @@
     display:none;
   }
 
-  @media print{
-    header,.side,.toast{ display:none !important; }
-    body{ background:#fff; color:#000; }
-    .wrap{ display:block; }
-    .kpi{ box-shadow:none; }
+ @media print{
+  header,.side,.toast{ display:none !important; }
+
+  body{ background:#fff !important; color:#111 !important; }
+  .wrap{ display:block; }
+
+  /* manter hierarquia, mas em versão “executiva” clara */
+  .hero{
+    background:#fff !important;
+    border:1px solid rgba(163,139,99,.55) !important;
+    box-shadow:none !important;
   }
+  .hero h2{ color:#111 !important; text-shadow:none !important; }
+  .range{ color:rgba(163,139,99,.95) !important; text-shadow:none !important; }
+  .hero .hint, .hero .hint b{ color:#333 !important; }
+
+  .kpi, .card{
+    background:#fff !important;
+    border:1px solid rgba(163,139,99,.45) !important;
+    box-shadow:none !important;
+  }
+  .kpi .name{ color:#444 !important; }
+  .kpi .val{ color:#111 !important; text-shadow:none !important; }
+
+  textarea, input{
+    background:#fff !important;
+    color:#111 !important;
+    border:1px solid rgba(0,0,0,.18) !important;
+  }
+}
 /* ===== Destaque premium — Comentário semanal do Diretor ===== */
 .main .card:last-of-type{
   position:relative;
