@@ -708,91 +708,134 @@ const visitasWeek = leads.filter(l =>
 $('kVis').textContent = String(visitasWeek.length);
 
 // ===== Propostas (semana) =====
-// Conta: proposta inicial + contra-propostas (mesmo lead).
-// Robusto: aceita lead.proposta como object OU string(JSON) e aceita várias chaves de data nas contra-propostas.
+// Conta eventos de Proposta + Contra-propostas (mesmo lead), mesmo que os dados venham como objecto OU como JSON em string.
+// Aceita datas: YYYY-MM-DD, DD/MM/YYYY, DD/MM/YY, DD-MM-YYYY, YYYY/MM/DD e ISO com hora (YYYY-MM-DDTHH:MM...).
+function normDateToISO(s){
+  if(!s) return '';
+  if(typeof s !== 'string'){
+    // se vier Date ou número, tentamos converter
+    try{ s = String(s); }catch(e){ return ''; }
+  }
+  const v = s.trim();
+  if(!v) return '';
 
-const propEvents = new Set();
+  // ISO datetime -> YYYY-MM-DD
+  if(/^\d{4}-\d{2}-\d{2}T/.test(v)) return v.slice(0,10);
+
+  // já é ISO
+  if(/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+
+  // DD/MM/YYYY ou DD/MM/YY
+  let m = v.match(/^(\d{2})\/(\d{2})\/(\d{2}|\d{4})$/);
+  if(m){
+    const dd = m[1], mm = m[2];
+    let yy = m[3];
+    if(yy.length === 2) yy = '20' + yy;
+    return `${yy}-${mm}-${dd}`;
+  }
+
+  // DD-MM-YYYY ou DD-MM-YY
+  m = v.match(/^(\d{2})-(\d{2})-(\d{2}|\d{4})$/);
+  if(m){
+    const dd = m[1], mm = m[2];
+    let yy = m[3];
+    if(yy.length === 2) yy = '20' + yy;
+    return `${yy}-${mm}-${dd}`;
+  }
+
+  // YYYY/MM/DD
+  m = v.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+  if(m){
+    return `${m[1]}-${m[2]}-${m[3]}`;
+  }
+
+  return ''; // formato não reconhecido
+}
+
+function asObjectMaybeJSON(x){
+  if(!x) return null;
+  if(typeof x === 'object') return x;
+  if(typeof x === 'string'){
+    const t = x.trim();
+    if(!t) return null;
+    if(t[0] === '{' || t[0] === '['){
+      try{ return JSON.parse(t); }catch(e){ return null; }
+    }
+  }
+  return null;
+}
 
 // Campos “soltos” (compatibilidade com versões antigas)
 const PROP_FIELDS = [
-  'ld_prop_data',            // (se alguma versão guardou assim)
-  'proposta_date',
-  'dataProposta',
-  'propostaData',
-  'proposta_enviada_date',
-  'proposta_recebida_date'
+  'proposta_date','dataProposta','propostaData','proposta_enviada_date','proposta_recebida_date',
+  'ld_prop_data','prop_data','propDate'
 ];
 
-// Chaves possíveis para datas nas contra-propostas (robusto)
+// Campos possíveis para contra-propostas (algumas versões guardam no lead, não dentro de proposta)
 const CP_DATE_FIELDS = [
-  'data',                   // formato atual do teu Kanban (PROPOSTA_CONTRAS)
-  'dataContraProposta',
-  'data_contra',
-  'dataContra',
-  'dataProposta',
-  'propostaData'
+  'contraPropostas','contra_propostas','contraProposta','contra_proposta','contraproposta','contra_proposta_date','contraproposta_date'
 ];
 
-leads.forEach((l, idx) => {
+const propEvents = new Set();
+
+leads.forEach((l, idxLead) => {
   if(!l) return;
-  const lid = l.id || ('lead_' + idx);
+  const lid = (l.id != null ? String(l.id) : String(idxLead));
 
-  // (A) Fallback antigo — datas diretas no lead (se existirem)
-  PROP_FIELDS.forEach(f => {
-    const raw = l[f];
-    if(typeof raw === 'string' && raw.trim()){
-      const iso = normDateToISO(raw);
-      if(iso && inRangeISO(iso, start, end)){
-        propEvents.add(`direct|${lid}|${iso}`);
-      }
-    }
-  });
-
-  // (B) Estrutura do Kanban: lead.proposta (pode ser objeto OU string JSON)
-  let p = l.proposta;
-
-  if(typeof p === 'string' && p.trim()){
-    try{ p = JSON.parse(p); }catch(e){ /* ignora */ }
+  // (A) Fallback — datas diretas no lead
+  const directRaw = PROP_FIELDS
+    .map(f => l && l[f])
+    .find(v => (typeof v === 'string' || typeof v === 'number') && String(v).trim());
+  const directISO = normDateToISO(directRaw || '');
+  if(directISO && inRangeISO(directISO, start, end)){
+    propEvents.add(`direct|${lid}|${directISO}`);
   }
 
+  // (B) Estrutura do Kanban: lead.proposta (pode vir objecto OU JSON string)
+  const p = asObjectMaybeJSON(l.proposta);
   if(p && typeof p === 'object'){
-
     // Proposta inicial
-    const pISO = normDateToISO(String(p.dataProposta || ''));
+    const pISO = normDateToISO(p.dataProposta || p.data || p.date || '');
     if(pISO && inRangeISO(pISO, start, end)){
       propEvents.add(`prop|${lid}|${pISO}`);
     }
 
-    // Contra-propostas: pode haver variações de nome do array
-    const cps =
-      Array.isArray(p.contraPropostas) ? p.contraPropostas :
-      Array.isArray(p.contrapropostas) ? p.contrapropostas :
-      Array.isArray(p.contra_propostas) ? p.contra_propostas :
-      [];
-
-    cps.forEach((cp, cidx) => {
-      if(!cp) return;
-
-      // tenta várias chaves até encontrar uma data
-      const rawDate = CP_DATE_FIELDS
-        .map(k => cp && cp[k])
-        .find(v => typeof v === 'string' && v.trim());
-
-      const cpISO = normDateToISO(String(rawDate || ''));
+    // Contra-propostas (array)
+    const cps = Array.isArray(p.contraPropostas) ? p.contraPropostas : (Array.isArray(p.contrapropostas) ? p.contrapropostas : []);
+    cps.forEach((cp, idx) => {
+      const cpObj = asObjectMaybeJSON(cp) || cp;
+      const cpISO = normDateToISO((cpObj && (cpObj.data || cpObj.dataContra || cpObj.date || cpObj.dataProposta)) || '');
       if(cpISO && inRangeISO(cpISO, start, end)){
-        propEvents.add(`contra|${lid}|${cidx}|${cpISO}`);
+        propEvents.add(`contra|${lid}|${idx}|${cpISO}`);
       }
     });
   }
 
-  // (C) Ultra-fallback (opcional): se o lead estiver em "Proposta" e a data principal estiver na semana
-  // Isto evita zeros em cenários onde a equipa muda o estado mas não preenche datas na proposta/contra-proposta.
-  if(l.estado === 'Proposta'){
-    const dISO = normDateToISO(String(l.data || ''));
-    if(dISO && inRangeISO(dISO, start, end)){
-      propEvents.add(`estado|${lid}|${dISO}`);
+  // (C) Algumas versões guardam contra-propostas no lead (fora de l.proposta)
+  CP_DATE_FIELDS.forEach((field) => {
+    const v = l[field];
+    const obj = asObjectMaybeJSON(v);
+
+    if(Array.isArray(obj)){
+      obj.forEach((cp, j) => {
+        const cpObj = asObjectMaybeJSON(cp) || cp;
+        const cpISO = normDateToISO((cpObj && (cpObj.data || cpObj.dataContra || cpObj.date)) || '');
+        if(cpISO && inRangeISO(cpISO, start, end)){
+          propEvents.add(`leadcontra|${lid}|${field}|${j}|${cpISO}`);
+        }
+      });
+    }else if(obj && typeof obj === 'object'){
+      const cpISO = normDateToISO(obj.data || obj.dataContra || obj.date || '');
+      if(cpISO && inRangeISO(cpISO, start, end)){
+        propEvents.add(`leadcontra|${lid}|${field}|${cpISO}`);
+      }
+    }else if(typeof v === 'string'){
+      const cpISO = normDateToISO(v);
+      if(cpISO && inRangeISO(cpISO, start, end)){
+        propEvents.add(`leadcontra|${lid}|${field}|${cpISO}`);
+      }
     }
-  }
+  });
 });
 
 $('kProp').textContent = String(propEvents.size);
