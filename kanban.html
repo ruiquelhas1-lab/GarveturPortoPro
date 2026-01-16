@@ -1304,9 +1304,13 @@ function drawContraPropostas(){
       </div>
       <button type="button" class="btn-xs" data-del="${idx}">Remover</button>
     `;
-    div.querySelector('.inp-contraprop-data').addEventListener('input',e=>{
-      PROPOSTA_CONTRAS[idx].data = e.target.value;
-    });
+   const inpDate = div.querySelector('.inp-contraprop-data');
+inpDate.addEventListener('input', e => {
+  PROPOSTA_CONTRAS[idx].data = e.target.value;
+});
+inpDate.addEventListener('change', e => {
+  PROPOSTA_CONTRAS[idx].data = e.target.value;
+});
     div.querySelector('.inp-contraprop-valor').addEventListener('input',e=>{
       PROPOSTA_CONTRAS[idx].valor = e.target.value;
     });
