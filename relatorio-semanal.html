@@ -686,26 +686,22 @@
     $('kCpcv').textContent = String(cpcvWeek.length);
     $('kEsc').textContent  = String(escWeek.length);
 
-        // Visitas / Propostas — tenta vários nomes de campos (robusto, não quebra)
-    const VISIT_FIELDS = [
-      'visita_date','dataVisita','visitaData','agendamento_visita_date','fecho_visita_date','visita'
-    ];
-    const PROP_FIELDS = [
-      'proposta_date','dataProposta','propostaData','proposta_enviada_date','proposta_recebida_date','proposta'
-    ];
+      // ===== Visitas (semana) =====
+// Regra: lead em estado "Visita" cuja data principal esteja na semana
+const visitasWeek = leads.filter(l =>
+  l.estado === 'Visita' && inRangeISO(l.data || '', start, end)
+);
+$('kVis').textContent = String(visitasWeek.length);
 
-    const visitasWeek = leads.filter(l => {
-      const ds = VISIT_FIELDS.map(f => l && l[f]).find(v => typeof v === 'string' && v.trim());
-      return inRangeISO(ds || '', start, end);
-    });
-    $('kVis').textContent = String(visitasWeek.length);
-
-    const propsWeek = leads.filter(l => {
-      const ds = PROP_FIELDS.map(f => l && l[f]).find(v => typeof v === 'string' && v.trim());
-      return inRangeISO(ds || '', start, end);
-    });
-    $('kProp').textContent = String(propsWeek.length);
-
+// ===== Propostas (semana) =====
+// Regra: usar a data real da proposta (ld_prop_data)
+const propsWeek = leads.filter(l =>
+  l.proposta &&
+  typeof l.proposta === 'object' &&
+  inRangeISO(l.proposta.dataProposta || '', start, end)
+);
+$('kProp').textContent = String(propsWeek.length);
+    
     // assunto sugerido (não pisa se o Rui já escreveu)
     if(!$('emailSubject').value.trim()){
       $('emailSubject').value = 'Relatório Semanal — ' + startStr + ' a ' + endStr;
