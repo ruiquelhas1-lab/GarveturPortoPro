@@ -1496,16 +1496,30 @@ $('saveLead').addEventListener('click',()=>{
     pagamentoOutro = pagamentoTipo === 'outro' ? $('ld_fecho_pagamento_outro').value.trim() : '';
   }
 
-  const propostaObj = {
-    nomeProponente: get('ld_prop_nome'),
-    contactoProponente: get('ld_prop_contacto'),
-    emailProponente: get('ld_prop_email'),
-    valorProposta: get('ld_prop_valor'),
-    termosProposta: get('ld_prop_termos'),
-    dataProposta: get('ld_prop_data'),
-    contraPropostas: (PROPOSTA_CONTRAS || []).filter(cp=>cp && (cp.data || cp.valor || cp.termos)),
-    dataPropostaAceite: get('ld_prop_aceite')
-  };
+  const todayISO = new Date().toISOString().slice(0,10);
+const propDateISO = get('ld_prop_data') || todayISO;
+
+const propostaObj = {
+  nomeProponente: get('ld_prop_nome'),
+  contactoProponente: get('ld_prop_contacto'),
+  emailProponente: get('ld_prop_email'),
+  valorProposta: get('ld_prop_valor'),
+  termosProposta: get('ld_prop_termos'),
+
+  // ✅ nunca fica vazio
+  dataProposta: propDateISO,
+
+  // ✅ cada contra-proposta fica com data (se vier vazia, herda a data da proposta)
+  contraPropostas: (PROPOSTA_CONTRAS || [])
+    .filter(cp => cp && (cp.data || cp.valor || cp.termos))
+    .map(cp => ({
+      data: (cp.data && String(cp.data).trim()) ? String(cp.data).trim() : propDateISO,
+      valor: cp.valor || '',
+      termos: cp.termos || ''
+    })),
+
+  dataPropostaAceite: get('ld_prop_aceite')
+};
   const hasPropostaData =
     propostaObj.nomeProponente ||
     propostaObj.contactoProponente ||
