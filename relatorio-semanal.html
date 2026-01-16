@@ -693,15 +693,44 @@ const visitasWeek = leads.filter(l =>
 );
 $('kVis').textContent = String(visitasWeek.length);
 
-// ===== Propostas (semana) =====
-// Regra: usar a data real da proposta (ld_prop_data)
-const propsWeek = leads.filter(l =>
-  l.proposta &&
-  typeof l.proposta === 'object' &&
-  inRangeISO(l.proposta.dataProposta || '', start, end)
-);
-$('kProp').textContent = String(propsWeek.length);
-    
+// Propostas — inclui Proposta + Contra-propostas (sem duplicar por acidente)
+const propEvents = new Set();
+
+leads.forEach(l => {
+  if(!l) return;
+  const lid = l.id || Math.random().toString(36).slice(2);
+
+  // (A) Fallback antigo — caso existam campos de data “soltos” no lead
+  const directDate = PROP_FIELDS
+    .map(f => l && l[f])
+    .find(v => typeof v === 'string' && v.trim());
+
+  if(directDate && inRangeISO(directDate, start, end)){
+    propEvents.add(`direct|${lid}|${directDate}`);
+  }
+
+  // (B) Estrutura correta do Kanban: lead.proposta
+  const p = l.proposta;
+  if(p && typeof p === 'object'){
+
+    // Proposta inicial (dataProposta)
+    if(p.dataProposta && inRangeISO(p.dataProposta, start, end)){
+      propEvents.add(`prop|${lid}|${p.dataProposta}`);
+    }
+
+    // Contra-propostas (array)
+    if(Array.isArray(p.contraPropostas)){
+      p.contraPropostas.forEach((cp, idx) => {
+        const d = cp && cp.data;
+        if(d && inRangeISO(d, start, end)){
+          propEvents.add(`contra|${lid}|${idx}|${d}`);
+        }
+      });
+    }
+  }
+});
+
+$('kProp').textContent = String(propEvents.size);
     // assunto sugerido (não pisa se o Rui já escreveu)
     if(!$('emailSubject').value.trim()){
       $('emailSubject').value = 'Relatório Semanal — ' + startStr + ' a ' + endStr;
