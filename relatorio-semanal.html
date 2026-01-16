@@ -107,8 +107,6 @@
     box-shadow:0 0 0 1px rgba(163,139,99,.35);
   }
   textarea{ min-height:90px; resize:vertical; }
-  /* ===== PDF: espelho do conteúdo dos textarea (texto completo) ===== */
-.print-only{ display:none; }
 
   .row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 
@@ -329,14 +327,6 @@
     box-shadow:none !important;
   }
 
-  /* ===== PDF: Comentário semanal não pode ser cortado ===== */
-  .comment-card{
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
-    break-before: page !important;
-    page-break-before: always !important;
-  }
-  
   /* ===== Observações nos KPI — legibilidade premium em PDF ===== */
 
 /* Label "Observações" */
@@ -368,42 +358,7 @@
   border-color:rgba(163,139,99,.85) !important;
   box-shadow:none !important;
 }
-  /* ===== PDF: imprimir conteúdo completo (sem cortar) ===== */
-  textarea{ display:none !important; } /* no PDF, não imprimir textarea */
 
-  .print-only{
-    display:block !important;
-    white-space:pre-wrap !important;   /* respeita quebras de linha */
-    word-break:break-word !important;
-    background:#FAF9F7 !important;     /* branco quente */
-    border:1px solid rgba(163,139,99,.55) !important;
-    color:#111 !important;
-    border-radius:10px !important;
-    padding:10px 12px !important;
-    line-height:1.45 !important;
-    min-height:50px !important;
-  }
-
-/* ===== CONTROLO DE QUEBRA DE PÁGINA — OBSERVAÇÕES KPI ===== */
-
-/* Nunca quebrar um KPI a meio */
-.kpi{
-  break-inside: avoid !important;
-  page-break-inside: avoid !important;
-}
-
-/* Textareas expandem totalmente no PDF */
-.kpi textarea{
-  height: auto !important;
-  max-height: none !important;
-  overflow: visible !important;
-}
-
-/* Garantir que o conteúdo não é cortado */
-.kpis{
-  break-inside: auto;
-}
-  
   @page{ margin: 12mm; }
 }
 /* ===== Destaque premium — Comentário semanal do Diretor ===== */
@@ -441,6 +396,130 @@
   font-weight:900;
 }
   
+
+
+  /* ===== Versão Executiva (PDF) ===== */
+  .print-only{ display:none; }
+  .screen-only{ display:block; }
+
+  .exec-cover, .exec-page{ break-inside: avoid; }
+  .exec-cover{
+    border:1px solid rgba(163,139,99,.60);
+    border-radius:18px;
+    padding:22px 22px 18px;
+    background:
+      radial-gradient(900px 380px at 12% 0%, rgba(163,139,99,.18) 0%, rgba(0,0,0,0) 58%),
+      linear-gradient(180deg, #0B0B0B 0%, #000000 100%);
+    box-shadow:0 18px 36px rgba(0,0,0,.55);
+    margin:0 0 14px;
+  }
+  .exec-cover .brandline{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .exec-cover .ttl{
+    margin:0;
+    color:#fff;
+    font-size:18px;
+    letter-spacing:.10em;
+    text-transform:uppercase;
+  }
+  .exec-cover .subttl{
+    margin-top:6px;
+    color:rgba(255,255,255,.82);
+    font-size:12px;
+    letter-spacing:.10em;
+    text-transform:uppercase;
+  }
+  .exec-kpi-grid{
+    display:grid;
+    grid-template-columns:repeat(3, minmax(0,1fr));
+    gap:10px;
+    margin-top:14px;
+  }
+  .exec-kpi{
+    position:relative;
+    border:1px solid rgba(163,139,99,.55);
+    border-radius:14px;
+    padding:12px 12px 10px;
+    background:linear-gradient(180deg, rgba(18,18,18,.96), rgba(6,6,6,.86));
+  }
+  .exec-kpi .kname{ font-size:11px; color:rgba(255,255,255,.80); letter-spacing:.14em; text-transform:uppercase; }
+  .exec-kpi .kval{ font-size:26px; font-weight:900; color:#fff; margin-top:6px; }
+  .exec-kpi .kchip{ margin-top:6px; display:inline-flex; font-size:11px; padding:3px 9px; border-radius:999px; border:1px solid rgba(163,139,99,.35); color:rgba(255,255,255,.88); background:linear-gradient(180deg, rgba(163,139,99,.12), rgba(0,0,0,.55)); }
+
+  .exec-page{
+    border:1px solid rgba(163,139,99,.35);
+    border-radius:16px;
+    padding:14px;
+    background:rgba(0,0,0,.45);
+    margin:0 0 12px;
+  }
+  .exec-page h3{
+    margin:0 0 10px;
+    color:var(--gold);
+    font-size:13px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+  }
+  .exec-topic{
+    border:1px solid rgba(163,139,99,.22);
+    border-radius:14px;
+    padding:12px;
+    background:rgba(0,0,0,.30);
+    margin-bottom:10px;
+  }
+  .exec-topic .topline{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+  .exec-topic .tname{ font-weight:900; letter-spacing:.10em; text-transform:uppercase; font-size:11px; color:#fff; }
+  .exec-topic .tval{ font-weight:900; font-size:16px; color:#fff; }
+  .exec-notes{ margin-top:8px; color:rgba(255,255,255,.90); font-size:12px; line-height:1.45; white-space:pre-wrap; }
+  .exec-notes.empty{ color:rgba(255,255,255,.55); }
+
+  @media print{
+    .print-only{ display:block !important; }
+    .screen-only{ display:none !important; }
+
+    /* Página com respiro e contraste */
+    body{ background:#F4F2EE !important; color:#111 !important; }
+    .main{ padding:0 !important; overflow:visible !important; }
+
+    /* Cover/Pages em versão clara */
+    .exec-cover{
+      background:
+        radial-gradient(900px 380px at 12% 0%, rgba(163,139,99,.20) 0%, rgba(0,0,0,0) 58%),
+        linear-gradient(180deg, #ffffff 0%, #fbfaf8 100%) !important;
+      box-shadow:none !important;
+      border:1px solid rgba(163,139,99,.75) !important;
+    }
+    .exec-cover .ttl{ color:#111 !important; text-shadow:none !important; }
+    .exec-cover .subttl{ color:#333 !important; }
+
+    .exec-kpi{ background:#fff !important; border:1px solid rgba(163,139,99,.60) !important; }
+    .exec-kpi .kname{ color:#333 !important; }
+    .exec-kpi .kval{ color:#111 !important; }
+    .exec-kpi .kchip{ background:#fff !important; color:#333 !important; border:1px solid rgba(163,139,99,.55) !important; }
+
+    .exec-page{ background:#fff !important; border:1px solid rgba(163,139,99,.60) !important; box-shadow:none !important; }
+    .exec-page h3{ color:rgba(163,139,99,1) !important; }
+    .exec-topic{ background:#fff !important; border:1px solid rgba(163,139,99,.40) !important; }
+    .exec-topic .tname{ color:#111 !important; }
+    .exec-topic .tval{ color:#111 !important; }
+    .exec-notes{ color:#111 !important; }
+    .exec-notes.empty{ color:#555 !important; }
+
+    /* Forçar que o Comentário nunca parte a meio */
+    .exec-page.comment{ page-break-inside: avoid !important; break-inside: avoid !important; }
+    .exec-page.comment{ page-break-before: always !important; }
+
+    /* Forçar que "Notas por tópico" começa numa nova página */
+    .exec-page.notes{ page-break-before: always !important; }
+
+    @page{ margin: 12mm; }
+  }
+
 </style>
 </head>
 
@@ -502,6 +581,71 @@
   </aside>
 
   <main class="main">
+
+    <!-- ===== Versão Executiva (impressão/PDF) ===== -->
+    <div class="print-only">
+      <section class="exec-cover">
+        <div class="brandline">
+          <div>
+            <h2 class="ttl">Relatório Semanal — Garvetur Luxury Porto</h2>
+            <div class="subttl" id="pRange">Semana: —</div>
+          </div>
+          <div class="subttl">Executivo · KPI + Notas</div>
+        </div>
+
+        <div class="exec-kpi-grid" aria-label="KPIs">
+          <div class="exec-kpi"><div class="kname">Leads</div><div class="kval" id="pKLeads">0</div><div class="kchip">Fonte: Kanban</div></div>
+          <div class="exec-kpi"><div class="kname">Angariações</div><div class="kval" id="pKAng">0</div><div class="kchip">Fonte: Angariações</div></div>
+          <div class="exec-kpi"><div class="kname">Visitas</div><div class="kval" id="pKVis">0</div><div class="kchip">Fonte: Kanban</div></div>
+          <div class="exec-kpi"><div class="kname">Propostas</div><div class="kval" id="pKProp">0</div><div class="kchip">Fonte: Kanban</div></div>
+          <div class="exec-kpi"><div class="kname">CPCV</div><div class="kval" id="pKCpcv">0</div><div class="kchip">Fonte: Kanban</div></div>
+          <div class="exec-kpi"><div class="kname">Escrituras</div><div class="kval" id="pKEsc">0</div><div class="kchip">Fonte: Kanban</div></div>
+        </div>
+      </section>
+
+      <section class="exec-page notes">
+        <h3>Notas por tópico</h3>
+
+        <div class="exec-topic">
+          <div class="topline"><div class="tname">Leads</div><div class="tval" id="pKLeads2">0</div></div>
+          <div class="exec-notes" id="pObsLeads"></div>
+        </div>
+
+        <div class="exec-topic">
+          <div class="topline"><div class="tname">Angariações</div><div class="tval" id="pKAng2">0</div></div>
+          <div class="exec-notes" id="pObsAng"></div>
+        </div>
+
+        <div class="exec-topic">
+          <div class="topline"><div class="tname">Visitas</div><div class="tval" id="pKVis2">0</div></div>
+          <div class="exec-notes" id="pObsVis"></div>
+        </div>
+
+        <div class="exec-topic">
+          <div class="topline"><div class="tname">Propostas</div><div class="tval" id="pKProp2">0</div></div>
+          <div class="exec-notes" id="pObsProp"></div>
+        </div>
+
+        <div class="exec-topic">
+          <div class="topline"><div class="tname">CPCV</div><div class="tval" id="pKCpcv2">0</div></div>
+          <div class="exec-notes" id="pObsCpcv"></div>
+        </div>
+
+        <div class="exec-topic">
+          <div class="topline"><div class="tname">Escrituras</div><div class="tval" id="pKEsc2">0</div></div>
+          <div class="exec-notes" id="pObsEsc"></div>
+        </div>
+      </section>
+
+      <section class="exec-page comment">
+        <h3>Comentário semanal do Coordenador / Diretor</h3>
+        <div class="exec-notes" id="pWeeklyComment"></div>
+      </section>
+    </div>
+
+    <!-- ===== Versão de trabalho (ecrã) ===== -->
+    <div class="screen-only">
+
     <div class="hero">
       <div class="top">
         <h2>Resumo semanal de actividade</h2>
@@ -562,10 +706,11 @@
       </div>
     </section>
 
-    <div class="card comment-card" style="margin-top:12px">
+    <div class="card" style="margin-top:12px">
       <div class="hint" style="margin-bottom:8px">Comentário semanal do Coordenador / Diretor</div>
       <textarea id="weeklyComment" style="min-height:170px" placeholder="Resumo executivo: principais acontecimentos, decisões tomadas, riscos, prioridades e foco para a próxima semana..."></textarea>
     </div>
+      </div>
   </main>
 </div>
 
@@ -677,6 +822,8 @@ function parseISODateUTC(s){
     $('obsVis').value       = saved.obsVis || '';
     $('obsProp').value      = saved.obsProp || '';
     $('weeklyComment').value= saved.weeklyComment || '';
+
+    syncExecutive();
   }
 
   function saveWeeklyNotes(){
@@ -708,7 +855,7 @@ function parseISODateUTC(s){
       el.addEventListener('input', ()=>{
         // pequeno debounce
         clearTimeout(el.__t);
-        el.__t = setTimeout(saveWeeklyNotes, 220);
+        el.__t = setTimeout(()=>{ saveWeeklyNotes(); syncExecutive(); }, 220);
       });
     });
   }
@@ -753,95 +900,102 @@ const visitasWeek = leads.filter(l =>
 $('kVis').textContent = String(visitasWeek.length);
 
 // ===== Propostas (semana) =====
-// Conta: proposta inicial + contra-propostas (mesmo lead), só quando existe data.
-// Aceita datas em YYYY-MM-DD e DD/MM/YYYY (e variações comuns).
-function normDateToISO(s){
-  if(!s || typeof s !== 'string') return '';
-  const v = s.trim();
-  if(!v) return '';
-
-  // já é ISO (YYYY-MM-DD)
-  if(/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
-
-  // DD/MM/YYYY ou DD/MM/YY
-  let m = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
-  if(m){
-    const dd = String(m[1]).padStart(2,'0');
-    const mm = String(m[2]).padStart(2,'0');
-    let yy = String(m[3]);
-    if(yy.length === 2) yy = '20' + yy;
-    return `${yy}-${mm}-${dd}`;
-  }
-
-  // DD-MM-YYYY ou DD-MM-YY
-  m = v.match(/^(\d{1,2})-(\d{1,2})-(\d{2}|\d{4})$/);
-  if(m){
-    const dd = String(m[1]).padStart(2,'0');
-    const mm = String(m[2]).padStart(2,'0');
-    let yy = String(m[3]);
-    if(yy.length === 2) yy = '20' + yy;
-    return `${yy}-${mm}-${dd}`;
-  }
-
-  // YYYY/MM/DD
-  m = v.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
-  if(m){
-    const yy = m[1];
-    const mm = String(m[2]).padStart(2,'0');
-    const dd = String(m[3]).padStart(2,'0');
-    return `${yy}-${mm}-${dd}`;
-  }
-
-  return '';
-}
-
-// (Compat) campos “soltos” antigos
-const PROP_FIELDS = [
-  'proposta_date','dataProposta','propostaData','proposta_enviada_date','proposta_recebida_date'
-];
+// Conta: proposta inicial + contra-propostas (mesmo lead).
+// Robusto: aceita lead.proposta como object OU string(JSON) e aceita várias chaves de data nas contra-propostas.
 
 const propEvents = new Set();
 
-leads.forEach((l, idxLead) => {
-  if(!l) return;
-  const lid = (l.id != null && String(l.id).trim()) ? String(l.id) : String(idxLead);
+// Campos “soltos” (compatibilidade com versões antigas)
+const PROP_FIELDS = [
+  'ld_prop_data',            // (se alguma versão guardou assim)
+  'proposta_date',
+  'dataProposta',
+  'propostaData',
+  'proposta_enviada_date',
+  'proposta_recebida_date'
+];
 
-  // (A) Datas diretas no lead (legado)
-  const directRaw = PROP_FIELDS
-    .map(f => l && l[f])
-    .find(v => typeof v === 'string' && v.trim());
-  const directISO = normDateToISO(directRaw || '');
-  if(directISO && inRangeISO(directISO, start, end)){
-    propEvents.add(`direct|${lid}|${directISO}`);
+// Chaves possíveis para datas nas contra-propostas (robusto)
+const CP_DATE_FIELDS = [
+  'data',                   // formato atual do teu Kanban (PROPOSTA_CONTRAS)
+  'dataContraProposta',
+  'data_contra',
+  'dataContra',
+  'dataProposta',
+  'propostaData'
+];
+
+leads.forEach((l, idx) => {
+  if(!l) return;
+  const lid = l.id || ('lead_' + idx);
+
+  // (A) Fallback antigo — datas diretas no lead (se existirem)
+  PROP_FIELDS.forEach(f => {
+    const raw = l[f];
+    if(typeof raw === 'string' && raw.trim()){
+      const iso = normDateToISO(raw);
+      if(iso && inRangeISO(iso, start, end)){
+        propEvents.add(`direct|${lid}|${iso}`);
+      }
+    }
+  });
+
+  // (B) Estrutura do Kanban: lead.proposta (pode ser objeto OU string JSON)
+  let p = l.proposta;
+
+  if(typeof p === 'string' && p.trim()){
+    try{ p = JSON.parse(p); }catch(e){ /* ignora */ }
   }
 
-  // (B) Estrutura correta: l.proposta
-  const p = l.proposta;
   if(p && typeof p === 'object'){
 
     // Proposta inicial
-    const pISO = normDateToISO(p.dataProposta || '');
+    const pISO = normDateToISO(String(p.dataProposta || ''));
     if(pISO && inRangeISO(pISO, start, end)){
       propEvents.add(`prop|${lid}|${pISO}`);
     }
 
-    // Contra-propostas
-    const cps = Array.isArray(p.contraPropostas) ? p.contraPropostas : [];
-    cps.forEach((cp, idx) => {
-      const cpISO = normDateToISO((cp && cp.data) || '');
+    // Contra-propostas: pode haver variações de nome do array
+    const cps =
+      Array.isArray(p.contraPropostas) ? p.contraPropostas :
+      Array.isArray(p.contrapropostas) ? p.contrapropostas :
+      Array.isArray(p.contra_propostas) ? p.contra_propostas :
+      [];
+
+    cps.forEach((cp, cidx) => {
+      if(!cp) return;
+
+      // tenta várias chaves até encontrar uma data
+      const rawDate = CP_DATE_FIELDS
+        .map(k => cp && cp[k])
+        .find(v => typeof v === 'string' && v.trim());
+
+      const cpISO = normDateToISO(String(rawDate || ''));
       if(cpISO && inRangeISO(cpISO, start, end)){
-        propEvents.add(`contra|${lid}|${idx}|${cpISO}`);
+        propEvents.add(`contra|${lid}|${cidx}|${cpISO}`);
       }
     });
+  }
+
+  // (C) Ultra-fallback (opcional): se o lead estiver em "Proposta" e a data principal estiver na semana
+  // Isto evita zeros em cenários onde a equipa muda o estado mas não preenche datas na proposta/contra-proposta.
+  if(l.estado === 'Proposta'){
+    const dISO = normDateToISO(String(l.data || ''));
+    if(dISO && inRangeISO(dISO, start, end)){
+      propEvents.add(`estado|${lid}|${dISO}`);
+    }
   }
 });
 
 $('kProp').textContent = String(propEvents.size);
+
     
     // assunto sugerido (não pisa se o Rui já escreveu)
     if(!$('emailSubject').value.trim()){
       $('emailSubject').value = 'Relatório Semanal — ' + startStr + ' a ' + endStr;
     }
+
+    syncExecutive();
 
     toast('Relatório atualizado.');
   }
@@ -887,6 +1041,50 @@ Rui Quelhas`;
       .catch(()=>{ prompt('Copie o texto do email:', body); });
   }
 
+
+
+  // ====== Versão Executiva (PDF) ======
+  function setText(id, txt){
+    const el = $(id);
+    if(!el) return;
+    el.textContent = (txt == null ? '' : String(txt));
+  }
+  function setNotes(id, txt){
+    const el = $(id);
+    if(!el) return;
+    const v = (txt || '').toString().trim();
+    if(!v){
+      el.textContent = '—';
+      el.classList.add('empty');
+    }else{
+      el.textContent = v;
+      el.classList.remove('empty');
+    }
+  }
+  function syncExecutive(){
+    // Range
+    setText('pRange', 'Semana: ' + ($('rangeLabel')?.textContent || '—'));
+
+    // KPIs (capa + notas)
+    const map = [
+      ['kLeads','pKLeads'],['kAng','pKAng'],['kVis','pKVis'],['kProp','pKProp'],['kCpcv','pKCpcv'],['kEsc','pKEsc'],
+      ['kLeads','pKLeads2'],['kAng','pKAng2'],['kVis','pKVis2'],['kProp','pKProp2'],['kCpcv','pKCpcv2'],['kEsc','pKEsc2']
+    ];
+    map.forEach(([src,dst])=> setText(dst, $(src)?.textContent || '0'));
+
+    // Notas
+    setNotes('pObsLeads', $('obsLeads')?.value || '');
+    setNotes('pObsAng', $('obsAng')?.value || '');
+    setNotes('pObsVis', $('obsVis')?.value || '');
+    setNotes('pObsProp', $('obsProp')?.value || '');
+    setNotes('pObsCpcv', $('obsCpcv')?.value || '');
+    setNotes('pObsEsc', $('obsEsc')?.value || '');
+    setNotes('pWeeklyComment', $('weeklyComment')?.value || '');
+  }
+
+  // Garantir que ao imprimir o PDF leva o texto completo (sem ficar "cortado" por caixas)
+  window.addEventListener('beforeprint', syncExecutive);
+
   // ====== Semana atual por defeito ======
   function setThisWeek(){
     const b = getWeekBoundsUTC(new Date());
@@ -899,24 +1097,6 @@ Rui Quelhas`;
     loadWeeklyNotes();
     computeKPIs();
   }
-
-    // ===== PDF: imprimir texto completo (sem cortar em caixas) =====
-  function ensurePrintMirrors(){
-    const areas = Array.from(document.querySelectorAll('textarea'));
-    areas.forEach(ta=>{
-      let mirror = ta.nextElementSibling;
-      if(!mirror || !mirror.classList || !mirror.classList.contains('print-only')){
-        mirror = document.createElement('div');
-        mirror.className = 'print-only';
-        ta.insertAdjacentElement('afterend', mirror);
-      }
-      const val = (ta.value || '').trim();
-      mirror.textContent = val ? val : '-';
-    });
-  }
-
-  // Atualiza espelhos antes de imprimir (inclui Cmd+P)
-  window.addEventListener('beforeprint', ensurePrintMirrors);
 
   // ====== Boot ======
   setThisWeek();
@@ -937,7 +1117,7 @@ Rui Quelhas`;
   $('weekEnd').addEventListener('change', onWeekChanged);
 
   $('btnCopy').addEventListener('click', copyEmail);
-  $('btnPrint').addEventListener('click', ()=>{ ensurePrintMirrors(); window.print(); });
+  $('btnPrint').addEventListener('click', ()=>window.print());
 })();
 </script>
 </body>
