@@ -107,6 +107,8 @@
     box-shadow:0 0 0 1px rgba(163,139,99,.35);
   }
   textarea{ min-height:90px; resize:vertical; }
+  /* ===== PDF: espelho do conteúdo dos textarea (texto completo) ===== */
+.print-only{ display:none; }
 
   .row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 
@@ -327,6 +329,14 @@
     box-shadow:none !important;
   }
 
+  /* ===== PDF: Comentário semanal não pode ser cortado ===== */
+  .comment-card{
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    break-before: page !important;
+    page-break-before: always !important;
+  }
+  
   /* ===== Observações nos KPI — legibilidade premium em PDF ===== */
 
 /* Label "Observações" */
@@ -358,27 +368,42 @@
   border-color:rgba(163,139,99,.85) !important;
   box-shadow:none !important;
 }
+  /* ===== PDF: imprimir conteúdo completo (sem cortar) ===== */
+  textarea{ display:none !important; } /* no PDF, não imprimir textarea */
 
-  /* ===== Layout de impressão — evitar quebras feias ===== */
-  .hero, .kpi, .card{ 
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
-  }
-  .kpis{ break-inside: auto !important; page-break-inside: auto !important; }
-
-  /* Garantir que textos longos ficam totalmente visíveis no PDF */
-  textarea{ 
-    overflow: visible !important;
-    resize: none !important;
-  }
-
-  /* Comentário do Coordenador: inicia em nova página (executivo) */
-  .comment-card{ 
-    break-before: page !important;
-    page-break-before: always !important;
+  .print-only{
+    display:block !important;
+    white-space:pre-wrap !important;   /* respeita quebras de linha */
+    word-break:break-word !important;
+    background:#FAF9F7 !important;     /* branco quente */
+    border:1px solid rgba(163,139,99,.55) !important;
+    color:#111 !important;
+    border-radius:10px !important;
+    padding:10px 12px !important;
+    line-height:1.45 !important;
+    min-height:50px !important;
   }
 
+/* ===== CONTROLO DE QUEBRA DE PÁGINA — OBSERVAÇÕES KPI ===== */
 
+/* Nunca quebrar um KPI a meio */
+.kpi{
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+}
+
+/* Textareas expandem totalmente no PDF */
+.kpi textarea{
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* Garantir que o conteúdo não é cortado */
+.kpis{
+  break-inside: auto;
+}
+  
   @page{ margin: 12mm; }
 }
 /* ===== Destaque premium — Comentário semanal do Diretor ===== */
@@ -875,6 +900,24 @@ Rui Quelhas`;
     computeKPIs();
   }
 
+    // ===== PDF: imprimir texto completo (sem cortar em caixas) =====
+  function ensurePrintMirrors(){
+    const areas = Array.from(document.querySelectorAll('textarea'));
+    areas.forEach(ta=>{
+      let mirror = ta.nextElementSibling;
+      if(!mirror || !mirror.classList || !mirror.classList.contains('print-only')){
+        mirror = document.createElement('div');
+        mirror.className = 'print-only';
+        ta.insertAdjacentElement('afterend', mirror);
+      }
+      const val = (ta.value || '').trim();
+      mirror.textContent = val ? val : '-';
+    });
+  }
+
+  // Atualiza espelhos antes de imprimir (inclui Cmd+P)
+  window.addEventListener('beforeprint', ensurePrintMirrors);
+
   // ====== Boot ======
   setThisWeek();
   wireAutosave();
@@ -894,33 +937,7 @@ Rui Quelhas`;
   $('weekEnd').addEventListener('change', onWeekChanged);
 
   $('btnCopy').addEventListener('click', copyEmail);
-  $('btnPrint').addEventListener('click', ()=>window.print());
-
-
-  // ====== Impressão/PDF: garantir que textareas imprimem TODO o conteúdo ======
-  const __printCache = new Map();
-  function autosizeTextareasForPrint(){
-    document.querySelectorAll('textarea').forEach(ta=>{
-      if(!ta) return;
-      if(!__printCache.has(ta)) __printCache.set(ta, ta.style.height || '');
-      // forçar cálculo
-      ta.style.height = 'auto';
-      ta.style.overflow = 'visible';
-      const h = ta.scrollHeight;
-      if(h && Number.isFinite(h)) ta.style.height = (h + 6) + 'px';
-    });
-  }
-  function restoreTextareasAfterPrint(){
-    document.querySelectorAll('textarea').forEach(ta=>{
-      if(!ta) return;
-      if(__printCache.has(ta)) ta.style.height = __printCache.get(ta) || '';
-    });
-    __printCache.clear();
-  }
-
-  window.addEventListener('beforeprint', autosizeTextareasForPrint);
-  window.addEventListener('afterprint', restoreTextareasAfterPrint);
-
+  $('btnPrint').addEventListener('click', ()=>{ ensurePrintMirrors(); window.print(); });
 })();
 </script>
 </body>
