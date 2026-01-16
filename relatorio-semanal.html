@@ -549,14 +549,28 @@
     try{ return JSON.parse(raw); }catch(e){ return null; }
   }
 
-  function parseISODateUTC(s){
-    // YYYY-MM-DD
-    if(!s || typeof s !== 'string') return null;
-    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if(!m) return null;
+function parseISODateUTC(s){
+  // Aceita: YYYY-MM-DD (inputs type="date") e DD/MM/YYYY (ex.: 16/01/2026)
+  if(!s || typeof s !== 'string') return null;
+  const raw = s.trim();
+
+  // YYYY-MM-DD
+  let m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(m){
     const dt = new Date(Date.UTC(+m[1], +m[2]-1, +m[3]));
     return isNaN(dt.getTime()) ? null : dt;
   }
+
+  // DD/MM/YYYY
+  m = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if(m){
+    const dd = +m[1], mm = +m[2], yy = +m[3];
+    const dt = new Date(Date.UTC(yy, mm-1, dd));
+    return isNaN(dt.getTime()) ? null : dt;
+  }
+
+  return null;
+}
 
   function inRangeISO(dateStr, startUTC, endUTC){
     const dt = parseISODateUTC(dateStr);
