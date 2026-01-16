@@ -880,6 +880,24 @@ Rui Quelhas`;
     computeKPIs();
   }
 
+    // ===== PDF: imprimir texto completo (sem cortar em caixas) =====
+  function ensurePrintMirrors(){
+    const areas = Array.from(document.querySelectorAll('textarea'));
+    areas.forEach(ta=>{
+      let mirror = ta.nextElementSibling;
+      if(!mirror || !mirror.classList || !mirror.classList.contains('print-only')){
+        mirror = document.createElement('div');
+        mirror.className = 'print-only';
+        ta.insertAdjacentElement('afterend', mirror);
+      }
+      const val = (ta.value || '').trim();
+      mirror.textContent = val ? val : '-';
+    });
+  }
+
+  // Atualiza espelhos antes de imprimir (inclui Cmd+P)
+  window.addEventListener('beforeprint', ensurePrintMirrors);
+
   // ====== Boot ======
   setThisWeek();
   wireAutosave();
