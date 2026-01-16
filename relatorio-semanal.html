@@ -693,44 +693,85 @@ const visitasWeek = leads.filter(l =>
 );
 $('kVis').textContent = String(visitasWeek.length);
 
-// Propostas — inclui Proposta + Contra-propostas (sem duplicar por acidente)
+// ===== Propostas (semana) =====
+// Conta: proposta inicial + contra-propostas (mesmo lead), aceitando datas em YYYY-MM-DD e DD/MM/YYYY
+function normDateToISO(s){
+  if(!s || typeof s !== 'string') return '';
+  const v = s.trim();
+  // já é ISO
+  if(/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+
+  // DD/MM/YYYY ou DD/MM/YY
+  let m = v.match(/^(\d{2})\/(\d{2})\/(\d{2}|\d{4})$/);
+  if(m){
+    const dd = m[1], mm = m[2];
+    let yy = m[3];
+    if(yy.length === 2) yy = '20' + yy;
+    return `${yy}-${mm}-${dd}`;
+  }
+
+  // DD-MM-YYYY ou DD-MM-YY
+  m = v.match(/^(\d{2})-(\d{2})-(\d{2}|\d{4})$/);
+  if(m){
+    const dd = m[1], mm = m[2];
+    let yy = m[3];
+    if(yy.length === 2) yy = '20' + yy;
+    return `${yy}-${mm}-${dd}`;
+  }
+
+  // YYYY/MM/DD
+  m = v.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+  if(m){
+    return `${m[1]}-${m[2]}-${m[3]}`;
+  }
+
+  return ''; // formato não reconhecido
+}
+
+// Campos “soltos” (compatibilidade com versões antigas)
+const PROP_FIELDS = [
+  'proposta_date','dataProposta','propostaData','proposta_enviada_date','proposta_recebida_date'
+];
+
 const propEvents = new Set();
 
 leads.forEach(l => {
   if(!l) return;
   const lid = l.id || Math.random().toString(36).slice(2);
 
-  // (A) Fallback antigo — caso existam campos de data “soltos” no lead
-  const directDate = PROP_FIELDS
+  // (A) Fallback antigo — datas diretas no lead
+  const directRaw = PROP_FIELDS
     .map(f => l && l[f])
     .find(v => typeof v === 'string' && v.trim());
-
-  if(directDate && inRangeISO(directDate, start, end)){
-    propEvents.add(`direct|${lid}|${directDate}`);
+  const directISO = normDateToISO(directRaw || '');
+  if(directISO && inRangeISO(directISO, start, end)){
+    propEvents.add(`direct|${lid}|${directISO}`);
   }
 
   // (B) Estrutura correta do Kanban: lead.proposta
   const p = l.proposta;
   if(p && typeof p === 'object'){
 
-    // Proposta inicial (dataProposta)
-    if(p.dataProposta && inRangeISO(p.dataProposta, start, end)){
-      propEvents.add(`prop|${lid}|${p.dataProposta}`);
+    // Proposta inicial
+    const pISO = normDateToISO(p.dataProposta || '');
+    if(pISO && inRangeISO(pISO, start, end)){
+      propEvents.add(`prop|${lid}|${pISO}`);
     }
 
-    // Contra-propostas (array)
-    if(Array.isArray(p.contraPropostas)){
-      p.contraPropostas.forEach((cp, idx) => {
-        const d = cp && cp.data;
-        if(d && inRangeISO(d, start, end)){
-          propEvents.add(`contra|${lid}|${idx}|${d}`);
-        }
-      });
-    }
+    // Contra-propostas (cada uma conta como evento na semana)
+    const cps = Array.isArray(p.contraPropostas) ? p.contraPropostas : [];
+    cps.forEach((cp, idx) => {
+      const cpISO = normDateToISO((cp && cp.data) || '');
+      if(cpISO && inRangeISO(cpISO, start, end)){
+        propEvents.add(`contra|${lid}|${idx}|${cpISO}`);
+      }
+    });
   }
 });
 
 $('kProp').textContent = String(propEvents.size);
+
+    
     // assunto sugerido (não pisa se o Rui já escreveu)
     if(!$('emailSubject').value.trim()){
       $('emailSubject').value = 'Relatório Semanal — ' + startStr + ' a ' + endStr;
