@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -237,6 +238,14 @@
   }
 
 @media print{
+  .print-only{ display:block !important; }
+  .hero{ display:none !important; }
+  .print-cover{ page-break-after: always; break-after: page; }
+  .kpi, .card{ break-inside: avoid-page; page-break-inside: avoid; }
+  .comment-card{ page-break-before: always; break-before: page; }
+  textarea{ display:none !important; }
+  .print-textarea{ display:block !important; }
+
   header,.side,.toast{ display:none !important; }
 
   body{
@@ -396,6 +405,100 @@
   font-weight:900;
 }
   
+
+
+/* ===== Impressão (PDF): folha de rosto + render de campos ===== */
+.print-only{ display:none; }
+.print-cover{
+  border:1px solid rgba(163,139,99,.60);
+  border-radius:18px;
+  padding:16px 16px 14px;
+  background:
+    radial-gradient(900px 340px at 12% 0%, rgba(163,139,99,.18) 0%, rgba(0,0,0,0) 55%),
+    linear-gradient(180deg, rgba(10,10,10,.92), rgba(0,0,0,.82));
+  box-shadow:0 18px 36px rgba(0,0,0,.45);
+}
+.print-cover .pc-title{
+  font-size:16px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  font-weight:900;
+  color:#fff;
+}
+.print-cover .pc-range{
+  margin-top:6px;
+  color:var(--gold);
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  font-weight:800;
+  font-size:12px;
+}
+.print-cover .pc-kpis{
+  margin-top:14px;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+.print-cover .pc-kpi{
+  background:rgba(0,0,0,.40);
+  border:1px solid rgba(163,139,99,.35);
+  border-radius:14px;
+  padding:10px 12px;
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:10px;
+}
+.print-cover .pc-kpi span{
+  color:rgba(255,255,255,.82);
+  font-size:11px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.print-cover .pc-kpi b{
+  color:#fff;
+  font-size:22px;
+  font-weight:900;
+}
+.print-cover .pc-note{
+  margin-top:14px;
+  border-top:1px solid rgba(163,139,99,.35);
+  padding-top:10px;
+}
+.print-cover .pc-note-title{
+  color:rgba(255,255,255,.86);
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  font-weight:900;
+  font-size:11px;
+}
+.print-cover .pc-note-body{
+  margin-top:6px;
+  color:rgba(255,255,255,.82);
+  font-size:12px;
+  line-height:1.45;
+}
+
+/* Melhor leitura ao escrever (auto-ajuste via JS) */
+textarea{
+  line-height:1.45;
+  padding-bottom:10px;
+}
+
+/* Div de impressão que substitui textarea (evita texto cortado no PDF) */
+.print-textarea{
+  display:none;
+  white-space:pre-wrap;
+  word-break:break-word;
+  border-radius:10px;
+  border:1px solid rgba(163,139,99,.55);
+  background:#FAF9F7;
+  color:#111;
+  padding:10px 12px;
+  font-size:12px;
+  line-height:1.45;
+}
+
 </style>
 </head>
 
@@ -449,6 +552,7 @@
 
       <label for="emailTo">Destinatários</label>
       <textarea id="emailTo" placeholder="Direção / Administração"></textarea>
+      <div class="print-textarea" data-print-for="emailTo"></div>
 
       <div class="hint" style="margin-top:10px">
         As observações e comentário ficam guardados por semana (localmente no navegador).
@@ -457,6 +561,26 @@
   </aside>
 
   <main class="main">
+    <!-- ===== Impressão: folha de rosto (só no PDF) ===== -->
+    <section class="print-only print-cover" id="printCover">
+      <div class="pc-title">Relatório Semanal — Garvetur Porto Pro</div>
+      <div class="pc-range" id="pcRange">—</div>
+
+      <div class="pc-kpis">
+        <div class="pc-kpi"><span>Leads</span><b id="pcLeads">0</b></div>
+        <div class="pc-kpi"><span>Angariações</span><b id="pcAng">0</b></div>
+        <div class="pc-kpi"><span>Visitas</span><b id="pcVis">0</b></div>
+        <div class="pc-kpi"><span>Propostas (incl. contra)</span><b id="pcProp">0</b></div>
+        <div class="pc-kpi"><span>CPCV</span><b id="pcCpcv">0</b></div>
+        <div class="pc-kpi"><span>Escrituras</span><b id="pcEsc">0</b></div>
+      </div>
+
+      <div class="pc-note" id="pcNote">
+        <div class="pc-note-title">Notas</div>
+        <div class="pc-note-body">Observações detalhadas e comentário do Diretor/Coordenador nas páginas seguintes.</div>
+      </div>
+    </section>
+
     <div class="hero">
       <div class="top">
         <h2>Resumo semanal de actividade</h2>
@@ -474,6 +598,7 @@
         <div class="src">Fonte: Kanban (lead.data)</div>
         <label>Observações</label>
         <textarea id="obsLeads" placeholder="Origem, qualidade, temas recorrentes, próximos passos..."></textarea>
+      <div class="print-textarea" data-print-for="obsLeads"></div>
       </div>
 
       <div class="kpi">
@@ -482,6 +607,7 @@
         <div class="src">Fonte: Angariações (dataAngariacao)</div>
         <label>Observações</label>
         <textarea id="obsAng" placeholder="Produto, exclusividade, pricing, obstáculos, ações comerciais..."></textarea>
+      <div class="print-textarea" data-print-for="obsAng"></div>
       </div>
 
             <div class="kpi">
@@ -490,6 +616,7 @@
         <div class="src">Fonte: Kanban (campos de visita)</div>
         <label>Observações</label>
         <textarea id="obsVis" placeholder="Visitas realizadas, taxa de comparência, principais feedbacks, próximos passos..."></textarea>
+      <div class="print-textarea" data-print-for="obsVis"></div>
       </div>
 
       <div class="kpi">
@@ -498,6 +625,7 @@
         <div class="src">Fonte: Kanban (campos de proposta)</div>
         <label>Observações</label>
         <textarea id="obsProp" placeholder="Propostas recebidas/enviadas, condições, contrapropostas, riscos e follow-ups..."></textarea>
+      <div class="print-textarea" data-print-for="obsProp"></div>
       </div>
 
       <div class="kpi">
@@ -506,6 +634,7 @@
         <div class="src">Fonte: Kanban (fecho_cpcv_date)</div>
         <label>Observações</label>
         <textarea id="obsCpcv" placeholder="Principais negócios, condições, prazos, pontos críticos..."></textarea>
+      <div class="print-textarea" data-print-for="obsCpcv"></div>
       </div>
 
       <div class="kpi">
@@ -514,12 +643,14 @@
         <div class="src">Fonte: Kanban (fecho_escritura_date)</div>
         <label>Observações</label>
         <textarea id="obsEsc" placeholder="Fechos, pendências, risco de atraso, follow-ups..."></textarea>
+      <div class="print-textarea" data-print-for="obsEsc"></div>
       </div>
     </section>
 
-    <div class="card" style="margin-top:12px">
+    <div class="card comment-card" style="margin-top:12px">
       <div class="hint" style="margin-bottom:8px">Comentário semanal do Coordenador / Diretor</div>
       <textarea id="weeklyComment" style="min-height:170px" placeholder="Resumo executivo: principais acontecimentos, decisões tomadas, riscos, prioridades e foco para a próxima semana..."></textarea>
+      <div class="print-textarea" data-print-for="weeklyComment"></div>
     </div>
   </main>
 </div>
@@ -668,6 +799,63 @@ function parseISODateUTC(s){
     });
   }
 
+  // ====== UX: auto-ajuste de altura (para escrever sem “texto escondido”) ======
+  function autoGrow(el){
+    if(!el) return;
+    el.style.height = 'auto';
+    // +2 para evitar corte por arredondamentos
+    el.style.height = (el.scrollHeight + 2) + 'px';
+  }
+
+  function wireAutoGrow(){
+    document.querySelectorAll('textarea').forEach(t=>{
+      autoGrow(t);
+      t.addEventListener('input', ()=>autoGrow(t));
+    });
+  }
+
+  // ====== Impressão: substituir textareas por blocos de texto (evita corte no PDF) ======
+  function syncPrintTextareas(){
+    document.querySelectorAll('[data-print-for]').forEach(box=>{
+      const id = box.getAttribute('data-print-for');
+      const ta = document.getElementById(id);
+      if(!ta) return;
+      const v = (ta.value || '').trim();
+      box.textContent = v || '—';
+    });
+  }
+
+  function syncPrintCover(){
+    const s = $('weekStart').value;
+    const e = $('weekEnd').value;
+    const r = document.getElementById('pcRange');
+    if(r) r.textContent = (s && e) ? (s + ' → ' + e) : '—';
+
+    const set = (id,val)=>{ const el=document.getElementById(id); if(el) el.textContent=String(val??0); };
+    set('pcLeads', $('kLeads').textContent);
+    set('pcAng',   $('kAng').textContent);
+    set('pcVis',   $('kVis').textContent);
+    set('pcProp',  $('kProp').textContent);
+    set('pcCpcv',  $('kCpcv').textContent);
+    set('pcEsc',   $('kEsc').textContent);
+  }
+
+  function beforePrint(){
+    // garantir que KPIs estão atualizados e que os textos imprimem completos
+    try{ computeKPIs(); }catch(e){}
+    syncPrintCover();
+    syncPrintTextareas();
+  }
+
+  if(window.matchMedia){
+    const mql = window.matchMedia('print');
+    if(mql && mql.addEventListener){
+      mql.addEventListener('change', e=>{ if(e.matches) beforePrint(); });
+    }
+  }
+  window.addEventListener('beforeprint', beforePrint);
+
+
   // ====== Cálculo KPIs ======
   function computeKPIs(){
     const startStr = $('weekStart').value;
@@ -708,90 +896,95 @@ const visitasWeek = leads.filter(l =>
 $('kVis').textContent = String(visitasWeek.length);
 
 // ===== Propostas (semana) =====
-// Conta: proposta inicial + contra-propostas (mesmo lead), só quando existe data.
-// Aceita datas em YYYY-MM-DD e DD/MM/YYYY (e variações comuns).
-function normDateToISO(s){
-  if(!s || typeof s !== 'string') return '';
-  const v = s.trim();
-  if(!v) return '';
-
-  // já é ISO (YYYY-MM-DD)
-  if(/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
-
-  // DD/MM/YYYY ou DD/MM/YY
-  let m = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
-  if(m){
-    const dd = String(m[1]).padStart(2,'0');
-    const mm = String(m[2]).padStart(2,'0');
-    let yy = String(m[3]);
-    if(yy.length === 2) yy = '20' + yy;
-    return `${yy}-${mm}-${dd}`;
-  }
-
-  // DD-MM-YYYY ou DD-MM-YY
-  m = v.match(/^(\d{1,2})-(\d{1,2})-(\d{2}|\d{4})$/);
-  if(m){
-    const dd = String(m[1]).padStart(2,'0');
-    const mm = String(m[2]).padStart(2,'0');
-    let yy = String(m[3]);
-    if(yy.length === 2) yy = '20' + yy;
-    return `${yy}-${mm}-${dd}`;
-  }
-
-  // YYYY/MM/DD
-  m = v.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
-  if(m){
-    const yy = m[1];
-    const mm = String(m[2]).padStart(2,'0');
-    const dd = String(m[3]).padStart(2,'0');
-    return `${yy}-${mm}-${dd}`;
-  }
-
-  return '';
-}
-
-// (Compat) campos “soltos” antigos
-const PROP_FIELDS = [
-  'proposta_date','dataProposta','propostaData','proposta_enviada_date','proposta_recebida_date'
-];
+// Conta: proposta inicial + contra-propostas (mesmo lead).
+// Robusto: aceita lead.proposta como object OU string(JSON) e aceita várias chaves de data nas contra-propostas.
 
 const propEvents = new Set();
 
-leads.forEach((l, idxLead) => {
-  if(!l) return;
-  const lid = (l.id != null && String(l.id).trim()) ? String(l.id) : String(idxLead);
+// Campos “soltos” (compatibilidade com versões antigas)
+const PROP_FIELDS = [
+  'ld_prop_data',            // (se alguma versão guardou assim)
+  'proposta_date',
+  'dataProposta',
+  'propostaData',
+  'proposta_enviada_date',
+  'proposta_recebida_date'
+];
 
-  // (A) Datas diretas no lead (legado)
-  const directRaw = PROP_FIELDS
-    .map(f => l && l[f])
-    .find(v => typeof v === 'string' && v.trim());
-  const directISO = normDateToISO(directRaw || '');
-  if(directISO && inRangeISO(directISO, start, end)){
-    propEvents.add(`direct|${lid}|${directISO}`);
+// Chaves possíveis para datas nas contra-propostas (robusto)
+const CP_DATE_FIELDS = [
+  'data',                   // formato atual do teu Kanban (PROPOSTA_CONTRAS)
+  'dataContraProposta',
+  'data_contra',
+  'dataContra',
+  'dataProposta',
+  'propostaData'
+];
+
+leads.forEach((l, idx) => {
+  if(!l) return;
+  const lid = l.id || ('lead_' + idx);
+
+  // (A) Fallback antigo — datas diretas no lead (se existirem)
+  PROP_FIELDS.forEach(f => {
+    const raw = l[f];
+    if(typeof raw === 'string' && raw.trim()){
+      const iso = normDateToISO(raw);
+      if(iso && inRangeISO(iso, start, end)){
+        propEvents.add(`direct|${lid}|${iso}`);
+      }
+    }
+  });
+
+  // (B) Estrutura do Kanban: lead.proposta (pode ser objeto OU string JSON)
+  let p = l.proposta;
+
+  if(typeof p === 'string' && p.trim()){
+    try{ p = JSON.parse(p); }catch(e){ /* ignora */ }
   }
 
-  // (B) Estrutura correta: l.proposta
-  const p = l.proposta;
   if(p && typeof p === 'object'){
 
     // Proposta inicial
-    const pISO = normDateToISO(p.dataProposta || '');
+    const pISO = normDateToISO(String(p.dataProposta || ''));
     if(pISO && inRangeISO(pISO, start, end)){
       propEvents.add(`prop|${lid}|${pISO}`);
     }
 
-    // Contra-propostas
-    const cps = Array.isArray(p.contraPropostas) ? p.contraPropostas : [];
-    cps.forEach((cp, idx) => {
-      const cpISO = normDateToISO((cp && cp.data) || '');
+    // Contra-propostas: pode haver variações de nome do array
+    const cps =
+      Array.isArray(p.contraPropostas) ? p.contraPropostas :
+      Array.isArray(p.contrapropostas) ? p.contrapropostas :
+      Array.isArray(p.contra_propostas) ? p.contra_propostas :
+      [];
+
+    cps.forEach((cp, cidx) => {
+      if(!cp) return;
+
+      // tenta várias chaves até encontrar uma data
+      const rawDate = CP_DATE_FIELDS
+        .map(k => cp && cp[k])
+        .find(v => typeof v === 'string' && v.trim());
+
+      const cpISO = normDateToISO(String(rawDate || ''));
       if(cpISO && inRangeISO(cpISO, start, end)){
-        propEvents.add(`contra|${lid}|${idx}|${cpISO}`);
+        propEvents.add(`contra|${lid}|${cidx}|${cpISO}`);
       }
     });
+  }
+
+  // (C) Ultra-fallback (opcional): se o lead estiver em "Proposta" e a data principal estiver na semana
+  // Isto evita zeros em cenários onde a equipa muda o estado mas não preenche datas na proposta/contra-proposta.
+  if(l.estado === 'Proposta'){
+    const dISO = normDateToISO(String(l.data || ''));
+    if(dISO && inRangeISO(dISO, start, end)){
+      propEvents.add(`estado|${lid}|${dISO}`);
+    }
   }
 });
 
 $('kProp').textContent = String(propEvents.size);
+
     
     // assunto sugerido (não pisa se o Rui já escreveu)
     if(!$('emailSubject').value.trim()){
@@ -799,6 +992,8 @@ $('kProp').textContent = String(propEvents.size);
     }
 
     toast('Relatório atualizado.');
+    // manter folha de rosto (PDF) em linha
+    try{ syncPrintCover(); }catch(e){}
   }
 
   function copyEmail(){
@@ -858,6 +1053,7 @@ Rui Quelhas`;
   // ====== Boot ======
   setThisWeek();
   wireAutosave();
+  wireAutoGrow();
   onWeekChanged();
 
   $('btnRefresh').addEventListener('click', ()=>{
