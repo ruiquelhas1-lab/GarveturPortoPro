@@ -404,6 +404,55 @@
   break-inside: auto;
 }
   
+
+
+  /* ===== Versão Executive PDF ===== */
+  .print-only{ display:block !important; }
+  .exec-cover{ display:block !important; }
+  .exec-analysis{ display:block !important; }
+
+  /* Esconder inputs/side: já está. Agora esconder textareas do ecrã e mostrar texto corrido */
+  textarea, input{ display:none !important; }
+
+  /* Capa */
+  .exec-cover{
+    page-break-after: always;
+    border:1px solid rgba(163,139,99,.80);
+    border-radius:18px;
+    padding:18mm 16mm;
+    background: #FFFFFF !important;
+    position: relative;
+  }
+  .exec-cover::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius:18px;
+    background:
+      radial-gradient(900px 420px at 12% 0%, rgba(163,139,99,.14) 0%, rgba(0,0,0,0) 58%),
+      linear-gradient(180deg, rgba(255,255,255,1), rgba(250,249,247,1));
+    z-index:0;
+  }
+  .exec-cover > *{ position:relative; z-index:1; }
+  .exec-cover .cap-title{ font-size:20px; letter-spacing:.12em; text-transform:uppercase; font-weight:900; color:#111; margin:0; }
+  .exec-cover .cap-sub{ margin-top:6px; color:rgba(163,139,99,1); letter-spacing:.14em; text-transform:uppercase; font-weight:800; }
+  .exec-cover .cap-meta{ margin-top:16px; color:#333; font-size:12px; }
+  .exec-cover .cap-brand{ margin-top:22mm; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:rgba(163,139,99,1); font-weight:900; }
+
+  /* Página 1 (Board-level summary): manter Hero + KPIs */
+  .hero{ page-break-inside: avoid; }
+  .kpis{ page-break-after: always; }
+  .kpi{ page-break-inside: avoid; }
+
+  /* Página 2+ (Análise comentada) */
+  .main .card:last-of-type{ display:none !important; } /* esconder card interactivo */
+  .exec-analysis{ margin-top:0; }
+  .exec-analysis h3{ margin:0 0 8px; font-size:13px; letter-spacing:.12em; text-transform:uppercase; color:rgba(163,139,99,1); }
+  .exec-block{ border:1px solid rgba(163,139,99,.55); border-radius:14px; padding:12px; margin:0 0 12px; background:#FFFFFF !important; page-break-inside: avoid; }
+  .exec-meta{ font-size:12px; color:#111; margin:0 0 8px; }
+  .exec-notes{ white-space:pre-wrap; font-size:12px; line-height:1.45; color:#111; background:#FAF9F7 !important; border:1px solid rgba(0,0,0,.12); border-radius:10px; padding:10px 12px; }
+  .exec-notes:empty::before{ content:"—"; color:#777; }
+
   @page{ margin: 12mm; }
 }
 /* ===== Destaque premium — Comentário semanal do Diretor ===== */
@@ -441,6 +490,13 @@
   font-weight:900;
 }
   
+
+
+  /* ===== Impressão: blocos executivos (não afeta o ecrã) ===== */
+  .print-only{ display:none; }
+  .exec-cover{ display:none; }
+  .exec-analysis{ display:none; }
+
 </style>
 </head>
 
@@ -502,6 +558,14 @@
   </aside>
 
   <main class="main">
+
+    <section class="exec-cover">
+      <div class="cap-brand">Garvetur Luxury Porto</div>
+      <h2 class="cap-title">Relatório Semanal</h2>
+      <div class="cap-sub" id="capRange">—</div>
+      <div class="cap-meta">Gerado em: <span id="capGenerated">—</span><br>Responsável: Rui Quelhas</div>
+    </section>
+
     <div class="hero">
       <div class="top">
         <h2>Resumo semanal de actividade</h2>
@@ -561,6 +625,44 @@
         <textarea id="obsEsc" placeholder="Fechos, pendências, risco de atraso, follow-ups..."></textarea>
       </div>
     </section>
+
+    <section class="exec-analysis print-only" id="execAnalysis">
+      <div class="exec-block">
+        <h3>Leads</h3>
+        <div class="exec-meta">Total na semana: <b id="p_kLeads">0</b></div>
+        <div class="exec-notes" data-from="obsLeads"></div>
+      </div>
+      <div class="exec-block">
+        <h3>Angariações</h3>
+        <div class="exec-meta">Total na semana: <b id="p_kAng">0</b></div>
+        <div class="exec-notes" data-from="obsAng"></div>
+      </div>
+      <div class="exec-block">
+        <h3>Visitas</h3>
+        <div class="exec-meta">Total na semana: <b id="p_kVis">0</b></div>
+        <div class="exec-notes" data-from="obsVis"></div>
+      </div>
+      <div class="exec-block">
+        <h3>Propostas</h3>
+        <div class="exec-meta">Total na semana: <b id="p_kProp">0</b></div>
+        <div class="exec-notes" data-from="obsProp"></div>
+      </div>
+      <div class="exec-block">
+        <h3>CPCV</h3>
+        <div class="exec-meta">Total na semana: <b id="p_kCpcv">0</b></div>
+        <div class="exec-notes" data-from="obsCpcv"></div>
+      </div>
+      <div class="exec-block">
+        <h3>Escrituras</h3>
+        <div class="exec-meta">Total na semana: <b id="p_kEsc">0</b></div>
+        <div class="exec-notes" data-from="obsEsc"></div>
+      </div>
+      <div class="exec-block">
+        <h3>Comentário semanal do Coordenador / Diretor</h3>
+        <div class="exec-notes" data-from="weeklyComment"></div>
+      </div>
+    </section>
+
 
     <div class="card comment-card" style="margin-top:12px">
       <div class="hint" style="margin-bottom:8px">Comentário semanal do Coordenador / Diretor</div>
@@ -936,10 +1038,48 @@ Rui Quelhas`;
   $('weekStart').addEventListener('change', onWeekChanged);
   $('weekEnd').addEventListener('change', onWeekChanged);
 
+
+
+  // ===== Executive PDF: preparar texto corrido para impressão =====
+  function fillExecutivePrint(){
+    try{
+      // Garantir que os KPIs estão atualizados
+      // (não força toast, apenas recalcula com as datas atuais)
+      // computeKPIs();  // opcional: se quiser forçar
+
+      // Capa
+      const range = $('rangeLabel') ? $('rangeLabel').textContent : '';
+      const capRange = document.getElementById('capRange');
+      if(capRange) capRange.textContent = range || '—';
+      const capGen = document.getElementById('capGenerated');
+      if(capGen) capGen.textContent = new Date().toLocaleString('pt-PT');
+
+      // Totais
+      const map = [
+        ['p_kLeads','kLeads'],['p_kAng','kAng'],['p_kVis','kVis'],['p_kProp','kProp'],['p_kCpcv','kCpcv'],['p_kEsc','kEsc']
+      ];
+      map.forEach(([pid, kid])=>{
+        const a=document.getElementById(pid);
+        const b=document.getElementById(kid);
+        if(a && b) a.textContent = b.textContent;
+      });
+
+      // Notas / comentário (texto corrido)
+      document.querySelectorAll('.exec-notes[data-from]').forEach(el=>{
+        const from = el.getAttribute('data-from');
+        const src = from ? document.getElementById(from) : null;
+        el.textContent = src ? (src.value || '').trim() : '';
+      });
+    }catch(e){
+      console.warn('Executive print prep error:', e);
+    }
+  }
+
+  window.addEventListener('beforeprint', fillExecutivePrint);
+
   $('btnCopy').addEventListener('click', copyEmail);
   $('btnPrint').addEventListener('click', ()=>{ ensurePrintMirrors(); window.print(); });
 })();
 </script>
 </body>
 </html>
-
