@@ -708,138 +708,99 @@ const visitasWeek = leads.filter(l =>
 $('kVis').textContent = String(visitasWeek.length);
 
 // ===== Propostas (semana) =====
-// Conta eventos de Proposta + Contra-propostas (mesmo lead), mesmo que os dados venham como objecto OU como JSON em string.
-// Aceita datas: YYYY-MM-DD, DD/MM/YYYY, DD/MM/YY, DD-MM-YYYY, YYYY/MM/DD e ISO com hora (YYYY-MM-DDTHH:MM...).
-function normDateToISO(s){
-  if(!s) return '';
-  if(typeof s !== 'string'){
-    // se vier Date ou número, tentamos converter
-    try{ s = String(s); }catch(e){ return ''; }
-  }
-  const v = s.trim();
-  if(!v) return '';
-
-  // ISO datetime -> YYYY-MM-DD
-  if(/^\d{4}-\d{2}-\d{2}T/.test(v)) return v.slice(0,10);
-
-  // já é ISO
-  if(/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
-
-  // DD/MM/YYYY ou DD/MM/YY
-  let m = v.match(/^(\d{2})\/(\d{2})\/(\d{2}|\d{4})$/);
-  if(m){
-    const dd = m[1], mm = m[2];
-    let yy = m[3];
-    if(yy.length === 2) yy = '20' + yy;
-    return `${yy}-${mm}-${dd}`;
-  }
-
-  // DD-MM-YYYY ou DD-MM-YY
-  m = v.match(/^(\d{2})-(\d{2})-(\d{2}|\d{4})$/);
-  if(m){
-    const dd = m[1], mm = m[2];
-    let yy = m[3];
-    if(yy.length === 2) yy = '20' + yy;
-    return `${yy}-${mm}-${dd}`;
-  }
-
-  // YYYY/MM/DD
-  m = v.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
-  if(m){
-    return `${m[1]}-${m[2]}-${m[3]}`;
-  }
-
-  return ''; // formato não reconhecido
-}
-
-function asObjectMaybeJSON(x){
-  if(!x) return null;
-  if(typeof x === 'object') return x;
-  if(typeof x === 'string'){
-    const t = x.trim();
-    if(!t) return null;
-    if(t[0] === '{' || t[0] === '['){
-      try{ return JSON.parse(t); }catch(e){ return null; }
-    }
-  }
-  return null;
-}
-
-// Campos “soltos” (compatibilidade com versões antigas)
-const PROP_FIELDS = [
-  'proposta_date','dataProposta','propostaData','proposta_enviada_date','proposta_recebida_date',
-  'ld_prop_data','prop_data','propDate'
-];
-
-// Campos possíveis para contra-propostas (algumas versões guardam no lead, não dentro de proposta)
-const CP_DATE_FIELDS = [
-  'contraPropostas','contra_propostas','contraProposta','contra_proposta','contraproposta','contra_proposta_date','contraproposta_date'
-];
-
+// Conta eventos da semana: proposta inicial + contra-propostas (mesmo lead)
+// Robusto: apanha variações de estrutura/campos do Kanban sem “partir”
 const propEvents = new Set();
 
-leads.forEach((l, idxLead) => {
+function addPropEvent(lid, kind, rawDate){
+  const iso = normDateToISO(rawDate || '');
+  if(iso && inRangeISO(iso, start, end)){
+    propEvents.add(`${kind}|${lid}|${iso}`);
+  }
+}
+
+// scan defensivo (para apanhar campos alternativos)
+function walkForProposalDates(obj, lid, path){
+  if(!obj) return;
+  if(Array.isArray(obj)){
+    obj.forEach((v,i)=>walkForProposalDates(v, lid, (path ? path + '.' : '') + i));
+    return;
+  }
+  if(typeof obj !== 'object') return;
+
+  const pth = (path || '').toLowerCase();
+
+  for(const k in obj){
+    if(!Object.prototype.hasOwnProperty.call(obj, k)) continue;
+    const v = obj[k];
+    const kl = String(k).toLowerCase();
+    const full = (pth ? pth + '.' : '') + kl;
+
+    // só nos interessa o que “cheira” a proposta/contra-proposta
+    const looksRelevant =
+      full.includes('propost') ||
+      full.includes('prop') ||
+      full.includes('contra') ||
+      full.includes('contraprop');
+
+    if(typeof v === 'string'){
+      if(looksRelevant){
+        // tenta como data (aceita ISO e DD/MM/YYYY etc. via normDateToISO)
+        addPropEvent(lid, 'scan', v);
+      }
+    }else if(v && typeof v === 'object'){
+      walkForProposalDates(v, lid, full);
+    }
+  }
+}
+
+leads.forEach(l => {
   if(!l) return;
-  const lid = (l.id != null ? String(l.id) : String(idxLead));
 
-  // (A) Fallback — datas diretas no lead
-  const directRaw = PROP_FIELDS
-    .map(f => l && l[f])
-    .find(v => (typeof v === 'string' || typeof v === 'number') && String(v).trim());
-  const directISO = normDateToISO(directRaw || '');
-  if(directISO && inRangeISO(directISO, start, end)){
-    propEvents.add(`direct|${lid}|${directISO}`);
-  }
+  // id estável (evita contar duplicado por “Math.random”)
+  const lid =
+    l.id ||
+    l.ref ||
+    l.refAngariacao ||
+    l.titulo ||
+    l.nome ||
+    l.ownerPhone ||
+    l.ownerEmail ||
+    JSON.stringify([l.data, l.estado]).slice(0, 80) ||
+    'lead';
 
-  // (B) Estrutura do Kanban: lead.proposta (pode vir objecto OU JSON string)
-  const p = asObjectMaybeJSON(l.proposta);
+  // (1) Estrutura “canónica” esperada: lead.proposta
+  const p = l.proposta;
   if(p && typeof p === 'object'){
-    // Proposta inicial
-    const pISO = normDateToISO(p.dataProposta || p.data || p.date || '');
-    if(pISO && inRangeISO(pISO, start, end)){
-      propEvents.add(`prop|${lid}|${pISO}`);
-    }
+    addPropEvent(lid, 'prop', p.dataProposta || p.data || p.data_proposta || '');
 
-    // Contra-propostas (array)
-    const cps = Array.isArray(p.contraPropostas) ? p.contraPropostas : (Array.isArray(p.contrapropostas) ? p.contrapropostas : []);
-    cps.forEach((cp, idx) => {
-      const cpObj = asObjectMaybeJSON(cp) || cp;
-      const cpISO = normDateToISO((cpObj && (cpObj.data || cpObj.dataContra || cpObj.date || cpObj.dataProposta)) || '');
-      if(cpISO && inRangeISO(cpISO, start, end)){
-        propEvents.add(`contra|${lid}|${idx}|${cpISO}`);
-      }
-    });
+    const cps =
+      p.contraPropostas ||
+      p.contrapropostas ||
+      p.contra_propostas ||
+      p.contraProposta ||
+      p.contraproposta;
+
+    if(Array.isArray(cps)){
+      cps.forEach((cp, idx) => {
+        if(!cp) return;
+        addPropEvent(lid, `contra#${idx}`, cp.data || cp.dataContraProposta || cp.data_contra || cp.date || '');
+      });
+    }
   }
 
-  // (C) Algumas versões guardam contra-propostas no lead (fora de l.proposta)
-  CP_DATE_FIELDS.forEach((field) => {
-    const v = l[field];
-    const obj = asObjectMaybeJSON(v);
+  // (2) Compatibilidade: campos “soltos” no lead (versões antigas)
+  const PROP_FIELDS = [
+    'proposta_date','dataProposta','propostaData','proposta_enviada_date','proposta_recebida_date',
+    'contraproposta_date','dataContraProposta','contraProposta_date','data_contraproposta'
+  ];
+  PROP_FIELDS.forEach(f => addPropEvent(lid, 'direct', l[f]));
 
-    if(Array.isArray(obj)){
-      obj.forEach((cp, j) => {
-        const cpObj = asObjectMaybeJSON(cp) || cp;
-        const cpISO = normDateToISO((cpObj && (cpObj.data || cpObj.dataContra || cpObj.date)) || '');
-        if(cpISO && inRangeISO(cpISO, start, end)){
-          propEvents.add(`leadcontra|${lid}|${field}|${j}|${cpISO}`);
-        }
-      });
-    }else if(obj && typeof obj === 'object'){
-      const cpISO = normDateToISO(obj.data || obj.dataContra || obj.date || '');
-      if(cpISO && inRangeISO(cpISO, start, end)){
-        propEvents.add(`leadcontra|${lid}|${field}|${cpISO}`);
-      }
-    }else if(typeof v === 'string'){
-      const cpISO = normDateToISO(v);
-      if(cpISO && inRangeISO(cpISO, start, end)){
-        propEvents.add(`leadcontra|${lid}|${field}|${cpISO}`);
-      }
-    }
-  });
+  // (3) Último recurso: scan ao objecto do lead (muito eficaz quando há variações)
+  walkForProposalDates(l, lid, '');
 });
 
 $('kProp').textContent = String(propEvents.size);
-
     
     // assunto sugerido (não pisa se o Rui já escreveu)
     if(!$('emailSubject').value.trim()){
