@@ -708,96 +708,87 @@ const visitasWeek = leads.filter(l =>
 $('kVis').textContent = String(visitasWeek.length);
 
 // ===== Propostas (semana) =====
-// Conta eventos da semana: proposta inicial + contra-propostas (mesmo lead)
-// Robusto: apanha variações de estrutura/campos do Kanban sem “partir”
+// Conta: proposta inicial + contra-propostas (mesmo lead), só quando existe data.
+// Aceita datas em YYYY-MM-DD e DD/MM/YYYY (e variações comuns).
+function normDateToISO(s){
+  if(!s || typeof s !== 'string') return '';
+  const v = s.trim();
+  if(!v) return '';
+
+  // já é ISO (YYYY-MM-DD)
+  if(/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+
+  // DD/MM/YYYY ou DD/MM/YY
+  let m = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
+  if(m){
+    const dd = String(m[1]).padStart(2,'0');
+    const mm = String(m[2]).padStart(2,'0');
+    let yy = String(m[3]);
+    if(yy.length === 2) yy = '20' + yy;
+    return `${yy}-${mm}-${dd}`;
+  }
+
+  // DD-MM-YYYY ou DD-MM-YY
+  m = v.match(/^(\d{1,2})-(\d{1,2})-(\d{2}|\d{4})$/);
+  if(m){
+    const dd = String(m[1]).padStart(2,'0');
+    const mm = String(m[2]).padStart(2,'0');
+    let yy = String(m[3]);
+    if(yy.length === 2) yy = '20' + yy;
+    return `${yy}-${mm}-${dd}`;
+  }
+
+  // YYYY/MM/DD
+  m = v.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
+  if(m){
+    const yy = m[1];
+    const mm = String(m[2]).padStart(2,'0');
+    const dd = String(m[3]).padStart(2,'0');
+    return `${yy}-${mm}-${dd}`;
+  }
+
+  return '';
+}
+
+// (Compat) campos “soltos” antigos
+const PROP_FIELDS = [
+  'proposta_date','dataProposta','propostaData','proposta_enviada_date','proposta_recebida_date'
+];
+
 const propEvents = new Set();
 
-function addPropEvent(lid, kind, rawDate){
-  const iso = normDateToISO(rawDate || '');
-  if(iso && inRangeISO(iso, start, end)){
-    propEvents.add(`${kind}|${lid}|${iso}`);
-  }
-}
-
-// scan defensivo (para apanhar campos alternativos)
-function walkForProposalDates(obj, lid, path){
-  if(!obj) return;
-  if(Array.isArray(obj)){
-    obj.forEach((v,i)=>walkForProposalDates(v, lid, (path ? path + '.' : '') + i));
-    return;
-  }
-  if(typeof obj !== 'object') return;
-
-  const pth = (path || '').toLowerCase();
-
-  for(const k in obj){
-    if(!Object.prototype.hasOwnProperty.call(obj, k)) continue;
-    const v = obj[k];
-    const kl = String(k).toLowerCase();
-    const full = (pth ? pth + '.' : '') + kl;
-
-    // só nos interessa o que “cheira” a proposta/contra-proposta
-    const looksRelevant =
-      full.includes('propost') ||
-      full.includes('prop') ||
-      full.includes('contra') ||
-      full.includes('contraprop');
-
-    if(typeof v === 'string'){
-      if(looksRelevant){
-        // tenta como data (aceita ISO e DD/MM/YYYY etc. via normDateToISO)
-        addPropEvent(lid, 'scan', v);
-      }
-    }else if(v && typeof v === 'object'){
-      walkForProposalDates(v, lid, full);
-    }
-  }
-}
-
-leads.forEach(l => {
+leads.forEach((l, idxLead) => {
   if(!l) return;
+  const lid = (l.id != null && String(l.id).trim()) ? String(l.id) : String(idxLead);
 
-  // id estável (evita contar duplicado por “Math.random”)
-  const lid =
-    l.id ||
-    l.ref ||
-    l.refAngariacao ||
-    l.titulo ||
-    l.nome ||
-    l.ownerPhone ||
-    l.ownerEmail ||
-    JSON.stringify([l.data, l.estado]).slice(0, 80) ||
-    'lead';
+  // (A) Datas diretas no lead (legado)
+  const directRaw = PROP_FIELDS
+    .map(f => l && l[f])
+    .find(v => typeof v === 'string' && v.trim());
+  const directISO = normDateToISO(directRaw || '');
+  if(directISO && inRangeISO(directISO, start, end)){
+    propEvents.add(`direct|${lid}|${directISO}`);
+  }
 
-  // (1) Estrutura “canónica” esperada: lead.proposta
+  // (B) Estrutura correta: l.proposta
   const p = l.proposta;
   if(p && typeof p === 'object'){
-    addPropEvent(lid, 'prop', p.dataProposta || p.data || p.data_proposta || '');
 
-    const cps =
-      p.contraPropostas ||
-      p.contrapropostas ||
-      p.contra_propostas ||
-      p.contraProposta ||
-      p.contraproposta;
-
-    if(Array.isArray(cps)){
-      cps.forEach((cp, idx) => {
-        if(!cp) return;
-        addPropEvent(lid, `contra#${idx}`, cp.data || cp.dataContraProposta || cp.data_contra || cp.date || '');
-      });
+    // Proposta inicial
+    const pISO = normDateToISO(p.dataProposta || '');
+    if(pISO && inRangeISO(pISO, start, end)){
+      propEvents.add(`prop|${lid}|${pISO}`);
     }
+
+    // Contra-propostas
+    const cps = Array.isArray(p.contraPropostas) ? p.contraPropostas : [];
+    cps.forEach((cp, idx) => {
+      const cpISO = normDateToISO((cp && cp.data) || '');
+      if(cpISO && inRangeISO(cpISO, start, end)){
+        propEvents.add(`contra|${lid}|${idx}|${cpISO}`);
+      }
+    });
   }
-
-  // (2) Compatibilidade: campos “soltos” no lead (versões antigas)
-  const PROP_FIELDS = [
-    'proposta_date','dataProposta','propostaData','proposta_enviada_date','proposta_recebida_date',
-    'contraproposta_date','dataContraProposta','contraProposta_date','data_contraproposta'
-  ];
-  PROP_FIELDS.forEach(f => addPropEvent(lid, 'direct', l[f]));
-
-  // (3) Último recurso: scan ao objecto do lead (muito eficaz quando há variações)
-  walkForProposalDates(l, lid, '');
 });
 
 $('kProp').textContent = String(propEvents.size);
