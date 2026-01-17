@@ -825,14 +825,23 @@ leads.forEach((l, idxLead) => {
       propEvents.add(`prop|${lid}|${pISO}`);
     }
 
-    // Contra-propostas
-    const cps = Array.isArray(p.contraPropostas) ? p.contraPropostas : [];
-    cps.forEach((cp, idx) => {
-      const cpISO = normDateToISO((cp && cp.data) || '');
-      if(cpISO && inRangeISO(cpISO, start, end)){
-        propEvents.add(`contra|${lid}|${idx}|${cpISO}`);
-      }
-    });
+   // Contra-propostas (chave estável: data + valor + termos)
+// Evita duplicar quando a lead é editada e o array é regravado/reordenado.
+const cps = Array.isArray(p.contraPropostas) ? p.contraPropostas : [];
+cps.forEach((cp) => {
+  const cpISO = normDateToISO((cp && cp.data) || '');
+  if(!cpISO) return; // sem data => não conta como evento semanal
+  if(!inRangeISO(cpISO, start, end)) return;
+
+  const v = String((cp && cp.valor) || '').trim().toLowerCase();
+  const t = String((cp && cp.termos) || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g,' ');
+
+  // assinatura estável mesmo se a ordem mudar
+  propEvents.add(`contra|${lid}|${cpISO}|${v}|${t}`);
+});
   }
 });
 
