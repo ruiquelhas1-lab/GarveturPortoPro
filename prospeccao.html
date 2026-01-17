@@ -1,0 +1,835 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Garvetur Porto Pro — Prospeção</title>
+
+<style>
+  :root{
+    --gold:#A38B63;
+    --bg:#0B0B0B;
+    --panel:#141414;
+    --border:rgba(255,255,255,.14);
+    --text:#FFFFFF;
+    --muted:#C9C9C9;
+    --radius:14px;
+
+    --ok:#d9d9d9;
+    --danger:#d84a4a;
+    --good:#48c774;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; height:100%; }
+  body{
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background:radial-gradient(circle at top,#1c1c1c 0,#050505 55%,#000 100%);
+    color:var(--text);
+  }
+
+  header{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    padding:12px 16px;
+    border-bottom:1px solid rgba(163,139,99,.35);
+    background:linear-gradient(90deg,#050505,#111,#050505);
+  }
+  .brand{ display:flex;align-items:center;gap:10px; }
+  .brand-icon{
+    width:26px;height:26px;border-radius:999px;border:1px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 0 0 1px rgba(163,139,99,.3);
+  }
+  .brand h1{
+    margin:0;font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);
+  }
+  .brand .sub{
+    margin-top:2px;font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;
+  }
+
+  .btn{
+    border-radius:10px;
+    border:1px solid rgba(163,139,99,.35);
+    background:rgba(12,12,12,.9);
+    color:var(--text);
+    padding:8px 12px;
+    font-size:13px;
+    cursor:pointer;
+    transition:.18s border-color,.18s transform;
+    white-space:nowrap;
+  }
+  .btn:hover{ border-color:var(--gold); transform:translateY(-1px); }
+  .btn.primary{
+    background:var(--gold);
+    color:#0A0A0A;
+    border-color:var(--gold);
+    font-weight:800;
+  }
+  .btn.ghost{ background:transparent; }
+  .btn.danger{ border-color:rgba(216,74,74,.65); color:#ffd7d7; }
+  .btn.good{ border-color:rgba(72,199,116,.65); color:#dbffe8; }
+
+  .wrap{
+    display:grid;
+    grid-template-columns:360px minmax(0,1fr);
+    min-height:calc(100vh - 62px);
+  }
+  @media(max-width:980px){ .wrap{ grid-template-columns:1fr; } }
+
+  .side{
+    padding:14px;
+    border-right:1px solid var(--border);
+    background:radial-gradient(circle at top left,#141414,#060606);
+  }
+  .main{ padding:14px 16px; overflow:auto; }
+
+  .card{
+    background:rgba(0,0,0,.45);
+    border:1px solid rgba(163,139,99,.22);
+    border-radius:var(--radius);
+    padding:12px;
+    margin-bottom:12px;
+  }
+  .hint{ color:var(--muted); font-size:12px; line-height:1.35; }
+  label{ display:block; font-size:12px; color:#dcdcdc; margin:8px 0 6px; }
+  input,textarea,select{
+    width:100%;
+    background:rgba(0,0,0,.7);
+    border:1px solid rgba(255,255,255,.16);
+    border-radius:10px;
+    color:#fff;
+    padding:8px 10px;
+    outline:none;
+    font-size:12px;
+  }
+  input:focus,textarea:focus,select:focus{
+    border-color:var(--gold);
+    box-shadow:0 0 0 1px rgba(163,139,99,.35);
+  }
+  textarea{ min-height:80px; resize:vertical; }
+
+  .row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media(max-width:980px){ .grid2{ grid-template-columns:1fr; } }
+
+  /* Hero */
+  .hero{
+    position:relative;
+    border:1px solid rgba(163,139,99,.35);
+    background:
+      radial-gradient(900px 380px at 10% 0%, rgba(163,139,99,.18) 0%, rgba(0,0,0,0) 55%),
+      linear-gradient(180deg, #0B0B0B 0%, #000000 100%);
+    border-radius:18px;
+    padding:14px 14px 12px;
+    margin-bottom:12px;
+    box-shadow:0 18px 36px rgba(0,0,0,.65);
+  }
+  .hero h2{
+    margin:0;
+    font-size:16px;
+    letter-spacing:.10em;
+    text-transform:uppercase;
+    color:#FFFFFF;
+    text-shadow:0 2px 16px rgba(0,0,0,.75);
+  }
+  .pill{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-size:11px;
+    padding:4px 10px;
+    border-radius:999px;
+    border:1px solid rgba(163,139,99,.35);
+    color:rgba(255,255,255,.88);
+    background:linear-gradient(180deg, rgba(163,139,99,.12), rgba(0,0,0,.55));
+  }
+  .pill.red{ border-color: rgba(216,74,74,.55); color:#ffdede; }
+  .pill.green{ border-color: rgba(72,199,116,.55); color:#dbffe8; }
+
+  /* Results */
+  .result{
+    border:1px solid rgba(163,139,99,.25);
+    border-radius:14px;
+    padding:12px;
+    background:rgba(0,0,0,.35);
+    margin-bottom:10px;
+  }
+  .result.locked{
+    border-color: rgba(216,74,74,.45);
+    background: linear-gradient(180deg, rgba(216,74,74,.10), rgba(0,0,0,.35));
+  }
+  .result.free{
+    border-color: rgba(72,199,116,.35);
+    background: linear-gradient(180deg, rgba(72,199,116,.08), rgba(0,0,0,.35));
+  }
+  .r-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+  .r-title{
+    font-weight:900;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    font-size:12px;
+  }
+  .r-line{ margin-top:6px; font-size:12px; color:#e9e9e9; }
+  .r-line b{ color:#fff; }
+  .r-muted{ color:var(--muted); font-size:12px; margin-top:6px; }
+  .hist{
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px dashed rgba(255,255,255,.15);
+  }
+  .hist .item{
+    padding:8px 10px;
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:12px;
+    background:rgba(0,0,0,.25);
+    margin-top:8px;
+    font-size:12px;
+    color:#eee;
+  }
+  .hist .item .meta{ color:var(--muted); font-size:11px; margin-top:3px; }
+  .small{ font-size:11px; color:var(--muted); }
+
+  /* Admin-only section helper */
+  .admin-only{ display:none; }
+  .is-admin .admin-only{ display:block; }
+  .is-admin .consultor-only-hide{ display:block; } /* in admin we still show fields */
+  .consultor-only-hide{ display:none; } /* default hidden for consultor view */
+</style>
+</head>
+
+<body>
+<header>
+  <div class="brand">
+    <div class="brand-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
+        <circle cx="12" cy="12" r="9"></circle>
+        <path d="M8 12.5l2.5 2.5L16 9"></path>
+      </svg>
+    </div>
+    <div>
+      <h1>Garvetur Porto Pro — Prospeção</h1>
+      <div class="sub">Controlo de contactos e prevenção de duplicação</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <span class="pill" id="modePill">Modo Consulta</span>
+    <button class="btn" id="btnPrint">Imprimir / PDF</button>
+    <button class="btn primary" id="btnAdmin">Ativar Admin</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <aside class="side">
+    <div class="card">
+      <div class="hint"><b>Pesquisa global</b> (morada, consultor, freguesia, concelho, distrito, nome/telefone/email — sem acentos e sem formato)</div>
+      <label for="q">Pesquisar</label>
+      <input id="q" placeholder="Ex.: Rua Roberto Ivens, Matosinhos, 912345678, José, Porto..." />
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="btnSearch">Pesquisar</button>
+        <button class="btn" id="btnClear">Limpar</button>
+      </div>
+      <div class="hint" style="margin-top:10px">
+        Regra operacional: <b>30 dias</b> após o registo = <span style="color:var(--danger);font-weight:800">Bloqueado</span>. Após 30 dias = <span style="color:var(--good);font-weight:800">Livre</span>.
+      </div>
+    </div>
+
+    <div class="card admin-only" id="adminCard">
+      <div class="hint"><b>Registar prospeção</b> (só Admin). Campos obrigatórios: Consultor, Proprietário, Telefone, Morada, Data.</div>
+
+      <label for="consultor">Nome do Consultor *</label>
+      <select id="consultor">
+        <option value="">—</option>
+        <option>Manuel Oliveira</option>
+        <option>João Sousa</option>
+        <option>Francisco Santos</option>
+        <option>Rosário Costa</option>
+        <option>Dalila Cunha</option>
+        <option>Rui Quelhas</option>
+      </select>
+
+      <label for="owner">Nome do proprietário *</label>
+      <input id="owner" />
+
+      <div class="grid2">
+        <div>
+          <label for="phone">Contacto telefónico *</label>
+          <input id="phone" placeholder="Ex.: +351 912 345 678" />
+        </div>
+        <div>
+          <label for="email">Email</label>
+          <input id="email" placeholder="Ex.: exemplo@email.com" />
+        </div>
+      </div>
+
+      <label for="addr">Morada do imóvel *</label>
+      <input id="addr" placeholder="Ex.: Rua X, nº, ... (sem incluir a porta aqui se preferir)" />
+
+      <div class="grid2">
+        <div>
+          <label for="door">Nº da porta</label>
+          <input id="door" placeholder="Ex.: 120, 120A" />
+        </div>
+        <div>
+          <label for="gps">Coordenadas GPS</label>
+          <input id="gps" placeholder="Ex.: 41.1579,-8.6291" />
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <label for="freg">Freguesia</label>
+          <input id="freg" />
+        </div>
+        <div>
+          <label for="conc">Concelho</label>
+          <input id="conc" />
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <label for="dist">Distrito</label>
+          <input id="dist" />
+        </div>
+        <div>
+          <label for="dateReg">Data registo *</label>
+          <input id="dateReg" type="date" />
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <label for="tipo">Tipo de Imóvel</label>
+          <select id="tipo">
+            <option value="">—</option>
+            <option>Apartamento</option>
+            <option>Moradia</option>
+            <option>Loja</option>
+            <option>Escritório</option>
+            <option>Armazém</option>
+            <option>Terreno</option>
+            <option>Outro</option>
+          </select>
+        </div>
+        <div>
+          <label for="tipologia">Tipologia (só Apt/Moradia)</label>
+          <select id="tipologia">
+            <option value="">—</option>
+            <option>T0</option><option>T1</option><option>T1+1</option>
+            <option>T2</option><option>T2+1</option><option>T2 Dup</option>
+            <option>T3</option><option>T3+1</option><option>T3 Dup</option>
+            <option>T4</option><option>T4+1</option><option>T4 Dup</option>
+            <option>T5</option><option>T5 Dup</option><option>&gt;T5</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="notes">Notas internas (opcional)</label>
+      <textarea id="notes" placeholder="Contexto, canal de origem, estado do contacto, próximos passos..."></textarea>
+
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="btnAdd">Guardar Registo</button>
+        <button class="btn" id="btnReset">Limpar Form</button>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="btnExport">Exportar JSON</button>
+        <button class="btn" id="btnImport">Importar JSON</button>
+        <button class="btn danger" id="btnWipe">Apagar Base</button>
+      </div>
+
+      <div class="hint" style="margin-top:10px">
+        Segurança: os consultores <b>não vêem</b> nome/telefone/email do proprietário. Mesmo assim, recomenda-se exportar periodicamente para backup.
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="hero">
+      <div class="row" style="justify-content:space-between">
+        <h2>Consulta de Prospeção</h2>
+        <span class="pill" id="kpiPill">Registos: 0</span>
+      </div>
+      <div class="hint" style="margin-top:6px">
+        Pesquisa transversal e histórico por imóvel. Em consulta, mostra-se apenas: <b>morada completa</b>, <b>consultor</b>, <b>data</b>, <b>estado</b>.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <div class="hint"><b>Resultados</b> (mais recentes primeiro)</div>
+        <div class="small" id="metaInfo">—</div>
+      </div>
+      <div id="results" style="margin-top:10px"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+(function(){
+  // ===== Keys =====
+  const LS_KEY = 'gpp_prospec_v1';
+  const LS_ADMIN_PIN = 'gpp_prospec_admin_pin_v1';
+
+  // ===== Helpers =====
+  const $ = (id)=>document.getElementById(id);
+
+  function safeParse(raw){
+    if(!raw) return null;
+    try{ return JSON.parse(raw); }catch(e){ return null; }
+  }
+  function saveLS(data){
+    localStorage.setItem(LS_KEY, JSON.stringify(data));
+  }
+  function loadLS(){
+    const parsed = safeParse(localStorage.getItem(LS_KEY));
+    return Array.isArray(parsed) ? parsed : [];
+  }
+
+  // Normalização: minúsculas + sem acentos + trim + colapsar espaços + remover pontuação de pesquisa
+  function normText(s){
+    return String(s||'')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^\w\s@.+-]/g,' ')
+      .replace(/\s+/g,' ')
+      .trim();
+  }
+  // Normalização de telefone: só dígitos (mantém + no início se existir)
+  function normPhone(s){
+    const raw = String(s||'').trim();
+    const plus = raw.startsWith('+') ? '+' : '';
+    const digits = raw.replace(/[^\d]/g,'');
+    return plus + digits;
+  }
+
+  function todayISO(){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return y + '-' + m + '-' + day;
+  }
+
+  function parseISODateUTC(s){
+    if(!s || typeof s !== 'string') return null;
+    const raw = s.trim();
+    let m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(m){
+      const dt = new Date(Date.UTC(+m[1], +m[2]-1, +m[3]));
+      return isNaN(dt.getTime()) ? null : dt;
+    }
+    return null;
+  }
+
+  function daysDiffFromNow(isoYMD){
+    const dt = parseISODateUTC(isoYMD);
+    if(!dt) return null;
+    const now = new Date();
+    const nowUTC = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+    const ms = nowUTC.getTime() - dt.getTime();
+    return Math.floor(ms / (1000*60*60*24));
+  }
+
+  function isLockedByAge(dateRegISO){
+    const d = daysDiffFromNow(dateRegISO);
+    if(d == null) return false;
+    return d >= 0 && d < 30; // 30 dias
+  }
+
+  function uid(){
+    return 'P' + Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4);
+  }
+
+  // Key do imóvel para histórico (endereço + porta + freg + conc + dist)
+  function propertyKey(rec){
+    const a = normText(rec.addr);
+    const door = normText(rec.door);
+    const freg = normText(rec.freg);
+    const conc = normText(rec.conc);
+    const dist = normText(rec.dist);
+    return [a, door, freg, conc, dist].filter(Boolean).join('|');
+  }
+
+  // Index de pesquisa (inclui dados sensíveis, mas só para matching)
+  function searchBlob(rec){
+    return [
+      rec.consultor,
+      rec.owner,
+      rec.phone,
+      rec.email,
+      rec.addr,
+      rec.door,
+      rec.freg,
+      rec.conc,
+      rec.dist,
+      rec.gps,
+      rec.tipo,
+      rec.tipologia,
+      rec.dateReg,
+      rec.notes
+    ].map(x=>String(x||'')).join(' ');
+  }
+
+  // ===== Admin mode =====
+  const urlIsAdmin = new URLSearchParams(location.search).get('admin') === '1';
+  let IS_ADMIN = false;
+
+  function setAdminUI(on){
+    IS_ADMIN = !!on;
+    document.body.classList.toggle('is-admin', IS_ADMIN);
+    $('modePill').textContent = IS_ADMIN ? 'Modo Admin' : 'Modo Consulta';
+    $('modePill').classList.toggle('green', IS_ADMIN);
+    $('modePill').classList.toggle('red', !IS_ADMIN);
+    $('btnAdmin').textContent = IS_ADMIN ? 'Sair Admin' : 'Ativar Admin';
+  }
+
+  function ensurePinExists(){
+    let pin = localStorage.getItem(LS_ADMIN_PIN);
+    if(!pin){
+      // Primeiro setup: definir PIN
+      const p1 = prompt('Defina um PIN Admin (4-10 caracteres).');
+      if(!p1) return false;
+      const p2 = prompt('Confirme o PIN Admin.');
+      if(p2 !== p1){ alert('PIN não coincide.'); return false; }
+      localStorage.setItem(LS_ADMIN_PIN, p1);
+      alert('PIN definido. Guarde-o em local seguro.');
+      return true;
+    }
+    return true;
+  }
+
+  function checkPin(){
+    const stored = localStorage.getItem(LS_ADMIN_PIN) || '';
+    const typed = prompt('PIN Admin:');
+    if(typed == null) return false;
+    if(String(typed) !== String(stored)){
+      alert('PIN inválido.');
+      return false;
+    }
+    return true;
+  }
+
+  // ===== Render =====
+  function updateKPI(){
+    const all = loadLS();
+    $('kpiPill').textContent = 'Registos: ' + all.length;
+  }
+
+  function fmtDatePT(iso){
+    const dt = parseISODateUTC(iso);
+    if(!dt) return iso || '—';
+    // dt já é UTC (00:00)
+    const local = new Date(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate());
+    return local.toLocaleDateString('pt-PT');
+  }
+
+  function addressFull(rec){
+    const parts = [];
+    if(rec.addr) parts.push(rec.addr.trim());
+    if(rec.door) parts.push('Nº ' + rec.door.trim());
+    const p2 = [];
+    if(rec.freg) p2.push(rec.freg.trim());
+    if(rec.conc) p2.push(rec.conc.trim());
+    if(rec.dist) p2.push(rec.dist.trim());
+    if(p2.length) parts.push(p2.join(' · '));
+    return parts.filter(Boolean).join(' — ');
+  }
+
+  function groupByProperty(records){
+    const map = new Map();
+    records.forEach(r=>{
+      const k = propertyKey(r);
+      if(!k){
+        // fallback: se faltar tudo, agrupa por id (não ideal, mas não quebra)
+        const fk = 'id|' + r.id;
+        if(!map.has(fk)) map.set(fk, []);
+        map.get(fk).push(r);
+        return;
+      }
+      if(!map.has(k)) map.set(k, []);
+      map.get(k).push(r);
+    });
+    return map;
+  }
+
+  function renderResults(list){
+    const box = $('results');
+    box.innerHTML = '';
+
+    if(!list.length){
+      box.innerHTML = '<div class="hint">Sem resultados.</div>';
+      $('metaInfo').textContent = '0 resultados';
+      return;
+    }
+
+    // agrupar por imóvel e ordenar histórico
+    const grouped = groupByProperty(list);
+
+    // para apresentar: ordenar grupos pelo registo mais recente (dateReg desc)
+    const groupsArr = Array.from(grouped.entries()).map(([k, items])=>{
+      const sorted = items.slice().sort((a,b)=>String(b.dateReg||'').localeCompare(String(a.dateReg||'')));
+      const latest = sorted[0];
+      return { key:k, items:sorted, latest };
+    }).sort((a,b)=> String(b.latest.dateReg||'').localeCompare(String(a.latest.dateReg||'')));
+
+    $('metaInfo').textContent = groupsArr.length + ' imóveis / ' + list.length + ' registos';
+
+    groupsArr.forEach(g=>{
+      const latest = g.latest;
+      const locked = isLockedByAge(latest.dateReg);
+      const status = locked ? 'Contacto Bloqueado' : 'Contacto livre';
+
+      const el = document.createElement('div');
+      el.className = 'result ' + (locked ? 'locked' : 'free');
+
+      const pill = locked
+        ? '<span class="pill red">BLOQUEADO (≤30 dias)</span>'
+        : '<span class="pill green">LIVRE (&gt;30 dias)</span>';
+
+      const addr = addressFull(latest) || '—';
+
+      el.innerHTML = `
+        <div class="r-top">
+          <div>
+            <div class="r-title">${status}</div>
+            <div class="r-line"><b>Morada:</b> <span style="color:${locked?'var(--danger)':'#fff'}">${escapeHtml(addr)}</span></div>
+            <div class="r-line"><b>Consultor:</b> <span style="color:${locked?'var(--danger)':'#fff'}">${escapeHtml(latest.consultor || '—')}</span></div>
+            <div class="r-line"><b>Data do registo:</b> <span style="color:${locked?'var(--danger)':'#fff'}">${escapeHtml(fmtDatePT(latest.dateReg))}</span></div>
+          </div>
+          <div>${pill}</div>
+        </div>
+
+        <div class="r-muted">
+          ${latest.tipo ? `<span class="pill">Tipo: ${escapeHtml(latest.tipo)}</span>` : ''}
+          ${latest.tipologia ? `<span class="pill">Tipologia: ${escapeHtml(latest.tipologia)}</span>` : ''}
+        </div>
+
+        <div class="hist">
+          <div class="hint"><b>Histórico completo</b> (datas e consultores)</div>
+          ${g.items.map(it=>{
+            const lk = isLockedByAge(it.dateReg);
+            return `
+              <div class="item" style="${lk?'border-color:rgba(216,74,74,.35)':''}">
+                <div><b>${escapeHtml(fmtDatePT(it.dateReg))}</b> — ${escapeHtml(it.consultor || '—')}</div>
+                <div class="meta">${escapeHtml(addressFull(it) || '—')}</div>
+                ${IS_ADMIN ? `
+                  <div class="meta consultor-only-hide"><b>Proprietário:</b> ${escapeHtml(it.owner || '—')}</div>
+                  <div class="meta consultor-only-hide"><b>Telefone:</b> ${escapeHtml(it.phone || '—')}</div>
+                  <div class="meta consultor-only-hide"><b>Email:</b> ${escapeHtml(it.email || '—')}</div>
+                  ${it.notes ? `<div class="meta consultor-only-hide"><b>Notas:</b> ${escapeHtml(it.notes)}</div>` : ''}
+                ` : ``}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+
+      box.appendChild(el);
+    });
+  }
+
+  function escapeHtml(s){
+    return String(s ?? '')
+      .replaceAll('&','&amp;')
+      .replaceAll('<','&lt;')
+      .replaceAll('>','&gt;')
+      .replaceAll('"','&quot;')
+      .replaceAll("'",'&#039;');
+  }
+
+  // ===== Search =====
+  function doSearch(){
+    const q = $('q').value.trim();
+    const all = loadLS();
+
+    // sem query: mostra tudo (agrupado)
+    if(!q){
+      renderResults(all.slice().sort((a,b)=>String(b.dateReg||'').localeCompare(String(a.dateReg||''))));
+      return;
+    }
+
+    const qn = normText(q);
+    const qp = normPhone(q);
+
+    const hit = all.filter(r=>{
+      const blob = searchBlob(r);
+      const bNorm = normText(blob);
+      if(bNorm.includes(qn)) return true;
+
+      // match de telefone por dígitos
+      if(qp && qp.replace(/[^\d]/g,'').length >= 5){
+        const rp = normPhone(r.phone);
+        if(rp.includes(qp.replace(/[^\d]/g,''))) return true;
+      }
+      return false;
+    });
+
+    renderResults(hit);
+  }
+
+  // ===== Add record (Admin) =====
+  function getVal(id){ return String($(id).value||'').trim(); }
+
+  function validateAndBuild(){
+    const consultor = getVal('consultor');
+    const owner = getVal('owner');
+    const phoneRaw = getVal('phone');
+    const addr = getVal('addr');
+    const dateReg = getVal('dateReg') || todayISO();
+
+    // obrigatórios
+    if(!consultor){ alert('Obrigatório: Nome do Consultor.'); return null; }
+    if(!owner){ alert('Obrigatório: Nome do proprietário.'); return null; }
+    if(!phoneRaw){ alert('Obrigatório: Contacto telefónico.'); return null; }
+    if(!addr){ alert('Obrigatório: Morada do imóvel.'); return null; }
+    if(!dateReg){ alert('Obrigatório: Data registo.'); return null; }
+
+    // tipologia só se Apartamento/Moradia
+    const tipo = getVal('tipo');
+    let tipologia = getVal('tipologia');
+    if(tipologia && !(tipo === 'Apartamento' || tipo === 'Moradia')){
+      tipologia = ''; // limpa para coerência
+    }
+
+    return {
+      id: uid(),
+      consultor,
+      owner,
+      phone: phoneRaw,
+      phone_norm: normPhone(phoneRaw),
+      email: getVal('email'),
+      addr,
+      door: getVal('door'),
+      freg: getVal('freg'),
+      conc: getVal('conc'),
+      dist: getVal('dist'),
+      gps: getVal('gps'),
+      tipo,
+      tipologia,
+      dateReg,
+      notes: getVal('notes'),
+      createdAt: new Date().toISOString()
+    };
+  }
+
+  function resetForm(){
+    ['consultor','owner','phone','email','addr','door','freg','conc','dist','gps','tipo','tipologia','notes'].forEach(id=>$(id).value='');
+    $('dateReg').value = todayISO();
+  }
+
+  function addRecord(){
+    const rec = validateAndBuild();
+    if(!rec) return;
+
+    const all = loadLS();
+    all.push(rec);
+    saveLS(all);
+
+    updateKPI();
+    doSearch();
+    resetForm();
+    alert('Registo guardado.');
+  }
+
+  // ===== Import/Export =====
+  function exportJSON(){
+    const all = loadLS();
+    const payload = JSON.stringify(all, null, 2);
+    const blob = new Blob([payload], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'gpp_prospec_export_' + todayISO() + '.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function importJSON(){
+    const raw = prompt('Cole aqui o JSON exportado (substitui/mescla com a base atual).\n\nSugestão: para segurança, exporte antes.');
+    if(!raw) return;
+    const parsed = safeParse(raw);
+    if(!Array.isArray(parsed)){ alert('JSON inválido (esperado: array).'); return; }
+
+    // mescla por id (se id repetido, mantém o mais recente por createdAt)
+    const current = loadLS();
+    const map = new Map();
+    current.forEach(r=> map.set(r.id, r));
+    parsed.forEach(r=>{
+      if(!r || !r.id){ r.id = uid(); }
+      const old = map.get(r.id);
+      if(!old){ map.set(r.id, r); return; }
+      const a = String(old.createdAt||'');
+      const b = String(r.createdAt||'');
+      map.set(r.id, (b > a) ? r : old);
+    });
+
+    const merged = Array.from(map.values());
+    saveLS(merged);
+    updateKPI();
+    doSearch();
+    alert('Import concluído (mesclado).');
+  }
+
+  function wipeDB(){
+    if(!confirm('Tem a certeza que quer APAGAR toda a base de prospeção deste navegador?')) return;
+    localStorage.removeItem(LS_KEY);
+    updateKPI();
+    doSearch();
+    alert('Base apagada.');
+  }
+
+  // ===== Print =====
+  $('btnPrint').addEventListener('click', ()=>window.print());
+
+  // ===== Admin toggle =====
+  $('btnAdmin').addEventListener('click', ()=>{
+    if(IS_ADMIN){
+      setAdminUI(false);
+      return;
+    }
+    // só permite admin se URL tem ?admin=1
+    if(!urlIsAdmin){
+      alert('Admin só disponível nesta página com ?admin=1 no URL.');
+      return;
+    }
+    if(!ensurePinExists()) return;
+    if(!checkPin()) return;
+    setAdminUI(true);
+  });
+
+  // ===== UI events =====
+  $('btnSearch').addEventListener('click', doSearch);
+  $('btnClear').addEventListener('click', ()=>{ $('q').value=''; doSearch(); });
+  $('q').addEventListener('input', ()=>{
+    clearTimeout(window.__tq);
+    window.__tq = setTimeout(doSearch, 160);
+  });
+
+  $('btnAdd').addEventListener('click', addRecord);
+  $('btnReset').addEventListener('click', resetForm);
+  $('btnExport').addEventListener('click', exportJSON);
+  $('btnImport').addEventListener('click', importJSON);
+  $('btnWipe').addEventListener('click', wipeDB);
+
+  // Tipologia só para Apt/Moradia (UX)
+  $('tipo').addEventListener('change', ()=>{
+    const t = getVal('tipo');
+    if(!(t === 'Apartamento' || t === 'Moradia')) $('tipologia').value='';
+  });
+
+  // ===== Boot =====
+  function boot(){
+    $('dateReg').value = todayISO();
+    updateKPI();
+    setAdminUI(false);
+    doSearch();
+  }
+  boot();
+})();
+</script>
+</body>
+</html>
