@@ -15,7 +15,6 @@
     --muted:#C9C9C9;
     --radius:14px;
 
-    --ok:#d9d9d9;
     --danger:#d84a4a;
     --good:#48c774;
   }
@@ -67,6 +66,7 @@
   .btn.ghost{ background:transparent; }
   .btn.danger{ border-color:rgba(216,74,74,.65); color:#ffd7d7; }
   .btn.good{ border-color:rgba(72,199,116,.65); color:#dbffe8; }
+  .btn.xs{ padding:6px 10px; font-size:12px; border-radius:9px; }
 
   .wrap{
     display:grid;
@@ -144,6 +144,7 @@
   }
   .pill.red{ border-color: rgba(216,74,74,.55); color:#ffdede; }
   .pill.green{ border-color: rgba(72,199,116,.55); color:#dbffe8; }
+  .pill.gray{ border-color: rgba(255,255,255,.18); color:#e9e9e9; }
 
   /* Results */
   .result{
@@ -186,13 +187,14 @@
     color:#eee;
   }
   .hist .item .meta{ color:var(--muted); font-size:11px; margin-top:3px; }
+
   .small{ font-size:11px; color:var(--muted); }
 
   /* Admin-only section helper */
   .admin-only{ display:none; }
   .is-admin .admin-only{ display:block; }
-  .is-admin .consultor-only-hide{ display:block; } /* in admin we still show fields */
-  .consultor-only-hide{ display:none; } /* default hidden for consultor view */
+  .is-admin .consultor-only-hide{ display:block; }
+  .consultor-only-hide{ display:none; }
 </style>
 </head>
 
@@ -212,7 +214,7 @@
   </div>
 
   <div class="row">
-    <span class="pill" id="modePill">Modo Consulta</span>
+    <span class="pill gray" id="modePill">Modo Consulta</span>
     <button class="btn" id="btnPrint">Imprimir / PDF</button>
     <button class="btn primary" id="btnAdmin">Ativar Admin</button>
   </div>
@@ -229,7 +231,8 @@
         <button class="btn" id="btnClear">Limpar</button>
       </div>
       <div class="hint" style="margin-top:10px">
-        Regra operacional: <b>30 dias</b> após o registo = <span style="color:var(--danger);font-weight:800">Bloqueado</span>. Após 30 dias = <span style="color:var(--good);font-weight:800">Livre</span>.
+        Regra base: <b>30 dias</b> após o registo = <span style="color:var(--danger);font-weight:800">Bloqueado</span>. Após 30 dias = <span style="color:var(--good);font-weight:800">Livre</span>.<br>
+        Versão 2: Admin pode <b>manter bloqueado</b> ou <b>libertar</b> manualmente.
       </div>
     </div>
 
@@ -262,7 +265,7 @@
       </div>
 
       <label for="addr">Morada do imóvel *</label>
-      <input id="addr" placeholder="Ex.: Rua X, nº, ... (sem incluir a porta aqui se preferir)" />
+      <input id="addr" placeholder="Ex.: Rua X, nº, ..." />
 
       <div class="grid2">
         <div>
@@ -339,7 +342,7 @@
       </div>
 
       <div class="hint" style="margin-top:10px">
-        Segurança: os consultores <b>não vêem</b> nome/telefone/email do proprietário. Mesmo assim, recomenda-se exportar periodicamente para backup.
+        Segurança: consultores <b>não vêem</b> nome/telefone/email do proprietário. Recomenda-se exportar periodicamente para backup.
       </div>
     </div>
   </aside>
@@ -371,6 +374,9 @@
   const LS_KEY = 'gpp_prospec_v1';
   const LS_ADMIN_PIN = 'gpp_prospec_admin_pin_v1';
 
+  // V2: overrides (por imóvel)
+  const LS_OVERRIDES = 'gpp_prospec_overrides_v1'; // { [propertyKey]: {mode:'locked'|'free', setAtISO:'', setBy:''} }
+
   // ===== Helpers =====
   const $ = (id)=>document.getElementById(id);
 
@@ -384,6 +390,31 @@
   function loadLS(){
     const parsed = safeParse(localStorage.getItem(LS_KEY));
     return Array.isArray(parsed) ? parsed : [];
+  }
+
+  function loadOverrides(){
+    const parsed = safeParse(localStorage.getItem(LS_OVERRIDES));
+    return (parsed && typeof parsed === 'object') ? parsed : {};
+  }
+  function saveOverrides(obj){
+    localStorage.setItem(LS_OVERRIDES, JSON.stringify(obj));
+  }
+  function setOverride(propKey, mode){
+    const ov = loadOverrides();
+    if(mode === 'none'){
+      delete ov[propKey];
+    }else{
+      ov[propKey] = {
+        mode: mode, // 'locked' | 'free'
+        setAtISO: new Date().toISOString(),
+        setBy: 'Admin'
+      };
+    }
+    saveOverrides(ov);
+  }
+  function getOverride(propKey){
+    const ov = loadOverrides();
+    return ov[propKey] || null;
   }
 
   // Normalização: minúsculas + sem acentos + trim + colapsar espaços + remover pontuação de pesquisa
@@ -481,14 +512,13 @@
     document.body.classList.toggle('is-admin', IS_ADMIN);
     $('modePill').textContent = IS_ADMIN ? 'Modo Admin' : 'Modo Consulta';
     $('modePill').classList.toggle('green', IS_ADMIN);
-    $('modePill').classList.toggle('red', !IS_ADMIN);
+    $('modePill').classList.toggle('gray', !IS_ADMIN);
     $('btnAdmin').textContent = IS_ADMIN ? 'Sair Admin' : 'Ativar Admin';
   }
 
   function ensurePinExists(){
     let pin = localStorage.getItem(LS_ADMIN_PIN);
     if(!pin){
-      // Primeiro setup: definir PIN
       const p1 = prompt('Defina um PIN Admin (4-10 caracteres).');
       if(!p1) return false;
       const p2 = prompt('Confirme o PIN Admin.');
@@ -520,9 +550,16 @@
   function fmtDatePT(iso){
     const dt = parseISODateUTC(iso);
     if(!dt) return iso || '—';
-    // dt já é UTC (00:00)
     const local = new Date(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate());
     return local.toLocaleDateString('pt-PT');
+  }
+
+  function fmtDateTimePT(iso){
+    try{
+      const d = new Date(iso);
+      if(isNaN(d.getTime())) return iso || '—';
+      return d.toLocaleString('pt-PT');
+    }catch{ return iso || '—'; }
   }
 
   function addressFull(rec){
@@ -541,17 +578,24 @@
     const map = new Map();
     records.forEach(r=>{
       const k = propertyKey(r);
-      if(!k){
-        // fallback: se faltar tudo, agrupa por id (não ideal, mas não quebra)
-        const fk = 'id|' + r.id;
-        if(!map.has(fk)) map.set(fk, []);
-        map.get(fk).push(r);
-        return;
-      }
-      if(!map.has(k)) map.set(k, []);
-      map.get(k).push(r);
+      const key = k || ('id|' + r.id);
+      if(!map.has(key)) map.set(key, []);
+      map.get(key).push(r);
     });
     return map;
+  }
+
+  // V2: estado efetivo (override tem prioridade)
+  function getEffectiveStatus(propKey, latestRecord){
+    const ov = getOverride(propKey);
+    if(ov && ov.mode === 'locked'){
+      return { locked:true, reason:'override_locked', ov };
+    }
+    if(ov && ov.mode === 'free'){
+      return { locked:false, reason:'override_free', ov };
+    }
+    const lockedByAge = isLockedByAge(latestRecord.dateReg);
+    return { locked:lockedByAge, reason:'age', ov:null };
   }
 
   function renderResults(list){
@@ -564,10 +608,8 @@
       return;
     }
 
-    // agrupar por imóvel e ordenar histórico
     const grouped = groupByProperty(list);
 
-    // para apresentar: ordenar grupos pelo registo mais recente (dateReg desc)
     const groupsArr = Array.from(grouped.entries()).map(([k, items])=>{
       const sorted = items.slice().sort((a,b)=>String(b.dateReg||'').localeCompare(String(a.dateReg||'')));
       const latest = sorted[0];
@@ -578,27 +620,46 @@
 
     groupsArr.forEach(g=>{
       const latest = g.latest;
-      const locked = isLockedByAge(latest.dateReg);
-      const status = locked ? 'Contacto Bloqueado' : 'Contacto livre';
+      const status = getEffectiveStatus(g.key, latest);
+      const locked = status.locked;
+
+      const title = locked ? 'Contacto Bloqueado' : 'Contacto livre';
+      const addr = addressFull(latest) || '—';
+
+      let pill = locked
+        ? '<span class="pill red">BLOQUEADO</span>'
+        : '<span class="pill green">LIVRE</span>';
+
+      let reasonLine = '';
+      if(status.reason === 'override_locked'){
+        reasonLine = `<div class="r-muted"><span class="pill red">Override: Mantido bloqueado</span> <span class="small">(${escapeHtml(fmtDateTimePT(status.ov.setAtISO))})</span></div>`;
+      }else if(status.reason === 'override_free'){
+        reasonLine = `<div class="r-muted"><span class="pill green">Override: Libertado</span> <span class="small">(${escapeHtml(fmtDateTimePT(status.ov.setAtISO))})</span></div>`;
+      }else{
+        reasonLine = `<div class="r-muted"><span class="pill gray">Regra: 30 dias</span></div>`;
+      }
 
       const el = document.createElement('div');
       el.className = 'result ' + (locked ? 'locked' : 'free');
 
-      const pill = locked
-        ? '<span class="pill red">BLOQUEADO (≤30 dias)</span>'
-        : '<span class="pill green">LIVRE (&gt;30 dias)</span>';
-
-      const addr = addressFull(latest) || '—';
-
       el.innerHTML = `
         <div class="r-top">
-          <div>
-            <div class="r-title">${status}</div>
+          <div style="min-width:260px">
+            <div class="r-title">${title}</div>
             <div class="r-line"><b>Morada:</b> <span style="color:${locked?'var(--danger)':'#fff'}">${escapeHtml(addr)}</span></div>
             <div class="r-line"><b>Consultor:</b> <span style="color:${locked?'var(--danger)':'#fff'}">${escapeHtml(latest.consultor || '—')}</span></div>
             <div class="r-line"><b>Data do registo:</b> <span style="color:${locked?'var(--danger)':'#fff'}">${escapeHtml(fmtDatePT(latest.dateReg))}</span></div>
+            ${reasonLine}
           </div>
-          <div>${pill}</div>
+
+          <div class="row" style="align-items:flex-start;justify-content:flex-end">
+            ${pill}
+            ${IS_ADMIN ? `
+              <button class="btn xs danger" data-act="lock">Manter bloqueado</button>
+              <button class="btn xs good" data-act="free">Libertar</button>
+              <button class="btn xs" data-act="clear">Remover override</button>
+            ` : ``}
+          </div>
         </div>
 
         <div class="r-muted">
@@ -609,9 +670,8 @@
         <div class="hist">
           <div class="hint"><b>Histórico completo</b> (datas e consultores)</div>
           ${g.items.map(it=>{
-            const lk = isLockedByAge(it.dateReg);
             return `
-              <div class="item" style="${lk?'border-color:rgba(216,74,74,.35)':''}">
+              <div class="item">
                 <div><b>${escapeHtml(fmtDatePT(it.dateReg))}</b> — ${escapeHtml(it.consultor || '—')}</div>
                 <div class="meta">${escapeHtml(addressFull(it) || '—')}</div>
                 ${IS_ADMIN ? `
@@ -625,6 +685,28 @@
           }).join('')}
         </div>
       `;
+
+      if(IS_ADMIN){
+        const btnLock = el.querySelector('[data-act="lock"]');
+        const btnFree = el.querySelector('[data-act="free"]');
+        const btnClear = el.querySelector('[data-act="clear"]');
+
+        if(btnLock) btnLock.addEventListener('click', ()=>{
+          if(!confirm('Confirmar: manter este imóvel BLOQUEADO (override)?')) return;
+          setOverride(g.key, 'locked');
+          doSearch();
+        });
+        if(btnFree) btnFree.addEventListener('click', ()=>{
+          if(!confirm('Confirmar: marcar este imóvel como LIVRE (override)?')) return;
+          setOverride(g.key, 'free');
+          doSearch();
+        });
+        if(btnClear) btnClear.addEventListener('click', ()=>{
+          if(!confirm('Remover override e voltar à regra dos 30 dias?')) return;
+          setOverride(g.key, 'none');
+          doSearch();
+        });
+      }
 
       box.appendChild(el);
     });
@@ -644,7 +726,6 @@
     const q = $('q').value.trim();
     const all = loadLS();
 
-    // sem query: mostra tudo (agrupado)
     if(!q){
       renderResults(all.slice().sort((a,b)=>String(b.dateReg||'').localeCompare(String(a.dateReg||''))));
       return;
@@ -658,7 +739,6 @@
       const bNorm = normText(blob);
       if(bNorm.includes(qn)) return true;
 
-      // match de telefone por dígitos
       if(qp && qp.replace(/[^\d]/g,'').length >= 5){
         const rp = normPhone(r.phone);
         if(rp.includes(qp.replace(/[^\d]/g,''))) return true;
@@ -679,18 +759,16 @@
     const addr = getVal('addr');
     const dateReg = getVal('dateReg') || todayISO();
 
-    // obrigatórios
     if(!consultor){ alert('Obrigatório: Nome do Consultor.'); return null; }
     if(!owner){ alert('Obrigatório: Nome do proprietário.'); return null; }
     if(!phoneRaw){ alert('Obrigatório: Contacto telefónico.'); return null; }
     if(!addr){ alert('Obrigatório: Morada do imóvel.'); return null; }
     if(!dateReg){ alert('Obrigatório: Data registo.'); return null; }
 
-    // tipologia só se Apartamento/Moradia
     const tipo = getVal('tipo');
     let tipologia = getVal('tipologia');
     if(tipologia && !(tipo === 'Apartamento' || tipo === 'Moradia')){
-      tipologia = ''; // limpa para coerência
+      tipologia = '';
     }
 
     return {
@@ -749,12 +827,11 @@
   }
 
   function importJSON(){
-    const raw = prompt('Cole aqui o JSON exportado (substitui/mescla com a base atual).\n\nSugestão: para segurança, exporte antes.');
+    const raw = prompt('Cole aqui o JSON exportado (mescla com a base atual).\n\nSugestão: exporte antes.');
     if(!raw) return;
     const parsed = safeParse(raw);
     if(!Array.isArray(parsed)){ alert('JSON inválido (esperado: array).'); return; }
 
-    // mescla por id (se id repetido, mantém o mais recente por createdAt)
     const current = loadLS();
     const map = new Map();
     current.forEach(r=> map.set(r.id, r));
@@ -789,9 +866,9 @@
   $('btnAdmin').addEventListener('click', ()=>{
     if(IS_ADMIN){
       setAdminUI(false);
+      doSearch();
       return;
     }
-    // só permite admin se URL tem ?admin=1
     if(!urlIsAdmin){
       alert('Admin só disponível nesta página com ?admin=1 no URL.');
       return;
@@ -799,6 +876,7 @@
     if(!ensurePinExists()) return;
     if(!checkPin()) return;
     setAdminUI(true);
+    doSearch();
   });
 
   // ===== UI events =====
@@ -815,7 +893,6 @@
   $('btnImport').addEventListener('click', importJSON);
   $('btnWipe').addEventListener('click', wipeDB);
 
-  // Tipologia só para Apt/Moradia (UX)
   $('tipo').addEventListener('change', ()=>{
     const t = getVal('tipo');
     if(!(t === 'Apartamento' || t === 'Moradia')) $('tipologia').value='';
