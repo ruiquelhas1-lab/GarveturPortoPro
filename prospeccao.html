@@ -509,6 +509,10 @@ body.can-admin #btnAdmin{ display:inline-flex; }
 
   // ===== Admin mode =====
   const urlIsAdmin = new URLSearchParams(location.search).get('admin') === '1';
+  // Mostrar botão "Ativar Admin" apenas quando ?admin=1
+if(urlIsAdmin){
+  document.body.classList.add('can-admin');
+}
   let IS_ADMIN = false;
 
   function setAdminUI(on){
