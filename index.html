@@ -265,5 +265,42 @@
   <span>Garvetur Porto Pro — acesso de equipa (GitHub Pages).</span>
   <span><a class="admin-link" href="./admin.html">Admin</a></span>
 </footer>
+
+<script>
+(function(){
+  // ===== Password única para módulos de equipa =====
+  const TEAM_PASS = '#EquipaGarvetur#';   // ← use a MESMA password do mapa
+  const AUTH_KEY  = 'gpp_team_auth_v1';
+
+  function checkAccess(e){
+    e.preventDefault();
+    const target = e.currentTarget.getAttribute('href');
+
+    try{
+      if(sessionStorage.getItem(AUTH_KEY) === '1'){
+        window.location.href = target;
+        return;
+      }
+    }catch(e){}
+
+    const pwd = prompt('Introduza a password de acesso:');
+    if(pwd === null) return;
+
+    if(pwd === TEAM_PASS){
+      try{ sessionStorage.setItem(AUTH_KEY,'1'); }catch(e){}
+      window.location.href = target;
+    }else{
+      alert('Password incorreta.');
+    }
+  }
+
+  // Aplica a proteção aos dois módulos
+  document.querySelectorAll('a[href="./equipa-mapa.html"], a[href="./prospeccao.html"]')
+    .forEach(link => {
+      link.addEventListener('click', checkAccess);
+    });
+})();
+</script>
+  
 </body>
 </html>
