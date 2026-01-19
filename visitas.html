@@ -537,13 +537,13 @@ function renderWeek(visibleList){
 
   const names=['Hora','Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
 
-  // header row
+   // header row
   names.forEach((nm, i)=>{
     const cell=document.createElement('div');
     cell.className='cell';
     if(i===0){
-      cell.textContent='Semana';
-      cell.innerHTML = `<div style="font-size:11px;opacity:.75">Semana</div><div style="font-size:12px;font-weight:900;letter-spacing:.06em;color:#fff">${fmtPT(wb.startYMD)} → ${fmtPT(wb.endYMD)}</div>`;
+      // Canto superior esquerdo: não repetir datas aqui (já aparecem nos dias)
+      cell.innerHTML = `<div style="font-size:11px;opacity:.75">Horas</div>`;
     }else{
       const dayYMD=addDays(wb.startYMD, i-1);
       cell.innerHTML = `<div>${nm}</div><div style="opacity:.75;margin-top:2px">${fmtPT(dayYMD)}</div>`;
