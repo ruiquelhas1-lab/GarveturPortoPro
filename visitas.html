@@ -14,6 +14,7 @@
   --text:#fff;
   --muted:#bdbdbd;
   --radius:16px;
+  --slotH:46px; /* altura de cada hora no calendário semanal */
 }
 
 *{box-sizing:border-box}
@@ -25,7 +26,7 @@ body{
 }
 
 header{
-  display:flex;justify-content:space-between;align-items:center;
+  display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
   padding:12px 18px;
   border-bottom:1px solid rgba(163,139,99,.35);
   background:linear-gradient(90deg,#050505,#111,#050505);
@@ -59,6 +60,11 @@ input,select{
   background:#000;
   color:#fff;
 }
+input:focus,select:focus{
+  outline:none;
+  border-color:rgba(163,139,99,.75);
+  box-shadow:0 0 0 1px rgba(163,139,99,.25);
+}
 
 button{
   border-radius:999px;
@@ -67,27 +73,32 @@ button{
   background:#000;
   color:var(--gold);
   cursor:pointer;
+  transition:.18s transform,.18s border-color;
 }
-button.primary{background:var(--gold);color:#000;font-weight:700}
+button:hover{transform:translateY(-1px);border-color:var(--gold)}
+button.primary{background:var(--gold);color:#000;font-weight:800}
+button.ghost{background:transparent}
 
-.row{display:flex;gap:8px;flex-wrap:wrap}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 
-.tabs{display:flex;gap:8px;margin-bottom:12px}
+.tabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
 .tab{
   padding:6px 12px;
   border-radius:999px;
   border:1px solid rgba(163,139,99,.4);
   cursor:pointer;
   font-size:12px;
+  user-select:none;
 }
-.tab.active{background:var(--gold);color:#000;font-weight:700}
+.tab.active{background:var(--gold);color:#000;font-weight:800}
 
-.kpis{display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.kpis{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
 .kpi{
   border:1px solid rgba(163,139,99,.35);
   border-radius:14px;
   padding:10px 14px;
   font-size:12px;
+  background:rgba(0,0,0,.25);
 }
 .kpi b{font-size:18px;display:block;color:#fff}
 
@@ -103,6 +114,107 @@ button.primary{background:var(--gold);color:#000;font-weight:700}
 .event b{color:#fff}
 
 .small{font-size:11px;color:var(--muted)}
+.mini{font-size:11px;color:rgba(255,255,255,.75)}
+
+hr.sep{border:0;border-top:1px solid rgba(255,255,255,.10);margin:12px 0}
+
+/* ===== Calendário Semanal (7×24) ===== */
+.week-wrap{
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:16px;
+  overflow:hidden;
+  background:rgba(0,0,0,.25);
+}
+
+.week-grid{
+  display:grid;
+  grid-template-columns:72px repeat(7, minmax(160px, 1fr));
+}
+
+.week-head{
+  position:sticky;
+  top:0;
+  z-index:5;
+  background:linear-gradient(180deg, rgba(0,0,0,.92), rgba(0,0,0,.72));
+  border-bottom:1px solid rgba(255,255,255,.12);
+}
+
+.week-head .cell{
+  padding:10px 10px;
+  font-size:11px;
+  color:rgba(255,255,255,.88);
+  letter-spacing:.10em;
+  text-transform:uppercase;
+  border-right:1px solid rgba(255,255,255,.10);
+}
+.week-head .cell:first-child{
+  color:rgba(255,255,255,.55);
+  text-transform:none;
+  letter-spacing:.06em;
+}
+
+.week-body{
+  max-height:62vh;
+  overflow:auto;
+}
+
+.week-body .cell{
+  height:var(--slotH);
+  border-right:1px solid rgba(255,255,255,.08);
+  border-bottom:1px solid rgba(255,255,255,.08);
+  position:relative;
+}
+
+.week-body .time{
+  padding:10px 10px;
+  font-size:11px;
+  color:rgba(255,255,255,.55);
+  background:rgba(0,0,0,.18);
+}
+
+.week-body .slot{
+  background:rgba(0,0,0,.10);
+}
+
+.week-body .slot:hover{
+  background:rgba(163,139,99,.06);
+}
+
+.week-col{
+  position:relative;
+}
+
+.week-events-layer{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+}
+
+.week-event{
+  pointer-events:auto;
+  position:absolute;
+  left:6px;
+  right:6px;
+  border:1px solid rgba(163,139,99,.40);
+  background:linear-gradient(180deg, rgba(163,139,99,.22), rgba(0,0,0,.55));
+  border-radius:12px;
+  padding:8px 8px 7px;
+  box-shadow:0 10px 18px rgba(0,0,0,.45);
+  cursor:pointer;
+}
+.week-event:hover{border-color:rgba(163,139,99,.95)}
+.week-event .t{font-size:11px;color:#fff;font-weight:900;letter-spacing:.06em}
+.week-event .d{font-size:11px;color:rgba(255,255,255,.82);margin-top:3px;line-height:1.25}
+.week-event .m{font-size:10px;color:rgba(255,255,255,.65);margin-top:3px}
+
+/* ===== Print: focar a tabela semanal exportada ===== */
+@media print{
+  header, aside, .tabs, .kpis, .controls, #btnPdf{ display:none !important; }
+  body{ background:#fff !important; color:#111 !important; }
+  main{ display:block; padding:0 !important; }
+  .card{ box-shadow:none !important; background:#fff !important; border:1px solid #ddd !important; }
+  .week-wrap, .week-body{ max-height:none !important; }
+}
 </style>
 </head>
 
@@ -110,13 +222,20 @@ button.primary{background:var(--gold);color:#000;font-weight:700}
 
 <header>
   <h1>Visitas — Admin</h1>
+  <div class="row controls">
+    <button class="ghost" id="btnPrev">◀</button>
+    <input type="date" id="refDate" style="width:auto;min-width:170px">
+    <button class="ghost" id="btnNext">▶</button>
+    <span class="mini" id="rangeLbl">—</span>
+    <button id="btnPdf">Exportar semana (PDF)</button>
+  </div>
 </header>
 
 <main>
   <!-- FORM -->
   <aside>
     <div class="card">
-      <h3>Registar Visita</h3>
+      <h3 style="margin:0 0 8px">Registar Visita</h3>
 
       <label>Consultor</label>
       <select id="consultor">
@@ -131,37 +250,36 @@ button.primary{background:var(--gold);color:#000;font-weight:700}
       <label>Data da visita</label>
       <input type="date" id="data">
 
-      <label>Hora</label>
+      <label>Hora (24h)</label>
       <input type="time" id="hora">
 
-      <label>Cliente</label>
+      <label>Nome do cliente</label>
       <input id="cliente">
 
       <label>Ref. Imóvel Garvetur</label>
-      <input id="ref">
+      <input id="ref" placeholder="Ex.: GV-PT/1234 — T2+1 — #A12">
 
-      <label>Partilha – Agência</label>
+      <label>Partilha – Nome da Agência</label>
       <input id="agencia">
 
-      <label>Link do imóvel</label>
-      <input id="link">
+      <label>Link do imóvel (Partilha)</label>
+      <input id="link" placeholder="https://...">
 
       <div class="row" style="margin-top:12px">
         <button class="primary" id="save">Guardar</button>
         <button id="reset">Limpar</button>
+        <button id="del" style="display:none;border-color:rgba(255,80,80,.55);color:#ffdede">Apagar</button>
+      </div>
+
+      <div class="small" style="margin-top:10px">
+        Dica: clique numa visita no calendário/lista para editar.
       </div>
     </div>
-  </aside>
 
-  <!-- CALENDÁRIO -->
-  <section>
-    <div class="tabs">
-      <div class="tab active" data-view="month">Mensal</div>
-      <div class="tab" data-view="week">Semanal</div>
-      <div class="tab" data-view="day">Diária</div>
-    </div>
+    <div class="card">
+      <h3 style="margin:0 0 8px">Filtros & Pesquisa</h3>
 
-    <div class="row" style="margin-bottom:10px">
+      <label>Filtrar por consultor</label>
       <select id="filterConsultor">
         <option value="">Todos os consultores</option>
         <option>Manuel Oliveira</option>
@@ -171,7 +289,29 @@ button.primary{background:var(--gold);color:#000;font-weight:700}
         <option>Dalila Cunha</option>
         <option>Rui Quelhas</option>
       </select>
-      <input id="q" placeholder="Pesquisar…">
+
+      <label>Pesquisa global</label>
+      <input id="q" placeholder="Cliente, ref, agência, link, consultor... (sem acentos)">
+
+      <div class="row" style="margin-top:10px">
+        <button class="primary" id="btnApply">Aplicar</button>
+        <button id="btnClear">Limpar</button>
+      </div>
+
+      <hr class="sep">
+
+      <div class="small">
+        Exportação PDF: apenas <b>visitas da semana visível</b> e <b>visíveis no filtro/pesquisa atuais</b>.
+      </div>
+    </div>
+  </aside>
+
+  <!-- CALENDÁRIO -->
+  <section>
+    <div class="tabs">
+      <div class="tab active" data-view="month">Mensal</div>
+      <div class="tab" data-view="week">Semanal (7×24)</div>
+      <div class="tab" data-view="day">Diária</div>
     </div>
 
     <div class="kpis" id="kpis"></div>
@@ -183,91 +323,541 @@ button.primary{background:var(--gold);color:#000;font-weight:700}
 </main>
 
 <script>
+/* ===== Storage ===== */
 const LS='gpp_visitas_v1';
-let view='month', editId=null;
 
+/* ===== State ===== */
+let view='month';
+let editId=null;
+
+/* ===== Helpers ===== */
 const $=id=>document.getElementById(id);
-const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ');
+const pad2=n=>String(n).padStart(2,'0');
 
-function load(){return JSON.parse(localStorage.getItem(LS)||'[]')}
-function save(d){localStorage.setItem(LS,JSON.stringify(d))}
-function uid(){return 'V'+Math.random().toString(36).slice(2,9)}
+function norm(s){
+  return String(s||'')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .replace(/\s+/g,' ')
+    .trim();
+}
 
-function render(){
-  const all=load();
+function load(){
+  try{ return JSON.parse(localStorage.getItem(LS)||'[]'); }catch{ return []; }
+}
+function save(d){
+  localStorage.setItem(LS, JSON.stringify(d));
+}
+function uid(){
+  return 'V' + Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4);
+}
+
+function isoToday(){
+  const d=new Date();
+  return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());
+}
+
+function parseISO(ymd){
+  const m=String(ymd||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m) return null;
+  const dt=new Date(Date.UTC(+m[1], +m[2]-1, +m[3]));
+  return isNaN(dt.getTime())?null:dt;
+}
+
+function fmtPT(ymd){
+  const dt=parseISO(ymd);
+  if(!dt) return ymd||'—';
+  const local=new Date(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate());
+  return local.toLocaleDateString('pt-PT');
+}
+
+function weekBoundsFromRef(refYMD){
+  const dt=parseISO(refYMD) || parseISO(isoToday());
+  // Monday->Sunday
+  const local=new Date(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate());
+  const day=local.getDay(); // 0 Sun..1 Mon
+  const diffToMon = (day===0)? -6 : (1-day);
+  local.setDate(local.getDate()+diffToMon);
+  const start=new Date(Date.UTC(local.getFullYear(), local.getMonth(), local.getDate()));
+  const end=new Date(start);
+  end.setUTCDate(end.getUTCDate()+6);
+  const toYMD=(d)=>d.getUTCFullYear()+'-'+pad2(d.getUTCMonth()+1)+'-'+pad2(d.getUTCDate());
+  return {start, end, startYMD:toYMD(start), endYMD:toYMD(end)};
+}
+
+function addDays(ymd, n){
+  const dt=parseISO(ymd); if(!dt) return ymd;
+  const d=new Date(dt);
+  d.setUTCDate(d.getUTCDate()+n);
+  return d.getUTCFullYear()+'-'+pad2(d.getUTCMonth()+1)+'-'+pad2(d.getUTCDate());
+}
+
+function applyFilters(all){
   const f=$('filterConsultor').value;
   const q=norm($('q').value);
 
-  const list=all.filter(v=>{
+  return all.filter(v=>{
     if(f && v.consultor!==f) return false;
-    if(q && !norm(JSON.stringify(v)).includes(q)) return false;
+    if(q){
+      const blob=norm(JSON.stringify(v));
+      if(!blob.includes(q)) return false;
+    }
     return true;
   });
+}
 
-  // KPIs
+function isInRange(ymd, aYMD, bYMD){
+  return String(ymd||'') >= String(aYMD) && String(ymd||'') <= String(bYMD);
+}
+
+function safeHref(url){
+  const s=String(url||'').trim();
+  if(!s) return '';
+  // mantém simples, sem validações agressivas
+  return s;
+}
+
+/* ===== Render KPIs (visíveis no filtro/pesquisa) ===== */
+function renderKPIs(visibleList){
   const byCons={};
-  list.forEach(v=>byCons[v.consultor]=(byCons[v.consultor]||0)+1);
-  $('kpis').innerHTML=
-    `<div class="kpi"><b>${list.length}</b>Visitas</div>`+
-    Object.entries(byCons).map(([k,v])=>`<div class="kpi"><b>${v}</b>${k}</div>`).join('');
+  visibleList.forEach(v=>{
+    byCons[v.consultor]=(byCons[v.consultor]||0)+1;
+  });
 
-  // Calendar (lista inteligente)
-  $('calendar').innerHTML=list
+  const total = visibleList.length;
+
+  $('kpis').innerHTML =
+    `<div class="kpi"><b>${total}</b>Visitas (visíveis)</div>` +
+    Object.entries(byCons).map(([k,v])=>`<div class="kpi"><b>${v}</b>${k}</div>`).join('');
+}
+
+/* ===== UI: carregar/editar ===== */
+function startEdit(v){
+  editId=v.id;
+  $('consultor').value = v.consultor || $('consultor').value;
+  $('data').value = v.data || '';
+  $('hora').value = v.hora || '';
+  $('cliente').value = v.cliente || '';
+  $('ref').value = v.ref || '';
+  $('agencia').value = v.agencia || '';
+  $('link').value = v.link || '';
+  $('del').style.display = 'inline-flex';
+}
+
+function clearEdit(){
+  editId=null;
+  $('data').value = isoToday();
+  $('hora').value = '';
+  $('cliente').value = '';
+  $('ref').value = '';
+  $('agencia').value = '';
+  $('link').value = '';
+  $('del').style.display = 'none';
+}
+
+/* ===== Month list view ===== */
+function renderMonth(visibleList){
+  const ref = $('refDate').value;
+  const m = String(ref||isoToday()).slice(0,7); // YYYY-MM
+  const list = visibleList.filter(v=>String(v.data||'').slice(0,7)===m);
+
+  const box=document.createElement('div');
+  box.innerHTML = list
+    .slice()
     .sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora))
     .map(v=>`
-      <div class="event" onclick="edit('${v.id}')">
-        <b>${new Date(v.data).toLocaleDateString('pt-PT')} ${v.hora}</b><br>
-        ${v.cliente} · ${v.consultor}<br>
-        <span class="small">${v.ref} · ${v.agencia||'—'}</span>
+      <div class="event" data-id="${v.id}">
+        <b>${fmtPT(v.data)} ${v.hora || ''}</b><br>
+        ${escapeHtml(v.cliente||'—')} · ${escapeHtml(v.consultor||'—')}<br>
+        <span class="small">${escapeHtml(v.ref||'—')} · ${escapeHtml(v.agencia||'—')}</span>
       </div>
-    `).join('') || '<div class="small">Sem visitas</div>';
+    `).join('') || '<div class="small">Sem visitas neste mês (com o filtro/pesquisa atuais).</div>';
+
+  box.querySelectorAll('.event').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const id=el.getAttribute('data-id');
+      const v=load().find(x=>x.id===id);
+      if(v) startEdit(v);
+    });
+  });
+
+  $('calendar').innerHTML='';
+  $('calendar').appendChild(box);
 }
 
-function edit(id){
-  const v=load().find(x=>x.id===id);
-  if(!v) return;
-  editId=id;
-  ['consultor','data','hora','cliente','ref','agencia','link']
-    .forEach(k=>$(k).value=v[k]||'');
+/* ===== Day view ===== */
+function renderDay(visibleList){
+  const day = $('refDate').value || isoToday();
+  const list = visibleList
+    .filter(v=>String(v.data||'')===day)
+    .slice()
+    .sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
+
+  const box=document.createElement('div');
+  box.innerHTML = `
+    <div class="small" style="margin-bottom:10px"><b>Dia:</b> ${fmtPT(day)}</div>
+    ${list.map(v=>`
+      <div class="event" data-id="${v.id}">
+        <b>${v.hora || '—'}</b> — ${escapeHtml(v.cliente||'—')}<br>
+        <span class="small">${escapeHtml(v.consultor||'—')} · ${escapeHtml(v.ref||'—')} · ${escapeHtml(v.agencia||'—')}</span>
+      </div>
+    `).join('') || '<div class="small">Sem visitas neste dia (com o filtro/pesquisa atuais).</div>'}
+  `;
+
+  box.querySelectorAll('.event').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const id=el.getAttribute('data-id');
+      const v=load().find(x=>x.id===id);
+      if(v) startEdit(v);
+    });
+  });
+
+  $('calendar').innerHTML='';
+  $('calendar').appendChild(box);
 }
 
-$('save').onclick=()=>{
+/* ===== Week grid view (7×24) ===== */
+function renderWeek(visibleList){
+  const ref = $('refDate').value || isoToday();
+  const wb = weekBoundsFromRef(ref);
+  $('rangeLbl').textContent = `${fmtPT(wb.startYMD)} → ${fmtPT(wb.endYMD)}`;
+
+  // week list (for positioning)
+  const weekList = visibleList
+    .filter(v=>isInRange(v.data, wb.startYMD, wb.endYMD))
+    .slice();
+
+  // build shell
+  const wrap=document.createElement('div');
+  wrap.className='week-wrap';
+
+  const head=document.createElement('div');
+  head.className='week-grid week-head';
+
+  const names=['Hora','Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+
+  // header row
+  names.forEach((nm, i)=>{
+    const cell=document.createElement('div');
+    cell.className='cell';
+    if(i===0){
+      cell.textContent='Semana';
+      cell.innerHTML = `<div style="font-size:11px;opacity:.75">Semana</div><div style="font-size:12px;font-weight:900;letter-spacing:.06em;color:#fff">${fmtPT(wb.startYMD)} → ${fmtPT(wb.endYMD)}</div>`;
+    }else{
+      const dayYMD=addDays(wb.startYMD, i-1);
+      cell.innerHTML = `<div>${nm}</div><div style="opacity:.75;margin-top:2px">${fmtPT(dayYMD)}</div>`;
+    }
+    head.appendChild(cell);
+  });
+
+  const body=document.createElement('div');
+  body.className='week-body';
+
+  const grid=document.createElement('div');
+  grid.className='week-grid';
+
+  // create columns and a layer per day to position events
+  const dayLayers=[];
+
+  // 24 rows
+  for(let h=0; h<24; h++){
+    // time label cell
+    const t=document.createElement('div');
+    t.className='cell time';
+    t.textContent = pad2(h)+':00';
+    grid.appendChild(t);
+
+    // 7 day cells
+    for(let d=0; d<7; d++){
+      const c=document.createElement('div');
+      c.className='cell slot week-col';
+      c.setAttribute('data-day', String(d)); // 0..6
+
+      // only create one layer per column (first hour row)
+      if(h===0){
+        const layer=document.createElement('div');
+        layer.className='week-events-layer';
+        c.appendChild(layer);
+        dayLayers[d]=layer;
+      }
+      grid.appendChild(c);
+    }
+  }
+
+  body.appendChild(grid);
+  wrap.appendChild(head);
+  wrap.appendChild(body);
+
+  // position events
+  // each event shown as 1-hour block by default
+  weekList.forEach(v=>{
+    const dayIndex = dayIndexFromYMD(wb.startYMD, v.data); // 0..6
+    if(dayIndex==null || dayIndex<0 || dayIndex>6) return;
+
+    const layer = dayLayers[dayIndex];
+    if(!layer) return;
+
+    const hhmm = String(v.hora||'').trim();
+    const hm = hhmm.match(/^(\d{2}):(\d{2})$/);
+    if(!hm) return;
+
+    const h = +hm[1];
+    const min = +hm[2];
+    if(isNaN(h) || h<0 || h>23) return;
+
+    // compute top based on hour rows
+    const top = (h * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--slotH'))) + (min/60 * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--slotH')));
+    const height = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--slotH')); // 1 hour
+
+    const el=document.createElement('div');
+    el.className='week-event';
+    el.style.top = top + 'px';
+    el.style.height = Math.max(34, height - 10) + 'px';
+
+    el.innerHTML = `
+      <div class="t">${escapeHtml(v.hora||'—')} · ${escapeHtml(v.consultor||'—')}</div>
+      <div class="d">${escapeHtml(v.cliente||'—')}</div>
+      <div class="m">${escapeHtml(v.ref||'—')} · ${escapeHtml(v.agencia||'—')}</div>
+    `;
+
+    el.addEventListener('click', ()=>{
+      const full=load().find(x=>x.id===v.id);
+      if(full) startEdit(full);
+    });
+
+    layer.appendChild(el);
+  });
+
+  // if empty
+  if(weekList.length===0){
+    const empty=document.createElement('div');
+    empty.className='small';
+    empty.style.padding='10px';
+    empty.textContent='Sem visitas nesta semana (com o filtro/pesquisa atuais).';
+    wrap.appendChild(empty);
+  }
+
+  $('calendar').innerHTML='';
+  $('calendar').appendChild(wrap);
+}
+
+/* ===== Export Weekly PDF (visible week + current filters) ===== */
+function exportWeekPDF(){
+  // força a semana atual visível
+  const ref = $('refDate').value || isoToday();
+  const wb = weekBoundsFromRef(ref);
+
+  const all = load();
+  const visible = applyFilters(all);
+
+  const weekList = visible
+    .filter(v=>isInRange(v.data, wb.startYMD, wb.endYMD))
+    .slice()
+    .sort((a,b)=>(a.data + (a.hora||'')).localeCompare(b.data + (b.hora||'')));
+
+  // build a print window
+  const w = window.open('', '_blank');
+  if(!w){ alert('O navegador bloqueou a janela de impressão. Permita popups para este site.'); return; }
+
+  const title = `Agenda semanal — ${fmtPT(wb.startYMD)} a ${fmtPT(wb.endYMD)}`;
+  const f = $('filterConsultor').value;
+  const q = $('q').value.trim();
+
+  const rows = weekList.map(v=>{
+    const link = safeHref(v.link);
+    return `
+      <tr>
+        <td>${escapeHtml(fmtPT(v.data))}</td>
+        <td>${escapeHtml(v.hora||'—')}</td>
+        <td>${escapeHtml(v.consultor||'—')}</td>
+        <td>${escapeHtml(v.cliente||'—')}</td>
+        <td>${escapeHtml(v.ref||'—')}</td>
+        <td>${escapeHtml(v.agencia||'—')}</td>
+        <td>${link ? `<a href="${escapeHtml(link)}">${escapeHtml(link)}</a>` : '—'}</td>
+      </tr>
+    `;
+  }).join('');
+
+  w.document.open();
+  w.document.write(`
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escapeHtml(title)}</title>
+<style>
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:18px;color:#111}
+  h1{margin:0 0 6px;font-size:18px;letter-spacing:.06em}
+  .sub{color:#555;font-size:12px;margin-bottom:12px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th,td{border:1px solid #ddd;padding:8px;vertical-align:top}
+  th{background:#f5f5f5;text-align:left}
+  a{color:#111}
+  .meta{margin-top:10px;color:#666;font-size:11px}
+  @page{margin:12mm}
+</style>
+</head>
+<body>
+  <h1>${escapeHtml(title)}</h1>
+  <div class="sub">Garvetur Porto Pro — Visitas (Admin)</div>
+
+  <div class="meta">
+    <b>Filtro consultor:</b> ${escapeHtml(f || '—')} &nbsp; | &nbsp;
+    <b>Pesquisa:</b> ${escapeHtml(q || '—')} &nbsp; | &nbsp;
+    <b>Total visitas na semana:</b> ${weekList.length}
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Hora</th>
+        <th>Consultor</th>
+        <th>Cliente</th>
+        <th>Ref. Garvetur</th>
+        <th>Agência</th>
+        <th>Link</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows || `<tr><td colspan="7">Sem visitas nesta semana (com o filtro/pesquisa atuais).</td></tr>`}
+    </tbody>
+  </table>
+</body>
+</html>
+  `);
+  w.document.close();
+
+  // dá tempo para renderizar e imprime
+  w.focus();
+  setTimeout(()=>{ w.print(); }, 250);
+}
+
+/* ===== Utilities ===== */
+function dayIndexFromYMD(startMonYMD, ymd){
+  if(!startMonYMD || !ymd) return null;
+  // compare by incremental days
+  let cur=startMonYMD;
+  for(let i=0;i<7;i++){
+    if(cur===ymd) return i;
+    cur=addDays(cur,1);
+  }
+  return null;
+}
+
+function escapeHtml(s){
+  return String(s ?? '')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'",'&#039;');
+}
+
+/* ===== Main render dispatcher ===== */
+function render(){
+  const all = load();
+  const visible = applyFilters(all);
+
+  // KPIs globais do filtro/pesquisa (não dependem da vista)
+  renderKPIs(visible);
+
+  // range label atual (semana do refDate)
+  const wb = weekBoundsFromRef($('refDate').value || isoToday());
+  $('rangeLbl').textContent = `${fmtPT(wb.startYMD)} → ${fmtPT(wb.endYMD)}`;
+
+  if(view==='week') renderWeek(visible);
+  else if(view==='day') renderDay(visible);
+  else renderMonth(visible);
+}
+
+/* ===== Events: Tabs ===== */
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    view = t.getAttribute('data-view') || 'month';
+    render();
+  });
+});
+
+/* ===== Buttons ===== */
+$('btnApply').addEventListener('click', render);
+$('btnClear').addEventListener('click', ()=>{
+  $('filterConsultor').value='';
+  $('q').value='';
+  render();
+});
+$('filterConsultor').addEventListener('change', render);
+$('q').addEventListener('input', ()=>{
+  clearTimeout(window.__tq);
+  window.__tq = setTimeout(render, 140);
+});
+
+$('btnPdf').addEventListener('click', exportWeekPDF);
+
+/* ===== Date navigation ===== */
+$('refDate').addEventListener('change', render);
+
+$('btnPrev').addEventListener('click', ()=>{
+  const ref = $('refDate').value || isoToday();
+  if(view==='day') $('refDate').value = addDays(ref, -1);
+  else $('refDate').value = addDays(ref, -7);
+  render();
+});
+$('btnNext').addEventListener('click', ()=>{
+  const ref = $('refDate').value || isoToday();
+  if(view==='day') $('refDate').value = addDays(ref, +1);
+  else $('refDate').value = addDays(ref, +7);
+  render();
+});
+
+/* ===== CRUD ===== */
+$('save').addEventListener('click', ()=>{
   const rec={
-    id:editId||uid(),
-    consultor:$('consultor').value,
-    data:$('data').value,
-    hora:$('hora').value,
-    cliente:$('cliente').value,
-    ref:$('ref').value,
-    agencia:$('agencia').value,
-    link:$('link').value
+    id: editId || uid(),
+    consultor: $('consultor').value,
+    data: ($('data').value || '').trim(),
+    hora: ($('hora').value || '').trim(),
+    cliente: ($('cliente').value || '').trim(),
+    ref: ($('ref').value || '').trim(),
+    agencia: ($('agencia').value || '').trim(),
+    link: ($('link').value || '').trim(),
+    updatedAt: new Date().toISOString(),
+    createdAt: editId ? undefined : new Date().toISOString()
   };
+
+  if(!rec.data){ alert('Obrigatório: Data da visita.'); return; }
+  if(!rec.hora){ alert('Obrigatório: Hora da visita.'); return; }
+  if(!rec.cliente){ alert('Obrigatório: Nome do cliente.'); return; }
+
   let all=load().filter(v=>v.id!==rec.id);
   all.push(rec);
   save(all);
-  editId=null;
-  $('reset').click();
+
+  clearEdit();
   render();
-};
-
-$('reset').onclick=()=>{
-  editId=null;
-  ['cliente','ref','agencia','link'].forEach(id=>$(id).value='');
-};
-
-document.querySelectorAll('.tab').forEach(t=>{
-  t.onclick=()=>{
-    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-    t.classList.add('active');
-    view=t.dataset.view;
-    render();
-  };
 });
 
-$('filterConsultor').onchange=render;
-$('q').oninput=render;
+$('reset').addEventListener('click', clearEdit);
 
-render();
+$('del').addEventListener('click', ()=>{
+  if(!editId) return;
+  if(!confirm('Confirmar: apagar esta visita?')) return;
+  const all=load().filter(v=>v.id!==editId);
+  save(all);
+  clearEdit();
+  render();
+});
+
+/* ===== Boot ===== */
+(function boot(){
+  $('refDate').value = isoToday();
+  $('data').value = isoToday();
+  render();
+})();
 </script>
 
 </body>
