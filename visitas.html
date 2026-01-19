@@ -589,36 +589,123 @@ function renderWeek(visibleList){
   wrap.appendChild(head);
   wrap.appendChild(body);
 
-  // position events
-  // each event shown as 1-hour block by default
-  weekList.forEach(v=>{
-    const dayIndex = dayIndexFromYMD(wb.startYMD, v.data); // 0..6
-    if(dayIndex==null || dayIndex<0 || dayIndex>6) return;
+ // position events (com duração + overlap lado-a-lado)
+const slotH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--slotH')) || 46;
 
-    const layer = dayLayers[dayIndex];
-    if(!layer) return;
+// Agrupa por dia (0..6) e prepara eventos com start/end em minutos
+const byDay = Array.from({length:7}, ()=>[]);
+weekList.forEach(v=>{
+  const dayIndex = dayIndexFromYMD(wb.startYMD, v.data);
+  if(dayIndex==null || dayIndex<0 || dayIndex>6) return;
 
-    const hhmm = String(v.hora||'').trim();
-    const hm = hhmm.match(/^(\d{2}):(\d{2})$/);
-    if(!hm) return;
+  const hm = String(v.hora||'').trim().match(/^(\d{2}):(\d{2})$/);
+  if(!hm) return;
 
-    const h = +hm[1];
-    const min = +hm[2];
-    if(isNaN(h) || h<0 || h>23) return;
+  const h = +hm[1], m = +hm[2];
+  if(isNaN(h) || h<0 || h>23 || isNaN(m) || m<0 || m>59) return;
 
-    // compute top based on hour rows
-    const top = (h * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--slotH'))) + (min/60 * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--slotH')));
-    const height = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--slotH')); // 1 hour
+  const startMin = h*60 + m;
+  const durMin = Math.max(10, parseInt(v.durMin||60, 10) || 60);
+  const endMin = Math.min(24*60, startMin + durMin);
+
+  byDay[dayIndex].push({
+    v,
+    startMin,
+    endMin,
+    lane: 0,
+    lanes: 1
+  });
+});
+
+// atribuir lanes para overlaps (interval partitioning simples)
+function layoutDay(events){
+  events.sort((a,b)=> a.startMin - b.startMin || a.endMin - b.endMin);
+
+  const active = [];     // {endMin, lane}
+  const freeLanes = [];  // lanes disponíveis
+  let nextLane = 0;
+
+  const groups = [];
+  let g = null;
+
+  function closeGroup(){
+    if(g){
+      const lanesTotal = g.maxLane + 1;
+      g.items.forEach(it => it.lanes = lanesTotal);
+      groups.push(g);
+      g = null;
+    }
+  }
+
+  for(const e of events){
+    // libertar lanes terminadas
+    for(let i=active.length-1;i>=0;i--){
+      if(active[i].endMin <= e.startMin){
+        freeLanes.push(active[i].lane);
+        active.splice(i,1);
+      }
+    }
+
+    // novo grupo quando não há ativos
+    if(active.length===0){
+      closeGroup();
+      g = { items: [], maxLane: 0 };
+    }
+
+    // escolher lane
+    let lane;
+    if(freeLanes.length){
+      lane = freeLanes.shift();
+    }else{
+      lane = nextLane++;
+    }
+    e.lane = lane;
+
+    // atualizar grupo
+    if(g){
+      g.items.push(e);
+      g.maxLane = Math.max(g.maxLane, lane);
+    }
+
+    active.push({ endMin: e.endMin, lane });
+    active.sort((a,b)=>a.endMin-b.endMin);
+  }
+
+  closeGroup();
+  return events;
+}
+
+// Render por dia com lanes (overlap)
+for(let d=0; d<7; d++){
+  const dayEvents = layoutDay(byDay[d]);
+  const layer = dayLayers[d];
+  if(!layer) continue;
+
+  dayEvents.forEach(e=>{
+    const v = e.v;
+
+    const top = (e.startMin / 60) * slotH;
+    const height = Math.max(34, ((e.endMin - e.startMin) / 60) * slotH - 10);
+
+    const lanes = Math.max(1, e.lanes || 1);
+    const lane = Math.min(lanes-1, e.lane || 0);
+    const gap = 6;
+
+    const laneWidth = (100 / lanes);
+    const leftPct = laneWidth * lane;
+    const rightPct = 100 - laneWidth * (lane + 1);
 
     const el=document.createElement('div');
     el.className='week-event';
     el.style.top = top + 'px';
-    el.style.height = Math.max(34, height - 10) + 'px';
+    el.style.height = height + 'px';
+    el.style.left = `calc(${leftPct}% + ${gap}px)`;
+    el.style.right = `calc(${rightPct}% + ${gap}px)`;
 
     el.innerHTML = `
       <div class="t">${escapeHtml(v.hora||'—')} · ${escapeHtml(v.consultor||'—')}</div>
       <div class="d">${escapeHtml(v.cliente||'—')}</div>
-      <div class="m">${escapeHtml(v.ref||'—')} · ${escapeHtml(v.agencia||'—')}</div>
+      <div class="m">${escapeHtml(v.ref||'—')} · ${escapeHtml(v.agencia||'—')} · ${escapeHtml(String(v.durMin||60)+' min')}</div>
     `;
 
     el.addEventListener('click', ()=>{
@@ -628,7 +715,7 @@ function renderWeek(visibleList){
 
     layer.appendChild(el);
   });
-
+}
   // if empty
   if(weekList.length===0){
     const empty=document.createElement('div');
