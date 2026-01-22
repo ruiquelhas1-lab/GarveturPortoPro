@@ -726,14 +726,12 @@ for(let d=0; d<7; d++){
 /* 👉 PASSO 3 — ESTE BLOCO TEM DE FICAR AQUI */
 const a = el.querySelector('a[data-open-link]');
 if(a){
+  a.setAttribute('rel','noopener noreferrer');
   a.addEventListener('click', (ev)=>{
-    ev.preventDefault();
-    ev.stopPropagation(); // impede abrir edição
-    const url = String(v.link || '').trim();
-    if(url) window.open(url, '_blank', 'noopener');
+    ev.stopPropagation(); // só isto (não editar)
+    // NÃO usar preventDefault, NÃO usar window.open
   });
 }
-
 /* clique no cartão = editar */
 el.addEventListener('click', (ev)=>{
   // se clicou no link, não editar
