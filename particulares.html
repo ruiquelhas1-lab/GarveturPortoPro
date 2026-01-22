@@ -2392,6 +2392,15 @@ if(texto.includes(s)) return true;
     });
   }
 
+  function normStr(s){
+  return String(s||'')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
   function parseMoneyToInt(v){
   const s = String(v ?? '').trim();
   const digits = s.replace(/[^\d]/g,'');
