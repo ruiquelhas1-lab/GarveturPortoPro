@@ -713,11 +713,14 @@ for(let d=0; d<7; d++){
     el.style.left = `calc(${leftPct}% + ${gap}px)`;
     el.style.right = `calc(${rightPct}% + ${gap}px)`;
 
-    el.innerHTML = `
-      <div class="t">${escapeHtml(v.hora||'—')} · ${escapeHtml(v.consultor||'—')}</div>
-      <div class="d">${escapeHtml(v.cliente||'—')}</div>
-      <div class="m">${escapeHtml(v.ref||'—')} · ${escapeHtml(v.agencia||'—')} · ${escapeHtml(String(v.durMin||60)+' min')}</div>
-    `;
+   el.innerHTML = `
+  <div class="t">${escapeHtml(v.hora||'—')} · ${escapeHtml(v.consultor||'—')}</div>
+  <div class="d">${escapeHtml(v.cliente||'—')}</div>
+  <div class="m">
+    ${escapeHtml(v.ref||'—')} · ${escapeHtml(v.agencia||'—')} · ${escapeHtml(String(v.durMin||60)+' min')}
+    ${v.link ? `<br><a href="${escapeHtml(v.link)}" target="_blank" style="color:#A38B63;text-decoration:none;font-weight:700">Abrir imóvel</a>` : ''}
+  </div>
+`;
 
     el.addEventListener('click', ()=>{
       const full=load().find(x=>x.id===v.id);
