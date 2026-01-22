@@ -2344,14 +2344,35 @@ const s = normalizar(search);
     return x;
   };
 
-  const texto = normalizar([
-    d.tituloImovel, d.concelho, d.freguesia, d.zona,
-    d.portal, d.consultor, d.refAngariacao,
-    d.ownerName, d.ownerPhone, d.ownerEmail
-  ].filter(Boolean).join(' '));
+  // --- Pesquisa rápida com tratamento especial para tipologia (T1 ≠ T2/T3) ---
 
-  // pesquisa textual normal
-  if(texto.includes(s)) return true;
+// detectar pesquisa de tipologia exata (T0, T1, T2, T3, T4, T5, etc.)
+const tipMatch = s.match(/^t\s*(\d)(\+?\d)?$/i);
+
+if(tipMatch){
+  const tip = ('T' + tipMatch[1] + (tipMatch[2] || '')).toUpperCase();
+  if((d.tipologia || '').toUpperCase() === tip){
+    return true;
+  }
+  return false; // evita T1 apanhar T2/T3
+}
+
+// pesquisa textual genérica (fallback)
+const texto = normalizar([
+  d.tituloImovel,
+  d.tipologia,
+  d.concelho,
+  d.freguesia,
+  d.zona,
+  d.portal,
+  d.consultor,
+  d.refAngariacao,
+  d.ownerName,
+  d.ownerPhone,
+  d.ownerEmail
+].filter(Boolean).join(' '));
+
+if(texto.includes(s)) return true;
 
   // pesquisa por telefone (robusta)
   const sPhone = normalizarTelefone(search);
