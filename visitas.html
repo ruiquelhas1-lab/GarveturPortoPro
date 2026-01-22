@@ -441,7 +441,18 @@ function startEdit(v){
   $('cliente').value = v.cliente || '';
   $('ref').value = v.ref || '';
   $('agencia').value = v.agencia || '';
-  $('link').value = v.link || '';
+ const linkInput = $('link');
+linkInput.value = v.link || '';
+
+if(v.link){
+  linkInput.style.cursor = 'pointer';
+  linkInput.title = 'Abrir link do imóvel';
+  linkInput.onclick = () => {
+    window.open(v.link, '_blank', 'noopener');
+  };
+}else{
+  linkInput.onclick = null;
+}
   $('del').style.display = 'inline-flex';
 }
 
