@@ -2246,26 +2246,31 @@ if((data.percentAjust === null || data.percentAjust === undefined) &&
     }
   }
 
-  function saveFilterStateFromUI(){
-    const data = {
-      consultor: filterConsultor.value || '',
-      portal: filterPortal.value || '',
-      estado: filterEstado.value || '',
-      searchText: filterSearchText.value || '',
-        natureza: filterNatureza.value || '',
-  tipologiaExact: filterTipologiaExact.value || '',
-  precoMin: filterPrecoMin.value || '',
-  precoMax: filterPrecoMax.value || '',
-  concelho: filterConcelho.value || ''
-      de: filterDataDe.value || '',
-      ate: filterDataAte.value || '',
-      mostrarInvisiveis: filterShowHidden.checked,
-      soInvisiveis: filterOnlyHidden.checked
-    };
-    try{ localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(data)); }
-    catch(e){ console.error('Erro a guardar filtros de FSBO', e); }
-  }
+ function saveFilterStateFromUI(){
+  const data = {
+    consultor: filterConsultor.value || '',
+    portal: filterPortal.value || '',
+    estado: filterEstado.value || '',
+    searchText: filterSearchText.value || '',
 
+    natureza: filterNatureza.value || '',
+    tipologiaExact: filterTipologiaExact.value || '',
+    precoMin: filterPrecoMin.value || '',
+    precoMax: filterPrecoMax.value || '',
+    concelho: filterConcelho.value || '',
+
+    de: filterDataDe.value || '',
+    ate: filterDataAte.value || '',
+    mostrarInvisiveis: !!filterShowHidden.checked,
+    soInvisiveis: !!filterOnlyHidden.checked
+  };
+
+  try{
+    localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(data));
+  }catch(e){
+    console.error('Erro a guardar filtros de Particulares', e);
+  }
+}
   function applyFilters(items){
     const cons = filterConsultor.value;
     const portal = filterPortal.value;
