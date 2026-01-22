@@ -4360,6 +4360,30 @@ closeModal();
   renderCards();
 });
 
+  // Atualização automática ao alterar filtros avançados
+['change','input'].forEach(evt=>{
+  filterNatureza.addEventListener(evt, ()=>{
+    saveFilterStateFromUI();
+    renderCards();
+  });
+  filterTipologiaExact.addEventListener(evt, ()=>{
+    saveFilterStateFromUI();
+    renderCards();
+  });
+  filterPrecoMin.addEventListener(evt, ()=>{
+    saveFilterStateFromUI();
+    renderCards();
+  });
+  filterPrecoMax.addEventListener(evt, ()=>{
+    saveFilterStateFromUI();
+    renderCards();
+  });
+  filterConcelho.addEventListener(evt, ()=>{
+    saveFilterStateFromUI();
+    renderCards();
+  });
+});
+
   exportCsvBtn.addEventListener('click', exportCsv);
   importCsvBtn.addEventListener('click', handleImportCsv);
   exportPdfBtn.addEventListener('click', exportPdfAll);
