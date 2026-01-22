@@ -2221,8 +2221,12 @@ if((data.percentAjust === null || data.percentAjust === undefined) &&
         return false;
       }
 
-      if(from && d.dataIdentificacao && d.dataIdentificacao < from) return false;
-      if(to && d.dataIdentificacao && d.dataIdentificacao > to) return false;
+           // Filtro por data de identificação do anúncio
+      // Se o utilizador definiu um intervalo, registos SEM data não devem aparecer
+      if((from || to) && !d.dataIdentificacao) return false;
+
+      if(from && d.dataIdentificacao < from) return false;
+      if(to && d.dataIdentificacao > to) return false;
 
      if(search){
 
