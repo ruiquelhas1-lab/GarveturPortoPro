@@ -722,10 +722,13 @@ for(let d=0; d<7; d++){
   </div>
 `;
 
-    el.addEventListener('click', ()=>{
-      const full=load().find(x=>x.id===v.id);
-      if(full) startEdit(full);
-    });
+   el.addEventListener('click', (ev)=>{
+  // Se clicou num link dentro do cartão, NÃO abrir edição
+  if(ev.target && ev.target.closest && ev.target.closest('a')) return;
+
+  const full = load().find(x=>x.id===v.id);
+  if(full) startEdit(full);
+});
 
     layer.appendChild(el);
   });
