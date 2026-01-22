@@ -2336,6 +2336,14 @@ const s = normalizar(search);
     });
   }
 
+  function parseMoneyToInt(v){
+  const s = String(v ?? '').trim();
+  const digits = s.replace(/[^\d]/g,'');
+  if(!digits) return null;
+  const n = parseInt(digits, 10);
+  return isFinite(n) ? n : null;
+}
+
   function formatMoney(v){
     const n = parseFloat(String(v).replace(',', '.'));
     if(!isFinite(n)) return '';
