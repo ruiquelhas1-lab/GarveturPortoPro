@@ -2294,6 +2294,36 @@ if((data.percentAjust === null || data.percentAjust === undefined) &&
       if(from && d.dataIdentificacao < from) return false;
       if(to && d.dataIdentificacao > to) return false;
 
+      // ===== Filtros rápidos (estruturados) =====
+const natureza = normStr(filterNatureza.value || '');
+if(natureza){
+  // não existe campo "natureza" explícito no dataset, logo fazemos match por texto (título/observações)
+  const blobNat = normStr([d.tituloImovel, d.observacoes].filter(Boolean).join(' '));
+  if(!blobNat.includes(natureza)) return false;
+}
+
+const tipExact = normStr(filterTipologiaExact.value || '');
+if(tipExact){
+  const tipRec = normStr(d.tipologia || '').replace(/\s+/g,'');
+  const tipQ   = tipExact.replace(/\s+/g,'');
+  if(!tipRec || tipRec !== tipQ) return false;
+}
+
+const concelhoQ = normStr(filterConcelho.value || '');
+if(concelhoQ){
+  const concRec = normStr(d.concelho || '');
+  if(!concRec.includes(concelhoQ)) return false;
+}
+
+const pMin = parseMoneyToInt(filterPrecoMin.value);
+const pMax = parseMoneyToInt(filterPrecoMax.value);
+if(pMin != null || pMax != null){
+  const pRec = parseMoneyToInt(d.precoAnuncio);
+  if(pRec == null) return false; // se não tem preço, não entra num filtro por preço
+  if(pMin != null && pRec < pMin) return false;
+  if(pMax != null && pRec > pMax) return false;
+}
+
      if(search){
 
   const normalizar = (v)=>{
