@@ -4281,18 +4281,25 @@ closeModal();
     renderCards();
   });
 
-  filterClearBtn.addEventListener('click', ()=>{
-    filterConsultor.value = '';
-    filterPortal.value = '';
-    filterEstado.value = '';
-    filterSearchText.value = '';
-    filterDataDe.value = '';
-    filterDataAte.value = '';
-    filterShowHidden.checked = false;
-    filterOnlyHidden.checked = false;
-    saveFilterStateFromUI();
-    renderCards();
-  });
+ filterClearBtn.addEventListener('click', ()=>{
+  filterConsultor.value = '';
+  filterPortal.value = '';
+  filterEstado.value = '';
+  filterSearchText.value = '';
+  filterDataDe.value = '';
+  filterDataAte.value = '';
+
+  filterNatureza.value = '';
+  filterTipologia.value = '';
+  filterPrecoMin.value = '';
+  filterPrecoMax.value = '';
+  filterConcelho.value = '';
+
+  filterShowHidden.checked = false;
+  filterOnlyHidden.checked = false;
+  saveFilterStateFromUI();
+  renderCards();
+});
 
   exportCsvBtn.addEventListener('click', exportCsv);
   importCsvBtn.addEventListener('click', handleImportCsv);
