@@ -4360,28 +4360,16 @@ closeModal();
   renderCards();
 });
 
-  // Atualização automática ao alterar filtros avançados
+ // Atualização automática ao alterar filtros avançados (sem bloquear se algum ID não existir)
 ['change','input'].forEach(evt=>{
-  filterNatureza.addEventListener(evt, ()=>{
-    saveFilterStateFromUI();
-    renderCards();
-  });
-  filterTipologiaExact.addEventListener(evt, ()=>{
-    saveFilterStateFromUI();
-    renderCards();
-  });
-  filterPrecoMin.addEventListener(evt, ()=>{
-    saveFilterStateFromUI();
-    renderCards();
-  });
-  filterPrecoMax.addEventListener(evt, ()=>{
-    saveFilterStateFromUI();
-    renderCards();
-  });
-  filterConcelho.addEventListener(evt, ()=>{
-    saveFilterStateFromUI();
-    renderCards();
-  });
+  [filterNatureza, filterTipologiaExact, filterPrecoMin, filterPrecoMax, filterConcelho]
+    .filter(Boolean)
+    .forEach(el=>{
+      el.addEventListener(evt, ()=>{
+        saveFilterStateFromUI();
+        renderCards();
+      });
+    });
 });
 
   exportCsvBtn.addEventListener('click', exportCsv);
