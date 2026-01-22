@@ -713,24 +713,37 @@ for(let d=0; d<7; d++){
     el.style.left = `calc(${leftPct}% + ${gap}px)`;
     el.style.right = `calc(${rightPct}% + ${gap}px)`;
 
-   el.innerHTML = `
+ el.innerHTML = `
   <div class="t">${escapeHtml(v.hora||'—')} · ${escapeHtml(v.consultor||'—')}</div>
   <div class="d">${escapeHtml(v.cliente||'—')}</div>
   <div class="m">
     ${escapeHtml(v.ref||'—')} · ${escapeHtml(v.agencia||'—')} · ${escapeHtml(String(v.durMin||60)+' min')}
-    ${v.link ? `<br><a href="${escapeHtml(v.link)}" target="_blank" style="color:#A38B63;text-decoration:none;font-weight:700">Abrir imóvel</a>` : ''}
+    ${v.link ? `<br><a data-open-link href="${escapeHtml(v.link)}" target="_blank"
+      style="color:#A38B63;text-decoration:none;font-weight:700">Abrir imóvel</a>` : ''}
   </div>
 `;
 
-   el.addEventListener('click', (ev)=>{
-  // Se clicou num link dentro do cartão, NÃO abrir edição
+/* 👉 PASSO 3 — ESTE BLOCO TEM DE FICAR AQUI */
+const a = el.querySelector('a[data-open-link]');
+if(a){
+  a.addEventListener('click', (ev)=>{
+    ev.preventDefault();
+    ev.stopPropagation(); // impede abrir edição
+    const url = String(v.link || '').trim();
+    if(url) window.open(url, '_blank', 'noopener');
+  });
+}
+
+/* clique no cartão = editar */
+el.addEventListener('click', (ev)=>{
+  // se clicou no link, não editar
   if(ev.target && ev.target.closest && ev.target.closest('a')) return;
 
   const full = load().find(x=>x.id===v.id);
   if(full) startEdit(full);
 });
 
-    layer.appendChild(el);
+layer.appendChild(el);
   });
 }
   // if empty
