@@ -1579,32 +1579,32 @@ const propostaObj = {
 
   const lead={
     id: $('saveLead').dataset.editId || uid(),
-    estado: estadoFinal,
+
+        estado: estadoFinal,
     // === Histórico de estados (multi-estado) ===
 
-// Lista única de estados por onde a lead passou
-estados: (()=>{
-  const prev = (Array.isArray(edit?.estados) ? edit.estados : []);
-  const curr = Array.isArray(PICKED_STATES) ? PICKED_STATES : [estadoFinal];
-  return Array.from(new Set([...prev, ...curr]));
-})(),
+    // Lista única de estados por onde a lead passou
+    estados: (()=> {
+      const prev = (existing && Array.isArray(existing.estados)) ? existing.estados : [];
+      const curr = Array.isArray(PICKED_STATES) && PICKED_STATES.length ? PICKED_STATES : [estadoFinal];
+      return Array.from(new Set([...prev, ...curr]));
+    })(),
 
-// Log temporal: quando cada estado foi atingido pela 1ª vez
-estadosHist: (()=>{
-  const prev = (edit && edit.estadosHist && typeof edit.estadosHist === 'object')
-    ? {...edit.estadosHist}
-    : {};
+    // Log temporal: quando cada estado foi registado pela 1.ª vez
+    estadosHist: (()=> {
+      const prev = (existing && existing.estadosHist && typeof existing.estadosHist === 'object')
+        ? { ...existing.estadosHist }
+        : {};
+      const now = new Date().toISOString();
 
-  const now = new Date().toISOString();
+      const curr = Array.isArray(PICKED_STATES) && PICKED_STATES.length ? PICKED_STATES : [estadoFinal];
+      curr.forEach(st=>{
+        if(!prev[st]) prev[st] = now;
+      });
 
-  (Array.isArray(PICKED_STATES) ? PICKED_STATES : [estadoFinal]).forEach(st=>{
-    if(!prev[st]){
-      prev[st] = now; // regista apenas a primeira vez
-    }
-  });
-
-  return prev;
-})(),
+      return prev;
+    })(),
+    
     nome: get('ld_nome'),
     consultor: get('ld_consultor'),
     contacto: get('ld_contacto'),
