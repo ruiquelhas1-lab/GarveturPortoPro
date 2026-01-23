@@ -808,13 +808,23 @@ $('kVis').textContent = String(visitasWeek.length);
 
 const propEvents = new Set();
 
-    function ymdFromAnyDate(raw){
-  const dt = parseISODateUTC(raw);
+   function ymdFromAnyDate(raw){
+  const s = String(raw || '').trim();
+  if(!s) return '';
+
+  // 1) tenta o parser “controlado” (YYYY-MM-DD / DD/MM/YYYY)
+  let dt = parseISODateUTC(s);
+
+  // 2) fallback: aceita ISO com hora (ex.: 2026-01-23T10:34:12.000Z)
+  if(!dt){
+    const d2 = new Date(s);
+    if(!isNaN(d2.getTime())){
+      dt = new Date(Date.UTC(d2.getFullYear(), d2.getMonth(), d2.getDate()));
+    }
+  }
+
   if(!dt) return '';
-  const y = dt.getUTCFullYear();
-  const m = String(dt.getUTCMonth()+1).padStart(2,'0');
-  const d = String(dt.getUTCDate()).padStart(2,'0');
-  return `${y}-${m}-${d}`;
+  return isoYMD(dt);
 }
 
 leads.forEach((l, idxLead) => {
