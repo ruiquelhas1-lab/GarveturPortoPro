@@ -833,52 +833,74 @@ leads.forEach((l, idxLead) => {
   // id estável por lead (se não existir, cai para o índice)
   const lid = (l.id != null && String(l.id).trim()) ? String(l.id) : String(idxLead);
 
-  // ===== ETAPA "PROPOSTA" (multi-estado) =====
-  const estadosArr = Array.isArray(l.estados)
-    ? l.estados
-    : (typeof l.estados === 'string'
-        ? l.estados.split(',').map(s=>String(s||'').trim()).filter(Boolean)
-        : []);
+   // ===== ETAPA "PROPOSTA" (multi-estado) =====
+  // Normalizador (minúsculas + sem acentos + trim)
+  const _norm = (s)=>String(s||'')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .trim();
 
-  // compatibilidade legado
+  // 1) Obter array de estados de forma robusta
+  let estadosArr = [];
+  if(Array.isArray(l.estados)){
+    estadosArr = l.estados.slice();
+  }else if(typeof l.estados === 'string'){
+    // aceita separadores comuns (vírgula, ponto e vírgula, barra, pipe)
+    estadosArr = l.estados.split(/[;,|/]/g).map(s=>String(s||'').trim()).filter(Boolean);
+  }
+
+  // compat legado (estado único)
   if(!estadosArr.length && l.estado) estadosArr.push(l.estado);
 
-  if(estadosArr.includes('Proposta')){
-    const histObj =
-      (l && l.estadosHist && typeof l.estadosHist === 'object')
-        ? l.estadosHist
-        : null;
+  const estadosNorm = estadosArr.map(_norm).filter(Boolean);
+  const hasProposta = estadosNorm.includes('proposta');
 
-    // formato atual do Kanban:
-    // estadosHist = { Proposta: "2026-01-23T10:34:12.000Z", ... }
-    let rawHist = '';
+  // 2) Ler a data/hora da etapa "Proposta" no histórico (se existir), em qualquer formato
+  function getStageHistDate(hist, stageNorm){
+    if(!hist) return '';
 
-if(histObj){
-  // Caso A: estadosHist como objeto { Proposta: "ISO..." }
-  rawHist = (histObj['Proposta'] || histObj.Proposta || '');
+    // Caso A: estadosHist como ARRAY: [{estado:"Proposta", data:"..."}]
+    if(Array.isArray(hist)){
+      const hit = hist.find(h => h && _norm(h.estado) === stageNorm);
+      return hit ? (hit.data || hit.date || hit.datetime || hit.ts || '') : '';
+    }
 
-  // Caso B: estadosHist como array [{estado:"Proposta", data:"..."}]
-  if(!rawHist && Array.isArray(histObj)){
-    const hit = histObj.find(h => h && (h.estado === 'Proposta' || h.estado === 'PROPOSTA'));
-    rawHist = hit ? (hit.data || hit.date || '') : '';
+    // Caso B: estadosHist como OBJETO: { Proposta: "ISO..." } (ou { proposta: "..." })
+    if(typeof hist === 'object'){
+      // 1) acesso direto (mais rápido)
+      if(hist.Proposta) return hist.Proposta;
+      if(hist['Proposta']) return hist['Proposta'];
+      if(hist.proposta) return hist.proposta;
+      if(hist['proposta']) return hist['proposta'];
+
+      // 2) fallback: procurar por chave cujo nome normalize para "proposta"
+      for(const k in hist){
+        if(_norm(k) === stageNorm) return hist[k];
+      }
+    }
+
+    return '';
   }
-}
+
+  if(hasProposta){
+    const rawHist = getStageHistDate(l.estadosHist, 'proposta');
     const dtHist = rawHist ? parseISODateUTC(rawHist) : null;
 
     if(dtHist){
+      // conta pela data da etapa
       const iso = isoYMD(dtHist);
       if(inRangeISO(iso, start, end)){
         propEvents.add(`stage|${lid}|${iso}`);
       }
     }else{
-      // fallback controlado: usa data da lead (não polui outras semanas)
+      // fallback seguro: só conta se a lead.data estiver na semana
       const leadISO = normDateToISO(l.data || '');
       if(leadISO && inRangeISO(leadISO, start, end)){
         propEvents.add(`stage|${lid}|${leadISO}`);
       }
     }
   }
-
   const p = l.proposta;
   if(!p || typeof p !== 'object') return;
 
