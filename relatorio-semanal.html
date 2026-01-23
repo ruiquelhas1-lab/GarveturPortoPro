@@ -845,10 +845,10 @@ leads.forEach((l, idxLead) => {
   let estadosArr = [];
   if(Array.isArray(l.estados)){
     estadosArr = l.estados.slice();
-  }else if(typeof l.estados === 'string'){
-    // aceita separadores comuns (vírgula, ponto e vírgula, barra, pipe)
-    estadosArr = l.estados.split(/[;,|/]/g).map(s=>String(s||'').trim()).filter(Boolean);
-  }
+ }else if(typeof l.estados === 'string'){
+  // aceita separadores comuns (vírgula, ponto e vírgula, barra, pipe)
+  estadosArr = l.estados.split(/[,;|\/]/g).map(s=>String(s||'').trim()).filter(Boolean);
+}
 
   // compat legado (estado único)
   if(!estadosArr.length && l.estado) estadosArr.push(l.estado);
