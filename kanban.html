@@ -1442,6 +1442,9 @@ function openModal(edit=null){
   f('ld_data', v.data||new Date().toISOString().slice(0,10));
   f('ld_notas', v.notas||'');
 
+    // ✅ (Recomendado) Nova lead não herda estados da anterior
+  if(!edit) PICKED_STATES = [];
+
   initStatePicker();
   setFechoBox(false);
   setPropostaBox(false);
