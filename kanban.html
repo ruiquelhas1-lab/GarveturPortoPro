@@ -1446,6 +1446,14 @@ function openModal(edit=null){
   if(!edit) PICKED_STATES = [];
 
   initStatePicker();
+
+  if(!edit){
+    document.querySelectorAll('.cb_estado').forEach(cb=>{
+      cb.checked = false;
+      cb.closest('.state-pill')?.classList.remove('active');
+    });
+  }
+  
   setFechoBox(false);
   setPropostaBox(false);
 
