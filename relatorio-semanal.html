@@ -695,6 +695,101 @@ function parseISODateUTC(s){
     return [];
   }
 
+    // ====== Auto-identificadores para Observações (sem apagar notas manuais) ======
+  const AUTO_START = '[[AUTO:ITENS]]';
+  const AUTO_END   = '[[/AUTO:ITENS]]';
+
+  function pickFirst(obj, keys){
+    for(const k of keys){
+      const v = obj && obj[k];
+      if(v != null && String(v).trim()) return String(v).trim();
+    }
+    return '';
+  }
+
+  function leadLabel(l, idxLead){
+    // Referências possíveis
+    const ref = pickFirst(l, [
+      'refAngariacao','ref','referencia','refImovel','codigo','codigoImovel','idLead','id'
+    ]);
+
+    // Nome/cliente possíveis
+    const nome = pickFirst(l, [
+      'nomeCliente','clienteNome','clientName','nome','nomeProprietario','ownerName','proprietarioNome','contactName'
+    ]);
+
+    // Imóvel/título possíveis
+    const imovel = pickFirst(l, [
+      'tituloImovel','imovel','titulo','empreendimento','zona','freguesia','concelho'
+    ]);
+
+    const a = ref ? `#${ref}` : `Lead ${idxLead+1}`;
+    const b = nome ? ` — ${nome}` : '';
+    const c = (!nome && imovel) ? ` — ${imovel}` : (nome && imovel ? ` (${imovel})` : '');
+    return (a + b + c).trim();
+  }
+
+  function angLabel(a, idxAng){
+    const ref = pickFirst(a, ['refAngariacao','ref','referencia','codigo','id']);
+    const nome = pickFirst(a, ['nomeCliente','clienteNome','clientName','nome','proprietario','ownerName']);
+    const imovel = pickFirst(a, ['tituloImovel','imovel','titulo','zona','freguesia','concelho']);
+    const a1 = ref ? `#${ref}` : `Ang ${idxAng+1}`;
+    const b1 = nome ? ` — ${nome}` : '';
+    const c1 = (!nome && imovel) ? ` — ${imovel}` : (nome && imovel ? ` (${imovel})` : '');
+    return (a1 + b1 + c1).trim();
+  }
+
+  function buildAutoBlock(lines, title){
+    if(!lines.length) return `${AUTO_START}\n${title}:\n- (sem itens)\n${AUTO_END}`;
+    const list = lines.map(x => `- ${x}`).join('\n');
+    return `${AUTO_START}\n${title}:\n${list}\n${AUTO_END}`;
+  }
+
+  function replaceAutoBlock(currentText, newBlock){
+    const txt = String(currentText || '');
+    const has = txt.includes(AUTO_START) && txt.includes(AUTO_END);
+
+    if(!has){
+      // Se não existir bloco automático ainda, coloca no topo + linha em branco
+      return (newBlock + '\n\n' + txt).trim();
+    }
+
+    const before = txt.split(AUTO_START)[0];
+    const after = txt.split(AUTO_END).slice(1).join(AUTO_END); // mantém qualquer conteúdo após o bloco
+    const tail = after.startsWith('\n') ? after : ('\n' + after);
+
+    return (before + newBlock + tail).trim();
+  }
+
+  function setAutoNotes(textareaId, lines, title){
+    const el = $(textareaId);
+    if(!el) return;
+
+    const block = buildAutoBlock(lines, title);
+    const next = replaceAutoBlock(el.value, block);
+
+    if(next !== el.value){
+      el.value = next;
+      // força gravação das notas (para ficar persistido por semana)
+      clearTimeout(el.__t);
+      el.__t = setTimeout(saveWeeklyNotes, 220);
+    }
+  }
+
+  function uniqueTop(lines, max){
+    const out = [];
+    const seen = new Set();
+    for(const x of lines){
+      const s = String(x||'').trim();
+      if(!s) continue;
+      if(seen.has(s)) continue;
+      seen.add(s);
+      out.push(s);
+      if(out.length >= (max||12)) break; // limita para não “encher” demasiado
+    }
+    return out;
+  }
+
   // ====== Guardar/Carregar observações por semana ======
   function loadWeeklyNotes(){
     const key = reportKeyForCurrentWeek();
