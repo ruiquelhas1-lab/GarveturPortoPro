@@ -900,6 +900,9 @@ const visitasWeek = leads.filter(l=>{
   return (l && l.estado === 'Visita' && inRangeISO(l.data || '', start, end));
 });
 $('kVis').textContent = String(visitasWeek.length);
+        // Auto-identificação nas Observações (Visitas) — usa os próprios leads filtrados
+    const visLines = uniqueTop(visitasWeek.map((l,i)=>leadLabel(l, i)), 14);
+    setAutoNotes('obsVis', visLines, 'Itens da semana (Visitas)');
 
 // ===== Propostas (semana) =====
 // Regra: só contar propostas "reais" (com conteúdo). Ignora placeholders em que só existe dataProposta.
