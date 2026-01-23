@@ -851,7 +851,18 @@ leads.forEach((l, idxLead) => {
 
     // formato atual do Kanban:
     // estadosHist = { Proposta: "2026-01-23T10:34:12.000Z", ... }
-    const rawHist = histObj ? (histObj['Proposta'] || histObj.Proposta) : '';
+    let rawHist = '';
+
+if(histObj){
+  // Caso A: estadosHist como objeto { Proposta: "ISO..." }
+  rawHist = (histObj['Proposta'] || histObj.Proposta || '');
+
+  // Caso B: estadosHist como array [{estado:"Proposta", data:"..."}]
+  if(!rawHist && Array.isArray(histObj)){
+    const hit = histObj.find(h => h && (h.estado === 'Proposta' || h.estado === 'PROPOSTA'));
+    rawHist = hit ? (hit.data || hit.date || '') : '';
+  }
+}
     const dtHist = rawHist ? parseISODateUTC(rawHist) : null;
 
     if(dtHist){
