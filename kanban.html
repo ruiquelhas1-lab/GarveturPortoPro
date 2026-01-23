@@ -1446,13 +1446,25 @@ function openModal(edit=null){
   setFechoBox(false);
   setPropostaBox(false);
 
-  if(edit && COLS.includes(edit.estado) && edit.estado!=='Novo'){
-    const sel = Array.from(document.querySelectorAll('.cb_estado')).find(x=>x.value===edit.estado);
-    if(sel){
-      sel.checked=true;
-      sel.dispatchEvent(new Event('change'));
-    }
-  }
+ // ✅ Pré-marcar etapas já registadas (multi-estado)
+if(edit){
+  // prioridade: novo campo multi-estados
+  const states =
+    Array.isArray(edit.estados) ? edit.estados :
+    Array.isArray(edit.estadosHistorico) ? edit.estadosHistorico :
+    Array.isArray(edit.estados_history) ? edit.estados_history :
+    (edit.estado ? [edit.estado] : []);
+
+  // marcar checks
+  document.querySelectorAll('.cb_estado').forEach(cb=>{
+    cb.checked = states.includes(cb.value);
+    cb.closest('.state-pill')?.classList.toggle('active', cb.checked);
+  });
+
+  // disparar 1 change para recalcular PICKED_STATES + efeitos (Proposta/Fecho) e garantir coerência
+  const any = document.querySelector('.cb_estado:checked');
+  if(any) any.dispatchEvent(new Event('change'));
+}
 
   resetFechoBox();
   resetPropostaBox();
