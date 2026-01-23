@@ -1525,7 +1525,7 @@ $('saveLead').addEventListener('click',()=>{
     return;
   }
   const get=id=>$(id).value.trim();
-  const estadoFinal = PICKED_STATE || $('saveLead').dataset.editEstado || 'Novo';
+ const estadoFinal = getFurthestState(PICKED_STATES, $('saveLead').dataset.editEstado || 'Novo');
 
   let comissaoPct = '';
   let pagamentoTipo = '';
