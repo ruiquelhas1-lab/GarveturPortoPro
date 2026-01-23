@@ -783,11 +783,21 @@ end.setUTCHours(23,59,59,999);
     $('kCpcv').textContent = String(cpcvWeek.length);
     $('kEsc').textContent  = String(escWeek.length);
 
-      // ===== Visitas (semana) =====
-// Regra: lead em estado "Visita" cuja data principal esteja na semana
-const visitasWeek = leads.filter(l =>
-  l.estado === 'Visita' && inRangeISO(l.data || '', start, end)
-);
+     // ===== Visitas (semana) =====
+// Novo (multi-estado):
+// - Se existir estadosHist.Visita, conta pela data/hora em que a etapa "Visita" foi registada
+// - Fallback: comportamento antigo (estado único + lead.data)
+const visitasWeek = leads.filter(l=>{
+  // (A) Multi-estado
+  const hist = l && l.estadosHist && typeof l.estadosHist === 'object' ? l.estadosHist : null;
+  const dtVis = hist ? parseISODateUTC(hist['Visita']) : null;
+  if(dtVis){
+    return dtVis.getTime() >= start.getTime() && dtVis.getTime() <= end.getTime();
+  }
+
+  // (B) Fallback antigo
+  return (l && l.estado === 'Visita' && inRangeISO(l.data || '', start, end));
+});
 $('kVis').textContent = String(visitasWeek.length);
 
 // ===== Propostas (semana) =====
