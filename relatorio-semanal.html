@@ -867,6 +867,9 @@ end.setUTCHours(23,59,59,999);
     // Leads da semana: usar o campo garantido do Kanban: lead.data (vem do input id="ld_data")
     const leadsWeek = leads.filter(l => inRangeISO(l.data || '', start, end));
     $('kLeads').textContent = String(leadsWeek.length);
+        // Auto-identificação nas Observações (Leads)
+    const leadLines = uniqueTop(leadsWeek.map((l,i)=>leadLabel(l, i)), 14);
+    setAutoNotes('obsLeads', leadLines, 'Itens da semana (Leads)');
 
     // Angariações da semana: dataAngariacao
     const angWeek = angs.filter(a => inRangeISO(a.dataAngariacao || '', start, end));
