@@ -801,14 +801,11 @@ const visitasWeek = leads.filter(l=>{
 $('kVis').textContent = String(visitasWeek.length);
 
 // ===== Propostas (semana) =====
-// Conta apenas com base no objeto "proposta" do Kanban:
-// - proposta inicial: l.proposta.dataProposta (ou variações dentro de l.proposta)
-// - contra-propostas: l.proposta.contraPropostas[].data (ou variações dentro do cp)
-// Não usa campos legado para evitar contagens erradas.
+// Regra: só contar propostas "reais" (com conteúdo). Ignora placeholders em que só existe dataProposta.
 
 const propEvents = new Set();
 
-   function ymdFromAnyDate(raw){
+function ymdFromAnyDate(raw){
   const s = String(raw || '').trim();
   if(!s) return '';
 
@@ -827,108 +824,64 @@ const propEvents = new Set();
   return isoYMD(dt);
 }
 
-    function normDateToISO(raw){
+function normDateToISO(raw){
   return ymdFromAnyDate(raw);
+}
+
+function isMeaningfulProposta(p){
+  if(!p || typeof p !== 'object') return false;
+
+  const hasMain =
+    String(p.valorProposta || '').trim() ||
+    String(p.termosProposta || '').trim() ||
+    String(p.nomeProponente || '').trim() ||
+    String(p.contactoProponente || '').trim() ||
+    String(p.emailProponente || '').trim() ||
+    String(p.dataPropostaAceite || '').trim();
+
+  const cps = Array.isArray(p.contraPropostas) ? p.contraPropostas : [];
+  const hasContra = cps.some(cp =>
+    cp && typeof cp === 'object' &&
+    (String(cp.valor || '').trim() || String(cp.termos || '').trim())
+  );
+
+  return !!(hasMain || hasContra);
 }
 
 leads.forEach((l, idxLead) => {
   if(!l) return;
 
-  // id estável por lead (se não existir, cai para o índice)
   const lid = (l.id != null && String(l.id).trim()) ? String(l.id) : String(idxLead);
 
-   // ===== ETAPA "PROPOSTA" (multi-estado) =====
-  // Normalizador (minúsculas + sem acentos + trim)
-  const _norm = (s)=>String(s||'')
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g,'')
-    .trim();
-
-  // 1) Obter array de estados de forma robusta
-  let estadosArr = [];
-  if(Array.isArray(l.estados)){
-    estadosArr = l.estados.slice();
- }else if(typeof l.estados === 'string'){
-  // aceita separadores comuns (vírgula, ponto e vírgula, barra, pipe)
-  estadosArr = l.estados.split(/[,;|\/]/g).map(s=>String(s||'').trim()).filter(Boolean);
-}
-
-  // compat legado (estado único)
-  if(!estadosArr.length && l.estado) estadosArr.push(l.estado);
-
-  const estadosNorm = estadosArr.map(_norm).filter(Boolean);
-  const hasProposta = estadosNorm.includes('proposta');
-
-  // 2) Ler a data/hora da etapa "Proposta" no histórico (se existir), em qualquer formato
-  function getStageHistDate(hist, stageNorm){
-    if(!hist) return '';
-
-    // Caso A: estadosHist como ARRAY: [{estado:"Proposta", data:"..."}]
-    if(Array.isArray(hist)){
-      const hit = hist.find(h => h && _norm(h.estado) === stageNorm);
-      return hit ? (hit.data || hit.date || hit.datetime || hit.ts || '') : '';
-    }
-
-    // Caso B: estadosHist como OBJETO: { Proposta: "ISO..." } (ou { proposta: "..." })
-    if(typeof hist === 'object'){
-      // 1) acesso direto (mais rápido)
-      if(hist.Proposta) return hist.Proposta;
-      if(hist['Proposta']) return hist['Proposta'];
-      if(hist.proposta) return hist.proposta;
-      if(hist['proposta']) return hist['proposta'];
-
-      // 2) fallback: procurar por chave cujo nome normalize para "proposta"
-      for(const k in hist){
-        if(_norm(k) === stageNorm) return hist[k];
-      }
-    }
-
-    return '';
-  }
-
-  if(hasProposta){
-    const rawHist = getStageHistDate(l.estadosHist, 'proposta');
-    const dtHist = rawHist ? parseISODateUTC(rawHist) : null;
-
-    if(dtHist){
-      // conta pela data da etapa
-      const iso = isoYMD(dtHist);
-      if(inRangeISO(iso, start, end)){
-        propEvents.add(`stage|${lid}|${iso}`);
-      }
-    }else{
-      // fallback seguro: só conta se a lead.data estiver na semana
-      const leadISO = normDateToISO(l.data || '');
-      if(leadISO && inRangeISO(leadISO, start, end)){
-        propEvents.add(`stage|${lid}|${leadISO}`);
-      }
-    }
-  }
   const p = l.proposta;
-  if(!p || typeof p !== 'object') return;
+  if(!isMeaningfulProposta(p)) return;
 
-  // Proposta inicial (aceita algumas variações possíveis dentro de "proposta")
+  // Proposta inicial (data)
   const pISO = normDateToISO(p.dataProposta || p.data || p.date || p.dataPropostaISO || '');
   if(pISO && inRangeISO(pISO, start, end)){
     propEvents.add(`prop|${lid}|${pISO}`);
   }
 
-  // Contra-propostas
+  // Proposta aceite (se existir)
+  const aISO = normDateToISO(p.dataPropostaAceite || '');
+  if(aISO && inRangeISO(aISO, start, end)){
+    propEvents.add(`aceite|${lid}|${aISO}`);
+  }
+
+  // Contra-propostas (só se tiverem valor/termos)
   const cps = Array.isArray(p.contraPropostas) ? p.contraPropostas : [];
   cps.forEach((cp) => {
     if(!cp || typeof cp !== 'object') return;
+
+    const hasContent = String(cp.valor || '').trim() || String(cp.termos || '').trim();
+    if(!hasContent) return;
 
     const cpISO = normDateToISO(cp.data || cp.dataProposta || cp.date || cp.dataISO || '');
     if(!cpISO) return;
     if(!inRangeISO(cpISO, start, end)) return;
 
-    // dedupe por: lead + dia + valor + termos
     const v = String(cp.valor ?? '').trim().toLowerCase();
-    const t = String(cp.termos ?? '')
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g,' ');
+    const t = String(cp.termos ?? '').trim().toLowerCase().replace(/\s+/g,' ');
 
     propEvents.add(`contra|${lid}|${cpISO}|${v}|${t}`);
   });
