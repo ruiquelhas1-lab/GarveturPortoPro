@@ -1593,7 +1593,19 @@ const propostaObj = {
       termos: cp.termos || ''
     })),
 
-  dataPropostaAceite: get('ld_prop_aceite')
+  dataPropostaAceite: (() => {
+  const raw = get('ld_prop_aceite');
+
+  // Se o utilizador não mexeu no campo, não gravar nada.
+  if(!ACEITE_TOUCHED){
+    // Se estiver a editar e já existia aceite, mantém o valor anterior.
+    const prevAceite = (existing && existing.proposta) ? (existing.proposta.dataPropostaAceite || '') : '';
+    return prevAceite || '';
+  }
+
+  // Se mexeu, grava o que estiver (pode ser vazio se ele apagar)
+  return raw || '';
+})()
 };
   const hasPropostaData =
     propostaObj.nomeProponente ||
