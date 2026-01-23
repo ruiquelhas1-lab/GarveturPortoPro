@@ -874,6 +874,9 @@ end.setUTCHours(23,59,59,999);
     // Angariações da semana: dataAngariacao
     const angWeek = angs.filter(a => inRangeISO(a.dataAngariacao || '', start, end));
     $('kAng').textContent = String(angWeek.length);
+        // Auto-identificação nas Observações (Angariações)
+    const angLines = uniqueTop(angWeek.map((a,i)=>angLabel(a, i)), 14);
+    setAutoNotes('obsAng', angLines, 'Itens da semana (Angariações)');
 
     // CPCV / Escrituras: campos de fecho do Kanban
     const cpcvWeek = leads.filter(l => inRangeISO(l.fecho_cpcv_date || '', start, end));
