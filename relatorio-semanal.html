@@ -753,100 +753,46 @@ const visitasWeek = leads.filter(l =>
 $('kVis').textContent = String(visitasWeek.length);
 
 // ===== Propostas (semana) =====
-// Conta: proposta inicial + contra-propostas (mesmo lead), só quando existe data.
-// Aceita datas em YYYY-MM-DD e DD/MM/YYYY (e variações comuns).
-function normDateToISO(s){
-  if(!s || typeof s !== 'string') return '';
-  const v = s.trim();
-  if(!v) return '';
-
-  // já é ISO (YYYY-MM-DD)
-  if(/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
-
-  // DD/MM/YYYY ou DD/MM/YY
-  let m = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
-  if(m){
-    const dd = String(m[1]).padStart(2,'0');
-    const mm = String(m[2]).padStart(2,'0');
-    let yy = String(m[3]);
-    if(yy.length === 2) yy = '20' + yy;
-    return `${yy}-${mm}-${dd}`;
-  }
-
-  // DD-MM-YYYY ou DD-MM-YY
-  m = v.match(/^(\d{1,2})-(\d{1,2})-(\d{2}|\d{4})$/);
-  if(m){
-    const dd = String(m[1]).padStart(2,'0');
-    const mm = String(m[2]).padStart(2,'0');
-    let yy = String(m[3]);
-    if(yy.length === 2) yy = '20' + yy;
-    return `${yy}-${mm}-${dd}`;
-  }
-
-  // YYYY/MM/DD
-  m = v.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
-  if(m){
-    const yy = m[1];
-    const mm = String(m[2]).padStart(2,'0');
-    const dd = String(m[3]).padStart(2,'0');
-    return `${yy}-${mm}-${dd}`;
-  }
-
-  return '';
-}
-
-// (Compat) campos “soltos” antigos
-const PROP_FIELDS = [
-  'proposta_date','dataProposta','propostaData','proposta_enviada_date','proposta_recebida_date'
-];
+// Conta apenas com base no objeto "proposta" do Kanban:
+// - proposta inicial: l.proposta.dataProposta (ou variações dentro de l.proposta)
+// - contra-propostas: l.proposta.contraPropostas[].data (ou variações dentro do cp)
+// Não usa campos legado para evitar contagens erradas.
 
 const propEvents = new Set();
 
 leads.forEach((l, idxLead) => {
   if(!l) return;
+
+  // id estável por lead (se não existir, cai para o índice)
   const lid = (l.id != null && String(l.id).trim()) ? String(l.id) : String(idxLead);
 
-  // (A) Datas diretas no lead (legado)
-  const directRaw = PROP_FIELDS
-    .map(f => l && l[f])
-    .find(v => typeof v === 'string' && v.trim());
-  const directISO = normDateToISO(directRaw || '');
-  if(directISO && inRangeISO(directISO, start, end)){
-    propEvents.add(`direct|${lid}|${directISO}`);
-  }
-
-  // (B) Estrutura correta: l.proposta
   const p = l.proposta;
-  if(p && typeof p === 'object'){
+  if(!p || typeof p !== 'object') return;
 
-    // Proposta inicial
-    const pISO = normDateToISO(p.dataProposta || '');
-    if(pISO && inRangeISO(pISO, start, end)){
-      propEvents.add(`prop|${lid}|${pISO}`);
-    }
-
-  // Contra-propostas (chave estável: data + valor + termos)
-// Upgrade: não conta duplicados iguais no mesmo dia (mesma lead).
-const cps = Array.isArray(p.contraPropostas) ? p.contraPropostas : [];
-cps.forEach((cp) => {
-  const cpISO = normDateToISO((cp && cp.data) || '');
-  if(!cpISO) return; // sem data => não conta
-  if(!inRangeISO(cpISO, start, end)) return;
-
-  const v = String((cp && cp.valor) || '').trim().toLowerCase();
-  const t = String((cp && cp.termos) || '')
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g,' ');
-
-  // Assinatura final (dedupe por dia):
-  // - mesma lead
-  // - mesmo dia (cpISO)
-  // - mesmo valor/termos
-  // => conta 1 vez
-  propEvents.add(`contra|${lid}|${cpISO}|${v}|${t}`);
-});
+  // Proposta inicial (aceita algumas variações possíveis dentro de "proposta")
+  const pISO = normDateToISO(p.dataProposta || p.data || p.date || p.dataPropostaISO || '');
+  if(pISO && inRangeISO(pISO, start, end)){
+    propEvents.add(`prop|${lid}|${pISO}`);
   }
+
+  // Contra-propostas
+  const cps = Array.isArray(p.contraPropostas) ? p.contraPropostas : [];
+  cps.forEach((cp) => {
+    if(!cp || typeof cp !== 'object') return;
+
+    const cpISO = normDateToISO(cp.data || cp.dataProposta || cp.date || cp.dataISO || '');
+    if(!cpISO) return;
+    if(!inRangeISO(cpISO, start, end)) return;
+
+    // dedupe por: lead + dia + valor + termos
+    const v = String(cp.valor ?? '').trim().toLowerCase();
+    const t = String(cp.termos ?? '')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g,' ');
+
+    propEvents.add(`contra|${lid}|${cpISO}|${v}|${t}`);
+  });
 });
 
 $('kProp').textContent = String(propEvents.size);
