@@ -760,6 +760,10 @@ function parseISODateUTC(s){
       return;
     }
 
+    // Garantir range inclusivo do dia inteiro (00:00 → 23:59:59.999)
+start.setUTCHours(0,0,0,0);
+end.setUTCHours(23,59,59,999);
+
     $('rangeLabel').textContent = startStr + ' → ' + endStr;
 
     const leads = loadLeads();
