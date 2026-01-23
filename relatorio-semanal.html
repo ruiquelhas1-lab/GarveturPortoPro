@@ -738,14 +738,22 @@ function parseISODateUTC(s){
 }
 
   function angLabel(a, idxAng){
-    const ref = pickFirst(a, ['refAngariacao','ref','referencia','codigo','id']);
-    const nome = pickFirst(a, ['nomeCliente','clienteNome','clientName','nome','proprietario','ownerName']);
-    const imovel = pickFirst(a, ['tituloImovel','imovel','titulo','zona','freguesia','concelho']);
-    const a1 = ref ? `#${ref}` : `Ang ${idxAng+1}`;
-    const b1 = nome ? ` — ${nome}` : '';
-    const c1 = (!nome && imovel) ? ` — ${imovel}` : (nome && imovel ? ` (${imovel})` : '');
-    return (a1 + b1 + c1).trim();
-  }
+  const consultor = pickFirst(a, [
+    'consultor','nomeConsultor','consultorNome','agente','agenteNome','broker','brokerNome','responsavel','responsavelNome'
+  ]);
+
+  const ref = pickFirst(a, ['refAngariacao','ref','referencia','codigo','id']);
+  const nome = pickFirst(a, ['nomeCliente','clienteNome','clientName','nome','proprietario','ownerName']);
+  const imovel = pickFirst(a, ['tituloImovel','imovel','titulo','zona','freguesia','concelho']);
+
+  const a1 = ref ? `#${ref}` : `Ang ${idxAng+1}`;
+  const b1 = nome ? ` — ${nome}` : '';
+  const c1 = (!nome && imovel) ? ` — ${imovel}` : (nome && imovel ? ` (${imovel})` : '');
+
+  const d1 = consultor ? ` | ${consultor}` : '';
+
+  return (a1 + b1 + c1 + d1).trim();
+}
 
   function buildAutoBlock(lines, title){
     if(!lines.length) return `${AUTO_START}\n${title}:\n- (sem itens)\n${AUTO_END}`;
