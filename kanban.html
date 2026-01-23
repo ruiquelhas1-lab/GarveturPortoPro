@@ -1528,10 +1528,14 @@ $('saveLead').dataset.hasAceite = (v && v.proposta && v.proposta.dataPropostaAce
     $('ld_prop_valor').value = p.valorProposta || '';
     $('ld_prop_data').value = p.dataProposta || '';
     $('ld_prop_termos').value = p.termosProposta || '';
-    $('ld_prop_aceite').value = p.dataPropostaAceite || '';
-    // ✅ NÃO preencher por defeito: só mostra se existir mesmo data de aceitação
+   const aceiteEl = $('ld_prop_aceite');
+aceiteEl.value = (p.dataPropostaAceite || '');
+
+// Se não existe data guardada, força o campo a ficar efetivamente vazio
 if(!p.dataPropostaAceite){
-  $('ld_prop_aceite').value = '';
+  aceiteEl.value = '';
+  aceiteEl.defaultValue = '';
+  aceiteEl.setAttribute('value','');
 }
     PROPOSTA_CONTRAS = Array.isArray(p.contraPropostas) ? p.contraPropostas.map(c=>({
       data:c.data||'',
