@@ -1280,6 +1280,15 @@ function resetPropostaBox(){
 }
 function setPropostaBox(show){
   $('propostaBox').style.display = show ? 'block' : 'none';
+
+  // Quando ativa "Proposta", NÃO preencher "data da proposta aceite" por defeito.
+  // Mantém apenas se já existir data guardada (edição de lead).
+  if(show){
+    const inpAceite = $('ld_prop_aceite'); // id do input "Data da proposta aceite"
+    if(inpAceite && !String(inpAceite.value || '').trim()){
+      inpAceite.value = '';
+    }
+  }
 }
 function drawContraPropostas(){
   const container = $('prop_contra_list');
