@@ -708,26 +708,34 @@ function parseISODateUTC(s){
   }
 
   function leadLabel(l, idxLead){
-    // Referências possíveis
-    const ref = pickFirst(l, [
-      'refAngariacao','ref','referencia','refImovel','codigo','codigoImovel','idLead','id'
-    ]);
+  // Consultor (várias chaves possíveis)
+  const consultor = pickFirst(l, [
+    'consultor','nomeConsultor','consultorNome','agente','agenteNome','broker','brokerNome','responsavel','responsavelNome'
+  ]);
 
-    // Nome/cliente possíveis
-    const nome = pickFirst(l, [
-      'nomeCliente','clienteNome','clientName','nome','nomeProprietario','ownerName','proprietarioNome','contactName'
-    ]);
+  // Referências possíveis
+  const ref = pickFirst(l, [
+    'refAngariacao','ref','referencia','refImovel','codigo','codigoImovel','idLead','id'
+  ]);
 
-    // Imóvel/título possíveis
-    const imovel = pickFirst(l, [
-      'tituloImovel','imovel','titulo','empreendimento','zona','freguesia','concelho'
-    ]);
+  // Nome/cliente possíveis
+  const nome = pickFirst(l, [
+    'nomeCliente','clienteNome','clientName','nome','nomeProprietario','ownerName','proprietarioNome','contactName'
+  ]);
 
-    const a = ref ? `#${ref}` : `Lead ${idxLead+1}`;
-    const b = nome ? ` — ${nome}` : '';
-    const c = (!nome && imovel) ? ` — ${imovel}` : (nome && imovel ? ` (${imovel})` : '');
-    return (a + b + c).trim();
-  }
+  // Imóvel/título possíveis
+  const imovel = pickFirst(l, [
+    'tituloImovel','imovel','titulo','empreendimento','zona','freguesia','concelho'
+  ]);
+
+  const a = ref ? `#${ref}` : `Lead ${idxLead+1}`;
+  const b = nome ? ` — ${nome}` : '';
+  const c = (!nome && imovel) ? ` — ${imovel}` : (nome && imovel ? ` (${imovel})` : '');
+
+  const d = consultor ? ` | ${consultor}` : '';
+
+  return (a + b + c + d).trim();
+}
 
   function angLabel(a, idxAng){
     const ref = pickFirst(a, ['refAngariacao','ref','referencia','codigo','id']);
