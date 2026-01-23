@@ -1611,16 +1611,16 @@ const propostaObj = {
   return raw || '';
 })()
 };
-  const hasPropostaData =
+ const hasPropostaData =
+  (estadoFinal === 'Proposta' || estadoFinal === 'Fecho') && (
     propostaObj.nomeProponente ||
     propostaObj.contactoProponente ||
     propostaObj.emailProponente ||
     propostaObj.valorProposta ||
     propostaObj.termosProposta ||
-    propostaObj.dataProposta ||
     propostaObj.dataPropostaAceite ||
-    (propostaObj.contraPropostas && propostaObj.contraPropostas.length>0);
-
+    (propostaObj.contraPropostas && propostaObj.contraPropostas.length > 0)
+  );
   const lead={
     id: $('saveLead').dataset.editId || uid(),
 
