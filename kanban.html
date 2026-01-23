@@ -1516,6 +1516,10 @@ if(edit){
     $('ld_prop_data').value = p.dataProposta || '';
     $('ld_prop_termos').value = p.termosProposta || '';
     $('ld_prop_aceite').value = p.dataPropostaAceite || '';
+    // ✅ NÃO preencher por defeito: só mostra se existir mesmo data de aceitação
+if(!p.dataPropostaAceite){
+  $('ld_prop_aceite').value = '';
+}
     PROPOSTA_CONTRAS = Array.isArray(p.contraPropostas) ? p.contraPropostas.map(c=>({
       data:c.data||'',
       valor:c.valor||'',
