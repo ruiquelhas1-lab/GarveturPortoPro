@@ -823,25 +823,38 @@ leads.forEach((l, idxLead) => {
   // id estável por lead (se não existir, cai para o índice)
   const lid = (l.id != null && String(l.id).trim()) ? String(l.id) : String(idxLead);
 
-    // ===== ETAPA "PROPOSTA" (multi-estado, sem data obrigatória) =====
-  if(Array.isArray(l.estados) && l.estados.includes('Proposta')){
-    // usar histórico se existir, senão contar no intervalo da semana
-    let counted = false;
+  // ===== ETAPA "PROPOSTA" (multi-estado) =====
+  const estadosArr = Array.isArray(l.estados)
+    ? l.estados
+    : (typeof l.estados === 'string'
+        ? l.estados.split(',').map(s=>String(s||'').trim()).filter(Boolean)
+        : []);
 
-    if(Array.isArray(l.estadosHist)){
-      const hist = l.estadosHist.find(h => h.estado === 'Proposta');
-      if(hist){
-        const iso = ymdFromAnyDate(hist.data);
-        if(iso && inRangeISO(iso, start, end)){
-          propEvents.add(`stage|${lid}|${iso}`);
-          counted = true;
-        }
+  // compatibilidade legado
+  if(!estadosArr.length && l.estado) estadosArr.push(l.estado);
+
+  if(estadosArr.includes('Proposta')){
+    const histObj =
+      (l && l.estadosHist && typeof l.estadosHist === 'object')
+        ? l.estadosHist
+        : null;
+
+    // formato atual do Kanban:
+    // estadosHist = { Proposta: "2026-01-23T10:34:12.000Z", ... }
+    const rawHist = histObj ? (histObj['Proposta'] || histObj.Proposta) : '';
+    const dtHist = rawHist ? parseISODateUTC(rawHist) : null;
+
+    if(dtHist){
+      const iso = isoYMD(dtHist);
+      if(inRangeISO(iso, start, end)){
+        propEvents.add(`stage|${lid}|${iso}`);
       }
-    }
-
-    // fallback: não há data no histórico → conta uma vez na semana atual
-    if(!counted){
-      propEvents.add(`stage|${lid}|nodate`);
+    }else{
+      // fallback controlado: usa data da lead (não polui outras semanas)
+      const leadISO = normDateToISO(l.data || '');
+      if(leadISO && inRangeISO(leadISO, start, end)){
+        propEvents.add(`stage|${lid}|${leadISO}`);
+      }
     }
   }
 
