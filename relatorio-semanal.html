@@ -992,6 +992,32 @@ leads.forEach((l, idxLead) => {
 });
 
 $('kProp').textContent = String(propEvents.size);
+        // Auto-identificação nas Observações (Propostas)
+    // Lista só das leads com proposta "meaningful" dentro da semana (pelo mesmo critério da contagem)
+    const propLeadsWeek = [];
+    leads.forEach((l, idxLead)=>{
+      if(!l) return;
+      const p = l.proposta;
+      if(!isMeaningfulProposta(p)) return;
+
+      const pISO = normDateToISO(p.dataProposta || p.data || p.date || p.dataPropostaISO || '');
+      const aISO = normDateToISO(p.dataPropostaAceite || '');
+
+      const hit =
+        (pISO && inRangeISO(pISO, start, end)) ||
+        (aISO && inRangeISO(aISO, start, end)) ||
+        (Array.isArray(p.contraPropostas) && p.contraPropostas.some(cp=>{
+          const hasContent = cp && (String(cp.valor||'').trim() || String(cp.termos||'').trim());
+          if(!hasContent) return false;
+          const cpISO = normDateToISO(cp.data || cp.dataProposta || cp.date || cp.dataISO || '');
+          return cpISO && inRangeISO(cpISO, start, end);
+        }));
+
+      if(hit) propLeadsWeek.push({ l, idxLead });
+    });
+
+    const propLines = uniqueTop(propLeadsWeek.map(x=>leadLabel(x.l, x.idxLead)), 14);
+    setAutoNotes('obsProp', propLines, 'Itens da semana (Propostas)');
     
     // assunto sugerido (não pisa se o Rui já escreveu)
     if(!$('emailSubject').value.trim()){
