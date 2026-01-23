@@ -1361,23 +1361,51 @@ $('ld_fecho_pagamento_tipo').addEventListener('change', (e)=>{
   if(!isOutro) input.value='';
 });
 
+function getFurthestState(states, fallback){
+  const arr = Array.isArray(states) ? states : [];
+  let bestIdx = -1;
+  let best = '';
+
+  arr.forEach(s=>{
+    const i = COLS.indexOf(s);
+    if(i > bestIdx){
+      bestIdx = i;
+      best = s;
+    }
+  });
+
+  return best || fallback || 'Novo';
+}
+
 function initStatePicker(){
-  PICKED_STATE='';
-  document.querySelectorAll('.cb_estado').forEach(cb=>{
-    cb.checked=false;
-    cb.closest('.state-pill')?.classList.remove('active');
-    cb.addEventListener('change', e=>{
-      document.querySelectorAll('.cb_estado').forEach(x=>{
-        if(x!==cb){ x.checked=false; x.closest('.state-pill')?.classList.remove('active'); }
-      });
-      if(cb.checked){
-        PICKED_STATE=cb.value;
-        cb.closest('.state-pill')?.classList.add('active');
-      }else{ PICKED_STATE=''; }
-      setFechoBox(PICKED_STATE==='Fecho');
-      setPropostaBox(PICKED_STATE==='Proposta' || PICKED_STATE==='Fecho');
+  const cbs = Array.from(document.querySelectorAll('.cb_estado'));
+
+  function readSelected(){
+    return cbs.filter(cb=>cb.checked).map(cb=>cb.value);
+  }
+
+  function paint(){
+    cbs.forEach(cb=>{
+      cb.closest('.state-pill')?.classList.toggle('active', cb.checked);
+    });
+  }
+
+  cbs.forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      // multi seleção: NÃO desmarca os outros
+      PICKED_STATES = readSelected();
+
+      // “side effects” (mantém as suas regras atuais)
+      const furthest = getFurthestState(PICKED_STATES, $('saveLead')?.dataset?.editEstado || 'Novo');
+      setFechoBox(furthest === 'Fecho');
+      setPropostaBox(furthest === 'Proposta' || furthest === 'Fecho');
+
+      paint();
     });
   });
+
+  // paint inicial
+  paint();
 }
 
 function openModal(edit=null){
