@@ -823,6 +823,28 @@ leads.forEach((l, idxLead) => {
   // id estável por lead (se não existir, cai para o índice)
   const lid = (l.id != null && String(l.id).trim()) ? String(l.id) : String(idxLead);
 
+    // ===== ETAPA "PROPOSTA" (multi-estado, sem data obrigatória) =====
+  if(Array.isArray(l.estados) && l.estados.includes('Proposta')){
+    // usar histórico se existir, senão contar no intervalo da semana
+    let counted = false;
+
+    if(Array.isArray(l.estadosHist)){
+      const hist = l.estadosHist.find(h => h.estado === 'Proposta');
+      if(hist){
+        const iso = ymdFromAnyDate(hist.data);
+        if(iso && inRangeISO(iso, start, end)){
+          propEvents.add(`stage|${lid}|${iso}`);
+          counted = true;
+        }
+      }
+    }
+
+    // fallback: não há data no histórico → conta uma vez na semana atual
+    if(!counted){
+      propEvents.add(`stage|${lid}|nodate`);
+    }
+  }
+
   const p = l.proposta;
   if(!p || typeof p !== 'object') return;
 
