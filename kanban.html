@@ -1526,6 +1526,9 @@ $('saveLead').addEventListener('click',()=>{
   }
   const get=id=>$(id).value.trim();
  const estadoFinal = getFurthestState(PICKED_STATES, $('saveLead').dataset.editEstado || 'Novo');
+    // ✅ Lead existente (quando está a editar). Evita usar "edit" fora de contexto.
+  const editId = ($('saveLead').dataset.editId || '').trim();
+  const existing = editId ? LEADS.find(l => String(l.id) === String(editId)) : null;
 
   let comissaoPct = '';
   let pagamentoTipo = '';
