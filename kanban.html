@@ -2268,6 +2268,14 @@ $('restoreJsonInput').addEventListener('change', (e)=>{
     setEditMode(!EDIT_MODE);
   });
 
+// ✅ Só consideramos "aceite" se o utilizador mexer neste campo
+const aceiteEl = $('ld_prop_aceite');
+if(aceiteEl){
+  ['input','change'].forEach(evt=>{
+    aceiteEl.addEventListener(evt, ()=>{ ACEITE_TOUCHED = true; });
+  });
+}
+  
   renderBoard();
   applyDeepLinkFromTarefas();
 })();
