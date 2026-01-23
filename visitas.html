@@ -728,8 +728,10 @@ const a = el.querySelector('a[data-open-link]');
 if(a){
   a.setAttribute('rel','noopener noreferrer');
   a.addEventListener('click', (ev)=>{
-    ev.stopPropagation(); // só isto (não editar)
-    // NÃO usar preventDefault, NÃO usar window.open
+    ev.preventDefault();      // impede comportamento estranho dentro da layer/overlay
+    ev.stopPropagation();     // impede abrir edição
+    const url = String(v.link || '').trim();
+    if(url) window.open(url, '_blank', 'noopener,noreferrer');
   });
 }
 /* clique no cartão = editar */
