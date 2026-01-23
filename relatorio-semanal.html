@@ -883,6 +883,12 @@ end.setUTCHours(23,59,59,999);
     const escWeek  = leads.filter(l => inRangeISO(l.fecho_escritura_date || '', start, end));
     $('kCpcv').textContent = String(cpcvWeek.length);
     $('kEsc').textContent  = String(escWeek.length);
+        // Auto-identificação nas Observações (CPCV / Escrituras)
+    const cpcvLines = uniqueTop(cpcvWeek.map((l,i)=>leadLabel(l, i)), 14);
+    const escLines  = uniqueTop(escWeek.map((l,i)=>leadLabel(l, i)), 14);
+
+    setAutoNotes('obsCpcv', cpcvLines, 'Itens da semana (CPCV)');
+    setAutoNotes('obsEsc',  escLines,  'Itens da semana (Escrituras)');
 
      // ===== Visitas (semana) =====
 // Novo (multi-estado):
