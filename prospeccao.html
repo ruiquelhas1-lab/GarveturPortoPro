@@ -378,6 +378,22 @@ body.can-admin #btnAdmin{ display:inline-flex; }
   const LS_KEY = 'gpp_prospec_v1';
   const LS_ADMIN_PIN = 'gpp_prospec_admin_pin_v1';
 
+  // ===== Fonte de dados (Equipa - só leitura) =====
+const DATA_URL = './data/prospeccao_public.json';
+let REMOTE_DB = null;
+
+async function loadRemoteDB(){
+  try{
+    const res = await fetch(DATA_URL, { cache: 'no-store' });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const parsed = await res.json();
+    REMOTE_DB = Array.isArray(parsed) ? parsed : [];
+  }catch(e){
+    console.warn('Falha a carregar DATA_URL, a usar localStorage:', e);
+    REMOTE_DB = null; // fallback para localStorage
+  }
+}
+
   // V2: overrides (por imóvel)
   const LS_OVERRIDES = 'gpp_prospec_overrides_v1'; // { [propertyKey]: {mode:'locked'|'free', setAtISO:'', setBy:''} }
 
