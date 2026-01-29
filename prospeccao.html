@@ -407,11 +407,17 @@ async function loadRemoteDB(){
   function saveLS(data){
     localStorage.setItem(LS_KEY, JSON.stringify(data));
   }
- function loadLS(){
-  // Se existir base remota, usar sempre (modo equipa / só leitura)
+function loadLS(){
+  // Modo Admin: base privada (localStorage) com dados completos
+  if(IS_ADMIN){
+    const parsed = safeParse(localStorage.getItem(LS_KEY));
+    return Array.isArray(parsed) ? parsed : [];
+  }
+
+  // Modo Consulta (equipa): base pública remota
   if(Array.isArray(REMOTE_DB)) return REMOTE_DB;
 
-  // Caso contrário, fallback para localStorage (modo admin/local)
+  // Fallback
   const parsed = safeParse(localStorage.getItem(LS_KEY));
   return Array.isArray(parsed) ? parsed : [];
 }
