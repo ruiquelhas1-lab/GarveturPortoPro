@@ -861,30 +861,78 @@ if(urlIsAdmin){
   }
 
   function importJSON(){
-    const raw = prompt('Cole aqui o JSON exportado (mescla com a base atual).\n\nSugestão: exporte antes.');
-    if(!raw) return;
-    const parsed = safeParse(raw);
-    if(!Array.isArray(parsed)){ alert('JSON inválido (esperado: array).'); return; }
-
-    const current = loadLS();
-    const map = new Map();
-    current.forEach(r=> map.set(r.id, r));
-    parsed.forEach(r=>{
-      if(!r || !r.id){ r.id = uid(); }
-      const old = map.get(r.id);
-      if(!old){ map.set(r.id, r); return; }
-      const a = String(old.createdAt||'');
-      const b = String(r.createdAt||'');
-      map.set(r.id, (b > a) ? r : old);
-    });
-
-    const merged = Array.from(map.values());
-    saveLS(merged);
-    updateKPI();
-    doSearch();
-    alert('Import concluído (mesclado).');
+  // Importação só faz sentido no Modo Admin (base privada)
+  if(!IS_ADMIN){
+    alert('Importação disponível apenas em Modo Admin.');
+    return;
   }
 
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'application/json,.json';
+
+  input.addEventListener('change', ()=>{
+    const file = input.files && input.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = ()=>{
+      try{
+        const text = String(reader.result || '');
+        const parsed = JSON.parse(text);
+
+        if(!Array.isArray(parsed)){
+          alert('JSON inválido (esperado: array).');
+          return;
+        }
+
+        // Base atual (privada) vem do localStorage, não do remoto
+        const current = (function(){
+          const p = safeParse(localStorage.getItem(LS_KEY));
+          return Array.isArray(p) ? p : [];
+        })();
+
+        const map = new Map();
+        current.forEach(r=> map.set(r.id, r));
+
+        parsed.forEach(r=>{
+          if(!r || typeof r !== 'object') return;
+          if(!r.id) r.id = uid();
+
+          // Compatibilidade: garantir phone_norm quando existir phone
+          if(r.phone && !r.phone_norm) r.phone_norm = normPhone(r.phone);
+
+          const old = map.get(r.id);
+          if(!old){ map.set(r.id, r); return; }
+
+          const a = String(old.createdAt||'');
+          const b = String(r.createdAt||'');
+          map.set(r.id, (b > a) ? r : old);
+        });
+
+        const merged = Array.from(map.values());
+        saveLS(merged);
+
+        updateKPI();
+        doSearch();
+        alert('Import concluído (mesclado).');
+
+      }catch(e){
+        console.error(e);
+        alert('Falha a importar. Verifique se o ficheiro é JSON válido.');
+      }
+    };
+
+    reader.onerror = ()=>{
+      alert('Não foi possível ler o ficheiro.');
+    };
+
+    reader.readAsText(file);
+  });
+
+  input.click();
+}
   function wipeDB(){
     if(!confirm('Tem a certeza que quer APAGAR toda a base de prospeção deste navegador?')) return;
     localStorage.removeItem(LS_KEY);
