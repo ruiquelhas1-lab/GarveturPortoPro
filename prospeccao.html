@@ -927,13 +927,17 @@ if(urlIsAdmin){
   });
 
   // ===== Boot =====
-  function boot(){
-    $('dateReg').value = todayISO();
-    updateKPI();
-    setAdminUI(false);
-    doSearch();
-  }
-  boot();
+ async function boot(){
+  $('dateReg').value = todayISO();
+
+  // Carrega a base pública (equipa) se existir
+  await loadRemoteDB();
+
+  updateKPI();
+  setAdminUI(false);
+  doSearch();
+}
+boot();
 })();
 </script>
 </body>
