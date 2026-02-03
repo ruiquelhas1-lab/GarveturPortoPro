@@ -1,5 +1,6 @@
 
 
+
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -4176,12 +4177,12 @@ const content = (ta && typeof ta.value === 'string') ? ta.value.trim() : '';
 
   <h2 class="section">Observações</h2>
   <div class="line">
-    ${item.observacoes ? String(item.observacoes).replace(/\\n/g,'<br>') : '<span class="muted">Sem observações registadas.</span>'}
+    ${item.observacoes ? escapeHtml(String(item.observacoes)).replace(/\n/g,'<br>') : '<span class="muted">Sem observações registadas.</span>'}
   </div>
 
   <h2 class="section">Notas internas</h2>
   <div class="line">
-    ${item.notasInternas ? String(item.notasInternas).replace(/\\n/g,'<br>') : '<span class="muted">Sem notas internas registadas.</span>'}
+    ${item.notasInternas ? escapeHtml(String(item.notasInternas)).replace(/\n/g,'<br>') : '<span class="muted">Sem notas internas registadas.</span>'}
   </div>
 
 </div>
@@ -4875,4 +4876,3 @@ function renderFollowupPanel(){
 </script>
 </body>
 </html>
-
