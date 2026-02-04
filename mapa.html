@@ -1840,37 +1840,50 @@ async function saveLS(){
     console.warn('Falha ao guardar em localStorage:', e);
   }
 }
-async function loadLS(){
-  try{
-    // 1) tenta ler do IndexedDB (fonte principal)
-    const mem = await idbKeyval.get(IDB_KEY, IDB_DATA);
-    if(Array.isArray(mem)) return mem;
 
-    // 2) fallback temporário: tenta migrar do localStorage antigo
+async function loadLS(){
+  // reset de flags por arranque
+  LS_SKIPPED = false;
+  LS_ERROR = false;
+
+  // 1) Tenta ler do IndexedDB (principal) — mas NÃO marca erro se falhar
+  if(window.idbKeyval && IDB_DATA){
+    try{
+      const mem = await idbKeyval.get(IDB_KEY, IDB_DATA);
+      if(Array.isArray(mem)) return mem;
+    }catch(e){
+      console.warn('Falha a ler do IndexedDB:', e);
+      // continua para o fallback localStorage
+    }
+  }
+
+  // 2) Fallback: lê do localStorage (espelho de segurança)
+  try{
     const x = localStorage.getItem(LS_KEY);
     if(!x) return null;
 
-    if(x.length > 500000){
-      // mantém o comportamento de segurança (mas agora já não volta a ser necessário)
+    // aqui pode manter um limite mais alto porque agora RAW deve ser leve (sem blobs),
+    // mas deixo um cutoff conservador para evitar travamentos.
+    if(x.length > 4500000){
       LS_SKIPPED = true;
       return null;
     }
 
     const parsed = JSON.parse(x);
     if(Array.isArray(parsed)){
-      // migração automática: guarda já no IndexedDB
-      RAW = parsed;
-      await saveLS();
+      // best-effort: regravar no IDB para voltar ao principal
+      try{ RAW = parsed; await saveLS(); }catch{}
       return parsed;
     }
 
     return null;
   }catch(e){
-    console.warn('Falha a ler dados (IndexedDB/localStorage).', e);
+    console.warn('Falha a ler dados (localStorage).', e);
     LS_ERROR = true;
     return null;
   }
 }
+  
 /* ===== Integração com Angariações (gpp_angariacoes_v2) ===== */
 function mergeAngariacoesIntoRAW(){
   let raw=null;
