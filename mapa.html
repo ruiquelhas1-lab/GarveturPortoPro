@@ -2113,7 +2113,7 @@ function addDocRow(d){
     const inputs=row.querySelectorAll('input,select');
     const u=inputs[2].value.trim();
     if(u.startsWith('idb://')){
-      try{ await idbKeyval.del(u.replace('idb://','')); }catch{}
+      try{ if(IDB_DOCS) await idbKeyval.del(u.replace('idb://',''), IDB_DOCS); }catch{}
     }
     row.remove();
   });
