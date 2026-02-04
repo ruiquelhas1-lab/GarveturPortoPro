@@ -1814,18 +1814,32 @@ const IDB_DATA = window.idbKeyval ? idbKeyval.createStore('gpp_mapa_data_db', 'k
 const IDB_DOCS = window.idbKeyval ? idbKeyval.createStore('gpp_mapa_docs_db', 'kv') : null;
 
 async function saveLS(){
+  // 1) Tenta guardar no IndexedDB (principal)
   try{
-    // guarda o RAW no IndexedDB (sem limite prático como no localStorage)
-    if(!window.idbKeyval || !IDB_DATA) throw new Error('IndexedDB indisponível');
-await idbKeyval.set(IDB_KEY, RAW, IDB_DATA);
-
-    // opcional: um "sinal" leve no localStorage (não guarda dados)
-    localStorage.setItem(LS_KEY + '_last', new Date().toISOString());
+    if(window.idbKeyval && IDB_DATA){
+      await idbKeyval.set(IDB_KEY, RAW, IDB_DATA);
+    }
   }catch(e){
     console.warn('Falha ao guardar em IndexedDB:', e);
   }
-}
 
+  // 2) Fallback/espelho no localStorage (para garantir persistência mesmo se IDB falhar)
+  try{
+    const s = JSON.stringify(RAW);
+
+    // limite prudente (~4.5MB) para evitar quota errors
+    if(s.length <= 4500000){
+      localStorage.setItem(LS_KEY, s);
+    }else{
+      // se for demasiado grande, não forçamos (evita corromper/quebrar)
+      console.warn('Dataset demasiado grande para localStorage; mantido apenas em IndexedDB (se disponível).');
+    }
+
+    localStorage.setItem(LS_KEY + '_last', new Date().toISOString());
+  }catch(e){
+    console.warn('Falha ao guardar em localStorage:', e);
+  }
+}
 async function loadLS(){
   try{
     // 1) tenta ler do IndexedDB (fonte principal)
