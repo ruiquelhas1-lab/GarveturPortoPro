@@ -1800,31 +1800,52 @@ if(btnRestore && backupInput){
   });
 }
 
-/* ===== Persistência (robusta) ===== */
-function saveLS(){
+/* ===== Persistência (robusta) — IndexedDB (idb-keyval) ===== */
+const IDB_KEY = 'gpp_dataset_v1_idb';
+
+async function saveLS(){
   try{
-    localStorage.setItem(LS_KEY, JSON.stringify(RAW));
+    // guarda o RAW no IndexedDB (sem limite prático como no localStorage)
+    await idbKeyval.set(IDB_KEY, RAW);
+
+    // opcional: um "sinal" leve no localStorage (não guarda dados)
+    localStorage.setItem(LS_KEY + '_last', new Date().toISOString());
   }catch(e){
-    console.warn('Falha ao guardar em localStorage:', e);
-  }
-}
-function loadLS(){
-  try{
-    const x=localStorage.getItem(LS_KEY);
-    if(!x) return null;
-    if(x.length > 500000){
-      console.warn('Dataset local demasiado grande, a ignorar para evitar bloqueios.');
-      LS_SKIPPED=true;
-      return null;
-    }
-    return JSON.parse(x);
-  }catch(e){
-    console.warn('Falha a ler dados locais, a iniciar base vazia.', e);
-    LS_ERROR=true;
-    return null;
+    console.warn('Falha ao guardar em IndexedDB:', e);
   }
 }
 
+async function loadLS(){
+  try{
+    // 1) tenta ler do IndexedDB (fonte principal)
+    const mem = await idbKeyval.get(IDB_KEY);
+    if(Array.isArray(mem)) return mem;
+
+    // 2) fallback temporário: tenta migrar do localStorage antigo
+    const x = localStorage.getItem(LS_KEY);
+    if(!x) return null;
+
+    if(x.length > 500000){
+      // mantém o comportamento de segurança (mas agora já não volta a ser necessário)
+      LS_SKIPPED = true;
+      return null;
+    }
+
+    const parsed = JSON.parse(x);
+    if(Array.isArray(parsed)){
+      // migração automática: guarda já no IndexedDB
+      RAW = parsed;
+      await saveLS();
+      return parsed;
+    }
+
+    return null;
+  }catch(e){
+    console.warn('Falha a ler dados (IndexedDB/localStorage).', e);
+    LS_ERROR = true;
+    return null;
+  }
+}
 /* ===== Integração com Angariações (gpp_angariacoes_v2) ===== */
 function mergeAngariacoesIntoRAW(){
   let raw=null;
