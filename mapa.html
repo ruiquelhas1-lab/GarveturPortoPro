@@ -1257,10 +1257,11 @@ async function saveLocalBlob(file, slug){
   if(STORAGE_MODE==='idb'){
     try{
       const key=DB_PREFIX+(slug||'sem-slug')+'_'+name;
-      await idbKeyval.set(key,{
-        meta:{name,type:blob.type||'application/octet-stream',size:blob.size||0,ts:Date.now()},
-        blob
-      });
+     if(!IDB_DOCS) throw new Error('IndexedDB indisponível p/ anexos');
+await idbKeyval.set(key,{
+  meta:{name,type:blob.type||'application/octet-stream',size:blob.size||0,ts:Date.now()},
+  blob
+}, IDB_DOCS);
       return 'idb://'+key;
     }catch{
       // fallback
