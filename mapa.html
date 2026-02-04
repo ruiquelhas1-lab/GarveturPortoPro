@@ -1823,7 +1823,7 @@ await idbKeyval.set(IDB_KEY, RAW, IDB_DATA);
 async function loadLS(){
   try{
     // 1) tenta ler do IndexedDB (fonte principal)
-    const mem = await idbKeyval.get(IDB_KEY);
+    const mem = await idbKeyval.get(IDB_KEY, IDB_DATA);
     if(Array.isArray(mem)) return mem;
 
     // 2) fallback temporário: tenta migrar do localStorage antigo
