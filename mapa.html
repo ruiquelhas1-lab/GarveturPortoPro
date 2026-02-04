@@ -1277,7 +1277,10 @@ await idbKeyval.set(key,{
 }
 async function getLocal(idbUrl){
   if(!idbUrl || !idbUrl.startsWith('idb://') || !window.idbKeyval) return null;
-  try{ return await idbKeyval.get(idbUrl.replace('idb://','')); }catch{ return null; }
+  try{
+  if(!IDB_DOCS) return null;
+  return await idbKeyval.get(idbUrl.replace('idb://',''), IDB_DOCS);
+}catch{ return null; }
 }
 async function getLocalBlobUrl(idbUrl){
   const rec=await getLocal(idbUrl); if(!rec) return null;
