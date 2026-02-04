@@ -1773,9 +1773,11 @@ function restoreFromBackup(file){
       RAW = next;
       normalizeConclusaoFields();
       const changed = autoUpdateEstadosByConclusao();
-      saveLS();
-      buildFacetOptions();
-      run();
+     (async ()=>{
+  await saveLS();
+  buildFacetOptions();
+  run();
+})();
 
       alert('Backup restaurado com sucesso.');
     },
