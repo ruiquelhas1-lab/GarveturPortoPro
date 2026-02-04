@@ -1803,6 +1803,10 @@ if(btnRestore && backupInput){
 /* ===== Persistência (robusta) — IndexedDB (idb-keyval) ===== */
 const IDB_KEY = 'gpp_dataset_v1_idb';
 
+// ✅ separar dados do mapa vs anexos (evita store pesado/corrompido)
+const IDB_DATA = window.idbKeyval ? idbKeyval.createStore('gpp_mapa_data_db', 'kv') : null;
+const IDB_DOCS = window.idbKeyval ? idbKeyval.createStore('gpp_mapa_docs_db', 'kv') : null;
+
 async function saveLS(){
   try{
     // guarda o RAW no IndexedDB (sem limite prático como no localStorage)
