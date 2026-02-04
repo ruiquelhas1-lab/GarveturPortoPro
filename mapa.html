@@ -1810,7 +1810,8 @@ const IDB_DOCS = window.idbKeyval ? idbKeyval.createStore('gpp_mapa_docs_db', 'k
 async function saveLS(){
   try{
     // guarda o RAW no IndexedDB (sem limite prático como no localStorage)
-    await idbKeyval.set(IDB_KEY, RAW);
+    if(!window.idbKeyval || !IDB_DATA) throw new Error('IndexedDB indisponível');
+await idbKeyval.set(IDB_KEY, RAW, IDB_DATA);
 
     // opcional: um "sinal" leve no localStorage (não guarda dados)
     localStorage.setItem(LS_KEY + '_last', new Date().toISOString());
