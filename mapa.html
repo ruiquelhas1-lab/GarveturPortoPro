@@ -2350,21 +2350,18 @@ el('clear').addEventListener('click',()=>{
   run();
 });
 
-  /* ===== Abrir Angariações sempre na mesma aba ===== */
+ /* ===== Abrir Angariações sempre na mesma aba ===== */
 document.addEventListener('click', (e)=>{
   const a = e.target.closest('a[data-act="ang"]');
   if(!a) return;
 
-  // impede o comportamento nativo do <a>
   e.preventDefault();
+  e.stopPropagation();
 
   const url = a.href;
-
-  // abre/reutiliza a mesma aba/janela com este nome
   const w = window.open(url, 'GPP_ANGARIACOES');
-
-  // tenta focar a aba existente
   try{ w && w.focus(); }catch{}
+}, true); // capture
 });
 
 /* ===== Eventos diversos ===== */
