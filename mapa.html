@@ -2351,6 +2351,23 @@ el('clear').addEventListener('click',()=>{
   run();
 });
 
+  /* ===== Abrir Angariações sempre na mesma aba ===== */
+document.addEventListener('click', (e)=>{
+  const a = e.target.closest('a[data-act="ang"]');
+  if(!a) return;
+
+  // impede o comportamento nativo do <a>
+  e.preventDefault();
+
+  const url = a.href;
+
+  // abre/reutiliza a mesma aba/janela com este nome
+  const w = window.open(url, 'GPP_ANGARIACOES');
+
+  // tenta focar a aba existente
+  try{ w && w.focus(); }catch{}
+});
+
 /* ===== Eventos diversos ===== */
 function setEditModeVisibility(){
   ['btnImport','btnNew','btnSave','btnClearAll','attachLocalLabel'].forEach(id=>{
