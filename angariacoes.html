@@ -2146,6 +2146,11 @@ const restoreBtn = $('restoreBtn');    // 👈 NOVO
     badge2.innerHTML = 'Visíveis <strong>' + visiveis + '</strong>';
     summaryBadges.appendChild(badge2);
 
+    const badgeF = document.createElement('div');
+badgeF.className = 'badge';
+badgeF.innerHTML = 'Filtrados <strong>' + filtered.length + '</strong> de <strong>' + total + '</strong>';
+summaryBadges.appendChild(badgeF);
+
     const fil = applyFilters(deals);
     const porCons = {};
     fil.forEach(d=>{
