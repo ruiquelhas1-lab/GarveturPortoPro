@@ -910,8 +910,7 @@ textarea{
 
 /* Reset — discreto, mas consistente */
 #kitBackdrop #objResetWhatsappBtn,
-#kitBackdrop #emailResetBtn,
-#kitBackdrop #saveWhatsappCustomBtn{
+#kitBackdrop #emailResetBtn{
   border-color: rgba(255,255,255,.16);
   background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.50));
 }
@@ -1394,6 +1393,7 @@ textarea{
           <!-- BEGIN: Kit WhatsApp actions (com Follow-up 48h) -->
 <div class="kit-actions">
   <button class="btn btn-ghost" id="copyWhatsappBtn">📋 Copiar</button>
+              <button class="btn btn-ghost" id="saveWhatsappBtn" title="Guardar mensagem personalizada (WhatsApp)">💾 Gravar</button>
   <button class="btn btn-primary" id="openWhatsappBtn">🟢 Abrir WhatsApp</button>
   <button class="btn btn-ghost" id="followup48hBtn" title="Gera Follow-up 48h e abre WhatsApp + Email">⏱ Follow-up 48h (WA+Email)</button>
   <button class="btn btn-ghost" id="pdfWhatsappBtn" title="Gerar PDF desta mensagem">🧾 PDF</button>
@@ -1406,7 +1406,6 @@ textarea{
   <button class="btn btn-ghost" id="objExclusiveBtn">Responder: Sem exclusivo</button>
   <button class="btn btn-ghost" id="objAngariarSmartBtn">Responder: Angariar Smart</button>
   <button class="btn btn-ghost" id="objResetWhatsappBtn" title="Voltar à mensagem principal gerada pelo Kit">↩︎ Voltar ao principal</button>
-          <button class="btn btn-ghost" id="saveWhatsappCustomBtn" title="Guardar a mensagem atual como personalizada">💾 Gravar</button>
 </div>
         </div>
 
@@ -1415,6 +1414,7 @@ textarea{
           <textarea id="kitCall"></textarea>
          <div class="kit-actions">
   <button class="btn btn-ghost" id="copyCallBtn">📋 Copiar</button>
+              <button class="btn btn-ghost" id="saveScriptBtn" title="Guardar texto personalizado (Script)">💾 Gravar</button>
   <button class="btn btn-ghost" id="pdfCallBtn" title="Gerar PDF deste script">🧾 PDF</button>
 </div>
         </div>
@@ -1425,6 +1425,7 @@ textarea{
 
  <div class="kit-actions">
   <button class="btn btn-ghost" id="copyEmailBtn">📋 Copiar</button>
+              <button class="btn btn-ghost" id="saveEmailBtn" title="Guardar mensagem personalizada (Email)">💾 Gravar</button>
   <button class="btn btn-ghost" id="openMailtoBtn">✉️ Abrir email</button>
   <button class="btn btn-ghost" id="pdfEmailBtn" title="Gerar PDF deste email">🧾 PDF</button>
 </div>
@@ -1453,6 +1454,7 @@ textarea{
           <textarea id="kitSwot"></textarea>
          <div class="kit-actions">
   <button class="btn btn-ghost" id="copySwotBtn">📋 Copiar</button>
+              <button class="btn btn-ghost" id="saveSwotBtn" title="Guardar texto personalizado (SWOT)">💾 Gravar</button>
   <button class="btn btn-ghost" id="pdfSwotBtn" title="Gerar PDF desta SWOT">🧾 PDF</button>
 </div>
         </div>
@@ -1485,7 +1487,6 @@ textarea{
   const STORAGE_KEY = 'gpp_particulares_v2';            // incrementado
   const STORAGE_KEY_LEGACY = 'gpp_particulares_v1';     // compat
   const FILTERS_STORAGE_KEY = 'gpp_particulares_filters_v1';
-  const LS_KIT_WA_CUSTOM = 'gpp_fsbo_kit_whatsapp_custom_v1';
 
   // IndexedDB para PDFs
   const DB_NAME = 'gpp_fsbo_attachments_db';
@@ -1654,6 +1655,8 @@ const filterClearBtn = $('filterClearBtn');
   const kitSwot = $('kitSwot');
 
   const copyWhatsappBtn = $('copyWhatsappBtn');
+  const saveWhatsappBtn = $('saveWhatsappBtn');
+
   const openWhatsappBtn = $('openWhatsappBtn');
   const followup48hBtn = $('followup48hBtn');
   const objSoloBtn = $('objSoloBtn');
@@ -1662,11 +1665,63 @@ const objCommissionBtn = $('objCommissionBtn');
 const objExclusiveBtn = $('objExclusiveBtn');
 const objAngariarSmartBtn = $('objAngariarSmartBtn');
 const objResetWhatsappBtn = $('objResetWhatsappBtn');
-  const saveWhatsappCustomBtn = $('saveWhatsappCustomBtn');
 
 let kitWhatsappMainMessage = ''; // guarda o “principal” para voltar atrás
+  // --- Mensagens personalizadas (persistência local) ---
+  const CUSTOM_KEYS = {
+    whatsapp: 'gpp_fsbo_custom_whatsapp_v1',
+    email:    'gpp_fsbo_custom_email_v1',
+    swot:     'gpp_fsbo_custom_swot_v1',
+    script:   'gpp_fsbo_custom_script_v1'
+  };
+
+  function saveCustomText(kind, value){
+    try{
+      const key = CUSTOM_KEYS[kind];
+      if(!key) return;
+      const v = String(value || '').trim();
+      if(!v){
+        localStorage.removeItem(key);
+      }else{
+        localStorage.setItem(key, v);
+      }
+    }catch(e){
+      console.error('Erro ao guardar mensagem personalizada', e);
+    }
+  }
+
+  function loadCustomText(kind){
+    try{
+      const key = CUSTOM_KEYS[kind];
+      if(!key) return '';
+      return localStorage.getItem(key) || '';
+    }catch(e){
+      console.error('Erro ao carregar mensagem personalizada', e);
+      return '';
+    }
+  }
+
+  function applySavedCustomKitTexts(){
+    // Regra simples: se existir “guardada”, assume-se como preferida para reuniões
+    const w = loadCustomText('whatsapp');
+    if(w) kitWhatsapp.value = w;
+
+    const e = loadCustomText('email');
+    if(e) kitEmail.value = e;
+
+    const s = loadCustomText('swot');
+    if(s) kitSwot.value = s;
+
+    const c = loadCustomText('script');
+    if(c) kitCall.value = c;
+  }
+
   const copyCallBtn = $('copyCallBtn');
+  const saveScriptBtn = $('saveScriptBtn');
+
   const copyEmailBtn = $('copyEmailBtn');
+  const saveEmailBtn = $('saveEmailBtn');
+
   const emailObjManyAgenciesBtn = $('emailObjManyAgenciesBtn');
 const emailObjCommissionBtn = $('emailObjCommissionBtn');
 const emailObjExclusiveBtn = $('emailObjExclusiveBtn');
@@ -1682,6 +1737,8 @@ const emailResetBtn = $('emailResetBtn');
 let kitEmailMainMessage = '';
   const openMailtoBtn = $('openMailtoBtn');
   const copySwotBtn = $('copySwotBtn');
+  const saveSwotBtn = $('saveSwotBtn');
+
 
   const toast = $('toast');
 
@@ -3339,18 +3396,13 @@ Notas:
     const t = fetchInfo.title || null;
    kitWhatsappMainMessage = generateWhatsappSmart(item, t);
 kitWhatsapp.value = kitWhatsappMainMessage;
-    // Mensagem personalizada (guardada) — se existir, abre já preenchida
-    try{
-      const saved = localStorage.getItem(LS_KIT_WA_CUSTOM);
-      if(saved && String(saved).trim()){
-        kitWhatsapp.value = saved;
-      }
-    }catch(e){}
-
     kitCall.value = generateCallScript(item, t);
     kitEmailMainMessage = generateEmail(item, t);
 kitEmail.value = kitEmailMainMessage;
     kitSwot.value = generateSwot(item, t);
+
+    // aplicar mensagens personalizadas guardadas (se existirem)
+    applySavedCustomKitTexts();
 
     // preparar botões
     const phone = normalizePhone(item.ownerPhone || '');
@@ -4444,6 +4496,32 @@ if(pdfSwotBtn)     pdfSwotBtn.addEventListener('click', ()=>exportKitSectionPdf(
   copyEmailBtn.addEventListener('click', ()=>copyText(kitEmail.value || ''));
   copySwotBtn.addEventListener('click', ()=>copyText(kitSwot.value || ''));
 
+  // 💾 Guardar mensagens personalizadas (WhatsApp / Email / SWOT / Script)
+  if(saveWhatsappBtn){
+    saveWhatsappBtn.addEventListener('click', ()=>{
+      saveCustomText('whatsapp', kitWhatsapp.value || '');
+      alert('Mensagem personalizada (WhatsApp) guardada neste navegador.');
+    });
+  }
+  if(saveEmailBtn){
+    saveEmailBtn.addEventListener('click', ()=>{
+      saveCustomText('email', kitEmail.value || '');
+      alert('Mensagem personalizada (Email) guardada neste navegador.');
+    });
+  }
+  if(saveSwotBtn){
+    saveSwotBtn.addEventListener('click', ()=>{
+      saveCustomText('swot', kitSwot.value || '');
+      alert('Texto personalizado (SWOT) guardado neste navegador.');
+    });
+  }
+  if(saveScriptBtn){
+    saveScriptBtn.addEventListener('click', ()=>{
+      saveCustomText('script', kitCall.value || '');
+      alert('Texto personalizado (Script) guardado neste navegador.');
+    });
+  }
+
     if(genResumoBtn){
     genResumoBtn.addEventListener('click', ()=>{
       if(!currentKitItem){
@@ -4527,24 +4605,6 @@ if(objResetWhatsappBtn) objResetWhatsappBtn.addEventListener('click', ()=>{
   kitWhatsapp.value = kitWhatsappMainMessage || (kitWhatsapp.value || '');
   showToast('Mensagem principal reposta');
 });
-
-// Guardar mensagem personalizada (para reutilizar em próximas sessões)
-if(saveWhatsappCustomBtn){
-  saveWhatsappCustomBtn.addEventListener('click', ()=>{
-    const v = (kitWhatsapp.value || '').trim();
-    if(!v){
-      alert('Escreva uma mensagem antes de gravar.');
-      return;
-    }
-    try{
-      localStorage.setItem(LS_KIT_WA_CUSTOM, v);
-      showToast('Mensagem personalizada gravada');
-    }catch(e){
-      console.error('Erro ao gravar mensagem personalizada', e);
-      alert('Não foi possível gravar a mensagem neste navegador.');
-    }
-  });
-}
   openWhatsappBtn.addEventListener('click', ()=>{
     if(!currentKitItem) return;
     const phone = normalizePhone(currentKitItem.ownerPhone || '');
@@ -4896,6 +4956,115 @@ function renderFollowupPanel(){
       if(kitBackdrop.classList.contains('open')) closeKit();
     }
   });
+  // --- Import handoff (evita abrir 2ª janela ao extrair do Idealista/Imovirtual) ---
+  const TAB_ID = (function(){
+    try{
+      const k = 'gpp_fsbo_tab_id_v1';
+      let v = sessionStorage.getItem(k);
+      if(!v){
+        v = 'tab_' + Date.now() + '_' + Math.random().toString(16).slice(2);
+        sessionStorage.setItem(k, v);
+      }
+      return v;
+    }catch(e){
+      return 'tab_' + Date.now() + '_' + Math.random().toString(16).slice(2);
+    }
+  })();
+
+  const MAIN_TAB_KEY = 'gpp_fsbo_main_tab_v1';
+  const IMPORT_PAYLOAD_KEY = 'gpp_fsbo_import_payload_v1';
+  const IMPORT_CHAN = 'gpp_fsbo_import_channel_v1';
+
+  let bc = null;
+  try{
+    if('BroadcastChannel' in window){
+      bc = new BroadcastChannel(IMPORT_CHAN);
+    }
+  }catch(e){}
+
+  function _now(){ return Date.now(); }
+
+  function getMainTab(){
+    try{
+      const raw = localStorage.getItem(MAIN_TAB_KEY);
+      if(!raw) return null;
+      const obj = JSON.parse(raw);
+      if(!obj || typeof obj !== 'object') return null;
+      if(!obj.id || !obj.ts) return null;
+      // se não houver "heartbeat" recente, consideramos que não há janela principal
+      if((_now() - obj.ts) > 45000) return null;
+      return obj.id;
+    }catch(e){
+      return null;
+    }
+  }
+
+  function isMainTab(){
+    return getMainTab() === TAB_ID;
+  }
+
+  function claimMainTab(){
+    try{
+      const current = getMainTab();
+      if(!current){
+        localStorage.setItem(MAIN_TAB_KEY, JSON.stringify({ id:TAB_ID, ts:_now() }));
+      }
+    }catch(e){}
+
+    // Se eu for a janela principal, mantenho "heartbeat"
+    if(isMainTab()){
+      setInterval(()=>{
+        try{
+          localStorage.setItem(MAIN_TAB_KEY, JSON.stringify({ id:TAB_ID, ts:_now() }));
+        }catch(e){}
+      }, 15000);
+    }
+  }
+
+  function broadcastImport(payload){
+    const msg = {
+      id: 'imp_' + _now() + '_' + Math.random().toString(16).slice(2),
+      ts: _now(),
+      payload
+    };
+
+    // 1) BroadcastChannel (mais rápido)
+    try{ if(bc) bc.postMessage(msg); }catch(e){}
+
+    // 2) storage event (fallback, funciona entre separadores)
+    try{ localStorage.setItem(IMPORT_PAYLOAD_KEY, JSON.stringify(msg)); }catch(e){}
+
+    return msg;
+  }
+
+  let _lastImportId = '';
+  function handleIncomingImport(msg){
+    try{
+      if(!msg || typeof msg !== 'object') return;
+      if(!msg.id || msg.id === _lastImportId) return;
+      if(!msg.payload) return;
+      // só a janela principal processa imports para evitar duplicados
+      if(!isMainTab()) return;
+
+      _lastImportId = msg.id;
+      prefillFormFromPayload(msg.payload);
+      showToast('Import recebido');
+    }catch(e){
+      console.error('Erro ao processar import recebido', e);
+    }
+  }
+
+  // listeners para receber import na janela principal
+  if(bc){
+    bc.onmessage = (ev)=> handleIncomingImport(ev.data);
+  }
+  window.addEventListener('storage', (e)=>{
+    if(e.key === IMPORT_PAYLOAD_KEY && e.newValue){
+      try{ handleIncomingImport(JSON.parse(e.newValue)); }catch(err){}
+    }
+  });
+
+  claimMainTab();
 
   /* ============ Init ============ */
   initConsultores();
@@ -4914,6 +5083,16 @@ function renderFollowupPanel(){
     history.replaceState(null, '', window.location.pathname + window.location.search);
 
     if(payload){
+      // Se já existir uma janela principal do módulo aberta, enviamos para lá e evitamos duplicações.
+      const mainId = getMainTab();
+      if(mainId && mainId !== TAB_ID){
+        broadcastImport(payload);
+        showToast('Import enviado para a janela principal');
+        setTimeout(()=>{ try{ window.close(); }catch(e){} }, 250);
+        return;
+      }
+
+      // Caso contrário (ou se esta for a janela principal), processamos aqui.
       prefillFormFromPayload(payload);
     }else{
       showToast('Import inválido');
