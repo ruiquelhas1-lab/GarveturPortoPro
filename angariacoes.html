@@ -2119,6 +2119,9 @@ const restoreBtn = $('restoreBtn');    // 👈 NOVO
       return (db || '').localeCompare(da || '');
     });
     const filtered = applyFilters(deals);
+    if(resultsCount){
+  resultsCount.textContent = '— Resultados: ' + filtered.length;
+}
     cardsGrid.innerHTML = '';
     if(!filtered.length){
       emptyState.style.display = 'block';
