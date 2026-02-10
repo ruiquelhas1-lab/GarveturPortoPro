@@ -4992,7 +4992,7 @@ function renderFollowupPanel(){
       if(!obj || typeof obj !== 'object') return null;
       if(!obj.id || !obj.ts) return null;
       // se não houver "heartbeat" recente, consideramos que não há janela principal
-      if((_now() - obj.ts) > 45000) return null;
+      if((_now() - obj.ts) > 600000) return null;
       return obj.id;
     }catch(e){
       return null;
@@ -5013,11 +5013,18 @@ function renderFollowupPanel(){
 
     // Se eu for a janela principal, mantenho "heartbeat"
     if(isMainTab()){
-      setInterval(()=>{
+      const heartbeat = ()=>{
         try{
           localStorage.setItem(MAIN_TAB_KEY, JSON.stringify({ id:TAB_ID, ts:_now() }));
         }catch(e){}
-      }, 15000);
+      };
+      heartbeat();
+      setInterval(heartbeat, 15000);
+      // Mantém o "principal" vivo mesmo com throttling em separadores em segundo plano
+      window.addEventListener('focus', heartbeat);
+      document.addEventListener('visibilitychange', ()=>{
+        if(!document.hidden) heartbeat();
+      });
     }
   }
 
