@@ -1,6 +1,7 @@
 
 
 
+
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -4348,6 +4349,22 @@ try{
 showToast('Guardado');
 closeModal();
   });
+
+
+
+  // --- Pesquisa instantânea ao escrever (debounce) — não grava filtros ---
+  function debounce(fn, wait){
+    let t = null;
+    return function(...args){
+      clearTimeout(t);
+      t = setTimeout(()=>fn.apply(this,args), wait);
+    };
+  }
+
+  const renderCardsDebounced = debounce(renderCards, 180);
+  if(filterSearchText){
+    filterSearchText.addEventListener('input', renderCardsDebounced);
+  }
 
   filterApplyBtn.addEventListener('click', ()=>{
     saveFilterStateFromUI();
