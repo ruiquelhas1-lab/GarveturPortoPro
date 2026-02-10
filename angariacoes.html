@@ -2950,6 +2950,41 @@ const restoreBtn = $('restoreBtn');    // 👈 NOVO
     renderCards();
   });
 
+    // --- Pesquisa instantânea (não grava; só atualiza a grelha) ---
+  const renderCardsDebounced = debounce(renderCards, 180);
+
+  // Input de pesquisa: atualiza ao escrever, sem gravar filtros
+  filterSearchText.addEventListener('input', renderCardsDebounced);
+
+  // Enter: comportamento profissional em reunião → grava (equivale a “Aplicar”)
+  filterSearchText.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      saveFilterStateFromUI();
+      renderCards();
+    }
+  });
+
+  // Restantes filtros: atualizam visualmente de imediato (sem gravar)
+  filterConsultor.addEventListener('change', renderCardsDebounced);
+  filterDataDe.addEventListener('change', renderCardsDebounced);
+  filterDataAte.addEventListener('change', renderCardsDebounced);
+
+  // Consistência entre switches (sem estados contraditórios)
+  filterOnlyHidden.addEventListener('change', ()=>{
+    if(filterOnlyHidden.checked){
+      filterShowHidden.checked = true;
+    }
+    renderCardsDebounced();
+  });
+
+  filterShowHidden.addEventListener('change', ()=>{
+    if(!filterShowHidden.checked){
+      filterOnlyHidden.checked = false;
+    }
+    renderCardsDebounced();
+  });
+
    saveDealBtn.addEventListener('click', (e)=>{
     e.preventDefault();
     if(state.locked){
