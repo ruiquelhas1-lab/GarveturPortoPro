@@ -4866,6 +4866,115 @@ function renderFollowupPanel(){
       if(kitBackdrop.classList.contains('open')) closeKit();
     }
   });
+  // --- Import handoff (evita abrir 2ª janela ao extrair do Idealista/Imovirtual) ---
+  const TAB_ID = (function(){
+    try{
+      const k = 'gpp_fsbo_tab_id_v1';
+      let v = sessionStorage.getItem(k);
+      if(!v){
+        v = 'tab_' + Date.now() + '_' + Math.random().toString(16).slice(2);
+        sessionStorage.setItem(k, v);
+      }
+      return v;
+    }catch(e){
+      return 'tab_' + Date.now() + '_' + Math.random().toString(16).slice(2);
+    }
+  })();
+
+  const MAIN_TAB_KEY = 'gpp_fsbo_main_tab_v1';
+  const IMPORT_PAYLOAD_KEY = 'gpp_fsbo_import_payload_v1';
+  const IMPORT_CHAN = 'gpp_fsbo_import_channel_v1';
+
+  let bc = null;
+  try{
+    if('BroadcastChannel' in window){
+      bc = new BroadcastChannel(IMPORT_CHAN);
+    }
+  }catch(e){}
+
+  function _now(){ return Date.now(); }
+
+  function getMainTab(){
+    try{
+      const raw = localStorage.getItem(MAIN_TAB_KEY);
+      if(!raw) return null;
+      const obj = JSON.parse(raw);
+      if(!obj || typeof obj !== 'object') return null;
+      if(!obj.id || !obj.ts) return null;
+      // se não houver "heartbeat" recente, consideramos que não há janela principal
+      if((_now() - obj.ts) > 45000) return null;
+      return obj.id;
+    }catch(e){
+      return null;
+    }
+  }
+
+  function isMainTab(){
+    return getMainTab() === TAB_ID;
+  }
+
+  function claimMainTab(){
+    try{
+      const current = getMainTab();
+      if(!current){
+        localStorage.setItem(MAIN_TAB_KEY, JSON.stringify({ id:TAB_ID, ts:_now() }));
+      }
+    }catch(e){}
+
+    // Se eu for a janela principal, mantenho "heartbeat"
+    if(isMainTab()){
+      setInterval(()=>{
+        try{
+          localStorage.setItem(MAIN_TAB_KEY, JSON.stringify({ id:TAB_ID, ts:_now() }));
+        }catch(e){}
+      }, 15000);
+    }
+  }
+
+  function broadcastImport(payload){
+    const msg = {
+      id: 'imp_' + _now() + '_' + Math.random().toString(16).slice(2),
+      ts: _now(),
+      payload
+    };
+
+    // 1) BroadcastChannel (mais rápido)
+    try{ if(bc) bc.postMessage(msg); }catch(e){}
+
+    // 2) storage event (fallback, funciona entre separadores)
+    try{ localStorage.setItem(IMPORT_PAYLOAD_KEY, JSON.stringify(msg)); }catch(e){}
+
+    return msg;
+  }
+
+  let _lastImportId = '';
+  function handleIncomingImport(msg){
+    try{
+      if(!msg || typeof msg !== 'object') return;
+      if(!msg.id || msg.id === _lastImportId) return;
+      if(!msg.payload) return;
+      // só a janela principal processa imports para evitar duplicados
+      if(!isMainTab()) return;
+
+      _lastImportId = msg.id;
+      prefillFormFromPayload(msg.payload);
+      showToast('Import recebido');
+    }catch(e){
+      console.error('Erro ao processar import recebido', e);
+    }
+  }
+
+  // listeners para receber import na janela principal
+  if(bc){
+    bc.onmessage = (ev)=> handleIncomingImport(ev.data);
+  }
+  window.addEventListener('storage', (e)=>{
+    if(e.key === IMPORT_PAYLOAD_KEY && e.newValue){
+      try{ handleIncomingImport(JSON.parse(e.newValue)); }catch(err){}
+    }
+  });
+
+  claimMainTab();
 
   /* ============ Init ============ */
   initConsultores();
@@ -4884,6 +4993,16 @@ function renderFollowupPanel(){
     history.replaceState(null, '', window.location.pathname + window.location.search);
 
     if(payload){
+      // Se já existir uma janela principal do módulo aberta, enviamos para lá e evitamos duplicações.
+      const mainId = getMainTab();
+      if(mainId && mainId !== TAB_ID){
+        broadcastImport(payload);
+        showToast('Import enviado para a janela principal');
+        setTimeout(()=>{ try{ window.close(); }catch(e){} }, 250);
+        return;
+      }
+
+      // Caso contrário (ou se esta for a janela principal), processamos aqui.
       prefillFormFromPayload(payload);
     }else{
       showToast('Import inválido');
