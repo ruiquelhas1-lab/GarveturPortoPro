@@ -2010,25 +2010,73 @@ const restoreBtn = $('restoreBtn');    // 👈 NOVO
       if(from && d.dataAngariacao && d.dataAngariacao < from) return false;
       if(to && d.dataAngariacao && d.dataAngariacao > to) return false;
 
-      if(search){
-        const texto = [
+           if(search){
+        const q = normText(search);
+        const tokens = q.split(/\s+/).filter(Boolean);
+
+        // Texto “humano” (com acentos removidos e separadores normalizados)
+        const texto = normText([
           d.refInterna,
           d.tituloImovel,
           d.nomeEmp,
           d.nomeProp,
           d.consultor,
           d.gestor,
+          d.coordenador,
+          d.interveniente,
+
+          d.distrito,
           d.concelho,
+          d.freguesia,
           d.zona,
           d.localizacao,
+          d.moradaProp,
+          d.gps,
+
           d.promotor,
           d.origemCliente,
+
           d.natureza,
           d.tipoNegocio,
-          d.estadoImovel
-        ].filter(Boolean).join(' ').toLowerCase();
+          d.estadoImovel,
+          d.estadoAng,
 
-        if(!texto.includes(search)) return false;
+          d.certEnerg,
+          d.tipologiasEmp
+        ].filter(Boolean).join(' '));
+
+        // Telefones / números (pesquisa por dígitos, independentemente da formatação)
+        const digitos = onlyDigits([
+          d.telProp,
+          d.telPromotor,
+          d.refInterna,        // ajuda quando alguém procura “2026003”
+          d.gps                // se alguém colar coordenadas com sinais/espacos
+        ].filter(Boolean).join(' '));
+
+        // Referência “compacta” (sem separadores)
+        const refCompacta = normRef(d.refInterna || '');
+
+        // Regra: TODOS os tokens têm de bater (modo AND)
+        const ok = tokens.every(t=>{
+          if(!t) return true;
+
+          // Se o token tem dígitos suficientes, tenta também em modo “número”
+          const tDigits = onlyDigits(t);
+          const isNumericToken = tDigits.length >= 3;
+
+          // Match em texto normal
+          if(texto.includes(t)) return true;
+
+          // Match em ref compacta (ex.: "2026 003" -> "2026003")
+          if(refCompacta && normRef(t) && refCompacta.includes(normRef(t))) return true;
+
+          // Match por dígitos (telefones/ref)
+          if(isNumericToken && digitos.includes(tDigits)) return true;
+
+          return false;
+        });
+
+        if(!ok) return false;
       }
 
       return true;
