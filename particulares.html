@@ -52,7 +52,7 @@
 
     header.app-header{
       display:flex;
-      align-items:center;
+      align-items:flex-start;
       justify-content:space-between;
       padding:10px 14px;
       border-bottom:1px solid rgba(163,139,99,.35);
@@ -61,7 +61,7 @@
       top:0;
       z-index:20;
       gap:12px;
-      flex-wrap:nowrap;
+      flex-wrap:wrap;
     
       }
 
@@ -151,8 +151,13 @@
     /* TOP TOOLBAR (melhorada) */
     .toolbar{
       display:flex;
+      flex-wrap:wrap;
       align-items:center;
       gap:10px;
+      max-width:100%;
+      overflow-x:auto;
+      -ms-overflow-style:none;
+      scrollbar-width:none;
       justify-content:flex-end;
       margin-left:auto;
       background:rgba(0,0,0,.32);
@@ -958,7 +963,7 @@ textarea{
       <div>
         <div class="brand-app">Garvetur Porto Pro</div>
         <h1>FSBO</h1>
-        <span class="sub">Prospeção “For Sale By Owner” (Idealista · Imovirtual · Casa Sapo · Outros) — registo, contacto, kit de abordagem e anexos.</span>
+        
       </div>
     </div>
 
@@ -1689,6 +1694,13 @@ let kitWhatsappMainMessage = ''; // guarda o “principal” para voltar atrás
     script:   'gpp_fsbo_custom_script_v1'
   };
 
+  function customKey(kind, itemId){
+    const base = CUSTOM_KEYS[kind];
+    if(!base) return '';
+    const id = (itemId || 'global');
+    return base + '_' + id;
+  }
+
   function saveCustomText(kind, value){
     try{
       const key = CUSTOM_KEYS[kind];
@@ -1715,18 +1727,18 @@ let kitWhatsappMainMessage = ''; // guarda o “principal” para voltar atrás
     }
   }
 
-  function applySavedCustomKitTexts(){
+  function applySavedCustomKitTexts(itemId){
     // Regra simples: se existir “guardada”, assume-se como preferida para reuniões
-    const w = loadCustomText('whatsapp');
+    const w = loadCustomText('whatsapp', itemId);
     if(w) kitWhatsapp.value = w;
 
-    const e = loadCustomText('email');
+    const e = loadCustomText('email', itemId);
     if(e) kitEmail.value = e;
 
-    const s = loadCustomText('swot');
+    const s = loadCustomText('swot', itemId);
     if(s) kitSwot.value = s;
 
-    const c = loadCustomText('script');
+    const c = loadCustomText('script', itemId);
     if(c) kitCall.value = c;
   }
 
@@ -3416,7 +3428,7 @@ kitEmail.value = kitEmailMainMessage;
     kitSwot.value = generateSwot(item, t);
 
     // aplicar mensagens personalizadas guardadas (se existirem)
-    applySavedCustomKitTexts();
+    applySavedCustomKitTexts(item && item.id ? item.id : null);
 
     // preparar botões
     const phone = normalizePhone(item.ownerPhone || '');
