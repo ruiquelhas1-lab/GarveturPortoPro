@@ -1967,6 +1967,29 @@ const restoreBtn = $('restoreBtn');    // 👈 NOVO
     }
   }
 
+    // --- Pesquisa inteligente (acentos, tokens, telefones, refs) ---
+
+  function normText(v){
+    if(v == null) return '';
+    return String(v)
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g,'')     // remove acentos
+      .replace(/[^a-z0-9]+/g,' ')         // troca separadores por espaço
+      .trim()
+      .replace(/\s+/g,' ');
+  }
+
+  function onlyDigits(v){
+    if(v == null) return '';
+    return String(v).replace(/\D+/g,'');
+  }
+
+  function normRef(v){
+    // normaliza referência removendo separadores (ex.: GPP-2026-003 -> gpp2026003)
+    return normText(v).replace(/\s+/g,'');
+  }
+
   function applyFilters(deals){
     const cons = filterConsultor.value;
     const search = (filterSearchText.value || '').trim().toLowerCase();
