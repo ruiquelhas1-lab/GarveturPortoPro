@@ -910,7 +910,8 @@ textarea{
 
 /* Reset — discreto, mas consistente */
 #kitBackdrop #objResetWhatsappBtn,
-#kitBackdrop #emailResetBtn{
+#kitBackdrop #emailResetBtn,
+#kitBackdrop #saveWhatsappCustomBtn{
   border-color: rgba(255,255,255,.16);
   background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.50));
 }
@@ -1405,6 +1406,7 @@ textarea{
   <button class="btn btn-ghost" id="objExclusiveBtn">Responder: Sem exclusivo</button>
   <button class="btn btn-ghost" id="objAngariarSmartBtn">Responder: Angariar Smart</button>
   <button class="btn btn-ghost" id="objResetWhatsappBtn" title="Voltar à mensagem principal gerada pelo Kit">↩︎ Voltar ao principal</button>
+          <button class="btn btn-ghost" id="saveWhatsappCustomBtn" title="Guardar a mensagem atual como personalizada">💾 Gravar</button>
 </div>
         </div>
 
@@ -1483,6 +1485,7 @@ textarea{
   const STORAGE_KEY = 'gpp_particulares_v2';            // incrementado
   const STORAGE_KEY_LEGACY = 'gpp_particulares_v1';     // compat
   const FILTERS_STORAGE_KEY = 'gpp_particulares_filters_v1';
+  const LS_KIT_WA_CUSTOM = 'gpp_fsbo_kit_whatsapp_custom_v1';
 
   // IndexedDB para PDFs
   const DB_NAME = 'gpp_fsbo_attachments_db';
@@ -1659,6 +1662,7 @@ const objCommissionBtn = $('objCommissionBtn');
 const objExclusiveBtn = $('objExclusiveBtn');
 const objAngariarSmartBtn = $('objAngariarSmartBtn');
 const objResetWhatsappBtn = $('objResetWhatsappBtn');
+  const saveWhatsappCustomBtn = $('saveWhatsappCustomBtn');
 
 let kitWhatsappMainMessage = ''; // guarda o “principal” para voltar atrás
   const copyCallBtn = $('copyCallBtn');
@@ -3335,6 +3339,14 @@ Notas:
     const t = fetchInfo.title || null;
    kitWhatsappMainMessage = generateWhatsappSmart(item, t);
 kitWhatsapp.value = kitWhatsappMainMessage;
+    // Mensagem personalizada (guardada) — se existir, abre já preenchida
+    try{
+      const saved = localStorage.getItem(LS_KIT_WA_CUSTOM);
+      if(saved && String(saved).trim()){
+        kitWhatsapp.value = saved;
+      }
+    }catch(e){}
+
     kitCall.value = generateCallScript(item, t);
     kitEmailMainMessage = generateEmail(item, t);
 kitEmail.value = kitEmailMainMessage;
@@ -4515,6 +4527,24 @@ if(objResetWhatsappBtn) objResetWhatsappBtn.addEventListener('click', ()=>{
   kitWhatsapp.value = kitWhatsappMainMessage || (kitWhatsapp.value || '');
   showToast('Mensagem principal reposta');
 });
+
+// Guardar mensagem personalizada (para reutilizar em próximas sessões)
+if(saveWhatsappCustomBtn){
+  saveWhatsappCustomBtn.addEventListener('click', ()=>{
+    const v = (kitWhatsapp.value || '').trim();
+    if(!v){
+      alert('Escreva uma mensagem antes de gravar.');
+      return;
+    }
+    try{
+      localStorage.setItem(LS_KIT_WA_CUSTOM, v);
+      showToast('Mensagem personalizada gravada');
+    }catch(e){
+      console.error('Erro ao gravar mensagem personalizada', e);
+      alert('Não foi possível gravar a mensagem neste navegador.');
+    }
+  });
+}
   openWhatsappBtn.addEventListener('click', ()=>{
     if(!currentKitItem) return;
     const phone = normalizePhone(currentKitItem.ownerPhone || '');
@@ -4866,115 +4896,6 @@ function renderFollowupPanel(){
       if(kitBackdrop.classList.contains('open')) closeKit();
     }
   });
-  // --- Import handoff (evita abrir 2ª janela ao extrair do Idealista/Imovirtual) ---
-  const TAB_ID = (function(){
-    try{
-      const k = 'gpp_fsbo_tab_id_v1';
-      let v = sessionStorage.getItem(k);
-      if(!v){
-        v = 'tab_' + Date.now() + '_' + Math.random().toString(16).slice(2);
-        sessionStorage.setItem(k, v);
-      }
-      return v;
-    }catch(e){
-      return 'tab_' + Date.now() + '_' + Math.random().toString(16).slice(2);
-    }
-  })();
-
-  const MAIN_TAB_KEY = 'gpp_fsbo_main_tab_v1';
-  const IMPORT_PAYLOAD_KEY = 'gpp_fsbo_import_payload_v1';
-  const IMPORT_CHAN = 'gpp_fsbo_import_channel_v1';
-
-  let bc = null;
-  try{
-    if('BroadcastChannel' in window){
-      bc = new BroadcastChannel(IMPORT_CHAN);
-    }
-  }catch(e){}
-
-  function _now(){ return Date.now(); }
-
-  function getMainTab(){
-    try{
-      const raw = localStorage.getItem(MAIN_TAB_KEY);
-      if(!raw) return null;
-      const obj = JSON.parse(raw);
-      if(!obj || typeof obj !== 'object') return null;
-      if(!obj.id || !obj.ts) return null;
-      // se não houver "heartbeat" recente, consideramos que não há janela principal
-      if((_now() - obj.ts) > 45000) return null;
-      return obj.id;
-    }catch(e){
-      return null;
-    }
-  }
-
-  function isMainTab(){
-    return getMainTab() === TAB_ID;
-  }
-
-  function claimMainTab(){
-    try{
-      const current = getMainTab();
-      if(!current){
-        localStorage.setItem(MAIN_TAB_KEY, JSON.stringify({ id:TAB_ID, ts:_now() }));
-      }
-    }catch(e){}
-
-    // Se eu for a janela principal, mantenho "heartbeat"
-    if(isMainTab()){
-      setInterval(()=>{
-        try{
-          localStorage.setItem(MAIN_TAB_KEY, JSON.stringify({ id:TAB_ID, ts:_now() }));
-        }catch(e){}
-      }, 15000);
-    }
-  }
-
-  function broadcastImport(payload){
-    const msg = {
-      id: 'imp_' + _now() + '_' + Math.random().toString(16).slice(2),
-      ts: _now(),
-      payload
-    };
-
-    // 1) BroadcastChannel (mais rápido)
-    try{ if(bc) bc.postMessage(msg); }catch(e){}
-
-    // 2) storage event (fallback, funciona entre separadores)
-    try{ localStorage.setItem(IMPORT_PAYLOAD_KEY, JSON.stringify(msg)); }catch(e){}
-
-    return msg;
-  }
-
-  let _lastImportId = '';
-  function handleIncomingImport(msg){
-    try{
-      if(!msg || typeof msg !== 'object') return;
-      if(!msg.id || msg.id === _lastImportId) return;
-      if(!msg.payload) return;
-      // só a janela principal processa imports para evitar duplicados
-      if(!isMainTab()) return;
-
-      _lastImportId = msg.id;
-      prefillFormFromPayload(msg.payload);
-      showToast('Import recebido');
-    }catch(e){
-      console.error('Erro ao processar import recebido', e);
-    }
-  }
-
-  // listeners para receber import na janela principal
-  if(bc){
-    bc.onmessage = (ev)=> handleIncomingImport(ev.data);
-  }
-  window.addEventListener('storage', (e)=>{
-    if(e.key === IMPORT_PAYLOAD_KEY && e.newValue){
-      try{ handleIncomingImport(JSON.parse(e.newValue)); }catch(err){}
-    }
-  });
-
-  claimMainTab();
 
   /* ============ Init ============ */
   initConsultores();
@@ -4993,16 +4914,6 @@ function renderFollowupPanel(){
     history.replaceState(null, '', window.location.pathname + window.location.search);
 
     if(payload){
-      // Se já existir uma janela principal do módulo aberta, enviamos para lá e evitamos duplicações.
-      const mainId = getMainTab();
-      if(mainId && mainId !== TAB_ID){
-        broadcastImport(payload);
-        showToast('Import enviado para a janela principal');
-        setTimeout(()=>{ try{ window.close(); }catch(e){} }, 250);
-        return;
-      }
-
-      // Caso contrário (ou se esta for a janela principal), processamos aqui.
       prefillFormFromPayload(payload);
     }else{
       showToast('Import inválido');
