@@ -1,11 +1,3 @@
-
-
-
-
-
-
-
-
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -1440,6 +1432,14 @@ textarea{
               <button class="btn btn-ghost" id="saveScriptBtn" title="Guardar texto personalizado (Script)">💾 Gravar</button>
   <button class="btn btn-ghost" id="pdfCallBtn" title="Gerar PDF deste script">🧾 PDF</button>
 </div>
+<div class="kit-actions" style="margin-top:8px; flex-wrap:wrap; gap:6px">
+  <button class="btn btn-ghost" id="callObjSoloBtn" type="button">🟡 Vendo sozinho</button>
+  <button class="btn btn-ghost" id="callObjAgenciesBtn" type="button">🔵 Já tenho imobiliárias</button>
+  <button class="btn btn-ghost" id="callObjCommissionBtn" type="button">🔴 Não quero pagar comissão</button>
+  <button class="btn btn-ghost" id="callObjExclusiveBtn" type="button">🟤 Não dou exclusivo</button>
+  <button class="btn btn-ghost" id="callObjSmartBtn" type="button">🟢 Angariar Smart</button>
+</div>
+
         </div>
 
        <div class="kit-box">
@@ -3305,37 +3305,62 @@ Com os melhores cumprimentos`;
 }
 
 function generateCallScript(item, fetchedTitle){
-    const prof = getUserProfile();
-    const c = consultantFromProfile(item, prof);
+  const prof = getUserProfile();
+  const c = consultantFromProfile(item, prof);
 
-    const owner = (item.ownerName || '').trim();
-    const first = owner ? firstNameFromOwner(owner) : '';
-    const nome = first || '';
-    const tipo = (item.tipoImovel || 'imóvel').trim();
-    const tipologia = item.tipologia ? (' ' + String(item.tipologia).trim()) : '';
-    const zonaLonga = ([item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ') || '').trim();
-    const preco = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
-    const title = fetchedTitle || item.tituloImovel || `${tipo}${tipologia} em ${item.concelho||''}`.trim();
-    return [
-      'Abertura',
-      `• “Bom dia${nome ? ' ' + nome : ''}. Fala ${c.nome ? 'com ' + c.nome : 'com o consultor'}? O meu nome é ${c.nome || '…'} e sou ${c.cargo || 'consultor'}${c.empresa ? ' da ' + c.empresa : ''}.”`,
-      '',
-      'Contexto',
-      `• “Estou a ligar por causa do anúncio do ${title}${zonaLonga ? ' ('+zonaLonga+')' : ''}${preco ? ', anunciado por ' + preco : ''}. O imóvel mantém-se disponível?”`,
-      '',
-      'Qualificação (rápida)',
-      '• “Qual é o principal motivo da venda?”',
-      '• “Há algum prazo/objetivo que seja importante respeitar?”',
-      '• “Já teve visitas? Que tipo de feedback tem recebido?”',
-      '',
-      'Valor (sem compromisso)',
-      '• “O que posso fazer já, sem compromisso, é partilhar-lhe uma análise objetiva do mercado na sua zona (preços de fecho e posicionamento) e 2–3 ajustes práticos para aumentar o interesse e proteger o valor.”',
-      '',
-      'Próximo passo',
-      '• “Faz sentido agendarmos uma breve visita de qualificação? Pode ser 15–20 minutos, numa data conveniente para si.”',
-      '',
-    ].filter(Boolean).join('\n');
-  }
+  const nome = (c.nome || '...').trim();
+
+  const script = [
+    '📞 SCRIPT FSBO — VERSÃO PROFISSIONAL E PRECISA',
+    '',
+    '🔹 Abertura (primeiros 10–15 segundos)',
+    `“Bom dia, fala ${nome}. Vi o seu imóvel anunciado e prometo ser muito direto:\n` +
+    `está determinado em vender sozinho até ao fim, ou está aberto a analisar uma alternativa que possa acelerar o processo e proteger o valor?”`,
+    '',
+    '🎯 Objetivo:',
+    '• Demonstrar respeito',
+    '• Ser direto',
+    '• Criar bifurcação decisória',
+    '• Ganhar controlo da conversa',
+    '',
+    '⸻',
+    '',
+    '🔹 Se disser que quer vender sozinho',
+    '“Compreendo perfeitamente. Muitos proprietários começam assim.',
+    'A minha pergunta é apenas esta: se surgisse um comprador qualificado, que não está nos portais, estaria disposto a ouvir?”',
+    '',
+    '⸻',
+    '',
+    '🔹 Se mostrar abertura',
+    '“Ótimo. O meu trabalho não é colocar mais um anúncio.',
+    'É filtrar compradores, estruturar negociação e evitar que o imóvel entre em desgaste de mercado.”',
+    '',
+    '⸻',
+    '',
+    '🔹 Perguntas estratégicas (curtas)',
+    '• Já teve visitas?',
+    '• Recebeu propostas formais?',
+    '• O que está a achar mais difícil neste processo?',
+    '',
+    '(Depois escuta.)',
+    '',
+    '⸻',
+    '',
+    '🔹 Posicionamento de autoridade',
+    '“Hoje há muita exposição, mas pouca qualificação.',
+    'O meu foco é proteger o valor do imóvel e evitar negociações frágeis.”',
+    '',
+    '⸻',
+    '',
+    '🔹 Fecho',
+    '“Não lhe peço compromisso. Apenas 20 minutos para lhe mostrar como trabalho.',
+    'Depois decide com total liberdade.',
+    'Quando lhe dá mais jeito?”',
+  ].join('\n');
+
+  return script;
+}
+
 
 function generateEmail(item, fetchedTitle){
     const prof = getUserProfile();
@@ -3545,6 +3570,23 @@ kitEmail.value = kitEmailMainMessage;
       await navigator.clipboard.writeText(text);
       showToast('Copiado');
     }catch(e){
+
+  // ✅ NOVO — respostas rápidas a objeções (Script): copia para a área de transferência
+  const CALL_OBJECTIONS = {
+    solo: "E faz todo o sentido testar o mercado.\nA minha função não é substituir o que está a fazer, é acrescentar compradores qualificados que normalmente não chegam aos portais.",
+    agencies: "Perfeito. Então o imóvel já está exposto.\nA questão é: está a receber propostas concretas ou apenas visitas sem decisão?",
+    commission: "Compreendo.\nA verdadeira questão não é a comissão, é o valor líquido final.\nSe conseguir vender melhor e mais rápido, a comissão deixa de ser custo e passa a ser investimento.",
+    exclusive: "Percebo.\nMas sem alinhamento estratégico o mercado fragmenta-se e o imóvel perde força.\nO exclusivo não é controlo — é coordenação.",
+    smart: "Podemos começar de forma inteligente e faseada, sem pressão.\nTestamos metodologia, medimos resultados e decide com dados."
+  };
+
+  function bindCallObjectionButtons(){
+    if(callObjSoloBtn) callObjSoloBtn.addEventListener('click', ()=> copyText(CALL_OBJECTIONS.solo));
+    if(callObjAgenciesBtn) callObjAgenciesBtn.addEventListener('click', ()=> copyText(CALL_OBJECTIONS.agencies));
+    if(callObjCommissionBtn) callObjCommissionBtn.addEventListener('click', ()=> copyText(CALL_OBJECTIONS.commission));
+    if(callObjExclusiveBtn) callObjExclusiveBtn.addEventListener('click', ()=> copyText(CALL_OBJECTIONS.exclusive));
+    if(callObjSmartBtn) callObjSmartBtn.addEventListener('click', ()=> copyText(CALL_OBJECTIONS.smart));
+  }
       // fallback
       const ta = document.createElement('textarea');
       ta.value = text;
@@ -4598,6 +4640,13 @@ closeModal();
   const pdfWhatsappBtn = $('pdfWhatsappBtn');
 const pdfEmailBtn = $('pdfEmailBtn');
 const pdfCallBtn = $('pdfCallBtn');
+
+  // ✅ NOVO — botões de objeções (Script)
+  const callObjSoloBtn = $('callObjSoloBtn');
+  const callObjAgenciesBtn = $('callObjAgenciesBtn');
+  const callObjCommissionBtn = $('callObjCommissionBtn');
+  const callObjExclusiveBtn = $('callObjExclusiveBtn');
+  const callObjSmartBtn = $('callObjSmartBtn');
 const pdfSwotBtn = $('pdfSwotBtn');
 
 if(pdfWhatsappBtn) pdfWhatsappBtn.addEventListener('click', ()=>exportKitSectionPdf('whatsapp'));
@@ -4609,6 +4658,7 @@ if(pdfSwotBtn)     pdfSwotBtn.addEventListener('click', ()=>exportKitSectionPdf(
   copyCallBtn.addEventListener('click', ()=>copyText(kitCall.value || ''));
   copyEmailBtn.addEventListener('click', ()=>copyText(kitEmail.value || ''));
   copySwotBtn.addEventListener('click', ()=>copyText(kitSwot.value || ''));
+  bindCallObjectionButtons();
 
   // 💾 Guardar mensagens personalizadas (WhatsApp / Email / SWOT / Script)
   if(saveWhatsappBtn){
