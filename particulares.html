@@ -5,6 +5,7 @@
 
 
 
+
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -2573,6 +2574,16 @@ function buildSignatureText(c){
   if(c.email) lines.push('E: ' + c.email);
   return lines.join('\n').trim();
 }
+
+function buildSignatureShort(c){
+  if(!c) return '';
+  const parts = [];
+  if(c.nome) parts.push(String(c.nome).trim());
+  if(c.empresa) parts.push(String(c.empresa).trim());
+  if(c.tel) parts.push(String(c.tel).trim());
+  return parts.filter(Boolean).join(' | ').trim();
+}
+
 /* ===== Fim integração Perfil ===== */
 
 function classForAjust(p){
@@ -3125,7 +3136,7 @@ Se fizer sentido, posso dar-lhe um enquadramento objetivo em 10 minutos: preço 
 
     const saud = 'Bom dia' + (nome ? ' ' + nome : '') + ',';
 
-    const assinatura = buildSignatureText(c);
+    const assinatura = buildSignatureShort(c);
 
     return [
       saud,
@@ -3140,7 +3151,6 @@ Se fizer sentido, posso dar-lhe um enquadramento objetivo em 10 minutos: preço 
       '',
       'O imóvel mantém-se em fase de comercialização?',
       'Seria possível agendarmos uma breve visita numa data conveniente para si?',
-      assinatura ? ('\n—\n' + assinatura) : ''
     ].filter(Boolean).join('\n');
   }
 
@@ -3213,9 +3223,6 @@ function generateWhatsappSmart(item, fetchedTitle){
   const title = fetchedTitle || item.tituloImovel || 'o seu imóvel';
   const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
   const price = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
-
-  const assinatura = buildSignatureText(c);
-
   const subjBase = `Enquadramento e estratégia — ${title}${zone ? ' ('+zone+')' : ''}`;
   let subject = subjBase;
   let body = '';
@@ -3237,8 +3244,7 @@ Caso se mantenha a preferência por venda direta, a informação continua a ser 
 
 Sugere uma chamada breve (10 minutos) hoje ao final do dia ou amanhã de manhã?
 
-Com os melhores cumprimentos,
-${assinatura || ''}`;
+Com os melhores cumprimentos`;
   }else if(objectionKey === 'many'){
     subject = subjBase + ' | Muitas agências / muitos contactos';
     body =
@@ -3255,8 +3261,7 @@ Se for útil, posso ajudá-lo(a) a estruturar uma estratégia simples para mante
 
 Prefere uma chamada breve hoje ou amanhã?
 
-Com os melhores cumprimentos,
-${assinatura || ''}`;
+Com os melhores cumprimentos`;
   }else if(objectionKey === 'commission'){
     subject = subjBase + ' | Questão da comissão';
     body =
@@ -3275,8 +3280,7 @@ Se considerar útil, posso explicar-lhe, de forma objetiva, como trabalhamos e q
 
 Podemos falar 10 minutos hoje ou amanhã?
 
-Com os melhores cumprimentos,
-${assinatura || ''}`;
+Com os melhores cumprimentos`;
   }else if(objectionKey === 'exclusive'){
     subject = subjBase + ' | Exclusivo com controlo';
     body =
@@ -3292,8 +3296,7 @@ Na prática, um exclusivo bem desenhado serve para:
 
 Se considerar útil, explico-lhe a diferença prática entre “sem exclusivo” e “exclusivo com controlo” numa chamada de 10 minutos.
 
-Com os melhores cumprimentos,
-${assinatura || ''}`;
+Com os melhores cumprimentos`;
   }else{
     return buildEmailObjectionReply('many', item, fetchedTitle);
   }
@@ -3313,9 +3316,6 @@ function generateCallScript(item, fetchedTitle){
     const zonaLonga = ([item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ') || '').trim();
     const preco = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
     const title = fetchedTitle || item.tituloImovel || `${tipo}${tipologia} em ${item.concelho||''}`.trim();
-
-    const assinatura = buildSignatureText(c);
-
     return [
       'Abertura',
       `• “Bom dia${nome ? ' ' + nome : ''}. Fala ${c.nome ? 'com ' + c.nome : 'com o consultor'}? O meu nome é ${c.nome || '…'} e sou ${c.cargo || 'consultor'}${c.empresa ? ' da ' + c.empresa : ''}.”`,
@@ -3334,7 +3334,6 @@ function generateCallScript(item, fetchedTitle){
       'Próximo passo',
       '• “Faz sentido agendarmos uma breve visita de qualificação? Pode ser 15–20 minutos, numa data conveniente para si.”',
       '',
-      assinatura ? ('—\n' + assinatura) : ''
     ].filter(Boolean).join('\n');
   }
 
@@ -3346,9 +3345,6 @@ function generateEmail(item, fetchedTitle){
     const title = fetchedTitle || item.tituloImovel || (item.tipologia ? (item.tipologia + ' ' + (item.concelho||'').trim()) : 'o seu imóvel');
     const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
     const price = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
-
-    const assinatura = buildSignatureText(c);
-
     return (
 `Caro(a) ${owner},
 
@@ -3364,8 +3360,7 @@ Caso considere útil, posso ainda sugerir-lhe:
 
 Se estiver disponível, proponho uma chamada breve (10 minutos) ou uma visita de qualificação, na data que lhe for mais conveniente.
 
-Com os melhores cumprimentos,
-${assinatura || ''}`
+Com os melhores cumprimentos`
     ).trim();
   }
 
@@ -3403,9 +3398,6 @@ function generateEmailFollowup48h(item, fetchedTitle){
   const title = fetchedTitle || item.tituloImovel || 'o seu imóvel';
   const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
   const price = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
-
-  const assinatura = buildSignatureText(c);
-
   return (
 `Assunto: Seguimento — ${title}${zone ? ' | ' + zone : ''}
 
@@ -3420,8 +3412,7 @@ Se sim, posso partilhar consigo:
 
 Caso seja conveniente, podemos falar 8–10 minutos hoje ao final do dia ou amanhã de manhã.
 
-Com os melhores cumprimentos,
-${assinatura || ''}`
+Com os melhores cumprimentos`
   );
 }
 
@@ -4984,7 +4975,7 @@ Se sim, posso partilhar consigo:
 
 Caso seja conveniente, podemos falar 8–10 minutos hoje ao final do dia ou amanhã de manhã.
 
-Com os melhores cumprimentos,
+Com os melhores cumprimentos
 
 ${buildSignatureText(consultantFromProfile(item, getUserProfile()))}`
   );
