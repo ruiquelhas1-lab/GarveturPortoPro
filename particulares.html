@@ -2521,6 +2521,60 @@ if(texto.includes(s)) return true;
   return n.toFixed(1).replace('.',',') + '%';
 }
 
+
+/* ===== Perfil do Utilizador (Perfil.html) — integração para mensagens do Kit FSBO ===== */
+const USER_PROFILE_KEY = 'gpp_user_profile_v1';
+
+function getUserProfile(){
+  try{
+    const raw = localStorage.getItem(USER_PROFILE_KEY);
+    if(!raw) return {};
+    const p = JSON.parse(raw);
+    if(!p || typeof p !== 'object') return {};
+    return {
+      nome: String(p.nome || '').trim(),
+      empresa: String(p.empresa || '').trim(),
+      cargo: String(p.cargo || '').trim(),
+      tel: String(p.tel || '').trim(),
+      email: String(p.email || '').trim(),
+      obs: String(p.obs || '').trim(),
+      sigText: String(p.sigText || '').trim(),
+      sigHtml: String(p.sigHtml || '').trim()
+    };
+  }catch(e){
+    return {};
+  }
+}
+
+function consultantFromProfile(item, prof){
+  const p = prof || {};
+  const nome = p.nome || (item && item.consultor) || '';
+  const empresa = p.empresa || 'Garvetur Luxury Porto';
+  const cargo = p.cargo || 'Consultor Imobiliário';
+
+  const tel = p.tel || (item && (item.consultorTel || item.consultorTelefone || '')) || '';
+  const email = p.email || (item && (item.consultorEmail || item.consultorMail || '')) || '';
+
+  const sigText = p.sigText || '';
+  const sigHtml = p.sigHtml || '';
+
+  return { nome, empresa, cargo, tel, email, sigText, sigHtml };
+}
+
+function buildSignatureText(c){
+  if(!c) return '';
+  if(c.sigText) return String(c.sigText).trim();
+
+  const lines = [];
+  if(c.nome) lines.push(c.nome);
+  const line2 = [c.cargo, c.empresa].filter(Boolean).join(' — ');
+  if(line2) lines.push(line2);
+  if(c.tel) lines.push('T: ' + c.tel);
+  if(c.email) lines.push('E: ' + c.email);
+  return lines.join('\n').trim();
+}
+/* ===== Fim integração Perfil ===== */
+
 function classForAjust(p){
 
   const n = parseFloat(String(p).replace(',', '.'));
@@ -2932,7 +2986,7 @@ function buildKitResumo(item){
     return (
 `Boa tarde${greetName}.
 
-O meu nome é ${item.consultor || 'Rui Quelhas'}, da Garvetur Luxury Porto. Vi o anúncio${item.portal ? ' no ' + item.portal : ''} relativo a “${title}”${zone ? ' ('+zone+')' : ''}${price ? ' — ' + price : ''}.
+O meu nome é ${c.nome || item.consultor || '…'}, ${c.empresa ? 'da ' + c.empresa : ''}. Vi o anúncio${item.portal ? ' no ' + item.portal : ''} relativo a “${title}”${zone ? ' ('+zone+')' : ''}${price ? ' — ' + price : ''}.
 
 Trabalho diariamente com compradores qualificados para esta zona e gostaria de perceber se faz sentido ajudá-lo(a) a vender com mais segurança e melhor posicionamento no mercado.
 
@@ -2978,7 +3032,7 @@ Podemos agendar uma chamada curta hoje ao final do dia ou amanhã de manhã?`
     const portal = item.portal ? (' no ' + item.portal) : '';
 
     const line1 = `Boa tarde${greetName}.`;
-    const line2 = `O meu nome é ${item.consultor || 'Rui Quelhas'}, da Garvetur Luxury Porto. Vi o anúncio${portal} relativo a “${title}”${zone ? ' ('+zone+')' : ''}${price ? ' — ' + price : ''}.`;
+    const line2 = `O meu nome é ${c.nome || item.consultor || '…'}, ${c.empresa ? 'da ' + c.empresa : ''}. Vi o anúncio${portal} relativo a “${title}”${zone ? ' ('+zone+')' : ''}${price ? ' — ' + price : ''}.`;
 
     return [line1, '', line2].join('\n');
   }
@@ -3056,44 +3110,47 @@ Se fizer sentido, posso dar-lhe um enquadramento objetivo em 10 minutos: preço 
   }
 
   function buildWhatsappMessage(item, fetchedTitle){
+    const prof = getUserProfile();
+    const c = consultantFromProfile(item, prof);
+
     const owner = (item.ownerName || '').trim();
     const first = owner ? firstNameFromOwner(owner) : '';
     const nome = first || '';
+
     const tipo = (item.tipoImovel || 'imóvel').trim();
     const tipologia = item.tipologia ? (' ' + String(item.tipologia).trim()) : '';
     const zonaCurta = (item.zona || item.concelho || item.freguesia || '').trim();
     const zonaLonga = ([item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ') || '').trim();
-    const portal = (item.portal || '').trim();
     const preco = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
 
-      const saud = 'Bom dia' + (nome ? ' ' + nome : '') + ',';
+    const saud = 'Bom dia' + (nome ? ' ' + nome : '') + ',';
 
-  return [
-    saud,
-    '',
-    'O meu nome é Rui Quelhas e sou Diretor Comercial da Garvetur Luxury Porto.',
-    'Estamos sediados na Praça Velásquez, mais concretamente na Alameda Eça de Queiroz, n.º 25.',
-    '',
-    `Tomei conhecimento do seu anúncio relativo ao imóvel situado em ${zonaLonga || (zonaCurta || '…')}${preco ? ', atualmente anunciado pelo valor de ' + preco : ', atualmente anunciado pelo valor de …'}.`,
-    '',
-    'Este tipo de imóvel continua a revelar procura no mercado — sobretudo quando o posicionamento inicial está bem alinhado com o perfil de comprador que hoje procura nesta zona.',
-    '',
-    'Em muitos casos, o principal desafio não reside no imóvel em si, mas na forma como o mercado o interpreta nas primeiras semanas de exposição: enquadramento de preço, abordagem aos contactos e gestão do processo negocial.',
-    '',
-    'Enquanto profissionais do setor, consideramos fundamental conhecer o imóvel em detalhe antes de o apresentar a potenciais compradores ou investidores, garantindo uma abordagem rigorosa e ajustada à realidade do mercado.',
-    '',
-    'Se fizer sentido para si, terei todo o gosto em partilhar um enquadramento objetivo numa breve conversa de cerca de 10 minutos, sem qualquer compromisso — análise de mercado, pontos a afinar e possíveis próximos passos.',
-    '',
-    'O imóvel mantém-se em fase de comercialização?',
-    'Seria possível agendarmos uma breve visita numa data conveniente para si?'
-  ].join('\n');
+    const assinatura = buildSignatureText(c);
+
+    return [
+      saud,
+      '',
+      `O meu nome é ${c.nome}${c.cargo || c.empresa ? ' e sou ' + [c.cargo, (c.empresa ? ('da ' + c.empresa) : '')].filter(Boolean).join(' ') : '.'}`,
+      '',
+      `Tomei conhecimento do seu anúncio relativo ao ${tipo}${tipologia} situado em ${zonaLonga || (zonaCurta || '…')}${preco ? ', atualmente anunciado pelo valor de ' + preco : ', atualmente anunciado pelo valor de …'}.`,
+      '',
+      'Este tipo de imóvel continua a revelar procura no mercado e, por isso, tenho acompanhado de perto a evolução real dos valores praticados na zona (não apenas os valores anunciados).',
+      '',
+      'Se fizer sentido, posso partilhar-lhe um enquadramento objetivo numa breve conversa de cerca de 10 minutos, sem qualquer compromisso — análise de mercado, pontos a afinar e possíveis próximos passos.',
+      '',
+      'O imóvel mantém-se em fase de comercialização?',
+      'Seria possível agendarmos uma breve visita numa data conveniente para si?',
+      assinatura ? ('\n—\n' + assinatura) : ''
+    ].filter(Boolean).join('\n');
   }
 
   // Novo gerador “smart” (mantém fallback para o atual)
 
-
 function generateWhatsappSmart(item, fetchedTitle){
   try{
+    const prof = getUserProfile();
+    const c = consultantFromProfile(item, prof);
+
     void FSBO_PROMPT_STANDARD;
     // buildWhatsappMessage() já inclui o prefixo ✅ [GPP-SMART]
     return buildWhatsappMessage(item, fetchedTitle);
@@ -3149,144 +3206,168 @@ function generateWhatsappSmart(item, fetchedTitle){
   return [header, intro, '', ref, '', body, '', cta].join('\n').trim();
 }
   function buildEmailObjectionReply(objectionKey, item, fetchedTitle){
+  const prof = getUserProfile();
+  const c = consultantFromProfile(item, prof);
+
   const owner = item.ownerName || 'Proprietário(a)';
   const title = fetchedTitle || item.tituloImovel || 'o seu imóvel';
   const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
   const price = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
 
-  const subjBase = `Enquadramento e estratégia — ${title}${zone ? ' | ' + zone : ''}`;
+  const assinatura = buildSignatureText(c);
+
+  const subjBase = `Enquadramento e estratégia — ${title}${zone ? ' ('+zone+')' : ''}`;
   let subject = subjBase;
-
   let body = '';
-  if(objectionKey === 'many'){
-    subject = `Diferenciação e controlo do processo — ${title}${zone ? ' | ' + zone : ''}`;
+
+  if(objectionKey === 'solo'){
+    subject = subjBase + ' | Vender por conta própria';
     body =
 `Caro(a) ${owner},
 
-Compreendo perfeitamente que já esteja a falar com outras imobiliárias. A questão raramente é “ter mais contactos”; é garantir controlo do processo e proteção do valor.
+Compreendo perfeitamente a sua intenção de vender por conta própria.
 
-Na prática, é aqui que normalmente se perde margem:
-• triagem fraca (muitos curiosos / poucos compradores reais),
-• mensagem e preço inconsistentes,
-• negociação sem estratégia e sem controlo documental.
+A experiência mostra que, neste tipo de imóvel, os dois riscos mais comuns são:
+• negociar “em baixa” por falta de referências reais de transação (não apenas anúncios);
+• perder tempo com contactos não qualificados, visitas improdutivas e propostas pouco consistentes.
 
-Se fizer sentido, proponho uma chamada curta de 10 minutos para lhe dar um diagnóstico objetivo: o que está bem, o que está a travar, e qual o ajuste mais rápido para proteger o valor.
+Se fizer sentido para si, posso partilhar consigo uma análise objetiva do mercado na zona (procura, preços de fecho e posicionamento) e um plano simples para filtrar contactos e proteger o valor.
+
+Caso se mantenha a preferência por venda direta, a informação continua a ser útil para definir expectativas e estratégia.
+
+Sugere uma chamada breve (10 minutos) hoje ao final do dia ou amanhã de manhã?
 
 Com os melhores cumprimentos,
-Rui Quelhas
-Director Comercial — Garvetur Luxury Porto`;
+${assinatura || ''}`;
+  }else if(objectionKey === 'many'){
+    subject = subjBase + ' | Muitas agências / muitos contactos';
+    body =
+`Caro(a) ${owner},
+
+Percebo — quando há muitas agências envolvidas, é normal sentir perda de controlo: mensagens inconsistentes, preços diferentes, pouca filtragem e desgaste.
+
+O que tipicamente melhora os resultados é reduzir ruído e aumentar qualidade:
+• uma mensagem única e coerente;
+• qualificação rigorosa antes de visitas;
+• reporting semanal com feedback real do mercado.
+
+Se for útil, posso ajudá-lo(a) a estruturar uma estratégia simples para manter controlo e proteger o valor, mesmo sem alterar o seu nível de abertura ao mercado.
+
+Prefere uma chamada breve hoje ou amanhã?
+
+Com os melhores cumprimentos,
+${assinatura || ''}`;
   }else if(objectionKey === 'commission'){
-    subject = `Valor líquido e risco — ${title}${zone ? ' | ' + zone : ''}`;
+    subject = subjBase + ' | Questão da comissão';
     body =
 `Caro(a) ${owner},
 
-Percebo a questão da comissão — é um ponto legítimo. O que importa, no final, é o valor líquido e a segurança do processo.
+Compreendo a preocupação com a comissão — é um tema central e deve ser tratado com total transparência.
 
-Nos casos em que acompanho, a diferença tende a surgir em três áreas:
-• desconto final (negociação conduzida sem estratégia),
-• tempo em mercado (posicionamento inicial desalinhado),
-• risco (documentos, reservas, condições e timings).
+O ponto relevante é este: a comissão só faz sentido se o serviço gerar valor líquido (mais segurança + menos risco + melhor negociação), e se estiver alinhada com um plano de execução claro.
 
-Se desejar, faço-lhe uma simulação simples e objetiva (cenários de valor líquido) e comparamos venda direta vs. plano com triagem e negociação estruturada.
+Num cenário bem estruturado, a intervenção do consultor tende a:
+• proteger o valor em negociação (evitar cedências desnecessárias);
+• aumentar a qualidade dos contactos (menos curiosos, mais intenção);
+• acelerar o processo com melhor comunicação e gestão de propostas.
 
-Podemos falar 10 minutos hoje ao final do dia ou amanhã de manhã?
+Se considerar útil, posso explicar-lhe, de forma objetiva, como trabalhamos e quais as condições que fazem sentido no seu caso — sem compromisso.
+
+Podemos falar 10 minutos hoje ou amanhã?
 
 Com os melhores cumprimentos,
-Rui Quelhas
-Director Comercial — Garvetur Luxury Porto`;
+${assinatura || ''}`;
   }else if(objectionKey === 'exclusive'){
-    subject = `Exclusivo com métricas e prazo — ${title}${zone ? ' | ' + zone : ''}`;
+    subject = subjBase + ' | Exclusivo com controlo';
     body =
 `Caro(a) ${owner},
 
-Compreendo a reserva relativamente ao exclusivo. “Exclusivo” só faz sentido quando existe responsabilidade, métricas e um plano claro.
+Compreendo a reserva em relação ao exclusivo — a palavra, por vezes, é confundida com “ficar preso”.
 
-A minha proposta (quando faz sentido) é simples:
-• prazo curto (ex.: 30 dias),
-• plano de ação definido (marketing + triagem + visitas),
-• metas objetivas (procura, visitas, feedback e ajuste),
-• decisão livre no final do período.
+Na prática, um exclusivo bem desenhado serve para:
+• garantir compromisso de execução (plano + comunicação + visitas),
+• criar controlo e consistência na mensagem,
+• assegurar responsabilidade e reporting (procura, visitas, feedback e ajuste),
+• manter uma decisão livre no final do período.
 
 Se considerar útil, explico-lhe a diferença prática entre “sem exclusivo” e “exclusivo com controlo” numa chamada de 10 minutos.
 
 Com os melhores cumprimentos,
-Rui Quelhas
-Director Comercial — Garvetur Luxury Porto`;
+${assinatura || ''}`;
   }else{
-    body = buildEmailObjectionReply('many', item, fetchedTitle);
+    return buildEmailObjectionReply('many', item, fetchedTitle);
   }
 
   return `Assunto: ${subject}\n\n${body}`;
 }
-  function generateCallScript(item, fetchedTitle){
+
+function generateCallScript(item, fetchedTitle){
+    const prof = getUserProfile();
+    const c = consultantFromProfile(item, prof);
+
     const owner = (item.ownerName || '').trim();
     const first = owner ? firstNameFromOwner(owner) : '';
     const nome = first || '';
     const tipo = (item.tipoImovel || 'imóvel').trim();
     const tipologia = item.tipologia ? (' ' + String(item.tipologia).trim()) : '';
-    const zonaCurta = (item.zona || item.concelho || item.freguesia || '').trim();
-    const portal = (item.portal || '').trim();
+    const zonaLonga = ([item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ') || '').trim();
+    const preco = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
+    const title = fetchedTitle || item.tituloImovel || `${tipo}${tipologia} em ${item.concelho||''}`.trim();
+
+    const assinatura = buildSignatureText(c);
 
     return [
-      `Bom dia${nome ? ' ' + nome : ''}, fala ${item.consultor || 'Rui Quelhas'} da Garvetur Luxury Porto.`,
-      `Estou a ligar a propósito do anúncio do ${tipo}${tipologia}${zonaCurta ? ' em ' + zonaCurta : ''}${portal ? ' que vi no ' + portal : ''} — é um bom momento para falarmos 2 minutos?`,
+      'Abertura',
+      `• “Bom dia${nome ? ' ' + nome : ''}. Fala ${c.nome ? 'com ' + c.nome : 'com o consultor'}? O meu nome é ${c.nome || '…'} e sou ${c.cargo || 'consultor'}${c.empresa ? ' da ' + c.empresa : ''}.”`,
       '',
-      `Se disser “sim”`,
+      'Contexto',
+      `• “Estou a ligar por causa do anúncio do ${title}${zonaLonga ? ' ('+zonaLonga+')' : ''}${preco ? ', anunciado por ' + preco : ''}. O imóvel mantém-se disponível?”`,
       '',
-      `Obrigado.`,
-      `Liguei porque este tipo de imóvel, nesta zona, continua a ter procura, mas tenho visto muitos proprietários a receber contactos pouco qualificados ou a entrar cedo em negociação sem necessidade.`,
+      'Qualificação (rápida)',
+      '• “Qual é o principal motivo da venda?”',
+      '• “Há algum prazo/objetivo que seja importante respeitar?”',
+      '• “Já teve visitas? Que tipo de feedback tem recebido?”',
       '',
-      `Queria apenas perceber: o imóvel continua disponível?`,
+      'Valor (sem compromisso)',
+      '• “O que posso fazer já, sem compromisso, é partilhar-lhe uma análise objetiva do mercado na sua zona (preços de fecho e posicionamento) e 2–3 ajustes práticos para aumentar o interesse e proteger o valor.”',
       '',
-      `Qualificação suave (1–2 perguntas)`,
-      `• Já recebeu contactos com real intenção?`,
-      `• Está a conduzir o processo sozinho ou já teve algum apoio profissional?`,
+      'Próximo passo',
+      '• “Faz sentido agendarmos uma breve visita de qualificação? Pode ser 15–20 minutos, numa data conveniente para si.”',
       '',
-      `Fecho (sem venda)`,
-      `Se fizer sentido, posso partilhar consigo uma leitura muito objetiva do mercado atual para imóveis como o seu — 10 minutos, sem compromisso, apenas para ter informação sólida para decidir.`
-    ].join('\n');
+      assinatura ? ('—\n' + assinatura) : ''
+    ].filter(Boolean).join('\n');
   }
- function generateEmail(item, fetchedTitle){
-    const owner = (item.ownerName || '').trim();
-    const nome = owner || '';
-    const tipo = (item.tipoImovel || 'imóvel').trim();
-    const tipologia = item.tipologia ? (' ' + String(item.tipologia).trim()) : '';
-    const zonaCurta = (item.zona || item.concelho || item.freguesia || '').trim();
-    const portal = (item.portal || '').trim();
-    const preco = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
 
-    const assunto = `Sobre o seu ${tipo}${tipologia}${zonaCurta ? ' em ' + zonaCurta : ''}`;
+function generateEmail(item, fetchedTitle){
+    const prof = getUserProfile();
+    const c = consultantFromProfile(item, prof);
 
-    const saud = nome ? `Exmo.(a) Sr.(a) ${nome},` : 'Exmo.(a) Senhor(a),';
+    const owner = item.ownerName ? item.ownerName.trim() : 'Proprietário(a)';
+    const title = fetchedTitle || item.tituloImovel || (item.tipologia ? (item.tipologia + ' ' + (item.concelho||'').trim()) : 'o seu imóvel');
+    const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
+    const price = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
 
-    const linhas = [
-      saud,
-      '',
-      `O meu nome é ${item.consultor || 'Rui Quelhas'} e sou Diretor Comercial na Garvetur Luxury Porto.`,
-      '',
-      `Tomei conhecimento do seu anúncio${portal ? ' no ' + portal : ''}, relativo ao ${tipo}${tipologia}${zonaCurta ? ' situado em ' + zonaCurta : ''}${preco ? ', com o valor de ' + preco : ''}, e considerei relevante contactá-lo pela coerência do imóvel com a procura atual nesta zona.`,
-      '',
-      `No mercado atual, sobretudo em imóveis com este enquadramento, o sucesso do processo de venda depende menos da exposição e mais do posicionamento inicial, da forma como os contactos são qualificados e da condução da negociação desde o primeiro interesse.`,
-      '',
-      `Tenho acompanhado vários processos semelhantes em ${zonaCurta || 'zona equivalente'} e, quando existe abertura, costumo partilhar um enquadramento simples e objetivo:`,
-      `• leitura de preço face ao mercado real`,
-      `• identificação de pontos que influenciam a procura`,
-      `• estratégia para proteger valor e reduzir desgaste negocial`,
-      '',
-      `Caso considere oportuno, fico disponível para uma conversa breve (10 minutos), sem qualquer compromisso.`,
-      '',
-      `Com os melhores cumprimentos,`,
-      '',
-      `${item.consultor || 'Rui Quelhas'}`,
-      `Diretor Comercial`,
-      `Garvetur Luxury Porto`,
-      `${(item.consultorTel || item.consultorTelefone || '') ? String(item.consultorTel || item.consultorTelefone) : ''}`.trim()
-    ].filter(Boolean);
+    const assinatura = buildSignatureText(c);
 
-    return `Assunto: ${assunto}\n\n${linhas.join('\n')}`.trim();
+    return (
+`Caro(a) ${owner},
+
+O meu nome é ${c.nome || 'Consultor'} e sou ${c.cargo || 'consultor'}${c.empresa ? ' da ' + c.empresa : ''}.
+Tomei conhecimento do seu anúncio relativo a “${title}”${zone ? ' ('+zone+')' : ''}${price ? ' — ' + price : ''}.
+
+O objetivo deste contacto é simples: perceber se o imóvel se mantém disponível e, se fizer sentido, partilhar consigo uma leitura objetiva do enquadramento de preço e da procura atual na zona, com 2–3 ajustes práticos que tendem a aumentar o interesse e a proteger o valor em negociação.
+
+Caso considere útil, posso ainda sugerir-lhe:
+• estratégia de qualificação de contactos (para evitar curiosos);
+• plano de comunicação e distribuição;
+• pontos a otimizar na apresentação do imóvel.
+
+Se estiver disponível, proponho uma chamada breve (10 minutos) ou uma visita de qualificação, na data que lhe for mais conveniente.
+
+Com os melhores cumprimentos,
+${assinatura || ''}`
+    ).trim();
   }
-/* BEGIN: Follow-up 48h (WA + Email) */
-
 
 function addDaysToISO(dateISO, days){
   const dt = toDateOnly(dateISO);
@@ -3306,7 +3387,7 @@ function generateWhatsappFollowup48h(item, fetchedTitle){
 `✅ [GPP-FOLLOWUP-48H]
 Boa tarde${greetName}.
 
-Daqui fala o ${item.consultor || 'Rui Quelhas'} (Garvetur Luxury Porto). Volto a contactar apenas para fechar o ponto relativamente ao anúncio “${title}”${zone ? ' ('+zone+')' : ''}${price ? ' — ' + price : ''}.
+Daqui fala o ${c.nome || item.consultor || '…'} (${c.empresa || 'Garvetur Luxury Porto'}). Volto a contactar apenas para fechar o ponto relativamente ao anúncio “${title}”${zone ? ' ('+zone+')' : ''}${price ? ' — ' + price : ''}.
 
 O imóvel continua disponível?
 
@@ -3315,10 +3396,15 @@ Se sim, posso enviar-lhe uma leitura objetiva do enquadramento de preço e 2–3
 }
 
 function generateEmailFollowup48h(item, fetchedTitle){
+  const prof = getUserProfile();
+  const c = consultantFromProfile(item, prof);
+
   const owner = item.ownerName || 'Proprietário(a)';
   const title = fetchedTitle || item.tituloImovel || 'o seu imóvel';
   const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
   const price = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
+
+  const assinatura = buildSignatureText(c);
 
   return (
 `Assunto: Seguimento — ${title}${zone ? ' | ' + zone : ''}
@@ -3327,20 +3413,18 @@ Caro(a) ${owner},
 
 Da minha parte, deixo apenas um seguimento rápido relativamente ao seu anúncio${zone ? ' em ' + zone : ''}${price ? ' (preço: ' + price + ')' : ''}.
 
-O imóvel continua disponível?  
+O imóvel continua disponível?
 Se sim, posso partilhar consigo:
-• enquadramento objetivo de preço vs. mercado, e  
+• enquadramento objetivo de preço vs. mercado, e
 • 2–3 melhorias imediatas no anúncio para aumentar procura e proteger o valor.
 
 Caso seja conveniente, podemos falar 8–10 minutos hoje ao final do dia ou amanhã de manhã.
 
 Com os melhores cumprimentos,
-
-Rui Quelhas  
-Director Comercial  
-Garvetur Luxury Porto`
+${assinatura || ''}`
   );
 }
+
 /* END: Follow-up 48h (WA + Email) */
   function generateSwot(item, fetchedTitle){
     const title = fetchedTitle || item.tituloImovel || 'Imóvel';
@@ -4872,7 +4956,7 @@ function tplWhatsapp(item, fetchedTitle, stageLabel){
 `✅ [GPP-FOLLOWUP ${stageLabel}]
 Boa tarde${owner}.
 
-Daqui fala o ${item.consultor || 'Rui Quelhas'} (Garvetur Luxury Porto). Só para fechar o ponto do anúncio “${title}”${zone ? ' ('+zone+')' : ''}${price ? ' — ' + price : ''}.
+Daqui fala o ${c.nome || item.consultor || '…'} (${c.empresa || 'Garvetur Luxury Porto'}). Só para fechar o ponto do anúncio “${title}”${zone ? ' ('+zone+')' : ''}${price ? ' — ' + price : ''}.
 
 O imóvel continua disponível?
 
@@ -4902,9 +4986,7 @@ Caso seja conveniente, podemos falar 8–10 minutos hoje ao final do dia ou aman
 
 Com os melhores cumprimentos,
 
-Rui Quelhas
-Director Comercial
-Garvetur Luxury Porto`
+${buildSignatureText(consultantFromProfile(item, getUserProfile()))}`
   );
 }
 
