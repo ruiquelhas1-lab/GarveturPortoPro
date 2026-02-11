@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <title>Garvetur Porto Pro — Perfil do Utilizador</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
+  <style>
+    :root{
+      --gold:#A38B63;
+      --gold-soft:rgba(163,139,99,.35);
+      --bg:#0B0B0B;
+      --panel:#121212;
+      --panel-soft:#181818;
+      --text:#FFFFFF;
+      --muted:#A0A0A0;
+      --danger:#F25F5C;
+      --success:#4CAF50;
+      --warning:#FFC857;
+      --radius-lg:18px;
+      --radius-md:12px;
+      --shadow-soft:0 14px 25px rgba(0,0,0,.4);
+      --card-border:rgba(163,139,99,.3);
+    }
+
+    *{box-sizing:border-box;}
+    html,body{ margin:0; height:100%; font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; background:radial-gradient(circle at top,#1c1c1c 0,#050505 55%,#000 100%); color:var(--text); }
+    body{ display:flex; flex-direction:column; }
+
+    .app-shell{ display:grid; grid-template-rows:64px auto; height:100%; }
+
+    header.app-header{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:10px 18px; border-bottom:1px solid rgba(163,139,99,.35);
+      background:linear-gradient(90deg,#050505,#111,#050505);
+      position:sticky; top:0; z-index:20; gap:16px;
+    }
+    .brand{ display:flex; align-items:center; gap:10px; }
+    .brand-icon{
+      width:26px; height:26px; border-radius:999px;
+      border:1px solid var(--gold);
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:0 0 0 1px rgba(163,139,99,.3);
+    }
+    .brand-app{ font-size:10px; text-transform:uppercase; letter-spacing:.18em; color:var(--muted); margin-bottom:2px; }
+    .brand h1{ margin:0; font-size:18px; letter-spacing:.08em; text-transform:uppercase; color:var(--gold); }
+    .brand span.sub{ display:block; font-size:11px; color:var(--muted); letter-spacing:.08em; }
+
+    .nav-tabs{
+      display:flex; align-items:center; gap:4px;
+      background:rgba(0,0,0,.35);
+      padding:4px; border-radius:999px;
+      border:1px solid rgba(163,139,99,.35);
+      flex-wrap:wrap;
+    }
+    .nav-tab{
+      padding:5px 10px; border-radius:999px; font-size:11px; text-decoration:none;
+      color:var(--muted); letter-spacing:.12em; text-transform:uppercase;
+      border:1px solid transparent;
+      transition:.16s background,.16s color,.16s border-color,.16s transform;
+    }
+    .nav-tab:hover{ color:#fff; border-color:rgba(163,139,99,.6); transform:translateY(-1px); }
+    .nav-tab.active{ background:var(--gold); color:#0A0A0A; border-color:var(--gold); font-weight:600; }
+
+    .header-actions{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    .btn{
+      border-radius:999px; border:1px solid var(--gold-soft);
+      background:rgba(12,12,12,.9); color:var(--text);
+      padding:7px 12px; font-size:13px;
+      display:inline-flex; align-items:center; gap:6px;
+      cursor:pointer; transition:.18s border-color,.18s background,.18s transform;
+      white-space:nowrap;
+    }
+    .btn:hover{ border-color:var(--gold); transform:translateY(-1px); }
+    .btn:disabled{ opacity:.45; cursor:not-allowed; transform:none; }
+    .btn-primary{ background:var(--gold); color:#0A0A0A; border-color:var(--gold); font-weight:600; }
+    .btn-ghost{ background:transparent; }
+
+    .layout{
+      display:grid;
+      grid-template-columns:360px minmax(0,1fr);
+      height:calc(100vh - 64px);
+      overflow:hidden;
+    }
+    @media (max-width: 980px){
+      .layout{ grid-template-columns:1fr; grid-template-rows:auto auto; height:auto; }
+    }
+
+    .sidebar{
+      border-right:1px solid rgba(163,139,99,.24);
+      background:radial-gradient(circle at top left,#141414,#060606);
+      padding:12px 14px;
+      overflow-y:auto;
+    }
+    .sidebar-section{
+      border-radius:var(--radius-md);
+      padding:10px 11px;
+      background:rgba(0,0,0,.45);
+      border:1px solid rgba(163,139,99,.18);
+      margin-bottom:10px;
+    }
+    .sidebar-section h3{
+      margin:0 0 6px;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      color:var(--muted);
+    }
+    .sidebar-section p{ margin:2px 0 6px; font-size:12px; color:var(--muted); }
+
+    .content{
+      padding:14px 16px 18px;
+      overflow-y:auto;
+      background:radial-gradient(circle at top,#1a1a1a,#050505 55%,#000 100%);
+    }
+
+    .card{
+      border-radius:var(--radius-lg);
+      border:1px solid var(--card-border);
+      background:radial-gradient(circle at top left,#181818,#070707);
+      box-shadow:var(--shadow-soft);
+      padding:12px 12px 10px;
+      max-width:840px;
+    }
+    .card h2{
+      margin:0 0 6px;
+      font-size:14px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+    .card p{ margin:0 0 10px; font-size:12px; color:var(--muted); }
+
+    .field{ display:flex; flex-direction:column; gap:4px; margin-bottom:10px; }
+    label.field-label{ font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.12em; }
+    input[type="text"], input[type="email"], textarea{
+      background:rgba(0,0,0,.7);
+      color:var(--text);
+      border-radius:10px;
+      border:1px solid rgba(163,139,99,.22);
+      padding:8px 10px;
+      font-size:13px;
+      outline:none;
+      width:100%;
+    }
+    input:focus, textarea:focus{
+      border-color:var(--gold);
+      box-shadow:0 0 0 1px rgba(163,139,99,.35);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+    }
+    @media (max-width: 860px){
+      .grid{ grid-template-columns:1fr; }
+    }
+
+    .meta{
+      display:flex; flex-wrap:wrap; gap:8px;
+      margin-top:10px;
+    }
+    .badge{
+      font-size:11px;
+      border-radius:999px;
+      padding:4px 9px;
+      border:1px solid rgba(163,139,99,.35);
+      background:rgba(8,8,8,.8);
+      color:var(--muted);
+    }
+    .badge strong{ color:var(--gold); }
+
+    .hint{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:10px;
+      line-height:1.45;
+    }
+    .req{
+      color:var(--warning);
+      font-weight:600;
+    }
+  </style>
+</head>
+
+<body>
+<div class="app-shell">
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M8 12.5l2.5 2.5L16 9"></path>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-app">Garvetur Porto Pro</div>
+        <h1>Perfil do Utilizador</h1>
+        <span class="sub">Identificação e assinatura base — offline</span>
+      </div>
+    </div>
+
+    <nav class="nav-tabs">
+      <a href="index.html" class="nav-tab">Início</a>
+      <a href="mapa.html" class="nav-tab">Mapa</a>
+      <a href="kanban.html" class="nav-tab">Leads</a>
+      <a href="angariacoes.html" class="nav-tab">Angariações</a>
+      <a href="dashboard.html" class="nav-tab">Dashboard</a>
+      <a href="vendas.html" class="nav-tab">Vendas</a>
+      <a href="tarefas.html" class="nav-tab">Tarefas</a>
+      <a href="perfil.html" class="nav-tab active">Perfil</a>
+    </nav>
+
+    <div class="header-actions">
+      <button class="btn btn-ghost" id="exportProfileBtn" title="Exportar perfil (JSON)">⤓ Exportar</button>
+      <button class="btn btn-ghost" id="importProfileBtn" title="Importar perfil (JSON)">⤒ Importar</button>
+      <button class="btn btn-ghost" id="resetProfileBtn" title="Repor para vazio">↺ Repor</button>
+      <button class="btn btn-primary" id="saveProfileBtn">Guardar</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <h3>Objetivo</h3>
+        <p>Este perfil será a base para preencher automaticamente os kits (FSBO, Email, Script, SWOT) e assinaturas.</p>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Regras</h3>
+        <p><span class="req">Obrigatórios</span>: Nome, Empresa/Marca, Cargo/Função.</p>
+        <p>Recomendados: Telemóvel e Email.</p>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Estado</h3>
+        <div class="meta" id="profileMeta"></div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="card">
+        <h2>Dados do Utilizador</h2>
+        <p>Preencha uma vez. Quando integrar no FSBO, os placeholders irão consumir estes campos.</p>
+
+        <div class="grid">
+          <div class="field">
+            <label class="field-label" for="userNome">Nome do consultor <span class="req">*</span></label>
+            <input type="text" id="userNome" placeholder="Ex.: Rui Quelhas" />
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="userEmpresa">Empresa / Marca <span class="req">*</span></label>
+            <input type="text" id="userEmpresa" placeholder="Ex.: Garvetur Luxury Porto" />
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="userCargo">Cargo / Função <span class="req">*</span></label>
+            <input type="text" id="userCargo" placeholder="Ex.: Director Comercial" />
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="userTel">Telemóvel profissional</label>
+            <input type="text" id="userTel" placeholder="Ex.: +351 9xx xxx xxx" />
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="userEmail">Email profissional</label>
+            <input type="email" id="userEmail" placeholder="Ex.: nome@empresa.pt" />
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="userObserv">Notas internas (opcional)</label>
+            <input type="text" id="userObserv" placeholder="Ex.: Zona principal / assinatura curta / idioma" />
+          </div>
+        </div>
+
+        <div class="hint">
+          Sugestão para o piloto: peça aos testadores que preencham estes campos no 1.º dia e façam <strong>Exportar</strong>.
+          Assim consegue comparar rapidamente perfis e garantir consistência entre utilizadores.
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+(function(){
+  const PROFILE_KEY = 'gpp_user_profile_v1';
+
+  function $(id){ return document.getElementById(id); }
+
+  const userNome   = $('userNome');
+  const userEmpresa= $('userEmpresa');
+  const userCargo  = $('userCargo');
+  const userTel    = $('userTel');
+  const userEmail  = $('userEmail');
+  const userObserv = $('userObserv');
+
+  const profileMeta = $('profileMeta');
+
+  const saveProfileBtn   = $('saveProfileBtn');
+  const exportProfileBtn = $('exportProfileBtn');
+  const importProfileBtn = $('importProfileBtn');
+  const resetProfileBtn  = $('resetProfileBtn');
+
+  function safeParse(raw){
+    if(!raw) return null;
+    try{ return JSON.parse(raw); }catch(e){ return null; }
+  }
+
+  function nowISO(){
+    return new Date().toISOString();
+  }
+
+  function buildMeta(profile){
+    profileMeta.innerHTML = '';
+    const b1 = document.createElement('div');
+    b1.className = 'badge';
+    b1.innerHTML = 'Chave <strong>' + PROFILE_KEY + '</strong>';
+    profileMeta.appendChild(b1);
+
+    const ok = profile && profile.nome && profile.empresa && profile.cargo;
+    const b2 = document.createElement('div');
+    b2.className = 'badge';
+    b2.innerHTML = 'Estado <strong>' + (ok ? 'Completo' : 'Incompleto') + '</strong>';
+    profileMeta.appendChild(b2);
+
+    const b3 = document.createElement('div');
+    b3.className = 'badge';
+    b3.innerHTML = 'Atualizado <strong>' + (profile && profile.updatedAt ? new Date(profile.updatedAt).toLocaleString('pt-PT') : '-') + '</strong>';
+    profileMeta.appendChild(b3);
+  }
+
+  function loadProfile(){
+    const profile = safeParse(localStorage.getItem(PROFILE_KEY)) || {};
+    userNome.value    = profile.nome || '';
+    userEmpresa.value = profile.empresa || '';
+    userCargo.value   = profile.cargo || '';
+    userTel.value     = profile.tel || '';
+    userEmail.value   = profile.email || '';
+    userObserv.value  = profile.obs || '';
+    buildMeta(profile);
+  }
+
+  function collectProfile(){
+    return {
+      nome: (userNome.value || '').trim(),
+      empresa: (userEmpresa.value || '').trim(),
+      cargo: (userCargo.value || '').trim(),
+      tel: (userTel.value || '').trim(),
+      email: (userEmail.value || '').trim(),
+      obs: (userObserv.value || '').trim(),
+      updatedAt: nowISO()
+    };
+  }
+
+  function validateProfile(p){
+    const missing = [];
+    if(!p.nome) missing.push('Nome');
+    if(!p.empresa) missing.push('Empresa/Marca');
+    if(!p.cargo) missing.push('Cargo/Função');
+    return missing;
+  }
+
+  function saveProfile(){
+    const profile = collectProfile();
+    const missing = validateProfile(profile);
+    if(missing.length){
+      alert('Faltam campos obrigatórios: ' + missing.join(', ') + '.');
+      return;
+    }
+    try{
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+      buildMeta(profile);
+      alert('Perfil guardado com sucesso.');
+    }catch(e){
+      console.error('Erro a guardar perfil', e);
+      alert('Não foi possível guardar o perfil neste navegador.');
+    }
+  }
+
+  function exportProfile(){
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if(!raw){
+      alert('Ainda não existe um perfil guardado para exportar.');
+      return;
+    }
+    try{
+      const blob = new Blob([raw], { type: 'application/json;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const hoje = new Date().toISOString().slice(0,10);
+      a.href = url;
+      a.download = 'perfil_utilizador_' + hoje + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }catch(e){
+      console.error('Erro a exportar perfil', e);
+      alert('Ocorreu um erro ao exportar o perfil.');
+    }
+  }
+
+  function importProfile(){
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,application/json';
+
+    input.addEventListener('change', (e)=>{
+      const file = e.target.files && e.target.files[0];
+      if(!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (ev)=>{
+        try{
+          const parsed = JSON.parse(ev.target.result);
+          if(!parsed || typeof parsed !== 'object'){
+            alert('Ficheiro inválido.');
+            return;
+          }
+
+          const profile = {
+            nome: (parsed.nome || '').trim(),
+            empresa: (parsed.empresa || '').trim(),
+            cargo: (parsed.cargo || '').trim(),
+            tel: (parsed.tel || '').trim(),
+            email: (parsed.email || '').trim(),
+            obs: (parsed.obs || '').trim(),
+            updatedAt: nowISO()
+          };
+
+          // Nota: aqui não obrigamos a estar completo para importar,
+          // mas sinalizamos no “Estado”.
+          localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+          loadProfile();
+          alert('Perfil importado com sucesso.');
+        }catch(err){
+          console.error('Erro a importar perfil', err);
+          alert('O ficheiro selecionado não é um JSON de perfil válido.');
+        }
+      };
+      reader.readAsText(file, 'utf-8');
+    });
+
+    input.click();
+  }
+
+  function resetProfile(){
+    if(!confirm('Pretende repor (limpar) o perfil do utilizador neste navegador?')) return;
+    try{
+      localStorage.removeItem(PROFILE_KEY);
+      loadProfile();
+      alert('Perfil reposto com sucesso.');
+    }catch(e){
+      console.error('Erro a repor perfil', e);
+      alert('Não foi possível repor o perfil.');
+    }
+  }
+
+  // Ações
+  saveProfileBtn.addEventListener('click', saveProfile);
+  exportProfileBtn.addEventListener('click', exportProfile);
+  importProfileBtn.addEventListener('click', importProfile);
+  resetProfileBtn.addEventListener('click', resetProfile);
+
+  // Arranque
+  loadProfile();
+})();
+</script>
+</body>
+</html>
