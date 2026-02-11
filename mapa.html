@@ -555,6 +555,62 @@ input[type="file"]{display:none}
   #map{grid-row:4}
   #side-panel{top:auto;bottom:72px}
 }
+
+/* ===== Banner (normalizado com Perfil) ===== */
+header.app-header{
+  grid-column:1 / span 2;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 18px;
+  border-bottom:1px solid rgba(163,139,99,.35);
+  background:linear-gradient(90deg,#050505,#111,#050505);
+  position:sticky;
+  top:0;
+  z-index:20;
+  gap:16px;
+}
+.brand{ display:flex; align-items:center; gap:10px; }
+.brand-icon{
+  width:26px; height:26px; border-radius:999px;
+  border:1px solid var(--gold);
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 0 0 1px rgba(163,139,99,.3);
+  flex:0 0 auto;
+}
+.brand-app{ font-size:10px; text-transform:uppercase; letter-spacing:.18em; color:var(--muted); margin-bottom:2px; }
+header.app-header .brand h1{ margin:0; font-size:18px; letter-spacing:.08em; text-transform:uppercase; color:var(--gold); }
+header.app-header .brand span.sub{ display:block; font-size:11px; color:var(--muted); letter-spacing:.08em; }
+
+.nav-tabs{
+  display:flex; align-items:center; gap:4px;
+  background:rgba(0,0,0,.35);
+  padding:4px;
+  border-radius:999px;
+  border:1px solid rgba(163,139,99,.35);
+  flex-wrap:wrap;
+}
+.nav-tab{
+  padding:5px 10px;
+  border-radius:999px;
+  font-size:11px;
+  text-decoration:none;
+  color:var(--muted);
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  border:1px solid transparent;
+  transition:.16s background,.16s color,.16s border-color,.16s transform;
+}
+.nav-tab:hover{ color:#fff; border-color:rgba(163,139,99,.6); transform:translateY(-1px); }
+.nav-tab.active{ background:var(--gold); color:#0A0A0A; border-color:var(--gold); font-weight:600; }
+
+.header-actions{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+
+/* Ajuste responsivo: mantém o grid original do mapa */
+@media (max-width: 1000px){
+  header.app-header{ grid-column:1; }
+}
+
 </style>
 </head>
 <body>
@@ -585,23 +641,34 @@ input[type="file"]{display:none}
 </script>
 <!-- 🔐 FIM BLOQUEIO ADMIN — MAPA -->
   <div class="app">
-    <header>
+    <header class="app-header">
       <div class="brand">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--gold)">
-          <circle cx="12" cy="12" r="10" stroke-width="1.5"/>
-          <path d="M8 12l2.5 2.5L16 9" stroke-width="1.8"/>
-        </svg>
-        <h1>Garvetur Porto Pro — Mapa</h1>
+        <div class="brand-icon" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M8 12.5l2.5 2.5L16 9"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-app">Garvetur Porto Pro</div>
+          <h1>Mapa</h1>
+          <span class="sub">Base de empreendimentos e imóveis isolados — PDF inteligente</span>
+        </div>
       </div>
-      <div class="nav">
-        <a href="./index.html">Início</a>
-        <a class="active" href="./mapa.html">Mapa</a>
-        <a href="./kanban.html">Leads</a>
-        <a href="./angariacoes.html">Angariações</a>
-        <a href="./dashboard.html">Dashboard</a>
-        <a href="./vendas.html">Vendas</a>
-        <a href="./tarefas.html">Tarefas</a>
-      </div>
+
+      <nav class="nav-tabs">
+        <a href="dashboard.html" class="nav-tab">Início</a>
+        <a href="mapa.html" class="nav-tab active">Mapa</a>
+        <a href="kanban.html" class="nav-tab">Leads</a>
+        <a href="particulares.html" class="nav-tab">FSBO</a>
+        <a href="angariacoes.html" class="nav-tab">Angariações</a>
+        <a href="dashboard.html" class="nav-tab">Dashboard</a>
+        <a href="vendas.html" class="nav-tab">Vendas</a>
+        <a href="tarefas.html" class="nav-tab">Tarefas</a>
+        <a href="perfil.html" class="nav-tab">Perfil</a>
+      </nav>
+
+      <div class="header-actions"></div>
     </header>
 
     <div class="kpis">
