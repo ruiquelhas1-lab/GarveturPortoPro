@@ -6,6 +6,7 @@
 
 
 
+
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -1440,6 +1441,13 @@ textarea{
               <button class="btn btn-ghost" id="saveScriptBtn" title="Guardar texto personalizado (Script)">💾 Gravar</button>
   <button class="btn btn-ghost" id="pdfCallBtn" title="Gerar PDF deste script">🧾 PDF</button>
 </div>
+<div class="kit-actions" style="margin-top:8px;">
+  <button class="btn btn-ghost" id="callObjSoloBtn">Responder: Vendo sozinho</button>
+  <button class="btn btn-ghost" id="callObjManyAgenciesBtn">Responder: Já tenho imobiliárias</button>
+  <button class="btn btn-ghost" id="callObjCommissionBtn">Responder: Comissão</button>
+  <button class="btn btn-ghost" id="callObjExclusiveBtn">Responder: Sem exclusivo</button>
+  <button class="btn btn-ghost" id="callObjSmartBtn">Responder: Angariar Smart</button>
+</div>
         </div>
 
        <div class="kit-box">
@@ -1763,6 +1771,14 @@ const emailResetBtn = $('emailResetBtn');
 
     
 const callResetBtn = $('callResetBtn');
+
+  // ✅ NOVO — botões de objeções (Script)
+  const callObjSoloBtn = $('callObjSoloBtn');
+  const callObjManyAgenciesBtn = $('callObjManyAgenciesBtn');
+  const callObjCommissionBtn = $('callObjCommissionBtn');
+  const callObjExclusiveBtn = $('callObjExclusiveBtn');
+  const callObjSmartBtn = $('callObjSmartBtn');
+
 const swotResetBtn = $('swotResetBtn');
 // Resumo no Kit
   const kitResumo = $('kitResumo');
@@ -3311,47 +3327,7 @@ function generateCallScript(item, fetchedTitle){
   const nome = (c.nome || '...').trim();
 
   const script = [
-    '📞 SCRIPT FSBO — VERSÃO PROFISSIONAL E PRECISA
-<hr style="margin:20px 0;border-color:#333">
-
-<h3 style="margin-bottom:10px">🔥 Objeções (clique para copiar)</h3>
-
-<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:15px">
-
-<button onclick="navigator.clipboard.writeText(`E faz todo o sentido testar o mercado.
-A minha função não é substituir o que está a fazer, é acrescentar compradores qualificados que normalmente não chegam aos portais.`)"
-style="padding:8px 12px;border-radius:8px;border:1px solid #A38B63;background:#111;color:#fff;cursor:pointer">
-🟡 Vendo sozinho
-</button>
-
-<button onclick="navigator.clipboard.writeText(`Perfeito. Então o imóvel já está exposto.
-A questão é: está a receber propostas concretas ou apenas visitas sem decisão?`)"
-style="padding:8px 12px;border-radius:8px;border:1px solid #A38B63;background:#111;color:#fff;cursor:pointer">
-🔵 Já tenho imobiliárias
-</button>
-
-<button onclick="navigator.clipboard.writeText(`Compreendo.
-A verdadeira questão não é a comissão, é o valor líquido final.
-Se conseguir vender melhor e mais rápido, a comissão deixa de ser custo e passa a ser investimento.`)"
-style="padding:8px 12px;border-radius:8px;border:1px solid #A38B63;background:#111;color:#fff;cursor:pointer">
-🔴 Comissão
-</button>
-
-<button onclick="navigator.clipboard.writeText(`Percebo.
-Mas sem alinhamento estratégico o mercado fragmenta-se e o imóvel perde força.
-O exclusivo não é controlo — é coordenação.`)"
-style="padding:8px 12px;border-radius:8px;border:1px solid #A38B63;background:#111;color:#fff;cursor:pointer">
-🟤 Exclusivo
-</button>
-
-<button onclick="navigator.clipboard.writeText(`Podemos começar de forma inteligente e faseada, sem pressão.
-Testamos metodologia, medimos resultados e decide com dados.`)"
-style="padding:8px 12px;border-radius:8px;border:1px solid #A38B63;background:#111;color:#fff;cursor:pointer">
-🟢 Smart
-</button>
-
-</div>
-',
+    '📞 SCRIPT FSBO — VERSÃO PROFISSIONAL E PRECISA',
     '',
     '🔹 Abertura (primeiros 10–15 segundos)',
     `“Bom dia, fala ${nome}. Vi o seu imóvel anunciado e prometo ser muito direto:\n` +
@@ -4776,6 +4752,33 @@ if(emailResetBtn) emailResetBtn.addEventListener('click', ()=>{
   saveCustomText('email', '', currentKitItem && currentKitItem.id);
   showToast('Email principal reposto');
 });
+
+
+// ✅ NOVO — Objeções rápidas para o Script (botões)
+function buildCallObjectionReply(key){
+  const map = {
+    solo: '“E faz todo o sentido testar o mercado.\nA minha função não é substituir o que está a fazer, é acrescentar compradores qualificados que normalmente não chegam aos portais.”',
+    many: '“Perfeito. Então o imóvel já está exposto.\nA questão é: está a receber propostas concretas ou apenas visitas sem decisão?”',
+    commission: '“Compreendo.\nA verdadeira questão não é a comissão, é o valor líquido final.\nSe conseguir vender melhor e mais rápido, a comissão deixa de ser custo e passa a ser investimento.”',
+    exclusive: '“Percebo.\nMas sem alinhamento estratégico o mercado fragmenta-se e o imóvel perde força.\nO exclusivo não é controlo — é coordenação.”',
+    smart: '“Podemos começar de forma inteligente e faseada, sem pressão.\nTestamos metodologia, medimos resultados e decide com dados.”'
+  };
+  return map[key] || '';
+}
+
+function applyCallObjection(key){
+  const msg = buildCallObjectionReply(key);
+  if(!msg) return;
+  kitCall.value = msg;
+  showToast('Objeção aplicada (Script)');
+}
+
+if(callObjSoloBtn) callObjSoloBtn.addEventListener('click', ()=>applyCallObjection('solo'));
+if(callObjManyAgenciesBtn) callObjManyAgenciesBtn.addEventListener('click', ()=>applyCallObjection('many'));
+if(callObjCommissionBtn) callObjCommissionBtn.addEventListener('click', ()=>applyCallObjection('commission'));
+if(callObjExclusiveBtn) callObjExclusiveBtn.addEventListener('click', ()=>applyCallObjection('exclusive'));
+if(callObjSmartBtn) callObjSmartBtn.addEventListener('click', ()=>applyCallObjection('smart'));
+
 
 callResetBtn && callResetBtn.addEventListener('click', ()=>{
   kitCall.value = kitCallMainMessage || (kitCall.value || '');
