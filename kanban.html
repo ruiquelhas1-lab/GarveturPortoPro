@@ -519,6 +519,8 @@
       align-items:center;
     }
     .intercalares .row input{flex:1;}
+    .intercalares .row input.inter-data{flex:0 0 165px;}
+    .intercalares .row input.inter-valor{flex:1;}
     .intercalares .row button{white-space:nowrap;}
     .total-line{
       margin-top:6px;
@@ -872,7 +874,7 @@
         <div class="form-field"><label>Valor a dar no CPCV (€)</label><input id="ld_fecho_valor_cpcv" type="number" min="0" step="1000"></div>
 
         <div class="form-field" style="grid-column:1 / span 2">
-          <label>Valores Intercalares (€)</label>
+          <label>Valores Intercalares (Valor + Data)</label>
           <div id="intercalaresBox" class="intercalares"></div>
           <div class="total-line" id="intercalaresTotal">Total intercalares: 0 €</div>
           <button class="btn btn-ghost" type="button" id="addIntercalar">+ Adicionar intercalar</button>
@@ -1013,7 +1015,47 @@ function isTel(t){ const s=String(t||'').replace(/\s+/g,''); return /^\+?\d{9,15
 function isHttp(u){ return /^https?:\/\//i.test(String(u||'')); }
 function uid(){ return 'L'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4); }
 function parsePercent(v){ if(!v) return ''; const s=String(v).replace('%','').replace(',','.'); const n=Number(s); return Number.isFinite(n)? n: ''; }
-function sumIntercalares(arr){ return (arr||[]).reduce((a,b)=>a+(Number(b)||0),0); }
+function sumIntercalares(arr){
+  return (arr||[]).reduce((a,it)=>{
+    if(it && typeof it==='object') return a + (Number(it.valor)||0);
+    return a + (Number(it)||0);
+  },0);
+}
+
+function normalizeIntercalares(arr){
+  if(!Array.isArray(arr)) return [];
+  return arr.map(it=>{
+    if(it && typeof it==='object'){
+      return { valor: (it.valor ?? ''), data: (it.data ?? '') };
+    }
+    return { valor: (it ?? ''), data: '' };
+  });
+}
+
+function stringifyIntercalares(arr){
+  if(!Array.isArray(arr) || !arr.length) return '';
+  return arr.map(it=>{
+    if(it && typeof it==='object'){
+      const d = String(it.data||'').trim();
+      const v = String(it.valor||'').trim();
+      if(d && v) return d + ' :: ' + v;
+      if(v) return v;
+      return d;
+    }
+    return String(it||'').trim();
+  }).filter(Boolean).join(' | ');
+}
+
+function parseIntercalaresString(str){
+  const s = String(str||'').trim();
+  if(!s) return [];
+  return s.split('|').map(x=>x.trim()).filter(Boolean).map(part=>{
+    // aceita: "YYYY-MM-DD :: 1000" ou "YYYY-MM-DD: 1000" ou só "1000"
+    const m = part.match(/^(\d{4}-\d{2}-\d{2})\s*(?::|::)\s*(.+)$/);
+    if(m) return { data: m[1], valor: m[2] };
+    return { valor: part, data: '' };
+  });
+}
 
 /* ===== Tarefas: integração ===== */
 function loadTasksState(){
@@ -1347,11 +1389,24 @@ $('btnAddContraProp').addEventListener('click', ()=>{
 
 function drawIntercalares(){
   const box=$('intercalaresBox'); box.innerHTML='';
-  INTERCALAres.forEach((val,idx)=>{
+  INTERCALAres.forEach((it,idx)=>{
     const row=document.createElement('div'); row.className='row';
-    row.innerHTML=`<input type="number" min="0" step="500" value="${val||''}" data-idx="${idx}"><button class="btn btn-ghost" data-del="${idx}">Remover</button>`;
-    row.querySelector('input').addEventListener('input',e=>{
-      const i=Number(e.target.dataset.idx); INTERCALAres[i]=e.target.value; updateIntercalaresTotal();
+    const valor = (it && typeof it==='object') ? (it.valor||'') : (it||'');
+    const data  = (it && typeof it==='object') ? (it.data||'')  : '';
+    row.innerHTML=`
+      <input class="inter-valor" type="number" min="0" step="500" value="${valor}" data-idx="${idx}" data-field="valor" placeholder="Valor">
+      <input class="inter-data" type="date" value="${data}" data-idx="${idx}" data-field="data" title="Data do intercalar">
+      <button class="btn btn-ghost" data-del="${idx}">Remover</button>`;
+    row.querySelectorAll('input').forEach(inp=>{
+      inp.addEventListener('input', e=>{
+        const i = Number(e.target.dataset.idx);
+        const f = e.target.dataset.field;
+        if(!INTERCALAres[i] || typeof INTERCALAres[i] !== 'object'){
+          INTERCALAres[i] = { valor:'', data:'' };
+        }
+        INTERCALAres[i][f] = e.target.value;
+        updateIntercalaresTotal();
+      });
     });
     row.querySelector('button').addEventListener('click',()=>{ INTERCALAres.splice(idx,1); drawIntercalares(); updateIntercalaresTotal(); });
     box.appendChild(row);
@@ -1360,7 +1415,7 @@ function drawIntercalares(){
 function updateIntercalaresTotal(){
   $('intercalaresTotal').textContent = 'Total intercalares: ' + sumIntercalares(INTERCALAres).toLocaleString('pt-PT') + ' €';
 }
-$('addIntercalar').addEventListener('click',()=>{ INTERCALAres.push(''); drawIntercalares(); updateIntercalaresTotal(); });
+$('addIntercalar').addEventListener('click',()=>{ INTERCALAres.push({valor:'',data:''}); drawIntercalares(); updateIntercalaresTotal(); });
 
 $('ld_fecho_comissao').addEventListener('change', (e)=>{
   const isOutro = e.target.value==='outro';
@@ -1508,7 +1563,7 @@ $('saveLead').dataset.hasAceite = (v && v.proposta && v.proposta.dataPropostaAce
     }
     $('ld_fecho_sinal_reserva').value = edit.fecho_sinal_reserva || '';
     $('ld_fecho_valor_cpcv').value = edit.fecho_valor_cpcv || '';
-    INTERCALAres = Array.isArray(edit.fecho_intercalares)? [...edit.fecho_intercalares] : [];
+    INTERCALAres = normalizeIntercalares(edit.fecho_intercalares);
     drawIntercalares(); updateIntercalaresTotal();
     $('ld_fecho_valor_escritura').value = edit.fecho_valor_escritura || '';
     $('ld_fecho_cpcv_date').value = edit.fecho_cpcv_date || '';
@@ -1994,7 +2049,7 @@ $('exportCsv').addEventListener('click',()=>{
       l.tem_imovel||'',l.ja_venda||'',l.notas||'', (l.visivel!==false?'Sim':'Não'),
       l.fecho_negocio||'', (l.fecho_comissao_pct!==''&&l.fecho_comissao_pct!=null? l.fecho_comissao_pct : ''),
       l.fecho_sinal_reserva||'', l.fecho_valor_cpcv||'',
-      (Array.isArray(l.fecho_intercalares)? l.fecho_intercalares.join(' | ') : ''),
+      (Array.isArray(l.fecho_intercalares)? stringifyIntercalares(l.fecho_intercalares) : ''),
       l.fecho_valor_escritura||'', l.fecho_cpcv_date||'', l.fecho_escritura_date||'',
       l.fecho_pagamento_tipo||'', l.fecho_pagamento_outro||'', l.fecho_obs||'',
       p.nomeProponente||'',p.contactoProponente||'',p.emailProponente||'',p.valorProposta||'',
@@ -2045,7 +2100,7 @@ $('exportXlsx').addEventListener('click',()=>{
       "Comissão(%)":(l.fecho_comissao_pct!==''&&l.fecho_comissao_pct!=null? +l.fecho_comissao_pct : ''),
       SinalReserva:+(l.fecho_sinal_reserva||0),
       ValorCPCV:+(l.fecho_valor_cpcv||0),
-      Intercalares:(Array.isArray(l.fecho_intercalares)? l.fecho_intercalares.join(' | ') : ''),
+      Intercalares:(Array.isArray(l.fecho_intercalares)? stringifyIntercalares(l.fecho_intercalares) : ''),
       ValorEscritura:+(l.fecho_valor_escritura||0),
       DataCPCV:l.fecho_cpcv_date||'',
       DataEscritura:l.fecho_escritura_date||'',
@@ -2129,9 +2184,7 @@ $('importCsvInput').addEventListener('change', (e)=>{
         const visivel = visivelStr === 'não' || visivelStr === 'nao' ? false : true;
 
         const interStr = row["Intercalares"] || '';
-        const interArr = interStr
-          ? interStr.split('|').map(s=>s.trim()).filter(s=>s!=='')
-          : [];
+        const interArr = parseIntercalaresString(interStr);
 
         return {
           id: row["ID"] || uid(),
