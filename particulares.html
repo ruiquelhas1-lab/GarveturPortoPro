@@ -1,3 +1,8 @@
+
+
+
+
+
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -924,9 +929,7 @@ textarea{
 
 /* Reset — discreto, mas consistente */
 #kitBackdrop #objResetWhatsappBtn,
-#kitBackdrop #emailResetBtn,
-#kitBackdrop #resetCallBtn,
-#kitBackdrop #resetSwotBtn{
+#kitBackdrop #emailResetBtn{
   border-color: rgba(255,255,255,.16);
   background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.50));
 }
@@ -1429,7 +1432,7 @@ textarea{
           <h3>Chamada (script)</h3>
           <textarea id="kitCall"></textarea>
          <div class="kit-actions">
-  <button class="btn btn-ghost" id="resetCallBtn" title="Voltar ao principal (mensagem base)">↩ Voltar ao principal</button>
+      <button class="btn btn-ghost" id="callResetBtn" title="Voltar ao principal">↩ Voltar ao principal</button>
   <button class="btn btn-ghost" id="copyCallBtn">📋 Copiar</button>
               <button class="btn btn-ghost" id="saveScriptBtn" title="Guardar texto personalizado (Script)">💾 Gravar</button>
   <button class="btn btn-ghost" id="pdfCallBtn" title="Gerar PDF deste script">🧾 PDF</button>
@@ -1470,7 +1473,7 @@ textarea{
           <h3>SWOT (base)</h3>
           <textarea id="kitSwot"></textarea>
          <div class="kit-actions">
-  <button class="btn btn-ghost" id="resetSwotBtn" title="Voltar ao principal (mensagem base)">↩ Voltar ao principal</button>
+      <button class="btn btn-ghost" id="swotResetBtn" title="Voltar ao principal">↩ Voltar ao principal</button>
   <button class="btn btn-ghost" id="copySwotBtn">📋 Copiar</button>
               <button class="btn btn-ghost" id="saveSwotBtn" title="Guardar texto personalizado (SWOT)">💾 Gravar</button>
   <button class="btn btn-ghost" id="pdfSwotBtn" title="Gerar PDF desta SWOT">🧾 PDF</button>
@@ -1754,10 +1757,11 @@ let kitWhatsappMainMessage = ''; // guarda o “principal” para voltar atrás
 const emailObjCommissionBtn = $('emailObjCommissionBtn');
 const emailObjExclusiveBtn = $('emailObjExclusiveBtn');
 const emailResetBtn = $('emailResetBtn');
-  const resetCallBtn = $(\'resetCallBtn\');
-  const resetSwotBtn = $(\'resetSwotBtn\');
 
-    // Resumo no Kit
+    
+const callResetBtn = $(\'callResetBtn\');
+const swotResetBtn = $(\'swotResetBtn\');
+// Resumo no Kit
   const kitResumo = $('kitResumo');
   const genResumoBtn = $('genResumoBtn');
   const clearResumoBtn = $('clearResumoBtn');
@@ -1765,8 +1769,8 @@ const emailResetBtn = $('emailResetBtn');
   const pdfResumoBtn = $('pdfResumoBtn');
 
 let kitEmailMainMessage = '';
-  let kitScriptMainMessage = '';
-  let kitSwotMainMessage = '';
+let kitCallMainMessage = '';
+let kitSwotMainMessage = '';
   const openMailtoBtn = $('openMailtoBtn');
   const copySwotBtn = $('copySwotBtn');
   const saveSwotBtn = $('saveSwotBtn');
@@ -3428,13 +3432,12 @@ Notas:
     const t = fetchInfo.title || null;
    kitWhatsappMainMessage = generateWhatsappSmart(item, t);
 kitWhatsapp.value = kitWhatsappMainMessage;
-    kitScriptMainMessage = generateCallScript(item, t);
-    kitCall.value = kitScriptMainMessage;
+    kitCallMainMessage = generateCallScript(item, t);
+    kitCall.value = kitCallMainMessage;
     kitEmailMainMessage = generateEmail(item, t);
 kitEmail.value = kitEmailMainMessage;
     kitSwotMainMessage = generateSwot(item, t);
     kitSwot.value = kitSwotMainMessage;
-
     // aplicar mensagens personalizadas guardadas (se existirem)
     applySavedCustomKitTexts(item && item.id ? item.id : null);
 
@@ -4632,25 +4635,19 @@ if(emailResetBtn) emailResetBtn.addEventListener('click', ()=>{
   showToast('Email principal reposto');
 });
 
-// Voltar ao principal — Script (Chamada)
-if(resetCallBtn){
-  resetCallBtn.addEventListener('click', ()=>{
-    if(!currentKitItem) return;
-    kitCall.value = kitScriptMainMessage || '';
-    saveCustomText('script', '', currentKitItem.id);
-    showToast('Script principal reposto');
-  });
-}
+callResetBtn && callResetBtn.addEventListener('click', ()=>{
+  kitCall.value = kitCallMainMessage || (kitCall.value || '');
+  // limpar personalização guardada deste cartão (se existir)
+  saveCustomText('call', '', currentKitItem && currentKitItem.id);
+  showToast('Script principal reposto');
+});
 
-// Voltar ao principal — SWOT
-if(resetSwotBtn){
-  resetSwotBtn.addEventListener('click', ()=>{
-    if(!currentKitItem) return;
-    kitSwot.value = kitSwotMainMessage || '';
-    saveCustomText('swot', '', currentKitItem.id);
-    showToast('SWOT principal reposta');
-  });
-}
+swotResetBtn && swotResetBtn.addEventListener('click', ()=>{
+  kitSwot.value = kitSwotMainMessage || (kitSwot.value || '');
+  // limpar personalização guardada deste cartão (se existir)
+  saveCustomText('swot', '', currentKitItem && currentKitItem.id);
+  showToast('SWOT principal reposta');
+});
 if(objSoloBtn) objSoloBtn.addEventListener('click', ()=>applyObjection('solo'));
 if(objManyAgenciesBtn) objManyAgenciesBtn.addEventListener('click', ()=>applyObjection('many'));
 if(objCommissionBtn) objCommissionBtn.addEventListener('click', ()=>applyObjection('commission'));
