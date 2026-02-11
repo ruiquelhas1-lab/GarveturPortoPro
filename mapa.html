@@ -614,33 +614,7 @@ header.app-header .brand span.sub{ display:block; font-size:11px; color:var(--mu
 </style>
 </head>
 <body>
-  <!-- 🔐 BLOQUEIO ADMIN — MAPA -->
-<script>
-(function(){
-  const ADMIN_PASS = '#AdminGarvetur#1997';
-  const KEY = 'gpp_admin_auth';
-
-  try{
-    if(sessionStorage.getItem(KEY) === 'ok') return;
-
-    const pass = prompt(
-      'Acesso restrito — Mapa (Admin)\n\nIntroduza a palavra-passe:'
-    );
-
-    if(pass !== ADMIN_PASS){
-      alert('Acesso negado.');
-      document.documentElement.innerHTML = '';
-      throw new Error('Acesso não autorizado');
-    }
-
-    sessionStorage.setItem(KEY, 'ok');
-  }catch(e){
-    console.warn(e);
-  }
-})();
-</script>
-<!-- 🔐 FIM BLOQUEIO ADMIN — MAPA -->
-  <div class="app">
+<div class="app">
     <header class="app-header">
       <div class="brand">
         <div class="brand-icon" aria-hidden="true">
