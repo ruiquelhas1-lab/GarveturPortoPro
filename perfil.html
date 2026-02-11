@@ -120,7 +120,7 @@
       background:radial-gradient(circle at top left,#181818,#070707);
       box-shadow:var(--shadow-soft);
       padding:12px 12px 10px;
-      max-width:840px;
+      max-width:980px;
     }
     .card h2{
       margin:0 0 6px;
@@ -148,11 +148,12 @@
       box-shadow:0 0 0 1px rgba(163,139,99,.35);
     }
 
-    /* ✅ NOVO — Notas internas expansíveis (assinatura digital) */
+    /* Notas internas */
     textarea#userObserv{
       resize: vertical;
       min-height: 120px;
       line-height: 1.45;
+      white-space: pre-wrap; /* preserva parágrafos */
     }
 
     .grid{
@@ -188,6 +189,53 @@
       color:var(--warning);
       font-weight:600;
     }
+
+    /* ✅ NOVO — Assinatura digital (HTML) */
+    .sig-wrap{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-top:6px;
+    }
+    @media (max-width: 980px){
+      .sig-wrap{ grid-template-columns: 1fr; }
+    }
+    .sig-editor{
+      border-radius:10px;
+      border:1px solid rgba(163,139,99,.22);
+      background:rgba(0,0,0,.7);
+      padding:10px;
+      min-height:170px;
+      outline:none;
+      overflow:auto;
+      line-height:1.35;
+    }
+    .sig-editor:focus{
+      border-color:var(--gold);
+      box-shadow:0 0 0 1px rgba(163,139,99,.35);
+    }
+    .sig-preview{
+      border-radius:10px;
+      border:1px solid rgba(163,139,99,.18);
+      background:rgba(0,0,0,.35);
+      padding:10px;
+      min-height:170px;
+      overflow:auto;
+    }
+    .sig-tools{
+      display:flex; gap:8px; flex-wrap:wrap;
+      margin-top:6px;
+    }
+    .mini{
+      font-size:11px;
+      padding:6px 10px;
+    }
+    .muted-note{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.45;
+      margin-top:6px;
+    }
   </style>
 </head>
 
@@ -209,9 +257,14 @@
     </div>
 
     <nav class="nav-tabs">
-      <a href="index.html" class="nav-tab">Início</a>
+      <!-- ✅ NORMALIZADO: "Início" deve apontar para um hub (ex.: dashboard) e não "Equipa" -->
+      <a href="dashboard.html" class="nav-tab">Início</a>
       <a href="mapa.html" class="nav-tab">Mapa</a>
       <a href="kanban.html" class="nav-tab">Leads</a>
+
+      <!-- ✅ NOVO: FSBO -->
+      <a href="particulares.html" class="nav-tab">FSBO</a>
+
       <a href="angariacoes.html" class="nav-tab">Angariações</a>
       <a href="dashboard.html" class="nav-tab">Dashboard</a>
       <a href="vendas.html" class="nav-tab">Vendas</a>
@@ -243,6 +296,11 @@
       <div class="sidebar-section">
         <h3>Estado</h3>
         <div class="meta" id="profileMeta"></div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Assinatura</h3>
+        <p>Use o editor (HTML) para colar a assinatura do email com formatação. O sistema guarda a versão HTML e uma versão texto.</p>
       </div>
     </aside>
 
@@ -279,8 +337,36 @@
 
           <div class="field">
             <label class="field-label" for="userObserv">Notas internas (opcional)</label>
-            <!-- ✅ ALTERADO — agora é textarea expansível -->
-            <textarea id="userObserv" placeholder="Ex.: Zona principal / assinatura digital / idioma"></textarea>
+            <textarea id="userObserv" placeholder="Ex.: Zona principal / idioma / notas operacionais"></textarea>
+          </div>
+        </div>
+
+        <!-- ✅ NOVO BLOCO — Assinatura digital com formatação (HTML) -->
+        <div class="field" style="margin-top:6px;">
+          <label class="field-label" for="userSig">Assinatura digital (HTML) — com formatação</label>
+
+          <div class="sig-wrap">
+            <div>
+              <div id="userSig" class="sig-editor" contenteditable="true" spellcheck="false"
+                   aria-label="Editor de assinatura (cole aqui a assinatura do email)"></div>
+
+              <div class="sig-tools">
+                <button class="btn btn-ghost mini" id="pasteSigBtn" type="button" title="Colar a partir da área de transferência">📋 Colar</button>
+                <button class="btn btn-ghost mini" id="copySigHtmlBtn" type="button" title="Copiar assinatura em HTML">⧉ Copiar HTML</button>
+                <button class="btn btn-ghost mini" id="copySigTextBtn" type="button" title="Copiar assinatura em texto simples">⧉ Copiar Texto</button>
+                <button class="btn btn-ghost mini" id="clearSigBtn" type="button" title="Limpar assinatura">✕ Limpar</button>
+              </div>
+
+              <div class="muted-note">
+                Dica: cole aqui a assinatura tal como vem no email (Outlook/Gmail). O sistema remove scripts e atributos perigosos,
+                mas mantém estrutura (tabelas, links, imagens) quando possível.
+              </div>
+            </div>
+
+            <div>
+              <div class="muted-note" style="margin-top:0;">Pré-visualização</div>
+              <div id="sigPreview" class="sig-preview" aria-label="Pré-visualização da assinatura"></div>
+            </div>
           </div>
         </div>
 
@@ -305,6 +391,14 @@
   const userTel    = $('userTel');
   const userEmail  = $('userEmail');
   const userObserv = $('userObserv');
+
+  // ✅ NOVO — assinatura
+  const userSig    = $('userSig');
+  const sigPreview = $('sigPreview');
+  const pasteSigBtn = $('pasteSigBtn');
+  const copySigHtmlBtn = $('copySigHtmlBtn');
+  const copySigTextBtn = $('copySigTextBtn');
+  const clearSigBtn = $('clearSigBtn');
 
   const profileMeta = $('profileMeta');
 
@@ -339,6 +433,79 @@
     b3.className = 'badge';
     b3.innerHTML = 'Atualizado <strong>' + (profile && profile.updatedAt ? new Date(profile.updatedAt).toLocaleString('pt-PT') : '-') + '</strong>';
     profileMeta.appendChild(b3);
+
+    const hasSig = !!(profile && profile.sigHtml && String(profile.sigHtml).trim());
+    const b4 = document.createElement('div');
+    b4.className = 'badge';
+    b4.innerHTML = 'Assinatura <strong>' + (hasSig ? 'Definida' : 'Vazia') + '</strong>';
+    profileMeta.appendChild(b4);
+  }
+
+  // ✅ Sanitização básica (mantém HTML útil, remove scripts/on* perigosos)
+  function isSafeUrl(url){
+    const u = String(url || '').trim();
+    if(!u) return false;
+    // permite: http(s), mailto, tel, data:image (para assinaturas com imagem inline)
+    return /^https?:\/\//i.test(u) || /^mailto:/i.test(u) || /^tel:/i.test(u) || /^data:image\//i.test(u);
+  }
+
+  function sanitizeHTML(html){
+    const raw = String(html || '');
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(raw, 'text/html');
+
+    // remove tags perigosas
+    const forbidden = doc.querySelectorAll('script, iframe, object, embed, link, meta');
+    forbidden.forEach(n => n.remove());
+
+    // limpa atributos perigosos (on*)
+    const all = doc.querySelectorAll('*');
+    all.forEach(el=>{
+      [...el.attributes].forEach(attr=>{
+        const name = attr.name.toLowerCase();
+        const val = attr.value;
+
+        // remove handlers
+        if(name.startsWith('on')) el.removeAttribute(attr.name);
+
+        // valida links/imagens
+        if((name === 'href' || name === 'src') && !isSafeUrl(val)){
+          el.removeAttribute(attr.name);
+        }
+
+        // higiene extra em style (evita javascript: em url())
+        if(name === 'style'){
+          const s = String(val || '');
+          if(/expression\s*\(/i.test(s) || /url\s*\(\s*['"]?\s*javascript:/i.test(s)){
+            el.removeAttribute('style');
+          }
+        }
+      });
+    });
+
+    return doc.body.innerHTML || '';
+  }
+
+  function refreshSignaturePreview(){
+    const clean = sanitizeHTML(userSig.innerHTML);
+    if(clean !== userSig.innerHTML){
+      // normaliza sem “saltar” demasiado
+      userSig.innerHTML = clean;
+      placeCaretAtEnd(userSig);
+    }
+    sigPreview.innerHTML = clean || '<span style="color:rgba(255,255,255,.45)">Pré-visualização vazia…</span>';
+  }
+
+  function placeCaretAtEnd(el){
+    try{
+      el.focus();
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      range.collapse(false);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }catch(e){}
   }
 
   function loadProfile(){
@@ -349,10 +516,18 @@
     userTel.value     = profile.tel || '';
     userEmail.value   = profile.email || '';
     userObserv.value  = profile.obs || '';
+
+    // ✅ assinatura
+    userSig.innerHTML = sanitizeHTML(profile.sigHtml || '');
+    refreshSignaturePreview();
+
     buildMeta(profile);
   }
 
   function collectProfile(){
+    const sigClean = sanitizeHTML(userSig.innerHTML || '');
+    const sigText = (userSig.innerText || '').trim();
+
     return {
       nome: (userNome.value || '').trim(),
       empresa: (userEmpresa.value || '').trim(),
@@ -360,6 +535,11 @@
       tel: (userTel.value || '').trim(),
       email: (userEmail.value || '').trim(),
       obs: (userObserv.value || '').trim(),
+
+      // ✅ NOVO
+      sigHtml: sigClean.trim(),
+      sigText: sigText,
+
       updatedAt: nowISO()
     };
   }
@@ -437,6 +617,11 @@
             tel: (parsed.tel || '').trim(),
             email: (parsed.email || '').trim(),
             obs: (parsed.obs || '').trim(),
+
+            // ✅ NOVO (retrocompatível)
+            sigHtml: sanitizeHTML(parsed.sigHtml || parsed.sig || ''),
+            sigText: String(parsed.sigText || '').trim(),
+
             updatedAt: nowISO()
           };
 
@@ -465,6 +650,60 @@
       alert('Não foi possível repor o perfil.');
     }
   }
+
+  async function copyToClipboard(text){
+    try{
+      await navigator.clipboard.writeText(String(text || ''));
+      return true;
+    }catch(e){
+      // fallback
+      try{
+        const ta = document.createElement('textarea');
+        ta.value = String(text || '');
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        return true;
+      }catch(err){
+        return false;
+      }
+    }
+  }
+
+  // ✅ eventos assinatura
+  userSig.addEventListener('input', refreshSignaturePreview);
+  userSig.addEventListener('blur', refreshSignaturePreview);
+
+  pasteSigBtn.addEventListener('click', async ()=>{
+    try{
+      const t = await navigator.clipboard.readText();
+      if(!t){ alert('Área de transferência vazia.'); return; }
+      // cola como texto; o utilizador pode colar HTML diretamente com Ctrl+V no editor
+      document.execCommand('insertText', false, t);
+      refreshSignaturePreview();
+    }catch(e){
+      alert('Não foi possível ler a área de transferência neste navegador. Use Ctrl+V no editor.');
+    }
+  });
+
+  copySigHtmlBtn.addEventListener('click', async ()=>{
+    const ok = await copyToClipboard(sanitizeHTML(userSig.innerHTML || ''));
+    alert(ok ? 'Assinatura (HTML) copiada.' : 'Não foi possível copiar.');
+  });
+
+  copySigTextBtn.addEventListener('click', async ()=>{
+    const ok = await copyToClipboard((userSig.innerText || '').trim());
+    alert(ok ? 'Assinatura (texto) copiada.' : 'Não foi possível copiar.');
+  });
+
+  clearSigBtn.addEventListener('click', ()=>{
+    if(!confirm('Pretende limpar a assinatura digital?')) return;
+    userSig.innerHTML = '';
+    refreshSignaturePreview();
+  });
 
   saveProfileBtn.addEventListener('click', saveProfile);
   exportProfileBtn.addEventListener('click', exportProfile);
