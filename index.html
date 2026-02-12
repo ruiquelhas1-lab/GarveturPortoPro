@@ -1,294 +1,219 @@
 <!doctype html>
 <html lang="pt-PT">
 <head>
-  <meta charset="utf-8" />
-  <title>Garvetur Porto Pro — Home</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    :root{
-      --gold:#A38B63;
-      --gold-soft:rgba(163,139,99,.35);
-      --bg:#0B0B0B;
-      --panel:#151515;
-      --panel-soft:#1C1C1C;
-      --text:#FFFFFF;
-      --muted:#A0A0A0;
-      --border:rgba(255,255,255,.14);
-      --shadow-soft:0 22px 40px rgba(0,0,0,.7);
-      --radius-lg:20px;
-      --radius-md:14px;
-    }
+<meta charset="utf-8"/>
+<title>Garvetur Porto Pro — Home</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-    *{box-sizing:border-box;}
-    html,body{
-      margin:0;
-      height:100%;
-      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-      background:radial-gradient(circle at top,#1c1c1c 0,#050505 55%,#000 100%);
-      color:var(--text);
-    }
-    body{display:flex;flex-direction:column;}
+<style>
+:root{
+  --gold:#A38B63;
+  --bg:#0B0B0B;
+  --text:#FFFFFF;
+  --muted:#A0A0A0;
+}
 
-    header{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:12px 18px;
-      border-bottom:1px solid rgba(163,139,99,.35);
-      background:linear-gradient(90deg,#050505,#111,#050505);
-      gap:14px;
-      flex-wrap:wrap;
-    }
-    .brand{display:flex;align-items:center;gap:10px;}
-    .brand-icon{
-      width:30px;height:30px;border-radius:999px;border:1px solid var(--gold);
-      display:flex;align-items:center;justify-content:center;
-      box-shadow:0 0 0 1px rgba(163,139,99,.35);
-    }
-    .brand h1{
-      margin:0;font-size:18px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);
-    }
-    .brand span.sub{
-      display:block;font-size:11px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;
-    }
+*{box-sizing:border-box;}
+html,body{
+  margin:0;height:100%;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  background:radial-gradient(circle at top,#1c1c1c 0,#050505 55%,#000 100%);
+  color:var(--text);
+}
+body{display:flex;flex-direction:column;}
 
-    main{
-      flex:1;
-      padding:18px;
-      display:flex;
-      flex-direction:column;
-      gap:16px;
-    }
+header{
+  padding:14px 18px;
+  border-bottom:1px solid rgba(163,139,99,.35);
+  background:#050505;
+}
+h1{margin:0;font-size:18px;color:var(--gold);}
 
-    .hero{
-      border-radius:var(--radius-lg);
-      background:linear-gradient(135deg,#171717,#050505);
-      border:1px solid var(--gold-soft);
-      box-shadow:var(--shadow-soft);
-      padding:16px 18px;
-    }
+main{
+  flex:1;padding:20px;display:flex;flex-direction:column;gap:16px;
+}
 
-    .hero-title{
-      margin:0 0 6px;
-      font-size:19px;
-      letter-spacing:.16em;
-      text-transform:uppercase;
-    }
+.card{
+  background:#151515;
+  padding:14px;border-radius:16px;
+  border:1px solid rgba(255,255,255,.1);
+}
+.btn{
+  display:inline-block;margin-top:8px;
+  padding:6px 12px;border-radius:999px;
+  border:1px solid var(--gold);
+  color:var(--gold);text-decoration:none;
+  font-size:12px;
+}
 
-    .hero-sub{
-      font-size:12px;
-      color:var(--muted);
-    }
-
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:12px;
-    }
-
-    .card{
-      border-radius:var(--radius-lg);
-      background:linear-gradient(145deg,#181818,#0C0C0C);
-      border:1px solid rgba(255,255,255,.14);
-      box-shadow:var(--shadow-soft);
-      padding:12px;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-    }
-
-    .card-title{
-      margin:0;
-      font-size:14px;
-      text-transform:uppercase;
-      letter-spacing:.14em;
-    }
-
-    .btn-xs{
-      border-radius:999px;
-      padding:6px 10px;
-      border:1px solid rgba(163,139,99,.6);
-      background:rgba(0,0,0,.8);
-      color:var(--gold);
-      font-size:11px;
-      text-decoration:none;
-      cursor:pointer;
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-    }
-
-    footer{
-      padding:8px 14px;
-      font-size:11px;
-      color:var(--muted);
-      border-top:1px solid rgba(163,139,99,.28);
-      background:#050505;
-      display:flex;
-      justify-content:space-between;
-    }
-  </style>
+footer{
+  padding:10px 14px;
+  font-size:11px;
+  color:var(--muted);
+  border-top:1px solid rgba(163,139,99,.28);
+  background:#050505;
+  display:flex;
+  justify-content:space-between;
+}
+</style>
 </head>
+
 <body>
 
 <header>
-  <div class="brand">
-    <div class="brand-icon">
-      <svg width="18" height="18" viewBox="0 0 24 24" stroke="var(--gold)" fill="none" stroke-width="1.8">
-        <circle cx="12" cy="12" r="9"></circle>
-        <path d="M8 12.5l2.5 2.5L16 9"></path>
-      </svg>
-    </div>
-    <div>
-      <h1>Garvetur Porto Pro</h1>
-      <span class="sub">Acesso de equipa</span>
-    </div>
-  </div>
+  <h1>Garvetur Porto Pro</h1>
 </header>
 
 <main>
 
-  <section class="hero">
-    <h2 class="hero-title">Portal de Equipa</h2>
-    <p class="hero-sub">
-      Acesso controlado aos módulos internos.
-    </p>
-  </section>
+<div class="card">
+  <strong>Mapa (Equipa)</strong><br>
+  <a class="btn" href="./equipa-mapa.html">Abrir Mapa</a>
+</div>
 
-  <section class="grid">
-    <div class="card">
-      <h3 class="card-title">Mapa (Equipa)</h3>
-      <a class="btn-xs" href="./equipa-mapa.html">Abrir Mapa</a>
-    </div>
-
-    <div class="card">
-      <h3 class="card-title">Prospecção (Equipa)</h3>
-      <a class="btn-xs" href="./prospeccao.html">Abrir Prospecção</a>
-    </div>
-  </section>
+<div class="card">
+  <strong>Prospecção (Equipa)</strong><br>
+  <a class="btn" href="./prospeccao.html">Abrir Prospecção</a>
+</div>
 
 </main>
 
 <footer>
-  <span>Garvetur Porto Pro — Licenciado</span>
+  <span id="licenseInfo">Validando licença...</span>
   <span><a style="color:#999;" href="./admin.html">Admin</a></span>
 </footer>
-
 
 <script>
 (function(){
 
-  const LICENSE_SERVER = "https://script.google.com/macros/s/AKfycbzA6LwpkhVoeaFT7mjIBQ5eHLkgxey9qD9rMRT41saOVWjhe-H0AXGPUFj0Vwn75IK8/exec";
-  const LICENSE_KEY_STORAGE = "gpp_license_key_v1";
-  const DEVICE_ID_STORAGE   = "gpp_device_id_v1";
+// ===== CONFIGURAÇÃO =====
+const LICENSE_SERVER = "https://script.google.com/macros/s/AKfycbyz5e15CDZP8qLbd-tpTd1i4zje2v7aEDXZjDp3q8HqdwZ8RST1rWXBuL94eRuodkQY/exec";
+const LICENSE_KEY_STORAGE = "gpp_license_key_v2";
+const DEVICE_ID_STORAGE   = "gpp_device_id_v2";
 
-  const TEAM_PASS = 'Garvetur#Porto2026';
-  const AUTH_KEY  = 'gpp_team_auth_v1';
+const TEAM_PASS = 'Garvetur#Porto2026';
+const AUTH_KEY  = 'gpp_team_auth_v1';
 
-  function generateDeviceId(){
-    return 'DEV-' + crypto.randomUUID();
+// ===== UTIL =====
+function generateDeviceId(){
+  return 'DEV-' + crypto.randomUUID();
+}
+
+function getDeviceId(){
+  let id = localStorage.getItem(DEVICE_ID_STORAGE);
+  if(!id){
+    id = generateDeviceId();
+    localStorage.setItem(DEVICE_ID_STORAGE, id);
   }
+  return id;
+}
 
-  function getDeviceId(){
-    let id = localStorage.getItem(DEVICE_ID_STORAGE);
-    if(!id){
-      id = generateDeviceId();
-      localStorage.setItem(DEVICE_ID_STORAGE, id);
-    }
-    return id;
-  }
+function formatDateISO(iso){
+  if(!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleDateString('pt-PT');
+}
 
-  async function callServer(action, licenseKey){
-    const deviceId = getDeviceId();
-    const res = await fetch(LICENSE_SERVER, {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({
-        action: action,
-        license_key: licenseKey,
-        device_id: deviceId
-      })
-    });
-    return res.json();
-  }
+async function callServer(action, licenseKey){
+  const res = await fetch(LICENSE_SERVER,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      action:action,
+      license_key:licenseKey,
+      device_id:getDeviceId()
+    })
+  });
+  return res.json();
+}
 
-  function blockApp(message){
-    document.body.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#000;color:#fff;font-family:system-ui;">
-        <div style="text-align:center;max-width:420px;">
-          <h2 style="color:#A38B63;">Acesso bloqueado</h2>
-          <p style="margin-top:10px;line-height:1.5;">${message}</p>
-        </div>
+function blockApp(message){
+  document.body.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#000;color:#fff;font-family:system-ui;">
+      <div style="text-align:center;max-width:420px;">
+        <h2 style="color:#A38B63;">Acesso bloqueado</h2>
+        <p style="margin-top:10px;line-height:1.5;">${message}</p>
       </div>
-    `;
-  }
+    </div>
+  `;
+}
 
-  async function checkLicense(){
+// ===== LICENÇA =====
+async function checkLicense(){
 
-    let licenseKey = localStorage.getItem(LICENSE_KEY_STORAGE);
+  let licenseKey = localStorage.getItem(LICENSE_KEY_STORAGE);
 
+  if(!licenseKey){
+    licenseKey = prompt("Introduza a sua chave de licença:");
     if(!licenseKey){
-      licenseKey = prompt("Introduza a sua chave de licença:");
-      if(!licenseKey){
-        blockApp("Licença obrigatória.");
-        return;
-      }
-
-      const activation = await callServer("activate", licenseKey);
-
-      if(!activation.ok || activation.status !== "ACTIVE"){
-        blockApp("Licença inválida ou não ativa.");
-        return;
-      }
-
-      localStorage.setItem(LICENSE_KEY_STORAGE, licenseKey);
+      blockApp("Licença obrigatória.");
       return;
     }
 
-    const check = await callServer("check", licenseKey);
+    const activation = await callServer("activate", licenseKey);
 
-    if(!check.ok){
-      blockApp("Erro na validação da licença.");
+    if(!activation.ok || activation.status !== "ACTIVE"){
+      blockApp("Licença inválida ou não ativa.");
       return;
     }
 
-    if(check.status === "ACTIVE") return;
+    localStorage.setItem(LICENSE_KEY_STORAGE, licenseKey);
+    updateFooter(licenseKey, activation);
+    return;
+  }
 
-    if(check.status === "EXPIRED"){
-      blockApp("Licença expirada. Contacte a administração.");
-      return;
-    }
+  const check = await callServer("check", licenseKey);
 
-    if(check.status === "REVOKED"){
-      blockApp("Licença revogada.");
-      return;
-    }
+  if(!check.ok){
+    blockApp("Erro na validação da licença.");
+    return;
+  }
 
+  if(check.status === "REVOKED"){
+    blockApp("Licença revogada pela administração.");
+    return;
+  }
+
+  if(check.status !== "ACTIVE"){
     blockApp("Licença inválida.");
+    return;
   }
 
-  function checkAccess(e){
-    e.preventDefault();
-    const target = e.currentTarget.getAttribute('href');
+  updateFooter(licenseKey, check);
+}
 
-    if(sessionStorage.getItem(AUTH_KEY) === '1'){
-      window.location.href = target;
-      return;
-    }
+function updateFooter(key,data){
+  const footer = document.getElementById("licenseInfo");
+  footer.innerHTML = `
+    Licenciado para: ${data.user_name || "Utilizador"} |
+    Válido até: ${formatDateISO(data.expires_at)} |
+    Chave: ${key}
+  `;
+}
 
-    const pwd = prompt('Introduza a password de acesso:');
-    if(pwd === TEAM_PASS){
-      sessionStorage.setItem(AUTH_KEY,'1');
-      window.location.href = target;
-    }else{
-      alert('Password incorreta.');
-    }
+// ===== PASSWORD EQUIPA =====
+function checkAccess(e){
+  e.preventDefault();
+  const target = e.currentTarget.getAttribute('href');
+
+  if(sessionStorage.getItem(AUTH_KEY) === '1'){
+    window.location.href = target;
+    return;
   }
 
-  document.querySelectorAll('a[href="./equipa-mapa.html"], a[href="./prospeccao.html"]')
-    .forEach(link => link.addEventListener('click', checkAccess));
+  const pwd = prompt('Introduza a password de acesso:');
+  if(pwd === TEAM_PASS){
+    sessionStorage.setItem(AUTH_KEY,'1');
+    window.location.href = target;
+  }else{
+    alert('Password incorreta.');
+  }
+}
 
-  checkLicense();
+document.querySelectorAll('a[href="./equipa-mapa.html"], a[href="./prospeccao.html"]')
+  .forEach(link => link.addEventListener('click', checkAccess));
+
+checkLicense();
 
 })();
 </script>
