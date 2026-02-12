@@ -18,6 +18,7 @@
       --radius-lg:20px;
       --radius-md:14px;
       --danger:#E53935;
+      --success:#4CAF50;
     }
 
     *{box-sizing:border-box;}
@@ -170,6 +171,16 @@
       border-color:var(--gold);
       font-weight:600;
     }
+    .btn-xs.danger{
+      border-color:rgba(229,57,53,.85);
+      color:#ffb4b4;
+      background:rgba(0,0,0,.85);
+    }
+    .btn-xs.ghost{
+      border-color:rgba(255,255,255,.14);
+      color:rgba(255,255,255,.65);
+      background:rgba(0,0,0,.55);
+    }
     .btn-xs:hover{transform:translateY(-1px);border-color:var(--gold);}
     .hint{font-size:11px;color:var(--muted);}
 
@@ -248,6 +259,57 @@
       border-bottom:1px dotted rgba(255,255,255,.25);
     }
     .mini-link:hover{color:#fff;border-bottom-color:#fff;}
+
+    /* === Gestão de Licença (Admin) — bloco interno === */
+    .kv{
+      display:grid;
+      grid-template-columns:140px 1fr;
+      gap:6px 10px;
+      padding:10px 10px 9px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.45);
+    }
+    .kv .k{
+      font-size:11px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.12em;
+    }
+    .kv .v{
+      font-size:12px;
+      color:#fff;
+      word-break:break-all;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:3px 9px;
+      border-radius:999px;
+      font-size:11px;
+      border:1px solid rgba(255,255,255,.14);
+      color:rgba(255,255,255,.75);
+      background:rgba(0,0,0,.55);
+      white-space:nowrap;
+    }
+    .pill.ok{ border-color: rgba(76,175,80,.75); color:#A5D6A7; }
+    .pill.warn{ border-color: rgba(255,200,87,.75); color:#FFE0A6; }
+    .pill.bad{ border-color: rgba(229,57,53,.75); color:#FFB4B4; }
+
+    .lic-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .lic-actions-left{ display:flex; gap:8px; flex-wrap:wrap; }
+    .lic-note{
+      font-size:11px;
+      color:rgba(255,255,255,.45);
+      line-height:1.45;
+    }
   </style>
 </head>
 <body>
@@ -325,27 +387,27 @@
     </article>
 
     <article class="card">
-  <div class="card-header"><h3 class="card-title">Prospecção</h3><span class="card-badge">Prospecção</span></div>
-  <div class="card-body">Registo e controlo de contactos por imóvel (bloqueado/livre) + histórico. Admin com gestão.</div>
-  <div class="card-footer">
-    <a class="btn-xs primary" href="./prospeccao.html?admin=1">Abrir</a>
-    <span class="hint">Admin</span>
-  </div>
-</article>
+      <div class="card-header"><h3 class="card-title">Prospecção</h3><span class="card-badge">Prospecção</span></div>
+      <div class="card-body">Registo e controlo de contactos por imóvel (bloqueado/livre) + histórico. Admin com gestão.</div>
+      <div class="card-footer">
+        <a class="btn-xs primary" href="./prospeccao.html?admin=1">Abrir</a>
+        <span class="hint">Admin</span>
+      </div>
+    </article>
 
     <article class="card">
-  <div class="card-header">
-    <h3 class="card-title">Relatório Cliente</h3>
-    <span class="card-badge">Relatórios</span>
-  </div>
-  <div class="card-body">
-    Importa estudos de mercado (PDF) e gera uma versão estruturada e personalizada para cliente/investidor.
-  </div>
-  <div class="card-footer">
-    <a class="btn-xs primary" href="./relatorio-cliente.html">Abrir</a>
-    <span class="hint">Admin</span>
-  </div>
-</article>
+      <div class="card-header">
+        <h3 class="card-title">Relatório Cliente</h3>
+        <span class="card-badge">Relatórios</span>
+      </div>
+      <div class="card-body">
+        Importa estudos de mercado (PDF) e gera uma versão estruturada e personalizada para cliente/investidor.
+      </div>
+      <div class="card-footer">
+        <a class="btn-xs primary" href="./relatorio-cliente.html">Abrir</a>
+        <span class="hint">Admin</span>
+      </div>
+    </article>
 
     <article class="card">
       <div class="card-header"><h3 class="card-title">Dashboard</h3><span class="card-badge">Análise</span></div>
@@ -354,28 +416,28 @@
     </article>
 
     <article class="card">
-  <div class="card-header"><h3 class="card-title">Visitas</h3><span class="card-badge">Agenda</span></div>
-  <div class="card-body">Calendário de visitas (equipa completa), com criação/edição e pesquisa.</div>
-  <div class="card-footer"><a class="btn-xs primary" href="./visitas.html">Abrir</a><span class="hint">Admin</span></div>
-</article>
+      <div class="card-header"><h3 class="card-title">Visitas</h3><span class="card-badge">Agenda</span></div>
+      <div class="card-body">Calendário de visitas (equipa completa), com criação/edição e pesquisa.</div>
+      <div class="card-footer"><a class="btn-xs primary" href="./visitas.html">Abrir</a><span class="hint">Admin</span></div>
+    </article>
 
     <article class="card">
-  <div class="card-header">
-    <h3 class="card-title">Relatório Semanal</h3>
-    <span class="card-badge">Direção</span>
-  </div>
+      <div class="card-header">
+        <h3 class="card-title">Relatório Semanal</h3>
+        <span class="card-badge">Direção</span>
+      </div>
 
-  <div class="card-body">
-    KPIs automáticos (Leads, Angariações, CPCV, Escrituras) + observações por semana + comentário do Diretor/Coordenador.
-  </div>
+      <div class="card-body">
+        KPIs automáticos (Leads, Angariações, CPCV, Escrituras) + observações por semana + comentário do Diretor/Coordenador.
+      </div>
 
-  <div class="card-footer">
-    <a class="btn-xs primary" href="./relatorio-semanal.html">Abrir</a>
-    <span class="hint">Uso pessoal / gestão</span>
-  </div>
-</article>
+      <div class="card-footer">
+        <a class="btn-xs primary" href="./relatorio-semanal.html">Abrir</a>
+        <span class="hint">Uso pessoal / gestão</span>
+      </div>
+    </article>
 
-        <article class="card">
+    <article class="card">
       <div class="card-header">
         <h3 class="card-title">Executivo · KPIs</h3>
         <span class="card-badge">Direção</span>
@@ -403,10 +465,10 @@
     </article>
 
     <article class="card">
-  <div class="card-header"><h3 class="card-title">Perfil do Utilizador</h3><span class="card-badge">Identidade</span></div>
-  <div class="card-body">Dados do consultor (nome, empresa, cargo) para consumo por placeholders nos módulos.</div>
-  <div class="card-footer"><a class="btn-xs primary" href="./perfil.html">Abrir</a><span class="hint">Admin</span></div>
-</article>
+      <div class="card-header"><h3 class="card-title">Perfil do Utilizador</h3><span class="card-badge">Identidade</span></div>
+      <div class="card-body">Dados do consultor (nome, empresa, cargo) para consumo por placeholders nos módulos.</div>
+      <div class="card-footer"><a class="btn-xs primary" href="./perfil.html">Abrir</a><span class="hint">Admin</span></div>
+    </article>
 
     <article class="card">
       <div class="card-header"><h3 class="card-title">Consultores</h3><span class="card-badge">Admin</span></div>
@@ -418,6 +480,46 @@
       <div class="card-header"><h3 class="card-title">Portal (Equipa)</h3><span class="card-badge">Acesso</span></div>
       <div class="card-body">Voltar ao index limpo (sem links para módulos completos).</div>
       <div class="card-footer"><a class="btn-xs" href="./index.html">Abrir</a><span class="hint">Portal</span></div>
+    </article>
+  </section>
+
+  <!-- === NOVO: Gestão de Licença (Local) — apenas Admin === -->
+  <section style="margin-top:14px;">
+    <article class="card" id="licCard">
+      <div class="card-header">
+        <h3 class="card-title">Licença (Local)</h3>
+        <span class="card-badge">Interno</span>
+      </div>
+
+      <div class="card-body">
+        Ferramenta interna para gestão da licença nesta máquina (reset seguro).
+        <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <span class="pill" id="licStatusPill">Estado: —</span>
+          <span class="pill" id="devStatusPill">Device ID: —</span>
+        </div>
+
+        <div style="margin-top:10px;" class="kv">
+          <div class="k">license_key</div><div class="v" id="kvLicense">—</div>
+          <div class="k">device_id</div><div class="v" id="kvDevice">—</div>
+          <div class="k">nota</div>
+          <div class="v" style="color:rgba(255,255,255,.7);">
+            Reset remove apenas as chaves de licença. Os dados da app mantêm-se intactos.
+          </div>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <div class="lic-actions">
+          <div class="lic-actions-left">
+            <button class="btn-xs ghost" type="button" id="licRefreshBtn">Atualizar estado</button>
+            <button class="btn-xs" type="button" id="copyDeviceBtn">Copiar Device ID</button>
+            <button class="btn-xs danger" type="button" id="resetLicenseBtn">Reset licença (local)</button>
+          </div>
+          <div class="lic-note">
+            Use apenas quando precisar de “libertar” esta máquina para nova ativação.
+          </div>
+        </div>
+      </div>
     </article>
   </section>
 </main>
@@ -457,6 +559,99 @@
   btn.addEventListener('click', submit);
   pw.addEventListener('keydown', (e)=>{ if(e.key==='Enter') submit(); });
   pw.focus();
+})();
+</script>
+
+<script>
+(function(){
+  // === Gestão Local de Licença (Admin) ===
+  const LICENSE_KEY_STORAGE = 'gpp_license_key_v1';
+  const DEVICE_ID_STORAGE   = 'gpp_device_id_v1';
+
+  const licStatusPill = document.getElementById('licStatusPill');
+  const devStatusPill = document.getElementById('devStatusPill');
+  const kvLicense = document.getElementById('kvLicense');
+  const kvDevice  = document.getElementById('kvDevice');
+
+  const refreshBtn = document.getElementById('licRefreshBtn');
+  const resetBtn   = document.getElementById('resetLicenseBtn');
+  const copyBtn    = document.getElementById('copyDeviceBtn');
+
+  function setPill(el, text, mode){
+    el.textContent = text;
+    el.classList.remove('ok','warn','bad');
+    if(mode) el.classList.add(mode);
+  }
+
+  function getLS(key){
+    try{ return localStorage.getItem(key); }catch(e){ return null; }
+  }
+  function delLS(key){
+    try{ localStorage.removeItem(key); }catch(e){}
+  }
+
+  function refresh(){
+    const lic = (getLS(LICENSE_KEY_STORAGE) || '').trim();
+    const dev = (getLS(DEVICE_ID_STORAGE) || '').trim();
+
+    kvLicense.textContent = lic || '—';
+    kvDevice.textContent  = dev || '—';
+
+    if(lic){
+      setPill(licStatusPill, 'Licença: definida', 'ok');
+    }else{
+      setPill(licStatusPill, 'Licença: ausente', 'warn');
+    }
+
+    if(dev){
+      setPill(devStatusPill, 'Device ID: definido', 'ok');
+    }else{
+      setPill(devStatusPill, 'Device ID: ausente', 'warn');
+    }
+  }
+
+  async function copyDevice(){
+    const dev = (getLS(DEVICE_ID_STORAGE) || '').trim();
+    if(!dev){
+      alert('Não existe Device ID local para copiar.');
+      return;
+    }
+    try{
+      await navigator.clipboard.writeText(dev);
+      alert('Device ID copiado para a área de transferência.');
+    }catch(e){
+      // fallback simples
+      prompt('Copie o Device ID:', dev);
+    }
+  }
+
+  function resetLicense(){
+    const lic = (getLS(LICENSE_KEY_STORAGE) || '').trim();
+    const dev = (getLS(DEVICE_ID_STORAGE) || '').trim();
+
+    const msg =
+      'Confirma o reset local da licença nesta máquina?\n\n' +
+      'Será removido APENAS:\n' +
+      '• ' + LICENSE_KEY_STORAGE + (lic ? ' ('+lic+')' : '') + '\n' +
+      '• ' + DEVICE_ID_STORAGE   + (dev ? ' ('+dev+')' : '') + '\n\n' +
+      'Os dados da app NÃO são apagados.';
+
+    if(!confirm(msg)) return;
+
+    delLS(LICENSE_KEY_STORAGE);
+    delLS(DEVICE_ID_STORAGE);
+
+    refresh();
+
+    alert('Reset concluído. Ao abrir o index, será pedida nova chave e será gerado um novo Device ID.');
+  }
+
+  refreshBtn && refreshBtn.addEventListener('click', refresh);
+  resetBtn && resetBtn.addEventListener('click', resetLicense);
+  copyBtn && copyBtn.addEventListener('click', copyDevice);
+
+  // arranque
+  refresh();
 })();
 </script>
 
