@@ -2,8 +2,6 @@
 
 
 
-
-
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -948,24 +946,7 @@ textarea{
   border-color: rgba(163,139,99,.75);
   background: linear-gradient(180deg, rgba(163,139,99,.16), rgba(0,0,0,.48));
 }
-  
-  /* Importar Anúncio (modal) */
-  .imp-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;z-index:60;padding:16px;}
-  .imp-backdrop.open{display:flex;}
-  .imp-modal{width:min(860px,96vw);border-radius:22px;border:1px solid rgba(163,139,99,.55);background:radial-gradient(circle at top,#151515,#050505);box-shadow:0 24px 45px rgba(0,0,0,.85);overflow:hidden;}
-  .imp-head{padding:10px 14px;border-bottom:1px solid rgba(163,139,99,.28);display:flex;justify-content:space-between;align-items:center;gap:10px;background:linear-gradient(90deg,#050505,#111,#050505);}
-  .imp-head h3{margin:0;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);}
-  .imp-body{padding:12px 14px;font-size:13px;color:var(--muted);line-height:1.55;}
-  .imp-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px;}
-  @media (max-width:860px){.imp-grid{grid-template-columns:1fr;}}
-  .imp-card{border-radius:16px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.45);padding:10px;}
-  .imp-card h4{margin:0 0 6px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#f0f0f0;}
-  .imp-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px;}
-  .imp-mini{font-size:11px;color:rgba(255,255,255,.45);}
-  .imp-ta{width:100%;min-height:84px;resize:vertical;border-radius:12px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.65);color:rgba(255,255,255,.8);padding:10px;font-size:11px;line-height:1.45;outline:none;}
-  .imp-ta:focus{border-color:rgba(163,139,99,.55);box-shadow:0 0 0 1px rgba(163,139,99,.25);}
-
-</style>
+  </style>
 </head>
 
 <body>
@@ -997,13 +978,48 @@ textarea{
       <a href="perfil.html" class="nav-tab">Perfil</a>
     </nav>
 
-    <div class="header-actions">
+    <div class="toolbar">
+      <div class="tool-group">
+        <div class="tool-label">Dados</div>
+        <div class="pill-lock" id="lockPill">
+          <span>Modo</span>
+          <span class="state" id="lockStateLabel">Bloqueado</span>
+          <button id="toggleLockBtn" title="Alternar entre edição bloqueada e ativa">🔒</button>
+        </div>
+        <button class="btn btn-ghost" id="importCsvBtn" title="Importar registos de CSV">⤒ Importar CSV</button>
+      </div>
+
+      <div class="tool-group">
+        <div class="tool-label">Exportar</div>
+        <button class="btn btn-ghost" id="exportCsvBtn" title="Exportar para CSV">⤓ CSV</button>
+        <button class="btn btn-ghost" id="exportPdfBtn" title="Imprimir / PDF">⤓ PDF</button>
+      </div>
+
+      <div class="tool-group">
+        <div class="tool-label">Backup</div>
+        <button class="btn btn-ghost" id="backupBtn" title="Exportar backup (JSON)">💾 Backup</button>
+        <button class="btn btn-ghost" id="restoreBtn" title="Restaurar backup (JSON)">⤺ Restaurar</button>
+      </div>
+
       
-    
-    <button class="btn btn-ghost" id="importAdBtn" type="button" title="Importar anúncio (Idealista / Imovirtual / Supercasa)">
-      <span class="icon">⤒</span><span>Importar Anúncio</span>
-    </button>
-</div>
+      <div class="tool-group" id="importGroup">
+        <div class="tool-label">Importar anúncio</div>
+        <div class="tool-row">
+          <button class="btn btn-ghost" id="bmIdealistaBtn" type="button" title="Copiar atalho para importar a partir do Idealista">Idealista</button>
+          <button class="btn btn-ghost" id="bmImovirtualBtn" type="button" title="Copiar atalho para importar a partir do Imovirtual">Imovirtual</button>
+          <button class="btn btn-ghost" id="bmSupercasaBtn" type="button" title="Em desenvolvimento">Supercasa</button>
+        </div>
+        <div class="tool-help">
+          Dica: clique num portal para copiar o atalho. Depois crie um favorito no navegador e cole o atalho no campo “URL”.
+          Quando estiver no anúncio, clique no favorito para importar automaticamente para este módulo.
+        </div>
+      </div>
+
+<div class="tool-group">
+        <div class="tool-label">Criar</div>
+        <button class="btn btn-primary" id="newItemBtn">+ Novo FSBO</button>
+      </div>
+    </div>
   </header>
 
   <div class="layout">
@@ -1434,6 +1450,13 @@ textarea{
               <button class="btn btn-ghost" id="saveScriptBtn" title="Guardar texto personalizado (Script)">💾 Gravar</button>
   <button class="btn btn-ghost" id="pdfCallBtn" title="Gerar PDF deste script">🧾 PDF</button>
 </div>
+<div class="kit-actions" style="margin-top:8px;">
+  <button class="btn btn-ghost" id="callObjSoloBtn">Responder: Vendo sozinho</button>
+  <button class="btn btn-ghost" id="callObjManyAgenciesBtn">Responder: Já tenho imobiliárias</button>
+  <button class="btn btn-ghost" id="callObjCommissionBtn">Responder: Comissão</button>
+  <button class="btn btn-ghost" id="callObjExclusiveBtn">Responder: Sem exclusivo</button>
+  <button class="btn btn-ghost" id="callObjSmartBtn">Responder: Angariar Smart</button>
+</div>
         </div>
 
        <div class="kit-box">
@@ -1618,7 +1641,39 @@ $('ownerPhone').value = p.ownerPhone || '';
   const backupBtn = $('backupBtn');
   const restoreBtn = $('restoreBtn');
 
-  // Main
+  
+  // Importar anúncio (atalhos)
+  const bmIdealistaBtn = $('bmIdealistaBtn');
+  const bmImovirtualBtn = $('bmImovirtualBtn');
+  const bmSupercasaBtn  = $('bmSupercasaBtn');
+
+  const BM_IDEALISTA  = "javascript:(()=>{try{const FSBO_URL='https://ruiquelhas1-lab.github.io/GarveturPortoPro/particulares.html';const t=s=>{const e=document.querySelector(s);return e?e.textContent.trim():''};const pick=a=>a.find(v=>v&&String(v).trim())||'';const link=location.href;const titulo=pick([t('h1'),t('.main-info__title-main'),t('.detail-info__title'),document.title.replace(/\\s*\\|.*$/,'').trim()]);const precoRaw=pick([t('.info-data-price'),t('.price.txt-bold'),t('.detail-info__price')]);const precoNum=Number((precoRaw||'').replace(/[^\\d]/g,''));const precoAnuncio=(isFinite(precoNum)&&precoNum>0)?precoNum:null;let natureza='';if(/\\bapartamento\\b/i.test(titulo)) natureza='apartamento';else if(/\\bmoradia\\b/i.test(titulo)) natureza='moradia';else if(/\\bterreno\\b/i.test(titulo)) natureza='terreno';else if(/\\bloja\\b/i.test(titulo)) natureza='loja';else if(/\\bescrit[o\u00f3]rio\\b/i.test(titulo)) natureza='escritorio';const tipMatch=(titulo||'').match(/\\b(T0|T1|T2|T3|T4|T5|T6)\\b/i);const tipologia=tipMatch?tipMatch[1].toUpperCase():'';const zona=pick([t('.main-info__title-minor'),t('.detail-info__location')]);const descricao=pick([t('.comment'),t('.adCommentsLanguage'),t('#description')]);const ownerName=prompt('FSBO \u2014 Nome do propriet\u00e1rio (opcional):','')||'';const ownerPhone=prompt('FSBO \u2014 Telem\u00f3vel do propriet\u00e1rio (opcional):','')||'';const payload={portal:'Idealista',link,tituloImovel:titulo,precoAnuncio,concelho:'',freguesia:'',zona,natureza,tipologia,descricao,ref:'',area:'',quartos:tipologia?tipologia.replace('T',''):'',wc:'',andar:'',extras:[],anunciante:'',ownerName:ownerName.trim(),ownerPhone:ownerPhone.trim()};const b64=btoa(unescape(encodeURIComponent(JSON.stringify(payload))));location.href=FSBO_URL+'#import='+encodeURIComponent(b64);}catch(e){alert('FSBO Import (Idealista): falhou\\n\\n'+(e&&e.message?e.message:e));}})();";
+  const BM_IMOVIRTUAL = "javascript:(()=>{try{const FSBO_URL='https://ruiquelhas1-lab.github.io/GarveturPortoPro/particulares.html';const t=s=>{const e=document.querySelector(s);return e?e.textContent.trim():''};const pick=a=>a.find(v=>v&&String(v).trim())||'';const clean=x=>String(x||'').replace(/\\s+/g,' ').trim();const link=location.href;const titulo=clean(pick([t('h1'),t('[data-cy=\"adPageAdTitle\"]'),t('[data-testid=\"ad-title\"]'),t('.offer-title'),document.title.replace(/\\s*\\|.*$/,'').trim()]));const precoRaw=clean(pick([t('[data-cy=\"adPageHeaderPrice\"]'),t('[data-testid=\"ad-price\"]'),t('.offer-price__number'),t('.offer-price'),t('.price')]));const precoNum=Number((precoRaw||'').replace(/[^\\d]/g,''));const precoAnuncio=(isFinite(precoNum)&&precoNum>0)?precoNum:null;let natureza='';if(/\\bapartamento\\b/i.test(titulo)) natureza='apartamento';else if(/\\bmoradia\\b|\\bcasa\\b/i.test(titulo)) natureza='moradia';else if(/\\bterreno\\b/i.test(titulo)) natureza='terreno';else if(/\\bloja\\b/i.test(titulo)) natureza='loja';else if(/\\bescrit[o\u00f3]rio\\b/i.test(titulo)) natureza='escritorio';const tipMatch=(titulo||'').match(/\\b(T0|T1|T2|T3|T4|T5|T6)\\b/i);const tipologia=tipMatch?tipMatch[1].toUpperCase():'';let zona=clean(pick([t('[data-cy=\"adPageHeaderAddress\"]'),t('[data-testid=\"ad-address\"]'),t('.offer-location'),t('.location-address'),t('.address')]));const descricao=clean(pick([t('[data-cy=\"adPageAdDescription\"]'),t('[data-testid=\"ad-description\"]'),t('.offer-description'),t('.description')]));const ownerName=prompt('FSBO \u2014 Nome do propriet\u00e1rio (opcional):','')||'';const ownerPhone=prompt('FSBO \u2014 Telem\u00f3vel do propriet\u00e1rio (opcional):','')||'';const payload={portal:'Imovirtual',link,tituloImovel:titulo,precoAnuncio,concelho:'',freguesia:'',zona,natureza,tipologia,descricao,ref:'',area:'',quartos:tipologia?tipologia.replace('T',''):'',wc:'',andar:'',extras:[],anunciante:'',ownerName:ownerName.trim(),ownerPhone:ownerPhone.trim()};const b64=btoa(unescape(encodeURIComponent(JSON.stringify(payload))));const url=FSBO_URL+'#import='+encodeURIComponent(b64);const w=window.open(url,'_blank');if(!w) alert('Pop-ups bloqueados: permita pop-ups para abrir o FSBO.');}catch(e){alert('FSBO Import (Imovirtual): falhou\\n\\n'+(e&&e.message?e.message:e));}})();";
+
+  async function copyToClipboardOrPrompt(text, label){
+    try{ 
+      await navigator.clipboard.writeText(text);
+      showToast('Atalho copiado: ' + label + ' — cole num favorito (URL).');
+    }catch(e){
+      prompt('Copie o atalho ('+label+') e cole num favorito (URL):', text);
+    }
+  }
+
+  function setupImportButtons(){
+    if(bmIdealistaBtn){
+      bmIdealistaBtn.addEventListener('click', ()=>copyToClipboardOrPrompt(BM_IDEALISTA,'Idealista'));
+    }
+    if(bmImovirtualBtn){
+      bmImovirtualBtn.addEventListener('click', ()=>copyToClipboardOrPrompt(BM_IMOVIRTUAL,'Imovirtual'));
+    }
+    if(bmSupercasaBtn){
+      bmSupercasaBtn.addEventListener('click', ()=>{
+        showToast('Supercasa: importador ainda não disponível.');
+      });
+    }
+  }
+
+// Main
   const cardsGrid = $('cardsGrid');
   const emptyState = $('emptyState');
   const pipelineKpis = $('pipelineKpis');
@@ -1757,6 +1812,14 @@ const emailResetBtn = $('emailResetBtn');
 
     
 const callResetBtn = $('callResetBtn');
+
+  // ✅ NOVO — botões de objeções (Script)
+  const callObjSoloBtn = $('callObjSoloBtn');
+  const callObjManyAgenciesBtn = $('callObjManyAgenciesBtn');
+  const callObjCommissionBtn = $('callObjCommissionBtn');
+  const callObjExclusiveBtn = $('callObjExclusiveBtn');
+  const callObjSmartBtn = $('callObjSmartBtn');
+
 const swotResetBtn = $('swotResetBtn');
 // Resumo no Kit
   const kitResumo = $('kitResumo');
@@ -2516,6 +2579,70 @@ if(texto.includes(s)) return true;
   return n.toFixed(1).replace('.',',') + '%';
 }
 
+
+/* ===== Perfil do Utilizador (Perfil.html) — integração para mensagens do Kit FSBO ===== */
+const USER_PROFILE_KEY = 'gpp_user_profile_v1';
+
+function getUserProfile(){
+  try{
+    const raw = localStorage.getItem(USER_PROFILE_KEY);
+    if(!raw) return {};
+    const p = JSON.parse(raw);
+    if(!p || typeof p !== 'object') return {};
+    return {
+      nome: String(p.nome || '').trim(),
+      empresa: String(p.empresa || '').trim(),
+      cargo: String(p.cargo || '').trim(),
+      tel: String(p.tel || '').trim(),
+      email: String(p.email || '').trim(),
+      obs: String(p.obs || '').trim(),
+      sigText: String(p.sigText || '').trim(),
+      sigHtml: String(p.sigHtml || '').trim()
+    };
+  }catch(e){
+    return {};
+  }
+}
+
+function consultantFromProfile(item, prof){
+  const p = prof || {};
+  const nome = p.nome || (item && item.consultor) || '';
+  const empresa = p.empresa || 'Garvetur Luxury Porto';
+  const cargo = p.cargo || 'Consultor Imobiliário';
+
+  const tel = p.tel || (item && (item.consultorTel || item.consultorTelefone || '')) || '';
+  const email = p.email || (item && (item.consultorEmail || item.consultorMail || '')) || '';
+
+  const sigText = p.sigText || '';
+  const sigHtml = p.sigHtml || '';
+
+  return { nome, empresa, cargo, tel, email, sigText, sigHtml };
+}
+
+function buildSignatureText(c){
+  if(!c) return '';
+  if(c.sigText) return String(c.sigText).trim();
+
+  const lines = [];
+  if(c.nome) lines.push(c.nome);
+  const line2 = [c.cargo, c.empresa].filter(Boolean).join(' — ');
+  if(line2) lines.push(line2);
+  if(c.tel) lines.push('T: ' + c.tel);
+  if(c.email) lines.push('E: ' + c.email);
+  return lines.join('\n').trim();
+}
+
+function buildSignatureShort(c){
+  if(!c) return '';
+  const parts = [];
+  if(c.nome) parts.push(String(c.nome).trim());
+  if(c.empresa) parts.push(String(c.empresa).trim());
+  if(c.tel) parts.push(String(c.tel).trim());
+  return parts.filter(Boolean).join(' | ').trim();
+}
+
+/* ===== Fim integração Perfil ===== */
+
 function classForAjust(p){
 
   const n = parseFloat(String(p).replace(',', '.'));
@@ -2927,7 +3054,7 @@ function buildKitResumo(item){
     return (
 `Boa tarde${greetName}.
 
-O meu nome é ${item.consultor || 'Rui Quelhas'}, da Garvetur Luxury Porto. Vi o anúncio${item.portal ? ' no ' + item.portal : ''} relativo a “${title}”${zone ? ' ('+zone+')' : ''}${price ? ' — ' + price : ''}.
+O meu nome é ${c.nome || item.consultor || '…'}, ${c.empresa ? 'da ' + c.empresa : ''}. Vi o anúncio${item.portal ? ' no ' + item.portal : ''} relativo a “${title}”${zone ? ' ('+zone+')' : ''}${price ? ' — ' + price : ''}.
 
 Trabalho diariamente com compradores qualificados para esta zona e gostaria de perceber se faz sentido ajudá-lo(a) a vender com mais segurança e melhor posicionamento no mercado.
 
@@ -2973,7 +3100,7 @@ Podemos agendar uma chamada curta hoje ao final do dia ou amanhã de manhã?`
     const portal = item.portal ? (' no ' + item.portal) : '';
 
     const line1 = `Boa tarde${greetName}.`;
-    const line2 = `O meu nome é ${item.consultor || 'Rui Quelhas'}, da Garvetur Luxury Porto. Vi o anúncio${portal} relativo a “${title}”${zone ? ' ('+zone+')' : ''}${price ? ' — ' + price : ''}.`;
+    const line2 = `O meu nome é ${c.nome || item.consultor || '…'}, ${c.empresa ? 'da ' + c.empresa : ''}. Vi o anúncio${portal} relativo a “${title}”${zone ? ' ('+zone+')' : ''}${price ? ' — ' + price : ''}.`;
 
     return [line1, '', line2].join('\n');
   }
@@ -3051,44 +3178,46 @@ Se fizer sentido, posso dar-lhe um enquadramento objetivo em 10 minutos: preço 
   }
 
   function buildWhatsappMessage(item, fetchedTitle){
+    const prof = getUserProfile();
+    const c = consultantFromProfile(item, prof);
+
     const owner = (item.ownerName || '').trim();
     const first = owner ? firstNameFromOwner(owner) : '';
     const nome = first || '';
+
     const tipo = (item.tipoImovel || 'imóvel').trim();
     const tipologia = item.tipologia ? (' ' + String(item.tipologia).trim()) : '';
     const zonaCurta = (item.zona || item.concelho || item.freguesia || '').trim();
     const zonaLonga = ([item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ') || '').trim();
-    const portal = (item.portal || '').trim();
     const preco = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
 
-      const saud = 'Bom dia' + (nome ? ' ' + nome : '') + ',';
+    const saud = 'Bom dia' + (nome ? ' ' + nome : '') + ',';
 
-  return [
-    saud,
-    '',
-    'O meu nome é Rui Quelhas e sou Diretor Comercial da Garvetur Luxury Porto.',
-    'Estamos sediados na Praça Velásquez, mais concretamente na Alameda Eça de Queiroz, n.º 25.',
-    '',
-    `Tomei conhecimento do seu anúncio relativo ao imóvel situado em ${zonaLonga || (zonaCurta || '…')}${preco ? ', atualmente anunciado pelo valor de ' + preco : ', atualmente anunciado pelo valor de …'}.`,
-    '',
-    'Este tipo de imóvel continua a revelar procura no mercado — sobretudo quando o posicionamento inicial está bem alinhado com o perfil de comprador que hoje procura nesta zona.',
-    '',
-    'Em muitos casos, o principal desafio não reside no imóvel em si, mas na forma como o mercado o interpreta nas primeiras semanas de exposição: enquadramento de preço, abordagem aos contactos e gestão do processo negocial.',
-    '',
-    'Enquanto profissionais do setor, consideramos fundamental conhecer o imóvel em detalhe antes de o apresentar a potenciais compradores ou investidores, garantindo uma abordagem rigorosa e ajustada à realidade do mercado.',
-    '',
-    'Se fizer sentido para si, terei todo o gosto em partilhar um enquadramento objetivo numa breve conversa de cerca de 10 minutos, sem qualquer compromisso — análise de mercado, pontos a afinar e possíveis próximos passos.',
-    '',
-    'O imóvel mantém-se em fase de comercialização?',
-    'Seria possível agendarmos uma breve visita numa data conveniente para si?'
-  ].join('\n');
+    const assinatura = buildSignatureShort(c);
+
+    return [
+      saud,
+      '',
+      `O meu nome é ${c.nome}${c.cargo || c.empresa ? ' e sou ' + [c.cargo, (c.empresa ? ('da ' + c.empresa) : '')].filter(Boolean).join(' ') : '.'}`,
+      '',
+      `Tomei conhecimento do seu anúncio relativo ao ${tipo}${tipologia} situado em ${zonaLonga || (zonaCurta || '…')}${preco ? ', atualmente anunciado pelo valor de ' + preco : ', atualmente anunciado pelo valor de …'}.`,
+      '',
+      'Este tipo de imóvel continua a revelar procura no mercado e, por isso, tenho acompanhado de perto a evolução real dos valores praticados na zona (não apenas os valores anunciados).',
+      '',
+      'Se fizer sentido, posso partilhar-lhe um enquadramento objetivo numa breve conversa de cerca de 10 minutos, sem qualquer compromisso — análise de mercado, pontos a afinar e possíveis próximos passos.',
+      '',
+      'O imóvel mantém-se em fase de comercialização?',
+      'Seria possível agendarmos uma breve visita numa data conveniente para si?',
+    ].filter(Boolean).join('\n');
   }
 
   // Novo gerador “smart” (mantém fallback para o atual)
 
-
 function generateWhatsappSmart(item, fetchedTitle){
   try{
+    const prof = getUserProfile();
+    const c = consultantFromProfile(item, prof);
+
     void FSBO_PROMPT_STANDARD;
     // buildWhatsappMessage() já inclui o prefixo ✅ [GPP-SMART]
     return buildWhatsappMessage(item, fetchedTitle);
@@ -3144,144 +3273,178 @@ function generateWhatsappSmart(item, fetchedTitle){
   return [header, intro, '', ref, '', body, '', cta].join('\n').trim();
 }
   function buildEmailObjectionReply(objectionKey, item, fetchedTitle){
+  const prof = getUserProfile();
+  const c = consultantFromProfile(item, prof);
+
   const owner = item.ownerName || 'Proprietário(a)';
   const title = fetchedTitle || item.tituloImovel || 'o seu imóvel';
   const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
   const price = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
-
-  const subjBase = `Enquadramento e estratégia — ${title}${zone ? ' | ' + zone : ''}`;
+  const subjBase = `Enquadramento e estratégia — ${title}${zone ? ' ('+zone+')' : ''}`;
   let subject = subjBase;
-
   let body = '';
-  if(objectionKey === 'many'){
-    subject = `Diferenciação e controlo do processo — ${title}${zone ? ' | ' + zone : ''}`;
+
+  if(objectionKey === 'solo'){
+    subject = subjBase + ' | Vender por conta própria';
     body =
 `Caro(a) ${owner},
 
-Compreendo perfeitamente que já esteja a falar com outras imobiliárias. A questão raramente é “ter mais contactos”; é garantir controlo do processo e proteção do valor.
+Compreendo perfeitamente a sua intenção de vender por conta própria.
 
-Na prática, é aqui que normalmente se perde margem:
-• triagem fraca (muitos curiosos / poucos compradores reais),
-• mensagem e preço inconsistentes,
-• negociação sem estratégia e sem controlo documental.
+A experiência mostra que, neste tipo de imóvel, os dois riscos mais comuns são:
+• negociar “em baixa” por falta de referências reais de transação (não apenas anúncios);
+• perder tempo com contactos não qualificados, visitas improdutivas e propostas pouco consistentes.
 
-Se fizer sentido, proponho uma chamada curta de 10 minutos para lhe dar um diagnóstico objetivo: o que está bem, o que está a travar, e qual o ajuste mais rápido para proteger o valor.
+Se fizer sentido para si, posso partilhar consigo uma análise objetiva do mercado na zona (procura, preços de fecho e posicionamento) e um plano simples para filtrar contactos e proteger o valor.
 
-Com os melhores cumprimentos,
-Rui Quelhas
-Director Comercial — Garvetur Luxury Porto`;
+Caso se mantenha a preferência por venda direta, a informação continua a ser útil para definir expectativas e estratégia.
+
+Sugere uma chamada breve (10 minutos) hoje ao final do dia ou amanhã de manhã?
+
+Com os melhores cumprimentos`;
+  }else if(objectionKey === 'many'){
+    subject = subjBase + ' | Muitas agências / muitos contactos';
+    body =
+`Caro(a) ${owner},
+
+Percebo — quando há muitas agências envolvidas, é normal sentir perda de controlo: mensagens inconsistentes, preços diferentes, pouca filtragem e desgaste.
+
+O que tipicamente melhora os resultados é reduzir ruído e aumentar qualidade:
+• uma mensagem única e coerente;
+• qualificação rigorosa antes de visitas;
+• reporting semanal com feedback real do mercado.
+
+Se for útil, posso ajudá-lo(a) a estruturar uma estratégia simples para manter controlo e proteger o valor, mesmo sem alterar o seu nível de abertura ao mercado.
+
+Prefere uma chamada breve hoje ou amanhã?
+
+Com os melhores cumprimentos`;
   }else if(objectionKey === 'commission'){
-    subject = `Valor líquido e risco — ${title}${zone ? ' | ' + zone : ''}`;
+    subject = subjBase + ' | Questão da comissão';
     body =
 `Caro(a) ${owner},
 
-Percebo a questão da comissão — é um ponto legítimo. O que importa, no final, é o valor líquido e a segurança do processo.
+Compreendo a preocupação com a comissão — é um tema central e deve ser tratado com total transparência.
 
-Nos casos em que acompanho, a diferença tende a surgir em três áreas:
-• desconto final (negociação conduzida sem estratégia),
-• tempo em mercado (posicionamento inicial desalinhado),
-• risco (documentos, reservas, condições e timings).
+O ponto relevante é este: a comissão só faz sentido se o serviço gerar valor líquido (mais segurança + menos risco + melhor negociação), e se estiver alinhada com um plano de execução claro.
 
-Se desejar, faço-lhe uma simulação simples e objetiva (cenários de valor líquido) e comparamos venda direta vs. plano com triagem e negociação estruturada.
+Num cenário bem estruturado, a intervenção do consultor tende a:
+• proteger o valor em negociação (evitar cedências desnecessárias);
+• aumentar a qualidade dos contactos (menos curiosos, mais intenção);
+• acelerar o processo com melhor comunicação e gestão de propostas.
 
-Podemos falar 10 minutos hoje ao final do dia ou amanhã de manhã?
+Se considerar útil, posso explicar-lhe, de forma objetiva, como trabalhamos e quais as condições que fazem sentido no seu caso — sem compromisso.
 
-Com os melhores cumprimentos,
-Rui Quelhas
-Director Comercial — Garvetur Luxury Porto`;
+Podemos falar 10 minutos hoje ou amanhã?
+
+Com os melhores cumprimentos`;
   }else if(objectionKey === 'exclusive'){
-    subject = `Exclusivo com métricas e prazo — ${title}${zone ? ' | ' + zone : ''}`;
+    subject = subjBase + ' | Exclusivo com controlo';
     body =
 `Caro(a) ${owner},
 
-Compreendo a reserva relativamente ao exclusivo. “Exclusivo” só faz sentido quando existe responsabilidade, métricas e um plano claro.
+Compreendo a reserva em relação ao exclusivo — a palavra, por vezes, é confundida com “ficar preso”.
 
-A minha proposta (quando faz sentido) é simples:
-• prazo curto (ex.: 30 dias),
-• plano de ação definido (marketing + triagem + visitas),
-• metas objetivas (procura, visitas, feedback e ajuste),
-• decisão livre no final do período.
+Na prática, um exclusivo bem desenhado serve para:
+• garantir compromisso de execução (plano + comunicação + visitas),
+• criar controlo e consistência na mensagem,
+• assegurar responsabilidade e reporting (procura, visitas, feedback e ajuste),
+• manter uma decisão livre no final do período.
 
 Se considerar útil, explico-lhe a diferença prática entre “sem exclusivo” e “exclusivo com controlo” numa chamada de 10 minutos.
 
-Com os melhores cumprimentos,
-Rui Quelhas
-Director Comercial — Garvetur Luxury Porto`;
+Com os melhores cumprimentos`;
   }else{
-    body = buildEmailObjectionReply('many', item, fetchedTitle);
+    return buildEmailObjectionReply('many', item, fetchedTitle);
   }
 
   return `Assunto: ${subject}\n\n${body}`;
 }
-  function generateCallScript(item, fetchedTitle){
-    const owner = (item.ownerName || '').trim();
-    const first = owner ? firstNameFromOwner(owner) : '';
-    const nome = first || '';
-    const tipo = (item.tipoImovel || 'imóvel').trim();
-    const tipologia = item.tipologia ? (' ' + String(item.tipologia).trim()) : '';
-    const zonaCurta = (item.zona || item.concelho || item.freguesia || '').trim();
-    const portal = (item.portal || '').trim();
 
-    return [
-      `Bom dia${nome ? ' ' + nome : ''}, fala ${item.consultor || 'Rui Quelhas'} da Garvetur Luxury Porto.`,
-      `Estou a ligar a propósito do anúncio do ${tipo}${tipologia}${zonaCurta ? ' em ' + zonaCurta : ''}${portal ? ' que vi no ' + portal : ''} — é um bom momento para falarmos 2 minutos?`,
-      '',
-      `Se disser “sim”`,
-      '',
-      `Obrigado.`,
-      `Liguei porque este tipo de imóvel, nesta zona, continua a ter procura, mas tenho visto muitos proprietários a receber contactos pouco qualificados ou a entrar cedo em negociação sem necessidade.`,
-      '',
-      `Queria apenas perceber: o imóvel continua disponível?`,
-      '',
-      `Qualificação suave (1–2 perguntas)`,
-      `• Já recebeu contactos com real intenção?`,
-      `• Está a conduzir o processo sozinho ou já teve algum apoio profissional?`,
-      '',
-      `Fecho (sem venda)`,
-      `Se fizer sentido, posso partilhar consigo uma leitura muito objetiva do mercado atual para imóveis como o seu — 10 minutos, sem compromisso, apenas para ter informação sólida para decidir.`
-    ].join('\n');
+function generateCallScript(item, fetchedTitle){
+  const prof = getUserProfile();
+  const c = consultantFromProfile(item, prof);
+
+  const nome = (c.nome || '...').trim();
+
+  const script = [
+    '📞 SCRIPT FSBO — VERSÃO PROFISSIONAL E PRECISA',
+    '',
+    '🔹 Abertura (primeiros 10–15 segundos)',
+    `“Bom dia, fala ${nome}. Vi o seu imóvel anunciado e prometo ser muito direto:\n` +
+    `está determinado em vender sozinho até ao fim, ou está aberto a analisar uma alternativa que possa acelerar o processo e proteger o valor?”`,
+    '',
+    '🎯 Objetivo:',
+    '• Demonstrar respeito',
+    '• Ser direto',
+    '• Criar bifurcação decisória',
+    '• Ganhar controlo da conversa',
+    '',
+    '⸻',
+    '',
+    '🔹 Se disser que quer vender sozinho',
+    '“Compreendo perfeitamente. Muitos proprietários começam assim.',
+    'A minha pergunta é apenas esta: se surgisse um comprador qualificado, que não está nos portais, estaria disposto a ouvir?”',
+    '',
+    '⸻',
+    '',
+    '🔹 Se mostrar abertura',
+    '“Ótimo. O meu trabalho não é colocar mais um anúncio.',
+    'É filtrar compradores, estruturar negociação e evitar que o imóvel entre em desgaste de mercado.”',
+    '',
+    '⸻',
+    '',
+    '🔹 Perguntas estratégicas (curtas)',
+    '• Já teve visitas?',
+    '• Recebeu propostas formais?',
+    '• O que está a achar mais difícil neste processo?',
+    '',
+    '(Depois escuta.)',
+    '',
+    '⸻',
+    '',
+    '🔹 Posicionamento de autoridade',
+    '“Hoje há muita exposição, mas pouca qualificação.',
+    'O meu foco é proteger o valor do imóvel e evitar negociações frágeis.”',
+    '',
+    '⸻',
+    '',
+    '🔹 Fecho',
+    '“Não lhe peço compromisso. Apenas 20 minutos para lhe mostrar como trabalho.',
+    'Depois decide com total liberdade.',
+    'Quando lhe dá mais jeito?”',
+  ].join('\n');
+
+  return script;
+}
+
+
+function generateEmail(item, fetchedTitle){
+    const prof = getUserProfile();
+    const c = consultantFromProfile(item, prof);
+
+    const owner = item.ownerName ? item.ownerName.trim() : 'Proprietário(a)';
+    const title = fetchedTitle || item.tituloImovel || (item.tipologia ? (item.tipologia + ' ' + (item.concelho||'').trim()) : 'o seu imóvel');
+    const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
+    const price = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
+    return (
+`Caro(a) ${owner},
+
+O meu nome é ${c.nome || 'Consultor'} e sou ${c.cargo || 'consultor'}${c.empresa ? ' da ' + c.empresa : ''}.
+Tomei conhecimento do seu anúncio relativo a “${title}”${zone ? ' ('+zone+')' : ''}${price ? ' — ' + price : ''}.
+
+O objetivo deste contacto é simples: perceber se o imóvel se mantém disponível e, se fizer sentido, partilhar consigo uma leitura objetiva do enquadramento de preço e da procura atual na zona, com 2–3 ajustes práticos que tendem a aumentar o interesse e a proteger o valor em negociação.
+
+Caso considere útil, posso ainda sugerir-lhe:
+• estratégia de qualificação de contactos (para evitar curiosos);
+• plano de comunicação e distribuição;
+• pontos a otimizar na apresentação do imóvel.
+
+Se estiver disponível, proponho uma chamada breve (10 minutos) ou uma visita de qualificação, na data que lhe for mais conveniente.
+
+Com os melhores cumprimentos`
+    ).trim();
   }
- function generateEmail(item, fetchedTitle){
-    const owner = (item.ownerName || '').trim();
-    const nome = owner || '';
-    const tipo = (item.tipoImovel || 'imóvel').trim();
-    const tipologia = item.tipologia ? (' ' + String(item.tipologia).trim()) : '';
-    const zonaCurta = (item.zona || item.concelho || item.freguesia || '').trim();
-    const portal = (item.portal || '').trim();
-    const preco = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
-
-    const assunto = `Sobre o seu ${tipo}${tipologia}${zonaCurta ? ' em ' + zonaCurta : ''}`;
-
-    const saud = nome ? `Exmo.(a) Sr.(a) ${nome},` : 'Exmo.(a) Senhor(a),';
-
-    const linhas = [
-      saud,
-      '',
-      `O meu nome é ${item.consultor || 'Rui Quelhas'} e sou Diretor Comercial na Garvetur Luxury Porto.`,
-      '',
-      `Tomei conhecimento do seu anúncio${portal ? ' no ' + portal : ''}, relativo ao ${tipo}${tipologia}${zonaCurta ? ' situado em ' + zonaCurta : ''}${preco ? ', com o valor de ' + preco : ''}, e considerei relevante contactá-lo pela coerência do imóvel com a procura atual nesta zona.`,
-      '',
-      `No mercado atual, sobretudo em imóveis com este enquadramento, o sucesso do processo de venda depende menos da exposição e mais do posicionamento inicial, da forma como os contactos são qualificados e da condução da negociação desde o primeiro interesse.`,
-      '',
-      `Tenho acompanhado vários processos semelhantes em ${zonaCurta || 'zona equivalente'} e, quando existe abertura, costumo partilhar um enquadramento simples e objetivo:`,
-      `• leitura de preço face ao mercado real`,
-      `• identificação de pontos que influenciam a procura`,
-      `• estratégia para proteger valor e reduzir desgaste negocial`,
-      '',
-      `Caso considere oportuno, fico disponível para uma conversa breve (10 minutos), sem qualquer compromisso.`,
-      '',
-      `Com os melhores cumprimentos,`,
-      '',
-      `${item.consultor || 'Rui Quelhas'}`,
-      `Diretor Comercial`,
-      `Garvetur Luxury Porto`,
-      `${(item.consultorTel || item.consultorTelefone || '') ? String(item.consultorTel || item.consultorTelefone) : ''}`.trim()
-    ].filter(Boolean);
-
-    return `Assunto: ${assunto}\n\n${linhas.join('\n')}`.trim();
-  }
-/* BEGIN: Follow-up 48h (WA + Email) */
-
 
 function addDaysToISO(dateISO, days){
   const dt = toDateOnly(dateISO);
@@ -3301,7 +3464,7 @@ function generateWhatsappFollowup48h(item, fetchedTitle){
 `✅ [GPP-FOLLOWUP-48H]
 Boa tarde${greetName}.
 
-Daqui fala o ${item.consultor || 'Rui Quelhas'} (Garvetur Luxury Porto). Volto a contactar apenas para fechar o ponto relativamente ao anúncio “${title}”${zone ? ' ('+zone+')' : ''}${price ? ' — ' + price : ''}.
+Daqui fala o ${c.nome || item.consultor || '…'} (${c.empresa || 'Garvetur Luxury Porto'}). Volto a contactar apenas para fechar o ponto relativamente ao anúncio “${title}”${zone ? ' ('+zone+')' : ''}${price ? ' — ' + price : ''}.
 
 O imóvel continua disponível?
 
@@ -3310,11 +3473,13 @@ Se sim, posso enviar-lhe uma leitura objetiva do enquadramento de preço e 2–3
 }
 
 function generateEmailFollowup48h(item, fetchedTitle){
+  const prof = getUserProfile();
+  const c = consultantFromProfile(item, prof);
+
   const owner = item.ownerName || 'Proprietário(a)';
   const title = fetchedTitle || item.tituloImovel || 'o seu imóvel';
   const zone = [item.zona, item.freguesia, item.concelho].filter(Boolean).join(' · ');
   const price = item.precoAnuncio ? formatMoney(item.precoAnuncio) : '';
-
   return (
 `Assunto: Seguimento — ${title}${zone ? ' | ' + zone : ''}
 
@@ -3322,20 +3487,17 @@ Caro(a) ${owner},
 
 Da minha parte, deixo apenas um seguimento rápido relativamente ao seu anúncio${zone ? ' em ' + zone : ''}${price ? ' (preço: ' + price + ')' : ''}.
 
-O imóvel continua disponível?  
+O imóvel continua disponível?
 Se sim, posso partilhar consigo:
-• enquadramento objetivo de preço vs. mercado, e  
+• enquadramento objetivo de preço vs. mercado, e
 • 2–3 melhorias imediatas no anúncio para aumentar procura e proteger o valor.
 
 Caso seja conveniente, podemos falar 8–10 minutos hoje ao final do dia ou amanhã de manhã.
 
-Com os melhores cumprimentos,
-
-Rui Quelhas  
-Director Comercial  
-Garvetur Luxury Porto`
+Com os melhores cumprimentos`
   );
 }
+
 /* END: Follow-up 48h (WA + Email) */
   function generateSwot(item, fetchedTitle){
     const title = fetchedTitle || item.tituloImovel || 'Imóvel';
@@ -4146,162 +4308,6 @@ const content = (ta && typeof ta.value === 'string') ? ta.value.trim() : '';
 <script>
   window.print();
 <\/script>
-
-<!-- IMPORTAR ANÚNCIO (Idealista / Imovirtual / Supercasa) -->
-<div id="impBackdrop" class="imp-backdrop" aria-modal="true" role="dialog">
-  <div class="imp-modal">
-    <div class="imp-head">
-      <h3>Importar anúncio</h3>
-      <button type="button" class="btn btn-ghost" id="impClose" style="padding:4px 10px;font-size:11px;">✕</button>
-    </div>
-    <div class="imp-body">
-      <div>
-        Este módulo já suporta importação por <strong>#import</strong>. Para recolher os dados do anúncio, use os atalhos (bookmarklets) abaixo.
-        <div class="imp-mini" style="margin-top:6px;">
-          Por motivos de segurança dos browsers (CORS), a app não consegue “ler” diretamente o conteúdo do Idealista/Imovirtual/Supercasa a partir daqui — o atalho é executado na página do anúncio e depois abre o FSBO já com o formulário pré-preenchido.
-        </div>
-      </div>
-
-      <div class="imp-grid">
-        <div class="imp-card">
-          <h4>Idealista</h4>
-          <div class="imp-mini">Cole aqui o atalho (bookmarklet) do Idealista. Fica guardado localmente neste dispositivo.</div>
-          <textarea class="imp-ta" id="bmIdealista" placeholder="Cole aqui o bookmarklet do Idealista (javascript:(...))"></textarea>
-          <div class="imp-row">
-            <button type="button" class="btn btn-primary" id="saveIdealista"><span class="icon">✓</span><span>Guardar</span></button>
-            <button type="button" class="btn btn-ghost" id="copyIdealista"><span class="icon">⎘</span><span>Copiar</span></button>
-          </div>
-        </div>
-
-        <div class="imp-card">
-          <h4>Imovirtual</h4>
-          <div class="imp-mini">Cole aqui o atalho (bookmarklet) do Imovirtual. Fica guardado localmente neste dispositivo.</div>
-          <textarea class="imp-ta" id="bmImovirtual" placeholder="Cole aqui o bookmarklet do Imovirtual (javascript:(...))"></textarea>
-          <div class="imp-row">
-            <button type="button" class="btn btn-primary" id="saveImovirtual"><span class="icon">✓</span><span>Guardar</span></button>
-            <button type="button" class="btn btn-ghost" id="copyImovirtual"><span class="icon">⎘</span><span>Copiar</span></button>
-          </div>
-        </div>
-
-        <div class="imp-card" style="grid-column:1 / -1;">
-          <h4>Supercasa</h4>
-          <div class="imp-mini">Ainda não existe atalho. Quando me enviar 1–2 links de exemplo (Supercasa), crio o bookmarklet e pode colar/guardar aqui.</div>
-          <textarea class="imp-ta" id="bmSupercasa" placeholder="(opcional) Cole aqui o bookmarklet da Supercasa quando existir"></textarea>
-          <div class="imp-row">
-            <button type="button" class="btn btn-primary" id="saveSupercasa"><span class="icon">✓</span><span>Guardar</span></button>
-            <button type="button" class="btn btn-ghost" id="copySupercasa"><span class="icon">⎘</span><span>Copiar</span></button>
-          </div>
-        </div>
-      </div>
-
-      <div class="imp-mini" style="margin-top:10px;">
-        Dica: no Chrome/Edge pode criar um Favorito e colar o “atalho” no campo URL do favorito. No Safari: Favoritos → Editar → URL.
-      </div>
-    </div>
-  </div>
-</div>
-
-
-
-<script>
-(function(){
-  const btn = document.getElementById('importAdBtn');
-  const back = document.getElementById('impBackdrop');
-  const close = document.getElementById('impClose');
-
-  if(!btn || !back || !close) return;
-
-  const KEY_I = 'gpp_bm_idealista_v1';
-  const KEY_M = 'gpp_bm_imovirtual_v1';
-  const KEY_S = 'gpp_bm_supercasa_v1';
-
-  const taI = document.getElementById('bmIdealista');
-  const taM = document.getElementById('bmImovirtual');
-  const taS = document.getElementById('bmSupercasa');
-
-  const saveI = document.getElementById('saveIdealista');
-  const saveM = document.getElementById('saveImovirtual');
-  const saveS = document.getElementById('saveSupercasa');
-
-  const copyI = document.getElementById('copyIdealista');
-  const copyM = document.getElementById('copyImovirtual');
-  const copyS = document.getElementById('copySupercasa');
-
-  function open(){ back.classList.add('open'); }
-  function hide(){ back.classList.remove('open'); }
-
-  function getLS(k){ try{ return localStorage.getItem(k) || ''; }catch(e){ return ''; } }
-  function setLS(k,v){ try{ localStorage.setItem(k, v); return true; }catch(e){ return false; } }
-
-  function load(){
-    if(taI) taI.value = getLS(KEY_I);
-    if(taM) taM.value = getLS(KEY_M);
-    if(taS) taS.value = getLS(KEY_S);
-  }
-
-  async function copyToClipboard(text){
-    text = String(text||'').trim();
-    if(!text) return false;
-    try{
-      if(navigator.clipboard && navigator.clipboard.writeText){
-        await navigator.clipboard.writeText(text);
-        return true;
-      }
-    }catch(e){}
-    try{
-      const ta=document.createElement('textarea');
-      ta.value=text;
-      ta.style.position='fixed';
-      ta.style.left='-9999px';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      return true;
-    }catch(e){
-      return false;
-    }
-  }
-
-  function guard(ta, key, label){
-    const v = String(ta && ta.value || '').trim();
-    if(!v){
-      alert('Cole primeiro o bookmarklet de ' + label + '.');
-      return;
-    }
-    if(!/^javascript:/i.test(v)){
-      alert('O conteúdo não parece um bookmarklet (deve começar por "javascript:").');
-      return;
-    }
-    const ok = setLS(key, v);
-    alert(ok ? ('Atalho de ' + label + ' guardado neste dispositivo.') : 'Não foi possível guardar (bloqueio do browser / modo privado).');
-  }
-
-  btn.addEventListener('click', ()=>{ load(); open(); });
-  close.addEventListener('click', hide);
-  back.addEventListener('click', (e)=>{ if(e.target === back) hide(); });
-  window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && back.classList.contains('open')) hide(); });
-
-  saveI && saveI.addEventListener('click', ()=>guard(taI, KEY_I, 'Idealista'));
-  saveM && saveM.addEventListener('click', ()=>guard(taM, KEY_M, 'Imovirtual'));
-  saveS && saveS.addEventListener('click', ()=>guard(taS, KEY_S, 'Supercasa'));
-
-  copyI && copyI.addEventListener('click', async ()=>{
-    const ok = await copyToClipboard((taI && taI.value) || getLS(KEY_I));
-    alert(ok ? 'Atalho do Idealista copiado.' : 'Não foi possível copiar (vazio ou bloqueado).');
-  });
-  copyM && copyM.addEventListener('click', async ()=>{
-    const ok = await copyToClipboard((taM && taM.value) || getLS(KEY_M));
-    alert(ok ? 'Atalho do Imovirtual copiado.' : 'Não foi possível copiar (vazio ou bloqueado).');
-  });
-  copyS && copyS.addEventListener('click', async ()=>{
-    const ok = await copyToClipboard((taS && taS.value) || getLS(KEY_S));
-    alert(ok ? 'Atalho da Supercasa copiado.' : 'Não foi possível copiar (vazio ou bloqueado).');
-  });
-
-})();
-</script>
-
 </body>
 </html>
 `;
@@ -4788,6 +4794,33 @@ if(emailResetBtn) emailResetBtn.addEventListener('click', ()=>{
   showToast('Email principal reposto');
 });
 
+
+// ✅ NOVO — Objeções rápidas para o Script (botões)
+function buildCallObjectionReply(key){
+  const map = {
+    solo: '“E faz todo o sentido testar o mercado.\nA minha função não é substituir o que está a fazer, é acrescentar compradores qualificados que normalmente não chegam aos portais.”',
+    many: '“Perfeito. Então o imóvel já está exposto.\nA questão é: está a receber propostas concretas ou apenas visitas sem decisão?”',
+    commission: '“Compreendo.\nA verdadeira questão não é a comissão, é o valor líquido final.\nSe conseguir vender melhor e mais rápido, a comissão deixa de ser custo e passa a ser investimento.”',
+    exclusive: '“Percebo.\nMas sem alinhamento estratégico o mercado fragmenta-se e o imóvel perde força.\nO exclusivo não é controlo — é coordenação.”',
+    smart: '“Podemos começar de forma inteligente e faseada, sem pressão.\nTestamos metodologia, medimos resultados e decide com dados.”'
+  };
+  return map[key] || '';
+}
+
+function applyCallObjection(key){
+  const msg = buildCallObjectionReply(key);
+  if(!msg) return;
+  kitCall.value = msg;
+  showToast('Objeção aplicada (Script)');
+}
+
+if(callObjSoloBtn) callObjSoloBtn.addEventListener('click', ()=>applyCallObjection('solo'));
+if(callObjManyAgenciesBtn) callObjManyAgenciesBtn.addEventListener('click', ()=>applyCallObjection('many'));
+if(callObjCommissionBtn) callObjCommissionBtn.addEventListener('click', ()=>applyCallObjection('commission'));
+if(callObjExclusiveBtn) callObjExclusiveBtn.addEventListener('click', ()=>applyCallObjection('exclusive'));
+if(callObjSmartBtn) callObjSmartBtn.addEventListener('click', ()=>applyCallObjection('smart'));
+
+
 callResetBtn && callResetBtn.addEventListener('click', ()=>{
   kitCall.value = kitCallMainMessage || (kitCall.value || '');
   // limpar personalização guardada deste cartão (se existir)
@@ -5023,7 +5056,7 @@ function tplWhatsapp(item, fetchedTitle, stageLabel){
 `✅ [GPP-FOLLOWUP ${stageLabel}]
 Boa tarde${owner}.
 
-Daqui fala o ${item.consultor || 'Rui Quelhas'} (Garvetur Luxury Porto). Só para fechar o ponto do anúncio “${title}”${zone ? ' ('+zone+')' : ''}${price ? ' — ' + price : ''}.
+Daqui fala o ${c.nome || item.consultor || '…'} (${c.empresa || 'Garvetur Luxury Porto'}). Só para fechar o ponto do anúncio “${title}”${zone ? ' ('+zone+')' : ''}${price ? ' — ' + price : ''}.
 
 O imóvel continua disponível?
 
@@ -5051,11 +5084,9 @@ Se sim, posso partilhar consigo:
 
 Caso seja conveniente, podemos falar 8–10 minutos hoje ao final do dia ou amanhã de manhã.
 
-Com os melhores cumprimentos,
+Com os melhores cumprimentos
 
-Rui Quelhas
-Director Comercial
-Garvetur Luxury Porto`
+${buildSignatureText(consultantFromProfile(item, getUserProfile()))}`
   );
 }
 
@@ -5285,6 +5316,7 @@ function renderFollowupPanel(){
   initConsultores();
   loadState();
   loadFilterState();
+  setupImportButtons();
   renderCards();
   // Auto-import via hash: #import=BASE64(JSON)
   (function checkBookmarkletImport(){
