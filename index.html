@@ -54,7 +54,7 @@
 
     main{
       flex:1;
-      padding:18px 18px 20px;
+      padding:18px;
       display:flex;
       flex-direction:column;
       gap:16px;
@@ -66,33 +66,18 @@
       border:1px solid var(--gold-soft);
       box-shadow:var(--shadow-soft);
       padding:16px 18px;
-      display:flex;
-      flex-wrap:wrap;
-      gap:14px;
-      align-items:flex-start;
-      justify-content:space-between;
     }
-    .hero-text{max-width:620px;}
+
     .hero-title{
       margin:0 0 6px;
       font-size:19px;
       letter-spacing:.16em;
       text-transform:uppercase;
-      color:#f5f5f5;
     }
+
     .hero-sub{
-      margin:0 0 10px;
       font-size:12px;
       color:var(--muted);
-      line-height:1.5;
-    }
-    .hero-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
-    .hero-tag{
-      font-size:10px;padding:3px 8px;border-radius:999px;
-      border:1px solid rgba(163,139,99,.45);
-      text-transform:uppercase;letter-spacing:.12em;
-      color:var(--muted);
-      background:rgba(0,0,0,.5);
     }
 
     .grid{
@@ -100,59 +85,25 @@
       grid-template-columns:repeat(2,minmax(0,1fr));
       gap:12px;
     }
-    @media (max-width:720px){ .grid{grid-template-columns:1fr;} }
 
     .card{
       border-radius:var(--radius-lg);
       background:linear-gradient(145deg,#181818,#0C0C0C);
       border:1px solid rgba(255,255,255,.14);
       box-shadow:var(--shadow-soft);
-      padding:12px 12px 11px;
+      padding:12px;
       display:flex;
       flex-direction:column;
       gap:8px;
-      position:relative;
-      overflow:hidden;
     }
-    .card::before{
-      content:"";
-      position:absolute;
-      inset:-40%;
-      background:radial-gradient(circle at top left,rgba(163,139,99,.12),transparent 55%);
-      opacity:0;
-      transition:.25s opacity;
-      pointer-events:none;
-    }
-    .card:hover::before{opacity:1;}
 
-    .card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
     .card-title{
       margin:0;
       font-size:14px;
       text-transform:uppercase;
       letter-spacing:.14em;
-      color:#f0f0f0;
     }
-    .card-badge{
-      font-size:10px;
-      padding:2px 7px;
-      border-radius:999px;
-      border:1px solid rgba(163,139,99,.55);
-      text-transform:uppercase;
-      letter-spacing:.12em;
-      color:var(--gold);
-      background:rgba(0,0,0,.7);
-      white-space:nowrap;
-    }
-    .card-body{font-size:12px;color:var(--muted);line-height:1.5;}
-    .card-footer{
-      margin-top:6px;
-      display:flex;
-      justify-content:space-between;
-      gap:8px;
-      align-items:center;
-      flex-wrap:wrap;
-    }
+
     .btn-xs{
       border-radius:999px;
       padding:6px 10px;
@@ -165,37 +116,21 @@
       display:inline-flex;
       align-items:center;
       gap:6px;
-      transition:.18s background,.18s color,.18s border-color,.18s transform;
     }
-    .btn-xs.primary{
-      background:var(--gold);
-      color:#0A0A0A;
-      border-color:var(--gold);
-      font-weight:600;
-    }
-    .btn-xs:hover{transform:translateY(-1px);border-color:var(--gold);}
-    .hint{font-size:11px;color:var(--muted);}
 
     footer{
-      padding:6px 14px 10px;
+      padding:8px 14px;
       font-size:11px;
       color:var(--muted);
       border-top:1px solid rgba(163,139,99,.28);
       background:#050505;
       display:flex;
       justify-content:space-between;
-      gap:8px;
-      flex-wrap:wrap;
     }
-    .admin-link{
-      color:rgba(255,255,255,.45);
-      text-decoration:none;
-      border-bottom:1px dotted rgba(255,255,255,.25);
-    }
-    .admin-link:hover{color:#fff;border-bottom-color:#fff;}
   </style>
 </head>
 <body>
+
 <header>
   <div class="brand">
     <div class="brand-icon">
@@ -206,101 +141,157 @@
     </div>
     <div>
       <h1>Garvetur Porto Pro</h1>
-      <span class="sub">Acesso de equipa (leitura) — Mapa e Vendas</span>
+      <span class="sub">Acesso de equipa</span>
     </div>
   </div>
 </header>
 
 <main>
+
   <section class="hero">
-    <div class="hero-text">
-      <h2 class="hero-title">Portal de Equipa</h2>
-      <p class="hero-sub">
-        Acesso controlado aos módulos de <strong>Mapa</strong> e <strong>Vendas</strong> em modo leitura.
-        Cada módulo tem a sua própria chave de acesso.
-      </p>
-      <div class="hero-tags">
-        <span class="hero-tag">Modo Leitura</span>
-        <span class="hero-tag">Sem menu de módulos</span>
-        <span class="hero-tag">Sem edição</span>
-        <span class="hero-tag">Chave por módulo</span>
-      </div>
-    </div>
+    <h2 class="hero-title">Portal de Equipa</h2>
+    <p class="hero-sub">
+      Acesso controlado aos módulos internos.
+    </p>
   </section>
 
   <section class="grid">
-    <article class="card">
-      <div class="card-header">
-        <h3 class="card-title">Mapa (Equipa)</h3>
-        <span class="card-badge">Leitura</span>
-      </div>
-      <div class="card-body">
-        Visualização do mapa e fichas (empreendimentos/imóveis), com filtros e pesquisa.
-      </div>
-      <div class="card-footer">
-        <a class="btn-xs primary" href="./equipa-mapa.html">Abrir Mapa</a>
-        <span class="hint">Protegido por password.</span>
-      </div>
-    </article>
+    <div class="card">
+      <h3 class="card-title">Mapa (Equipa)</h3>
+      <a class="btn-xs" href="./equipa-mapa.html">Abrir Mapa</a>
+    </div>
 
-    <article class="card">
-  <div class="card-header">
-    <h3 class="card-title">Prospecção (Equipa)</h3>
-    <span class="card-badge">Consulta</span>
-  </div>
-  <div class="card-body">
-    Consulta de contactos por imóvel (estado bloqueado/livre) + histórico por morada.
-    Sem edição pela equipa.
-  </div>
-  <div class="card-footer">
-    <a class="btn-xs primary" href="./prospeccao.html">Abrir Prospecção</a>
-    <span class="hint">Acesso controlado.</span>
-  </div>
-</article>
-
+    <div class="card">
+      <h3 class="card-title">Prospecção (Equipa)</h3>
+      <a class="btn-xs" href="./prospeccao.html">Abrir Prospecção</a>
+    </div>
   </section>
+
 </main>
 
 <footer>
-  <span>Garvetur Porto Pro — acesso de equipa (GitHub Pages).</span>
-  <span><a class="admin-link" href="./admin.html">Admin</a></span>
+  <span>Garvetur Porto Pro — Licenciado</span>
+  <span><a style="color:#999;" href="./admin.html">Admin</a></span>
 </footer>
+
 
 <script>
 (function(){
-  // ===== Password única para módulos de equipa =====
-const TEAM_PASS = 'Garvetur#Porto2026';
+
+  const LICENSE_SERVER = "https://script.google.com/macros/s/AKfycbzA6LwpkhVoeaFT7mjIBQ5eHLkgxey9qD9rMRT41saOVWjhe-H0AXGPUFj0Vwn75IK8/exec";
+  const LICENSE_KEY_STORAGE = "gpp_license_key_v1";
+  const DEVICE_ID_STORAGE   = "gpp_device_id_v1";
+
+  const TEAM_PASS = 'Garvetur#Porto2026';
   const AUTH_KEY  = 'gpp_team_auth_v1';
+
+  function generateDeviceId(){
+    return 'DEV-' + crypto.randomUUID();
+  }
+
+  function getDeviceId(){
+    let id = localStorage.getItem(DEVICE_ID_STORAGE);
+    if(!id){
+      id = generateDeviceId();
+      localStorage.setItem(DEVICE_ID_STORAGE, id);
+    }
+    return id;
+  }
+
+  async function callServer(action, licenseKey){
+    const deviceId = getDeviceId();
+    const res = await fetch(LICENSE_SERVER, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        action: action,
+        license_key: licenseKey,
+        device_id: deviceId
+      })
+    });
+    return res.json();
+  }
+
+  function blockApp(message){
+    document.body.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#000;color:#fff;font-family:system-ui;">
+        <div style="text-align:center;max-width:420px;">
+          <h2 style="color:#A38B63;">Acesso bloqueado</h2>
+          <p style="margin-top:10px;line-height:1.5;">${message}</p>
+        </div>
+      </div>
+    `;
+  }
+
+  async function checkLicense(){
+
+    let licenseKey = localStorage.getItem(LICENSE_KEY_STORAGE);
+
+    if(!licenseKey){
+      licenseKey = prompt("Introduza a sua chave de licença:");
+      if(!licenseKey){
+        blockApp("Licença obrigatória.");
+        return;
+      }
+
+      const activation = await callServer("activate", licenseKey);
+
+      if(!activation.ok || activation.status !== "ACTIVE"){
+        blockApp("Licença inválida ou não ativa.");
+        return;
+      }
+
+      localStorage.setItem(LICENSE_KEY_STORAGE, licenseKey);
+      return;
+    }
+
+    const check = await callServer("check", licenseKey);
+
+    if(!check.ok){
+      blockApp("Erro na validação da licença.");
+      return;
+    }
+
+    if(check.status === "ACTIVE") return;
+
+    if(check.status === "EXPIRED"){
+      blockApp("Licença expirada. Contacte a administração.");
+      return;
+    }
+
+    if(check.status === "REVOKED"){
+      blockApp("Licença revogada.");
+      return;
+    }
+
+    blockApp("Licença inválida.");
+  }
 
   function checkAccess(e){
     e.preventDefault();
     const target = e.currentTarget.getAttribute('href');
 
-    try{
-      if(sessionStorage.getItem(AUTH_KEY) === '1'){
-        window.location.href = target;
-        return;
-      }
-    }catch(e){}
+    if(sessionStorage.getItem(AUTH_KEY) === '1'){
+      window.location.href = target;
+      return;
+    }
 
     const pwd = prompt('Introduza a password de acesso:');
-    if(pwd === null) return;
-
     if(pwd === TEAM_PASS){
-      try{ sessionStorage.setItem(AUTH_KEY,'1'); }catch(e){}
+      sessionStorage.setItem(AUTH_KEY,'1');
       window.location.href = target;
     }else{
       alert('Password incorreta.');
     }
   }
 
-  // Aplica a proteção aos dois módulos
   document.querySelectorAll('a[href="./equipa-mapa.html"], a[href="./prospeccao.html"]')
-    .forEach(link => {
-      link.addEventListener('click', checkAccess);
-    });
+    .forEach(link => link.addEventListener('click', checkAccess));
+
+  checkLicense();
+
 })();
 </script>
-  
+
 </body>
 </html>
