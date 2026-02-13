@@ -1,23 +1,20 @@
-/* Garvetur Porto Pro — Configuração central de Consultores (v1.1.0)
-   Modo distribuição: MOSTRAR APENAS o consultor titular da licença.
+/* Garvetur Porto Pro — config-consultores.js (v1.2.0)
+   Objetivo: garantir que a app mostra SEMPRE o nome do titular da licença (modo 1 consultor).
 
-   Chaves locais relevantes:
-   - gpp_license_key_v1       (chave simples da licença)
-   - gpp_license_state_v1     (objeto com estado/licença)
-   - gpp_consultor_nome_v1    (nome do titular vindo do endpoint)
-   - gpp_consultores_v1       (lista consumida pelos módulos)
+   Fontes (por ordem):
+   1) gpp_consultor_nome_v1 (vindo do endpoint)
+   2) LICENSE_MAP (licença -> nome)
+   3) gpp_profile_v1.nome (fallback)
 */
 (function(){
   'use strict';
 
   const STORAGE_KEY = 'gpp_consultores_v1';
-
-  // Preferências/compatibilidade
   const LICENSE_KEY = 'gpp_license_key_v1';
   const LIC_STATE_KEY = 'gpp_license_state_v1';
   const CONSULTOR_NOME_KEY = 'gpp_consultor_nome_v1';
 
-  // ✅ Mapeamento licença → consultor (titular)
+  // ✅ Licença → Titular
   const LICENSE_MAP = {
     'GPP-PORTO-001': 'Manuel Oliveira',
     'GPP-PORTO-002': 'João Sousa',
@@ -27,138 +24,65 @@
     'GPP-PORTO-006': 'Rui Quelhas'
   };
 
-  // Forçar sempre 1 consultor (titular). Para futuro modo equipa, coloque false.
-  const STRICT_SINGLE = true;
-
   function safeParse(raw){
     try{ return JSON.parse(raw); }catch(e){ return null; }
   }
-
   function readTrim(key){
-    try{
-      return String(localStorage.getItem(key) || '').trim();
-    }catch(e){
-      return '';
-    }
+    try{ return String(localStorage.getItem(key)||'').trim(); }catch(e){ return ''; }
   }
 
   function getLicenseKey(){
-    // 1) chave direta (preferida)
+    // 1) chave direta
     const direct = readTrim(LICENSE_KEY);
     if(direct) return direct.toUpperCase();
 
-    // 2) fallback: tentar obter do estado (gpp_license_state_v1)
-    try{
-      const st = safeParse(localStorage.getItem(LIC_STATE_KEY) || '');
-      const lk = st && st.license_key ? String(st.license_key).trim() : '';
-      if(lk) return lk.toUpperCase();
-    }catch(e){}
+    // 2) fallback: estado
+    const st = safeParse(readTrim(LIC_STATE_KEY));
+    if(st && st.license_key) return String(st.license_key).trim().toUpperCase();
 
     return '';
   }
 
-  function getConsultorNome(){
+  function getOwnerName(){
+    // 1) nome do endpoint
     const n = readTrim(CONSULTOR_NOME_KEY);
-    return n ? n : '';
-  }
+    if(n) return n;
 
-  function uid(){
-    return 'c_' + Date.now() + '_' + Math.floor(Math.random()*1000);
-  }
-
-  function normalizeList(list){
-    if(!Array.isArray(list)) return [];
-    return list.map((c, idx)=>{
-      if(typeof c === 'string'){
-        return { id: 'c_' + idx + '_' + Date.now(), nome: c, ativo: true };
-      }
-      if(c && typeof c === 'object'){
-        return {
-          id: c.id || ('c_' + idx + '_' + Date.now()),
-          nome: (c.nome || c.name || '').trim(),
-          ativo: c.ativo !== false,
-          license: (c.license || '').trim()
-        };
-      }
-      return null;
-    }).filter(x => x && x.nome);
-  }
-
-  function defaultOwnerName(){
-    // 1) prioridade máxima: nome vindo do endpoint/ativação
-    const byKey = getConsultorNome();
-    if(byKey) return byKey;
-
-    // 2) senão, tentar via mapa licença → nome
+    // 2) por licença
     const lk = getLicenseKey();
     if(lk && LICENSE_MAP[lk]) return LICENSE_MAP[lk];
 
-    // 3) fallback opcional: perfil antigo (caso exista)
-    try{
-      const p1 = safeParse(localStorage.getItem('gpp_profile_v1') || '');
-      if(p1 && p1.nome) return String(p1.nome).trim();
-    }catch(e){}
+    // 3) fallback: perfil antigo
+    const p = safeParse(readTrim('gpp_profile_v1'));
+    if(p && p.nome) return String(p.nome).trim();
 
     return 'Consultor';
   }
 
   function buildSingleList(){
     const lk = getLicenseKey();
-    const nome = defaultOwnerName();
+    const nome = getOwnerName();
     return [{
-      id: 'lic_' + (lk || uid()),
+      id: 'lic_' + (lk || Date.now()),
       nome,
       ativo: true,
       license: lk || ''
     }];
   }
 
-  function load(){
-    if(STRICT_SINGLE){
-      return buildSingleList();
-    }
+  // Construir e publicar config global
+  const list = buildSingleList();
 
-    // Caso futuro: modo equipa
-    try{
-      const raw = localStorage.getItem(STORAGE_KEY);
-      const parsed = safeParse(raw);
-      const norm = normalizeList(parsed);
-      if(norm.length) return norm;
-    }catch(e){}
-    return buildSingleList();
-  }
-
-  function saveAll(list){
-    const norm = normalizeList(list);
-    const finalList = STRICT_SINGLE ? buildSingleList() : (norm.length ? norm : buildSingleList());
-    try{
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(finalList));
-    }catch(e){}
-    window.CONSULTANTS_CONFIG = finalList.slice();
-    return finalList;
-  }
-
-  // Estado em memória
-  let _list = load();
-
-  // Persistir de imediato para garantir consistência entre módulos
   try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(_list));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
   }catch(e){}
-  window.CONSULTANTS_CONFIG = _list.slice();
 
-  // API pública
+  window.CONSULTANTS_CONFIG = list.slice();
+
   window.GPPConsultores = {
-    getAll: function(){ return _list.slice(); },
-    getAtivos: function(){ return _list.filter(c => c && c.ativo); },
-    saveAll: function(list){ _list = saveAll(list); return _list.slice(); },
-    getOwnerName: function(){ return defaultOwnerName(); },
-    getLicenseKey: function(){ return getLicenseKey(); },
-    ensure: function(){
-      _list = load();
-      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(_list)); }catch(e){}
-      window.CONSULTANTS_CONFIG = _list.slice();
-      return _list.slice();
-    }
+    getAll: function(){ return list.slice(); },
+    getAtivos: function(){ return list.filter(c => c && c.ativo); },
+    getOwnerName: function(){ return getOwnerName(); },
+    getLicenseKey: function(){ return getLicenseKey(); }
   };
 })();
