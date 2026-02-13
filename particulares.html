@@ -1,7 +1,6 @@
 
 
 
-
 <!doctype html>
 <html lang="pt-PT">
 <head>
@@ -1001,21 +1000,7 @@ textarea{
         <button class="btn btn-ghost" id="restoreBtn" title="Restaurar backup (JSON)">⤺ Restaurar</button>
       </div>
 
-      
-      <div class="tool-group" id="importGroup">
-        <div class="tool-label">Importar anúncio</div>
-        <div class="tool-row">
-          <button class="btn btn-ghost" id="bmIdealistaBtn" type="button" title="Copiar atalho para importar a partir do Idealista">Idealista</button>
-          <button class="btn btn-ghost" id="bmImovirtualBtn" type="button" title="Copiar atalho para importar a partir do Imovirtual">Imovirtual</button>
-          <button class="btn btn-ghost" id="bmSupercasaBtn" type="button" title="Em desenvolvimento">Supercasa</button>
-        </div>
-        <div class="tool-help">
-          Dica: clique num portal para copiar o atalho. Depois crie um favorito no navegador e cole o atalho no campo “URL”.
-          Quando estiver no anúncio, clique no favorito para importar automaticamente para este módulo.
-        </div>
-      </div>
-
-<div class="tool-group">
+      <div class="tool-group">
         <div class="tool-label">Criar</div>
         <button class="btn btn-primary" id="newItemBtn">+ Novo FSBO</button>
       </div>
@@ -1641,39 +1626,7 @@ $('ownerPhone').value = p.ownerPhone || '';
   const backupBtn = $('backupBtn');
   const restoreBtn = $('restoreBtn');
 
-  
-  // Importar anúncio (atalhos)
-  const bmIdealistaBtn = $('bmIdealistaBtn');
-  const bmImovirtualBtn = $('bmImovirtualBtn');
-  const bmSupercasaBtn  = $('bmSupercasaBtn');
-
-  const BM_IDEALISTA  = "javascript:(()=>{try{const FSBO_URL='https://ruiquelhas1-lab.github.io/GarveturPortoPro/particulares.html';const t=s=>{const e=document.querySelector(s);return e?e.textContent.trim():''};const pick=a=>a.find(v=>v&&String(v).trim())||'';const link=location.href;const titulo=pick([t('h1'),t('.main-info__title-main'),t('.detail-info__title'),document.title.replace(/\\s*\\|.*$/,'').trim()]);const precoRaw=pick([t('.info-data-price'),t('.price.txt-bold'),t('.detail-info__price')]);const precoNum=Number((precoRaw||'').replace(/[^\\d]/g,''));const precoAnuncio=(isFinite(precoNum)&&precoNum>0)?precoNum:null;let natureza='';if(/\\bapartamento\\b/i.test(titulo)) natureza='apartamento';else if(/\\bmoradia\\b/i.test(titulo)) natureza='moradia';else if(/\\bterreno\\b/i.test(titulo)) natureza='terreno';else if(/\\bloja\\b/i.test(titulo)) natureza='loja';else if(/\\bescrit[o\u00f3]rio\\b/i.test(titulo)) natureza='escritorio';const tipMatch=(titulo||'').match(/\\b(T0|T1|T2|T3|T4|T5|T6)\\b/i);const tipologia=tipMatch?tipMatch[1].toUpperCase():'';const zona=pick([t('.main-info__title-minor'),t('.detail-info__location')]);const descricao=pick([t('.comment'),t('.adCommentsLanguage'),t('#description')]);const ownerName=prompt('FSBO \u2014 Nome do propriet\u00e1rio (opcional):','')||'';const ownerPhone=prompt('FSBO \u2014 Telem\u00f3vel do propriet\u00e1rio (opcional):','')||'';const payload={portal:'Idealista',link,tituloImovel:titulo,precoAnuncio,concelho:'',freguesia:'',zona,natureza,tipologia,descricao,ref:'',area:'',quartos:tipologia?tipologia.replace('T',''):'',wc:'',andar:'',extras:[],anunciante:'',ownerName:ownerName.trim(),ownerPhone:ownerPhone.trim()};const b64=btoa(unescape(encodeURIComponent(JSON.stringify(payload))));location.href=FSBO_URL+'#import='+encodeURIComponent(b64);}catch(e){alert('FSBO Import (Idealista): falhou\\n\\n'+(e&&e.message?e.message:e));}})();";
-  const BM_IMOVIRTUAL = "javascript:(()=>{try{const FSBO_URL='https://ruiquelhas1-lab.github.io/GarveturPortoPro/particulares.html';const t=s=>{const e=document.querySelector(s);return e?e.textContent.trim():''};const pick=a=>a.find(v=>v&&String(v).trim())||'';const clean=x=>String(x||'').replace(/\\s+/g,' ').trim();const link=location.href;const titulo=clean(pick([t('h1'),t('[data-cy=\"adPageAdTitle\"]'),t('[data-testid=\"ad-title\"]'),t('.offer-title'),document.title.replace(/\\s*\\|.*$/,'').trim()]));const precoRaw=clean(pick([t('[data-cy=\"adPageHeaderPrice\"]'),t('[data-testid=\"ad-price\"]'),t('.offer-price__number'),t('.offer-price'),t('.price')]));const precoNum=Number((precoRaw||'').replace(/[^\\d]/g,''));const precoAnuncio=(isFinite(precoNum)&&precoNum>0)?precoNum:null;let natureza='';if(/\\bapartamento\\b/i.test(titulo)) natureza='apartamento';else if(/\\bmoradia\\b|\\bcasa\\b/i.test(titulo)) natureza='moradia';else if(/\\bterreno\\b/i.test(titulo)) natureza='terreno';else if(/\\bloja\\b/i.test(titulo)) natureza='loja';else if(/\\bescrit[o\u00f3]rio\\b/i.test(titulo)) natureza='escritorio';const tipMatch=(titulo||'').match(/\\b(T0|T1|T2|T3|T4|T5|T6)\\b/i);const tipologia=tipMatch?tipMatch[1].toUpperCase():'';let zona=clean(pick([t('[data-cy=\"adPageHeaderAddress\"]'),t('[data-testid=\"ad-address\"]'),t('.offer-location'),t('.location-address'),t('.address')]));const descricao=clean(pick([t('[data-cy=\"adPageAdDescription\"]'),t('[data-testid=\"ad-description\"]'),t('.offer-description'),t('.description')]));const ownerName=prompt('FSBO \u2014 Nome do propriet\u00e1rio (opcional):','')||'';const ownerPhone=prompt('FSBO \u2014 Telem\u00f3vel do propriet\u00e1rio (opcional):','')||'';const payload={portal:'Imovirtual',link,tituloImovel:titulo,precoAnuncio,concelho:'',freguesia:'',zona,natureza,tipologia,descricao,ref:'',area:'',quartos:tipologia?tipologia.replace('T',''):'',wc:'',andar:'',extras:[],anunciante:'',ownerName:ownerName.trim(),ownerPhone:ownerPhone.trim()};const b64=btoa(unescape(encodeURIComponent(JSON.stringify(payload))));const url=FSBO_URL+'#import='+encodeURIComponent(b64);const w=window.open(url,'_blank');if(!w) alert('Pop-ups bloqueados: permita pop-ups para abrir o FSBO.');}catch(e){alert('FSBO Import (Imovirtual): falhou\\n\\n'+(e&&e.message?e.message:e));}})();";
-
-  async function copyToClipboardOrPrompt(text, label){
-    try{ 
-      await navigator.clipboard.writeText(text);
-      showToast('Atalho copiado: ' + label + ' — cole num favorito (URL).');
-    }catch(e){
-      prompt('Copie o atalho ('+label+') e cole num favorito (URL):', text);
-    }
-  }
-
-  function setupImportButtons(){
-    if(bmIdealistaBtn){
-      bmIdealistaBtn.addEventListener('click', ()=>copyToClipboardOrPrompt(BM_IDEALISTA,'Idealista'));
-    }
-    if(bmImovirtualBtn){
-      bmImovirtualBtn.addEventListener('click', ()=>copyToClipboardOrPrompt(BM_IMOVIRTUAL,'Imovirtual'));
-    }
-    if(bmSupercasaBtn){
-      bmSupercasaBtn.addEventListener('click', ()=>{
-        showToast('Supercasa: importador ainda não disponível.');
-      });
-    }
-  }
-
-// Main
+  // Main
   const cardsGrid = $('cardsGrid');
   const emptyState = $('emptyState');
   const pipelineKpis = $('pipelineKpis');
@@ -5316,7 +5269,6 @@ function renderFollowupPanel(){
   initConsultores();
   loadState();
   loadFilterState();
-  setupImportButtons();
   renderCards();
   // Auto-import via hash: #import=BASE64(JSON)
   (function checkBookmarkletImport(){
