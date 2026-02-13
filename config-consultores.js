@@ -1,10 +1,18 @@
-/* Garvetur Porto Pro — config-consultores.js (v1.2.0)
-   Objetivo: garantir que a app mostra SEMPRE o nome do titular da licença (modo 1 consultor).
 
-   Fontes (por ordem):
-   1) gpp_consultor_nome_v1 (vindo do endpoint)
-   2) LICENSE_MAP (licença -> nome)
-   3) gpp_profile_v1.nome (fallback)
+/* Garvetur Porto Pro — config-consultores.js (v1.3.0)
+   ✅ Modo DUAL:
+   - ADMIN (Cockpit / GitHub master): mostra TODOS os consultores (não força "1 consultor")
+   - LICENÇA (localhost:8000): força 1 consultor (titular da licença)
+
+   Regras de modo:
+   - Se location.hostname === 'localhost' e location.port === '8000'  -> MODO LICENÇA
+   - Caso contrário -> MODO ADMIN
+
+   Chaves:
+   - gpp_consultores_v1        (lista equipa)
+   - gpp_license_key_v1        (licença)
+   - gpp_license_state_v1      (estado)
+   - gpp_consultor_nome_v1     (nome titular - vindo do endpoint)
 */
 (function(){
   'use strict';
@@ -24,19 +32,28 @@
     'GPP-PORTO-006': 'Rui Quelhas'
   };
 
-  function safeParse(raw){
-    try{ return JSON.parse(raw); }catch(e){ return null; }
-  }
-  function readTrim(key){
-    try{ return String(localStorage.getItem(key)||'').trim(); }catch(e){ return ''; }
+  // ✅ Lista total de consultores (ADMIN) — mantenha aqui o "master"
+  const MASTER_CONSULTORES = [
+    { id:'GPP-PORTO-001', nome:'Manuel Oliveira', ativo:true },
+    { id:'GPP-PORTO-002', nome:'João Sousa', ativo:true },
+    { id:'GPP-PORTO-003', nome:'Francisco Santos', ativo:true },
+    { id:'GPP-PORTO-004', nome:'Rosário Costa', ativo:true },
+    { id:'GPP-PORTO-005', nome:'Dalila Cunha', ativo:true },
+    { id:'GPP-PORTO-006', nome:'Rui Quelhas', ativo:true }
+  ];
+
+  function safeParse(raw){ try{ return JSON.parse(raw); }catch(e){ return null; } }
+  function readTrim(key){ try{ return String(localStorage.getItem(key)||'').trim(); }catch(e){ return ''; } }
+
+  function isLicenseMode(){
+    // MODO LICENÇA só no vosso ambiente: http://localhost:8000
+    return (location.hostname === 'localhost' || location.hostname === '127.0.0.1') && String(location.port||'') === '8000';
   }
 
   function getLicenseKey(){
-    // 1) chave direta
     const direct = readTrim(LICENSE_KEY);
     if(direct) return direct.toUpperCase();
 
-    // 2) fallback: estado
     const st = safeParse(readTrim(LIC_STATE_KEY));
     if(st && st.license_key) return String(st.license_key).trim().toUpperCase();
 
@@ -44,7 +61,7 @@
   }
 
   function getOwnerName(){
-    // 1) nome do endpoint
+    // 1) nome vindo do endpoint
     const n = readTrim(CONSULTOR_NOME_KEY);
     if(n) return n;
 
@@ -52,37 +69,70 @@
     const lk = getLicenseKey();
     if(lk && LICENSE_MAP[lk]) return LICENSE_MAP[lk];
 
-    // 3) fallback: perfil antigo
-    const p = safeParse(readTrim('gpp_profile_v1'));
-    if(p && p.nome) return String(p.nome).trim();
-
+    // 3) fallback
     return 'Consultor';
   }
 
-  function buildSingleList(){
+  function normalizeTeam(list){
+    if(!Array.isArray(list)) return [];
+    return list.map((c, idx)=>{
+      if(typeof c === 'string'){
+        return { id:'c_'+idx+'_'+Date.now(), nome:c, ativo:true };
+      }
+      if(c && typeof c === 'object'){
+        return {
+          id: c.id || ('c_'+idx+'_'+Date.now()),
+          nome: String(c.nome || c.name || '').trim(),
+          ativo: c.ativo !== false,
+          license: String(c.license || '').trim()
+        };
+      }
+      return null;
+    }).filter(x => x && x.nome);
+  }
+
+  function buildSingle(){
     const lk = getLicenseKey();
-    const nome = getOwnerName();
     return [{
       id: 'lic_' + (lk || Date.now()),
-      nome,
+      nome: getOwnerName(),
       ativo: true,
       license: lk || ''
     }];
   }
 
-  // Construir e publicar config global
-  const list = buildSingleList();
+  function loadAdminTeam(){
+    // ADMIN: nunca “destruir” a lista se existir; apenas garantir mínimo
+    const existing = safeParse(readTrim(STORAGE_KEY));
+    const norm = normalizeTeam(existing);
 
-  try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-  }catch(e){}
+    if(norm.length) return norm;
 
+    // Se não existir nada, usa o master (e guarda)
+    const seed = MASTER_CONSULTORES.map(c => ({...c}));
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(seed)); }catch(e){}
+    return seed;
+  }
+
+  // ---- MAIN ----
+  const LICENSE_MODE = isLicenseMode();
+  const list = LICENSE_MODE ? buildSingle() : loadAdminTeam();
+
+  // Em modo LICENÇA, garantimos que a lista fica sempre 1 consultor (titular)
+  if(LICENSE_MODE){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }catch(e){}
+  }
+
+  // Config global (consumido pelos módulos)
   window.CONSULTANTS_CONFIG = list.slice();
 
+  // API
   window.GPPConsultores = {
+    mode: LICENSE_MODE ? 'LICENSE' : 'ADMIN',
     getAll: function(){ return list.slice(); },
     getAtivos: function(){ return list.filter(c => c && c.ativo); },
     getOwnerName: function(){ return getOwnerName(); },
     getLicenseKey: function(){ return getLicenseKey(); }
   };
+
 })();
